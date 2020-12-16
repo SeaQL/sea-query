@@ -15,7 +15,7 @@ serde_json = "1.0"
 
 [dev-dependencies]
 async-std = "1.8"
-sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "any", "mysql", "sqlite", "postgres", "tls", "migrate", "decimal" ] }
+sqlx = { version = "0.4.0", default-features = false, features = [ "runtime-async-std-native-tls", "macros", "any", "mysql", "sqlite", "tls", "migrate", "decimal" ] }
 
 [lib]
 name = "sea_query"
