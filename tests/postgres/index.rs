@@ -1,0 +1,36 @@
+use super::*;
+
+#[test]
+fn create_1() {
+    assert_eq!(
+        Index::create()
+            .name("idx-glyph-aspect")
+            .table(Glyph::Table)
+            .col(Glyph::Aspect)
+            .to_string(PostgresQueryBuilder::new()),
+        r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
+    );
+}
+
+#[test]
+fn create_2() {
+    assert_eq!(
+        Index::create()
+            .name("idx-glyph-aspect-image")
+            .table(Glyph::Table)
+            .col(Glyph::Aspect)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder::new()),
+        r#"CREATE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
+    );
+}
+
+#[test]
+fn drop_1() {
+    assert_eq!(
+        Index::drop()
+            .name("idx-glyph-aspect")
+            .to_string(PostgresQueryBuilder::new()),
+        r#"DROP INDEX "idx-glyph-aspect""#
+    );
+}
