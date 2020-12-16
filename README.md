@@ -14,7 +14,7 @@
     <a href="https://docs.rs/sea-query">API Docs</a>
   </h4>
 
-  <sub>Built with ❤️ by 🦀</sub>
+  <sub>Built with ❤️ by 🌊🦀🐠</sub>
 
 </div>
 
