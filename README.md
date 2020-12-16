@@ -1,6 +1,6 @@
 <div align="center">
 
-  <h1>Sea-Query</h1>
+  <h1>SeaQuery</h1>
 
   <p>
     <strong>A database agnostic runtime query builder for Rust</strong>
@@ -20,7 +20,7 @@
 
 ## Introduction
 
-This library is the foundation of upcoming projects on Document ORM (Sea-ORM) and Database Synchor (Sea-Horse).
+This library is the foundation of upcoming projects on Document ORM (SeaORM) and Database Synchor (SeaHorse).
 
 ## Install
 
