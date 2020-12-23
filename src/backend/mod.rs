@@ -16,6 +16,13 @@ pub use mysql::*;
 pub use sqlite::*;
 pub use postgres::*;
 
+pub trait GenericBuilder: QueryBuilder + TableBuilder + IndexBuilder + ForeignKeyBuilder {
+    fn query_builder(&self) -> Box<dyn QueryBuilder>;
+    fn table_builder(&self) -> Box<dyn TableBuilder>;
+    fn index_builder(&self) -> Box<dyn IndexBuilder>;
+    fn foreign_key_builder(&self) -> Box<dyn ForeignKeyBuilder>;
+}
+
 pub trait QueryBuilder {
     /// Translate [`InsertStatement`] into database specific SQL statement.
     fn prepare_insert_statement(&mut self, insert: &InsertStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value));

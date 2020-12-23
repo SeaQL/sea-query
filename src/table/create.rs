@@ -33,7 +33,7 @@ use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, types::*};
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 ///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
 ///             r#"`font_size` int NOT NULL,"#,
-///             r#"`character` varchar NOT NULL,"#,
+///             r#"`character` varchar(255) NOT NULL,"#,
 ///             r#"`size_w` int NOT NULL,"#,
 ///             r#"`size_h` int NOT NULL,"#,
 ///             r#"`font_id` int DEFAULT NULL,"#,
@@ -177,6 +177,13 @@ impl TableCreateStatement {
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build<T: TableBuilder>(&self, mut table_builder: T) -> String {
+        let mut sql = String::new();
+        table_builder.prepare_table_create_statement(self, &mut sql);
+        sql
+    }
+
+    /// Build corresponding SQL statement for certain database backend and return SQL string
+    pub fn build_any(&self, mut table_builder: Box<dyn TableBuilder>) -> String {
         let mut sql = String::new();
         table_builder.prepare_table_create_statement(self, &mut sql);
         sql

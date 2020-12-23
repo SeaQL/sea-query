@@ -19,3 +19,21 @@ impl MysqlQueryBuilder {
         Self
     }
 }
+
+impl GenericBuilder for MysqlQueryBuilder {
+    fn query_builder(&self) -> Box<dyn QueryBuilder> {
+        Box::new(MysqlQueryBuilder)
+    }
+
+    fn table_builder(&self) -> Box<dyn TableBuilder> {
+        Box::new(MysqlQueryBuilder)
+    }
+
+    fn index_builder(&self) -> Box<dyn IndexBuilder> {
+        Box::new(MysqlQueryBuilder)
+    }
+
+    fn foreign_key_builder(&self) -> Box<dyn ForeignKeyBuilder> {
+        Box::new(MysqlQueryBuilder)
+    }
+}

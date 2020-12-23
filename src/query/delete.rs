@@ -309,6 +309,13 @@ impl DeleteStatement {
         sql
     }
 
+    /// Build corresponding SQL statement for certain database backend and collect query parameters    
+    pub fn build_collect_any(&self, mut query_builder: Box<dyn QueryBuilder>, collector: &mut dyn FnMut(Value)) -> String {
+        let mut sql = String::new();
+        query_builder.prepare_delete_statement(self, &mut sql, collector);
+        sql
+    }
+
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
     /// 
     /// # Examples
@@ -336,6 +343,14 @@ impl DeleteStatement {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
         let sql = self.build_collect(query_builder, &mut collector);
+        (sql, params)
+    }
+
+    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
+    pub fn build_any(&self, query_builder: Box<dyn QueryBuilder>) -> (String, Vec<Value>) {
+        let mut params = Vec::new();
+        let mut collector = |v| params.push(v);
+        let sql = self.build_collect_any(query_builder, &mut collector);
         (sql, params)
     }
 

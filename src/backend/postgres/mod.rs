@@ -19,3 +19,21 @@ impl PostgresQueryBuilder {
         Self
     }
 }
+
+impl GenericBuilder for PostgresQueryBuilder {
+    fn query_builder(&self) -> Box<dyn QueryBuilder> {
+        Box::new(PostgresQueryBuilder)
+    }
+
+    fn table_builder(&self) -> Box<dyn TableBuilder> {
+        Box::new(PostgresQueryBuilder)
+    }
+
+    fn index_builder(&self) -> Box<dyn IndexBuilder> {
+        Box::new(PostgresQueryBuilder)
+    }
+
+    fn foreign_key_builder(&self) -> Box<dyn ForeignKeyBuilder> {
+        Box::new(PostgresQueryBuilder)
+    }
+}

@@ -58,7 +58,7 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnType::Char(length) => format!("char({})", length),
             ColumnType::CharDefault => "char".into(),
             ColumnType::String(length) => format!("varchar({})", length),
-            ColumnType::StringDefault => "varchar".into(),
+            ColumnType::StringDefault => "varchar(255)".into(),
             ColumnType::Text => "text".into(),
             ColumnType::TinyInteger(length) => format!("tinyint({})", length),
             ColumnType::TinyIntegerDefault => "tinyint".into(),

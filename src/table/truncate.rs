@@ -59,6 +59,13 @@ impl TableTruncateStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
+    pub fn build_any(&self, mut table_builder: Box<dyn TableBuilder>) -> String {
+        let mut sql = String::new();
+        table_builder.prepare_table_truncate_statement(self, &mut sql);
+        sql
+    }
+
+    /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
         self.build(table_builder)
     }

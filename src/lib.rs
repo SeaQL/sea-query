@@ -238,7 +238,7 @@
 //!         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 //!             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
 //!             r#"`font_size` int NOT NULL,"#,
-//!             r#"`character` varchar NOT NULL,"#,
+//!             r#"`character` varchar(255) NOT NULL,"#,
 //!             r#"`size_w` int NOT NULL,"#,
 //!             r#"`size_h` int NOT NULL,"#,
 //!             r#"`font_id` int DEFAULT NULL,"#,
