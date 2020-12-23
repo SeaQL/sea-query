@@ -1,11 +1,9 @@
-use sea_query::*;
-use sqlx::{Any, AnyPool, any::AnyArguments};
-use serde_json::json;
-use async_std::task;
 use std::fmt;
-
-type SqlxQuery<'a> = sqlx::query::Query<'a, Any, AnyArguments<'a>>;
-type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Any, T, AnyArguments<'a>>;
+use async_std::task;
+use serde_json::json;
+use sqlx::AnyPool;
+use sea_query::*;
+use sea_query::driver::sqlx::{bind_query, bind_query_as};
 
 fn main() {
     let connection = task::block_on(async {
@@ -59,7 +57,7 @@ fn main() {
         .build_any(table_builder.query_builder());
 
     let result = task::block_on(async {
-        bind(sqlx::query(&sql), &params)
+        bind_query(sqlx::query(&sql), &params)
             .execute(&mut pool)
             .await
     });
@@ -74,7 +72,7 @@ fn main() {
         .build_any(table_builder.query_builder());
 
     let rows = task::block_on(async {
-        bind_query(sqlx::query_as::<_, CharacterStruct>(&sql), &params)
+        bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &params)
             .fetch_all(&mut pool)
             .await
             .unwrap()
@@ -116,42 +114,4 @@ struct CharacterStruct {
     font_size: i32,
     size_w: i32,
     size_h: i32,
-}
-
-fn bind<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
-    bind_params!(query, params)
-}
-
-fn bind_query<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
-    bind_params!(query, params)
-}
-
-#[macro_export]
-macro_rules! bind_params {
-    ( $query:expr, $params:expr ) => {
-        {
-            let mut query = $query;
-            for value in $params.iter() {
-                query = match value {
-                    Value::NULL => query.bind(None::<i32>),
-                    Value::Bytes(v) => query.bind(std::str::from_utf8(v).unwrap()),
-                    Value::Int(v) => query.bind(v),
-                    Value::UInt(v) => query.bind(format!("{}", v)),
-                    Value::Float(v) => query.bind(v),
-                    Value::Double(v) => query.bind(format!("{}", v)),
-                    Value::Date(year, month, day, hour, minutes, seconds, _micro_seconds) => 
-                        query.bind(format!(
-                            "{:04}{:02}{:02} {:02}{:02}{:02}",
-                            year, month, day, hour, minutes, seconds
-                        )),
-                    Value::Time(negative, days, hours, minutes, seconds, _micro_seconds) => 
-                        query.bind(format!(
-                            "{}{:02}{:02} {:02}{:02}.{:03}",
-                            if *negative { "-" } else { "" }, days, hours, minutes, seconds, _micro_seconds / 1000
-                        )),
-                };
-            }
-            query
-        }
-    };
 }

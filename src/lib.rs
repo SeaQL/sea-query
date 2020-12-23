@@ -494,6 +494,7 @@
 //! ```
 
 pub mod backend;
+pub mod driver;
 pub mod expr;
 pub mod foreign_key;
 pub mod index;
@@ -504,6 +505,7 @@ pub mod types;
 pub mod value;
 
 pub use backend::*;
+//pub use driver::*;
 pub use expr::*;
 pub use foreign_key::*;
 pub use index::*;

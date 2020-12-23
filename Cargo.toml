@@ -10,12 +10,20 @@ repository = "https://github.com/SeaQL/Sea-Query"
 categories = ["database"]
 keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
 
+[lib]
+name = "sea_query"
+
 [dependencies]
 serde_json = "1.0"
+sqlx = { optional = true, version = "0.4.0", default-features = false, features = [ "runtime-async-std-native-tls", "macros", "any", "mysql", "sqlite", "tls", "migrate", "decimal" ] }
 
 [dev-dependencies]
 async-std = "1.8"
 sqlx = { version = "0.4.0", default-features = false, features = [ "runtime-async-std-native-tls", "macros", "any", "mysql", "sqlite", "tls", "migrate", "decimal" ] }
 
-[lib]
-name = "sea_query"
+[features]
+sqlx-driver = ["sqlx"]
+
+[[example]]
+name = "sqlx"
+required-features = ["sqlx-driver"]
