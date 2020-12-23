@@ -89,7 +89,7 @@ impl TableDropStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: Box<dyn TableBuilder>) -> String {
+    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
         let mut sql = String::new();
         table_builder.prepare_table_drop_statement(self, &mut sql);
         sql

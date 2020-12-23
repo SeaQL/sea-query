@@ -65,7 +65,7 @@ impl ForeignKeyDropStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, foreign_key_builder: Box<dyn ForeignKeyBuilder>) -> String {
+    pub fn build_any(&self, foreign_key_builder: &dyn ForeignKeyBuilder) -> String {
         let mut sql = String::new();
         foreign_key_builder.prepare_foreign_key_drop_statement(self, &mut sql);
         sql

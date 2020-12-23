@@ -76,7 +76,7 @@ impl IndexCreateStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, index_builder: Box<dyn IndexBuilder>) -> String {
+    pub fn build_any(&self, index_builder: &dyn IndexBuilder) -> String {
         let mut sql = String::new();
         index_builder.prepare_index_create_statement(self, &mut sql);
         sql

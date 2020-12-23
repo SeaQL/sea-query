@@ -27,7 +27,7 @@ fn main() {
         .col(ColumnDef::new(Char::Character).string())
         .col(ColumnDef::new(Char::SizeW).integer())
         .col(ColumnDef::new(Char::SizeH).integer())
-        .build_any(table_builder.table_builder());
+        .build_any(table_builder.table_builder().as_ref());
 
     let result = task::block_on(async {
         sqlx::query(&sql)
@@ -54,7 +54,7 @@ fn main() {
             "size_h": 34,
             "font_size": 2,
         }))
-        .build_any(table_builder.query_builder());
+        .build_any(table_builder.query_builder().as_ref());
 
     let result = task::block_on(async {
         bind_query(sqlx::query(&sql), &params)
@@ -69,7 +69,7 @@ fn main() {
             Char::Id, Char::Character, Char::SizeW, Char::SizeH, Char::FontSize
         ])
         .from(Char::Table)
-        .build_any(table_builder.query_builder());
+        .build_any(table_builder.query_builder().as_ref());
 
     let rows = task::block_on(async {
         bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &params)
