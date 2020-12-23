@@ -1,7 +1,7 @@
 use super::*;
 
 impl TableBuilder for SqliteQueryBuilder {
-    fn prepare_table_create_statement(&mut self, create: &TableCreateStatement, sql: &mut dyn FmtWrite) {
+    fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut dyn FmtWrite) {
         write!(sql, "CREATE TABLE ").unwrap();
 
         if create.create_if_not_exists {
@@ -39,7 +39,7 @@ impl TableBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_column_def(&mut self, column_def: &ColumnDef, sql: &mut dyn FmtWrite) {
+    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn FmtWrite) {
         column_def.name.prepare(sql, '`');
 
         if let Some(column_type) = &column_def.types {
@@ -73,7 +73,7 @@ impl TableBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_column_type(&mut self, column_type: &ColumnType, sql: &mut dyn FmtWrite) {
+    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn FmtWrite) {
         write!(sql, "{}", match column_type {
             ColumnType::Char(length) => format!("text({})", length),
             ColumnType::CharDefault => "text".into(),
@@ -110,7 +110,7 @@ impl TableBuilder for SqliteQueryBuilder {
         }).unwrap()
     }
 
-    fn prepare_column_spec(&mut self, column_spec: &ColumnSpec, sql: &mut dyn FmtWrite) {
+    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn FmtWrite) {
         write!(sql, "{}", match column_spec {
             ColumnSpec::Null => "NULL".into(),
             ColumnSpec::NotNull => "NOT NULL".into(),
@@ -121,7 +121,7 @@ impl TableBuilder for SqliteQueryBuilder {
         }).unwrap()
     }
 
-    fn prepare_table_opt(&mut self, table_opt: &TableOpt, sql: &mut dyn FmtWrite) {
+    fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut dyn FmtWrite) {
         write!(sql, "{}", match table_opt {
             TableOpt::Engine(s) => format!("ENGINE={}", s),
             TableOpt::Collate(s) => format!("COLLATE={}", s),
@@ -129,11 +129,11 @@ impl TableBuilder for SqliteQueryBuilder {
         }).unwrap()
     }
 
-    fn prepare_table_partition(&mut self, _table_partition: &TablePartition, _sql: &mut dyn FmtWrite) {
+    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut dyn FmtWrite) {
 
     }
 
-    fn prepare_table_drop_statement(&mut self, drop: &TableDropStatement, sql: &mut dyn FmtWrite) {
+    fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut dyn FmtWrite) {
         write!(sql, "DROP TABLE ").unwrap();
 
         if drop.if_exist {
@@ -154,14 +154,14 @@ impl TableBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_table_drop_opt(&mut self, drop_opt: &TableDropOpt, sql: &mut dyn FmtWrite) {
+    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut dyn FmtWrite) {
         write!(sql, "{}", match drop_opt {
             TableDropOpt::Restrict => "RESTRICT",
             TableDropOpt::Cascade => "CASCADE",
         }).unwrap();
     }
 
-    fn prepare_table_truncate_statement(&mut self, truncate: &TableTruncateStatement, sql: &mut dyn FmtWrite) {
+    fn prepare_table_truncate_statement(&self, truncate: &TableTruncateStatement, sql: &mut dyn FmtWrite) {
         write!(sql, "TRUNCATE TABLE ").unwrap();
 
         if let Some(table) = &truncate.table {
@@ -169,7 +169,7 @@ impl TableBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_table_alter_statement(&mut self, alter: &TableAlterStatement, sql: &mut dyn FmtWrite) {
+    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn FmtWrite) {
         let alter_option = match &alter.alter_option {
             Some(alter_option) => alter_option,
             None => panic!("No alter option found"),
@@ -199,7 +199,7 @@ impl TableBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_table_rename_statement(&mut self, rename: &TableRenameStatement, sql: &mut dyn FmtWrite) {
+    fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut dyn FmtWrite) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
             from_name.prepare(sql, '`');

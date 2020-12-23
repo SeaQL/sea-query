@@ -1,7 +1,7 @@
 use super::*;
 
 impl QueryBuilder for MysqlQueryBuilder {
-    fn prepare_insert_statement(&mut self, insert: &InsertStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         write!(sql, "INSERT").unwrap();
 
         if let Some(table) = &insert.table {
@@ -38,7 +38,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         });
     }
 
-    fn prepare_select_statement(&mut self, select: &SelectStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         write!(sql, "SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
@@ -114,7 +114,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_update_statement(&mut self, update: &UpdateStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_update_statement(&self, update: &UpdateStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         write!(sql, "UPDATE ").unwrap();
 
         if let Some(table) = &update.table {
@@ -155,7 +155,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_delete_statement(&mut self, delete: &DeleteStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_delete_statement(&self, delete: &DeleteStatement, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         write!(sql, "DELETE ").unwrap();
         
         if let Some(table) = &delete.table {
@@ -185,7 +185,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_simple_expr(&mut self, simple_expr: &SimpleExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         match simple_expr {
             SimpleExpr::Column(column) => {
                 column.prepare(sql, '`');
@@ -275,7 +275,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_select_distinct(&mut self, select_distinct: &SelectDistinct, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
         write!(sql, "{}", match select_distinct {
             SelectDistinct::All => "ALL",
             SelectDistinct::Distinct => "DISTINCT",
@@ -283,7 +283,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }).unwrap();
     }
 
-    fn prepare_select_expr(&mut self, select_expr: &SelectExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_select_expr(&self, select_expr: &SelectExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         self.prepare_simple_expr(&select_expr.expr, sql, collector);
         match &select_expr.alias {
             Some(alias) => {
@@ -294,7 +294,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_join_expr(&mut self, join_expr: &JoinExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_join_expr(&self, join_expr: &JoinExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         self.prepare_join_type(&join_expr.join, sql, collector);
         write!(sql, " ").unwrap();
         self.prepare_table_ref(&join_expr.table, sql, collector);
@@ -304,7 +304,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_table_ref(&mut self, table_ref: &TableRef, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         match table_ref {
             TableRef::Table(iden) => {
                 iden.prepare(sql, '`');
@@ -324,13 +324,13 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_un_oper(&mut self, un_oper: &UnOper, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_un_oper(&self, un_oper: &UnOper, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
         write!(sql, "{}", match un_oper {
             UnOper::Not => "NOT",
         }).unwrap();
     }
 
-    fn prepare_bin_oper(&mut self, bin_oper: &BinOper, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
         write!(sql, "{}", match bin_oper {
             BinOper::And => "AND",
             BinOper::Or => "OR",
@@ -355,7 +355,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }).unwrap();
     }
 
-    fn prepare_logical_chain_oper(&mut self, log_chain_oper: &LogicalChainOper, i: usize, length: usize, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_logical_chain_oper(&self, log_chain_oper: &LogicalChainOper, i: usize, length: usize, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         let (simple_expr, oper) = match log_chain_oper {
             LogicalChainOper::And(simple_expr) => (simple_expr, "AND"),
             LogicalChainOper::Or(simple_expr) => (simple_expr, "OR"),
@@ -377,7 +377,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_function(&mut self, function: &Function, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_function(&self, function: &Function, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
         write!(sql, "{}", match function {
             Function::Max => "MAX",
             Function::Min => "MIN",
@@ -388,7 +388,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }).unwrap();
     }
 
-    fn prepare_join_type(&mut self, join_type: &JoinType, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
         write!(sql, "{}", match join_type {
             JoinType::Join => "JOIN",
             JoinType::InnerJoin => "INNER JOIN",
@@ -397,13 +397,13 @@ impl QueryBuilder for MysqlQueryBuilder {
         }).unwrap()
     }
 
-    fn prepare_order_expr(&mut self, order_expr: &OrderExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
         write!(sql, " ").unwrap();
         self.prepare_order(&order_expr.order, sql, collector);
     }
 
-    fn prepare_join_on(&mut self, join_on: &JoinOn, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_join_on(&self, join_on: &JoinOn, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         match join_on {
             JoinOn::Condition(c) => {
                 write!(sql, "ON ").unwrap();
@@ -413,7 +413,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_order(&mut self, order: &Order, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_order(&self, order: &Order, sql: &mut dyn FmtWrite, _collector: &mut dyn FnMut(Value)) {
         match order {
             Order::Asc => {
                 write!(sql, "ASC").unwrap()
@@ -424,12 +424,12 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_value(&mut self, value: &Value, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
+    fn prepare_value(&self, value: &Value, sql: &mut dyn FmtWrite, collector: &mut dyn FnMut(Value)) {
         write!(sql, "?").unwrap();
         self.prepare_value_param(value, collector);
     }
 
-    fn prepare_value_param(&mut self, value: &Value, collector: &mut dyn FnMut(Value)) {
+    fn prepare_value_param(&self, value: &Value, collector: &mut dyn FnMut(Value)) {
         match value {
             Value::NULL => {
                 collector(Value::NULL);

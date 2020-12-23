@@ -193,14 +193,14 @@ impl TableAlterStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: TableBuilder>(&self, mut table_builder: T) -> String {
+    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
         let mut sql = String::new();
         table_builder.prepare_table_alter_statement(self, &mut sql);
         sql
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, mut table_builder: Box<dyn TableBuilder>) -> String {
+    pub fn build_any(&self, table_builder: Box<dyn TableBuilder>) -> String {
         let mut sql = String::new();
         table_builder.prepare_table_alter_statement(self, &mut sql);
         sql

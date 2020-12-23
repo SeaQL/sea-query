@@ -61,14 +61,14 @@ impl IndexDropStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: IndexBuilder>(&self, mut index_builder: T) -> String {
+    pub fn build<T: IndexBuilder>(&self, index_builder: T) -> String {
         let mut sql = String::new();
         index_builder.prepare_index_drop_statement(self, &mut sql);
         sql
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, mut index_builder: Box<dyn IndexBuilder>) -> String {
+    pub fn build_any(&self, index_builder: Box<dyn IndexBuilder>) -> String {
         let mut sql = String::new();
         index_builder.prepare_index_drop_statement(self, &mut sql);
         sql

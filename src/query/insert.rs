@@ -254,14 +254,14 @@ impl InsertStatement {
     ///     ]
     /// );
     /// ```
-    pub fn build_collect<T: QueryBuilder>(&self, mut query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = String::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
         sql
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters
-    pub fn build_collect_any(&self, mut query_builder: Box<dyn QueryBuilder>, collector: &mut dyn FnMut(Value)) -> String {
+    pub fn build_collect_any(&self, query_builder: Box<dyn QueryBuilder>, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = String::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
         sql
