@@ -1,4 +1,5 @@
 use super::*;
+use super::query::mysql_value_to_string;
 
 impl TableBuilder for MysqlQueryBuilder {
     fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut SqlWriter) {
@@ -94,7 +95,7 @@ impl TableBuilder for MysqlQueryBuilder {
         write!(sql, "{}", match column_spec {
             ColumnSpec::Null => "NULL".into(),
             ColumnSpec::NotNull => "NOT NULL".into(),
-            ColumnSpec::Default(value) => format!("DEFAULT {}", value_to_string(value)),
+            ColumnSpec::Default(value) => format!("DEFAULT {}", mysql_value_to_string(value)),
             ColumnSpec::AutoIncrement => "AUTO_INCREMENT".into(),
             ColumnSpec::UniqueKey => "UNIQUE".into(),
             ColumnSpec::PrimaryKey => "PRIMARY KEY".into(),

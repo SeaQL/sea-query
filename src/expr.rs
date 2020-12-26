@@ -721,20 +721,20 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like("Char%"))
+    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like("Ours'%"))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Char%'"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Char%'"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE E'Ours\'%'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Char%'"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
     /// );
     /// ```
     pub fn like(self, v: &str) -> SimpleExpr  {
@@ -769,7 +769,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::Is, SimpleExpr::Value(Value::NULL))
+        self.bin_oper(BinOper::Is, SimpleExpr::Value(Value::Null))
     }
 
     /// Express a is not null expression.
@@ -800,7 +800,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::IsNot, SimpleExpr::Value(Value::NULL))
+        self.bin_oper(BinOper::IsNot, SimpleExpr::Value(Value::Null))
     }
 
     /// Express a is not null expression.

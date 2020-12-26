@@ -1,4 +1,5 @@
 use super::*;
+use super::query::pg_value_to_string;
 
 impl TableBuilder for PostgresQueryBuilder {
     fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut SqlWriter) {
@@ -93,7 +94,7 @@ impl TableBuilder for PostgresQueryBuilder {
         write!(sql, "{}", match column_spec {
             ColumnSpec::Null => "NULL".into(),
             ColumnSpec::NotNull => "NOT NULL".into(),
-            ColumnSpec::Default(value) => format!("DEFAULT {}", value_to_string(value)),
+            ColumnSpec::Default(value) => format!("DEFAULT {}", pg_value_to_string(value)),
             ColumnSpec::AutoIncrement => "".into(),
             ColumnSpec::UniqueKey => "UNIQUE".into(),
             ColumnSpec::PrimaryKey => "PRIMARY KEY".into(),

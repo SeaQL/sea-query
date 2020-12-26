@@ -1,12 +1,11 @@
 //! Universal value variants used in the library.
 use std::str::from_utf8;
-use std::fmt::Write;
 use serde_json::Value as JsonValue;
 
 /// Value variants
 #[derive(Clone, PartialEq, PartialOrd, Debug)]
 pub enum Value {
-    NULL,
+    Null,
     Bytes(Vec<u8>),
     Int(i64),
     UInt(u64),
@@ -131,34 +130,24 @@ from_array_impl!(30);
 from_array_impl!(31);
 from_array_impl!(32);
 
-/// Convert value to string
-pub fn value_to_string(v: &Value) -> String {
-    let mut s = String::new();
-    match v {
-        Value::NULL => write!(s, "NULL").unwrap(),
-        Value::Bytes(v) => write!(s, "\'{}\'", std::str::from_utf8(v).unwrap()).unwrap(),
-        Value::Int(v) => write!(s, "{}", v).unwrap(),
-        Value::UInt(v) => write!(s, "{}", v).unwrap(),
-        Value::Float(v) => write!(s, "{}", v).unwrap(),
-        Value::Double(v) => write!(s, "{}", v).unwrap(),
-        Value::Date(year, month, day, hour, minutes, seconds, _micro_seconds) => 
-            write!(
-                s, "{:04}{:02}{:02} {:02}{:02}{:02}",
-                year, month, day, hour, minutes, seconds
-            ).unwrap(),
-        Value::Time(negative, days, hours, minutes, seconds, _micro_seconds) => 
-            write!(
-                s, "{}{:02}{:02} {:02}{:02}.{:03}",
-                if *negative { "-" } else { "" }, days, hours, minutes, seconds, _micro_seconds / 1000
-            ).unwrap(),
-    };
-    s
+/// Escape a SQL string literal
+pub fn escape_string(string: &str) -> String {
+    string
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("'", "\\'")
+        .replace("\0", "\\0")
+        .replace("\x08", "\\b")
+        .replace("\x09", "\\t")
+        .replace("\x1a", "\\z")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
 }
 
 /// Convert json value to value
-pub fn json_value_to_mysql_value(v: &JsonValue) -> Value {
+pub fn json_value_to_sea_value(v: &JsonValue) -> Value {
     match v {
-        JsonValue::Null => Value::NULL,
+        JsonValue::Null => Value::Null,
         JsonValue::Bool(v) => Value::Int(v.to_owned().into()),
         JsonValue::Number(v) =>
             if v.is_f64() {
@@ -178,9 +167,9 @@ pub fn json_value_to_mysql_value(v: &JsonValue) -> Value {
 
 /// Convert value to json value
 #[allow(clippy::many_single_char_names)]
-pub fn mysql_value_to_json_value(v: &Value) -> JsonValue {
+pub fn sea_value_to_json_value(v: &Value) -> JsonValue {
     match v {
-        Value::NULL => JsonValue::Null,
+        Value::Null => JsonValue::Null,
         Value::Bytes(v) => JsonValue::String(from_utf8(v).unwrap().to_string()),
         Value::Int(v) => (*v).into(),
         Value::UInt(v) => (*v).into(),
@@ -212,5 +201,25 @@ pub fn mysql_value_to_json_value(v: &Value) -> JsonValue {
                 JsonValue::String(format!("'{:03}:{:02}:{:02}.{:06}'", d * 24 + u32::from(*h), i, s, u))
             }
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_escape_1() {
+        assert_eq!(escape_string(r#" "abc" "#), r#" \"abc\" "#.to_owned());
+    }
+
+    #[test]
+    fn test_escape_2() {
+        assert_eq!(escape_string("a\nb\tc"), "a\\nb\\tc".to_owned());
+    }
+
+    #[test]
+    fn test_escape_3() {
+        assert_eq!(escape_string("a\\b"), "a\\\\b".to_owned());
     }
 }

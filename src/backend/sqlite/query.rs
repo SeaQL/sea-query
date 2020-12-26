@@ -426,35 +426,33 @@ impl QueryBuilder for SqliteQueryBuilder {
 
     fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         sql.push_param("?", false);
-        self.prepare_value_param(value, collector);
+        collector(value.clone());
     }
 
-    fn prepare_value_param(&self, value: &Value, collector: &mut dyn FnMut(Value)) {
-        match value {
-            Value::NULL => {
-                collector(Value::NULL);
-            },
-            Value::Bytes(v) => {
-                collector(Value::Bytes(v.to_vec()));
-            },
-            Value::Int(v) => {
-                collector(Value::Int(*v));
-            },
-            Value::UInt(v) => {
-                collector(Value::UInt(*v));
-            },
-            Value::Float(v) => {
-                collector(Value::Float(*v));
-            },
-            Value::Double(v) => {
-                collector(Value::Double(*v));
-            },
-            Value::Date(year, month, day, hour, minutes, seconds, micro_seconds) => {
-                collector(Value::Date(*year, *month, *day, *hour, *minutes, *seconds, *micro_seconds));
-            },
-            Value::Time(negative, days, hours, minutes, seconds, micro_seconds) => {
-                collector(Value::Time(*negative, *days, *hours, *minutes, *seconds, *micro_seconds));
-            },
-        };
+    fn value_to_string(&self, v: &Value) -> String {
+        sqlite_value_to_string(v)
     }
+}
+
+pub fn sqlite_value_to_string(v: &Value) -> String {
+    let mut s = String::new();
+    match v {
+        Value::Null => write!(s, "NULL").unwrap(),
+        Value::Bytes(v) => write!(s, "\'{}\'", escape_string(std::str::from_utf8(v).unwrap())).unwrap(),
+        Value::Int(v) => write!(s, "{}", v).unwrap(),
+        Value::UInt(v) => write!(s, "{}", v).unwrap(),
+        Value::Float(v) => write!(s, "{}", v).unwrap(),
+        Value::Double(v) => write!(s, "{}", v).unwrap(),
+        Value::Date(year, month, day, hour, minutes, seconds, _micro_seconds) => 
+            write!(
+                s, "{:04}{:02}{:02} {:02}{:02}{:02}",
+                year, month, day, hour, minutes, seconds
+            ).unwrap(),
+        Value::Time(negative, days, hours, minutes, seconds, micro_seconds) => 
+            write!(
+                s, "{}{:02}{:02} {:02}{:02}.{:03}",
+                if *negative { "-" } else { "" }, days, hours, minutes, seconds, micro_seconds / 1000
+            ).unwrap(),
+    };
+    s
 }

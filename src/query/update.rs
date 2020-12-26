@@ -155,7 +155,7 @@ impl UpdateStatement {
             _ => unimplemented!(),
         }
         for (k, v) in values.as_object().unwrap() {
-            let v = json_value_to_mysql_value(v);
+            let v = json_value_to_sea_value(v);
             self.push_boxed_value(k.into(), SimpleExpr::Value(v));
         }
         self
@@ -514,7 +514,7 @@ impl UpdateStatement {
     /// );
     /// ```
     pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build(query_builder);
-        inject_parameters(&sql, values)
+        let (sql, values) = self.build_any(&query_builder);
+        inject_parameters(&sql, values, &query_builder)
     }
 }

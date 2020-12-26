@@ -1325,7 +1325,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build(query_builder);
-        inject_parameters(&sql, values)
+        let (sql, values) = self.build_any(&query_builder);
+        inject_parameters(&sql, values, &query_builder)
     }
 }
