@@ -6,6 +6,7 @@ use sea_query::*;
 use sea_query::driver::sqlx::{bind_query, bind_query_as};
 
 fn main() {
+    // mysql or postgresql
     let database = "mysql";
 
     let connection = task::block_on(async {
@@ -16,7 +17,7 @@ fn main() {
 
     let table_builder: Box<dyn GenericBuilder> = match database {
         "mysql" => Box::new(MysqlQueryBuilder),
-        "postgres" => Box::new(PostgresQueryBuilder),
+        "postgresql" => Box::new(PostgresQueryBuilder),
         _ => panic!("unsupported database connection string"),
     };
 

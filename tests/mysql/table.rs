@@ -57,7 +57,7 @@ fn create_3() {
             .col(ColumnDef::new(Char::Character).string_len(255).not_null())
             .col(ColumnDef::new(Char::SizeW).integer_len(11).not_null())
             .col(ColumnDef::new(Char::SizeH).integer_len(11).not_null())
-            .col(ColumnDef::new(Char::FontId).integer_len(11).default(Value::NULL))
+            .col(ColumnDef::new(Char::FontId).integer_len(11).default(Value::Null))
             .foreign_key(
                 ForeignKey::create()
                     .name("FK_2e303c3a712662f1fc2a4d0aad6")

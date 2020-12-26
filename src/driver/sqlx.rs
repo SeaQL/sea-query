@@ -10,12 +10,12 @@ macro_rules! bind_params {
             let mut query = $query;
             for value in $params.iter() {
                 query = match value {
-                    Value::NULL => query.bind(None::<i32>),
+                    Value::Null => query.bind(None::<i32>),
                     Value::Bytes(v) => query.bind(std::str::from_utf8(v).unwrap()),
                     Value::Int(v) => query.bind(v),
                     Value::UInt(v) => query.bind(format!("{}", v)),
                     Value::Float(v) => query.bind(v),
-                    Value::Double(v) => query.bind(format!("{}", v)),
+                    Value::Double(v) => query.bind(v),
                     Value::Date(year, month, day, hour, minutes, seconds, _micro_seconds) => 
                         query.bind(format!(
                             "{:04}{:02}{:02} {:02}{:02}{:02}",

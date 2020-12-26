@@ -32,11 +32,8 @@ sea-query = "*"
 
 ## Usage
 
-Construct a SQL statement with the library then execute the statement
-with a database connector such as [SQLx](https://github.com/launchbadge/sqlx).
-
-Later we will release Document ORM (Sea-ORM) which you can load and save document on any supported relational database,
-without the need of managing database connection on your own.
+Construct a SQL statement with the library then execute the statement with a database connector,
+see SQLx example [here](https://github.com/SeaQL/sea-query/blob/master/examples/sqlx.rs).
 
 ### Iden
 
@@ -239,7 +236,7 @@ let table = Table::create()
     .col(ColumnDef::new(Char::Character).string().not_null())
     .col(ColumnDef::new(Char::SizeW).integer().not_null())
     .col(ColumnDef::new(Char::SizeH).integer().not_null())
-    .col(ColumnDef::new(Char::FontId).integer().default(Value::NULL))
+    .col(ColumnDef::new(Char::FontId).integer().default(Value::Null))
     .foreign_key(
         ForeignKey::create()
             .name("FK_2e303c3a712662f1fc2a4d0aad6")

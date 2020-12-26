@@ -58,7 +58,7 @@ fn online_1() {
         .col(ColumnDef::new(Char::Character).string_len(255).not_null())
         .col(ColumnDef::new(Char::SizeW).integer_len(11).not_null())
         .col(ColumnDef::new(Char::SizeH).integer_len(11).not_null())
-        .col(ColumnDef::new(Char::FontId).integer_len(11).default(Value::NULL))
+        .col(ColumnDef::new(Char::FontId).integer_len(11).default(Value::Null))
         .engine("InnoDB")
         .character_set("utf8mb4")
         .collate("utf8mb4_unicode_ci")
@@ -151,7 +151,7 @@ fn online_1() {
             123.into(),
             456.into(),
             3.into(),
-            Value::NULL,
+            Value::Null,
         ])
         .json(json!({
             "character": "S",

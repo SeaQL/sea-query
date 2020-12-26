@@ -152,10 +152,10 @@ pub fn json_value_to_sea_value(v: &JsonValue) -> Value {
         JsonValue::Number(v) =>
             if v.is_f64() {
                 Value::Double(v.as_f64().unwrap())
-            } else if v.is_u64() {
-                Value::UInt(v.as_u64().unwrap())
             } else if v.is_i64() {
                 Value::Int(v.as_i64().unwrap())
+            } else if v.is_u64() {
+                Value::UInt(v.as_u64().unwrap())
             } else {
                 unimplemented!()
             },

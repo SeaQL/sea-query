@@ -51,7 +51,7 @@ fn create_3() {
             .col(ColumnDef::new(Char::Character).string().not_null())
             .col(ColumnDef::new(Char::SizeW).integer().not_null())
             .col(ColumnDef::new(Char::SizeH).integer().not_null())
-            .col(ColumnDef::new(Char::FontId).integer().default(Value::NULL))
+            .col(ColumnDef::new(Char::FontId).integer().default(Value::Null))
             .foreign_key(
                 ForeignKey::create()
                     .table(Char::Table, Font::Table)
