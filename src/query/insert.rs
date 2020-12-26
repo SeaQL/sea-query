@@ -338,11 +338,7 @@ impl InsertStatement {
     /// );
     /// ```
     pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (mut string, values) = self.build(query_builder);
-        for v in values.iter() {
-            string = string.replacen("?", value_to_string(v).as_ref(), 1);
-        }
-        string
-
+        let (sql, values) = self.build(query_builder);
+        inject_parameters(&sql, values)
     }
 }

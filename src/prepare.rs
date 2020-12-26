@@ -11,15 +11,33 @@ pub fn inject_parameters(sql: &str, params: Vec<Value>) -> String {
     let tokenizer = Tokenizer::new(sql);
     let tokens: Vec<Token> = tokenizer.iter().collect();
     let mut counter = 0;
-    tokens.iter().map(|token| {
-        if token == &Token::Punctuation("?".to_string()) {
-            let string = value_to_string(&params[counter]);
-            counter += 1;
-            string
-        } else {
-            token.to_string()
+    let mut output = Vec::new();
+    let mut i = 0;
+    while i < tokens.len() {
+        let token = &tokens[i];
+        match token {
+            Token::Punctuation(mark) => {
+                if mark == "?" {
+                    output.push(value_to_string(&params[counter]));
+                    counter += 1;
+                    i += 1;
+                    continue;
+                } else if mark == "$" && i + 1 < tokens.len() {
+                    if let Token::Unquoted(next) = &tokens[i + 1] {
+                        if let Ok(num) = next.parse::<usize>() {
+                            output.push(value_to_string(&params[num - 1]));
+                            i += 2;
+                            continue;
+                        }
+                    }
+                }
+                output.push(mark.to_string())
+            },
+            _ => output.push(token.to_string())
         }
-    }).collect::<String>()
+        i += 1;
+    }
+    output.into_iter().collect()
 }
 
 impl SqlWriter {
@@ -27,9 +45,13 @@ impl SqlWriter {
         Self::default()
     }
 
-    pub fn push_param(&mut self) {
-        write!(&mut self.string, "?").unwrap();
+    pub fn push_param(&mut self, sign: &str, numbered: bool) {
         self.counter += 1;
+        if numbered {
+            write!(&mut self.string, "{}{}", sign, self.counter).unwrap();
+        } else {
+            write!(&mut self.string, "{}", sign).unwrap();
+        }
     }
 
     pub fn result(self) -> String {
@@ -60,5 +82,15 @@ mod tests {
     #[test]
     fn inject_parameters_3() {
         assert_eq!(inject_parameters("WHERE A = ? AND C = ?", vec!["B".into(), "D".into()]), "WHERE A = 'B' AND C = 'D'"); 
+    }
+
+    #[test]
+    fn inject_parameters_4() {
+        assert_eq!(inject_parameters("WHERE A = $1 AND C = $2", vec!["B".into(), "D".into()]), "WHERE A = 'B' AND C = 'D'"); 
+    }
+
+    #[test]
+    fn inject_parameters_5() {
+        assert_eq!(inject_parameters("WHERE A = $2 AND C = $1", vec!["B".into(), "D".into()]), "WHERE A = 'D' AND C = 'B'"); 
     }
 }

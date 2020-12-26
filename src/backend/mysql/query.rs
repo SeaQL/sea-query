@@ -425,7 +425,7 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
-        sql.push_param();
+        sql.push_param("?", false);
         self.prepare_value_param(value, collector);
     }
 

@@ -120,15 +120,13 @@ impl Tokenizer {
 
     fn punctuation(&mut self) -> Option<Token> {
         let mut string = String::new();
-        while !self.end() {
+        if !self.end() {
             let c = self.get();
             if  !Self::is_space(c) &&
                 !Self::is_alphanumeric(c) {
                 write!(string, "{}", c).unwrap();
-            } else {
-                break;
+                self.inc();
             }
-            self.inc();
         }
         if !string.is_empty() {
             Some(Token::Punctuation(string))
@@ -386,4 +384,35 @@ mod tests {
         assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
     }
 
+    #[test]
+    fn test_13() {
+        let string = r#"(?)"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(tokens, vec![
+            Token::Punctuation("(".to_string()),
+            Token::Punctuation("?".to_string()),
+            Token::Punctuation(")".to_string()),
+        ]);
+        assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
+    }
+
+    #[test]
+    fn test_14() {
+        let string = r#"($1 = $2)"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(tokens, vec![
+            Token::Punctuation("(".to_string()),
+            Token::Punctuation("$".to_string()),
+            Token::Unquoted("1".to_string()),
+            Token::Space(" ".to_string()),
+            Token::Punctuation("=".to_string()),
+            Token::Space(" ".to_string()),
+            Token::Punctuation("$".to_string()),
+            Token::Unquoted("2".to_string()),
+            Token::Punctuation(")".to_string()),
+        ]);
+        assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
+    }
 }

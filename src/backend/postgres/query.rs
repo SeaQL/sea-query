@@ -425,7 +425,7 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 
     fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
-        write!(sql, "?").unwrap();
+        sql.push_param("$", true);
         self.prepare_value_param(value, collector);
     }
 
