@@ -489,6 +489,10 @@
 //!     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 //! );
 //! ```
+//! 
+//! # Work in Progress
+//! 
+//! - Sqlite
 
 pub mod backend;
 pub mod driver;

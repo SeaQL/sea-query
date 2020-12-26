@@ -491,3 +491,7 @@ assert_eq!(
     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 );
 ```
+
+## Work in Progress
+
+- Sqlite
