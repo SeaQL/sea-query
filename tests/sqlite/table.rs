@@ -8,7 +8,7 @@ fn create_1() {
             .col(ColumnDef::new(Glyph::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(Glyph::Aspect).double().not_null())
             .col(ColumnDef::new(Glyph::Image).text())
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         vec![
             "CREATE TABLE `glyph` (",
                 "`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,",
@@ -28,7 +28,7 @@ fn create_2() {
             .col(ColumnDef::new(Font::Name).string().not_null())
             .col(ColumnDef::new(Font::Variant).string().not_null())
             .col(ColumnDef::new(Font::Language).string().not_null())
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         vec![
             "CREATE TABLE `font` (",
                 "`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,",
@@ -59,7 +59,7 @@ fn create_3() {
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade)
             )
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         vec![
             "CREATE TABLE IF NOT EXISTS `character` (",
                 "`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,",
@@ -81,7 +81,7 @@ fn drop_1() {
             .table(Glyph::Table)
             .table(Char::Table)
             .cascade()
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "DROP TABLE `glyph`, `character` CASCADE"
     );
 }
@@ -91,7 +91,7 @@ fn truncate_1() {
     assert_eq!(
         Table::truncate()
             .table(Font::Table)
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "TRUNCATE TABLE `font`"
     );
 }
@@ -102,7 +102,7 @@ fn alter_1() {
         Table::alter()
             .table(Font::Table)
             .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(99))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 99"
     );
 }
@@ -113,7 +113,7 @@ fn alter_2() {
     Table::alter()
         .table(Font::Table)
         .modify_column(ColumnDef::new(Alias::new("new_col")).double())
-        .to_string(SqliteQueryBuilder::new());
+        .to_string(SqliteQueryBuilder);
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn alter_3() {
         Table::alter()
             .table(Font::Table)
             .rename_column(Alias::new("new_col"), Alias::new("new_column"))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"
     );
 }
@@ -133,7 +133,7 @@ fn alter_4() {
     Table::alter()
         .table(Font::Table)
         .drop_column(Alias::new("new_column"))
-        .to_string(SqliteQueryBuilder::new());
+        .to_string(SqliteQueryBuilder);
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn alter_5() {
     assert_eq!(
         Table::rename()
             .table(Font::Table, Alias::new("font_new"))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "ALTER TABLE `font` RENAME TO `font_new`"
     );
 }
@@ -149,5 +149,5 @@ fn alter_5() {
 #[test]
 #[should_panic(expected = "No alter option found")]
 fn alter_6() {
-    Table::alter().to_string(SqliteQueryBuilder::new());
+    Table::alter().to_string(SqliteQueryBuilder);
 }

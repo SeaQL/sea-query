@@ -9,7 +9,7 @@ fn create_1() {
             .col(Char::FontId, Font::Id)
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Cascade)
-            .to_string(PostgresQueryBuilder::new()),
+            .to_string(PostgresQueryBuilder),
         vec![
             r#"ALTER TABLE "character" ADD CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
@@ -24,7 +24,7 @@ fn drop_1() {
         ForeignKey::drop()
             .name("FK_2e303c3a712662f1fc2a4d0aad6")
             .table(Char::Table)
-            .to_string(PostgresQueryBuilder::new()),
+            .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "character" DROP CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#
     );
 }

@@ -15,7 +15,7 @@ fn online_1() {
         .engine("InnoDB")
         .character_set("utf8mb4")
         .collate("utf8mb4_unicode_ci")
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         vec![
@@ -33,7 +33,7 @@ fn online_1() {
         .name("idx-font-name")
         .table(Font::Table)
         .col(Font::Name)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "CREATE INDEX `idx-font-name` ON `font` (`name`)"
@@ -43,7 +43,7 @@ fn online_1() {
     let sql = Index::drop()
         .name("idx-font-name")
         .table(Font::Table)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "DROP INDEX `idx-font-name` ON `font`"
@@ -62,7 +62,7 @@ fn online_1() {
         .engine("InnoDB")
         .character_set("utf8mb4")
         .collate("utf8mb4_unicode_ci")
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         vec![
@@ -82,7 +82,7 @@ fn online_1() {
         .name("idx-character-font_size")
         .table(Char::Table)
         .col(Char::FontSize)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "CREATE INDEX `idx-character-font_size` ON `character` (`font_size`)"
@@ -92,7 +92,7 @@ fn online_1() {
     let sql = Index::drop()
         .name("idx-character-font_size")
         .table(Char::Table)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "DROP INDEX `idx-character-font_size` ON `character`"
@@ -105,7 +105,7 @@ fn online_1() {
         .col(Char::FontId, Font::Id)
         .on_delete(ForeignKeyAction::Cascade)
         .on_update(ForeignKeyAction::Cascade)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         vec![
@@ -120,7 +120,7 @@ fn online_1() {
     let sql = ForeignKey::drop()
         .name("FK_2e303c3a712662f1fc2a4d0aad6")
         .table(Char::Table)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "ALTER TABLE `character` DROP FOREIGN KEY `FK_2e303c3a712662f1fc2a4d0aad6`"
@@ -134,7 +134,7 @@ fn online_1() {
         .from(Char::Table)
         .limit(10)
         .offset(100)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "SELECT `character`, `size_w`, `size_h` FROM `character` LIMIT 10 OFFSET 100"
@@ -159,7 +159,7 @@ fn online_1() {
             "size_h": 34,
             "font_size": 2,
         }))
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "INSERT INTO `character` (`character`, `size_w`, `size_h`, `font_size`, `font_id`) VALUES ('Character', 123, 456, 3, NULL), ('S', 12, 34, 2, NULL)"
@@ -176,7 +176,7 @@ fn online_1() {
         .and_where(Expr::col(Char::Id).eq(1))
         .order_by(Char::Id, Order::Asc)
         .limit(1)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "UPDATE `character` SET `character` = 'S', `size_w` = 1233, `size_h` = 12 WHERE `id` = 1 ORDER BY `id` ASC LIMIT 1"
@@ -185,7 +185,7 @@ fn online_1() {
 
     let sql = Table::truncate()
         .table(Char::Table)
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "TRUNCATE TABLE `character`"
@@ -195,7 +195,7 @@ fn online_1() {
     let sql = Table::drop()
         .table(Char::Table)
         .cascade()
-        .to_string(MysqlQueryBuilder::new());
+        .to_string(MysqlQueryBuilder);
     assert_eq!(
         sql,
         "DROP TABLE `character` CASCADE"

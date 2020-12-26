@@ -7,7 +7,7 @@ fn create_1() {
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
             .col(Glyph::Aspect)
-            .to_string(PostgresQueryBuilder::new()),
+            .to_string(PostgresQueryBuilder),
         r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
     );
 }
@@ -20,7 +20,7 @@ fn create_2() {
             .table(Glyph::Table)
             .col(Glyph::Aspect)
             .col(Glyph::Image)
-            .to_string(PostgresQueryBuilder::new()),
+            .to_string(PostgresQueryBuilder),
         r#"CREATE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
     );
 }
@@ -30,7 +30,7 @@ fn drop_1() {
     assert_eq!(
         Index::drop()
             .name("idx-glyph-aspect")
-            .to_string(PostgresQueryBuilder::new()),
+            .to_string(PostgresQueryBuilder),
         r#"DROP INDEX "idx-glyph-aspect""#
     );
 }

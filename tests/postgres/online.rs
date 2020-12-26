@@ -12,7 +12,7 @@ fn online_1() {
         .col(ColumnDef::new(Font::Name).string_len(255).not_null())
         .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
         .col(ColumnDef::new(Font::Language).string_len(255).not_null())
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         vec![
@@ -30,7 +30,7 @@ fn online_1() {
         .name("idx-font-name")
         .table(Font::Table)
         .col(Font::Name)
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"CREATE INDEX "idx-font-name" ON "font" ("name")"#
@@ -39,7 +39,7 @@ fn online_1() {
 
     let sql = Index::drop()
         .name("idx-font-name")
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"DROP INDEX "idx-font-name""#
@@ -55,7 +55,7 @@ fn online_1() {
         .col(ColumnDef::new(Char::SizeW).integer().not_null())
         .col(ColumnDef::new(Char::SizeH).integer().not_null())
         .col(ColumnDef::new(Char::FontId).integer().default(Value::Null))
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         vec![
@@ -75,7 +75,7 @@ fn online_1() {
         .name("idx-character-font_size")
         .table(Char::Table)
         .col(Char::FontSize)
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"CREATE INDEX "idx-character-font_size" ON "character" ("font_size")"#
@@ -84,7 +84,7 @@ fn online_1() {
 
     let sql = Index::drop()
         .name("idx-character-font_size")
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"DROP INDEX "idx-character-font_size""#
@@ -97,7 +97,7 @@ fn online_1() {
         .col(Char::FontId, Font::Id)
         .on_delete(ForeignKeyAction::Cascade)
         .on_update(ForeignKeyAction::Cascade)
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         vec![
@@ -112,7 +112,7 @@ fn online_1() {
     let sql = ForeignKey::drop()
         .name("FK_2e303c3a712662f1fc2a4d0aad6")
         .table(Char::Table)
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"ALTER TABLE "character" DROP CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#
@@ -126,7 +126,7 @@ fn online_1() {
         .from(Char::Table)
         .limit(10)
         .offset(100)
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"SELECT "character", "size_w", "size_h" FROM "character" LIMIT 10 OFFSET 100"#
@@ -151,7 +151,7 @@ fn online_1() {
             "size_h": 34,
             "font_size": 2,
         }))
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"INSERT INTO "character" ("character", "size_w", "size_h", "font_size", "font_id") VALUES ('Character', 123, 456, 3, NULL), ('S', 12, 34, 2, NULL)"#
@@ -166,7 +166,7 @@ fn online_1() {
             (Char::SizeH, 12.into()),
         ])
         .and_where(Expr::col(Char::Id).eq(1))
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"UPDATE "character" SET "character" = 'S', "size_w" = 1233, "size_h" = 12 WHERE "id" = 1"#
@@ -175,7 +175,7 @@ fn online_1() {
 
     let sql = Table::truncate()
         .table(Char::Table)
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"TRUNCATE TABLE "character""#
@@ -186,7 +186,7 @@ fn online_1() {
         .table(Char::Table)
         .table(Font::Table)
         .cascade()
-        .to_string(PostgresQueryBuilder::new());
+        .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,
         r#"DROP TABLE "character", "font" CASCADE"#

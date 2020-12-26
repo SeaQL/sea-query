@@ -96,7 +96,7 @@ assert_eq!(
                 .take()
         ))
         .or_where(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
-        .to_string(MysqlQueryBuilder::new()),
+        .to_string(MysqlQueryBuilder),
     vec![
         "SELECT `character` FROM `character`",
         "LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`",

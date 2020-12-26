@@ -10,7 +10,7 @@ fn select_1() {
             .from(Char::Table)
             .limit(10)
             .offset(100)
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` LIMIT 10 OFFSET 100"
     );
 }
@@ -24,7 +24,7 @@ fn select_2() {
             ])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3"
     );
 }
@@ -39,7 +39,7 @@ fn select_3() {
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 AND `size_h` = 4"
     );
 }
@@ -60,7 +60,7 @@ fn select_4() {
                     .take(),
                 Alias::new("subglyph")
             )
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"
     );
 }
@@ -72,7 +72,7 @@ fn select_5() {
             .table_column(Glyph::Table, Glyph::Image)
             .from(Glyph::Table)
             .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4)"
     );
 }
@@ -92,7 +92,7 @@ fn select_6() {
                 Glyph::Aspect,
             ])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2"
     );
 }
@@ -106,7 +106,7 @@ fn select_7() {
             ])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2"
     );
 }
@@ -120,7 +120,7 @@ fn select_8() {
             ])
             .from(Char::Table)
             .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"
     );
 }
@@ -135,7 +135,7 @@ fn select_9() {
             .from(Char::Table)
             .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
             .inner_join(Glyph::Table, Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` INNER JOIN `glyph` ON `character`.`character` = `glyph`.`image`"
     );
 }
@@ -152,7 +152,7 @@ fn select_10() {
                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
                 .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
             )
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON (`character`.`font_id` = `font`.`id`) AND (`character`.`font_id` = `font`.`id`)"
     );
 }
@@ -168,7 +168,7 @@ fn select_11() {
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(Glyph::Image, Order::Desc)
             .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"
     );
 }
@@ -186,7 +186,7 @@ fn select_12() {
                 (Glyph::Id, Order::Asc),
                 (Glyph::Aspect, Order::Desc),
             ])
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `id` ASC, `aspect` DESC"
     );
 }
@@ -204,7 +204,7 @@ fn select_13() {
                 (Glyph::Table, Glyph::Id, Order::Asc),
                 (Glyph::Table, Glyph::Aspect, Order::Desc),
             ])
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `glyph`.`id` ASC, `glyph`.`aspect` DESC"
     );
 }
@@ -224,7 +224,7 @@ fn select_14() {
                 (Glyph::Table, Glyph::Aspect),
             ])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `id`, `aspect`, MAX(`image`) FROM `glyph` GROUP BY `glyph`.`id`, `glyph`.`aspect` HAVING `aspect` > 2"
     );
 }
@@ -238,7 +238,7 @@ fn select_15() {
             ])
             .from(Char::Table)
             .and_where(Expr::col(Char::FontId).is_null())
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `font_id` IS NULL"
     );
 }
@@ -253,7 +253,7 @@ fn select_16() {
             .from(Char::Table)
             .and_where(Expr::col(Char::FontId).is_null())
             .and_where(Expr::col(Char::Character).is_not_null())
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `font_id` IS NULL AND `character` IS NOT NULL"
     );
 }
@@ -267,7 +267,7 @@ fn select_17() {
             ])
             .from(Glyph::Table)
             .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).between(3, 5))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` BETWEEN 3 AND 5"
     );
 }
@@ -282,7 +282,7 @@ fn select_18() {
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).between(3, 5))
             .and_where(Expr::col(Glyph::Aspect).not_between(8, 10))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `aspect` FROM `glyph` WHERE (`aspect` BETWEEN 3 AND 5) AND (`aspect` NOT BETWEEN 8 AND 10)"
     );
 }
@@ -296,7 +296,7 @@ fn select_19() {
             ])
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).eq("A"))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `character` = 'A'"
     );
 }
@@ -308,7 +308,7 @@ fn select_20() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).like("A"))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `character` LIKE 'A'"
     );
 }
@@ -324,7 +324,7 @@ fn select_21() {
             .or_where(Expr::col(Char::Character).like("A%"))
             .or_where(Expr::col(Char::Character).like("%B"))
             .or_where(Expr::col(Char::Character).like("%C%"))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `character` LIKE 'A%' OR `character` LIKE '%B' OR `character` LIKE '%C%'"
     );
 }
@@ -338,7 +338,7 @@ fn select_22() {
             .or_where(Expr::col(Char::Character).like("C"))
             .or_where(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
             .and_where(Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G")))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `character` LIKE 'C' OR ((`character` LIKE 'D') AND (`character` LIKE 'E')) AND ((`character` LIKE 'F') OR (`character` LIKE 'G'))"
     );
 }
@@ -350,7 +350,7 @@ fn select_23() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where_option(None)
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character`"
     );
 }
@@ -364,7 +364,7 @@ fn select_24() {
             .conditions(true, |x| {
                 x.and_where(Expr::col(Char::FontId).eq(5));
             }, |_|())
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `font_id` = 5"
     );
 }
@@ -379,7 +379,7 @@ fn select_25() {
                 Expr::col(Char::SizeW).mul(2)
                     .equals(Expr::col(Char::SizeH).div(2))
             )
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` / 2"
     );
 }
@@ -394,7 +394,7 @@ fn select_26() {
                 Expr::expr(Expr::col(Char::SizeW).add(1)).mul(2)
                     .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
             )
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` FROM `character` WHERE (`size_w` + 1) * 2 = (`size_h` / 2) - 1"
     );
 }
@@ -410,7 +410,7 @@ fn select_27() {
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
             .and_where(Expr::col(Char::SizeH).eq(5))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 AND `size_h` = 4 AND `size_h` = 5"
     );
 }
@@ -426,7 +426,7 @@ fn select_28() {
             .or_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
             .or_where(Expr::col(Char::SizeH).eq(5))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 OR `size_h` = 4 OR `size_h` = 5"
     );
 }
@@ -442,7 +442,7 @@ fn select_29() {
             .and_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
             .and_where(Expr::col(Char::SizeH).eq(5))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 OR `size_h` = 4 AND `size_h` = 5"
     );
 }
@@ -460,7 +460,7 @@ fn select_30() {
                     .add(Expr::col(Char::SizeH).div(3))
                     .equals(Expr::value(4))
             )
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` * 2) + (`size_h` / 3) = 4"
     );
 }
@@ -472,7 +472,7 @@ fn select_31() {
             .expr((1..10_i32).fold(Expr::value(0), |expr, i| {
                 expr.add(Expr::value(i))
             }))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"
     );
 }
@@ -483,7 +483,7 @@ fn select_32() {
         Query::select()
             .expr_alias(Expr::col(Char::Character), Alias::new("C"))
             .from(Char::Table)
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `character` AS `C` FROM `character`"
     );
 }
@@ -499,7 +499,7 @@ fn select_33() {
                     .expr(Expr::cust("3 + 2 * 2"))
                     .take()
             ))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "SELECT `image` FROM `glyph` WHERE `aspect` IN (SELECT 3 + 2 * 2)"
     );
 }
@@ -539,7 +539,7 @@ fn insert_1() {
                 "image": "24B0E11951B03B07F8300FD003983F03F0780060",
                 "aspect": 2.1345,
             }))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B0E11951B03B07F8300FD003983F03F0780060')"
     );
 }
@@ -558,7 +558,7 @@ fn insert_2() {
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415)"
     );
 }
@@ -580,7 +580,7 @@ fn insert_3() {
             .json(json!({
                 "aspect": 2.1345,
             }))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"
     );
 }
@@ -595,7 +595,7 @@ fn update_1() {
                 (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
             ])
             .and_where(Expr::col(Glyph::Id).eq(1))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "UPDATE `glyph` SET `aspect` = 2.1345, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"
     );
 }
@@ -610,7 +610,7 @@ fn update_2() {
                 "image": "24B0E11951B03B07F8300FD003983F03F0780060",
             }))
             .and_where(Expr::col(Glyph::Id).eq(1))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "UPDATE `glyph` SET `aspect` = 2.1345, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"
     );
 }
@@ -625,7 +625,7 @@ fn update_3() {
                 (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
             ])
             .and_where(Expr::col(Glyph::Id).eq(1))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"
     );
 }
@@ -636,7 +636,7 @@ fn delete_1() {
         Query::delete()
             .from_table(Glyph::Table)
             .and_where(Expr::col(Glyph::Id).eq(1))
-            .to_string(SqliteQueryBuilder::new()),
+            .to_string(SqliteQueryBuilder),
         "DELETE FROM `glyph` WHERE `id` = 1"
     );
 }
