@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, types::*};
+use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, types::*, prepare::*};
 
 /// Create a table
 /// 
@@ -177,16 +177,16 @@ impl TableCreateStatement {
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         table_builder.prepare_table_create_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         table_builder.prepare_table_create_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string

@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{TableIndex, backend::IndexBuilder, types::*};
+use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
 
 /// Drop an index for an existing table
 /// 
@@ -62,16 +62,16 @@ impl IndexDropStatement {
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build<T: IndexBuilder>(&self, index_builder: T) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         index_builder.prepare_index_drop_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build_any(&self, index_builder: &dyn IndexBuilder) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         index_builder.prepare_index_drop_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string

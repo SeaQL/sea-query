@@ -6,12 +6,13 @@ use sea_query::*;
 use sea_query::driver::sqlx::{bind_query, bind_query_as};
 
 fn main() {
+    let database = "mysql";
+
     let connection = task::block_on(async {
-        AnyPool::connect("mysql://query:query@127.0.0.1/query_test").await.unwrap()
+        AnyPool::connect(format!("{}://query:query@127.0.0.1/query_test", database).as_ref())
+            .await.unwrap()
     });
     let mut pool = connection.try_acquire().unwrap();
-
-    let database = "mysql";
 
     let table_builder: Box<dyn GenericBuilder> = match database {
         "mysql" => Box::new(MysqlQueryBuilder),

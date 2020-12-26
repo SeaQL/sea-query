@@ -1,4 +1,4 @@
-use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types::*};
+use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
 
 /// Create a foreign key constraint for an existing table
 /// 
@@ -89,16 +89,16 @@ impl ForeignKeyCreateStatement {
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build<T: ForeignKeyBuilder>(&self, foreign_key_builder: T) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         foreign_key_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build_any(&self, foreign_key_builder: &dyn ForeignKeyBuilder) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         foreign_key_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string

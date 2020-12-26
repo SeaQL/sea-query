@@ -495,21 +495,25 @@
 
 pub mod backend;
 pub mod driver;
-pub mod expr;
 pub mod foreign_key;
 pub mod index;
 pub mod query;
 pub mod table;
+pub mod expr;
+pub mod prepare;
 pub mod tests_cfg;
+pub mod token;
 pub mod types;
 pub mod value;
 
 pub use backend::*;
 //pub use driver::*;
-pub use expr::*;
 pub use foreign_key::*;
 pub use index::*;
 pub use query::*;
 pub use table::*;
+pub use expr::*;
+pub use prepare::*;
 pub use types::*;
+pub use token::*;
 pub use value::*;

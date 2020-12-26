@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, types::*, expr::*, value::*};
+use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 
 /// Update existing rows in the table
 /// 
@@ -436,16 +436,16 @@ impl UpdateStatement {
     /// );
     /// ```
     pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector

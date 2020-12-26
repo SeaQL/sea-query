@@ -1,7 +1,7 @@
 use super::*;
 
 impl ForeignKeyBuilder for MysqlQueryBuilder {
-    fn prepare_foreign_key_create_statement(&self, create: &ForeignKeyCreateStatement, sql: &mut dyn FmtWrite) {
+    fn prepare_foreign_key_create_statement(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter) {
         if !create.inside_table_creation {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
@@ -56,7 +56,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_foreign_key_action(&self, foreign_key_action: &ForeignKeyAction, sql: &mut dyn FmtWrite) {
+    fn prepare_foreign_key_action(&self, foreign_key_action: &ForeignKeyAction, sql: &mut SqlWriter) {
         write!(sql, "{}", match foreign_key_action {
             ForeignKeyAction::Restrict => "RESTRICT",
             ForeignKeyAction::Cascade => "CASCADE",
@@ -66,7 +66,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         }).unwrap()
     }
 
-    fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut dyn FmtWrite) {
+    fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &drop.table {
             table.prepare(sql, '`');

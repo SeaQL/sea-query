@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{backend::TableBuilder, types::*};
+use crate::{backend::TableBuilder, types::*, prepare::*};
 
 /// Drop a table
 /// 
@@ -83,16 +83,16 @@ impl TableDropStatement {
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         table_builder.prepare_table_drop_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         table_builder.prepare_table_drop_statement(self, &mut sql);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string

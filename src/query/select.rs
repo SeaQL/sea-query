@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{backend::QueryBuilder, types::*, expr::*, value::*};
+use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 
 /// Select rows from an existing table
 /// 
@@ -1253,16 +1253,16 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
-        let mut sql = String::new();
+        let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
-        sql
+        sql.result()
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
