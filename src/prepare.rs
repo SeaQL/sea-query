@@ -89,13 +89,20 @@ mod tests {
 
     #[test]
     fn inject_parameters_4() {
-        assert_eq!(inject_parameters("WHERE A = $1 AND C = $2", vec!["B".into(), "D".into()], &MysqlQueryBuilder),
+        assert_eq!(inject_parameters("WHERE A = $1 AND C = $2", vec!["B".into(), "D".into()], &PostgresQueryBuilder),
             "WHERE A = 'B' AND C = 'D'");
     }
 
     #[test]
     fn inject_parameters_5() {
-        assert_eq!(inject_parameters("WHERE A = $2 AND C = $1", vec!["B".into(), "D".into()], &MysqlQueryBuilder),
+        assert_eq!(inject_parameters("WHERE A = $2 AND C = $1", vec!["B".into(), "D".into()], &PostgresQueryBuilder),
             "WHERE A = 'D' AND C = 'B'");
     }
+
+    #[test]
+    fn inject_parameters_6() {
+        assert_eq!(inject_parameters("WHERE A = $1", vec!["B'C".into()], &PostgresQueryBuilder),
+            "WHERE A = E'B\\'C'");
+    }
+
 }

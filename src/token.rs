@@ -415,4 +415,17 @@ mod tests {
         ]);
         assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
     }
+
+    #[test]
+    fn test_15() {
+        let string = r#" "Hello World" "#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(tokens, vec![
+            Token::Space(" ".to_string()),
+            Token::Quoted("\"Hello World\"".to_string()),
+            Token::Space(" ".to_string()),
+        ]);
+        assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
+    }
 }
