@@ -1,9 +1,4 @@
-use sqlx::{Any, any::AnyArguments};
-use crate::*;
-
-type SqlxQuery<'a> = sqlx::query::Query<'a, Any, AnyArguments<'a>>;
-type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Any, T, AnyArguments<'a>>;
-
+#[macro_export]
 macro_rules! bind_params {
     ( $query:expr, $params:expr ) => {
         {
@@ -31,12 +26,4 @@ macro_rules! bind_params {
             query
         }
     };
-}
-
-pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
-    bind_params!(query, params)
-}
-
-pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
-    bind_params!(query, params)
 }

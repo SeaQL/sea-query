@@ -1,9 +1,11 @@
 use std::fmt;
 use async_std::task;
 use serde_json::json;
-use sqlx::AnyPool;
+use sqlx::{Any, AnyPool, any::AnyArguments};
 use sea_query::*;
-use sea_query::driver::sqlx::{bind_query, bind_query_as};
+
+type SqlxQuery<'a> = sqlx::query::Query<'a, Any, AnyArguments<'a>>;
+type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Any, T, AnyArguments<'a>>;
 
 fn main() {
     // mysql or postgresql
@@ -83,6 +85,14 @@ fn main() {
     for row in rows.iter() {
         println!("{:?}", row);
     }
+}
+
+pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
+    bind_params!(query, params)
+}
+
+pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
+    bind_params!(query, params)
 }
 
 enum Character {
