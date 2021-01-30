@@ -244,6 +244,12 @@ impl ColumnDef {
         self.types = Some(ColumnType::Json);
         self
     }
+
+    pub fn custom<T: 'static>(mut self, n: T) -> Self
+        where T: Iden {
+        self.types = Some(ColumnType::Custom(Rc::new(n)));
+        self
+    }
 }
 
 /// All available column types
@@ -281,6 +287,7 @@ pub enum ColumnType {
     Money(u32, u32),
     MoneyDefault,
     Json,
+    Custom(Rc<dyn Iden>),
 }
 
 /// All available column specification keywords

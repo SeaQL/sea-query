@@ -87,6 +87,7 @@ impl TableBuilder for PostgresQueryBuilder {
             ColumnType::Money(precision, scale) => format!("money({}, {})", precision, scale),
             ColumnType::MoneyDefault => "money".into(),
             ColumnType::Json => "json".into(),
+            ColumnType::Custom(iden) => iden.to_string(),
         }).unwrap()
     }
 
