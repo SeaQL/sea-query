@@ -55,25 +55,25 @@ impl ColumnDef {
 
     /// Set column type as char with custom length
     pub fn char_len(mut self, length: u32) -> Self {
-        self.types = Some(ColumnType::Char(length));
+        self.types = Some(ColumnType::Char(Some(length)));
         self
     }
 
     /// Set column type as char
     pub fn char(mut self) -> Self {
-        self.types = Some(ColumnType::CharDefault);
+        self.types = Some(ColumnType::Char(None));
         self
     }
 
     /// Set column type as string with custom length
     pub fn string_len(mut self, length: u32) -> Self {
-        self.types = Some(ColumnType::String(length));
+        self.types = Some(ColumnType::String(Some(length)));
         self
     }
 
     /// Set column type as string
     pub fn string(mut self) -> Self {
-        self.types = Some(ColumnType::StringDefault);
+        self.types = Some(ColumnType::String(None));
         self
     }
 
@@ -85,121 +85,121 @@ impl ColumnDef {
 
     /// Set column type as tiny_integer with custom length
     pub fn tiny_integer_len(mut self, length: u32) -> Self {
-        self.types = Some(ColumnType::TinyInteger(length));
+        self.types = Some(ColumnType::TinyInteger(Some(length)));
         self
     }
 
     /// Set column type as tiny_integer
     pub fn tiny_integer(mut self) -> Self {
-        self.types = Some(ColumnType::TinyIntegerDefault);
+        self.types = Some(ColumnType::TinyInteger(None));
         self
     }
 
     /// Set column type as small_integer with custom length
     pub fn small_integer_len(mut self, length: u32) -> Self {
-        self.types = Some(ColumnType::SmallInteger(length));
+        self.types = Some(ColumnType::SmallInteger(Some(length)));
         self
     }
 
     /// Set column type as small_integer
     pub fn small_integer(mut self) -> Self {
-        self.types = Some(ColumnType::SmallIntegerDefault);
+        self.types = Some(ColumnType::SmallInteger(None));
         self
     }
 
     /// Set column type as integer with custom length
     pub fn integer_len(mut self, length: u32) -> Self {
-        self.types = Some(ColumnType::Integer(length));
+        self.types = Some(ColumnType::Integer(Some(length)));
         self
     }
 
     /// Set column type as integer
     pub fn integer(mut self) -> Self {
-        self.types = Some(ColumnType::IntegerDefault);
+        self.types = Some(ColumnType::Integer(None));
         self
     }
 
     /// Set column type as big_integer with custom length
     pub fn big_integer_len(mut self, length: u32) -> Self {
-        self.types = Some(ColumnType::BigInteger(length));
+        self.types = Some(ColumnType::BigInteger(Some(length)));
         self
     }
 
     /// Set column type as big_integer
     pub fn big_integer(mut self) -> Self {
-        self.types = Some(ColumnType::BigIntegerDefault);
+        self.types = Some(ColumnType::BigInteger(None));
         self
     }
 
     /// Set column type as float with custom precision
     pub fn float_len(mut self, precision: u32) -> Self {
-        self.types = Some(ColumnType::Float(precision));
+        self.types = Some(ColumnType::Float(Some(precision)));
         self
     }
 
     /// Set column type as float
     pub fn float(mut self) -> Self {
-        self.types = Some(ColumnType::FloatDefault);
+        self.types = Some(ColumnType::Float(None));
         self
     }
 
     /// Set column type as double with custom precision
     pub fn double_len(mut self, precision: u32) -> Self {
-        self.types = Some(ColumnType::Double(precision));
+        self.types = Some(ColumnType::Double(Some(precision)));
         self
     }
 
     /// Set column type as double
     pub fn double(mut self) -> Self {
-        self.types = Some(ColumnType::DoubleDefault);
+        self.types = Some(ColumnType::Double(None));
         self
     }
 
     /// Set column type as decimal with custom precision and scale
     pub fn decimal_len(mut self, precision: u32, scale: u32) -> Self {
-        self.types = Some(ColumnType::Decimal(precision, scale));
+        self.types = Some(ColumnType::Decimal(Some((precision, scale))));
         self
     }
 
     /// Set column type as decimal
     pub fn decimal(mut self) -> Self {
-        self.types = Some(ColumnType::DecimalDefault);
+        self.types = Some(ColumnType::Decimal(None));
         self
     }
 
     /// Set column type as date_time with custom precision
     pub fn date_time_len(mut self, precision: u32) -> Self {
-        self.types = Some(ColumnType::DateTime(precision));
+        self.types = Some(ColumnType::DateTime(Some(precision)));
         self
     }
 
     /// Set column type as date_time
     pub fn date_time(mut self) -> Self {
-        self.types = Some(ColumnType::DateTimeDefault);
+        self.types = Some(ColumnType::DateTime(None));
         self
     }
 
     /// Set column type as timestamp with custom precision
     pub fn timestamp_len(mut self, precision: u32) -> Self {
-        self.types = Some(ColumnType::Timestamp(precision));
+        self.types = Some(ColumnType::Timestamp(Some(precision)));
         self
     }
 
     /// Set column type as timestamp
     pub fn timestamp(mut self) -> Self {
-        self.types = Some(ColumnType::TimestampDefault);
+        self.types = Some(ColumnType::Timestamp(None));
         self
     }
 
     /// Set column type as time with custom precision
     pub fn time_len(mut self, precision: u32) -> Self {
-        self.types = Some(ColumnType::Time(precision));
+        self.types = Some(ColumnType::Time(Some(precision)));
         self
     }
 
     /// Set column type as time
     pub fn time(mut self) -> Self {
-        self.types = Some(ColumnType::TimeDefault);
+        self.types = Some(ColumnType::Time(None));
         self
     }
 
@@ -211,13 +211,13 @@ impl ColumnDef {
 
     /// Set column type as binary with custom length
     pub fn binary_len(mut self, length: u32) -> Self {
-        self.types = Some(ColumnType::Binary(length));
+        self.types = Some(ColumnType::Binary(Some(length)));
         self
     }
 
     /// Set column type as binary
     pub fn binary(mut self) -> Self {
-        self.types = Some(ColumnType::BinaryDefault);
+        self.types = Some(ColumnType::Binary(None));
         self
     }
 
@@ -229,13 +229,13 @@ impl ColumnDef {
 
     /// Set column type as money with custom precision ans scale
     pub fn money_len(mut self, precision: u32, scale: u32) -> Self {
-        self.types = Some(ColumnType::Money(precision, scale));
+        self.types = Some(ColumnType::Money(Some((precision, scale))));
         self
     }
 
     /// Set column type as money
     pub fn money(mut self) -> Self {
-        self.types = Some(ColumnType::MoneyDefault);
+        self.types = Some(ColumnType::Money(None));
         self
     }
 
@@ -255,37 +255,23 @@ impl ColumnDef {
 /// All available column types
 #[derive(Clone)]
 pub enum ColumnType {
-    Char(u32),
-    CharDefault,
-    String(u32),
-    StringDefault,
+    Char(Option<u32>),
+    String(Option<u32>),
     Text,
-    TinyInteger(u32),
-    TinyIntegerDefault,
-    SmallInteger(u32),
-    SmallIntegerDefault,
-    Integer(u32),
-    IntegerDefault,
-    BigInteger(u32),
-    BigIntegerDefault,
-    Float(u32),
-    FloatDefault,
-    Double(u32),
-    DoubleDefault,
-    Decimal(u32, u32),
-    DecimalDefault,
-    DateTime(u32),
-    DateTimeDefault,
-    Timestamp(u32),
-    TimestampDefault,
-    Time(u32),
-    TimeDefault,
+    TinyInteger(Option<u32>),
+    SmallInteger(Option<u32>),
+    Integer(Option<u32>),
+    BigInteger(Option<u32>),
+    Float(Option<u32>),
+    Double(Option<u32>),
+    Decimal(Option<(u32, u32)>),
+    DateTime(Option<u32>),
+    Timestamp(Option<u32>),
+    Time(Option<u32>),
     Date,
-    Binary(u32),
-    BinaryDefault,
+    Binary(Option<u32>),
     Boolean,
-    Money(u32, u32),
-    MoneyDefault,
+    Money(Option<(u32, u32)>),
     Json,
     Custom(Rc<dyn Iden>),
 }
