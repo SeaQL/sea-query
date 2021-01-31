@@ -93,6 +93,23 @@ fn create_4() {
 }
 
 #[test]
+fn create_5() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Image).json())
+            .col(ColumnDef::new(Glyph::Aspect).json_binary())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "glyph" ("#,
+                r#""image" json,"#,
+                r#""aspect" jsonb"#,
+            r#")"#,
+        ].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()

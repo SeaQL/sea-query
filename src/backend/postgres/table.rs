@@ -115,6 +115,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 None => "money".into(),
             },
             ColumnType::Json => "json".into(),
+            ColumnType::JsonBinary => "jsonb".into(),
             ColumnType::Custom(iden) => iden.to_string(),
         }).unwrap()
     }

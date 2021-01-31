@@ -136,6 +136,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 None => "integer".into(),
             },
             ColumnType::Json => "text".into(),
+            ColumnType::JsonBinary => "text".into(),
             ColumnType::Custom(iden) => iden.to_string(),
         }).unwrap()
     }

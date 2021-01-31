@@ -116,6 +116,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 None => "money".into(),
             },
             ColumnType::Json => "json".into(),
+            ColumnType::JsonBinary => "json".into(),
             ColumnType::Custom(iden) => iden.to_string(),
         }).unwrap()
     }

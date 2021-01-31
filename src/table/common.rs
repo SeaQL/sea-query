@@ -239,9 +239,19 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as json
+    /// Set column type as json.
+    /// On MySQL, this is equivalent to json_binary. On MariaDB, this is equivalent to text.
+    /// On PgSQL, this is equivalent to json.
     pub fn json(mut self) -> Self {
         self.types = Some(ColumnType::Json);
+        self
+    }
+
+    /// Set column type as json binary.
+    /// On MySQL, this is equivalent to json. On MariaDB, this is equivalent to text.
+    /// On PgSQL, this is equivalent to jsonb.
+    pub fn json_binary(mut self) -> Self {
+        self.types = Some(ColumnType::JsonBinary);
         self
     }
 
@@ -273,6 +283,7 @@ pub enum ColumnType {
     Boolean,
     Money(Option<(u32, u32)>),
     Json,
+    JsonBinary,
     Custom(Rc<dyn Iden>),
 }
 
