@@ -108,6 +108,7 @@ impl TableBuilder for SqliteQueryBuilder {
             ColumnType::Money(precision, scale) => format!("integer({}, {})", precision, scale),
             ColumnType::MoneyDefault => "integer".into(),
             ColumnType::Json => "text".into(),
+            ColumnType::Custom(iden) => iden.to_string(),
         }).unwrap()
     }
 

@@ -78,6 +78,21 @@ assert_eq!(
 }
 
 #[test]
+fn create_4() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "glyph" ("#,
+                r#""image" aspect"#,
+            r#")"#,
+        ].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
