@@ -56,38 +56,67 @@ impl TableBuilder for MysqlQueryBuilder {
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut SqlWriter) {
         write!(sql, "{}", match column_type {
-            ColumnType::Char(length) => format!("char({})", length),
-            ColumnType::CharDefault => "char".into(),
-            ColumnType::String(length) => format!("varchar({})", length),
-            ColumnType::StringDefault => "varchar(255)".into(),
+            ColumnType::Char(length) => match length {
+                Some(length) => format!("char({})", length),
+                None => "char".into(),
+            },
+            ColumnType::String(length) => match length {
+                Some(length) => format!("varchar({})", length),
+                None => "varchar(255)".into(),
+            },
             ColumnType::Text => "text".into(),
-            ColumnType::TinyInteger(length) => format!("tinyint({})", length),
-            ColumnType::TinyIntegerDefault => "tinyint".into(),
-            ColumnType::SmallInteger(length) => format!("smallint({})", length),
-            ColumnType::SmallIntegerDefault => "smallint".into(),
-            ColumnType::Integer(length) => format!("int({})", length),
-            ColumnType::IntegerDefault => "int".into(),
-            ColumnType::BigInteger(length) => format!("bigint({})", length),
-            ColumnType::BigIntegerDefault => "bigint".into(),
-            ColumnType::Float(precision) => format!("float({})", precision),
-            ColumnType::FloatDefault => "float".into(),
-            ColumnType::Double(precision) => format!("double({})", precision),
-            ColumnType::DoubleDefault => "double".into(),
-            ColumnType::Decimal(precision, scale) => format!("decimal({}, {})", precision, scale),
-            ColumnType::DecimalDefault => "decimal".into(),
-            ColumnType::DateTime(precision) => format!("datetime({})", precision),
-            ColumnType::DateTimeDefault => "datetime".into(),
-            ColumnType::Timestamp(precision) => format!("timestamp({})", precision),
-            ColumnType::TimestampDefault => "timestamp".into(),
-            ColumnType::Time(precision) => format!("time({})", precision),
-            ColumnType::TimeDefault => "time".into(),
+            ColumnType::TinyInteger(length) => match length {
+                Some(length) => format!("tinyint({})", length),
+                None => "tinyint".into(),
+            },
+            ColumnType::SmallInteger(length) => match length {
+                Some(length) => format!("smallint({})", length),
+                None => "smallint".into(),
+            },
+            ColumnType::Integer(length) => match length {
+                Some(length) => format!("int({})", length),
+                None => "int".into(),
+            },
+            ColumnType::BigInteger(length) => match length {
+                Some(length) => format!("bigint({})", length),
+                None => "bigint".into(),
+            },
+            ColumnType::Float(precision) => match precision {
+                Some(precision) => format!("float({})", precision),
+                None => "float".into(),
+            },
+            ColumnType::Double(precision) => match precision {
+                Some(precision) => format!("double({})", precision),
+                None => "double".into(),
+            },
+            ColumnType::Decimal(precision) => match precision {
+                Some((precision, scale)) => format!("decimal({}, {})", precision, scale),
+                None => "decimal".into(),
+            },
+            ColumnType::DateTime(precision) => match precision {
+                Some(precision) => format!("datetime({})", precision),
+                None => "datetime".into(),
+            },
+            ColumnType::Timestamp(precision) => match precision {
+                Some(precision) => format!("timestamp({})", precision),
+                None => "timestamp".into(),
+            },
+            ColumnType::Time(precision) => match precision {
+                Some(precision) => format!("time({})", precision),
+                None => "time".into(),
+            },
             ColumnType::Date => "date".into(),
-            ColumnType::Binary(length) => format!("binary({})", length),
-            ColumnType::BinaryDefault => "binary".into(),
+            ColumnType::Binary(length) => match length {
+                Some(length) => format!("binary({})", length),
+                None => "binary".into(),
+            },
             ColumnType::Boolean => "bool".into(),
-            ColumnType::Money(precision, scale) => format!("money({}, {})", precision, scale),
-            ColumnType::MoneyDefault => "money".into(),
+            ColumnType::Money(precision) => match precision {
+                Some((precision, scale)) => format!("money({}, {})", precision, scale),
+                None => "money".into(),
+            },
             ColumnType::Json => "json".into(),
+            ColumnType::JsonBinary => "json".into(),
             ColumnType::Custom(iden) => iden.to_string(),
         }).unwrap()
     }
