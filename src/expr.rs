@@ -1358,11 +1358,10 @@ impl SimpleExpr {
 
     pub(crate) fn need_parentheses(&self) -> bool {
         match self {
-            Self::Binary(left, oper, _) => match (left.as_ref(), oper) {
-                (Self::Binary(_, BinOper::And, _), BinOper::And) => false,
-                (Self::Binary(_, BinOper::Or, _), BinOper::Or) => false,
-                _ => true,
-            },
+            Self::Binary(left, oper, _) => !matches!(
+                (left.as_ref(), oper),
+                (Self::Binary(_, BinOper::And, _), BinOper::And) | (Self::Binary(_, BinOper::Or, _), BinOper::Or)
+            ),
             _ => false,
         }
     }

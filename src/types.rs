@@ -22,6 +22,7 @@ pub trait Iden {
 }
 
 /// All table references
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone)]
 pub enum TableRef {
     Table(Rc<dyn Iden>),

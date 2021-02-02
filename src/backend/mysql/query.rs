@@ -213,11 +213,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                 write!(sql, ")").unwrap();
             },
             SimpleExpr::Binary(left, op, right) => {
-                let no_paren = match op {
-                    BinOper::Equal => true,
-                    BinOper::NotEqual => true,
-                    _ => false,
-                };
+                let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
                 let left_paren =
                     left.need_parentheses() &&
                     left.is_binary() && *op != left.get_bin_oper().unwrap() &&
@@ -232,11 +228,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                 write!(sql, " ").unwrap();
                 self.prepare_bin_oper(op, sql, collector);
                 write!(sql, " ").unwrap();
-                let no_right_paren = match op {
-                    BinOper::Between => true,
-                    BinOper::NotBetween => true,
-                    _ => false,
-                };
+                let no_right_paren = matches!(op, BinOper::Between | BinOper::NotBetween);
                 let right_paren =
                     (right.need_parentheses() ||
                         right.is_binary() && *op != left.get_bin_oper().unwrap()) &&
