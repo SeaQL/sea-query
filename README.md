@@ -33,7 +33,7 @@ sea-query = "*"
 ## Usage
 
 Construct a SQL statement with the library then execute the statement with a database connector,
-see SQLx example [here](https://github.com/SeaQL/sea-query/blob/master/examples/sqlx.rs).
+see SQLx example [here](./sea-query/examples/sqlx.rs).
 
 ### Iden
 
@@ -73,6 +73,29 @@ impl Iden for Character {
     }
 }
 ```
+
+If you're okay with running another procedural macro, you can activate
+the `derive` feature on the crate to save you some boilerplate:
+
+```rust
+use sea_query::Iden;
+
+// This will implement Iden exactly as shown above
+#[derive(Iden)]
+pub enum Character {
+    Table,
+    Id,
+    Character,
+    FontSize,
+    SizeW,
+    SizeH,
+    FontId,
+}
+```
+
+You can also override the generated column names by specifying an `#[iden = ""]`
+attribute on the enum or any of its variants; for more information, look at
+[the derive example](./sea-query/examples/derive.rs).
 
 ### Expression
 
