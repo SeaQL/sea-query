@@ -45,7 +45,32 @@
 //!     }
 //! }
 //! ```
-//! 
+//!
+//! If you're okay with running another procedural macro, you can activate
+//! the `derive` feature on the crate to save you some boilerplate:
+//!
+//! ```rust
+//! # #[cfg(feature = "derive")]
+//! use sea_query::Iden;
+//!
+//! // This will implement Iden exactly as shown above
+//! # #[cfg(feature = "derive")]
+//! #[derive(Iden)]
+//! pub enum Character {
+//!     Table,
+//!     Id,
+//!     Character,
+//!     FontSize,
+//!     SizeW,
+//!     SizeH,
+//!     FontId,
+//! }
+//! ```
+//!
+//! You can also override the generated column names by specifying an `#[iden = ""]`
+//! attribute on the enum or any of its variants; for more information, look at
+//! the derive example.
+//!
 //! ## Expression
 //! 
 //! Use [`Expr`] to construct select, join, where and having expression in query.
@@ -518,3 +543,6 @@ pub use prepare::*;
 pub use types::*;
 pub use token::*;
 pub use value::*;
+
+#[cfg(feature = "derive")]
+pub use sea_query_derive::Iden;

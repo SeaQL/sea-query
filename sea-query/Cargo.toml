@@ -12,9 +12,11 @@ keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
 
 [lib]
 name = "sea_query"
+path = "src/lib.rs"
 
 [dependencies]
 serde_json = "1.0"
+sea-query-derive = { path = "../sea-query-derive", optional = true }
 
 [dev-dependencies]
 async-std = "1.8"
@@ -22,7 +24,12 @@ sqlx = { version = "0.4.0", default-features = false, features = [ "runtime-asyn
 
 [features]
 sqlx-driver = []
+derive = ["sea-query-derive"]
 
 [[example]]
 name = "sqlx"
 required-features = ["sqlx-driver"]
+
+[[example]]
+name = "derive"
+required-features = ["derive"]

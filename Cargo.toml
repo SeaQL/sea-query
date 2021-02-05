@@ -2,5 +2,5 @@
 
 members = [
     "sea-query",
-    # "sea-query-derive",
+    "sea-query-derive",
 ]
