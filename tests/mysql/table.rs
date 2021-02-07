@@ -28,9 +28,9 @@ fn create_2() {
         Table::create()
             .table(Font::Table)
             .col(ColumnDef::new(Font::Id).integer_len(11).not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Font::Name).string_len(255).not_null())
+            .col(ColumnDef::new(Font::Name).string().not_null())
             .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
-            .col(ColumnDef::new(Font::Language).string_len(255).not_null())
+            .col(ColumnDef::new(Font::Language).string_len(1024).not_null())
             .engine("InnoDB")
             .character_set("utf8mb4")
             .collate("utf8mb4_unicode_ci")
@@ -40,7 +40,7 @@ fn create_2() {
                 "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
                 "`name` varchar(255) NOT NULL,",
                 "`variant` varchar(255) NOT NULL,",
-                "`language` varchar(255) NOT NULL",
+                "`language` varchar(1024) NOT NULL",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         ].join(" ")
     );
