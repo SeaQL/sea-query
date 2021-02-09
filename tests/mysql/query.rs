@@ -589,7 +589,7 @@ fn insert_3() {
 fn update_1() {
     assert_eq!(
         Query::update()
-            .into_table(Glyph::Table)
+            .table(Glyph::Table)
             .values(vec![
                 (Glyph::Aspect, 2.1345.into()),
                 (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
@@ -606,7 +606,7 @@ fn update_1() {
 fn update_2() {
     assert_eq!(
         Query::update()
-            .into_table(Glyph::Table)
+            .table(Glyph::Table)
             .json(json!({
                 "aspect": 2.1345,
                 "image": "24B0E11951B03B07F8300FD003983F03F0780060",
@@ -623,7 +623,7 @@ fn update_2() {
 fn update_3() {
     assert_eq!(
         Query::update()
-            .into_table(Glyph::Table)
+            .table(Glyph::Table)
             .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
             .values(vec![
                 (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),

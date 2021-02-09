@@ -1,0 +1,20 @@
+[package]
+name = "sea-query-derive"
+version = "0.1.0"
+authors = [ "Follpvosten <wolfi@karpador.xyz>" ]
+edition = "2018"
+description = "Derive macro for sea-query's Iden trait"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = [ "database" ]
+keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
+quote = "1"
+sea-query = "0.4"
+heck = "0.3"

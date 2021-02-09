@@ -1,8 +1,32 @@
 //! A database agnostic runtime query builder for Rust.
 //! 
-//! This library is the foundation of upcoming projects on Document ORM (Sea-ORM) and Database Synchor (Sea-Horse).
+//! This library aims to provide an ergonomic API to construct Abstract Syntax Trees for SQL.
+//! The AST is generic by design and can be serialized to different SQL variants.
+//! We align the behaviour between different engines where appropriate, while offering vendor specific features via extensions.
+//! 
+//! This library is the foundation of upcoming projects: Document ORM (SeaORM) and Database Synchor (SeaHorse).
 //! 
 //! # Usage
+//! 
+//! Table of Content
+//! 
+//! 1. [Iden](#iden)
+//! 1. [Expression](#expression)
+//! 
+//! 1. [Query Select](#query-select)
+//! 1. [Query Insert](#query-insert)
+//! 1. [Query Update](#query-update)
+//! 1. [Query Delete](#query-delete)
+//! 
+//! 1. [Table Create](#table-create)
+//! 1. [Table Alter](#table-alter)
+//! 1. [Table Drop](#table-drop)
+//! 1. [Table Rename](#table-rename)
+//! 1. [Table Truncate](#table-truncate)
+//! 1. [Foreign Key Create](#foreign-key-create)
+//! 1. [Foreign Key Drop](#foreign-key-drop)
+//! 1. [Index Create](#index-create)
+//! 1. [Index Drop](#index-drop)
 //! 
 //! Construct a SQL statement with the library then execute the statement with a database connector,
 //! see SQLx example [here](https://github.com/SeaQL/sea-query/blob/master/examples/sqlx.rs).
@@ -45,7 +69,32 @@
 //!     }
 //! }
 //! ```
-//! 
+//!
+//! If you're okay with running another procedural macro, you can activate
+//! the `derive` feature on the crate to save you some boilerplate:
+//!
+//! ```rust
+//! # #[cfg(feature = "derive")]
+//! use sea_query::Iden;
+//!
+//! // This will implement Iden exactly as shown above
+//! # #[cfg(feature = "derive")]
+//! #[derive(Iden)]
+//! pub enum Character {
+//!     Table,
+//!     Id,
+//!     Character,
+//!     FontSize,
+//!     SizeW,
+//!     SizeH,
+//!     FontId,
+//! }
+//! ```
+//!
+//! You can also override the generated column names by specifying an `#[iden = ""]`
+//! attribute on the enum or any of its variants; for more information, look at
+//! [the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
+//!
 //! ## Expression
 //! 
 //! Use [`Expr`] to construct select, join, where and having expression in query.
@@ -154,7 +203,7 @@
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let query = Query::update()
-//!     .into_table(Glyph::Table)
+//!     .table(Glyph::Table)
 //!     .values(vec![
 //!         (Glyph::Aspect, 1.23.into()),
 //!         (Glyph::Image, "123".into()),
@@ -518,3 +567,6 @@ pub use prepare::*;
 pub use types::*;
 pub use token::*;
 pub use value::*;
+
+#[cfg(feature = "derive")]
+pub use sea_query_derive::Iden;

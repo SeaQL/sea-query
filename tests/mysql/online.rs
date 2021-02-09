@@ -167,7 +167,7 @@ fn online_1() {
     env.exec(&sql);
 
     let sql = Query::update()
-        .into_table(Char::Table)
+        .table(Char::Table)
         .values(vec![
             (Char::Character, "S".into()),
             (Char::SizeW, 1233.into()),

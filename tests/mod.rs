@@ -2,6 +2,9 @@ mod mysql;
 mod postgres;
 mod sqlite;
 
+#[cfg(feature = "derive")]
+mod derive;
+
 use sea_query::{*, tests_cfg::*};
 
 use sqlx::{Any, Pool, AnyPool};
