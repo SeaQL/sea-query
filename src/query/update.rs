@@ -10,7 +10,7 @@ use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 /// use sea_query::{*, tests_cfg::*};
 /// 
 /// let query = Query::update()
-///     .into_table(Glyph::Table)
+///     .table(Glyph::Table)
 ///     .values(vec![
 ///         (Glyph::Aspect, 1.23.into()),
 ///         (Glyph::Image, "123".into()),
@@ -64,20 +64,39 @@ impl UpdateStatement {
     /// 
     /// See [`UpdateStatement::values`]
     #[allow(clippy::wrong_self_convention)]
-    pub fn into_table<T: 'static>(&mut self, table: T) -> &mut Self
+    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
         where T: Iden {
-        self.into_table_dyn(Rc::new(table))
+        self.table_dyn(Rc::new(table))
     }
 
-    /// Specify which table to update, variation of [`UpdateStatement::into_table`].
+    /// Specify which table to update, variation of [`UpdateStatement::table`].
     /// 
     /// # Examples
     /// 
     /// See [`UpdateStatement::values`]
     #[allow(clippy::wrong_self_convention)]
-    pub fn into_table_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
+    pub fn table_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
         self.table = Some(Box::new(TableRef::Table(table)));
         self
+    }
+
+    #[deprecated(
+        since = "0.5.0",
+        note = "Please use the UpdateStatement::table function instead"
+    )]
+    #[allow(clippy::wrong_self_convention)]
+    pub fn into_table<T: 'static>(&mut self, table: T) -> &mut Self
+        where T: Iden {
+        self.table(table)
+    }
+
+    #[deprecated(
+        since = "0.5.0",
+        note = "Please use the UpdateStatement::table_dyn function instead"
+    )]
+    #[allow(clippy::wrong_self_convention)]
+    pub fn into_table_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
+        self.table_dyn(table)
     }
 
     /// Update column value by [`SimpleExpr`].
@@ -88,7 +107,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
     ///     .values(vec![
     ///         (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
@@ -128,7 +147,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .json(json!({
     ///         "aspect": 2.1345,
     ///         "image": "235m",
@@ -169,7 +188,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .values(vec![
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
@@ -203,6 +222,44 @@ impl UpdateStatement {
         self
     }
 
+    /// Update column values.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::update()
+    ///     .table(Glyph::Table)
+    ///     .value(Glyph::Aspect, 2.1345.into())
+    ///     .value(Glyph::Image, "235m".into())
+    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    /// );
+    /// ```
+    pub fn value<T: 'static>(&mut self, col: T, value: Value) -> &mut Self
+        where T: Iden {
+        self.value_dyn(Rc::new(col) as Rc<dyn Iden>, value)
+    }
+
+    /// Update column values, variation of [`UpdateStatement::value`].
+    pub fn value_dyn(&mut self, col: Rc<dyn Iden>, value: Value) -> &mut Self {
+        self.push_boxed_value(col.to_string(), SimpleExpr::Value(value));
+        self
+    }
+
     fn push_boxed_value(&mut self, k: String, v: SimpleExpr) -> &mut Self {
         self.values.push((k, Box::new(v)));
         self
@@ -216,7 +273,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .values(vec![
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
@@ -250,7 +307,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .values(vec![
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
@@ -406,7 +463,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .values(vec![
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
@@ -456,7 +513,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let (query, params) = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .values(vec![
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
@@ -500,7 +557,7 @@ impl UpdateStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::update()
-    ///     .into_table(Glyph::Table)
+    ///     .table(Glyph::Table)
     ///     .values(vec![
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),

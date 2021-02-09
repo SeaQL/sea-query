@@ -203,7 +203,7 @@
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let query = Query::update()
-//!     .into_table(Glyph::Table)
+//!     .table(Glyph::Table)
 //!     .values(vec![
 //!         (Glyph::Aspect, 1.23.into()),
 //!         (Glyph::Image, "123".into()),
