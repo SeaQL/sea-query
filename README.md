@@ -51,7 +51,7 @@ Table of Content
 1. [Index Drop](#index-drop)
 
 Construct a SQL statement with the library then execute the statement with a database connector,
-see SQLx example [here](./sea-query/examples/sqlx.rs).
+see SQLx example [here](https://github.com/SeaQL/sea-query/blob/master/examples/sqlx.rs).
 
 ### Iden
 
@@ -113,7 +113,7 @@ pub enum Character {
 
 You can also override the generated column names by specifying an `#[iden = ""]`
 attribute on the enum or any of its variants; for more information, look at
-[the derive example](./sea-query/examples/derive.rs).
+[the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
 
 ### Expression
 

@@ -14,7 +14,7 @@ keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
 proc-macro = true
 
 [dependencies]
-syn = { version = "1", default-features = false, features = [ "derive", "parsing" ] }
+syn = { version = "1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
 quote = "1"
 sea-query = "0.4"
 heck = "0.3"
