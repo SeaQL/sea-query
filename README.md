@@ -93,7 +93,9 @@ impl Iden for Character {
 ```
 
 If you're okay with running another procedural macro, you can activate
-the `derive` feature on the crate to save you some boilerplate:
+the `derive` feature on the crate to save you some boilerplate.
+For more information, look at 
+[the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
 
 ```rust
 use sea_query::Iden;
@@ -110,10 +112,6 @@ pub enum Character {
     FontId,
 }
 ```
-
-You can also override the generated column names by specifying an `#[iden = ""]`
-attribute on the enum or any of its variants; for more information, look at
-[the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
 
 ### Expression
 
