@@ -69,14 +69,14 @@ pub enum LogicalChainOper {
 }
 
 /// Query functions
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone)]
 pub enum Function {
     Max,
     Min,
     Sum,
     Count,
     IfNull,
-    Custom(String),
+    Custom(Rc<dyn Iden>),
 }
 
 /// Join types
