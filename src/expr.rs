@@ -834,22 +834,21 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).max())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).max())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`character`.`size_w`)"#
+    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("character"."size_w")"#
+    ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`character`.`size_w`)"#
+    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn max(mut self) -> SimpleExpr {
@@ -865,22 +864,21 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).min())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).min())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MIN(`character`.`size_w`)"#
+    ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MIN("character"."size_w")"#
+    ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MIN(`character`.`size_w`)"#
+    ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn min(mut self) -> SimpleExpr {
@@ -896,22 +894,21 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).sum())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).sum())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE SUM(`character`.`size_w`)"#
+    ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE SUM("character"."size_w")"#
+    ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE SUM(`character`.`size_w`)"#
+    ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn sum(mut self) -> SimpleExpr {
@@ -927,22 +924,21 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).count())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).count())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE COUNT(`character`.`size_w`)"#
+    ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE COUNT("character"."size_w")"#
+    ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE COUNT(`character`.`size_w`)"#
+    ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn count(mut self) -> SimpleExpr {
@@ -958,22 +954,21 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).if_null(0))
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).if_null(0))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`character`.`size_w`, 0)"#
+    ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE COALESCE("character"."size_w", 0)"#
+    ///     r#"SELECT COALESCE("character"."size_w", 0) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`character`.`size_w`, 0)"#
+    ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
     /// );
     /// ```
     pub fn if_null<V>(mut self, v: V) -> SimpleExpr
