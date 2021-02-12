@@ -308,7 +308,7 @@ impl Expr {
         SimpleExpr::Custom(s.to_owned())
     }
 
-    /// Express a equal expression.
+    /// Express an equal (`=`) expression.
     /// 
     /// # Examples
     /// 
@@ -338,6 +338,38 @@ impl Expr {
     pub fn eq<V>(self, v: V) -> SimpleExpr
         where V: Into<Value> {
         self.bin_oper(BinOper::Equal, SimpleExpr::Value(v.into()))
+    }
+
+    /// Express a not equal (`<>`) expression.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::val("Morning").ne("Good"))
+    ///     .and_where(Expr::col(Char::Id).ne(1))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
+    /// );
+    /// ```
+    pub fn ne<V>(self, v: V) -> SimpleExpr
+        where V: Into<Value> {
+        self.bin_oper(BinOper::NotEqual, SimpleExpr::Value(v.into()))
     }
 
     /// Express a equal expression between two table columns,
