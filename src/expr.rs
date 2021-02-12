@@ -406,7 +406,7 @@ impl Expr {
         self.bin_oper(BinOper::Equal, SimpleExpr::TableColumn(t, c))
     }
 
-    /// Express a greater than expression.
+    /// Express a greater than (`>`) expression.
     /// 
     /// # Examples
     /// 
@@ -437,7 +437,7 @@ impl Expr {
         self.bin_oper(BinOper::GreaterThan, SimpleExpr::Value(v.into()))
     }
 
-    /// Express a greater than or equal expression.
+    /// Express a greater than or equal (`>=`) expression.
     /// 
     /// # Examples
     /// 
@@ -468,7 +468,7 @@ impl Expr {
         self.bin_oper(BinOper::GreaterThanOrEqual, SimpleExpr::Value(v.into()))
     }
 
-    /// Express a less than expression.
+    /// Express a less than (`<`) expression.
     /// 
     /// # Examples
     /// 
@@ -499,7 +499,7 @@ impl Expr {
         self.bin_oper(BinOper::SmallerThan, SimpleExpr::Value(v.into()))
     }
 
-    /// Express a less than or equal expression.
+    /// Express a less than or equal (`<=`) expression.
     /// 
     /// # Examples
     /// 
@@ -530,7 +530,7 @@ impl Expr {
         self.bin_oper(BinOper::SmallerThanOrEqual, SimpleExpr::Value(v.into()))
     }
 
-    /// Express an arithmetic addition expression.
+    /// Express an arithmetic addition operation.
     /// 
     /// # Examples
     /// 
@@ -562,7 +562,7 @@ impl Expr {
         self.bin_oper(BinOper::Add, SimpleExpr::Value(v.into()))
     }
 
-    /// Express an arithmetic subtraction expression.
+    /// Express an arithmetic subtraction operation.
     /// 
     /// # Examples
     /// 
@@ -594,7 +594,7 @@ impl Expr {
         self.bin_oper(BinOper::Sub, SimpleExpr::Value(v.into()))
     }
 
-    /// Express an arithmetic multiplication expression.
+    /// Express an arithmetic multiplication operation.
     /// 
     /// # Examples
     /// 
@@ -626,7 +626,7 @@ impl Expr {
         self.bin_oper(BinOper::Mul, SimpleExpr::Value(v.into()))
     }
 
-    /// Express an arithmetic division expression.
+    /// Express an arithmetic division operation.
     /// 
     /// # Examples
     /// 
@@ -658,7 +658,7 @@ impl Expr {
         self.bin_oper(BinOper::Div, SimpleExpr::Value(v.into()))
     }
 
-    /// Express a between expression.
+    /// Express a `BETWEEN` expression.
     /// 
     /// # Examples
     /// 
@@ -689,7 +689,7 @@ impl Expr {
         self.between_or_not_between(BinOper::Between, a, b)
     }
 
-    /// Express a not between expression.
+    /// Express a `NOT BETWEEN` expression.
     /// 
     /// # Examples
     /// 
@@ -729,7 +729,7 @@ impl Expr {
         ))
     }
 
-    /// Express a like expression.
+    /// Express a `LIKE` expression.
     /// 
     /// # Examples
     /// 
@@ -759,7 +759,7 @@ impl Expr {
         self.bin_oper(BinOper::Like, SimpleExpr::Value(Value::Bytes(v.into())))
     }
 
-    /// Express a is null expression.
+    /// Express a `IS NULL` expression.
     /// 
     /// # Examples
     /// 
@@ -790,7 +790,7 @@ impl Expr {
         self.bin_oper(BinOper::Is, SimpleExpr::Value(Value::Null))
     }
 
-    /// Express a is not null expression.
+    /// Express a `IS NOT NULL` expression.
     /// 
     /// # Examples
     /// 
@@ -821,7 +821,7 @@ impl Expr {
         self.bin_oper(BinOper::IsNot, SimpleExpr::Value(Value::Null))
     }
 
-    /// Express a is not null expression.
+    /// Negates an expression with `NOT`.
     /// 
     /// # Examples
     /// 
@@ -831,20 +831,20 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::expr(Expr::tbl(Char::Table, Char::SizeW).is_not_null()).not())
+    ///     .and_where(Expr::expr(Expr::tbl(Char::Table, Char::SizeW).is_null()).not())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NOT NULL"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NOT NULL"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NOT NULL"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -852,7 +852,7 @@ impl Expr {
         self.un_oper(UnOper::Not)
     }
 
-    /// Express a max expression.
+    /// Express a `MAX` function.
     /// 
     /// # Examples
     /// 
@@ -883,7 +883,7 @@ impl Expr {
         self.func(Function::Max, vec![left.unwrap()])
     }
 
-    /// Express a min expression.
+    /// Express a `MIN` function.
     /// 
     /// # Examples
     /// 
@@ -914,7 +914,7 @@ impl Expr {
         self.func(Function::Min, vec![left.unwrap()])
     }
 
-    /// Express a sum expression.
+    /// Express a `SUM` function.
     /// 
     /// # Examples
     /// 
@@ -945,7 +945,7 @@ impl Expr {
         self.func(Function::Sum, vec![left.unwrap()])
     }
 
-    /// Express a count expression.
+    /// Express a `COUNT` function.
     /// 
     /// # Examples
     /// 
@@ -976,7 +976,7 @@ impl Expr {
         self.func(Function::Count, vec![left.unwrap()])
     }
 
-    /// Express a if null expression.
+    /// Express a `IF NULL` function.
     /// 
     /// # Examples
     /// 
@@ -1008,7 +1008,7 @@ impl Expr {
         self.func(Function::IfNull, vec![left.unwrap(), SimpleExpr::Value(v.into())])
     }
 
-    /// Express a is in expression.
+    /// Express a `IN` expression.
     /// 
     /// # Examples
     /// 
@@ -1042,7 +1042,7 @@ impl Expr {
         self.into()
     }
 
-    /// Express a is not expression.
+    /// Express a `NOT IN` expression.
     /// 
     /// # Examples
     /// 
@@ -1076,7 +1076,7 @@ impl Expr {
         self.into()
     }
 
-    /// Express a in sub-query expression.
+    /// Express a `IN` sub-query expression.
     /// 
     /// # Examples
     /// 
