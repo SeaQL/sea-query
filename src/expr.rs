@@ -68,20 +68,20 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).into())
+    ///     .and_where(Expr::col(Char::SizeW).eq(1))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w""#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// ```
     pub fn col<T: 'static>(n: T) -> Self
@@ -89,33 +89,7 @@ impl Expr {
         Self::col_dyn(Rc::new(n))
     }
 
-    /// Express the target column without table prefix, a variation of [`Expr::col`] which takes a `Rc<dyn Iden>`.
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col_dyn(Rc::new(Char::SizeW)).into())
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
-    /// );
-    /// ```
+    /// Dynamic variant of [`Expr::col`]
     pub fn col_dyn(n: Rc<dyn Iden>) -> Self {
         Self::new_with_left(SimpleExpr::Column(n))
     }
@@ -130,20 +104,20 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).into())
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).eq(1))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w""#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// ```
     pub fn tbl<T: 'static, C: 'static>(t: T, c: C) -> Self
@@ -151,33 +125,7 @@ impl Expr {
         Self::tbl_dyn(Rc::new(t), Rc::new(c))
     }
 
-    /// Express the target column with table prefix, a variation of [`Expr::tbl`] which takes two `Rc<dyn Iden>`.
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl_dyn(Rc::new(Char::Table), Rc::new(Char::SizeW)).into())
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
-    /// );
-    /// ```
+    /// Dynamic variant of [`Expr::tbl`]
     pub fn tbl_dyn(t: Rc<dyn Iden>, c: Rc<dyn Iden>) -> Self {
         Self::new_with_left(SimpleExpr::TableColumn(t, c))
     }
