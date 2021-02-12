@@ -41,6 +41,10 @@ pub enum SimpleExpr {
 }
 
 impl Expr {
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
     fn new_with_left(left: SimpleExpr) -> Self {
         Self {
             left: Some(left),
@@ -853,7 +857,7 @@ impl Expr {
     /// ```
     pub fn max(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Max, vec![left.unwrap()])
+        Self::func_with_args(Function::Max, vec![left.unwrap()])
     }
 
     /// Express a `MIN` function.
@@ -883,7 +887,7 @@ impl Expr {
     /// ```
     pub fn min(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Min, vec![left.unwrap()])
+        Self::func_with_args(Function::Min, vec![left.unwrap()])
     }
 
     /// Express a `SUM` function.
@@ -913,7 +917,7 @@ impl Expr {
     /// ```
     pub fn sum(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Sum, vec![left.unwrap()])
+        Self::func_with_args(Function::Sum, vec![left.unwrap()])
     }
 
     /// Express a `COUNT` function.
@@ -943,7 +947,7 @@ impl Expr {
     /// ```
     pub fn count(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Count, vec![left.unwrap()])
+        Self::func_with_args(Function::Count, vec![left.unwrap()])
     }
 
     /// Express a `IF NULL` function.
@@ -974,7 +978,7 @@ impl Expr {
     pub fn if_null<V>(mut self, v: V) -> SimpleExpr
         where V: Into<Value> {
         let left = self.left.take();
-        self.func(Function::IfNull, vec![left.unwrap(), SimpleExpr::Value(v.into())])
+        Self::func_with_args(Function::IfNull, vec![left.unwrap(), SimpleExpr::Value(v.into())])
     }
 
     /// Express a `IN` expression.
@@ -1082,10 +1086,29 @@ impl Expr {
         self.into()
     }
 
-    fn func(mut self, func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
-        self.func = Some(func);
-        self.args = args;
+    pub(crate) fn func(func: Function) -> Self {
+        let mut expr = Expr::new();
+        expr.func = Some(func);
+        expr
+    }
+
+    pub fn arg<T>(mut self, arg: T) -> SimpleExpr
+        where T: Into<SimpleExpr> {
+        self.args = vec![arg.into()];
         self.into()
+    }
+
+    pub fn args<T>(mut self, args: Vec<T>) -> SimpleExpr
+        where T: Into<SimpleExpr> {
+        self.args = args.into_iter().map(|v| v.into()).collect();
+        self.into()
+    }
+
+    fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
+        let mut expr = Expr::new();
+        expr.func = Some(func);
+        expr.args = args;
+        expr.into()
     }
 
     fn un_oper(mut self, o: UnOper) -> SimpleExpr {
