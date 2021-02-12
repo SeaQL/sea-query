@@ -264,6 +264,23 @@ impl QueryBuilder for MysqlQueryBuilder {
             SimpleExpr::Custom(s) => {
                 write!(sql, "{}", s).unwrap();
             },
+            SimpleExpr::CustomWithValues(expr, values) => {
+                let tokenizer = Tokenizer::new(expr);
+                let mut count = 0;
+                for tok in tokenizer.iter() {
+                    match tok {
+                        Token::Punctuation(mark) => {
+                            if mark == "?" {
+                                self.prepare_value(&values[count], sql, collector);
+                                count += 1;
+                            } else {
+                                write!(sql, "{}", mark).unwrap();
+                            }
+                        },
+                        _ => write!(sql, "{}", tok).unwrap(),
+                    }
+                }
+            },
         }
     }
 

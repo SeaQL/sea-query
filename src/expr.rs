@@ -44,6 +44,7 @@ pub enum SimpleExpr {
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
+    CustomWithValues(String, Vec<Value>),
 }
 
 impl Expr {
@@ -288,24 +289,55 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::cust("<Any-Custom-Expression>").into())
+    ///     .and_where(Expr::cust("1 = 1").into())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE <Any-Custom-Expression>"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE <Any-Custom-Expression>"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE <Any-Custom-Expression>"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 = 1"#
     /// );
     /// ```
     pub fn cust(s: &str) -> SimpleExpr {
         SimpleExpr::Custom(s.to_owned())
+    }
+
+    /// Express any custom expression with [`Value`]. Use this if your expression needs variables.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]).into())
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 6 = 2 * 3"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 6 = 2 * 3"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 6 = 2 * 3"#
+    /// );
+    /// ```
+    pub fn cust_with_values<V>(s: &str, v: Vec<V>) -> SimpleExpr
+        where V: Into<Value> {
+        SimpleExpr::CustomWithValues(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
     }
 
     /// Express a equal expression.
