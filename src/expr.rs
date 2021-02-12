@@ -12,13 +12,8 @@
 use std::rc::Rc;
 use crate::{query::*, types::*, value::*};
 
-/// Building block of a expression.
-/// 
-/// [`Expr`] representing the most fundamental concept in the expression including concept like
-/// table column with and without table name prefix and any custom expression in string.
-/// Also common operations or functions can be applied to the table column,
-/// such as equal, not equal, not_null and many others. Please reference below for more details.
-#[derive(Clone)]
+/// Helper to build a [`SimpleExpr`].
+#[derive(Clone, Default)]
 pub struct Expr {
     pub(crate) left: Option<SimpleExpr>,
     pub(crate) right: Option<SimpleExpr>,
@@ -28,11 +23,10 @@ pub struct Expr {
     pub(crate) args: Vec<SimpleExpr>,
 }
 
-/// Expression used in query, including all supported expression variants.
+/// Represents a Simple Expression in SQL.
 /// 
-/// [`SimpleExpr`] represent various kinds of expression can be used in query.
-/// Two [`SimpleExpr`] can be chain together with method defined below, such as logical AND,
-/// logical OR, arithmetic ADD ...etc. Please reference below for more details.
+/// [`SimpleExpr`] is a node in the expression tree and can represent identifiers, function calls,
+/// various operators and sub-queries.
 #[derive(Clone)]
 pub enum SimpleExpr {
     Column(Rc<dyn Iden>),
