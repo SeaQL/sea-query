@@ -319,20 +319,21 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Id).eq(1))
     ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]).into())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 6 = 2 * 3"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 6 = 2 * 3"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 6 = 2 * 3"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
     pub fn cust_with_values<V>(s: &str, v: Vec<V>) -> SimpleExpr
