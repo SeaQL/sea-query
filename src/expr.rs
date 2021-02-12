@@ -1127,7 +1127,7 @@ impl Into<SimpleExpr> for Expr {
 }
 
 impl SimpleExpr {
-    /// Express a logical and expression.
+    /// Express a logical `AND` operation.
     /// 
     /// # Examples
     /// 
@@ -1158,7 +1158,7 @@ impl SimpleExpr {
         self.binary(BinOper::And, right)
     }
 
-    /// Express a logical or expression.
+    /// Express a logical `OR` operation.
     /// 
     /// # Examples
     /// 
@@ -1189,7 +1189,7 @@ impl SimpleExpr {
         self.binary(BinOper::Or, right)
     }
 
-    /// Express a logical equal expression.
+    /// Compares with another [`SimpleExpr`] for equality.
     /// 
     /// # Examples
     /// 
@@ -1197,29 +1197,30 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().equals(Expr::col(Char::SizeH).max()))
+    ///     .and_where(Expr::col(Char::SizeW).mul(2).equals(Expr::col(Char::SizeH).mul(3)))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) = MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` * 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") = MAX("size_h")"#
+    ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" * 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) = MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` * 3"#
     /// );
     /// ```
-    pub fn equals(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::Equal, right)
+    pub fn equals<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::Equal, right.into())
     }
 
-    /// Express a logical not equal expression.
+    /// Compares with another [`SimpleExpr`] for inequality.
     /// 
     /// # Examples
     /// 
@@ -1227,29 +1228,30 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().not_equals(Expr::col(Char::SizeH).max()))
+    ///     .and_where(Expr::col(Char::SizeW).mul(2).not_equals(Expr::col(Char::SizeH)))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) <> MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 <> `size_h`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") <> MAX("size_h")"#
+    ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 <> "size_h""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) <> MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 <> `size_h`"#
     /// );
     /// ```
-    pub fn not_equals(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::NotEqual, right)
+    pub fn not_equals<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::NotEqual, right.into())
     }
 
-    /// Express a arithmetic addition expression.
+    /// Perform addition with another [`SimpleExpr`].
     /// 
     /// # Examples
     /// 
@@ -1257,30 +1259,30 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::col(Char::SizeW).max().add(Expr::col(Char::SizeH).max()))
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().add(Expr::col(Char::SizeH).max()))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) + MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) + MAX(`size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") + MAX("size_h")"#
+    ///     r#"SELECT MAX("size_w") + MAX("size_h") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) + MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) + MAX(`size_h`) FROM `character`"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn add(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::Add, right)
+    pub fn add<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::Add, right.into())
     }
 
-    /// Express a arithmetic subtraction expression.
+    /// Perform subtraction with another [`SimpleExpr`].
     /// 
     /// # Examples
     /// 
@@ -1288,27 +1290,27 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::col(Char::SizeW).max().sub(Expr::col(Char::SizeW).min()))
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().sub(Expr::col(Char::SizeH).max()))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) - MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) - MIN(`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") - MAX("size_h")"#
+    ///     r#"SELECT MAX("size_w") - MIN("size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) - MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) - MIN(`size_w`) FROM `character`"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn sub(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::Sub, right)
+    pub fn sub<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::Sub, right.into())
     }
 
     pub(crate) fn binary(self, op: BinOper, right: SimpleExpr) -> Self {
