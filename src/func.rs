@@ -10,6 +10,7 @@ pub enum Function {
     Avg,
     Count,
     IfNull,
+    CharLength,
     Custom(Rc<dyn Iden>),
 }
 
@@ -208,5 +209,35 @@ impl Func {
     pub fn count<T>(expr: T) -> SimpleExpr
         where T: Into<SimpleExpr> {
         Expr::func(Function::Count).arg(expr)
+    }
+
+    /// Call `CHAR_LENGTH` function.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .expr(Func::char_length(Expr::tbl(Char::Table, Char::Character)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CHAR_LENGTH(`character`.`character`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CHAR_LENGTH("character"."character") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT LENGTH(`character`.`character`) FROM `character`"#
+    /// );
+    /// ```
+    pub fn char_length<T>(expr: T) -> SimpleExpr
+        where T: Into<SimpleExpr> {
+        Expr::func(Function::CharLength).arg(expr)
     }
 }

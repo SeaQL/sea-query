@@ -380,6 +380,7 @@ impl QueryBuilder for SqliteQueryBuilder {
                 Function::Avg => "AVG",
                 Function::Count => "COUNT",
                 Function::IfNull => "IFNULL",
+                Function::CharLength => "LENGTH",
                 Function::Custom(_) => "",
             }).unwrap();
         }

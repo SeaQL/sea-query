@@ -380,6 +380,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                 Function::Avg => "AVG",
                 Function::Count => "COUNT",
                 Function::IfNull => "IFNULL",
+                Function::CharLength => "CHAR_LENGTH",
                 Function::Custom(_) => "",
             }).unwrap();
         }

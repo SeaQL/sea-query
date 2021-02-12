@@ -380,6 +380,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                 Function::Avg => "AVG",
                 Function::Count => "COUNT",
                 Function::IfNull => "COALESCE",
+                Function::CharLength => "CHAR_LENGTH",
                 Function::Custom(_) => "",
             }).unwrap();
         }
