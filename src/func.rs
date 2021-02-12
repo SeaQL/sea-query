@@ -240,4 +240,34 @@ impl Func {
         where T: Into<SimpleExpr> {
         Expr::func(Function::CharLength).arg(expr)
     }
+
+    /// Call `IF NULL` function.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .expr(Func::if_null(Expr::col(Char::SizeW), Expr::col(Char::SizeH)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT IFNULL(`size_w`, `size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COALESCE("size_w", "size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT IFNULL(`size_w`, `size_h`) FROM `character`"#
+    /// );
+    /// ```
+    pub fn if_null<A, B>(a: A, b: B) -> SimpleExpr
+        where A: Into<SimpleExpr>, B: Into<SimpleExpr> {
+        Expr::func(Function::IfNull).args(vec![a.into(), b.into()])
+    }
 }
