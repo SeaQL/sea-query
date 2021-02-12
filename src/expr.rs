@@ -28,6 +28,24 @@ pub struct Expr {
     pub(crate) args: Vec<SimpleExpr>,
 }
 
+/// Expression used in query, including all supported expression variants.
+/// 
+/// [`SimpleExpr`] represent various kinds of expression can be used in query.
+/// Two [`SimpleExpr`] can be chain together with method defined below, such as logical AND,
+/// logical OR, arithmetic ADD ...etc. Please reference below for more details.
+#[derive(Clone)]
+pub enum SimpleExpr {
+    Column(Rc<dyn Iden>),
+    TableColumn(Rc<dyn Iden>, Rc<dyn Iden>),
+    Unary(UnOper, Box<SimpleExpr>),
+    FunctionCall(Function, Vec<SimpleExpr>),
+    Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
+    SubQuery(Box<SelectStatement>),
+    Value(Value),
+    Values(Vec<Value>),
+    Custom(String),
+}
+
 impl Expr {
     fn new_with_left(left: SimpleExpr) -> Self {
         Self {
@@ -1137,24 +1155,6 @@ impl Into<SimpleExpr> for Expr {
             panic!("incomplete expression")
         }
     }
-}
-
-/// Expression used in query, including all supported expression variants.
-/// 
-/// [`SimpleExpr`] represent various kinds of expression can be used in query.
-/// Two [`SimpleExpr`] can be chain together with method defined below, such as logical AND,
-/// logical OR, arithmetic ADD ...etc. Please reference below for more details.
-#[derive(Clone)]
-pub enum SimpleExpr {
-    Column(Rc<dyn Iden>),
-    TableColumn(Rc<dyn Iden>, Rc<dyn Iden>),
-    Unary(UnOper, Box<SimpleExpr>),
-    FunctionCall(Function, Vec<SimpleExpr>),
-    Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
-    SubQuery(Box<SelectStatement>),
-    Value(Value),
-    Values(Vec<Value>),
-    Custom(String),
 }
 
 impl SimpleExpr {
