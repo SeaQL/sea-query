@@ -1,6 +1,18 @@
 use std::rc::Rc;
 use crate::{expr::*, types::*};
 
+/// Functions
+#[derive(Clone)]
+pub enum Function {
+    Max,
+    Min,
+    Sum,
+    Avg,
+    Count,
+    IfNull,
+    Custom(Rc<dyn Iden>),
+}
+
 /// Function call helper.
 #[derive(Clone)]
 pub struct Func;
@@ -136,6 +148,36 @@ impl Func {
     pub fn sum<T>(expr: T) -> SimpleExpr
         where T: Into<SimpleExpr> {
         Expr::func(Function::Sum).arg(expr)
+    }
+
+    /// Call `AVG` function.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .expr(Func::avg(Expr::tbl(Char::Table, Char::SizeH)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT AVG(`character`.`size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT AVG("character"."size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT AVG(`character`.`size_h`) FROM `character`"#
+    /// );
+    /// ```
+    pub fn avg<T>(expr: T) -> SimpleExpr
+        where T: Into<SimpleExpr> {
+        Expr::func(Function::Avg).arg(expr)
     }
 
     /// Call `COUNT` function.

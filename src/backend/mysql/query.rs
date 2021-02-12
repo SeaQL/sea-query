@@ -377,6 +377,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                 Function::Max => "MAX",
                 Function::Min => "MIN",
                 Function::Sum => "SUM",
+                Function::Avg => "AVG",
                 Function::Count => "COUNT",
                 Function::IfNull => "IFNULL",
                 Function::Custom(_) => "",

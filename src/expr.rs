@@ -10,7 +10,7 @@
 //! logical OR, arithmetic ADD ...etc. Please reference below for more details.
 
 use std::rc::Rc;
-use crate::{query::*, types::*, value::*};
+use crate::{query::*, func::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
 #[derive(Clone, Default)]
