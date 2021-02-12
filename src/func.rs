@@ -57,6 +57,7 @@ impl Func {
         Self::cust_dyn(Rc::new(func))
     }
 
+    /// Dynamic variant of [`Func::cust`]
     pub fn cust_dyn(func: Rc<dyn Iden>) -> Expr {
         Expr::func(Function::Custom(func))
     }
