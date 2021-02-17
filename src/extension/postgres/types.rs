@@ -13,7 +13,7 @@ pub struct TypeCreateStatement {
 
 #[derive(Clone)]
 pub enum TypeAs {
-	// Composite,
+    // Composite,
     Enum,
     // Range,
     // Base,
@@ -34,11 +34,41 @@ impl Type {
 
 impl TypeCreateStatement {
 
-	pub fn new() -> Self {
-		Self::default()
-	}
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-    /// Create enum
+    /// Create enum as custom type
+    ///
+    /// ```
+    /// use sea_query::{*, extension::postgres::Type};
+    ///
+    /// enum FontFamily {
+    ///     Type,
+    ///     Serif,
+    ///     Sans,
+    ///     Monospace,
+    /// }
+    /// 
+    /// impl Iden for FontFamily {
+    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+    ///         write!(s, "{}", match self {
+    ///             Self::Type => "font_family",
+    ///             Self::Serif => "serif",
+    ///             Self::Sans => "sans",
+    ///             Self::Monospace => "monospace",
+    ///         }).unwrap();
+    ///     }
+    /// }
+    /// 
+    /// assert_eq!(
+    ///     Type::create()
+    ///         .as_enum(FontFamily::Type)
+    ///         .values(vec![FontFamily::Serif, FontFamily::Sans, FontFamily::Monospace])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TYPE "font_family" AS ENUM ('serif', 'sans', 'monospace')"#
+    /// );
+    /// ```
     pub fn as_enum<T: 'static>(&mut self, name: T) -> &mut Self
         where T: Iden {
         self.name = Some(Rc::new(name));
