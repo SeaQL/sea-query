@@ -194,3 +194,16 @@ fn alter_5() {
 fn alter_6() {
     Table::alter().to_string(PostgresQueryBuilder);
 }
+
+#[test]
+fn create_6() {
+    use sea_query::extension::postgres::Type;
+
+    assert_eq!(
+        Type::create()
+            .as_enum(Font::Table)
+            .values(vec![Font::Name, Font::Variant, Font::Language])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "font" AS ENUM ('name', 'variant', 'language')"#
+    );
+}

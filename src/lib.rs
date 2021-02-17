@@ -545,6 +545,7 @@
 
 pub mod backend;
 pub mod driver;
+pub mod extension;
 pub mod foreign_key;
 pub mod index;
 pub mod query;
@@ -558,6 +559,7 @@ pub mod value;
 
 pub use backend::*;
 //pub use driver::*;
+//pub use extension::*;
 pub use foreign_key::*;
 pub use index::*;
 pub use query::*;

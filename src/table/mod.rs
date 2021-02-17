@@ -22,8 +22,7 @@ pub use drop::*;
 pub use rename::*;
 pub use truncate::*;
 
-/// Shorthand for constructing any table statement
-#[derive(Clone)]
+/// Helper for constructing any table statement
 pub struct Table;
 
 /// All available types of table statement
