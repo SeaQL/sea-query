@@ -122,14 +122,14 @@ impl TableBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter) {
-        write!(sql, "{}", match column_spec {
-            ColumnSpec::Null => "NULL".into(),
-            ColumnSpec::NotNull => "NOT NULL".into(),
-            ColumnSpec::Default(value) => format!("DEFAULT {}", mysql_value_to_string(value)),
-            ColumnSpec::AutoIncrement => "AUTO_INCREMENT".into(),
-            ColumnSpec::UniqueKey => "UNIQUE".into(),
-            ColumnSpec::PrimaryKey => "PRIMARY KEY".into(),
-        }).unwrap()
+        match column_spec {
+            ColumnSpec::Null => write!(sql, "NULL"),
+            ColumnSpec::NotNull => write!(sql, "NOT NULL"),
+            ColumnSpec::Default(value) => write!(sql, "DEFAULT {}", mysql_value_to_string(value)),
+            ColumnSpec::AutoIncrement => write!(sql, "AUTO_INCREMENT"),
+            ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
+            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
+        }.unwrap()
     }
 
     fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut SqlWriter) {
