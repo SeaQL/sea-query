@@ -387,14 +387,20 @@ impl QueryBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_function(&self, function: &Function, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
-        write!(sql, "{}", match function {
-            Function::Max => "MAX",
-            Function::Min => "MIN",
-            Function::Sum => "SUM",
-            Function::Count => "COUNT",
-            Function::IfNull => "IFNULL",
-            Function::Custom(name) => name.as_ref(),
-        }).unwrap();
+        if let Function::Custom(iden) = function {
+            iden.unquoted(sql);
+        } else {
+            write!(sql, "{}", match function {
+                Function::Max => "MAX",
+                Function::Min => "MIN",
+                Function::Sum => "SUM",
+                Function::Avg => "AVG",
+                Function::Count => "COUNT",
+                Function::IfNull => "IFNULL",
+                Function::CharLength => "LENGTH",
+                Function::Custom(_) => "",
+            }).unwrap();
+        }
     }
 
     fn prepare_join_type(&self, join_type: &JoinType, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {

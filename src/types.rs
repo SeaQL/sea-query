@@ -68,17 +68,6 @@ pub enum LogicalChainOper {
     Or(SimpleExpr),
 }
 
-/// Query functions
-#[derive(Clone, PartialEq, Eq)]
-pub enum Function {
-    Max,
-    Min,
-    Sum,
-    Count,
-    IfNull,
-    Custom(String),
-}
-
 /// Join types
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum JoinType {

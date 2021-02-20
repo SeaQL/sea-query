@@ -10,15 +10,10 @@
 //! logical OR, arithmetic ADD ...etc. Please reference below for more details.
 
 use std::rc::Rc;
-use crate::{query::*, types::*, value::*};
+use crate::{query::*, func::*, types::*, value::*};
 
-/// Building block of a expression.
-/// 
-/// [`Expr`] representing the most fundamental concept in the expression including concept like
-/// table column with and without table name prefix and any custom expression in string.
-/// Also common operations or functions can be applied to the table column,
-/// such as equal, not equal, not_null and many others. Please reference below for more details.
-#[derive(Clone)]
+/// Helper to build a [`SimpleExpr`].
+#[derive(Clone, Default)]
 pub struct Expr {
     pub(crate) left: Option<SimpleExpr>,
     pub(crate) right: Option<SimpleExpr>,
@@ -28,11 +23,10 @@ pub struct Expr {
     pub(crate) args: Vec<SimpleExpr>,
 }
 
-/// Expression used in query, including all supported expression variants.
+/// Represents a Simple Expression in SQL.
 /// 
-/// [`SimpleExpr`] represent various kinds of expression can be used in query.
-/// Two [`SimpleExpr`] can be chain together with method defined below, such as logical AND,
-/// logical OR, arithmetic ADD ...etc. Please reference below for more details.
+/// [`SimpleExpr`] is a node in the expression tree and can represent identifiers, function calls,
+/// various operators and sub-queries.
 #[derive(Clone)]
 pub enum SimpleExpr {
     Column(Rc<dyn Iden>),
@@ -48,6 +42,10 @@ pub enum SimpleExpr {
 }
 
 impl Expr {
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
     fn new_with_left(left: SimpleExpr) -> Self {
         Self {
             left: Some(left),
@@ -69,20 +67,20 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).into())
+    ///     .and_where(Expr::col(Char::SizeW).eq(1))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w""#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// ```
     pub fn col<T: 'static>(n: T) -> Self
@@ -90,33 +88,7 @@ impl Expr {
         Self::col_dyn(Rc::new(n))
     }
 
-    /// Express the target column without table prefix, a variation of [`Expr::col`] which takes a `Rc<dyn Iden>`.
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col_dyn(Rc::new(Char::SizeW)).into())
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w`"#
-    /// );
-    /// ```
+    /// Dynamic variant of [`Expr::col`]
     pub fn col_dyn(n: Rc<dyn Iden>) -> Self {
         Self::new_with_left(SimpleExpr::Column(n))
     }
@@ -131,20 +103,20 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).into())
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).eq(1))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w""#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// ```
     pub fn tbl<T: 'static, C: 'static>(t: T, c: C) -> Self
@@ -152,33 +124,7 @@ impl Expr {
         Self::tbl_dyn(Rc::new(t), Rc::new(c))
     }
 
-    /// Express the target column with table prefix, a variation of [`Expr::tbl`] which takes two `Rc<dyn Iden>`.
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl_dyn(Rc::new(Char::Table), Rc::new(Char::SizeW)).into())
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w`"#
-    /// );
-    /// ```
+    /// Dynamic variant of [`Expr::tbl`]
     pub fn tbl_dyn(t: Rc<dyn Iden>, c: Rc<dyn Iden>) -> Self {
         Self::new_with_left(SimpleExpr::TableColumn(t, c))
     }
@@ -925,27 +871,26 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).max())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).max())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`character`.`size_w`)"#
+    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("character"."size_w")"#
+    ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`character`.`size_w`)"#
+    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn max(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Max, vec![left.unwrap()])
+        Self::func_with_args(Function::Max, vec![left.unwrap()])
     }
 
     /// Express a `MIN` function.
@@ -956,27 +901,26 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).min())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).min())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MIN(`character`.`size_w`)"#
+    ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MIN("character"."size_w")"#
+    ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MIN(`character`.`size_w`)"#
+    ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn min(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Min, vec![left.unwrap()])
+        Self::func_with_args(Function::Min, vec![left.unwrap()])
     }
 
     /// Express a `SUM` function.
@@ -987,27 +931,26 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).sum())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).sum())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE SUM(`character`.`size_w`)"#
+    ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE SUM("character"."size_w")"#
+    ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE SUM(`character`.`size_w`)"#
+    ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn sum(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Sum, vec![left.unwrap()])
+        Self::func_with_args(Function::Sum, vec![left.unwrap()])
     }
 
     /// Express a `COUNT` function.
@@ -1018,27 +961,26 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).count())
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).count())
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE COUNT(`character`.`size_w`)"#
+    ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE COUNT("character"."size_w")"#
+    ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE COUNT(`character`.`size_w`)"#
+    ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
     pub fn count(mut self) -> SimpleExpr {
         let left = self.left.take();
-        self.func(Function::Count, vec![left.unwrap()])
+        Self::func_with_args(Function::Count, vec![left.unwrap()])
     }
 
     /// Express a `IF NULL` function.
@@ -1049,28 +991,27 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).if_null(0))
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).if_null(0))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`character`.`size_w`, 0)"#
+    ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE COALESCE("character"."size_w", 0)"#
+    ///     r#"SELECT COALESCE("character"."size_w", 0) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`character`.`size_w`, 0)"#
+    ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
     /// );
     /// ```
     pub fn if_null<V>(mut self, v: V) -> SimpleExpr
         where V: Into<Value> {
         let left = self.left.take();
-        self.func(Function::IfNull, vec![left.unwrap(), SimpleExpr::Value(v.into())])
+        Self::func_with_args(Function::IfNull, vec![left.unwrap(), SimpleExpr::Value(v.into())])
     }
 
     /// Express a `IN` expression.
@@ -1178,10 +1119,29 @@ impl Expr {
         self.into()
     }
 
-    fn func(mut self, func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
-        self.func = Some(func);
-        self.args = args;
+    pub(crate) fn func(func: Function) -> Self {
+        let mut expr = Expr::new();
+        expr.func = Some(func);
+        expr
+    }
+
+    pub fn arg<T>(mut self, arg: T) -> SimpleExpr
+        where T: Into<SimpleExpr> {
+        self.args = vec![arg.into()];
         self.into()
+    }
+
+    pub fn args<T>(mut self, args: Vec<T>) -> SimpleExpr
+        where T: Into<SimpleExpr> {
+        self.args = args.into_iter().map(|v| v.into()).collect();
+        self.into()
+    }
+
+    fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
+        let mut expr = Expr::new();
+        expr.func = Some(func);
+        expr.args = args;
+        expr.into()
     }
 
     fn un_oper(mut self, o: UnOper) -> SimpleExpr {
@@ -1223,7 +1183,7 @@ impl Into<SimpleExpr> for Expr {
 }
 
 impl SimpleExpr {
-    /// Express a logical and expression.
+    /// Express a logical `AND` operation.
     /// 
     /// # Examples
     /// 
@@ -1254,7 +1214,7 @@ impl SimpleExpr {
         self.binary(BinOper::And, right)
     }
 
-    /// Express a logical or expression.
+    /// Express a logical `OR` operation.
     /// 
     /// # Examples
     /// 
@@ -1285,7 +1245,7 @@ impl SimpleExpr {
         self.binary(BinOper::Or, right)
     }
 
-    /// Express a logical equal expression.
+    /// Compares with another [`SimpleExpr`] for equality.
     /// 
     /// # Examples
     /// 
@@ -1293,29 +1253,30 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().equals(Expr::col(Char::SizeH).max()))
+    ///     .and_where(Expr::col(Char::SizeW).mul(2).equals(Expr::col(Char::SizeH).mul(3)))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) = MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` * 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") = MAX("size_h")"#
+    ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" * 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) = MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` * 3"#
     /// );
     /// ```
-    pub fn equals(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::Equal, right)
+    pub fn equals<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::Equal, right.into())
     }
 
-    /// Express a logical not equal expression.
+    /// Compares with another [`SimpleExpr`] for inequality.
     /// 
     /// # Examples
     /// 
@@ -1323,29 +1284,30 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().not_equals(Expr::col(Char::SizeH).max()))
+    ///     .and_where(Expr::col(Char::SizeW).mul(2).not_equals(Expr::col(Char::SizeH)))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) <> MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 <> `size_h`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") <> MAX("size_h")"#
+    ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 <> "size_h""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) <> MAX(`size_h`)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 <> `size_h`"#
     /// );
     /// ```
-    pub fn not_equals(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::NotEqual, right)
+    pub fn not_equals<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::NotEqual, right.into())
     }
 
-    /// Express a arithmetic addition expression.
+    /// Perform addition with another [`SimpleExpr`].
     /// 
     /// # Examples
     /// 
@@ -1353,30 +1315,30 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::col(Char::SizeW).max().add(Expr::col(Char::SizeH).max()))
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().add(Expr::col(Char::SizeH).max()))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) + MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) + MAX(`size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") + MAX("size_h")"#
+    ///     r#"SELECT MAX("size_w") + MAX("size_h") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) + MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) + MAX(`size_h`) FROM `character`"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn add(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::Add, right)
+    pub fn add<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::Add, right.into())
     }
 
-    /// Express a arithmetic subtraction expression.
+    /// Perform subtraction with another [`SimpleExpr`].
     /// 
     /// # Examples
     /// 
@@ -1384,27 +1346,27 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .expr(Expr::col(Char::SizeW).max().sub(Expr::col(Char::SizeW).min()))
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).max().sub(Expr::col(Char::SizeH).max()))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) - MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) - MIN(`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE MAX("size_w") - MAX("size_h")"#
+    ///     r#"SELECT MAX("size_w") - MIN("size_w") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE MAX(`size_w`) - MAX(`size_h`)"#
+    ///     r#"SELECT MAX(`size_w`) - MIN(`size_w`) FROM `character`"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn sub(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::Sub, right)
+    pub fn sub<T>(self, right: T) -> Self
+        where T: Into<SimpleExpr> {
+        self.binary(BinOper::Sub, right.into())
     }
 
     pub(crate) fn binary(self, op: BinOper, right: SimpleExpr) -> Self {
