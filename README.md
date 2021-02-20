@@ -6,11 +6,9 @@
     <strong>A database agnostic runtime query builder for Rust</strong>
   </p>
 
-  <h4>
   [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
   [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
   [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
-  </h4>
 
   <sub>Built with ❤️ by 🌊🦀🐠</sub>
 
