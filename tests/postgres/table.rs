@@ -194,3 +194,56 @@ fn alter_5() {
 fn alter_6() {
     Table::alter().to_string(PostgresQueryBuilder);
 }
+
+#[test]
+fn create_6() {
+    use sea_query::extension::postgres::Type;
+
+    assert_eq!(
+        Type::create()
+            .as_enum(Font::Table)
+            .values(vec![Font::Name, Font::Variant, Font::Language])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "font" AS ENUM ('name', 'variant', 'language')"#
+    );
+}
+
+#[test]
+fn drop_2() {
+    use sea_query::extension::postgres::Type;
+
+    assert_eq!(
+        Type::drop()
+            .name(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"DROP TYPE "font""#
+    );
+}
+
+#[test]
+fn drop_3() {
+    use sea_query::extension::postgres::Type;
+
+    assert_eq!(
+        Type::drop()
+            .if_exists()
+            .name(Font::Table)
+            .restrict()
+            .to_string(PostgresQueryBuilder),
+        r#"DROP TYPE IF EXISTS "font" RESTRICT"#
+    );
+}
+
+#[test]
+fn drop_4() {
+    use sea_query::extension::postgres::Type;
+
+    assert_eq!(
+        Type::drop()
+            .if_exists()
+            .name(Font::Table)
+            .cascade()
+            .to_string(PostgresQueryBuilder),
+        r#"DROP TYPE IF EXISTS "font" CASCADE"#
+    );
+}
