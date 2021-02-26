@@ -83,58 +83,58 @@ pub trait QueryBuilder {
 }
 
 pub trait TableBuilder {
+
     /// Translate [`TableCreateStatement`] into database specific SQL statement.
-
     fn prepare_table_create_statement(&self, insert: &TableCreateStatement, sql: &mut SqlWriter);
+
     /// Translate [`ColumnDef`] into database specific SQL statement.
-
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter);
+
     /// Translate [`ColumnType`] into database specific SQL statement.
-
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut SqlWriter);
+
     /// Translate [`ColumnSpec`] into database specific SQL statement.
-
     fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter);
+
     /// Translate [`TableOpt`] into database specific SQL statement.
-
     fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut SqlWriter);
+
     /// Translate [`TablePartition`] into database specific SQL statement.
-
     fn prepare_table_partition(&self, table_partition: &TablePartition, sql: &mut SqlWriter);
+
     /// Translate [`TableDropStatement`] into database specific SQL statement.
-
     fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut SqlWriter);
+
     /// Translate [`TableDropOpt`] into database specific SQL statement.
-
     fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut SqlWriter);
+
     /// Translate [`TableTruncateStatement`] into database specific SQL statement.
-
     fn prepare_table_truncate_statement(&self, truncate: &TableTruncateStatement, sql: &mut SqlWriter);
+
     /// Translate [`TableAlterStatement`] into database specific SQL statement.
-
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter);
-    /// Translate [`TableRenameStatement`] into database specific SQL statement.
 
+    /// Translate [`TableRenameStatement`] into database specific SQL statement.
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter);
 }
 
 pub trait IndexBuilder {
+
     /// Translate [`IndexCreateStatement`] into database specific SQL statement.
-
     fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter);
-    /// Translate [`IndexDropStatement`] into database specific SQL statement.
 
+    /// Translate [`IndexDropStatement`] into database specific SQL statement.
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter);
 }
 
 pub trait ForeignKeyBuilder {
+    
     /// Translate [`ForeignKeyCreateStatement`] into database specific SQL statement.
-
     fn prepare_foreign_key_create_statement(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter);
+
     /// Translate [`ForeignKeyAction`] into database specific SQL statement.
-
     fn prepare_foreign_key_action(&self, foreign_key_action: &ForeignKeyAction, sql: &mut SqlWriter);
-    /// Translate [`ForeignKeyDropStatement`] into database specific SQL statement.
 
+    /// Translate [`ForeignKeyDropStatement`] into database specific SQL statement.
     fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut SqlWriter);
 }
