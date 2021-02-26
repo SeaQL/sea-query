@@ -32,23 +32,30 @@ sea-query = "*"
 
 Table of Content
 
-1. [Iden](#iden)
-1. [Expression](#expression)
+1. Background
 
-1. [Query Select](#query-select)
-1. [Query Insert](#query-insert)
-1. [Query Update](#query-update)
-1. [Query Delete](#query-delete)
+    1. [Iden](#iden)
+    1. [Expression](#expression)
+    1. [Statement Building](#statement-building)
 
-1. [Table Create](#table-create)
-1. [Table Alter](#table-alter)
-1. [Table Drop](#table-drop)
-1. [Table Rename](#table-rename)
-1. [Table Truncate](#table-truncate)
-1. [Foreign Key Create](#foreign-key-create)
-1. [Foreign Key Drop](#foreign-key-drop)
-1. [Index Create](#index-create)
-1. [Index Drop](#index-drop)
+1. Query Statement
+
+    1. [Query Select](#query-select)
+    1. [Query Insert](#query-insert)
+    1. [Query Update](#query-update)
+    1. [Query Delete](#query-delete)
+
+1. Table Statement
+
+    1. [Table Create](#table-create)
+    1. [Table Alter](#table-alter)
+    1. [Table Drop](#table-drop)
+    1. [Table Rename](#table-rename)
+    1. [Table Truncate](#table-truncate)
+    1. [Foreign Key Create](#foreign-key-create)
+    1. [Foreign Key Drop](#foreign-key-drop)
+    1. [Index Create](#index-create)
+    1. [Index Drop](#index-drop)
 
 Construct a SQL statement with the library then execute the statement with a database connector,
 see SQLx example [here](https://github.com/SeaQL/sea-query/blob/master/examples/sqlx.rs).
@@ -145,6 +152,19 @@ assert_eq!(
     ].join(" ")
 );
 ```
+
+### Statement Building
+
+All the query statements and table statements support the following ways to build database specific SQL statement:
+
+1. `build(&self, query_builder: T) -> (String, Vec<Value>)`  
+    Build a SQL statement in string and collect parameters into a vector, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build) for example.
+
+1. `build_collect(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String`  
+    Build a SQL statement in string and collect parameters into a user defined collector, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build_collect) for example.
+
+1. `to_string(&self, query_builder: T) -> String`  
+    Build a SQL statement in string with parameters in it, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.to_string) for example.
 
 ### Query Select
 
