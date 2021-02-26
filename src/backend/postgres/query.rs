@@ -453,21 +453,19 @@ pub fn pg_value_to_string(v: &Value) -> String {
     let mut s = String::new();
     match v {
         Value::Null => write!(s, "NULL").unwrap(),
-        Value::Bytes(v) => write!(s, "{}", pg_escape_string_quoted(std::str::from_utf8(v).unwrap())).unwrap(),
+        Value::Bool(b) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
+        Value::TinyInt(v) => write!(s, "{}", v).unwrap(),
+        Value::SmallInt(v) => write!(s, "{}", v).unwrap(),
         Value::Int(v) => write!(s, "{}", v).unwrap(),
-        Value::UInt(v) => write!(s, "{}", v).unwrap(),
+        Value::BigInt(v) => write!(s, "{}", v).unwrap(),
+        Value::TinyUnsigned(v) => write!(s, "{}", v).unwrap(),
+        Value::SmallUnsigned(v) => write!(s, "{}", v).unwrap(),
+        Value::Unsigned(v) => write!(s, "{}", v).unwrap(),
+        Value::BigUnsigned(v) => write!(s, "{}", v).unwrap(),
         Value::Float(v) => write!(s, "{}", v).unwrap(),
         Value::Double(v) => write!(s, "{}", v).unwrap(),
-        Value::Date(year, month, day, hour, minutes, seconds, _micro_seconds) => 
-            write!(
-                s, "{:04}{:02}{:02} {:02}{:02}{:02}",
-                year, month, day, hour, minutes, seconds
-            ).unwrap(),
-        Value::Time(negative, days, hours, minutes, seconds, micro_seconds) => 
-            write!(
-                s, "{}{:02}{:02} {:02}{:02}.{:03}",
-                if *negative { "-" } else { "" }, days, hours, minutes, seconds, micro_seconds / 1000
-            ).unwrap(),
+        Value::String(v) => write!(s, "{}", pg_escape_string_quoted(v)).unwrap(),
+        Value::Bytes(v) => write!(s, "x\'{}\'", v.iter().map(|b| format!("{:02X}", b)).collect::<String>()).unwrap(),
     };
     s
 }

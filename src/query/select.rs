@@ -1184,7 +1184,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::UInt(limit));
+        self.limit = Some(Value::BigUnsigned(limit));
         self
     }
 
@@ -1216,7 +1216,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn offset(&mut self, offset: u64) -> &mut Self {
-        self.offset = Some(Value::UInt(offset));
+        self.offset = Some(Value::BigUnsigned(offset));
         self
     }
 

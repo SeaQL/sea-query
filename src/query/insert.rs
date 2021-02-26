@@ -250,7 +250,7 @@ impl InsertStatement {
     ///     params,
     ///     vec![
     ///         Value::Double(3.1415),
-    ///         Value::Bytes(String::from("041080").into_bytes()),
+    ///         Value::String(Box::new(String::from("041080"))),
     ///     ]
     /// );
     /// ```
@@ -294,7 +294,7 @@ impl InsertStatement {
     ///     params,
     ///     vec![
     ///         Value::Double(3.1415),
-    ///         Value::Bytes(String::from("04108048005887010020060000204E0180400400").into_bytes()),
+    ///         Value::String(Box::new(String::from("04108048005887010020060000204E0180400400"))),
     ///     ]
     /// );
     /// ```

@@ -268,7 +268,7 @@ impl DeleteStatement {
 
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::UInt(limit));
+        self.limit = Some(Value::BigUnsigned(limit));
         self
     }
 

@@ -451,7 +451,7 @@ impl UpdateStatement {
 
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::UInt(limit));
+        self.limit = Some(Value::BigUnsigned(limit));
         self
     }
 
@@ -487,7 +487,7 @@ impl UpdateStatement {
     ///     params,
     ///     vec![
     ///         Value::Double(2.1345),
-    ///         Value::Bytes(String::from("235m").into_bytes()),
+    ///         Value::String(Box::new(String::from("235m"))),
     ///         Value::Int(1),
     ///     ]
     /// );
@@ -529,7 +529,7 @@ impl UpdateStatement {
     ///     params,
     ///     vec![
     ///         Value::Double(2.1345),
-    ///         Value::Bytes(String::from("235m").into_bytes()),
+    ///         Value::String(Box::new(String::from("235m"))),
     ///         Value::Int(1),
     ///     ]
     /// );
