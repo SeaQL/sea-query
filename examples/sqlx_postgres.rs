@@ -1,4 +1,3 @@
-use std::fmt;
 use async_std::task;
 use serde_json::json;
 use sqlx::{Postgres, PgPool, postgres::PgArguments};
@@ -15,13 +14,11 @@ fn main() {
     let mut pool = connection.try_acquire().unwrap();
 
     let sql = Table::create()
-        .table(Char::Table)
+        .table(Character::Table)
         .create_if_not_exists()
-        .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
-        .col(ColumnDef::new(Char::FontSize).integer())
-        .col(ColumnDef::new(Char::Character).string())
-        .col(ColumnDef::new(Char::SizeW).integer())
-        .col(ColumnDef::new(Char::SizeH).integer())
+        .col(ColumnDef::new(Character::Id).integer().not_null().auto_increment().primary_key())
+        .col(ColumnDef::new(Character::FontSize).integer())
+        .col(ColumnDef::new(Character::Character).string())
         .build(PostgresQueryBuilder);
 
     let result = task::block_on(async {
@@ -33,21 +30,17 @@ fn main() {
 
 
     let (sql, params) = Query::insert()
-        .into_table(Char::Table)
+        .into_table(Character::Table)
         .columns(vec![
-            Char::Character, Char::SizeW, Char::SizeH, Char::FontSize
+            Character::Character, Character::FontSize
         ])
         .values_panic(vec![
-            "Character".into(),
-            123.into(),
-            456.into(),
-            3.into(),
+            "A".into(),
+            12.into(),
         ])
         .json(json!({
-            "character": "S",
-            "size_w": 12,
-            "size_h": 34,
-            "font_size": 2,
+            "character": "B",
+            "font_size": 24,
         }))
         .build(PostgresQueryBuilder);
 
@@ -61,9 +54,9 @@ fn main() {
 
     let (sql, params) = Query::select()
         .columns(vec![
-            Char::Id, Char::Character, Char::SizeW, Char::SizeH, Char::FontSize
+            Character::Id, Character::Character, Character::FontSize
         ])
-        .from(Char::Table)
+        .from(Character::Table)
         .build(PostgresQueryBuilder);
 
     let rows = task::block_on(async {
@@ -86,28 +79,12 @@ pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> S
     bind_params_sqlx_postgres!(query, params)
 }
 
+#[derive(Iden)]
 enum Character {
     Table,
     Id,
     Character,
     FontSize,
-    SizeW,
-    SizeH,
-}
-
-type Char = Character;
-
-impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(s, "{}", match self {
-            Self::Table => "character",
-            Self::Id => "id",
-            Self::Character => "character",
-            Self::FontSize => "font_size",
-            Self::SizeW => "size_w",
-            Self::SizeH => "size_h",
-        }).unwrap();
-    }
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -115,6 +92,4 @@ struct CharacterStruct {
     id: i32,
     character: String,
     font_size: i32,
-    size_w: i32,
-    size_h: i32,
 }
