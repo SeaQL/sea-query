@@ -4,7 +4,11 @@ mod postgres;
 pub use postgres::*;
 
 #[cfg(feature="sqlx-mysql")]
-pub mod sqlx_mysql;
+mod sqlx_mysql;
+#[cfg(feature="sqlx-mysql")]
+pub use sqlx_mysql::*;
 
 #[cfg(feature="sqlx-postgres")]
-pub mod sqlx_postgres;
+mod sqlx_postgres;
+#[cfg(feature="sqlx-postgres")]
+pub use sqlx_postgres::*;

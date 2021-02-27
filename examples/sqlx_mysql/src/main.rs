@@ -1,9 +1,6 @@
 use async_std::task;
-use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table, Value, bind_params_sqlx_mysql};
-use sqlx::{MySql, MySqlPool, mysql::MySqlArguments, Row};
-
-type SqlxQuery<'a> = sqlx::query::Query<'a, MySql, MySqlArguments>;
-type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, MySql, T, MySqlArguments>;
+use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table, bind_query, bind_query_as};
+use sqlx::{MySqlPool, Row};
 
 fn main() {
 
@@ -143,14 +140,6 @@ fn main() {
     print!("Count character: ");
     let count: i64 = row.try_get(0).unwrap();
     println!("{}", count);
-}
-
-pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
-    bind_params_sqlx_mysql!(query, params)
-}
-
-pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
-    bind_params_sqlx_mysql!(query, params)
 }
 
 #[derive(Iden)]

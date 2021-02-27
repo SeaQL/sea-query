@@ -1,9 +1,6 @@
 use async_std::task;
-use sqlx::{Postgres, PgPool, postgres::PgArguments, Row};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table, Value, bind_params_sqlx_postgres};
-
-type SqlxQuery<'a> = sqlx::query::Query<'a, Postgres, PgArguments>;
-type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Postgres, T, PgArguments>;
+use sqlx::{PgPool, Row};
+use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table, bind_query, bind_query_as};
 
 fn main() {
 
@@ -145,14 +142,6 @@ fn main() {
     print!("Count character: ");
     let count: i64 = row.try_get(0).unwrap();
     println!("{}", count);
-}
-
-pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
-    bind_params_sqlx_postgres!(query, params)
-}
-
-pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
-    bind_params_sqlx_postgres!(query, params)
 }
 
 #[derive(Iden)]
