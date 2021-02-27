@@ -45,11 +45,16 @@ features = [
 [features]
 default = [ "derive" ]
 sqlx-mysql = [ ]
+sqlx-postgres = [ ]
 derive = [ "sea-query-derive" ]
 
 [[example]]
 name = "sqlx_mysql"
 required-features = [ "sqlx-mysql" ]
+
+[[example]]
+name = "sqlx_postgres"
+required-features = [ "sqlx-postgres" ]
 
 [[example]]
 name = "derive"

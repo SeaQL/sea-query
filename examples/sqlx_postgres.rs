@@ -1,16 +1,16 @@
 use std::fmt;
 use async_std::task;
 use serde_json::json;
-use sqlx::{MySql, MySqlPool, mysql::MySqlArguments};
+use sqlx::{Postgres, PgPool, postgres::PgArguments};
 use sea_query::*;
 
-type SqlxQuery<'a> = sqlx::query::Query<'a, MySql, MySqlArguments>;
-type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, MySql, T, MySqlArguments>;
+type SqlxQuery<'a> = sqlx::query::Query<'a, Postgres, PgArguments>;
+type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Postgres, T, PgArguments>;
 
 fn main() {
 
     let connection = task::block_on(async {
-        MySqlPool::connect("mysql://query:query@127.0.0.1/query_test").await.unwrap()
+        PgPool::connect("postgres://query:query@127.0.0.1/query_test").await.unwrap()
     });
     let mut pool = connection.try_acquire().unwrap();
 
@@ -22,7 +22,7 @@ fn main() {
         .col(ColumnDef::new(Char::Character).string())
         .col(ColumnDef::new(Char::SizeW).integer())
         .col(ColumnDef::new(Char::SizeH).integer())
-        .build(MysqlQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     let result = task::block_on(async {
         sqlx::query(&sql)
@@ -49,7 +49,7 @@ fn main() {
             "size_h": 34,
             "font_size": 2,
         }))
-        .build(MysqlQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     let result = task::block_on(async {
         bind_query(sqlx::query(&sql), &params)
@@ -64,7 +64,7 @@ fn main() {
             Char::Id, Char::Character, Char::SizeW, Char::SizeH, Char::FontSize
         ])
         .from(Char::Table)
-        .build(MysqlQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     let rows = task::block_on(async {
         bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &params)
@@ -79,11 +79,11 @@ fn main() {
 }
 
 pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
-    bind_params_sqlx_mysql!(query, params)
+    bind_params_sqlx_postgres!(query, params)
 }
 
 pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
-    bind_params_sqlx_mysql!(query, params)
+    bind_params_sqlx_postgres!(query, params)
 }
 
 enum Character {
