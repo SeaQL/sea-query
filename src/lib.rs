@@ -559,7 +559,7 @@ pub mod types;
 pub mod value;
 
 pub use backend::*;
-//pub use driver::*;
+pub use driver::*;
 //pub use extension::*;
 pub use foreign_key::*;
 pub use index::*;
