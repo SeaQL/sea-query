@@ -20,6 +20,7 @@ pub enum Value {
     Double(f64),
     String(Box<String>),
     Bytes(Box<Vec<u8>>),
+    Json(Box<Json>),
     // SystemTime(Box<SystemTime>),
 }
 
@@ -114,6 +115,12 @@ impl From<String> for Value {
     }
 }
 
+impl From<Json> for Value {
+    fn from(x: Json) -> Value {
+        Value::Json(Box::new(x))
+    }
+}
+
 /// Escape a SQL string literal
 pub fn escape_string(string: &str) -> String {
     string
@@ -145,7 +152,7 @@ pub fn json_value_to_sea_value(v: &Json) -> Value {
             },
         Json::String(v) => Value::String(Box::new(v.clone())),
         Json::Array(_) => unimplemented!(),
-        Json::Object(_) => unimplemented!(),
+        Json::Object(v) => Value::Json(Box::new(Json::Object(v.clone()))),
     }
 }
 
@@ -167,6 +174,7 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::Double(v) => (*v).into(),
         Value::String(s) => Json::String(s.as_ref().clone()),
         Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
+        Value::Json(v) => v.as_ref().clone(),
     }
 }
 

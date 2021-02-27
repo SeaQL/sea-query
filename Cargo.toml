@@ -51,9 +51,9 @@ features = [
 [features]
 default = [ "derive" ]
 derive = [ "sea-query-derive" ]
-postgres = [ "bytes", "postgres-types" ]
-sqlx-mysql = [ "sqlx/mysql" ]
-sqlx-postgres = [ "sqlx/postgres" ]
+postgres = [ "bytes", "postgres-types", "postgres-types/with-serde_json-1" ]
+sqlx-mysql = [ "sqlx/mysql", "sqlx/json" ]
+sqlx-postgres = [ "sqlx/postgres", "sqlx/json" ]
 
 [[example]]
 name = "derive"

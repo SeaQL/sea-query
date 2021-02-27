@@ -466,6 +466,7 @@ pub fn sqlite_value_to_string(v: &Value) -> String {
         Value::Double(v) => write!(s, "{}", v).unwrap(),
         Value::String(v) => write!(s, "\'{}\'", escape_string(v)).unwrap(),
         Value::Bytes(v) => write!(s, "x\'{}\'", v.iter().map(|b| format!("{:02X}", b)).collect::<String>()).unwrap(),
+        Value::Json(v) => write!(s, "\'{}\'", escape_string(&v.to_string())).unwrap(),
     };
     s
 }

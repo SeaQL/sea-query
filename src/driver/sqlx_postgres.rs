@@ -21,6 +21,7 @@ macro_rules! bind_params_sqlx_postgres {
                     Value::Double(v) => query.bind(v),
                     Value::String(v) => query.bind(v.as_str()),
                     Value::Bytes(v) => query.bind(v.as_ref()),
+                    Value::Json(v) => query.bind(v.as_ref()),
                 };
             }
             query
