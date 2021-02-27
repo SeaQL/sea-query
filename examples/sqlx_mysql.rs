@@ -1,27 +1,18 @@
 use std::fmt;
 use async_std::task;
 use serde_json::json;
-use sqlx::{Any, AnyPool, any::AnyArguments};
+use sqlx::{MySql, MySqlPool, mysql::MySqlArguments};
 use sea_query::*;
 
-type SqlxQuery<'a> = sqlx::query::Query<'a, Any, AnyArguments<'a>>;
-type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Any, T, AnyArguments<'a>>;
+type SqlxQuery<'a> = sqlx::query::Query<'a, MySql, MySqlArguments>;
+type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, MySql, T, MySqlArguments>;
 
 fn main() {
-    // mysql or postgresql
-    let database = "mysql";
 
     let connection = task::block_on(async {
-        AnyPool::connect(format!("{}://query:query@127.0.0.1/query_test", database).as_ref())
-            .await.unwrap()
+        MySqlPool::connect("mysql://query:query@127.0.0.1/query_test").await.unwrap()
     });
     let mut pool = connection.try_acquire().unwrap();
-
-    let table_builder: Box<dyn GenericBuilder> = match database {
-        "mysql" => Box::new(MysqlQueryBuilder),
-        "postgresql" => Box::new(PostgresQueryBuilder),
-        _ => panic!("unsupported database connection string"),
-    };
 
     let sql = Table::create()
         .table(Char::Table)
@@ -31,7 +22,7 @@ fn main() {
         .col(ColumnDef::new(Char::Character).string())
         .col(ColumnDef::new(Char::SizeW).integer())
         .col(ColumnDef::new(Char::SizeH).integer())
-        .build_any(table_builder.table_builder().as_ref());
+        .build(MysqlQueryBuilder);
 
     let result = task::block_on(async {
         sqlx::query(&sql)
@@ -58,7 +49,7 @@ fn main() {
             "size_h": 34,
             "font_size": 2,
         }))
-        .build_any(table_builder.query_builder().as_ref());
+        .build(MysqlQueryBuilder);
 
     let result = task::block_on(async {
         bind_query(sqlx::query(&sql), &params)
@@ -73,7 +64,7 @@ fn main() {
             Char::Id, Char::Character, Char::SizeW, Char::SizeH, Char::FontSize
         ])
         .from(Char::Table)
-        .build_any(table_builder.query_builder().as_ref());
+        .build(MysqlQueryBuilder);
 
     let rows = task::block_on(async {
         bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &params)

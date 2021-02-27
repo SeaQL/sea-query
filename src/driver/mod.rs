@@ -1,2 +1,2 @@
-#[cfg(feature="sqlx-driver")]
-pub mod sqlx;
+#[cfg(feature="sqlx-mysql")]
+pub mod sqlx_mysql;

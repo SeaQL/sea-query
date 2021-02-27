@@ -26,16 +26,30 @@ sea-query-derive = { version = "0.1.0", path = "sea-query-derive", default-featu
 
 [dev-dependencies]
 async-std = "1.8"
-sqlx = { version = "0.4.0", default-features = false, features = [ "runtime-async-std-native-tls", "macros", "any", "mysql", "postgres", "sqlite", "tls", "migrate", "decimal" ] }
+
+[dev-dependencies.sqlx]
+version = "0.5"
+default-features = false
+features = [
+    "runtime-async-std-native-tls",
+    "macros",
+    "any",
+    "mysql",
+    "postgres",
+    "sqlite",
+    "tls",
+    "migrate",
+    "decimal"
+]
 
 [features]
 default = [ "derive" ]
-sqlx-driver = [ ]
+sqlx-mysql = [ ]
 derive = [ "sea-query-derive" ]
 
 [[example]]
-name = "sqlx"
-required-features = [ "sqlx-driver" ]
+name = "sqlx_mysql"
+required-features = [ "sqlx-mysql" ]
 
 [[example]]
 name = "derive"
