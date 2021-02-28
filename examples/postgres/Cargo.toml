@@ -5,6 +5,6 @@ edition = "2018"
 
 [dependencies]
 sea-query = { path = "../../", features = ["postgres"] }
-# NOTES: if you are copying this example into your own repository, use this following line instead:
+# NOTE: if you are copying this example into your own repository, use this following line instead:
 # sea-query = { version = "*", features = ["postgres"] }
 postgres = "0"
