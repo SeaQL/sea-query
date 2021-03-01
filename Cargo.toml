@@ -1,6 +1,7 @@
 [workspace]
 members = [
     ".",
+    "sea-query-test",
     "sea-query-derive",
     "examples/postgres",
     "examples/sqlx_mysql",
@@ -31,22 +32,7 @@ postgres-types = { version = "0", optional = true }
 sqlx = { version = "0", default-features = false, optional = true }
 
 [dev-dependencies]
-async-std = "1.8"
-
-[dev-dependencies.sqlx]
-version = "0"
-default-features = false
-features = [
-    "runtime-async-std-native-tls",
-    "macros",
-    "any",
-    "mysql",
-    "postgres",
-    "sqlite",
-    "tls",
-    "migrate",
-    "decimal"
-]
+sea-query-test = { path = "sea-query-test", default-features = false }
 
 [features]
 default = [ "derive" ]
@@ -58,3 +44,23 @@ sqlx-postgres = [ "sqlx/postgres", "sqlx/json" ]
 [[example]]
 name = "derive"
 required-features = [ "derive" ]
+
+[[test]]
+name = "test-derive"
+path = "tests/derive/mod.rs"
+required-features = [ "derive" ]
+
+[[test]]
+name = "test-mysql"
+path = "tests/mysql/mod.rs"
+required-features = [ ]
+
+[[test]]
+name = "test-postgres"
+path = "tests/postgres/mod.rs"
+required-features = [ ]
+
+[[test]]
+name = "test-sqlite"
+path = "tests/sqlite/mod.rs"
+required-features = [ ]
