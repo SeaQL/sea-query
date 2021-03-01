@@ -1,22 +1,17 @@
-mod mysql;
-mod postgres;
-mod sqlite;
-
-#[cfg(feature = "derive")]
-mod derive;
-
-use sea_query::{*, tests_cfg::*};
-
 use sqlx::{Any, Pool, AnyPool};
 use async_std::task;
 
-struct TestEnv {
+pub use sea_query::{*, tests_cfg::*};
+pub use std::fmt::Write as FmtWrite;
+pub use serde_json::json;
+
+pub struct TestEnv {
     connection: Pool<Any>,
 }
 
 impl TestEnv {
     #[allow(dead_code)]
-    fn new(db_url: &str) -> Self {
+    pub fn new(db_url: &str) -> Self {
         let db_url = String::from(db_url);
         let mut parts: Vec<&str> = db_url.split('/').collect();
         let db = parts.pop().unwrap();
@@ -49,7 +44,7 @@ impl TestEnv {
         }
     }
 
-    fn exec(&mut self, sql: &str) {
+    pub fn exec(&mut self, sql: &str) {
         let mut pool = self.connection.try_acquire().unwrap();
         println!("\n{}\n", sql);
         task::block_on(async {

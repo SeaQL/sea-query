@@ -4,4 +4,4 @@ mod online;
 mod index;
 mod foreign_key;
 
-use super::*;
+use sea_query_test::*;
