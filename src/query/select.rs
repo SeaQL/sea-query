@@ -746,6 +746,48 @@ impl SelectStatement {
         self
     }
 
+    /// Join with other table by [`JoinType`], assigning an alias to the joined table.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .table_column(Font::Table, Font::Name)
+    ///     .from(Char::Table)
+    ///     .join_alias(
+    ///         JoinType::RightJoin,
+    ///         Font::Table,
+    ///         Alias::new("f"),
+    ///         Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
+    /// );
+    /// ```
+    pub fn join_alias<T: 'static, A: 'static>(&mut self, join: JoinType, table: T, alias: A, condition: SimpleExpr) -> &mut Self
+        where T: Iden, A: Iden {
+        self.join_alias_dyn(join, Rc::new(table), Rc::new(alias), condition)
+    }
+
+    /// Join with other table by [`JoinType`] and alias, variation of [`SelectStatement::join_alias`].
+    pub fn join_alias_dyn(&mut self, join: JoinType, table: Rc<dyn Iden>, alias: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
+        self.join_join(join, TableRef::TableAlias(table, alias), JoinOn::Condition(Box::new(condition)))
+    }
+
     /// Join with sub-query.
     /// 
     /// # Examples
