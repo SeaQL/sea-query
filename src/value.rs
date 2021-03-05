@@ -4,7 +4,7 @@ use std::str::from_utf8;
 use serde_json::Value as Json;
 
 /// Value variants
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Null,
     Bool(bool),
@@ -23,6 +23,9 @@ pub enum Value {
     Json(Box<Json>),
     // SystemTime(Box<SystemTime>),
 }
+
+#[derive(Debug, PartialEq)]
+pub struct Values(pub Vec<Value>);
 
 impl From<bool> for Value {
     fn from(x: bool) -> Value {
@@ -175,6 +178,12 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::String(s) => Json::String(s.as_ref().clone()),
         Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(v) => v.as_ref().clone(),
+    }
+}
+
+impl Values {
+    pub fn iter(&self) -> impl Iterator<Item = &Value> {
+        self.0.iter()
     }
 }
 

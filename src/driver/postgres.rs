@@ -1,9 +1,11 @@
 use std::error::Error;
 use bytes::BytesMut;
 use postgres_types::{IsNull, ToSql, Type, to_sql_checked};
-use crate::Value;
+use crate::{Value, Values};
 
-pub struct Values(pub Vec<Value>);
+pub trait PostgresDriver<'a> {
+    fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)>;
+}
 
 impl ToSql for Value {
     fn to_sql(
@@ -43,8 +45,8 @@ impl From<Vec<Value>> for Values {
     }
 }
 
-impl<'a> Values {
-    pub fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)> {
+impl<'a> PostgresDriver<'a> for Values {
+    fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)> {
         self.0.iter().map(|x| {
             let y: &(dyn ToSql + Sync) = x;
             y

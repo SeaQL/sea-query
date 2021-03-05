@@ -1,5 +1,5 @@
 use postgres::{Client, NoTls, Row};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table, Values};
+use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table, PostgresDriver};
 
 fn main() {
     let mut client = Client::connect("postgresql://query:query@localhost/query_test", NoTls).unwrap();
@@ -30,7 +30,7 @@ fn main() {
         ])
         .build(PostgresQueryBuilder);
 
-    let result = client.execute(sql.as_str(), &Values::from(values).as_params());
+    let result = client.execute(sql.as_str(), &values.as_params());
     println!("Insert into character: {:?}\n", result);
 
     // Read
@@ -44,7 +44,7 @@ fn main() {
         .limit(1)
         .build(PostgresQueryBuilder);
 
-    let rows = client.query(sql.as_str(), &Values::from(values).as_params()).unwrap();
+    let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from character:");
     let mut id = None;
     for row in rows.into_iter() {
@@ -65,7 +65,7 @@ fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build(PostgresQueryBuilder);
 
-    let result = client.execute(sql.as_str(), &Values::from(values).as_params());
+    let result = client.execute(sql.as_str(), &values.as_params());
     println!("Update character: {:?}\n", result);
 
     // Read
@@ -79,7 +79,7 @@ fn main() {
         .limit(1)
         .build(PostgresQueryBuilder);
 
-    let rows = client.query(sql.as_str(), &Values::from(values).as_params()).unwrap();
+    let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from character:");
     for row in rows.into_iter() {
         let item = CharacterStruct::from(row);
@@ -94,7 +94,7 @@ fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build(PostgresQueryBuilder);
 
-    let result = client.execute(sql.as_str(), &Values::from(values).as_params());
+    let result = client.execute(sql.as_str(), &values.as_params());
     println!("Delete character: {:?}\n", result);
 
     // Count
@@ -104,7 +104,7 @@ fn main() {
         .expr(Func::count(Expr::col(Character::Id)))
         .build(PostgresQueryBuilder);
 
-    let row = client.query_one(sql.as_str(), &Values::from(values).as_params()).unwrap();
+    let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
     print!("Count character: ");
     let count: i64 = row.try_get(0).unwrap();
     println!("{}", count);
