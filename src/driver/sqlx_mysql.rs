@@ -22,6 +22,8 @@ macro_rules! bind_params_sqlx_mysql {
                     Value::String(v) => query.bind(v.as_str()),
                     Value::Bytes(v) => query.bind(v.as_ref()),
                     Value::Json(v) => query.bind(v.as_ref()),
+                    #[cfg(feature="sqlx-chrono")]
+                    Value::DateTime(v) => query.bind(v.as_ref()),
                 };
             }
             query

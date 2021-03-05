@@ -1,6 +1,7 @@
 //! Universal value variants used in the library.
 use std::str::from_utf8;
-// use std::time::SystemTime;
+#[cfg(feature="chrono")]
+use chrono::NaiveDateTime;
 use serde_json::Value as Json;
 
 /// Value variants
@@ -21,7 +22,8 @@ pub enum Value {
     String(Box<String>),
     Bytes(Box<Vec<u8>>),
     Json(Box<Json>),
-    // SystemTime(Box<SystemTime>),
+    #[cfg(feature="chrono")]
+    DateTime(Box<NaiveDateTime>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -178,6 +180,8 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::String(s) => Json::String(s.as_ref().clone()),
         Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(v) => v.as_ref().clone(),
+        #[cfg(feature="chrono")]
+        Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
     }
 }
 
