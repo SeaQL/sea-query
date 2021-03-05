@@ -506,7 +506,7 @@ impl SelectStatement {
     /// 
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_alias(Expr::col(Char::Character), Alias::new("C"))
+    ///     .expr_as(Expr::col(Char::Character), Alias::new("C"))
     ///     .to_owned();
     /// 
     /// assert_eq!(
@@ -522,13 +522,22 @@ impl SelectStatement {
     ///     r#"SELECT `character` AS `C` FROM `character`"#
     /// );
     /// ```
-    pub fn expr_alias<T, A: 'static>(&mut self, expr: T, alias: A) -> &mut Self
+    pub fn expr_as<T, A: 'static>(&mut self, expr: T, alias: A) -> &mut Self
         where T: Into<SimpleExpr>, A: Iden {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: Some(Rc::new(alias))
         });
         self
+    }
+
+    #[deprecated(
+        since = "0.6.1",
+        note = "Please use the [`SelectStatement::expr_as`] instead"
+    )]
+    pub fn expr_alias<T, A: 'static>(&mut self, expr: T, alias: A) -> &mut Self
+        where T: Into<SimpleExpr>, A: Iden {
+        self.expr_as(expr, alias)
     }
 
     /// From table.
@@ -550,11 +559,11 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     /// 
-    /// let table_alias = Alias::new("char");
+    /// let table_as = Alias::new("char");
     /// 
     /// let query = Query::select()
-    ///     .from_alias(Char::Table, table_alias.clone())
-    ///     .table_column(table_alias, Char::Character)
+    ///     .from_as(Char::Table, table_as.clone())
+    ///     .table_column(table_as, Char::Character)
     ///     .to_owned();
     /// 
     /// assert_eq!(
@@ -570,13 +579,22 @@ impl SelectStatement {
     ///     r#"SELECT `char`.`character` FROM `character` AS `char`"#
     /// );
     /// ```
-    pub fn from_alias<T: 'static, Y: 'static>(&mut self, table: T, alias: Y) -> &mut Self
+    pub fn from_as<T: 'static, Y: 'static>(&mut self, table: T, alias: Y) -> &mut Self
         where T: Iden, Y: Iden {
-        self.from_alias_dyn(Rc::new(table), Rc::new(alias))
+        self.from_as_dyn(Rc::new(table), Rc::new(alias))
     }
 
-    /// From table with alias, variation of [`SelectStatement::from_alias`].
-    pub fn from_alias_dyn(&mut self, table: Rc<dyn Iden>, alias: Rc<dyn Iden>) -> &mut Self {
+    #[deprecated(
+        since = "0.6.1",
+        note = "Please use the [`SelectStatement::from_as`] instead"
+    )]
+    pub fn from_alias<T: 'static, Y: 'static>(&mut self, table: T, alias: Y) -> &mut Self
+        where T: Iden, Y: Iden {
+        self.from_as(table, alias)
+    }
+
+    /// From table with alias, variation of [`SelectStatement::from_as`].
+    pub fn from_as_dyn(&mut self, table: Rc<dyn Iden>, alias: Rc<dyn Iden>) -> &mut Self {
         self.from_from(TableRef::TableAlias(table, alias));
         self
     }
@@ -757,7 +775,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .table_column(Font::Table, Font::Name)
     ///     .from(Char::Table)
-    ///     .join_alias(
+    ///     .join_as(
     ///         JoinType::RightJoin,
     ///         Font::Table,
     ///         Alias::new("f"),
@@ -778,13 +796,22 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join_alias<T: 'static, A: 'static>(&mut self, join: JoinType, table: T, alias: A, condition: SimpleExpr) -> &mut Self
+    pub fn join_as<T: 'static, A: 'static>(&mut self, join: JoinType, table: T, alias: A, condition: SimpleExpr) -> &mut Self
         where T: Iden, A: Iden {
-        self.join_alias_dyn(join, Rc::new(table), Rc::new(alias), condition)
+        self.join_as_dyn(join, Rc::new(table), Rc::new(alias), condition)
     }
 
-    /// Join with other table by [`JoinType`] and alias, variation of [`SelectStatement::join_alias`].
-    pub fn join_alias_dyn(&mut self, join: JoinType, table: Rc<dyn Iden>, alias: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
+    #[deprecated(
+        since = "0.6.1",
+        note = "Please use the [`SelectStatement::join_as`] instead"
+    )]
+    pub fn join_alias<T: 'static, A: 'static>(&mut self, join: JoinType, table: T, alias: A, condition: SimpleExpr) -> &mut Self
+        where T: Iden, A: Iden {
+        self.join_as(join, table, alias, condition)
+    }
+
+    /// Join with other table by [`JoinType`] and alias, variation of [`SelectStatement::join_as`].
+    pub fn join_as_dyn(&mut self, join: JoinType, table: Rc<dyn Iden>, alias: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
         self.join_join(join, TableRef::TableAlias(table, alias), JoinOn::Condition(Box::new(condition)))
     }
 

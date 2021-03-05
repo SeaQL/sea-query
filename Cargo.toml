@@ -6,7 +6,7 @@ members = [
 
 [package]
 name = "sea-query"
-version = "0.6.0"
+version = "0.6.1"
 authors = [ "Billy Chan <ccw.billy.123@gmail.com>" ]
 edition = "2018"
 description = "A database agnostic runtime query builder for Rust"

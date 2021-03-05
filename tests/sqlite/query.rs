@@ -481,7 +481,7 @@ fn select_31() {
 fn select_32() {
     assert_eq!(
         Query::select()
-            .expr_alias(Expr::col(Char::Character), Alias::new("C"))
+            .expr_as(Expr::col(Char::Character), Alias::new("C"))
             .from(Char::Table)
             .to_string(SqliteQueryBuilder),
         "SELECT `character` AS `C` FROM `character`"
