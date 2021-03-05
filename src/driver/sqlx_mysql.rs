@@ -1,5 +1,5 @@
 use sqlx::{query::Query, query::QueryAs, MySql, mysql::MySqlArguments};
-use crate::Value;
+use crate::{Value, Values};
 
 macro_rules! bind_params_sqlx_mysql {
     ( $query:expr, $params:expr ) => {
@@ -34,10 +34,10 @@ macro_rules! bind_params_sqlx_mysql {
 type SqlxQuery<'a> = Query<'a, MySql, MySqlArguments>;
 type SqlxQueryAs<'a, T> = QueryAs<'a, MySql, T, MySqlArguments>;
 
-pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
-    bind_params_sqlx_mysql!(query, params)
+pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a Values) -> SqlxQuery<'a> {
+    bind_params_sqlx_mysql!(query, params.0)
 }
 
-pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
-    bind_params_sqlx_mysql!(query, params)
+pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a Values) -> SqlxQueryAs<'a, T> {
+    bind_params_sqlx_mysql!(query, params.0)
 }

@@ -28,7 +28,7 @@ fn main() {
 
     // Create
 
-    let (sql, params) = Query::insert()
+    let (sql, values) = Query::insert()
         .into_table(Character::Table)
         .columns(vec![
             Character::Character, Character::FontSize
@@ -40,7 +40,7 @@ fn main() {
         .build(PostgresQueryBuilder);
 
     let result = task::block_on(async {
-        bind_query(sqlx::query(&sql), &params)
+        bind_query(sqlx::query(&sql), &values)
             .execute(&mut pool)
             .await
     });
@@ -48,7 +48,7 @@ fn main() {
 
     // Read
 
-    let (sql, params) = Query::select()
+    let (sql, values) = Query::select()
         .columns(vec![
             Character::Id, Character::Character, Character::FontSize
         ])
@@ -58,7 +58,7 @@ fn main() {
         .build(PostgresQueryBuilder);
 
     let rows = task::block_on(async {
-        bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &params)
+        bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
             .fetch_all(&mut pool)
             .await
             .unwrap()
@@ -74,7 +74,7 @@ fn main() {
 
     // Update
 
-    let (sql, params) = Query::update()
+    let (sql, values) = Query::update()
         .table(Character::Table)
         .values(vec![
             (Character::FontSize, 24.into()),
@@ -83,7 +83,7 @@ fn main() {
         .build(PostgresQueryBuilder);
 
     let result = task::block_on(async {
-        bind_query(sqlx::query(&sql), &params)
+        bind_query(sqlx::query(&sql), &values)
             .execute(&mut pool)
             .await
     });
@@ -91,7 +91,7 @@ fn main() {
 
     // Read
 
-    let (sql, params) = Query::select()
+    let (sql, values) = Query::select()
         .columns(vec![
             Character::Id, Character::Character, Character::FontSize
         ])
@@ -101,7 +101,7 @@ fn main() {
         .build(PostgresQueryBuilder);
 
     let rows = task::block_on(async {
-        bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &params)
+        bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
             .fetch_all(&mut pool)
             .await
             .unwrap()
@@ -114,13 +114,13 @@ fn main() {
 
     // Delete
 
-    let (sql, params) = Query::delete()
+    let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
         .build(PostgresQueryBuilder);
 
     let result = task::block_on(async {
-        bind_query(sqlx::query(&sql), &params)
+        bind_query(sqlx::query(&sql), &values)
             .execute(&mut pool)
             .await
     });
@@ -128,13 +128,13 @@ fn main() {
 
     // Count
 
-    let (sql, params) = Query::select()
+    let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
         .build(PostgresQueryBuilder);
 
     let row = task::block_on(async {
-        bind_query(sqlx::query(&sql), &params)
+        bind_query(sqlx::query(&sql), &values)
             .fetch_one(&mut pool)
             .await
             .unwrap()

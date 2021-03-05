@@ -1,5 +1,5 @@
 use sqlx::{query::Query, query::QueryAs, Postgres, postgres::PgArguments};
-use crate::Value;
+use crate::{Value, Values};
 
 macro_rules! bind_params_sqlx_postgres {
     ( $query:expr, $params:expr ) => {
@@ -34,10 +34,10 @@ macro_rules! bind_params_sqlx_postgres {
 type SqlxQuery<'a> = sqlx::query::Query<'a, Postgres, PgArguments>;
 type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Postgres, T, PgArguments>;
 
-pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a [Value]) -> SqlxQuery<'a> {
-    bind_params_sqlx_postgres!(query, params)
+pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a Values) -> SqlxQuery<'a> {
+    bind_params_sqlx_postgres!(query, params.0)
 }
 
-pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a [Value]) -> SqlxQueryAs<'a, T> {
-    bind_params_sqlx_postgres!(query, params)
+pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a Values) -> SqlxQueryAs<'a, T> {
+    bind_params_sqlx_postgres!(query, params.0)
 }
