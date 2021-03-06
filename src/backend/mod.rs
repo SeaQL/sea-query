@@ -15,11 +15,11 @@ pub use mysql::*;
 pub use sqlite::*;
 pub use postgres::*;
 
-pub trait GenericBuilder: QueryBuilder + TableBuilder + IndexBuilder + ForeignKeyBuilder {
-    fn query_builder(&self) -> Box<dyn QueryBuilder>;
-    fn table_builder(&self) -> Box<dyn TableBuilder>;
-    fn index_builder(&self) -> Box<dyn IndexBuilder>;
-    fn foreign_key_builder(&self) -> Box<dyn ForeignKeyBuilder>;
+pub trait GenericBuilder {
+    type QueryBuilder: QueryBuilder;
+    type TableBuilder: TableBuilder;
+    type IndexBuilder: IndexBuilder;
+    type ForeignKeyBuilder: ForeignKeyBuilder;
 }
 
 pub trait QueryBuilder {
