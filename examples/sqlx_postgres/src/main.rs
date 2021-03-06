@@ -1,11 +1,14 @@
 use async_std::task;
 use sqlx::{PgPool, Row};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table, bind_query, bind_query_as};
+use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table};
+
+sea_query::sea_query_driver_postgres!();
+use sea_query_driver_postgres::{bind_query, bind_query_as};
 
 fn main() {
 
     let connection = task::block_on(async {
-        PgPool::connect("postgres://query:query@127.0.0.1/query_test").await.unwrap()
+        PgPool::connect("postgres://sea:sea@127.0.0.1/query").await.unwrap()
     });
     let mut pool = connection.try_acquire().unwrap();
 

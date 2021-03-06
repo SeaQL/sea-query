@@ -1,6 +1,4 @@
-use sqlx::{query::Query, query::QueryAs, MySql, mysql::MySqlArguments};
-use crate::{Value, Values};
-
+#[macro_export]
 macro_rules! bind_params_sqlx_mysql {
     ( $query:expr, $params:expr ) => {
         {
@@ -21,9 +19,11 @@ macro_rules! bind_params_sqlx_mysql {
                     Value::Double(v) => query.bind(v),
                     Value::String(v) => query.bind(v.as_str()),
                     Value::Bytes(v) => query.bind(v.as_ref()),
+                    #[cfg(feature="sqlx-json")]
                     Value::Json(v) => query.bind(v.as_ref()),
                     #[cfg(feature="sqlx-chrono")]
                     Value::DateTime(v) => query.bind(v.as_ref()),
+                    _ => unimplemented!(),
                 };
             }
             query
@@ -31,13 +31,23 @@ macro_rules! bind_params_sqlx_mysql {
     };
 }
 
-type SqlxQuery<'a> = Query<'a, MySql, MySqlArguments>;
-type SqlxQueryAs<'a, T> = QueryAs<'a, MySql, T, MySqlArguments>;
+#[macro_export]
+macro_rules! sea_query_driver_mysql {
+    () => {
+        mod sea_query_driver_mysql {
+            use sea_query::{Value, Values};
+            use sqlx::{query::Query, query::QueryAs, MySql, mysql::MySqlArguments};
 
-pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a Values) -> SqlxQuery<'a> {
-    bind_params_sqlx_mysql!(query, params.0)
-}
+            type SqlxQuery<'a> = Query<'a, MySql, MySqlArguments>;
+            type SqlxQueryAs<'a, T> = QueryAs<'a, MySql, T, MySqlArguments>;
 
-pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a Values) -> SqlxQueryAs<'a, T> {
-    bind_params_sqlx_mysql!(query, params.0)
+            pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a Values) -> SqlxQuery<'a> {
+                sea_query::bind_params_sqlx_mysql!(query, params.0)
+            }
+
+            pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a Values) -> SqlxQueryAs<'a, T> {
+                sea_query::bind_params_sqlx_mysql!(query, params.0)
+            }
+        }
+    }
 }

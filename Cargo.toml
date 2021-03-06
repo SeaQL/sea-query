@@ -30,7 +30,6 @@ sea-query-derive = { version = "0.1.0", path = "sea-query-derive", default-featu
 bytes = { version = "1", optional = true }
 chrono = { version = "0", optional = true }
 postgres-types = { version = "0", optional = true }
-sqlx = { version = "0", default-features = false, optional = true }
 
 [dev-dependencies]
 sea-query-test = { path = "sea-query-test", default-features = false }
@@ -39,9 +38,10 @@ sea-query-test = { path = "sea-query-test", default-features = false }
 default = [ "derive" ]
 derive = [ "sea-query-derive" ]
 postgres = [ "bytes", "postgres-types", "postgres-types/with-serde_json-1" ]
-sqlx-chrono = [ "chrono", "sqlx/chrono" ]
-sqlx-mysql = [ "sqlx/mysql", "sqlx/json" ]
-sqlx-postgres = [ "sqlx/postgres", "sqlx/json" ]
+sqlx-chrono = [ "chrono" ]
+sqlx-json = [ ]
+sqlx-mysql = [ ]
+sqlx-postgres = [ ]
 postgres-chrono = [ "chrono", "postgres-types/with-chrono-0_4" ]
 
 [[example]]

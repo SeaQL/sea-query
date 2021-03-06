@@ -1,11 +1,14 @@
 use async_std::task;
-use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table, bind_query, bind_query_as};
+use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table};
 use sqlx::{MySqlPool, Row};
+
+sea_query::sea_query_driver_mysql!();
+use sea_query_driver_mysql::{bind_query, bind_query_as};
 
 fn main() {
 
     let connection = task::block_on(async {
-        MySqlPool::connect("mysql://query:query@127.0.0.1/query_test").await.unwrap()
+        MySqlPool::connect("mysql://sea:sea@127.0.0.1/query").await.unwrap()
     });
     let mut pool = connection.try_acquire().unwrap();
 
