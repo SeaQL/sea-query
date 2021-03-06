@@ -30,7 +30,7 @@ use crate::{backend::TableBuilder, types::*, prepare::*};
 pub struct TableDropStatement {
     pub(crate) tables: Vec<Rc<dyn Iden>>,
     pub(crate) options: Vec<TableDropOpt>,
-    pub(crate) if_exist: bool,
+    pub(crate) if_exists: bool,
 }
 
 /// All available table drop options
@@ -52,7 +52,7 @@ impl TableDropStatement {
         Self {
             tables: Vec::new(),
             options: Vec::new(),
-            if_exist: false,
+            if_exists: false,
         }
     }
 
@@ -64,8 +64,8 @@ impl TableDropStatement {
     }
 
     /// Drop table if exists
-    pub fn if_exist(mut self) -> Self {
-        self.if_exist = true;
+    pub fn if_exists(mut self) -> Self {
+        self.if_exists = true;
         self
     }
 

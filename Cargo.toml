@@ -1,7 +1,12 @@
 [workspace]
 members = [
     ".",
+    "sea-query-test",
     "sea-query-derive",
+    "examples/postgres",
+    "examples/postgres_json",
+    "examples/sqlx_mysql",
+    "examples/sqlx_postgres",
 ]
 
 [package]
@@ -23,20 +28,44 @@ path = "src/lib.rs"
 [dependencies]
 serde_json = "1.0"
 sea-query-derive = { version = "0.1.0", path = "sea-query-derive", default-features = false, optional = true }
+bytes = { version = "1", optional = true }
+chrono = { version = "0", optional = true }
+postgres-types = { version = "0", optional = true }
 
 [dev-dependencies]
-async-std = "1.8"
-sqlx = { version = "0.4.0", default-features = false, features = [ "runtime-async-std-native-tls", "macros", "any", "mysql", "postgres", "sqlite", "tls", "migrate", "decimal" ] }
+sea-query-test = { path = "sea-query-test", default-features = false }
 
 [features]
 default = [ "derive" ]
-sqlx-driver = [ ]
 derive = [ "sea-query-derive" ]
-
-[[example]]
-name = "sqlx"
-required-features = [ "sqlx-driver" ]
+postgres = [ "bytes", "postgres-types", "postgres-types/with-serde_json-1" ]
+sqlx-chrono = [ "with-chrono" ]
+sqlx-json = [ ]
+sqlx-mysql = [ ]
+sqlx-postgres = [ ]
+postgres-chrono = [ "with-chrono", "postgres-types/with-chrono-0_4" ]
+with-chrono = [ "chrono" ]
 
 [[example]]
 name = "derive"
 required-features = [ "derive" ]
+
+[[test]]
+name = "test-derive"
+path = "tests/derive/mod.rs"
+required-features = [ "derive" ]
+
+[[test]]
+name = "test-mysql"
+path = "tests/mysql/mod.rs"
+required-features = [ ]
+
+[[test]]
+name = "test-postgres"
+path = "tests/postgres/mod.rs"
+required-features = [ ]
+
+[[test]]
+name = "test-sqlite"
+path = "tests/sqlite/mod.rs"
+required-features = [ ]

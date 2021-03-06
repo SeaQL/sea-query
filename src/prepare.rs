@@ -105,4 +105,10 @@ mod tests {
             "WHERE A = E'B\\'C'");
     }
 
+    #[test]
+    fn inject_parameters_7() {
+        assert_eq!(inject_parameters("?", vec![vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
+            "x'ABCDEF'");
+    }
+
 }

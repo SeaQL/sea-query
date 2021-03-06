@@ -1,47 +1,87 @@
 //! Universal value variants used in the library.
 use std::str::from_utf8;
-use serde_json::Value as JsonValue;
+#[cfg(feature="with-chrono")]
+use chrono::NaiveDateTime;
+use serde_json::Value as Json;
 
 /// Value variants
-#[derive(Clone, PartialEq, PartialOrd, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Null,
-    Bytes(Vec<u8>),
-    Int(i64),
-    UInt(u64),
+    Bool(bool),
+    TinyInt(i8),
+    SmallInt(i16),
+    Int(i32),
+    BigInt(i64),
+    TinyUnsigned(u8),
+    SmallUnsigned(u16),
+    Unsigned(u32),
+    BigUnsigned(u64),
     Float(f32),
     Double(f64),
-    Date(u16, u8, u8, u8, u8, u8, u32),
-    Time(bool, u32, u8, u8, u8, u32),
+    String(Box<String>),
+    Bytes(Box<Vec<u8>>),
+    Json(Box<Json>),
+    #[cfg(feature="with-chrono")]
+    DateTime(Box<NaiveDateTime>),
 }
 
-macro_rules! into_value_impl (
-    (signed $t:ty) => (
-        impl From<$t> for Value {
-            fn from(x: $t) -> Value {
-                Value::Int(x as i64)
-            }
-        }
-    );
-    (unsigned $t:ty) => (
-        impl From<$t> for Value {
-            fn from(x: $t) -> Value {
-                Value::UInt(x as u64)
-            }
-        }
-    );
-);
+#[derive(Debug, PartialEq)]
+pub struct Values(pub Vec<Value>);
 
-into_value_impl!(signed i8);
-into_value_impl!(signed i16);
-into_value_impl!(signed i32);
-into_value_impl!(signed i64);
-into_value_impl!(signed isize);
-into_value_impl!(unsigned u8);
-into_value_impl!(unsigned u16);
-into_value_impl!(unsigned u32);
-into_value_impl!(unsigned u64);
-into_value_impl!(unsigned usize);
+impl From<bool> for Value {
+    fn from(x: bool) -> Value {
+        Value::Bool(x)
+    }
+}
+
+impl From<i8> for Value {
+    fn from(x: i8) -> Value {
+        Value::TinyInt(x)
+    }
+}
+
+impl From<i16> for Value {
+    fn from(x: i16) -> Value {
+        Value::SmallInt(x)
+    }
+}
+
+impl From<i32> for Value {
+    fn from(x: i32) -> Value {
+        Value::Int(x)
+    }
+}
+
+impl From<i64> for Value {
+    fn from(x: i64) -> Value {
+        Value::BigInt(x)
+    }
+}
+
+impl From<u8> for Value {
+    fn from(x: u8) -> Value {
+        Value::TinyUnsigned(x)
+    }
+}
+
+impl From<u16> for Value {
+    fn from(x: u16) -> Value {
+        Value::SmallUnsigned(x)
+    }
+}
+
+impl From<u32> for Value {
+    fn from(x: u32) -> Value {
+        Value::Unsigned(x)
+    }
+}
+
+impl From<u64> for Value {
+    fn from(x: u64) -> Value {
+        Value::BigUnsigned(x)
+    }
+}
 
 impl From<f32> for Value {
     fn from(x: f32) -> Value {
@@ -55,80 +95,47 @@ impl From<f64> for Value {
     }
 }
 
-impl From<bool> for Value {
-    fn from(x: bool) -> Value {
-        Value::Int(if x { 1 } else { 0 })
-    }
-}
-
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
-        Value::Bytes(x.into())
+        Value::Bytes(Box::<Vec<u8>>::new(x.into()))
     }
 }
 
 impl From<Vec<u8>> for Value {
     fn from(x: Vec<u8>) -> Value {
-        Value::Bytes(x)
+        Value::Bytes(Box::new(x.into()))
     }
 }
 
 impl<'a> From<&'a str> for Value {
     fn from(x: &'a str) -> Value {
         let string: String = x.into();
-        Value::Bytes(string.into_bytes())
+        Value::String(Box::new(string.to_owned()))
     }
 }
 
 impl From<String> for Value {
     fn from(x: String) -> Value {
-        Value::Bytes(x.into_bytes())
+        Value::String(Box::new(x))
     }
 }
 
-macro_rules! from_array_impl {
-    ($n:expr) => {
-        impl From<[u8; $n]> for Value {
-            fn from(x: [u8; $n]) -> Value {
-                Value::from(&x[..])
-            }
-        }
-    };
+impl From<Json> for Value {
+    fn from(x: Json) -> Value {
+        Value::Json(Box::new(x))
+    }
 }
 
-from_array_impl!(0);
-from_array_impl!(1);
-from_array_impl!(2);
-from_array_impl!(3);
-from_array_impl!(4);
-from_array_impl!(5);
-from_array_impl!(6);
-from_array_impl!(7);
-from_array_impl!(8);
-from_array_impl!(9);
-from_array_impl!(10);
-from_array_impl!(11);
-from_array_impl!(12);
-from_array_impl!(13);
-from_array_impl!(14);
-from_array_impl!(15);
-from_array_impl!(16);
-from_array_impl!(17);
-from_array_impl!(18);
-from_array_impl!(19);
-from_array_impl!(20);
-from_array_impl!(21);
-from_array_impl!(22);
-from_array_impl!(23);
-from_array_impl!(24);
-from_array_impl!(25);
-from_array_impl!(26);
-from_array_impl!(27);
-from_array_impl!(28);
-from_array_impl!(29);
-from_array_impl!(30);
-from_array_impl!(31);
-from_array_impl!(32);
+#[cfg(feature="with-chrono")]
+mod with_chrono {
+    use super::*;
+
+    impl From<NaiveDateTime> for Value {
+        fn from(x: NaiveDateTime) -> Value {
+            Value::DateTime(Box::new(x))
+        }
+    }
+}
 
 /// Escape a SQL string literal
 pub fn escape_string(string: &str) -> String {
@@ -145,62 +152,53 @@ pub fn escape_string(string: &str) -> String {
 }
 
 /// Convert json value to value
-pub fn json_value_to_sea_value(v: &JsonValue) -> Value {
+pub fn json_value_to_sea_value(v: &Json) -> Value {
     match v {
-        JsonValue::Null => Value::Null,
-        JsonValue::Bool(v) => Value::Int(v.to_owned().into()),
-        JsonValue::Number(v) =>
+        Json::Null => Value::Null,
+        Json::Bool(v) => Value::Int(v.to_owned().into()),
+        Json::Number(v) =>
             if v.is_f64() {
                 Value::Double(v.as_f64().unwrap())
             } else if v.is_i64() {
-                Value::Int(v.as_i64().unwrap())
+                Value::BigInt(v.as_i64().unwrap())
             } else if v.is_u64() {
-                Value::UInt(v.as_u64().unwrap())
+                Value::BigUnsigned(v.as_u64().unwrap())
             } else {
                 unimplemented!()
             },
-        JsonValue::String(v) => Value::Bytes(v.as_bytes().to_vec()),
-        JsonValue::Array(_) => unimplemented!(),
-        JsonValue::Object(_) => unimplemented!(),
+        Json::String(v) => Value::String(Box::new(v.clone())),
+        Json::Array(_) => unimplemented!(),
+        Json::Object(v) => Value::Json(Box::new(Json::Object(v.clone()))),
     }
 }
 
 /// Convert value to json value
 #[allow(clippy::many_single_char_names)]
-pub fn sea_value_to_json_value(v: &Value) -> JsonValue {
+pub fn sea_value_to_json_value(v: &Value) -> Json {
     match v {
-        Value::Null => JsonValue::Null,
-        Value::Bytes(v) => JsonValue::String(from_utf8(v).unwrap().to_string()),
+        Value::Null => Json::Null,
+        Value::Bool(b) => Json::Bool(*b),
+        Value::TinyInt(v) => (*v).into(),
+        Value::SmallInt(v) => (*v).into(),
         Value::Int(v) => (*v).into(),
-        Value::UInt(v) => (*v).into(),
+        Value::BigInt(v) => (*v).into(),
+        Value::TinyUnsigned(v) => (*v).into(),
+        Value::SmallUnsigned(v) => (*v).into(),
+        Value::Unsigned(v) => (*v).into(),
+        Value::BigUnsigned(v) => (*v).into(),
         Value::Float(v) => (*v).into(),
         Value::Double(v) => (*v).into(),
-        Value::Date(y, m, d, 0, 0, 0, 0) => {
-            JsonValue::String(format!("'{:04}-{:02}-{:02}'", y, m, d))
-        },
-        Value::Date(y, m, d, h, i, s, 0) => {
-            JsonValue::String(format!("'{:04}-{:02}-{:02} {:02}:{:02}:{:02}'", y, m, d, h, i, s))
-        },
-        Value::Date(y, m, d, h, i, s, u) => {
-            JsonValue::String(format!(
-                "'{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:06}'",
-                y, m, d, h, i, s, u
-            ))
-        },
-        Value::Time(neg, d, h, i, s, 0) => {
-            if *neg {
-                JsonValue::String(format!("'-{:03}:{:02}:{:02}'", d * 24 + u32::from(*h), i, s))
-            } else {
-                JsonValue::String(format!("'{:03}:{:02}:{:02}'", d * 24 + u32::from(*h), i, s))
-            }
-        },
-        Value::Time(neg, d, h, i, s, u) => {
-            if *neg {
-                JsonValue::String(format!("'-{:03}:{:02}:{:02}.{:06}'", d * 24 + u32::from(*h), i, s, u))
-            } else {
-                JsonValue::String(format!("'{:03}:{:02}:{:02}.{:06}'", d * 24 + u32::from(*h), i, s, u))
-            }
-        },
+        Value::String(s) => Json::String(s.as_ref().clone()),
+        Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
+        Value::Json(v) => v.as_ref().clone(),
+        #[cfg(feature="with-chrono")]
+        Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
+    }
+}
+
+impl Values {
+    pub fn iter(&self) -> impl Iterator<Item = &Value> {
+        self.0.iter()
     }
 }
 

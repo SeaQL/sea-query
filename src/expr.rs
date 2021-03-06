@@ -767,7 +767,7 @@ impl Expr {
     /// );
     /// ```
     pub fn like(self, v: &str) -> SimpleExpr  {
-        self.bin_oper(BinOper::Like, SimpleExpr::Value(Value::Bytes(v.into())))
+        self.bin_oper(BinOper::Like, SimpleExpr::Value(Value::String(Box::new(v.to_owned()))))
     }
 
     /// Express a `IS NULL` expression.

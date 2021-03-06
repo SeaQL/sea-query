@@ -451,7 +451,7 @@ impl UpdateStatement {
 
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::UInt(limit));
+        self.limit = Some(Value::BigUnsigned(limit));
         self
     }
 
@@ -487,7 +487,7 @@ impl UpdateStatement {
     ///     params,
     ///     vec![
     ///         Value::Double(2.1345),
-    ///         Value::Bytes(String::from("235m").into_bytes()),
+    ///         Value::String(Box::new(String::from("235m"))),
     ///         Value::Int(1),
     ///     ]
     /// );
@@ -527,26 +527,26 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     params,
-    ///     vec![
+    ///     Values(vec![
     ///         Value::Double(2.1345),
-    ///         Value::Bytes(String::from("235m").into_bytes()),
+    ///         Value::String(Box::new(String::from("235m"))),
     ///         Value::Int(1),
-    ///     ]
+    ///     ])
     /// );
     /// ```
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Vec<Value>) {
-        let mut params = Vec::new();
-        let mut collector = |v| params.push(v);
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        let mut values = Vec::new();
+        let mut collector = |v| values.push(v);
         let sql = self.build_collect(query_builder, &mut collector);
-        (sql, params)
+        (sql, Values(values))
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Vec<Value>) {
-        let mut params = Vec::new();
-        let mut collector = |v| params.push(v);
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+        let mut values = Vec::new();
+        let mut collector = |v| values.push(v);
         let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, params)
+        (sql, Values(values))
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
@@ -572,6 +572,6 @@ impl UpdateStatement {
     /// ```
     pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
         let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values, &query_builder)
+        inject_parameters(&sql, values.0, &query_builder)
     }
 }

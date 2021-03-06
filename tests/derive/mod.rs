@@ -1,4 +1,4 @@
-use super::*;
+use sea_query::*;
 
 #[test]
 fn derive_1() {

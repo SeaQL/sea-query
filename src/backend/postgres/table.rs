@@ -146,8 +146,8 @@ impl TableBuilder for PostgresQueryBuilder {
     fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut SqlWriter) {
         write!(sql, "DROP TABLE ").unwrap();
 
-        if drop.if_exist {
-            write!(sql, "IF EXIST ").unwrap();
+        if drop.if_exists {
+            write!(sql, "IF EXISTS ").unwrap();
         }
 
         drop.tables.iter().fold(true, |first, table| {

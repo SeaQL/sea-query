@@ -57,12 +57,14 @@ Table of Content
     1. [Index Create](#index-create)
     1. [Index Drop](#index-drop)
 
-Construct a SQL statement with the library then execute the statement with a database connector,
-see SQLx example [here](https://github.com/SeaQL/sea-query/blob/master/examples/sqlx.rs).
+### Drivers
+
+We provide integration for [SQLx](https://crates.io/crates/sqlx) and [postgres](https://crates.io/crates/postgres).
+See [examples](/https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
 
 ### Iden
 
-A trait for identifiers used in any query statement.
+`Iden` is a trait for identifiers used in any query statement.
 
 Commonly implemented by Enum where each Enum represent a table found in a database,
 and its variants include table name and column name.
