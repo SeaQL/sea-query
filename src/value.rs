@@ -1,6 +1,6 @@
 //! Universal value variants used in the library.
 use std::str::from_utf8;
-#[cfg(feature="chrono")]
+#[cfg(feature="with-chrono")]
 use chrono::NaiveDateTime;
 use serde_json::Value as Json;
 
@@ -22,7 +22,7 @@ pub enum Value {
     String(Box<String>),
     Bytes(Box<Vec<u8>>),
     Json(Box<Json>),
-    #[cfg(feature="chrono")]
+    #[cfg(feature="with-chrono")]
     DateTime(Box<NaiveDateTime>),
 }
 
@@ -126,6 +126,17 @@ impl From<Json> for Value {
     }
 }
 
+#[cfg(feature="with-chrono")]
+mod with_chrono {
+    use super::*;
+
+    impl From<NaiveDateTime> for Value {
+        fn from(x: NaiveDateTime) -> Value {
+            Value::DateTime(Box::new(x))
+        }
+    }
+}
+
 /// Escape a SQL string literal
 pub fn escape_string(string: &str) -> String {
     string
@@ -180,7 +191,7 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::String(s) => Json::String(s.as_ref().clone()),
         Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(v) => v.as_ref().clone(),
-        #[cfg(feature="chrono")]
+        #[cfg(feature="with-chrono")]
         Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
     }
 }

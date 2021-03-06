@@ -467,7 +467,7 @@ pub fn sqlite_value_to_string(v: &Value) -> String {
         Value::String(v) => write!(s, "\'{}\'", escape_string(v)).unwrap(),
         Value::Bytes(v) => write!(s, "x\'{}\'", v.iter().map(|b| format!("{:02X}", b)).collect::<String>()).unwrap(),
         Value::Json(v) => write!(s, "\'{}\'", escape_string(&v.to_string())).unwrap(),
-        #[cfg(feature="chrono")]
+        #[cfg(feature="with-chrono")]
         Value::DateTime(v) => write!(s, "{}", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),
     };
     s
