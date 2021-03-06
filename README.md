@@ -60,7 +60,7 @@ Table of Content
 ### Drivers
 
 We provide integration for [SQLx](https://crates.io/crates/sqlx) and [postgres](https://crates.io/crates/postgres).
-See [examples](/https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
+See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
 
 ### Iden
 
