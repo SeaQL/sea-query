@@ -32,11 +32,11 @@ sea-query = "*"
 
 Table of Content
 
-1. Background
+1. Basics
 
     1. [Iden](#iden)
     1. [Expression](#expression)
-    1. [Statement Building](#statement-building)
+    1. [Builder](#builder)
 
 1. Query Statement
 
@@ -155,18 +155,18 @@ assert_eq!(
 );
 ```
 
-### Statement Building
+### Builder
 
 All the query statements and table statements support the following ways to build database specific SQL statement:
 
-1. `build(&self, query_builder: T) -> (String, Vec<Value>)`  
-    Build a SQL statement in string and collect parameters into a vector, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build) for example.
+1. `build(&self, query_builder: T) -> (String, Values)`  
+    Build a SQL statement as string and parameters as a vector of values, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build) for example.
 
 1. `build_collect(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String`  
-    Build a SQL statement in string and collect parameters into a user defined collector, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build_collect) for example.
+    Build a SQL statement as string and collect paramaters (usually for binding to binary protocol), see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build_collect) for example.
 
 1. `to_string(&self, query_builder: T) -> String`  
-    Build a SQL statement in string with parameters in it, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.to_string) for example.
+    Build a SQL statement as string with parameters injected, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.to_string) for example.
 
 ### Query Select
 
