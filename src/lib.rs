@@ -1,20 +1,18 @@
 //! A database agnostic runtime query builder for Rust.
-//! 
-//! This library aims to provide an ergonomic API to construct Abstract Syntax Trees for SQL.
-//! The AST is generic by design and can be serialized to different SQL variants.
-//! We align the behaviour between different engines where appropriate, while offering vendor specific features via extensions.
+//!
+//! This library aims to provide an ergonomic API to construct Abstract Syntax Trees for SQL. The AST is generic by design and can be serialized to different SQL variants. We align the behaviour between different engines where appropriate, while offering vendor specific features via extensions.
 //! 
 //! This library is the foundation of upcoming projects: Document ORM (SeaORM) and Database Synchor (SeaHorse).
 //! 
-//! # Usage
+//! ## Usage
 //! 
 //! Table of Content
 //! 
-//! 1. Background
+//! 1. Basics
 //! 
 //!     1. [Iden](#iden)
 //!     1. [Expression](#expression)
-//!     1. [Statement Building](#statement-building)
+//!     1. [Builder](#builder)
 //! 
 //! 1. Query Statement
 //! 
@@ -35,19 +33,21 @@
 //!     1. [Index Create](#index-create)
 //!     1. [Index Drop](#index-drop)
 //! 
-//! Construct a SQL statement with the library then execute the statement with a database connector,
-//! see SQLx example [here](https://github.com/SeaQL/sea-query/blob/master/examples/sqlx.rs).
+//! ### Drivers
 //! 
-//! ## Iden
+//! We provide integration for [SQLx](https://crates.io/crates/sqlx) and [postgres](https://crates.io/crates/postgres).
+//! See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
 //! 
-//! A trait for identifiers used in any query statement.
+//! ### Iden
+//! 
+//! `Iden` is a trait for identifiers used in any query statement.
 //! 
 //! Commonly implemented by Enum where each Enum represent a table found in a database,
 //! and its variants include table name and column name.
 //! 
 //! [`Iden::unquoted()`] must be implemented to provide a mapping between Enum variant and its corresponding string value.
 //! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! // For example Character table with column id, character, font_size...
@@ -76,10 +76,12 @@
 //!     }
 //! }
 //! ```
-//!
+//! 
 //! If you're okay with running another procedural macro, you can activate
-//! the `derive` feature on the crate to save you some boilerplate:
-//!
+//! the `derive` feature on the crate to save you some boilerplate.
+//! For more information, look at 
+//! [the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
+//! 
 //! ```rust
 //! # #[cfg(feature = "derive")]
 //! use sea_query::Iden;
@@ -97,16 +99,12 @@
 //!     FontId,
 //! }
 //! ```
-//!
-//! You can also override the generated column names by specifying an `#[iden = ""]`
-//! attribute on the enum or any of its variants; for more information, look at
-//! [the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
-//!
-//! ## Expression
+//! 
+//! ### Expression
 //! 
 //! Use [`Expr`] to construct select, join, where and having expression in query.
 //! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! assert_eq!(
@@ -135,24 +133,22 @@
 //! );
 //! ```
 //! 
-//! ## Statement Building
+//! ### Builder
 //! 
 //! All the query statements and table statements support the following ways to build database specific SQL statement:
 //! 
-//! 1. `build(&self, query_builder: T) -> (String, Vec<Value>)`  
-//!     Build a SQL statement in string and collect parameters into a vector, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build) for example.
+//! 1. `build(&self, query_builder: T) -> (String, Values)`  
+//!     Build a SQL statement as string and parameters as a vector of values, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build) for example.
 //! 
 //! 1. `build_collect(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String`  
-//!     Build a SQL statement in string and collect parameters into a user defined collector, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build_collect) for example.
+//!     Build a SQL statement as string and collect paramaters (usually for binding to binary protocol), see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build_collect) for example.
 //! 
 //! 1. `to_string(&self, query_builder: T) -> String`  
-//!     Build a SQL statement in string with parameters in it, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.to_string) for example.
+//!     Build a SQL statement as string with parameters injected, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.to_string) for example.
 //! 
-//! ## Query Select
+//! ### Query Select
 //! 
-//! See [`SelectStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let query = Query::select()
@@ -178,11 +174,9 @@
 //! );
 //! ```
 //! 
-//! ## Query Insert
+//! ### Query Insert
 //! 
-//! See [`InsertStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let query = Query::insert()
@@ -215,11 +209,9 @@
 //! );
 //! ```
 //! 
-//! ## Query Update
+//! ### Query Update
 //! 
-//! See [`UpdateStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let query = Query::update()
@@ -245,11 +237,9 @@
 //! );
 //! ```
 //! 
-//! ## Query Delete
+//! ### Query Delete
 //! 
-//! See [`DeleteStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let query = Query::delete()
@@ -272,11 +262,9 @@
 //! );
 //! ```
 //! 
-//! ## Table Create
+//! ### Table Create
 //! 
-//! See [`TableCreateStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let table = Table::create()
@@ -346,11 +334,9 @@
 //! );
 //! ```
 //! 
-//! ## Table Alter
+//! ### Table Alter
 //! 
-//! See [`TableAlterStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let table = Table::alter()
@@ -372,11 +358,9 @@
 //! );
 //! ```
 //! 
-//! ## Table Drop
+//! ### Table Drop
 //! 
-//! See [`TableDropStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let table = Table::drop()
@@ -398,11 +382,9 @@
 //! );
 //! ```
 //! 
-//! ## Table Rename
+//! ### Table Rename
 //! 
-//! See [`TableRenameStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let table = Table::rename()
@@ -423,11 +405,9 @@
 //! );
 //! ```
 //! 
-//! ## Table Truncate
+//! ### Table Truncate
 //! 
-//! See [`TableTruncateStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let table = Table::truncate()
@@ -448,11 +428,9 @@
 //! );
 //! ```
 //! 
-//! ## Foreign Key Create
+//! ### Foreign Key Create
 //! 
-//! See [`ForeignKeyCreateStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let foreign_key = ForeignKey::create()
@@ -483,11 +461,9 @@
 //! // Sqlite does not support modification of foreign key constraints to existing tables
 //! ```
 //! 
-//! ## Foreign Key Drop
+//! ### Foreign Key Drop
 //! 
-//! See [`ForeignKeyDropStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let foreign_key = ForeignKey::drop()
@@ -506,11 +482,9 @@
 //! // Sqlite does not support modification of foreign key constraints to existing tables
 //! ```
 //! 
-//! ## Index Create
+//! ### Index Create
 //! 
-//! See [`IndexCreateStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let index = Index::create()
@@ -533,11 +507,9 @@
 //! );
 //! ```
 //! 
-//! ## Index Drop
+//! ### Index Drop
 //! 
-//! See [`IndexDropStatement`] for the full documentation.
-//! 
-//! ```
+//! ```rust
 //! use sea_query::{*, tests_cfg::*};
 //! 
 //! let index = Index::drop()
@@ -559,7 +531,7 @@
 //! );
 //! ```
 //! 
-//! # Work in Progress
+//! ## Work in Progress
 //! 
 //! - Sqlite
 
