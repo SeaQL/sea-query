@@ -1,5 +1,7 @@
 <div align="center">
 
+  <img src="docs/SeaQL logo dual.png"/>
+
   <h1>SeaQuery</h1>
 
   <p>
