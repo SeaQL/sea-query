@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="docs/SeaQL logo dual.png"/>
+  <img src="docs/SeaQL logo dual.png" width="320"/>
 
   <h1>SeaQuery</h1>
 
@@ -12,7 +12,7 @@
   [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
   [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
 
-  <sub>Built with ❤️ by 🌊🦀🐠</sub>
+  <sub>Built with ❤️ by 🌊🦀🐚</sub>
 
 </div>
 
