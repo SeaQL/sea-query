@@ -74,7 +74,7 @@ and its variants include table name and column name.
 [`Iden::unquoted()`] must be implemented to provide a mapping between Enum variant and its corresponding string value.
 
 ```rust
-use sea_query::{*, tests_cfg::*};
+use sea_query::Iden;
 
 // For example Character table with column id, character, font_size...
 pub enum Character {
@@ -82,9 +82,6 @@ pub enum Character {
     Id,
     Character,
     FontSize,
-    SizeW,
-    SizeH,
-    FontId,
 }
 
 // Mapping between Enum variant and its corresponding string value
@@ -95,9 +92,6 @@ impl Iden for Character {
             Self::Id => "id",
             Self::Character => "character",
             Self::FontSize => "font_size",
-            Self::SizeW => "size_w",
-            Self::SizeH => "size_h",
-            Self::FontId => "font_id",
         }).unwrap();
     }
 }
@@ -111,16 +105,13 @@ For more information, look at
 ```rust
 use sea_query::Iden;
 
-// This will implement Iden exactly as shown above
+// This will implement Iden same as previous example
 #[derive(Iden)]
 pub enum Character {
     Table,
     Id,
     Character,
     FontSize,
-    SizeW,
-    SizeH,
-    FontId,
 }
 ```
 
