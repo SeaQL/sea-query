@@ -145,12 +145,12 @@ fn online_1() {
             3.into(),
             Value::Null,
         ])
-        .json(json!({
-            "character": "S",
-            "size_w": 12,
-            "size_h": 34,
-            "font_size": 2,
-        }))
+        .values_panic(vec![
+            "S".into(),
+            12.into(),
+            34.into(),
+            2.into(),
+        ])
         .to_string(PostgresQueryBuilder);
     assert_eq!(
         sql,

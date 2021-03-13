@@ -1,4 +1,5 @@
 use std::rc::Rc;
+#[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
 use crate::{backend::QueryBuilder, types::*, value::*, prepare::*};
 
@@ -19,10 +20,10 @@ use crate::{backend::QueryBuilder, types::*, value::*, prepare::*};
 ///         5.15.into(),
 ///         "12A".into(),
 ///     ])
-///     .json(json!({
-///         "aspect": 4.21,
-///         "image": "123",
-///     }))
+///     .values_panic(vec![
+///         4.21.into(),
+///         "123".into(),
+///     ])
 ///     .to_owned();
 /// 
 /// assert_eq!(
@@ -190,6 +191,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (4.21, '123')"#
     /// );
     /// ```
+    #[cfg(feature="with-json")]
     pub fn json(&mut self, object: JsonValue) -> &mut Self {
         match object {
             JsonValue::Object(_) => (),

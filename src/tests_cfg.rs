@@ -2,6 +2,7 @@
 
 pub use std::fmt::Write as FmtWrite;
 
+#[cfg(feature="with-json")]
 pub use serde_json::json;
 
 use crate::Iden;

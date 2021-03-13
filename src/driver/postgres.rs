@@ -28,6 +28,7 @@ impl ToSql for Value {
             Value::Double(v) => v.to_sql(ty, out),
             Value::String(v) => v.as_str().to_sql(ty, out),
             Value::Bytes(v) => v.as_ref().to_sql(ty, out),
+            #[cfg(feature="postgres-json")]
             Value::Json(v) => v.as_ref().to_sql(ty, out),
             #[cfg(feature="postgres-chrono")]
             Value::DateTime(v) => v.as_ref().to_sql(ty, out),

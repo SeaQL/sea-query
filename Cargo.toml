@@ -26,8 +26,8 @@ name = "sea_query"
 path = "src/lib.rs"
 
 [dependencies]
-serde_json = "1.0"
 sea-query-derive = { version = "0.1.0", path = "sea-query-derive", default-features = false, optional = true }
+serde_json = { version = "1", optional = true }
 bytes = { version = "1", optional = true }
 chrono = { version = "0", optional = true }
 postgres-types = { version = "0", optional = true }
@@ -38,13 +38,15 @@ sea-query-test = { path = "sea-query-test", default-features = false }
 [features]
 default = [ "derive" ]
 derive = [ "sea-query-derive" ]
-postgres = [ "bytes", "postgres-types", "postgres-types/with-serde_json-1" ]
-sqlx-chrono = [ "with-chrono" ]
-sqlx-json = [ ]
-sqlx-mysql = [ "sqlx-json" ]
-sqlx-postgres = [ "sqlx-json" ]
+postgres = [ "bytes", "postgres-types" ]
 postgres-chrono = [ "with-chrono", "postgres-types/with-chrono-0_4" ]
+postgres-json = [ "with-json", "postgres-types/with-serde_json-1" ]
+sqlx-chrono = [ "with-chrono" ]
+sqlx-json = [ "with-json" ]
+sqlx-mysql = [ ]
+sqlx-postgres = [ ]
 with-chrono = [ "chrono" ]
+with-json = [ "serde_json" ]
 
 [[example]]
 name = "derive"

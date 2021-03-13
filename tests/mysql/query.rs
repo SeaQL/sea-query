@@ -531,6 +531,7 @@ fn select_34() {
 
 #[test]
 #[allow(clippy::approx_constant)]
+#[cfg(feature="with-json")]
 fn insert_1() {
     assert_eq!(
         Query::insert()
@@ -577,9 +578,10 @@ fn insert_3() {
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .json(json!({
-                "aspect": 2.1345,
-            }))
+            .values_panic(vec![
+                Value::Null,
+                2.1345.into(),
+            ])
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"
     );
@@ -603,6 +605,7 @@ fn update_1() {
 }
 
 #[test]
+#[cfg(feature="with-json")]
 fn update_2() {
     assert_eq!(
         Query::update()

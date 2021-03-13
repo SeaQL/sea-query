@@ -3,6 +3,8 @@ use async_std::task;
 
 pub use sea_query::{*, tests_cfg::*};
 pub use std::fmt::Write as FmtWrite;
+
+#[cfg(feature="with-json")]
 pub use serde_json::json;
 
 pub struct TestEnv {

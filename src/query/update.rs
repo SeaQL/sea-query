@@ -1,4 +1,5 @@
 use std::rc::Rc;
+#[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 
@@ -168,6 +169,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
+    #[cfg(feature="with-json")]
     pub fn json(&mut self, values: JsonValue) -> &mut Self {
         match values {
             JsonValue::Object(_) => (),

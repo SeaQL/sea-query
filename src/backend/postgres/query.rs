@@ -466,6 +466,7 @@ pub fn pg_value_to_string(v: &Value) -> String {
         Value::Double(v) => write!(s, "{}", v).unwrap(),
         Value::String(v) => write!(s, "{}", pg_escape_string_quoted(v)).unwrap(),
         Value::Bytes(v) => write!(s, "x\'{}\'", v.iter().map(|b| format!("{:02X}", b)).collect::<String>()).unwrap(),
+        #[cfg(feature="with-json")]
         Value::Json(v) => write!(s, "{}", pg_escape_string_quoted(&v.to_string())).unwrap(),
         #[cfg(feature="with-chrono")]
         Value::DateTime(v) => write!(s, "{}", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),

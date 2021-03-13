@@ -189,10 +189,10 @@
 //!         5.15.into(),
 //!         "12A".into(),
 //!     ])
-//!     .json(json!({
-//!         "aspect": 4.21,
-//!         "image": "123",
-//!     }))
+//!     .values_panic(vec![
+//!         4.21.into(),
+//!         "123".into(),
+//!     ])
 //!     .to_owned();
 //! 
 //! assert_eq!(
