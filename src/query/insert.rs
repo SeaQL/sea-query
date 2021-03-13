@@ -192,6 +192,7 @@ impl InsertStatement {
     /// );
     /// ```
     #[cfg(feature="with-json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     pub fn json(&mut self, object: JsonValue) -> &mut Self {
         match object {
             JsonValue::Object(_) => (),

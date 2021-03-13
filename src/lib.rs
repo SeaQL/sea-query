@@ -1,6 +1,8 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 //! A database agnostic runtime query builder for Rust.
 //!
-//! This library aims to provide an ergonomic API to construct Abstract Syntax Trees for SQL. The AST is generic by design and can be serialized to different SQL variants. We align the behaviour between different engines where appropriate, while offering vendor specific features via extensions.
+//! SeaQuery is query builder to help you construct dynamic SQL queries in Rust. You can construct expressions, queries and schema as formal syntax trees using an ergonomic API. We support MySQL, Postgres and SQLite (WIP) behind a generic interface, while still offering engine specific features via extensions if you need to.
 //! 
 //! This library is the foundation of upcoming projects: Document ORM (SeaORM) and Database Synchor (SeaHorse).
 //! 
@@ -530,10 +532,6 @@
 //!     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 //! );
 //! ```
-//! 
-//! ## Work in Progress
-//! 
-//! - Sqlite
 
 pub mod backend;
 pub mod driver;

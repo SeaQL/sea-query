@@ -170,6 +170,7 @@ impl UpdateStatement {
     /// );
     /// ```
     #[cfg(feature="with-json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     pub fn json(&mut self, values: JsonValue) -> &mut Self {
         match values {
             JsonValue::Object(_) => (),

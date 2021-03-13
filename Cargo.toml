@@ -21,6 +21,10 @@ repository = "https://github.com/SeaQL/sea-query"
 categories = [ "database" ]
 keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [lib]
 name = "sea_query"
 path = "src/lib.rs"

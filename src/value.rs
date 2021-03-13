@@ -24,8 +24,10 @@ pub enum Value {
     String(Box<String>),
     Bytes(Box<Vec<u8>>),
     #[cfg(feature="with-json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     Json(Box<Json>),
     #[cfg(feature="with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTime(Box<NaiveDateTime>),
 }
 
@@ -127,6 +129,7 @@ impl From<String> for Value {
 mod with_json {
     use super::*;
 
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     impl From<Json> for Value {
         fn from(x: Json) -> Value {
             Value::Json(Box::new(x))
@@ -138,6 +141,7 @@ mod with_json {
 mod with_chrono {
     use super::*;
 
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     impl From<NaiveDateTime> for Value {
         fn from(x: NaiveDateTime) -> Value {
             Value::DateTime(Box::new(x))
@@ -161,6 +165,7 @@ pub fn escape_string(string: &str) -> String {
 
 /// Convert json value to value
 #[cfg(feature="with-json")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn json_value_to_sea_value(v: &Json) -> Value {
     match v {
         Json::Null => Value::Null,
@@ -182,8 +187,9 @@ pub fn json_value_to_sea_value(v: &Json) -> Value {
 }
 
 /// Convert value to json value
-#[cfg(feature="with-json")]
 #[allow(clippy::many_single_char_names)]
+#[cfg(feature="with-json")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn sea_value_to_json_value(v: &Value) -> Json {
     match v {
         Value::Null => Json::Null,
