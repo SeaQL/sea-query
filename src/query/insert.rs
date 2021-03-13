@@ -153,7 +153,8 @@ impl InsertStatement {
         self.values(values).unwrap()
     }
 
-    /// Specify a row of values to be inserted, taking input of json values.
+    /// Specify a row of values to be inserted, taking input of json values. A convenience method if you have multiple
+    /// rows to insert at once.
     /// 
     /// # Examples
     /// 

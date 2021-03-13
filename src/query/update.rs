@@ -139,7 +139,7 @@ impl UpdateStatement {
         self
     }
 
-    /// Update column values by [`SimpleExpr`].
+    /// Update column values by [`JsonValue`]. A convenience method if you have multiple column-value pairs to set at once.
     /// 
     /// # Examples
     /// 
@@ -180,7 +180,7 @@ impl UpdateStatement {
         self
     }
 
-    /// Update column values.
+    /// Update column values.. A convenience method if you have multiple column-value pairs to set at once.
     /// 
     /// # Examples
     /// 
