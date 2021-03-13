@@ -7,13 +7,19 @@
 
 use crate::*;
 
+#[cfg(feature="backend-mysql")]
 mod mysql;
-mod sqlite;
+#[cfg(feature="backend-postgres")]
 mod postgres;
+#[cfg(feature="backend-sqlite")]
+mod sqlite;
 
+#[cfg(feature="backend-mysql")]
 pub use mysql::*;
-pub use sqlite::*;
+#[cfg(feature="backend-postgres")]
 pub use postgres::*;
+#[cfg(feature="backend-sqlite")]
+pub use sqlite::*;
 
 pub trait GenericBuilder {
     type QueryBuilder: QueryBuilder;

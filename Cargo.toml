@@ -40,7 +40,10 @@ postgres-types = { version = "0", optional = true }
 sea-query-test = { path = "sea-query-test", default-features = false }
 
 [features]
-default = [ "derive" ]
+backend-mysql = [ ]
+backend-postgres = [ ]
+backend-sqlite = [ ]
+default = [ "derive", "backend-mysql", "backend-postgres", "backend-sqlite" ]
 derive = [ "sea-query-derive" ]
 postgres = [ "bytes", "postgres-types" ]
 postgres-chrono = [ "with-chrono", "postgres-types/with-chrono-0_4" ]
