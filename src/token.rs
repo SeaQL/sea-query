@@ -59,9 +59,14 @@ impl Tokenizer {
 
     fn unquoted(&mut self) -> Option<Token> {
         let mut string = String::new();
+        let mut first = true;
         while !self.end() {
             let c = self.get();
             if Self::is_alphanumeric(c) {
+                write!(string, "{}", c).unwrap();
+                first = false;
+                self.inc();
+            } else if !first && Self::is_identifier(c) {
                 write!(string, "{}", c).unwrap();
                 self.inc();
             } else {
@@ -137,6 +142,10 @@ impl Tokenizer {
 
     fn is_space(c: char) -> bool {
         matches!(c, ' ' | '\t' | '\r' | '\n')
+    }
+
+    fn is_identifier(c: char) -> bool {
+        matches!(c, '_' | '$')
     }
 
     fn is_alphanumeric(c: char) -> bool {
@@ -425,6 +434,42 @@ mod tests {
             Token::Space(" ".to_string()),
             Token::Quoted("\"Hello World\"".to_string()),
             Token::Space(" ".to_string()),
+        ]);
+        assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
+    }
+
+    #[test]
+    fn test_16() {
+        let string = "abc_$123";
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(tokens, vec![
+            Token::Unquoted(string.to_string()),
+        ]);
+        assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
+    }
+
+    #[test]
+    fn test_17() {
+        let string = "$abc$123";
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(tokens, vec![
+            Token::Punctuation("$".to_string()),
+            Token::Unquoted("abc$123".to_string()),
+        ]);
+        assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
+    }
+
+    #[test]
+    fn test_18() {
+        let string = "_$abc_123$";
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(tokens, vec![
+            Token::Punctuation("_".to_string()),
+            Token::Punctuation("$".to_string()),
+            Token::Unquoted("abc_123$".to_string()),
         ]);
         assert_eq!(string, tokens.iter().map(|x| x.to_string()).collect::<String>());
     }
