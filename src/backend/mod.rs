@@ -8,10 +8,13 @@
 use crate::*;
 
 #[cfg(feature="backend-mysql")]
+#[cfg_attr(docsrs, doc(cfg(feature = "backend-mysql")))]
 mod mysql;
 #[cfg(feature="backend-postgres")]
+#[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
 mod postgres;
 #[cfg(feature="backend-sqlite")]
+#[cfg_attr(docsrs, doc(cfg(feature = "backend-sqlite")))]
 mod sqlite;
 
 #[cfg(feature="backend-mysql")]
