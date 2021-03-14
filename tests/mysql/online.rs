@@ -4,7 +4,7 @@ use super::*;
 #[ignore]
 #[allow(clippy::approx_constant)]
 fn online_1() {
-    let mut env = TestEnv::new("mysql://query:query@127.0.0.1/query_test");
+    let mut env = TestEnv::new("mysql://sea:sea@localhost/query");
 
     let sql = Table::create()
         .table(Font::Table)
@@ -158,6 +158,7 @@ fn online_1() {
             12.into(),
             34.into(),
             2.into(),
+            Value::Null,
         ])
         .to_string(MysqlQueryBuilder);
     assert_eq!(

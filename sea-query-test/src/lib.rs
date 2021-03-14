@@ -17,10 +17,9 @@ impl TestEnv {
         let db_url = String::from(db_url);
         let mut parts: Vec<&str> = db_url.split('/').collect();
         let db = parts.pop().unwrap();
-        let database_root_url = &parts.join("/");
 
         let connection = task::block_on(async {
-            AnyPool::connect(database_root_url).await.unwrap()
+            AnyPool::connect(&db_url).await.unwrap()
         });
         let mut pool = connection.try_acquire().unwrap();
         task::block_on(async {
