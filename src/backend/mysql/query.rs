@@ -318,8 +318,20 @@ impl QueryBuilder for MysqlQueryBuilder {
             TableRef::Table(iden) => {
                 iden.prepare(sql, '`');
             },
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, '`');
+                write!(sql, ".").unwrap();
+                table.prepare(sql, '`');
+            },
             TableRef::TableAlias(iden, alias) => {
                 iden.prepare(sql, '`');
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, '`');
+            },
+            TableRef::SchemaTableAlias(schema, table, alias) => {
+                schema.prepare(sql, '`');
+                write!(sql, ".").unwrap();
+                table.prepare(sql, '`');
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, '`');
             },

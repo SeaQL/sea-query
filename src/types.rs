@@ -26,7 +26,9 @@ pub trait Iden {
 #[derive(Clone)]
 pub enum TableRef {
     Table(Rc<dyn Iden>),
+    SchemaTable(Rc<dyn Iden>, Rc<dyn Iden>),
     TableAlias(Rc<dyn Iden>, Rc<dyn Iden>),
+    SchemaTableAlias(Rc<dyn Iden>, Rc<dyn Iden>, Rc<dyn Iden>),
     SubQuery(SelectStatement, Rc<dyn Iden>),
 }
 

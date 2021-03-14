@@ -552,6 +552,42 @@ impl SelectStatement {
         self
     }
 
+    /// From schema.table.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .from_schema(Char::Table, Glyph::Table)
+    ///     .column(Char::FontSize)
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "font_size" FROM "character"."glyph""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
+    /// );
+    /// ```
+    pub fn from_schema<S: 'static, T: 'static>(&mut self, schema: S, table: T) -> &mut Self
+        where S: Iden, T: Iden {
+        self.from_schema_dyn(Rc::new(schema), Rc::new(table))
+    }
+
+    /// From schema.table, variation of [`SelectStatement::from_schema`].
+    pub fn from_schema_dyn(&mut self, schema: Rc<dyn Iden>, table: Rc<dyn Iden>) -> &mut Self {
+        self.from_from(TableRef::SchemaTable(schema, table));
+        self
+    }
+
     /// From table with alias.
     /// 
     /// # Examples
@@ -596,6 +632,44 @@ impl SelectStatement {
     /// From table with alias, variation of [`SelectStatement::from_as`].
     pub fn from_as_dyn(&mut self, table: Rc<dyn Iden>, alias: Rc<dyn Iden>) -> &mut Self {
         self.from_from(TableRef::TableAlias(table, alias));
+        self
+    }
+
+    /// From schema.table with alias.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let table_as = Alias::new("alias");
+    /// 
+    /// let query = Query::select()
+    ///     .from_schema_as(Font::Table, Char::Table, table_as.clone())
+    ///     .table_column(table_as, Char::Character)
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "alias"."character" FROM "font"."character" AS "alias""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
+    /// );
+    /// ```
+    pub fn from_schema_as<S: 'static, T: 'static, A: 'static>(&mut self, schema: S, table: T, alias: A) -> &mut Self
+        where S: Iden, T: Iden, A: Iden {
+        self.from_schema_as_dyn(Rc::new(schema), Rc::new(table), Rc::new(alias))
+    }
+
+    /// From table with alias, variation of [`SelectStatement::from_schema_as`].
+    pub fn from_schema_as_dyn(&mut self, schema: Rc<dyn Iden>, table: Rc<dyn Iden>, alias: Rc<dyn Iden>) -> &mut Self {
+        self.from_from(TableRef::SchemaTableAlias(schema, table, alias));
         self
     }
 
