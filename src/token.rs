@@ -200,6 +200,33 @@ impl Iterator for Tokenizer {
     }
 }
 
+impl Token {
+    pub fn is_quoted(&self) -> bool {
+        if let Self::Quoted(_) = self { true } else { false }
+    }
+
+    pub fn is_unquoted(&self) -> bool {
+        if let Self::Unquoted(_) = self { true } else { false }
+    }
+
+    pub fn is_space(&self) -> bool {
+        if let Self::Space(_) = self { true } else { false }
+    }
+
+    pub fn is_punctuation(&self) -> bool {
+        if let Self::Punctuation(_) = self { true } else { false }
+    }
+
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Quoted(string) => &string,
+            Self::Unquoted(string) => &string,
+            Self::Space(string) => &string,
+            Self::Punctuation(string) => &string,
+        }
+    }
+}
+
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", match self {
