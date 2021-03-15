@@ -1,4 +1,6 @@
-//! Universal value variants used in the library.
+//! Generic value type for storing SQL values.
+use std::fmt::Write;
+
 #[cfg(feature="with-json")]
 use std::str::from_utf8;
 #[cfg(feature="with-json")]
@@ -163,6 +165,31 @@ pub fn escape_string(string: &str) -> String {
         .replace("\r", "\\r")
 }
 
+/// Unescape a SQL string literal
+pub fn unescape_string(input: &str) -> String {
+    let mut escape = false;
+    let mut output = String::new();
+    for c in input.chars() {
+        if !escape && c == '\\' {
+            escape = true;
+        } else if escape {
+            write!(output, "{}", match c {
+                '0' => '\0',
+                'b' => '\x08',
+                't' => '\x09',
+                'z' => '\x1a',
+                'n' => '\n',
+                'r' => '\r',
+                c => c,
+            }).unwrap();
+            escape = false;
+        } else {
+            write!(output, "{}", c).unwrap();
+        }
+    }
+    output
+}
+
 /// Convert json value to value
 #[cfg(feature="with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -224,16 +251,29 @@ mod tests {
 
     #[test]
     fn test_escape_1() {
-        assert_eq!(escape_string(r#" "abc" "#), r#" \"abc\" "#.to_owned());
+        let test = r#" "abc" "#;
+        assert_eq!(escape_string(test), r#" \"abc\" "#.to_owned());
+        assert_eq!(unescape_string(escape_string(test).as_str()), test);
     }
 
     #[test]
     fn test_escape_2() {
-        assert_eq!(escape_string("a\nb\tc"), "a\\nb\\tc".to_owned());
+        let test = "a\nb\tc";
+        assert_eq!(escape_string(test), "a\\nb\\tc".to_owned());
+        assert_eq!(unescape_string(escape_string(test).as_str()), test);
     }
 
     #[test]
     fn test_escape_3() {
-        assert_eq!(escape_string("a\\b"), "a\\\\b".to_owned());
+        let test = "a\\b";
+        assert_eq!(escape_string(test), "a\\\\b".to_owned());
+        assert_eq!(unescape_string(escape_string(test).as_str()), test);
+    }
+
+    #[test]
+    fn test_escape_4() {
+        let test = "a\"b";
+        assert_eq!(escape_string(test), "a\\\"b".to_owned());
+        assert_eq!(unescape_string(escape_string(test).as_str()), test);
     }
 }
