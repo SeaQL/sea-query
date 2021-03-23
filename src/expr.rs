@@ -13,7 +13,7 @@ use std::rc::Rc;
 use crate::{query::*, func::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Expr {
     pub(crate) left: Option<SimpleExpr>,
     pub(crate) right: Option<SimpleExpr>,
@@ -27,7 +27,7 @@ pub struct Expr {
 /// 
 /// [`SimpleExpr`] is a node in the expression tree and can represent identifiers, function calls,
 /// various operators and sub-queries.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum SimpleExpr {
     Column(Rc<dyn Iden>),
     TableColumn(Rc<dyn Iden>, Rc<dyn Iden>),

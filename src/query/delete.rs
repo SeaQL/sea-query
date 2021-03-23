@@ -27,7 +27,7 @@ use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 ///     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct DeleteStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) wherei: Option<Box<SimpleExpr>>,

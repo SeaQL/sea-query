@@ -32,7 +32,7 @@ use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 ///     r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) values: Vec<(String, Box<SimpleExpr>)>,

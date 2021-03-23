@@ -23,10 +23,11 @@ pub use rename::*;
 pub use truncate::*;
 
 /// Helper for constructing any table statement
+#[derive(Debug)]
 pub struct Table;
 
 /// All available types of table statement
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TableStatement {
     Create(TableCreateStatement),
     Alter(TableAlterStatement),

@@ -1,12 +1,12 @@
 //! Common types used in the library.
 
+use std::fmt;
 use std::rc::Rc;
-use std::fmt::Write;
 use crate::{query::*, expr::*};
 
 /// Identifier in query
 pub trait Iden {
-    fn prepare(&self, s: &mut dyn Write, q: char) {
+    fn prepare(&self, s: &mut dyn fmt::Write, q: char) {
         write!(s, "{}", q).unwrap();
         self.unquoted(s);
         write!(s, "{}", q).unwrap();
@@ -18,12 +18,19 @@ pub trait Iden {
         s.to_owned()
     }
 
-    fn unquoted(&self, s: &mut dyn Write);
+    fn unquoted(&self, s: &mut dyn fmt::Write);
+}
+
+impl fmt::Debug for dyn Iden {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.unquoted(formatter);
+        Ok(())
+    }
 }
 
 /// All table references
 #[allow(clippy::large_enum_variant)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TableRef {
     Table(Rc<dyn Iden>),
     SchemaTable(Rc<dyn Iden>, Rc<dyn Iden>),
@@ -33,13 +40,13 @@ pub enum TableRef {
 }
 
 /// Unary operator
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnOper {
     Not,
 }
 
 /// Binary operator
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOper {
     And,
     Or,
@@ -64,14 +71,14 @@ pub enum BinOper {
 }
 
 /// Logical chain operator
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum LogicalChainOper {
     And(SimpleExpr),
     Or(SimpleExpr),
 }
 
 /// Join types
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum JoinType {
     Join,
     InnerJoin,
@@ -80,28 +87,28 @@ pub enum JoinType {
 }
 
 /// Order expression
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
 }
 
 /// Join on types
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum JoinOn {
     Condition(Box<SimpleExpr>),
     Columns(Vec<SimpleExpr>),
 }
 
 /// Ordering options
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Order {
     Asc,
     Desc,
 }
 
 /// Shorthand to create name alias
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Alias(String);
 
 impl Alias {
@@ -111,7 +118,7 @@ impl Alias {
 }
 
 impl Iden for Alias {
-    fn unquoted(&self, s: &mut dyn Write) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(s, "{}", self.0).unwrap();
     }
 }

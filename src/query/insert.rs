@@ -39,7 +39,7 @@ use crate::{backend::QueryBuilder, types::*, value::*, prepare::*};
 ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<Rc<dyn Iden>>,

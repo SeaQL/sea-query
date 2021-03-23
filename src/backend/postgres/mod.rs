@@ -7,6 +7,7 @@ pub(crate) mod types;
 use super::*;
 
 /// Postgres query builder.
+#[derive(Debug)]
 pub struct PostgresQueryBuilder;
 
 impl Default for PostgresQueryBuilder {

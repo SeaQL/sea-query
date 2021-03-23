@@ -2,16 +2,17 @@ use std::rc::Rc;
 use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
 
 /// Helper for constructing any type statement
+#[derive(Debug)]
 pub struct Type;
 
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct TypeCreateStatement {
     pub(crate) name: Option<Rc<dyn Iden>>,
     pub(crate) as_type: Option<TypeAs>,
     pub(crate) values: Vec<Rc<dyn Iden>>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TypeAs {
     // Composite,
     Enum,
@@ -20,14 +21,14 @@ pub enum TypeAs {
     // Array,
 }
 
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct TypeDropStatement {
     pub(crate) names: Vec<Rc<dyn Iden>>,
     pub(crate) option: Option<TypeDropOpt>,
     pub(crate) if_exists: bool,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TypeDropOpt {
     Cascade,
     Restrict,

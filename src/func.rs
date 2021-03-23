@@ -2,7 +2,7 @@ use std::rc::Rc;
 use crate::{expr::*, types::*};
 
 /// Functions
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Function {
     Max,
     Min,
@@ -15,7 +15,7 @@ pub enum Function {
 }
 
 /// Function call helper.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Func;
 
 impl Func {

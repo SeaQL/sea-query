@@ -34,7 +34,7 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 /// );
 /// // Sqlite does not support modification of foreign key constraints to existing tables
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ForeignKeyCreateStatement {
     pub(crate) foreign_key: TableForeignKey,
     pub(crate) inside_table_creation: bool,

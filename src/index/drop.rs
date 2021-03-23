@@ -26,7 +26,7 @@ use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
 ///     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct IndexDropStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) index: TableIndex,

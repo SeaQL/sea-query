@@ -2,7 +2,7 @@ use std::rc::Rc;
 use crate::{types::*, value::*};
 
 /// Specification of a table column
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ColumnDef {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) name: Rc<dyn Iden>,
@@ -263,7 +263,7 @@ impl ColumnDef {
 }
 
 /// All available column types
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ColumnType {
     Char(Option<u32>),
     String(Option<u32>),
@@ -288,7 +288,7 @@ pub enum ColumnType {
 }
 
 /// All available column specification keywords
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ColumnSpec {
     Null,
     NotNull,

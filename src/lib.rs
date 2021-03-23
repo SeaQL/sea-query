@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![deny(missing_debug_implementations)]
 
 //! A database agnostic runtime query builder for Rust.
 //!

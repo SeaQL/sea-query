@@ -26,7 +26,7 @@ use crate::{backend::TableBuilder, types::*, prepare::*};
 ///     r#"DROP TABLE `glyph`, `character`"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TableDropStatement {
     pub(crate) tables: Vec<Rc<dyn Iden>>,
     pub(crate) options: Vec<TableDropOpt>,
@@ -34,7 +34,7 @@ pub struct TableDropStatement {
 }
 
 /// All available table drop options
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TableDropOpt {
     Restrict,
     Cascade,

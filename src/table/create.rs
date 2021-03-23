@@ -74,7 +74,7 @@ use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, types::*, prepare:
 ///     ].join(" ")
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TableCreateStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) columns: Vec<ColumnDef>,
@@ -85,7 +85,7 @@ pub struct TableCreateStatement {
 }
 
 /// All available table options
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TableOpt {
     Engine(String),
     Collate(String),
@@ -93,7 +93,7 @@ pub enum TableOpt {
 }
 
 /// All available table partition options
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TablePartition {
 
 }
