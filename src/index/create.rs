@@ -27,7 +27,7 @@ use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct IndexCreateStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) index: TableIndex,

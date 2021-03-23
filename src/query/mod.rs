@@ -18,11 +18,11 @@ pub use update::*;
 pub use delete::*;
 
 /// Shorthand for constructing any table query
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Query;
 
 /// All available types of table query
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum QueryStatement {
     Select(SelectStatement),
     Insert(InsertStatement),

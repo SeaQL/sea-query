@@ -14,11 +14,11 @@ pub use create::*;
 pub use drop::*;
 
 /// Shorthand for constructing any index statement
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Index;
 
 /// All available types of index statement
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum IndexStatement {
     Create(IndexCreateStatement),
     Drop(IndexDropStatement),

@@ -25,7 +25,7 @@ use crate::{backend::TableBuilder, types::*, prepare::*};
 ///     r#"ALTER TABLE `font` RENAME TO `font_new`"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TableRenameStatement {
     pub(crate) from_name: Option<Rc<dyn Iden>>,
     pub(crate) to_name: Option<Rc<dyn Iden>>,

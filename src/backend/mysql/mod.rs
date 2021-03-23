@@ -6,6 +6,7 @@ pub(crate) mod foreign_key;
 use super::*;
 
 /// Mysql query builder.
+#[derive(Debug)]
 pub struct MysqlQueryBuilder;
 
 impl Default for MysqlQueryBuilder {

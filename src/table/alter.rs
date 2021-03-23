@@ -26,7 +26,7 @@ use crate::{ColumnDef, backend::TableBuilder, types::*, prepare::*};
 ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 100"#,
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TableAlterStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) alter_option: Option<TableAlterOption>,
@@ -34,7 +34,7 @@ pub struct TableAlterStatement {
 }
 
 /// All available table alter options
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TableAlterOption {
     AddColumn(ColumnDef),
     ModifyColumn(ColumnDef),
@@ -43,7 +43,7 @@ pub enum TableAlterOption {
 }
 
 /// All available table partition options
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum TablePartitionOption {
 
 }

@@ -6,6 +6,7 @@ pub(crate) mod foreign_key;
 use super::*;
 
 /// Sqlite query builder.
+#[derive(Debug)]
 pub struct SqliteQueryBuilder;
 
 impl Default for SqliteQueryBuilder {

@@ -2,7 +2,7 @@ use std::rc::Rc;
 use crate::types::*;
 
 /// Specification of a table index
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TableIndex {
     pub(crate) name: Option<String>,
     pub(crate) columns: Vec<Rc<dyn Iden>>,

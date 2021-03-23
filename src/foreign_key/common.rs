@@ -2,7 +2,7 @@ use std::rc::Rc;
 use crate::types::*;
 
 /// Specification of a foreign key
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TableForeignKey {
     pub(crate) name: Option<String>,
     pub(crate) table: Option<Rc<dyn Iden>>,
@@ -14,7 +14,7 @@ pub struct TableForeignKey {
 }
 
 /// Foreign key on update & on delete actions
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ForeignKeyAction {
     Restrict,
     Cascade,

@@ -23,7 +23,7 @@ use crate::{TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
 /// );
 /// // Sqlite does not support modification of foreign key constraints to existing tables
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ForeignKeyDropStatement {
     pub(crate) foreign_key: TableForeignKey,
     pub(crate) table: Option<Rc<dyn Iden>>,

@@ -25,7 +25,7 @@ use crate::{backend::TableBuilder, types::*, prepare::*};
 ///     r#"TRUNCATE TABLE `font`"#
 /// );
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TableTruncateStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
 }

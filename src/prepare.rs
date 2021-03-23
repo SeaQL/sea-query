@@ -1,7 +1,7 @@
 use crate::*;
 pub use std::fmt::Write;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct SqlWriter {
     pub counter: usize,
     pub string: String,

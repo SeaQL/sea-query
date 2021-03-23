@@ -14,11 +14,11 @@ pub use create::*;
 pub use drop::*;
 
 /// Shorthand for constructing any foreign key statement
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ForeignKey;
 
 /// All available types of foreign key statement
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ForeignKeyStatement {
     Create(ForeignKeyCreateStatement),
     Drop(ForeignKeyDropStatement),
