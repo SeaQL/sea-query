@@ -530,6 +530,20 @@ fn select_34() {
 }
 
 #[test]
+fn select_35() {
+    let (statement, values) = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .and_where(
+            Expr::col(Glyph::Aspect).is_null(),
+        )
+        .build(sea_query::PostgresQueryBuilder);
+
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL"#);
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 #[cfg(feature="with-json")]
 fn insert_1() {

@@ -107,9 +107,16 @@ pub enum Order {
     Desc,
 }
 
-/// Shorthand to create name alias
+/// Helper for create name alias
 #[derive(Debug, Clone)]
 pub struct Alias(String);
+
+/// Common SQL Keywords
+#[derive(Debug, Clone)]
+pub enum Keyword {
+    Null,
+    Custom(Rc<dyn Iden>),
+}
 
 impl Alias {
     pub fn new(n: &str) -> Self {

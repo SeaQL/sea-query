@@ -39,6 +39,7 @@ pub enum SimpleExpr {
     Values(Vec<Value>),
     Custom(String),
     CustomWithValues(String, Vec<Value>),
+    Keyword(Keyword),
 }
 
 impl Expr {
@@ -798,7 +799,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::Is, SimpleExpr::Value(Value::Null))
+        self.bin_oper(BinOper::Is, SimpleExpr::Keyword(Keyword::Null))
     }
 
     /// Express a `IS NOT NULL` expression.
@@ -829,7 +830,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::IsNot, SimpleExpr::Value(Value::Null))
+        self.bin_oper(BinOper::IsNot, SimpleExpr::Keyword(Keyword::Null))
     }
 
     /// Negates an expression with `NOT`.

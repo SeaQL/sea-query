@@ -281,6 +281,9 @@ impl QueryBuilder for PostgresQueryBuilder {
                     }
                 }
             },
+            SimpleExpr::Keyword(keyword) => {
+                self.prepare_keyword(keyword, sql, collector);
+            },
         }
     }
 
@@ -454,6 +457,17 @@ impl QueryBuilder for PostgresQueryBuilder {
     fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         sql.push_param("$", true);
         collector(value.clone());
+    }
+
+    fn prepare_keyword(&self, keyword: &Keyword, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
+        if let Keyword::Custom(iden) = keyword {
+            iden.unquoted(sql);
+        } else {
+            write!(sql, "{}", match keyword {
+                Keyword::Null => "NULL",
+                Keyword::Custom(_) => "",
+            }).unwrap();
+        }
     }
 
     fn value_to_string(&self, v: &Value) -> String {

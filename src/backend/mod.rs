@@ -87,6 +87,9 @@ pub trait QueryBuilder {
     /// Translate [`Value`] into database specific SQL statement.
     fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value));
 
+    /// Translate [`Keyword`] into database specific SQL statement.
+    fn prepare_keyword(&self, keyword: &Keyword, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value));
+
     /// Convert a SQL value into syntax-specific string
     fn value_to_string(&self, v: &Value) -> String;
 }
