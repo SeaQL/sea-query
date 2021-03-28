@@ -1155,6 +1155,11 @@ impl Expr {
         self.right = Some(e);
         self.into()
     }
+
+    /// `Into::<SimpleExpr>::into()` when type inference is impossible
+    pub fn into_simple_expr(self) -> SimpleExpr {
+        self.into()
+    }
 }
 
 impl Into<SimpleExpr> for Expr {
@@ -1180,6 +1185,12 @@ impl Into<SimpleExpr> for Expr {
         } else {
             panic!("incomplete expression")
         }
+    }
+}
+
+impl Into<SelectExpr> for Expr {
+    fn into(self) -> SelectExpr {
+        self.into_simple_expr().into()
     }
 }
 

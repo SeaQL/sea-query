@@ -155,7 +155,7 @@ impl SelectStatement {
         self
     }
 
-    /// Add a new select expression from [`SelectExpr`].
+    /// Add an expression to the select expression list.
     /// 
     /// # Examples
     /// 
@@ -164,6 +164,7 @@ impl SelectStatement {
     /// 
     /// let query = Query::select()
     ///     .from(Char::Table)
+    ///     .expr(Expr::val(42))
     ///     .expr(Expr::col(Char::Id).max())
     ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| {
     ///         expr.add(Expr::value(i))
@@ -172,15 +173,15 @@ impl SelectStatement {
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
+    ///     r#"SELECT 42, MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
+    ///     r#"SELECT 42, MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
+    ///     r#"SELECT 42, MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// ```
     pub fn expr<T: 'static>(&mut self, expr: T) -> &mut Self
@@ -231,7 +232,7 @@ impl SelectStatement {
         self
     }
 
-    /// Select column.
+    /// Add a column to the select expression list.
     /// 
     /// # Examples
     /// 
