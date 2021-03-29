@@ -98,13 +98,11 @@ impl TypeCreateStatement {
         self
     }
 
-    pub fn values<T: 'static>(&mut self, values: Vec<T>) -> &mut Self
-        where T: Iden {
-        self.values_dyn(values.into_iter().map(|c| Rc::new(c) as Rc<dyn Iden>).collect())
-    }
-
-    pub fn values_dyn(&mut self, mut values: Vec<Rc<dyn Iden>>) -> &mut Self {
-        self.values.append(&mut values);
+    pub fn values<T>(&mut self, values: Vec<T>) -> &mut Self
+        where T: IntoIden {
+        for v in values.into_iter() {
+            self.values.push(v.into_iden());
+        }
         self
     }
 
@@ -167,23 +165,17 @@ impl TypeDropStatement {
     ///     r#"DROP TYPE IF EXISTS "font_family" RESTRICT"#
     /// );
     /// ```
-    pub fn name<T: 'static>(&mut self, name: T) -> &mut Self
-        where T: Iden {
-        self.name_dyn(Rc::new(name))
-    }
-
-    pub fn name_dyn(&mut self, name: Rc<dyn Iden>) -> &mut Self {
-        self.names.push(name);
+    pub fn name<T>(&mut self, name: T) -> &mut Self
+        where T: IntoIden {
+        self.names.push(name.into_iden());
         self
     }
 
-    pub fn names<T: 'static>(&mut self, names: Vec<T>) -> &mut Self
-        where T: Iden {
-        self.names_dyn(names.into_iter().map(|c| Rc::new(c) as Rc<dyn Iden>).collect())
-    }
-
-    pub fn names_dyn(&mut self, mut names: Vec<Rc<dyn Iden>>) -> &mut Self {
-        self.names.append(&mut names);
+    pub fn names<T>(&mut self, names: Vec<T>) -> &mut Self
+        where T: IntoIden {
+        for n in names.into_iter() {
+            self.names.push(n.into_iden());
+        }
         self
     }
 

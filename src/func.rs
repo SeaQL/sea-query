@@ -52,14 +52,9 @@ impl Func {
     ///     r#"SELECT MY_FUNCTION('hello')"#
     /// );
     /// ```
-    pub fn cust<T: 'static>(func: T) -> Expr
-        where T: Iden {
-        Self::cust_dyn(Rc::new(func))
-    }
-
-    /// Dynamic variant of [`Func::cust`]
-    pub fn cust_dyn(func: Rc<dyn Iden>) -> Expr {
-        Expr::func(Function::Custom(func))
+    pub fn cust<T>(func: T) -> Expr
+        where T: IntoIden {
+        Expr::func(Function::Custom(func.into_iden()))
     }
 
     /// Call `MAX` function.

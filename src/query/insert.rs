@@ -68,20 +68,10 @@ impl InsertStatement {
     /// 
     /// See [`InsertStatement::values`]
     #[allow(clippy::wrong_self_convention)]
-    pub fn into_table<T: 'static>(&mut self, table: T) -> &mut Self
-        where T: Iden {
-        self.into_table_dyn(Rc::new(table))
-    }
-
-    /// Specify which table to insert into, variation of [`InsertStatement::into_table`].
-    /// 
-    /// # Examples
-    /// 
-    /// See [`InsertStatement::values`]
-    #[allow(clippy::wrong_self_convention)]
-    pub fn into_table_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
-        self.table = Some(Box::new(TableRef::Table(table)));
-        self
+    pub fn into_table<T>(&mut self, tbl_ref: T) -> &mut Self
+        where T: IntoTableRef {
+            self.table = Some(Box::new(tbl_ref.into_table_ref()));
+            self
     }
 
     /// Specify what columns to insert.
@@ -89,18 +79,9 @@ impl InsertStatement {
     /// # Examples
     /// 
     /// See [`InsertStatement::values`]
-    pub fn columns<C: 'static>(&mut self, columns: Vec<C>) -> &mut Self
-        where C: Iden {
-        self.columns_dyn(columns.into_iter().map(|c| Rc::new(c) as Rc<dyn Iden>).collect())
-    }
-
-    /// Specify what columns to insert, variation of [`InsertStatement::columns`].
-    /// 
-    /// # Examples
-    /// 
-    /// See [`InsertStatement::values`]
-    pub fn columns_dyn(&mut self, columns: Vec<Rc<dyn Iden>>) -> &mut Self {
-        self.columns = columns;
+    pub fn columns<C>(&mut self, columns: Vec<C>) -> &mut Self
+        where C: IntoIden {
+        self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
         self
     }
 

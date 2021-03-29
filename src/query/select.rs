@@ -184,7 +184,7 @@ impl SelectStatement {
     ///     r#"SELECT 42, MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// ```
-    pub fn expr<T: 'static>(&mut self, expr: T) -> &mut Self
+    pub fn expr<T>(&mut self, expr: T) -> &mut Self
         where T: Into<SelectExpr> {
         self.selects.push(expr.into());
         self
@@ -220,7 +220,7 @@ impl SelectStatement {
     ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// ```
-    pub fn exprs<T: 'static>(&mut self, exprs: Vec<T>) -> &mut Self
+    pub fn exprs<T>(&mut self, exprs: Vec<T>) -> &mut Self
         where T: Into<SelectExpr> {
         self.selects.append(&mut exprs.into_iter().map(|c| c.into()).collect());
         self
@@ -259,42 +259,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// ```
-    pub fn column<C: 'static>(&mut self, col: C) -> &mut Self
-        where C: Iden {
-        self.column_dyn(Rc::new(col))
-    }
-
-    /// Select column, variation of [`SelectStatement::column`].
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .column_dyn(Rc::new(Char::Character))
-    ///     .column_dyn(Rc::new(Char::SizeW))
-    ///     .column_dyn(Rc::new(Char::SizeH))
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
-    /// );
-    /// ```
-    pub fn column_dyn(&mut self, col: Rc<dyn Iden>) -> &mut Self {
-        self.expr(SimpleExpr::Column(col));
-        self
+    pub fn column<C>(&mut self, col: C) -> &mut Self
+        where C: IntoIden {
+        self.expr(SimpleExpr::Column(col.into_iden()))
     }
 
     /// Select columns.
@@ -326,44 +293,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// ```
-    pub fn columns<T: 'static>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: Iden {
-        self.columns_dyn(cols.into_iter().map(|c| Rc::new(c) as Rc<dyn Iden>).collect())
-    }
-
-    /// Select column, variation of [`SelectStatement::column`].
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .columns_dyn(vec![
-    ///         Rc::new(Char::Character),
-    ///         Rc::new(Char::SizeW),
-    ///         Rc::new(Char::SizeH),
-    ///     ])
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
-    /// );
-    /// ```
-    pub fn columns_dyn(&mut self, cols: Vec<Rc<dyn Iden>>) -> &mut Self {
-        self.exprs(cols.into_iter().map(|c| SimpleExpr::Column(c)).collect());
-        self
+    pub fn columns<T>(&mut self, cols: Vec<T>) -> &mut Self
+        where T: IntoIden {
+        self.exprs(cols.into_iter().map(|c| SimpleExpr::Column(c.into_iden())).collect())
     }
 
     /// Select column with table prefix.
@@ -391,40 +323,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character` FROM `character`"#
     /// );
     /// ```
-    pub fn table_column<T: 'static, C: 'static>(&mut self, t: T, c: C) -> &mut Self
-        where T: Iden, C: Iden {
-        self.table_column_dyn(Rc::new(t), Rc::new(c))
-    }
-
-    /// Select column with table prefix, variation of [`SelectStatement::table_column`].
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .table_column_dyn(Rc::new(Char::Table), Rc::new(Char::Character))
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`.`character` FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character"."character" FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`.`character` FROM `character`"#
-    /// );
-    /// ```
-    pub fn table_column_dyn(&mut self, t: Rc<dyn Iden>, c: Rc<dyn Iden>) -> &mut Self {
-        self.expr(SimpleExpr::TableColumn(t, c));
-        self
+    pub fn table_column<T, C>(&mut self, t: T, c: C) -> &mut Self
+        where T: IntoIden, C: IntoIden {
+        self.expr(SimpleExpr::TableColumn(t.into_iden(), c.into_iden()))
     }
 
     /// Select columns with table prefix.
@@ -456,46 +357,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
     /// );
     /// ```
-    pub fn table_columns<T: 'static, C: 'static>(&mut self, cols: Vec<(T, C)>) -> &mut Self
-        where T: Iden, C: Iden {
-        self.table_columns_dyn(cols.into_iter().map(
-            |(t, c)| (Rc::new(t) as Rc<dyn Iden>, Rc::new(c) as Rc<dyn Iden>)
-        ).collect())
-    }
-
-    /// Select columns with table prefix, variation of [`SelectStatement::table_columns_dyn`].
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .table_columns_dyn(vec![
-    ///         (Rc::new(Char::Table), Rc::new(Char::Character)),
-    ///         (Rc::new(Char::Table), Rc::new(Char::SizeW)),
-    ///         (Rc::new(Char::Table), Rc::new(Char::SizeH)),
-    ///     ])
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character"."character", "character"."size_w", "character"."size_h" FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
-    /// );
-    /// ```
-    pub fn table_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Rc<dyn Iden>)>) -> &mut Self {
-        self.exprs(cols.into_iter().map(|(t, c)| SimpleExpr::TableColumn(t, c)).collect());
-        self
+    pub fn table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
+        where T: IntoIden, C: IntoIden {
+        self.exprs(cols.into_iter().map(|(t, c)| SimpleExpr::TableColumn(t.into_iden(), c.into_iden())).collect())
     }
 
     /// Select column.
@@ -523,11 +387,11 @@ impl SelectStatement {
     ///     r#"SELECT `character` AS `C` FROM `character`"#
     /// );
     /// ```
-    pub fn expr_as<T, A: 'static>(&mut self, expr: T, alias: A) -> &mut Self
-        where T: Into<SimpleExpr>, A: Iden {
+    pub fn expr_as<T, A>(&mut self, expr: T, alias: A) -> &mut Self
+        where T: Into<SimpleExpr>, A: IntoIden {
         self.expr(SelectExpr {
             expr: expr.into(),
-            alias: Some(Rc::new(alias))
+            alias: Some(alias.into_iden())
         });
         self
     }
@@ -536,23 +400,67 @@ impl SelectStatement {
         since = "0.6.1",
         note = "Please use the [`SelectStatement::expr_as`] instead"
     )]
-    pub fn expr_alias<T, A: 'static>(&mut self, expr: T, alias: A) -> &mut Self
-        where T: Into<SimpleExpr>, A: Iden {
+    pub fn expr_alias<T, A>(&mut self, expr: T, alias: A) -> &mut Self
+        where T: Into<SimpleExpr>, A: IntoIden {
         self.expr_as(expr, alias)
     }
 
     /// From table.
-    pub fn from<T: 'static>(&mut self, table: T) -> &mut Self
-        where T: Iden {
-        self.from_dyn(Rc::new(table))
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .column(Char::FontSize)
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "font_size" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `character`"#
+    /// );
+    /// ```
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .column(Char::FontSize)
+    ///     .from((Char::Table, Glyph::Table))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "font_size" FROM "character"."glyph""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
+    /// );
+    /// ```
+    pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
+        where R: IntoTableRef {
+        self.from_from(tbl_ref.into_table_ref())
     }
 
-    /// From table, variation of [`SelectStatement::from`].
-    pub fn from_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
-        self.from_from(TableRef::Table(table));
-        self
-    }
-
+    #[deprecated(
+        since = "0.8.6",
+        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableReference`]"
+    )]
     /// From schema.table.
     /// 
     /// # Examples
@@ -561,8 +469,8 @@ impl SelectStatement {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .from_schema(Char::Table, Glyph::Table)
     ///     .column(Char::FontSize)
+    ///     .from_schema(Char::Table, Glyph::Table)
     ///     .to_owned();
     /// 
     /// assert_eq!(
@@ -579,14 +487,8 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn from_schema<S: 'static, T: 'static>(&mut self, schema: S, table: T) -> &mut Self
-        where S: Iden, T: Iden {
-        self.from_schema_dyn(Rc::new(schema), Rc::new(table))
-    }
-
-    /// From schema.table, variation of [`SelectStatement::from_schema`].
-    pub fn from_schema_dyn(&mut self, schema: Rc<dyn Iden>, table: Rc<dyn Iden>) -> &mut Self {
-        self.from_from(TableRef::SchemaTable(schema, table));
-        self
+        where S: IntoIden, T: IntoIden {
+        self.from((schema, table))
     }
 
     /// From table with alias.
@@ -594,13 +496,14 @@ impl SelectStatement {
     /// # Examples
     /// 
     /// ```
+    /// use std::rc::Rc;
     /// use sea_query::{*, tests_cfg::*};
     /// 
-    /// let table_as = Alias::new("char");
+    /// let table_as: Rc<dyn Iden> = Rc::new(Alias::new("char"));
     /// 
     /// let query = Query::select()
     ///     .from_as(Char::Table, table_as.clone())
-    ///     .table_column(table_as, Char::Character)
+    ///     .table_column(table_as.clone(), Char::Character)
     ///     .to_owned();
     /// 
     /// assert_eq!(
@@ -616,26 +519,24 @@ impl SelectStatement {
     ///     r#"SELECT `char`.`character` FROM `character` AS `char`"#
     /// );
     /// ```
-    pub fn from_as<T: 'static, Y: 'static>(&mut self, table: T, alias: Y) -> &mut Self
-        where T: Iden, Y: Iden {
-        self.from_as_dyn(Rc::new(table), Rc::new(alias))
+    pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
+        where R: IntoTableRef, A: IntoIden {
+        self.from_from(tbl_ref.into_table_ref().alias(alias.into_iden()))
     }
 
     #[deprecated(
         since = "0.6.1",
         note = "Please use the [`SelectStatement::from_as`] instead"
     )]
-    pub fn from_alias<T: 'static, Y: 'static>(&mut self, table: T, alias: Y) -> &mut Self
-        where T: Iden, Y: Iden {
-        self.from_as(table, alias)
+    pub fn from_alias<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
+        where R: IntoTableRef, A: IntoIden {
+        self.from_as(tbl_ref, alias)
     }
 
-    /// From table with alias, variation of [`SelectStatement::from_as`].
-    pub fn from_as_dyn(&mut self, table: Rc<dyn Iden>, alias: Rc<dyn Iden>) -> &mut Self {
-        self.from_from(TableRef::TableAlias(table, alias));
-        self
-    }
-
+    #[deprecated(
+        since = "0.8.6",
+        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableReference`]"
+    )]
     /// From schema.table with alias.
     /// 
     /// # Examples
@@ -663,15 +564,9 @@ impl SelectStatement {
     ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
     /// );
     /// ```
-    pub fn from_schema_as<S: 'static, T: 'static, A: 'static>(&mut self, schema: S, table: T, alias: A) -> &mut Self
-        where S: Iden, T: Iden, A: Iden {
-        self.from_schema_as_dyn(Rc::new(schema), Rc::new(table), Rc::new(alias))
-    }
-
-    /// From table with alias, variation of [`SelectStatement::from_schema_as`].
-    pub fn from_schema_as_dyn(&mut self, schema: Rc<dyn Iden>, table: Rc<dyn Iden>, alias: Rc<dyn Iden>) -> &mut Self {
-        self.from_from(TableRef::SchemaTableAlias(schema, table, alias));
-        self
+    pub fn from_schema_as<S: 'static, T: 'static, A>(&mut self, schema: S, table: T, alias: A) -> &mut Self
+        where S: IntoIden, T: IntoIden, A: IntoIden {
+        self.from_as((schema, table), alias)
     }
 
     /// From sub-query.
@@ -709,15 +604,9 @@ impl SelectStatement {
     ///     r#"SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"#
     /// );
     /// ```
-    pub fn from_subquery<T: 'static>(&mut self, query: SelectStatement, alias: T) -> &mut Self
-        where T: Iden {
-        self.from_subquery_dyn(query, Rc::new(alias))
-    }
-
-    /// From sub-query, variation of [`SelectStatement::from_subquery`].
-    pub fn from_subquery_dyn(&mut self, query: SelectStatement, alias: Rc<dyn Iden>) -> &mut Self {
-        self.from_from(TableRef::SubQuery(query, alias));
-        self
+    pub fn from_subquery<T>(&mut self, query: SelectStatement, alias: T) -> &mut Self
+        where T: IntoIden {
+        self.from_from(TableRef::SubQuery(query, alias.into_iden()))
     }
 
     fn from_from(&mut self, select: TableRef) -> &mut Self {
@@ -752,15 +641,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn left_join<T: 'static>(&mut self, table: T, condition: SimpleExpr) -> &mut Self 
-        where T: Iden {
-        self.left_join_dyn(Rc::new(table), condition)
-    }
-
-    /// Left join, variation of [`SelectStatement::left_join`].
-    pub fn left_join_dyn(&mut self, table: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
-        self.join_join(JoinType::LeftJoin, TableRef::Table(table), JoinOn::Condition(Box::new(condition)));
-        self
+    pub fn left_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self 
+        where R: IntoTableRef {
+        self.join(JoinType::LeftJoin, tbl_ref, condition)
     }
 
     /// Inner join.
@@ -790,15 +673,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn inner_join<T: 'static>(&mut self, table: T, condition: SimpleExpr) -> &mut Self 
-        where T: Iden {
-        self.inner_join_dyn(Rc::new(table), condition)
-    }
-
-    /// Inner join, variation of [`SelectStatement::inner_join`].
-    pub fn inner_join_dyn(&mut self, table: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
-        self.join_join(JoinType::InnerJoin, TableRef::Table(table), JoinOn::Condition(Box::new(condition)));
-        self
+    pub fn inner_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self 
+        where R: IntoTableRef {
+        self.join(JoinType::InnerJoin, tbl_ref, condition)
     }
 
     /// Join with other table by [`JoinType`].
@@ -828,15 +705,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join<T: 'static>(&mut self, join: JoinType, table: T, condition: SimpleExpr) -> &mut Self 
-        where T: Iden {
-        self.join_dyn(join, Rc::new(table), condition)
-    }
-
-    /// Join with other table by [`JoinType`], variation of [`SelectStatement::join`].
-    pub fn join_dyn(&mut self, join: JoinType, table: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
-        self.join_join(join, TableRef::Table(table), JoinOn::Condition(Box::new(condition)));
-        self
+    pub fn join<R>(&mut self, join: JoinType, tbl_ref: R, condition: SimpleExpr) -> &mut Self 
+        where R: IntoTableRef {
+        self.join_join(join, tbl_ref.into_table_ref(), JoinOn::Condition(Box::new(condition)))
     }
 
     /// Join with other table by [`JoinType`], assigning an alias to the joined table.
@@ -871,40 +742,60 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join_as<T: 'static, A: 'static>(&mut self, join: JoinType, table: T, alias: A, condition: SimpleExpr) -> &mut Self
-        where T: Iden, A: Iden {
-        self.join_as_dyn(join, Rc::new(table), Rc::new(alias), condition)
+    pub fn join_as<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self 
+        where R: IntoTableRef, A: IntoIden {
+        self.join_join(join, tbl_ref.into_table_ref().alias(alias.into_iden()), JoinOn::Condition(Box::new(condition)))
     }
 
     #[deprecated(
         since = "0.6.1",
         note = "Please use the [`SelectStatement::join_as`] instead"
     )]
-    pub fn join_alias<T: 'static, A: 'static>(&mut self, join: JoinType, table: T, alias: A, condition: SimpleExpr) -> &mut Self
-        where T: Iden, A: Iden {
-        self.join_as(join, table, alias, condition)
-    }
-
-    /// Join with other table by [`JoinType`] and alias, variation of [`SelectStatement::join_as`].
-    pub fn join_as_dyn(&mut self, join: JoinType, table: Rc<dyn Iden>, alias: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
-        self.join_join(join, TableRef::TableAlias(table, alias), JoinOn::Condition(Box::new(condition)))
+    pub fn join_alias<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self 
+        where R: IntoTableRef, A: IntoIden {
+        self.join_as(join, tbl_ref, alias, condition)
     }
 
     /// Join with sub-query.
     /// 
     /// # Examples
     /// 
-    /// ...
+    /// ```
+    /// use std::rc::Rc;
+    /// use sea_query::{*, tests_cfg::*};
     /// 
-    pub fn join_subquery<T: 'static>(&mut self, join: JoinType, query: SelectStatement, alias: T, condition: SimpleExpr) -> &mut Self
-        where T: Iden {
-        self.join_subquery_dyn(join, query, Rc::new(alias), condition)
-    }
-
-    /// Join with sub-query, variation of [`SelectStatement::join_subquery`].
-    pub fn join_subquery_dyn(&mut self, join: JoinType, query: SelectStatement, alias: Rc<dyn Iden>, condition: SimpleExpr) -> &mut Self {
-        self.join_join(join, TableRef::SubQuery(query, alias), JoinOn::Condition(Box::new(condition)));
-        self
+    /// let sub_glyph: Rc<dyn Iden> = Rc::new(Alias::new("sub_glyph"));
+    /// let query = Query::select()
+    ///     .column(Font::Name)
+    ///     .from(Font::Table)
+    ///     .join_subquery(
+    ///         JoinType::LeftJoin,
+    ///         Query::select()
+    ///             .column(Glyph::Id)
+    ///             .from(Glyph::Table)
+    ///             .take(),
+    ///         sub_glyph.clone(),
+    ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
+    ///     )
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name" FROM "font" LEFT JOIN (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    /// ```
+    /// 
+    pub fn join_subquery<T>(&mut self, join: JoinType, query: SelectStatement, alias: T, condition: SimpleExpr) -> &mut Self
+        where T: IntoIden {
+        self.join_join(join, TableRef::SubQuery(query, alias.into_iden()), JoinOn::Condition(Box::new(condition)))
     }
 
     fn join_join(&mut self, join: JoinType, table: TableRef, on: JoinOn) -> &mut Self {
@@ -946,15 +837,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`"#
     /// );
     /// ```
-    pub fn group_by_columns<T: 'static>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: Iden {
-        self.group_by_columns_dyn(cols.into_iter().map(|c| Rc::new(c) as Rc<dyn Iden>).collect())
-    }
-
-    /// Group by columns, variation of [`SelectStatement::group_by_columns`].
-    pub fn group_by_columns_dyn(&mut self, cols: Vec<Rc<dyn Iden>>) -> &mut Self {
-        self.add_group_by(cols.into_iter().map(|c| SimpleExpr::Column(c)).collect());
-        self
+    pub fn group_by_columns<T>(&mut self, cols: Vec<T>) -> &mut Self
+        where T: IntoIden {
+        self.add_group_by(cols.into_iter().map(|c| SimpleExpr::Column(c.into_iden())).collect())
     }
 
     /// Group by columns with table prefix.
@@ -987,17 +872,9 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// ```
-    pub fn group_by_table_columns<T: 'static>(&mut self, cols: Vec<(T, T)>) -> &mut Self
-        where T: Iden {
-        self.group_by_table_columns_dyn(cols.into_iter().map(
-            |(t, c)| (Rc::new(t) as Rc<dyn Iden>, Rc::new(c) as Rc<dyn Iden>)
-        ).collect())
-    }
-
-    /// Group by columns with table prefix, variation of [`SelectStatement::group_by_table_columns`].
-    pub fn group_by_table_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Rc<dyn Iden>)>) -> &mut Self {
-        self.add_group_by(cols.into_iter().map(|(t, c)| SimpleExpr::TableColumn(t, c)).collect());
-        self
+    pub fn group_by_table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
+        where T: IntoIden, C: IntoIden {
+        self.add_group_by(cols.into_iter().map(|(t, c)| SimpleExpr::TableColumn(t.into_iden(), c.into_iden())).collect())
     }
 
     /// And where condition.
@@ -1206,15 +1083,10 @@ impl SelectStatement {
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```
-    pub fn order_by<T: 'static>(&mut self, col: T, order: Order) -> &mut Self 
-        where T: Iden {
-        self.order_by_dyn(Rc::new(col), order)
-    }
-
-    /// Order by column, variation of [`SelectStatement::order_by`]
-    pub fn order_by_dyn(&mut self, col: Rc<dyn Iden>, order: Order) -> &mut Self {
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
+        where T: IntoIden {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col),
+            expr: SimpleExpr::Column(col.into_iden()),
             order,
         });
         self
@@ -1227,14 +1099,9 @@ impl SelectStatement {
     /// See [`SelectStatement::order_by`].
     pub fn order_by_tbl<T: 'static, C: 'static>
         (&mut self, table: T, col: C, order: Order) -> &mut Self 
-        where T: Iden, C: Iden {
-        self.order_by_tbl_dyn(Rc::new(table), Rc::new(col), order)
-    }
-
-    /// Order by column with table prefix, variation of [`SelectStatement::order_by_tbl`].
-    pub fn order_by_tbl_dyn(&mut self, table: Rc<dyn Iden>, col: Rc<dyn Iden>, order: Order) -> &mut Self {
+        where T: IntoIden, C: IntoIden {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::TableColumn(table, col),
+            expr: SimpleExpr::TableColumn(table.into_iden(), col.into_iden()),
             order,
         });
         self
@@ -1262,18 +1129,11 @@ impl SelectStatement {
     }
 
     /// Order by vector of columns.
-    pub fn order_by_columns<T: 'static>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: Iden {
-        self.order_by_columns_dyn(cols.into_iter().map(
-            |(c, order)| (Rc::new(c) as Rc<dyn Iden>, order)
-        ).collect())
-    }
-
-    /// Order by vector of columns, variation of [`SelectStatement::order_by_columns`].
-    pub fn order_by_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Order)>) -> &mut Self {
+    pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
+        where T: IntoIden {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c),
+                expr: SimpleExpr::Column(c.into_iden()),
                 order,
             }).collect();
         self.orders.append(&mut orders);
@@ -1281,20 +1141,12 @@ impl SelectStatement {
     }
 
     /// Order by vector of columns with table prefix.
-    pub fn order_by_table_columns<T: 'static, C: 'static>
+    pub fn order_by_table_columns<T, C>
         (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
-        where T: Iden, C: Iden {
-        self.order_by_table_columns_dyn(cols.into_iter().map(
-            |(t, c, order)| (Rc::new(t) as Rc<dyn Iden>, Rc::new(c) as Rc<dyn Iden>, order)
-        ).collect())
-    }
-
-    /// Order by vector of columns with table prefix, variation of [`SelectStatement::order_by_table_columns`].
-    #[allow(clippy::type_complexity)]
-    pub fn order_by_table_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Rc<dyn Iden>, Order)>) -> &mut Self {
+        where T: IntoIden, C: IntoIden {
         let mut orders = cols.into_iter().map(
             |(t, c, order)| OrderExpr {
-                expr: SimpleExpr::TableColumn(t, c),
+                expr: SimpleExpr::TableColumn(t.into_iden(), c.into_iden()),
                 order,
             }).collect();
         self.orders.append(&mut orders);

@@ -1,4 +1,3 @@
-use std::rc::Rc;
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
@@ -65,19 +64,9 @@ impl UpdateStatement {
     /// 
     /// See [`UpdateStatement::values`]
     #[allow(clippy::wrong_self_convention)]
-    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
-        where T: Iden {
-        self.table_dyn(Rc::new(table))
-    }
-
-    /// Specify which table to update, variation of [`UpdateStatement::table`].
-    /// 
-    /// # Examples
-    /// 
-    /// See [`UpdateStatement::values`]
-    #[allow(clippy::wrong_self_convention)]
-    pub fn table_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
-        self.table = Some(Box::new(TableRef::Table(table)));
+    pub fn table<T>(&mut self, tbl_ref: T) -> &mut Self
+        where T: IntoTableRef {
+        self.table = Some(Box::new(tbl_ref.into_table_ref()));
         self
     }
 
@@ -86,18 +75,9 @@ impl UpdateStatement {
         note = "Please use the UpdateStatement::table function instead"
     )]
     #[allow(clippy::wrong_self_convention)]
-    pub fn into_table<T: 'static>(&mut self, table: T) -> &mut Self
-        where T: Iden {
+    pub fn into_table<T>(&mut self, table: T) -> &mut Self
+        where T: IntoTableRef {
         self.table(table)
-    }
-
-    #[deprecated(
-        since = "0.5.0",
-        note = "Please use the UpdateStatement::table_dyn function instead"
-    )]
-    #[allow(clippy::wrong_self_convention)]
-    pub fn into_table_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
-        self.table_dyn(table)
     }
 
     /// Update column value by [`SimpleExpr`].
@@ -129,14 +109,9 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn value_expr<T: 'static>(&mut self, col: T, exp: SimpleExpr) -> &mut Self
-        where T: Iden {
-        self.value_expr_dyn(Rc::new(col), exp)
-    }
-
-    /// Update column value by [`SimpleExpr`], variation of [`UpdateStatement::value_expr`].
-    pub fn value_expr_dyn(&mut self, col: Rc<dyn Iden>, exp: SimpleExpr) -> &mut Self {
-        self.push_boxed_value(col.to_string(), exp);
+    pub fn value_expr<T>(&mut self, col: T, exp: SimpleExpr) -> &mut Self
+        where T: IntoIden {
+        self.push_boxed_value(col.into_iden().to_string(), exp);
         self
     }
 
@@ -212,15 +187,10 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn values<T: 'static>(&mut self, values: Vec<(T, Value)>) -> &mut Self
-        where T: Iden {
-        self.values_dyn(values.into_iter().map(|(k, v)| (Rc::new(k) as Rc<dyn Iden>, v)).collect())
-    }
-
-    /// Update column values, variation of [`UpdateStatement::values`].
-    pub fn values_dyn(&mut self, values: Vec<(Rc<dyn Iden>, Value)>) -> &mut Self {
+    pub fn values<T>(&mut self, values: Vec<(T, Value)>) -> &mut Self
+        where T: IntoIden {
         for (k, v) in values.into_iter() {
-            self.push_boxed_value(k.to_string(), SimpleExpr::Value(v));
+            self.push_boxed_value(k.into_iden().to_string(), SimpleExpr::Value(v));
         }
         self
     }
@@ -252,14 +222,9 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn value<T: 'static>(&mut self, col: T, value: Value) -> &mut Self
-        where T: Iden {
-        self.value_dyn(Rc::new(col) as Rc<dyn Iden>, value)
-    }
-
-    /// Update column values, variation of [`UpdateStatement::value`].
-    pub fn value_dyn(&mut self, col: Rc<dyn Iden>, value: Value) -> &mut Self {
-        self.push_boxed_value(col.to_string(), SimpleExpr::Value(value));
+    pub fn value<T>(&mut self, col: T, value: Value) -> &mut Self
+        where T: IntoIden {
+        self.push_boxed_value(col.into_iden().to_string(), SimpleExpr::Value(value));
         self
     }
 
@@ -361,31 +326,21 @@ impl UpdateStatement {
     }
 
     /// Order by column.
-    pub fn order_by<T: 'static>(&mut self, col: T, order: Order) -> &mut Self 
-        where T: Iden {
-        self.order_by_dyn(Rc::new(col), order)
-    }
-
-    /// Order by column, variation of [`UpdateStatement::order_by`].
-    pub fn order_by_dyn(&mut self, col: Rc<dyn Iden>, order: Order) -> &mut Self {
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
+        where T: IntoIden {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col),
+            expr: SimpleExpr::Column(col.into_iden()),
             order,
         });
         self
     }
 
     /// Order by column with table name prefix.
-    pub fn order_by_tbl<T: 'static, C: 'static>
+    pub fn order_by_tbl<T, C>
         (&mut self, table: T, col: C, order: Order) -> &mut Self 
-        where T: Iden, C: Iden {
-        self.order_by_tbl_dyn(Rc::new(table), Rc::new(col), order)
-    }
-
-    /// Order by column with table name prefix, variation of [`UpdateStatement::order_by_tbl`].
-    pub fn order_by_tbl_dyn(&mut self, table: Rc<dyn Iden>, col: Rc<dyn Iden>, order: Order) -> &mut Self {
+        where T: IntoIden, C: IntoIden {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::TableColumn(table, col),
+            expr: SimpleExpr::TableColumn(table.into_iden(), col.into_iden()),
             order,
         });
         self
@@ -401,7 +356,7 @@ impl UpdateStatement {
     }
 
     /// Order by custom string.
-    pub fn order_by_customs<T: 'static>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
+    pub fn order_by_customs<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
         where T: ToString {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
@@ -413,18 +368,11 @@ impl UpdateStatement {
     }
 
     /// Order by columns.
-    pub fn order_by_columns<T: 'static>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: Iden {
-        self.order_by_columns_dyn(cols.into_iter().map(
-            |(c, order)| (Rc::new(c) as Rc<dyn Iden>, order)
-        ).collect())
-    }
-
-    /// Order by columns, variation of [`UpdateStatement::order_by_columns`].
-    pub fn order_by_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Order)>) -> &mut Self {
+    pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
+        where T: IntoIden {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c),
+                expr: SimpleExpr::Column(c.into_iden()),
                 order,
             }).collect();
         self.orders.append(&mut orders);
@@ -432,20 +380,12 @@ impl UpdateStatement {
     }
 
     /// Order by columns with table prefix.
-    pub fn order_by_table_columns<T: 'static, C: 'static>
+    pub fn order_by_table_columns<T, C>
         (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
-        where T: Iden, C: Iden {
-        self.order_by_table_columns_dyn(cols.into_iter().map(
-            |(t, c, order)| (Rc::new(t) as Rc<dyn Iden>, Rc::new(c) as Rc<dyn Iden>, order)
-        ).collect())
-    }
-
-    /// Order by columns with table prefix, variation of [`UpdateStatement::order_by_columns`].
-    #[allow(clippy::type_complexity)]
-    pub fn order_by_table_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Rc<dyn Iden>, Order)>) -> &mut Self {
+        where T: IntoIden, C: IntoIden {
         let mut orders = cols.into_iter().map(
             |(t, c, order)| OrderExpr {
-                expr: SimpleExpr::TableColumn(t, c),
+                expr: SimpleExpr::TableColumn(t.into_iden(), c.into_iden()),
                 order,
             }).collect();
         self.orders.append(&mut orders);

@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 
 /// Delete existing rows from the table
@@ -78,15 +77,9 @@ impl DeleteStatement {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn from_table<T: 'static>(&mut self, table: T) -> &mut Self
-        where T: Iden {
-        self.from_table_dyn(Rc::new(table))
-    }
-
-    /// Specify which table to delete from, variation of [`DeleteStatement::from_table`].
-    #[allow(clippy::wrong_self_convention)]
-    pub fn from_table_dyn(&mut self, table: Rc<dyn Iden>) -> &mut Self {
-        self.table = Some(Box::new(TableRef::Table(table)));
+    pub fn from_table<T>(&mut self, tbl_ref: T) -> &mut Self
+        where T: IntoTableRef {
+        self.table = Some(Box::new(tbl_ref.into_table_ref()));
         self
     }
 
@@ -175,31 +168,21 @@ impl DeleteStatement {
     }
 
     /// Order by column.
-    pub fn order_by<T: 'static>(&mut self, col: T, order: Order) -> &mut Self 
-        where T: Iden {
-        self.order_by_dyn(Rc::new(col), order)
-    }
-
-    /// Order by column, variation of [`DeleteStatement::order_by`].
-    pub fn order_by_dyn(&mut self, col: Rc<dyn Iden>, order: Order) -> &mut Self {
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
+        where T: IntoIden {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col),
+            expr: SimpleExpr::Column(col.into_iden()),
             order,
         });
         self
     }
 
     /// Order by column with table name prefix.
-    pub fn order_by_tbl<T: 'static, C: 'static>
+    pub fn order_by_tbl<T, C>
         (&mut self, table: T, col: C, order: Order) -> &mut Self 
-        where T: Iden, C: Iden {
-        self.order_by_tbl_dyn(Rc::new(table), Rc::new(col), order)
-    }
-
-    /// Order by column with table name prefix, variation of [`DeleteStatement::order_by_tbl`].
-    pub fn order_by_tbl_dyn(&mut self, table: Rc<dyn Iden>, col: Rc<dyn Iden>, order: Order) -> &mut Self {
+        where T: IntoIden, C: IntoIden {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::TableColumn(table, col),
+            expr: SimpleExpr::TableColumn(table.into_iden(), col.into_iden()),
             order,
         });
         self
@@ -215,7 +198,7 @@ impl DeleteStatement {
     }
 
     /// Order by custom string.
-    pub fn order_by_customs<T: 'static>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
+    pub fn order_by_customs<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
         where T: ToString {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
@@ -227,18 +210,11 @@ impl DeleteStatement {
     }
 
     /// Order by columns.
-    pub fn order_by_columns<T: 'static>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: Iden {
-        self.order_by_columns_dyn(cols.into_iter().map(
-            |(c, order)| (Rc::new(c) as Rc<dyn Iden>, order)
-        ).collect())
-    }
-
-    /// Order by columns, variation of [`DeleteStatement::order_by_columns`].
-    pub fn order_by_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Order)>) -> &mut Self {
+    pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
+        where T: IntoIden {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c),
+                expr: SimpleExpr::Column(c.into_iden()),
                 order,
             }).collect();
         self.orders.append(&mut orders);
@@ -246,20 +222,12 @@ impl DeleteStatement {
     }
 
     /// Order by columns with table prefix.
-    pub fn order_by_table_columns<T: 'static, C: 'static>
+    pub fn order_by_table_columns<T, C>
         (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
-        where T: Iden, C: Iden {
-        self.order_by_table_columns_dyn(cols.into_iter().map(
-            |(t, c, order)| (Rc::new(t) as Rc<dyn Iden>, Rc::new(c) as Rc<dyn Iden>, order)
-        ).collect())
-    }
-
-    /// Order by columns with table prefix, variation of [`DeleteStatement::order_by_columns`].
-    #[allow(clippy::type_complexity)]
-    pub fn order_by_table_columns_dyn(&mut self, cols: Vec<(Rc<dyn Iden>, Rc<dyn Iden>, Order)>) -> &mut Self {
+        where T: IntoIden, C: IntoIden {
         let mut orders = cols.into_iter().map(
             |(t, c, order)| OrderExpr {
-                expr: SimpleExpr::TableColumn(t, c),
+                expr: SimpleExpr::TableColumn(t.into_iden(), c.into_iden()),
                 order,
             }).collect();
         self.orders.append(&mut orders);

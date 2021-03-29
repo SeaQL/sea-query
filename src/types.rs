@@ -21,6 +21,10 @@ pub trait Iden {
     fn unquoted(&self, s: &mut dyn fmt::Write);
 }
 
+pub trait IntoIden {
+    fn into_iden(self) -> Rc<dyn Iden>;
+}
+
 impl fmt::Debug for dyn Iden {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.unquoted(formatter);
@@ -37,6 +41,10 @@ pub enum TableRef {
     TableAlias(Rc<dyn Iden>, Rc<dyn Iden>),
     SchemaTableAlias(Rc<dyn Iden>, Rc<dyn Iden>, Rc<dyn Iden>),
     SubQuery(SelectStatement, Rc<dyn Iden>),
+}
+
+pub trait IntoTableRef {
+    fn into_table_ref(self) -> TableRef;
 }
 
 /// Unary operator
@@ -116,6 +124,46 @@ pub struct Alias(String);
 pub enum Keyword {
     Null,
     Custom(Rc<dyn Iden>),
+}
+
+// Impl begins
+
+impl<T: 'static> IntoIden for T
+    where T: Iden {
+    fn into_iden(self) -> Rc<dyn Iden> {
+        Rc::new(self)
+    }
+}
+
+impl IntoIden for Rc<dyn Iden> {
+    fn into_iden(self) -> Rc<dyn Iden> {
+        self
+    }
+}
+
+impl<T: 'static> IntoTableRef for T
+    where T: IntoIden {
+    fn into_table_ref(self) -> TableRef {
+        TableRef::Table(self.into_iden())
+    }
+}
+
+impl<S: 'static, T: 'static> IntoTableRef for (S, T)
+    where S: IntoIden, T: IntoIden {
+    fn into_table_ref(self) -> TableRef {
+        TableRef::SchemaTable(self.0.into_iden(), self.1.into_iden())
+    }
+}
+
+impl TableRef {
+    pub fn alias<A: 'static>(self, alias: A) -> Self
+        where A: IntoIden {
+        match self {
+            Self::Table(table) => Self::TableAlias(table, alias.into_iden()),
+            Self::SchemaTable(schema, table) => Self::SchemaTableAlias(schema, table, alias.into_iden()),
+            _ => panic!("unexpected TableRef variant")
+        }
+    }
 }
 
 impl Alias {

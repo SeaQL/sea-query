@@ -84,14 +84,9 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// ```
-    pub fn col<T: 'static>(n: T) -> Self
-        where T: Iden {
-        Self::col_dyn(Rc::new(n))
-    }
-
-    /// Dynamic variant of [`Expr::col`]
-    pub fn col_dyn(n: Rc<dyn Iden>) -> Self {
-        Self::new_with_left(SimpleExpr::Column(n))
+    pub fn col<T>(n: T) -> Self
+        where T: IntoIden {
+        Self::new_with_left(SimpleExpr::Column(n.into_iden()))
     }
 
     /// Express the target column with table prefix.
@@ -120,14 +115,9 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// ```
-    pub fn tbl<T: 'static, C: 'static>(t: T, c: C) -> Self
-        where T: Iden, C: Iden {
-        Self::tbl_dyn(Rc::new(t), Rc::new(c))
-    }
-
-    /// Dynamic variant of [`Expr::tbl`]
-    pub fn tbl_dyn(t: Rc<dyn Iden>, c: Rc<dyn Iden>) -> Self {
-        Self::new_with_left(SimpleExpr::TableColumn(t, c))
+    pub fn tbl<T, C>(t: T, c: C) -> Self
+        where T: IntoIden, C: IntoIden {
+        Self::new_with_left(SimpleExpr::TableColumn(t.into_iden(), c.into_iden()))
     }
 
     /// Express a [`Value`], returning a [`Expr`].
@@ -379,43 +369,9 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn equals<T: 'static, C: 'static>(self, t: T, c: C) -> SimpleExpr
-        where T: Iden, C: Iden {
-        self.equals_dyn(Rc::new(t), Rc::new(c))
-    }
-
-    /// Express a equal expression between two table columns,
-    /// you will mainly use this to relate identical value between two table columns.
-    /// 
-    /// A variation of [`Expr::equals`] which takes two `Rc<dyn Iden>`.
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// use std::rc::Rc;
-    /// 
-    /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).equals_dyn(Rc::new(Font::Table), Rc::new(Font::Id)))
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
-    /// );
-    /// ```
-    pub fn equals_dyn(self, t: Rc<dyn Iden>, c: Rc<dyn Iden>) -> SimpleExpr {
-        self.bin_oper(BinOper::Equal, SimpleExpr::TableColumn(t, c))
+    pub fn equals<T, C>(self, t: T, c: C) -> SimpleExpr
+        where T: IntoIden, C: IntoIden {
+        self.bin_oper(BinOper::Equal, SimpleExpr::TableColumn(t.into_iden(), c.into_iden()))
     }
 
     /// Express a greater than (`>`) expression.
