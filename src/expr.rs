@@ -9,7 +9,6 @@
 //! Two [`SimpleExpr`] can be chain together with method defined below, such as logical AND,
 //! logical OR, arithmetic ADD ...etc. Please reference below for more details.
 
-use std::rc::Rc;
 use crate::{query::*, func::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
@@ -29,8 +28,7 @@ pub struct Expr {
 /// various operators and sub-queries.
 #[derive(Debug, Clone)]
 pub enum SimpleExpr {
-    Column(Rc<dyn Iden>),
-    TableColumn(Rc<dyn Iden>, Rc<dyn Iden>),
+    Column(ColumnRef),
     Unary(UnOper, Box<SimpleExpr>),
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
@@ -84,9 +82,32 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// ```
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(1))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    /// );
+    /// ```
     pub fn col<T>(n: T) -> Self
-        where T: IntoIden {
-        Self::new_with_left(SimpleExpr::Column(n.into_iden()))
+        where T: IntoColumnRef {
+        Self::new_with_left(SimpleExpr::Column(n.into_column_ref()))
     }
 
     /// Express the target column with table prefix.
@@ -117,7 +138,7 @@ impl Expr {
     /// ```
     pub fn tbl<T, C>(t: T, c: C) -> Self
         where T: IntoIden, C: IntoIden {
-        Self::new_with_left(SimpleExpr::TableColumn(t.into_iden(), c.into_iden()))
+        Self::col((t.into_iden(), c.into_iden()))
     }
 
     /// Express a [`Value`], returning a [`Expr`].
@@ -371,7 +392,7 @@ impl Expr {
     /// ```
     pub fn equals<T, C>(self, t: T, c: C) -> SimpleExpr
         where T: IntoIden, C: IntoIden {
-        self.bin_oper(BinOper::Equal, SimpleExpr::TableColumn(t.into_iden(), c.into_iden()))
+        self.bin_oper(BinOper::Equal, SimpleExpr::Column((t.into_iden(), c.into_iden()).into_column_ref()))
     }
 
     /// Express a greater than (`>`) expression.

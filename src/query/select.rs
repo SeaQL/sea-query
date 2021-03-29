@@ -259,9 +259,40 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// ```
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .column((Char::Table, Char::Character))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`.`character` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character"."character" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`.`character` FROM `character`"#
+    /// );
+    /// ```
     pub fn column<C>(&mut self, col: C) -> &mut Self
-        where C: IntoIden {
-        self.expr(SimpleExpr::Column(col.into_iden()))
+        where C: IntoColumnRef {
+        self.expr(SimpleExpr::Column(col.into_column_ref()))
+    }
+
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::column`] with a tuple as [`ColumnRef`]"
+    )]
+    pub fn table_column<T, C>(&mut self, t: T, c: C) -> &mut Self
+        where T: IntoIden, C: IntoIden {
+        self.column((t.into_iden(), c.into_iden()))
     }
 
     /// Select columns.
@@ -293,51 +324,13 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// ```
-    pub fn columns<T>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: IntoIden {
-        self.exprs(cols.into_iter().map(|c| SimpleExpr::Column(c.into_iden())).collect())
-    }
-
-    /// Select column with table prefix.
-    /// 
-    /// # Examples
     /// 
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .table_column(Char::Table, Char::Character)
-    ///     .to_owned();
-    /// 
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`.`character` FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character"."character" FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`.`character` FROM `character`"#
-    /// );
-    /// ```
-    pub fn table_column<T, C>(&mut self, t: T, c: C) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.expr(SimpleExpr::TableColumn(t.into_iden(), c.into_iden()))
-    }
-
-    /// Select columns with table prefix.
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .table_columns(vec![
+    ///     .columns(vec![
     ///         (Char::Table, Char::Character),
     ///         (Char::Table, Char::SizeW),
     ///         (Char::Table, Char::SizeH),
@@ -357,9 +350,18 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
     /// );
     /// ```
+    pub fn columns<T>(&mut self, cols: Vec<T>) -> &mut Self
+        where T: IntoColumnRef {
+        self.exprs(cols.into_iter().map(|c| SimpleExpr::Column(c.into_column_ref())).collect())
+    }
+
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::columns`] with a tuple as [`ColumnRef`]"
+    )]
     pub fn table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
         where T: IntoIden, C: IntoIden {
-        self.exprs(cols.into_iter().map(|(t, c)| SimpleExpr::TableColumn(t.into_iden(), c.into_iden())).collect())
+        self.columns(cols.into_iter().map(|(t, c)| (t.into_iden(), c.into_iden())).collect())
     }
 
     /// Select column.
@@ -458,8 +460,8 @@ impl SelectStatement {
     }
 
     #[deprecated(
-        since = "0.8.6",
-        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableReference`]"
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableRef`]"
     )]
     /// From schema.table.
     /// 
@@ -534,8 +536,8 @@ impl SelectStatement {
     }
 
     #[deprecated(
-        since = "0.8.6",
-        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableReference`]"
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableRef`]"
     )]
     /// From schema.table with alias.
     /// 
@@ -837,14 +839,6 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`"#
     /// );
     /// ```
-    pub fn group_by_columns<T>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: IntoIden {
-        self.add_group_by(cols.into_iter().map(|c| SimpleExpr::Column(c.into_iden())).collect())
-    }
-
-    /// Group by columns with table prefix.
-    /// 
-    /// # Examples
     /// 
     /// ```
     /// use sea_query::{*, tests_cfg::*};
@@ -872,9 +866,18 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// ```
+    pub fn group_by_columns<T>(&mut self, cols: Vec<T>) -> &mut Self
+        where T: IntoColumnRef {
+        self.add_group_by(cols.into_iter().map(|c| SimpleExpr::Column(c.into_column_ref())).collect())
+    }
+
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::group_by_columns`] with a tuple as [`ColumnRef`]"
+    )]
     pub fn group_by_table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
         where T: IntoIden, C: IntoIden {
-        self.add_group_by(cols.into_iter().map(|(t, c)| SimpleExpr::TableColumn(t.into_iden(), c.into_iden())).collect())
+        self.group_by_columns(cols.into_iter().map(|(t, c)| (t.into_iden(), c.into_iden())).collect())
     }
 
     /// And where condition.
@@ -1084,27 +1087,22 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
-        where T: IntoIden {
+        where T: IntoColumnRef {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col.into_iden()),
+            expr: SimpleExpr::Column(col.into_column_ref()),
             order,
         });
         self
     }
 
-    /// Order by column with table prefix.
-    /// 
-    /// # Examples
-    /// 
-    /// See [`SelectStatement::order_by`].
-    pub fn order_by_tbl<T: 'static, C: 'static>
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::order_by`] with a tuple as [`ColumnRef`]"
+    )]
+    pub fn order_by_tbl<T, C>
         (&mut self, table: T, col: C, order: Order) -> &mut Self 
         where T: IntoIden, C: IntoIden {
-        self.orders.push(OrderExpr {
-            expr: SimpleExpr::TableColumn(table.into_iden(), col.into_iden()),
-            order,
-        });
-        self
+        self.order_by((table.into_iden(), col.into_iden()), order)
     }
 
     /// Order by [`SimpleExpr`].
@@ -1130,27 +1128,24 @@ impl SelectStatement {
 
     /// Order by vector of columns.
     pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: IntoIden {
+        where T: IntoColumnRef {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c.into_iden()),
+                expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
             }).collect();
         self.orders.append(&mut orders);
         self
     }
 
-    /// Order by vector of columns with table prefix.
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
+    )]
     pub fn order_by_table_columns<T, C>
         (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
         where T: IntoIden, C: IntoIden {
-        let mut orders = cols.into_iter().map(
-            |(t, c, order)| OrderExpr {
-                expr: SimpleExpr::TableColumn(t.into_iden(), c.into_iden()),
-                order,
-            }).collect();
-        self.orders.append(&mut orders);
-        self
+        self.order_by_columns(cols.into_iter().map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o)).collect())
     }
 
     /// Limit the number of returned rows.

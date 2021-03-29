@@ -187,13 +187,15 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         match simple_expr {
-            SimpleExpr::Column(column) => {
-                column.prepare(sql, '"');
-            },
-            SimpleExpr::TableColumn(table, column) => {
-                table.prepare(sql, '"');
-                write!(sql, ".").unwrap();
-                column.prepare(sql, '"');
+            SimpleExpr::Column(column_ref) => {
+                match column_ref {
+                    ColumnRef::Column(column) => column.prepare(sql, '"'),
+                    ColumnRef::TableColumn(table, column) => {
+                        table.prepare(sql, '"');
+                        write!(sql, ".").unwrap();
+                        column.prepare(sql, '"');
+                    },
+                };
             },
             SimpleExpr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql, collector);

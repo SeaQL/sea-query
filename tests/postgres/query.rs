@@ -69,7 +69,7 @@ fn select_4() {
 fn select_5() {
     assert_eq!(
         Query::select()
-            .table_column(Glyph::Table, Glyph::Image)
+            .column((Glyph::Table, Glyph::Image))
             .from(Glyph::Table)
             .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
             .to_string(PostgresQueryBuilder),
@@ -167,7 +167,7 @@ fn select_11() {
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(Glyph::Image, Order::Desc)
-            .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+            .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "image" DESC, "glyph"."aspect" ASC"#
     );
@@ -200,9 +200,9 @@ fn select_13() {
             ])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-            .order_by_table_columns(vec![
-                (Glyph::Table, Glyph::Id, Order::Asc),
-                (Glyph::Table, Glyph::Aspect, Order::Desc),
+            .order_by_columns(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc),
+                ((Glyph::Table, Glyph::Aspect), Order::Desc),
             ])
             .to_string(PostgresQueryBuilder),
         r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "glyph"."id" ASC, "glyph"."aspect" DESC"#
@@ -219,7 +219,7 @@ fn select_14() {
             ])
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_table_columns(vec![
+            .group_by_columns(vec![
                 (Glyph::Table, Glyph::Id),
                 (Glyph::Table, Glyph::Aspect),
             ])
@@ -262,7 +262,7 @@ fn select_16() {
 fn select_17() {
     assert_eq!(
         Query::select()
-            .table_columns(vec![
+            .columns(vec![
                 (Glyph::Table, Glyph::Image),
             ])
             .from(Glyph::Table)

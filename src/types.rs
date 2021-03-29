@@ -32,7 +32,18 @@ impl fmt::Debug for dyn Iden {
     }
 }
 
-/// All table references
+/// Column references
+#[derive(Debug, Clone)]
+pub enum ColumnRef {
+    Column(Rc<dyn Iden>),
+    TableColumn(Rc<dyn Iden>, Rc<dyn Iden>),
+}
+
+pub trait IntoColumnRef {
+    fn into_column_ref(self) -> ColumnRef;
+}
+
+/// Table references
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum TableRef {
@@ -138,6 +149,20 @@ impl<T: 'static> IntoIden for T
 impl IntoIden for Rc<dyn Iden> {
     fn into_iden(self) -> Rc<dyn Iden> {
         self
+    }
+}
+
+impl<T: 'static> IntoColumnRef for T
+    where T: IntoIden {
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::Column(self.into_iden())
+    }
+}
+
+impl<S: 'static, T: 'static> IntoColumnRef for (S, T)
+    where S: IntoIden, T: IntoIden {
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
     }
 }
 

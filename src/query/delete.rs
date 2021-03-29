@@ -169,23 +169,23 @@ impl DeleteStatement {
 
     /// Order by column.
     pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
-        where T: IntoIden {
+        where T: IntoColumnRef {
         self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col.into_iden()),
+            expr: SimpleExpr::Column(col.into_column_ref()),
             order,
         });
         self
     }
 
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`DeleteStatement::order_by`] with a tuple as [`ColumnRef`]"
+    )]
     /// Order by column with table name prefix.
     pub fn order_by_tbl<T, C>
         (&mut self, table: T, col: C, order: Order) -> &mut Self 
         where T: IntoIden, C: IntoIden {
-        self.orders.push(OrderExpr {
-            expr: SimpleExpr::TableColumn(table.into_iden(), col.into_iden()),
-            order,
-        });
-        self
+        self.order_by((table.into_iden(), col.into_iden()), order)
     }
 
     /// Order by [`SimpleExpr`].
@@ -211,27 +211,24 @@ impl DeleteStatement {
 
     /// Order by columns.
     pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: IntoIden {
+        where T: IntoColumnRef {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c.into_iden()),
+                expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
             }).collect();
         self.orders.append(&mut orders);
         self
     }
 
-    /// Order by columns with table prefix.
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`DeleteStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
+    )]
     pub fn order_by_table_columns<T, C>
         (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
         where T: IntoIden, C: IntoIden {
-        let mut orders = cols.into_iter().map(
-            |(t, c, order)| OrderExpr {
-                expr: SimpleExpr::TableColumn(t.into_iden(), c.into_iden()),
-                order,
-            }).collect();
-        self.orders.append(&mut orders);
-        self
+        self.order_by_columns(cols.into_iter().map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o)).collect())
     }
 
     /// Limit number of updated rows.
