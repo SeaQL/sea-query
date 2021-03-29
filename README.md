@@ -168,7 +168,7 @@ use sea_query::{*, tests_cfg::*};
 
 let query = Query::select()
     .column(Char::Character)
-    .table_column(Font::Table, Font::Name)
+    .column((Font::Table, Font::Name))
     .from(Char::Table)
     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
