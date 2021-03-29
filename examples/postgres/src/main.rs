@@ -6,13 +6,19 @@ fn main() {
 
     // Schema
 
-    let sql = Table::create()
-        .table(Character::Table)
-        .create_if_not_exists()
-        .col(ColumnDef::new(Character::Id).integer().not_null().auto_increment().primary_key())
-        .col(ColumnDef::new(Character::FontSize).integer())
-        .col(ColumnDef::new(Character::Character).string())
-        .build(PostgresQueryBuilder);
+    let sql = [
+        Table::drop()
+            .table(Character::Table)
+            .if_exists()
+            .build(PostgresQueryBuilder),
+        Table::create()
+            .table(Character::Table)
+            .create_if_not_exists()
+            .col(ColumnDef::new(Character::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(Character::FontSize).integer())
+            .col(ColumnDef::new(Character::Character).string())
+            .build(PostgresQueryBuilder),
+    ].join("; ");
 
     let result = client.batch_execute(&sql).unwrap();
     println!("Create table character: {:?}\n", result);
