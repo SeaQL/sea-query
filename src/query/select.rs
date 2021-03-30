@@ -521,35 +521,14 @@ impl SelectStatement {
     ///     r#"SELECT `char`.`character` FROM `character` AS `char`"#
     /// );
     /// ```
-    pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
-        where R: IntoTableRef, A: IntoIden {
-        self.from_from(tbl_ref.into_table_ref().alias(alias.into_iden()))
-    }
-
-    #[deprecated(
-        since = "0.6.1",
-        note = "Please use the [`SelectStatement::from_as`] instead"
-    )]
-    pub fn from_alias<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
-        where R: IntoTableRef, A: IntoIden {
-        self.from_as(tbl_ref, alias)
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableRef`]"
-    )]
-    /// From schema.table with alias.
-    /// 
-    /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let table_as = Alias::new("alias");
     /// 
     /// let query = Query::select()
-    ///     .from_schema_as(Font::Table, Char::Table, table_as.clone())
+    ///     .from_as((Font::Table, Char::Table), table_as.clone())
     ///     .table_column(table_as, Char::Character)
     ///     .to_owned();
     /// 
@@ -566,6 +545,24 @@ impl SelectStatement {
     ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
     /// );
     /// ```
+    pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
+        where R: IntoTableRef, A: IntoIden {
+        self.from_from(tbl_ref.into_table_ref().alias(alias.into_iden()))
+    }
+
+    #[deprecated(
+        since = "0.6.1",
+        note = "Please use the [`SelectStatement::from_as`] instead"
+    )]
+    pub fn from_alias<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
+        where R: IntoTableRef, A: IntoIden {
+        self.from_as(tbl_ref, alias)
+    }
+
+    #[deprecated(
+        since = "0.9.0",
+        note = "Please use the [`SelectStatement::from_as`] with a tuple as [`TableRef`]"
+    )]
     pub fn from_schema_as<S: 'static, T: 'static, A>(&mut self, schema: S, table: T, alias: A) -> &mut Self
         where S: IntoIden, T: IntoIden, A: IntoIden {
         self.from_as((schema, table), alias)
@@ -848,7 +845,7 @@ impl SelectStatement {
     ///     .table_column(Font::Table, Font::Name)
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-    ///     .group_by_table_columns(vec![
+    ///     .group_by_columns(vec![
     ///         (Char::Table, Char::Character),
     ///     ])
     ///     .to_owned();
@@ -1070,7 +1067,7 @@ impl SelectStatement {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();
     /// 
     /// assert_eq!(
