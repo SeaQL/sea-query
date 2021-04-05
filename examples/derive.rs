@@ -23,6 +23,8 @@ enum Custom {
     // Custom casing if needed
     #[iden = "EMail"]
     Email,
+    // Tuple variant
+    Custom(String),
 }
 
 #[derive(Iden)]
@@ -55,6 +57,7 @@ fn main() {
     assert_eq!(dbg!(Iden::to_string(&Custom::FirstName)), "name");
     assert_eq!(dbg!(Iden::to_string(&Custom::LastName)), "surname");
     assert_eq!(dbg!(Iden::to_string(&Custom::Email)), "EMail");
+    assert_eq!(dbg!(Iden::to_string(&Custom::Custom("".to_owned()))), "custom");
 
     println!("Single custom field name");
     assert_eq!(dbg!(Iden::to_string(&Something::Table)), "something_else");

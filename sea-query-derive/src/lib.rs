@@ -21,6 +21,7 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
     let DeriveInput {
         ident, data, attrs, ..
     } = parse_macro_input!(input);
+
     let table_name = match get_iden_attr(&attrs) {
         Some(lit) => quote! { #lit },
         None => {
@@ -45,25 +46,31 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
                     }
                 }
                 .into()
-            }
+            },
             _ => return quote_spanned! {
                 ident.span() => compile_error!("you can only derive Iden on enums or unit structs");
-            }
-            .into(),
+            }.into(),
         };
+
     if variants.is_empty() {
         return TokenStream::new();
     }
 
     let variant = variants
         .iter()
-        .map(|Variant { ident, .. }| quote! { #ident });
+        .map(|Variant { ident, fields, .. }| {
+            match fields {
+                Fields::Named(_) => quote! { #ident{..} },
+                Fields::Unnamed(_) => quote! { #ident(..) },
+                Fields::Unit => quote! { #ident },
+            }
+        });
+
     let name = variants.iter().map(|v| {
         if let Some(lit) = get_iden_attr(&v.attrs) {
             // If the user supplied a name, just adapt it.
-            return quote! { #lit };
-        }
-        if v.ident == "Table" {
+            quote! { #lit }
+        } else if v.ident == "Table" {
             table_name.clone()
         } else {
             let ident = v.ident.to_string().to_snake_case();
@@ -80,5 +87,6 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
             }
         }
     };
+
     output.into()
 }
