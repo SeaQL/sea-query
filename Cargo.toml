@@ -30,7 +30,7 @@ name = "sea_query"
 path = "src/lib.rs"
 
 [dependencies]
-sea-query-derive = { version = "0.1.0", path = "sea-query-derive", default-features = false, optional = true }
+sea-query-derive = { version = "0.1.1", path = "sea-query-derive", default-features = false, optional = true }
 serde_json = { version = "1", optional = true }
 bytes = { version = "1", optional = true }
 chrono = { version = "0", optional = true }
