@@ -1,7 +1,8 @@
 use heck::SnakeCase;
 use proc_macro::{self, TokenStream};
+use proc_macro2::Span;
 use quote::{quote, quote_spanned};
-use syn::{parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields, Meta, Variant};
+use syn::{parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields, Ident, Lit, Meta, Variant};
 
 fn get_iden_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
     for attr in attrs {
@@ -16,7 +17,20 @@ fn get_iden_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
     None
 }
 
-#[proc_macro_derive(Iden, attributes(iden))]
+fn get_method_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
+    for attr in attrs {
+        let name_value = match attr.parse_meta() {
+            Ok(Meta::NameValue(nv)) => nv,
+            _ => continue,
+        };
+        if name_value.path.is_ident("method") {
+            return Some(name_value.lit);
+        }
+    }
+    None
+}
+
+#[proc_macro_derive(Iden, attributes(iden, method))]
 pub fn derive_iden(input: TokenStream) -> TokenStream {
     let DeriveInput {
         ident, data, attrs, ..
@@ -67,9 +81,17 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
         });
 
     let name = variants.iter().map(|v| {
-        if let Some(lit) = get_iden_attr(&v.attrs) {
-            // If the user supplied a name, just adapt it.
+        if let Some(lit) = get_iden_attr(&v.attrs) {    
+            // If the user supplied a name, just use it
             quote! { #lit }
+        } else if let Some(lit) = get_method_attr(&v.attrs) {
+            // If the user supplied a method, call it
+            let name: String = match lit {
+                Lit::Str(name) => name.value(),
+                _ => panic!("expected string for `method`"),
+            };
+            let ident = Ident::new(name.as_str(), Span::call_site());
+            quote! { self.#ident() }
         } else if v.ident == "Table" {
             table_name.clone()
         } else {
@@ -81,9 +103,9 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
     let output = quote! {
         impl sea_query::Iden for #ident {
             fn unquoted(&self, s: &mut dyn sea_query::Write) {
-                write!(s, "{}", match self {
-                    #(Self::#variant => #name),*
-                }).unwrap();
+                match self {
+                    #(Self::#variant => write!(s, "{}", #name).unwrap()),*
+                };
             }
         }
     };

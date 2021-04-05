@@ -18,3 +18,4 @@ syn = { version = "1", default-features = false, features = [ "derive", "parsing
 quote = "1"
 sea-query = "0.4"
 heck = "0.3"
+proc-macro2 = "1"
