@@ -602,6 +602,19 @@ fn insert_3() {
 }
 
 #[test]
+#[cfg(feature="with-chrono")]
+fn insert_4() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .values_panic(vec![chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .to_string(MysqlQueryBuilder),
+        "INSERT INTO `glyph` (`image`) VALUES ('1970-01-01 00:00:00')"
+    );
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
