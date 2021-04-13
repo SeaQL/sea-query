@@ -497,7 +497,7 @@ pub fn pg_value_to_string(v: &Value) -> String {
         #[cfg(feature="with-json")]
         Value::Json(v) => write!(s, "{}", pg_escape_string_quoted(&v.to_string())).unwrap(),
         #[cfg(feature="with-chrono")]
-        Value::DateTime(v) => write!(s, "{}", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),
+        Value::DateTime(v) => write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),
     };
     s
 }
