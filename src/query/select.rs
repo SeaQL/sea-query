@@ -350,9 +350,16 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
     /// );
     /// ```
-    pub fn columns<T>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: IntoColumnRef {
-        self.exprs(cols.into_iter().map(|c| SimpleExpr::Column(c.into_column_ref())).collect())
+    pub fn columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
+    {
+        self.exprs(
+            cols.into_iter()
+                .map(|c| SimpleExpr::Column(c.into_column_ref()))
+                .collect(),
+        )
     }
 
     #[deprecated(
@@ -360,8 +367,15 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::columns`] with a tuple as [`ColumnRef`]"
     )]
     pub fn table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.columns(cols.into_iter().map(|(t, c)| (t.into_iden(), c.into_iden())).collect())
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
+        self.columns(
+            cols.into_iter()
+                .map(|(t, c)| (t.into_iden(), c.into_iden()))
+                .collect::<Vec<(Rc<dyn Iden>, Rc<dyn Iden>)>>(),
+        )
     }
 
     /// Select column.
