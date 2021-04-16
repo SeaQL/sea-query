@@ -361,7 +361,7 @@ impl SelectStatement {
         self.exprs(
             cols.into_iter()
                 .map(|c| SimpleExpr::Column(c.into_column_ref()))
-                .collect(),
+                .collect::<Vec<SimpleExpr>>(),
         )
     }
 
@@ -895,12 +895,16 @@ impl SelectStatement {
         since = "0.9.0",
         note = "Please use the [`SelectStatement::group_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-        where T: IntoIden, C: IntoIden {
-        self.group_by_columns(cols.into_iter().map(|(t, c)| (t.into_iden(), c.into_iden())).collect())
-    pub fn group_by_table_columns<T, C>(
-        &mut self,
-        cols: impl IntoIterator<Item = (T, C)>,
-    ) -> &mut Self
+    pub fn group_by_table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
+        self.group_by_columns(
+            cols.into_iter()
+                .map(|(t, c)| (t.into_iden(), c.into_iden()))
+                .collect::<Vec<(Rc<dyn Iden>, Rc<dyn Iden>)>>(),
+        )
     }
 
     /// And where condition.
@@ -1138,28 +1142,32 @@ impl SelectStatement {
     }
 
     /// Order by custom string expression.
+     pub fn order_by_customs<T: 'static>(
+         &mut self,
+         cols: impl IntoIterator<Item = (T, Order)>,
+     ) -> &mut Self
         where T: ToString {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
-    pub fn order_by_customs<T: 'static>(
-        &mut self,
-        cols: impl IntoIterator<Item = (T, Order)>,
-    ) -> &mut Self
-                expr: SimpleExpr::Custom(c.to_string()),
-                order,
-            }).collect();
+                 expr: SimpleExpr::Custom(c.to_string()),
+                 order,
+             }).collect();
         self.orders.append(&mut orders);
         self
     }
 
     /// Order by vector of columns.
-        where T: IntoColumnRef {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
     pub fn order_by_columns<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self
+    where
+        T: IntoColumnRef,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
@@ -1168,10 +1176,16 @@ impl SelectStatement {
         since = "0.9.0",
         note = "Please use the [`SelectStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn order_by_table_columns<T, C>
-        (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
-        where T: IntoIden, C: IntoIden {
-        self.order_by_columns(cols.into_iter().map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o)).collect())
+    pub fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
+        self.order_by_columns(
+            cols.into_iter()
+                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
+                .collect::<Vec<((Rc<dyn Iden>, Rc<dyn Iden>), Order)>>(),
+        )
     }
 
     /// Limit the number of returned rows.

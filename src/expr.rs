@@ -1123,7 +1123,7 @@ impl Expr {
         self.into()
     }
 
-    fn func_with_args(func: Function, args: impl IntoIterator<Item = SimpleExpr>) -> SimpleExpr {
+    fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
         let mut expr = Expr::new();
         expr.func = Some(func);
         expr.args = args;

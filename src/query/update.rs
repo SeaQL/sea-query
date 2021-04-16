@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
@@ -382,10 +384,17 @@ impl UpdateStatement {
         since = "0.9.0",
         note = "Please use the [`UpdateStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn order_by_table_columns<T, C>
-        (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
-        where T: IntoIden, C: IntoIden {
-        self.order_by_columns(cols.into_iter().map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o)).collect())
+    pub fn order_by_table_columns<T, C, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoIden,
+        I: IntoIterator<Item = (T, C, Order)>,
+    {
+        self.order_by_columns(
+            cols.into_iter()
+                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
+                .collect::<Vec<((Rc<dyn Iden>, Rc<dyn Iden>), Order)>>(),
+        )
     }
 
     /// Limit number of updated rows.
