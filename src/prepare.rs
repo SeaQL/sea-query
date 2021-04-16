@@ -7,7 +7,7 @@ pub struct SqlWriter {
     pub string: String,
 }
 
-pub fn inject_parameters(sql: &str, params: Vec<Value>, query_builder: &dyn QueryBuilder) -> String {
+pub fn inject_parameters(sql: &str, params: impl IntoIterator<Item = Value>, query_builder: &dyn QueryBuilder) -> String {
     let tokenizer = Tokenizer::new(sql);
     let tokens: Vec<Token> = tokenizer.iter().collect();
     let mut counter = 0;

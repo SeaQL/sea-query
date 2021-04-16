@@ -294,8 +294,10 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
-    pub fn cust_with_values<V>(s: &str, v: Vec<V>) -> SimpleExpr
-        where V: Into<Value> {
+    pub fn cust_with_values<V>(s: &str, v: impl IntoIterator<Item = V>) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
         SimpleExpr::CustomWithValues(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
     }
 
@@ -1019,8 +1021,10 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_in<V>(mut self, v: Vec<V>) -> SimpleExpr
-        where V: Into<Value> {
+    pub fn is_in<V>(mut self, v: impl IntoIterator<Item = V>) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
         self.bopr = Some(BinOper::In);
         self.right = Some(SimpleExpr::Values(v.into_iter().map(|v| v.into()).collect()));
         self.into()
@@ -1053,8 +1057,10 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_not_in<V>(mut self, v: Vec<V>) -> SimpleExpr
-        where V: Into<Value> {
+    pub fn is_not_in<V>(mut self, v: impl IntoIterator<Item = V>) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
         self.bopr = Some(BinOper::NotIn);
         self.right = Some(SimpleExpr::Values(v.into_iter().map(|v| v.into()).collect()));
         self.into()
@@ -1109,13 +1115,15 @@ impl Expr {
         self.into()
     }
 
-    pub fn args<T>(mut self, args: Vec<T>) -> SimpleExpr
-        where T: Into<SimpleExpr> {
+    pub fn args<T>(mut self, args: impl IntoIterator<Item = T>) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
         self.args = args.into_iter().map(|v| v.into()).collect();
         self.into()
     }
 
-    fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
+    fn func_with_args(func: Function, args: impl IntoIterator<Item = SimpleExpr>) -> SimpleExpr {
         let mut expr = Expr::new();
         expr.func = Some(func);
         expr.args = args;

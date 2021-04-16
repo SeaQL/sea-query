@@ -220,9 +220,12 @@ impl SelectStatement {
     ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// ```
-    pub fn exprs<T>(&mut self, exprs: Vec<T>) -> &mut Self
-        where T: Into<SelectExpr> {
-        self.selects.append(&mut exprs.into_iter().map(|c| c.into()).collect());
+    pub fn exprs<T>(&mut self, exprs: impl IntoIterator<Item = T>) -> &mut Self
+    where
+        T: Into<SelectExpr>,
+    {
+        self.selects
+            .append(&mut exprs.into_iter().map(|c| c.into()).collect());
         self
     }
 
@@ -877,18 +880,27 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// ```
-    pub fn group_by_columns<T>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: IntoColumnRef {
-        self.add_group_by(cols.into_iter().map(|c| SimpleExpr::Column(c.into_column_ref())).collect())
+    pub fn group_by_columns<T>(&mut self, cols: impl IntoIterator<Item = T>) -> &mut Self
+    where
+        T: IntoColumnRef,
+    {
+        self.add_group_by(
+            cols.into_iter()
+                .map(|c| SimpleExpr::Column(c.into_column_ref()))
+                .collect(),
+        )
     }
 
     #[deprecated(
         since = "0.9.0",
         note = "Please use the [`SelectStatement::group_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn group_by_table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
         where T: IntoIden, C: IntoIden {
         self.group_by_columns(cols.into_iter().map(|(t, c)| (t.into_iden(), c.into_iden())).collect())
+    pub fn group_by_table_columns<T, C>(
+        &mut self,
+        cols: impl IntoIterator<Item = (T, C)>,
+    ) -> &mut Self
     }
 
     /// And where condition.
@@ -1126,10 +1138,13 @@ impl SelectStatement {
     }
 
     /// Order by custom string expression.
-    pub fn order_by_customs<T: 'static>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
         where T: ToString {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
+    pub fn order_by_customs<T: 'static>(
+        &mut self,
+        cols: impl IntoIterator<Item = (T, Order)>,
+    ) -> &mut Self
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
             }).collect();
@@ -1138,10 +1153,10 @@ impl SelectStatement {
     }
 
     /// Order by vector of columns.
-    pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
         where T: IntoColumnRef {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
+    pub fn order_by_columns<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
             }).collect();

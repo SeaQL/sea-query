@@ -79,7 +79,7 @@ impl InsertStatement {
     /// # Examples
     /// 
     /// See [`InsertStatement::values`]
-    pub fn columns<C>(&mut self, columns: Vec<C>) -> &mut Self
+    pub fn columns<C>(&mut self, columns: impl IntoIterator<Item = C>) -> &mut Self
         where C: IntoIden {
         self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
         self
@@ -131,7 +131,7 @@ impl InsertStatement {
     }
 
     /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
-    pub fn values_panic(&mut self, values: Vec<Value>) -> &mut Self {
+    pub fn values_panic(&mut self, values: impl IntoIterator<Item = Value>) -> &mut Self {
         self.values(values).unwrap()
     }
 

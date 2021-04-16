@@ -98,7 +98,7 @@ impl TypeCreateStatement {
         self
     }
 
-    pub fn values<T>(&mut self, values: Vec<T>) -> &mut Self
+    pub fn values<T>(&mut self, values: impl IntoIterator<Item = T>) -> &mut Self
         where T: IntoIden {
         for v in values.into_iter() {
             self.values.push(v.into_iden());
@@ -171,7 +171,7 @@ impl TypeDropStatement {
         self
     }
 
-    pub fn names<T>(&mut self, names: Vec<T>) -> &mut Self
+    pub fn names<T>(&mut self, names: impl IntoIterator<Item = T>) -> &mut Self
         where T: IntoIden {
         for n in names.into_iter() {
             self.names.push(n.into_iden());

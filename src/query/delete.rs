@@ -198,7 +198,7 @@ impl DeleteStatement {
     }
 
     /// Order by custom string.
-    pub fn order_by_customs<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
+    pub fn order_by_customs<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self 
         where T: ToString {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
@@ -210,7 +210,7 @@ impl DeleteStatement {
     }
 
     /// Order by columns.
-    pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
+    pub fn order_by_columns<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self 
         where T: IntoColumnRef {
         let mut orders = cols.into_iter().map(
             |(c, order)| OrderExpr {
