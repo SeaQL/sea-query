@@ -200,25 +200,35 @@ impl DeleteStatement {
     }
 
     /// Order by custom string.
-    pub fn order_by_customs<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self 
-        where T: ToString {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_customs<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
 
     /// Order by columns.
-    pub fn order_by_columns<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self 
-        where T: IntoColumnRef {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }

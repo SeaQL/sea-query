@@ -189,8 +189,11 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn values<T>(&mut self, values: impl IntoIterator<Item = (T, Value)>) -> &mut Self
-        where T: IntoIden {
+    pub fn values<T, I>(&mut self, values: I) -> &mut Self
+    where
+        T: IntoIden,
+        I: IntoIterator<Item = (T, Value)>,
+    {
         for (k, v) in values.into_iter() {
             self.push_boxed_value(k.into_iden().to_string(), SimpleExpr::Value(v));
         }
@@ -357,25 +360,35 @@ impl UpdateStatement {
     }
 
     /// Order by custom string.
-    pub fn order_by_customs<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self 
-        where T: ToString {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_customs<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
 
     /// Order by vector of columns.
-    pub fn order_by_columns<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self 
-        where T: IntoColumnRef {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef
+,I: IntoIterator<Item =(T, Order)>
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }

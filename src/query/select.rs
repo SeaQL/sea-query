@@ -220,9 +220,10 @@ impl SelectStatement {
     ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// ```
-    pub fn exprs<T>(&mut self, exprs: impl IntoIterator<Item = T>) -> &mut Self
+    pub fn exprs<T, I>(&mut self, exprs: I) -> &mut Self
     where
         T: Into<SelectExpr>,
+        I: IntoIterator<Item = T>,
     {
         self.selects
             .append(&mut exprs.into_iter().map(|c| c.into()).collect());
@@ -880,9 +881,10 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// ```
-    pub fn group_by_columns<T>(&mut self, cols: impl IntoIterator<Item = T>) -> &mut Self
+    pub fn group_by_columns<T, I>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
     {
         self.add_group_by(
             cols.into_iter()
@@ -1142,24 +1144,27 @@ impl SelectStatement {
     }
 
     /// Order by custom string expression.
-     pub fn order_by_customs<T: 'static>(
-         &mut self,
-         cols: impl IntoIterator<Item = (T, Order)>,
-     ) -> &mut Self
-        where T: ToString {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
-                 expr: SimpleExpr::Custom(c.to_string()),
-                 order,
-             }).collect();
+    pub fn order_by_customs<T: 'static, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
+                expr: SimpleExpr::Custom(c.to_string()),
+                order,
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
 
     /// Order by vector of columns.
-    pub fn order_by_columns<T>(&mut self, cols: impl IntoIterator<Item = (T, Order)>) -> &mut Self
+    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>,
     {
         let mut orders = cols
             .into_iter()
