@@ -14,7 +14,7 @@ fn main() {
             .build(PostgresQueryBuilder),
         Table::create()
             .table(Document::Table)
-            .create_if_not_exists()
+            .if_not_exists()
             .col(ColumnDef::new(Document::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(Document::JsonField).json_binary())
             .col(ColumnDef::new(Document::Timestamp).timestamp())

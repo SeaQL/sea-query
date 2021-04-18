@@ -5,7 +5,7 @@ impl TableBuilder for MysqlQueryBuilder {
     fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut SqlWriter) {
         write!(sql, "CREATE TABLE ").unwrap();
 
-        if create.create_if_not_exists {
+        if create.if_not_exists {
             write!(sql, "IF NOT EXISTS ").unwrap();
         }
 

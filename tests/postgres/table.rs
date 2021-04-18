@@ -45,7 +45,7 @@ fn create_3() {
 assert_eq!(
     Table::create()
         .table(Char::Table)
-        .create_if_not_exists()
+        .if_not_exists()
         .col(ColumnDef::new(Char::Id).integer().not_null().primary_key().auto_increment())
         .col(ColumnDef::new(Char::FontSize).integer().not_null())
         .col(ColumnDef::new(Char::Character).string_len(255).not_null())

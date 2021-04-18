@@ -13,7 +13,7 @@ fn main() {
             .build(PostgresQueryBuilder),
         Table::create()
             .table(Character::Table)
-            .create_if_not_exists()
+            .if_not_exists()
             .col(ColumnDef::new(Character::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(Character::FontSize).integer())
             .col(ColumnDef::new(Character::Character).string())

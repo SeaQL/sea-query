@@ -10,7 +10,7 @@ use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, types::*, prepare:
 /// 
 /// let table = Table::create()
 ///     .table(Char::Table)
-///     .create_if_not_exists()
+///     .if_not_exists()
 ///     .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
 ///     .col(ColumnDef::new(Char::FontSize).integer().not_null())
 ///     .col(ColumnDef::new(Char::Character).string().not_null())
@@ -81,7 +81,7 @@ pub struct TableCreateStatement {
     pub(crate) options: Vec<TableOpt>,
     pub(crate) partitions: Vec<TablePartition>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
-    pub(crate) create_if_not_exists: bool,
+    pub(crate) if_not_exists: bool,
 }
 
 /// All available table options
@@ -113,13 +113,22 @@ impl TableCreateStatement {
             options: Vec::new(),
             partitions: Vec::new(),
             foreign_keys: Vec::new(),
-            create_if_not_exists: false,
+            if_not_exists: false,
         }
     }
 
-    /// Create table if table not exists
+    #[deprecated(
+        since = "0.9.6",
+        note = "Please use the [`TableCreateStatement::if_not_exists`]"
+    )]
     pub fn create_if_not_exists(&mut self) -> &mut Self {
-        self.create_if_not_exists = true;
+        self.if_not_exists = true;
+        self
+    }
+
+    /// Create table if table not exists
+    pub fn if_not_exists(&mut self) -> &mut Self {
+        self.if_not_exists = true;
         self
     }
 

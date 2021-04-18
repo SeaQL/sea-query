@@ -272,7 +272,7 @@
 //! 
 //! let table = Table::create()
 //!     .table(Char::Table)
-//!     .create_if_not_exists()
+//!     .if_not_exists()
 //!     .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
 //!     .col(ColumnDef::new(Char::FontSize).integer().not_null())
 //!     .col(ColumnDef::new(Char::Character).string().not_null())
