@@ -30,7 +30,6 @@ use crate::{ColumnDef, backend::TableBuilder, types::*, prepare::*};
 pub struct TableAlterStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) alter_option: Option<TableAlterOption>,
-    pub(crate) partition_option: Option<TablePartitionOption>,
 }
 
 /// All available table alter options
@@ -60,7 +59,6 @@ impl TableAlterStatement {
         Self {
             table: None,
             alter_option: None,
-            partition_option: None,
         }
     }
 
