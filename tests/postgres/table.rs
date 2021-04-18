@@ -110,6 +110,34 @@ fn create_5() {
 }
 
 #[test]
+fn create_6() {
+    use sea_query::extension::postgres::Type;
+
+    assert_eq!(
+        Type::create()
+            .as_enum(Font::Table)
+            .values(vec![Font::Name, Font::Variant, Font::Language])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "font" AS ENUM ('name', 'variant', 'language')"#
+    );
+}
+
+#[test]
+fn create_7() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null().extra("ANYTHING I WANT TO SAY".to_owned()))
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "glyph" ("#,
+                r#""id" integer NOT NULL ANYTHING I WANT TO SAY"#,
+            r#")"#,
+        ].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
@@ -193,19 +221,6 @@ fn alter_5() {
 #[should_panic(expected = "No alter option found")]
 fn alter_6() {
     Table::alter().to_string(PostgresQueryBuilder);
-}
-
-#[test]
-fn create_6() {
-    use sea_query::extension::postgres::Type;
-
-    assert_eq!(
-        Type::create()
-            .as_enum(Font::Table)
-            .values(vec![Font::Name, Font::Variant, Font::Language])
-            .to_string(PostgresQueryBuilder),
-        r#"CREATE TYPE "font" AS ENUM ('name', 'variant', 'language')"#
-    );
 }
 
 #[test]

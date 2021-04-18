@@ -87,6 +87,21 @@ fn create_3() {
 }
 
 #[test]
+fn create_4() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null().extra("ANYTHING I WANT TO SAY".to_owned()))
+            .to_string(MysqlQueryBuilder),
+        vec![
+            "CREATE TABLE `glyph` (",
+                "`id` int NOT NULL ANYTHING I WANT TO SAY",
+            ")",
+        ].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
