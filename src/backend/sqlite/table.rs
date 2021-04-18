@@ -149,6 +149,7 @@ impl TableBuilder for SqliteQueryBuilder {
             ColumnSpec::AutoIncrement => write!(sql, "AUTOINCREMENT"),
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
+            ColumnSpec::Extra(string) => write!(sql, "{}", string),
         }.unwrap()
     }
 

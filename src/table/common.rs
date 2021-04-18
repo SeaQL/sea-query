@@ -255,9 +255,16 @@ impl ColumnDef {
         self
     }
 
+    /// Use a custom type on this column.
     pub fn custom<T: 'static>(mut self, n: T) -> Self
         where T: Iden {
         self.types = Some(ColumnType::Custom(Rc::new(n)));
+        self
+    }
+
+    /// Some extra options in custom string
+    pub fn extra(mut self, string: String) -> Self {
+        self.spec.push(ColumnSpec::Extra(string));
         self
     }
 }
@@ -296,4 +303,5 @@ pub enum ColumnSpec {
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
+    Extra(String),
 }

@@ -129,6 +129,7 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnSpec::AutoIncrement => write!(sql, "AUTO_INCREMENT"),
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
+            ColumnSpec::Extra(string) => write!(sql, "{}", string),
         }.unwrap()
     }
 
