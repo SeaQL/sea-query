@@ -32,6 +32,8 @@ impl ToSql for Value {
             Value::Json(v) => v.as_ref().to_sql(ty, out),
             #[cfg(feature="postgres-chrono")]
             Value::DateTime(v) => v.as_ref().to_sql(ty, out),
+            #[cfg(feature="postgres-uuid")]
+            Value::Uuid(v) => v.as_ref().to_sql(ty, out),
         }
     }
 

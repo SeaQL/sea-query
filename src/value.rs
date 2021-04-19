@@ -5,8 +5,12 @@ use std::fmt::Write;
 use std::str::from_utf8;
 #[cfg(feature="with-json")]
 use serde_json::Value as Json;
+
 #[cfg(feature="with-chrono")]
 use chrono::NaiveDateTime;
+
+#[cfg(feature="with-uuid")]
+use uuid::Uuid;
 
 /// Value variants
 #[derive(Clone, Debug, PartialEq)]
@@ -31,6 +35,9 @@ pub enum Value {
     #[cfg(feature="with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTime(Box<NaiveDateTime>),
+    #[cfg(feature="with-uuid")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    Uuid(Box<Uuid>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -110,14 +117,14 @@ impl<'a> From<&'a [u8]> for Value {
 
 impl From<Vec<u8>> for Value {
     fn from(x: Vec<u8>) -> Value {
-        Value::Bytes(Box::new(x.into()))
+        Value::Bytes(Box::new(x))
     }
 }
 
 impl<'a> From<&'a str> for Value {
     fn from(x: &'a str) -> Value {
         let string: String = x.into();
-        Value::String(Box::new(string.to_owned()))
+        Value::String(Box::new(string))
     }
 }
 
@@ -236,6 +243,8 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::Json(v) => v.as_ref().clone(),
         #[cfg(feature="with-chrono")]
         Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
+        #[cfg(feature="with-uuid")]
+        Value::Uuid(v) => Json::String(v.to_string()),
     }
 }
 

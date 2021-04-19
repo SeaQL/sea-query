@@ -498,6 +498,8 @@ pub fn pg_value_to_string(v: &Value) -> String {
         Value::Json(v) => write!(s, "{}", pg_escape_string_quoted(&v.to_string())).unwrap(),
         #[cfg(feature="with-chrono")]
         Value::DateTime(v) => write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap(),
+        #[cfg(feature="with-uuid")]
+        Value::Uuid(v) => write!(s, "\'{}\'", v.to_string()).unwrap(),
     };
     s
 }
