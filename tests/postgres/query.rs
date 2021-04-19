@@ -615,6 +615,19 @@ fn insert_4() {
 }
 
 #[test]
+#[cfg(feature="with-uuid")]
+fn insert_5() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .values_panic(vec![uuid::Uuid::nil().into()])
+            .to_string(PostgresQueryBuilder),
+        "INSERT INTO \"glyph\" (\"image\") VALUES ('00000000-0000-0000-0000-000000000000')"
+    );
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
