@@ -158,6 +158,74 @@ mod with_chrono {
     }
 }
 
+#[cfg(feature="with-uuid")]
+mod with_uuid {
+    use super::*;
+
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    impl From<Uuid> for Value {
+        fn from(x: Uuid) -> Value {
+            Value::Uuid(Box::new(x))
+        }
+    }
+}
+
+impl Value {
+    pub fn is_json(&self) -> bool {
+        #[cfg(feature="with-json")]
+        return matches!(self, Self::Json(_));
+        #[cfg(not(feature="with-json"))]
+        return false;
+    }
+    #[cfg(feature="with-json")]
+    pub fn as_ref_json(&self) -> &Json {
+        match self {
+            Self::Json(v) => v.as_ref(),
+            _ => panic!("not Value::Json"),
+        }
+    }
+    #[cfg(not(feature="with-json"))]
+    pub fn as_ref_json(&self) -> bool {
+        panic!("not Value::Json")
+    }
+
+    pub fn is_date_time(&self) -> bool {
+        #[cfg(feature="with-chrono")]
+        return matches!(self, Self::DateTime(_));
+        #[cfg(not(feature="with-chrono"))]
+        return false;
+    }
+    #[cfg(feature="with-chrono")]
+    pub fn as_ref_date_time(&self) -> &NaiveDateTime {
+        match self {
+            Self::DateTime(v) => v.as_ref(),
+            _ => panic!("not Value::DateTime"),
+        }
+    }
+    #[cfg(not(feature="with-chrono"))]
+    pub fn as_ref_date_time(&self) -> bool {
+        panic!("not Value::DateTime")
+    }
+
+    pub fn is_uuid(&self) -> bool {
+        #[cfg(feature="with-uuid")]
+        return matches!(self, Self::Uuid(_));
+        #[cfg(not(feature="with-uuid"))]
+        return false;
+    }
+    #[cfg(feature="with-uuid")]
+    pub fn as_ref_uuid(&self) -> &Uuid {
+        match self {
+            Self::Uuid(v) => v.as_ref(),
+            _ => panic!("not Value::Uuid"),
+        }
+    }
+    #[cfg(not(feature="with-uuid"))]
+    pub fn as_ref_uuid(&self) -> bool {
+        panic!("not Value::Uuid")
+    }
+}
+
 /// Escape a SQL string literal
 pub fn escape_string(string: &str) -> String {
     string

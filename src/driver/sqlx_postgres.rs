@@ -19,11 +19,17 @@ macro_rules! bind_params_sqlx_postgres {
                     Value::Double(v) => query.bind(v),
                     Value::String(v) => query.bind(v.as_str()),
                     Value::Bytes(v) => query.bind(v.as_ref()),
-                    #[cfg(feature="sqlx-json")]
-                    Value::Json(v) => query.bind(v.as_ref()),
-                    #[cfg(feature="sqlx-chrono")]
-                    Value::DateTime(v) => query.bind(v.as_ref()),
-                    _ => unimplemented!(),
+                    _ => {
+                        if value.is_json() {
+                            query.bind(value.as_ref_json())
+                        } else if value.is_date_time() {
+                            query.bind(value.as_ref_date_time())
+                        } else if value.is_uuid() {
+                            query.bind(value.as_ref_uuid())
+                        } else {
+                            unimplemented!();
+                        }
+                    },
                 };
             }
             query
@@ -35,18 +41,18 @@ macro_rules! bind_params_sqlx_postgres {
 macro_rules! sea_query_driver_postgres {
     () => {
         mod sea_query_driver_postgres {
-            use sea_query::{Value, Values};
+            use $crate::{Value, Values};
             use sqlx::{query::Query, query::QueryAs, Postgres, postgres::PgArguments};
 
             type SqlxQuery<'a> = sqlx::query::Query<'a, Postgres, PgArguments>;
             type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Postgres, T, PgArguments>;
 
             pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a Values) -> SqlxQuery<'a> {
-                sea_query::bind_params_sqlx_postgres!(query, params.0)
+                $crate::bind_params_sqlx_postgres!(query, params.0)
             }
 
             pub fn bind_query_as<'a, T>(query: SqlxQueryAs<'a, T>, params: &'a Values) -> SqlxQueryAs<'a, T> {
-                sea_query::bind_params_sqlx_postgres!(query, params.0)
+                $crate::bind_params_sqlx_postgres!(query, params.0)
             }
         }
     }
