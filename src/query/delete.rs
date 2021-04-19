@@ -237,10 +237,11 @@ impl DeleteStatement {
         since = "0.9.0",
         note = "Please use the [`DeleteStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
+    pub fn order_by_table_columns<T, C, I>(&mut self, cols: I) -> &mut Self
     where
         T: IntoIden,
         C: IntoIden,
+        I: IntoIterator<Item = (T, C, Order)>,
     {
         self.order_by_columns(
             cols.into_iter()
