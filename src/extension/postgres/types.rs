@@ -1,5 +1,5 @@
-use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
 use std::rc::Rc;
+use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
