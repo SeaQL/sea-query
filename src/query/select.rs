@@ -370,11 +370,10 @@ impl SelectStatement {
         since = "0.9.0",
         note = "Please use the [`SelectStatement::columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn table_columns<T, C, I>(&mut self, cols: I) -> &mut Self
+    pub fn table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
     where
         T: IntoIden,
         C: IntoIden,
-        I: IntoIterator<Item = (T, C)>,
     {
         self.columns(
             cols.into_iter()
@@ -898,11 +897,10 @@ impl SelectStatement {
         since = "0.9.0",
         note = "Please use the [`SelectStatement::group_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn group_by_table_columns<T, C,I>(&mut self, cols: I) -> &mut Self
+    pub fn group_by_table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
     where
         T: IntoIden,
         C: IntoIden,
-        I: IntoIterator<Item = (T, C)>,
     {
         self.group_by_columns(
             cols.into_iter()
@@ -1183,11 +1181,10 @@ impl SelectStatement {
         since = "0.9.0",
         note = "Please use the [`SelectStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn order_by_table_columns<T, C, I>(&mut self, cols: I) -> &mut Self
+    pub fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
     where
         T: IntoIden,
         C: IntoIden,
-        I: IntoIterator<Item = (T, C, Order)>,
     {
         self.order_by_columns(
             cols.into_iter()
