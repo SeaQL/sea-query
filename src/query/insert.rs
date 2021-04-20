@@ -80,8 +80,9 @@ impl InsertStatement {
     /// 
     /// See [`InsertStatement::values`]
     pub fn columns<C, I>(&mut self, columns: I) -> &mut Self
-    where C: IntoIden
-,I: IntoIterator<Item = C>
+    where
+        C: IntoIden,
+        I: IntoIterator<Item = C>,
     {
         self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
         self
