@@ -379,7 +379,7 @@ impl SelectStatement {
         self.columns(
             cols.into_iter()
                 .map(|(t, c)| (t.into_iden(), c.into_iden()))
-                .collect::<Vec<(Rc<dyn Iden>, Rc<dyn Iden>)>>(),
+                .collect::<Vec<_>>(),
         )
     }
 
@@ -907,7 +907,7 @@ impl SelectStatement {
         self.group_by_columns(
             cols.into_iter()
                 .map(|(t, c)| (t.into_iden(), c.into_iden()))
-                .collect::<Vec<(Rc<dyn Iden>, Rc<dyn Iden>)>>(),
+                .collect::<Vec<_>>(),
         )
     }
 
@@ -1192,7 +1192,7 @@ impl SelectStatement {
         self.order_by_columns(
             cols.into_iter()
                 .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-                .collect::<Vec<((Rc<dyn Iden>, Rc<dyn Iden>), Order)>>(),
+                .collect::<Vec<_>>(),
         )
     }
 

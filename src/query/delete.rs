@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 
 /// Delete existing rows from the table
@@ -246,7 +244,7 @@ impl DeleteStatement {
         self.order_by_columns(
             cols.into_iter()
                 .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-                .collect::<Vec<((Rc<dyn Iden>, Rc<dyn Iden>), Order)>>(),
+                .collect::<Vec<_>>(),
         )
     }
 
