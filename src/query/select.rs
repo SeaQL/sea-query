@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
+use std::iter::FromIterator;
 
 /// Select rows from an existing table
 /// 
@@ -889,7 +890,7 @@ impl SelectStatement {
         self.add_group_by(
             cols.into_iter()
                 .map(|c| SimpleExpr::Column(c.into_column_ref()))
-                .collect(),
+                .collect::<Vec<_>>(),
         )
     }
 
@@ -1010,8 +1011,11 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` GROUP BY `size_w`, `size_h`"#
     /// );
     /// ```
-    pub fn add_group_by(&mut self, mut expr: Vec<SimpleExpr>) -> &mut Self {
-        self.groups.append(&mut expr);
+    pub fn add_group_by<I>(&mut self, expr: I) -> &mut Self
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        self.groups.append(&mut Vec::from_iter(expr.into_iter()));
         self
     }
 
