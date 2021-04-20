@@ -143,7 +143,10 @@ impl InsertStatement {
     }
 
     /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
-    pub fn values_panic(&mut self, values: Vec<Value>) -> &mut Self {
+    pub fn values_panic<I>(&mut self, values: I) -> &mut Self
+    where
+        I: IntoIterator<Item = Value>,
+    {
         self.values(values).unwrap()
     }
 
