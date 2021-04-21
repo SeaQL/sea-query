@@ -1,4 +1,4 @@
-# SeaQuery Postgres example
+# SeaQuery Rusqlite example
 
 Running:
 ```sh
@@ -7,7 +7,7 @@ cargo run
 
 Example output:
 ```
-Create table character: ()
+Create table character: Ok()
 
 Insert into character: Ok(1)
 

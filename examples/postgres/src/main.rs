@@ -93,16 +93,6 @@ fn main() {
     }
     println!();
 
-    // Delete
-
-    let (sql, values) = Query::delete()
-        .from_table(Character::Table)
-        .and_where(Expr::col(Character::Id).eq(id))
-        .build(PostgresQueryBuilder);
-
-    let result = client.execute(sql.as_str(), &values.as_params());
-    println!("Delete character: {:?}\n", result);
-
     // Count
 
     let (sql, values) = Query::select()
@@ -114,6 +104,17 @@ fn main() {
     print!("Count character: ");
     let count: i64 = row.try_get(0).unwrap();
     println!("{}", count);
+    println!();
+
+    // Delete
+
+    let (sql, values) = Query::delete()
+        .from_table(Character::Table)
+        .and_where(Expr::col(Character::Id).eq(id))
+        .build(PostgresQueryBuilder);
+
+    let result = client.execute(sql.as_str(), &values.as_params());
+    println!("Delete character: {:?}", result);
 }
 
 #[derive(Iden)]

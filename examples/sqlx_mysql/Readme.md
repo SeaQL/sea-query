@@ -19,7 +19,7 @@ Update character: Ok(MySqlQueryResult { rows_affected: 1, last_insert_id: 0 })
 Select one from character:
 CharacterStruct { id: 1, character: "A", font_size: 24 }
 
-Delete character: Ok(MySqlQueryResult { rows_affected: 1, last_insert_id: 0 })
+Count character: 1
 
-Count character: 0
+Delete character: Ok(MySqlQueryResult { rows_affected: 1, last_insert_id: 0 })
 ```

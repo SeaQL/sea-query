@@ -5,6 +5,7 @@ members = [
     "sea-query-derive",
     "examples/postgres",
     "examples/postgres_json",
+    "examples/rusqlite",
     "examples/sqlx_mysql",
     "examples/sqlx_postgres",
 ]
@@ -50,6 +51,7 @@ postgres = [ "bytes", "postgres-types" ]
 postgres-chrono = [ "with-chrono", "postgres-types/with-chrono-0_4" ]
 postgres-json = [ "with-json", "postgres-types/with-serde_json-1" ]
 postgres-uuid = [ "with-uuid", "postgres-types/with-uuid-0_8" ]
+rusqlite = [ ]
 sqlx-mysql = [ ]
 sqlx-postgres = [ ]
 with-chrono = [ "chrono" ]

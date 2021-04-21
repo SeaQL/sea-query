@@ -185,7 +185,7 @@ impl Value {
         }
     }
     #[cfg(not(feature="with-json"))]
-    pub fn as_ref_json(&self) -> bool {
+    pub fn as_ref_json(&self) -> &bool {
         panic!("not Value::Json")
     }
 
@@ -203,7 +203,7 @@ impl Value {
         }
     }
     #[cfg(not(feature="with-chrono"))]
-    pub fn as_ref_date_time(&self) -> bool {
+    pub fn as_ref_date_time(&self) -> &bool {
         panic!("not Value::DateTime")
     }
 
@@ -221,7 +221,7 @@ impl Value {
         }
     }
     #[cfg(not(feature="with-uuid"))]
-    pub fn as_ref_uuid(&self) -> bool {
+    pub fn as_ref_uuid(&self) -> &bool {
         panic!("not Value::Uuid")
     }
 }
