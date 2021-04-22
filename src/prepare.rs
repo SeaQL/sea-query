@@ -1,5 +1,6 @@
 use crate::*;
 pub use std::fmt::Write;
+use std::iter::FromIterator;
 
 #[derive(Debug, Default)]
 pub struct SqlWriter {
@@ -7,7 +8,11 @@ pub struct SqlWriter {
     pub string: String,
 }
 
-pub fn inject_parameters(sql: &str, params: Vec<Value>, query_builder: &dyn QueryBuilder) -> String {
+pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
+where
+    I: IntoIterator<Item = Value>,
+{
+    let params = Vec::from_iter(params.into_iter());
     let tokenizer = Tokenizer::new(sql);
     let tokens: Vec<Token> = tokenizer.iter().collect();
     let mut counter = 0;

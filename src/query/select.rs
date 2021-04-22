@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
+use std::iter::FromIterator;
 
 /// Select rows from an existing table
 /// 
@@ -220,9 +221,13 @@ impl SelectStatement {
     ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// ```
-    pub fn exprs<T>(&mut self, exprs: Vec<T>) -> &mut Self
-        where T: Into<SelectExpr> {
-        self.selects.append(&mut exprs.into_iter().map(|c| c.into()).collect());
+    pub fn exprs<T, I>(&mut self, exprs: I) -> &mut Self
+    where
+        T: Into<SelectExpr>,
+        I: IntoIterator<Item = T>,
+    {
+        self.selects
+            .append(&mut exprs.into_iter().map(|c| c.into()).collect());
         self
     }
 
@@ -350,9 +355,16 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
     /// );
     /// ```
-    pub fn columns<T>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: IntoColumnRef {
-        self.exprs(cols.into_iter().map(|c| SimpleExpr::Column(c.into_column_ref())).collect())
+    pub fn columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
+    {
+        self.exprs(
+            cols.into_iter()
+                .map(|c| SimpleExpr::Column(c.into_column_ref()))
+                .collect::<Vec<SimpleExpr>>(),
+        )
     }
 
     #[deprecated(
@@ -360,8 +372,15 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::columns`] with a tuple as [`ColumnRef`]"
     )]
     pub fn table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.columns(cols.into_iter().map(|(t, c)| (t.into_iden(), c.into_iden())).collect())
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
+        self.columns(
+            cols.into_iter()
+                .map(|(t, c)| (t.into_iden(), c.into_iden()))
+                .collect::<Vec<_>>(),
+        )
     }
 
     /// Select column.
@@ -863,9 +882,16 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// ```
-    pub fn group_by_columns<T>(&mut self, cols: Vec<T>) -> &mut Self
-        where T: IntoColumnRef {
-        self.add_group_by(cols.into_iter().map(|c| SimpleExpr::Column(c.into_column_ref())).collect())
+    pub fn group_by_columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
+    {
+        self.add_group_by(
+            cols.into_iter()
+                .map(|c| SimpleExpr::Column(c.into_column_ref()))
+                .collect::<Vec<_>>(),
+        )
     }
 
     #[deprecated(
@@ -873,8 +899,15 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::group_by_columns`] with a tuple as [`ColumnRef`]"
     )]
     pub fn group_by_table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.group_by_columns(cols.into_iter().map(|(t, c)| (t.into_iden(), c.into_iden())).collect())
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
+        self.group_by_columns(
+            cols.into_iter()
+                .map(|(t, c)| (t.into_iden(), c.into_iden()))
+                .collect::<Vec<_>>(),
+        )
     }
 
     /// And where condition.
@@ -978,8 +1011,11 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` GROUP BY `size_w`, `size_h`"#
     /// );
     /// ```
-    pub fn add_group_by(&mut self, mut expr: Vec<SimpleExpr>) -> &mut Self {
-        self.groups.append(&mut expr);
+    pub fn add_group_by<I>(&mut self, expr: I) -> &mut Self
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        self.groups.append(&mut Vec::from_iter(expr.into_iter()));
         self
     }
 
@@ -1112,25 +1148,35 @@ impl SelectStatement {
     }
 
     /// Order by custom string expression.
-    pub fn order_by_customs<T: 'static>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: ToString {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_customs<T: 'static, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
 
     /// Order by vector of columns.
-    pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: IntoColumnRef {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
@@ -1139,10 +1185,16 @@ impl SelectStatement {
         since = "0.9.0",
         note = "Please use the [`SelectStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn order_by_table_columns<T, C>
-        (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
-        where T: IntoIden, C: IntoIden {
-        self.order_by_columns(cols.into_iter().map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o)).collect())
+    pub fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
+        self.order_by_columns(
+            cols.into_iter()
+                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
+                .collect::<Vec<_>>(),
+        )
     }
 
     /// Limit the number of returned rows.

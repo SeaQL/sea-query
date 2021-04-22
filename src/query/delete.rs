@@ -198,25 +198,35 @@ impl DeleteStatement {
     }
 
     /// Order by custom string.
-    pub fn order_by_customs<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: ToString {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_customs<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
 
     /// Order by columns.
-    pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self 
-        where T: IntoColumnRef {
-        let mut orders = cols.into_iter().map(
-            |(c, order)| OrderExpr {
+    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        let mut orders = cols
+            .into_iter()
+            .map(|(c, order)| OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
-            }).collect();
+            })
+            .collect();
         self.orders.append(&mut orders);
         self
     }
@@ -225,10 +235,16 @@ impl DeleteStatement {
         since = "0.9.0",
         note = "Please use the [`DeleteStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    pub fn order_by_table_columns<T, C>
-        (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self 
-        where T: IntoIden, C: IntoIden {
-        self.order_by_columns(cols.into_iter().map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o)).collect())
+    pub fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
+        self.order_by_columns(
+            cols.into_iter()
+                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
+                .collect::<Vec<_>>(),
+        )
     }
 
     /// Limit number of updated rows.
