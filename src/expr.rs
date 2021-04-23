@@ -294,8 +294,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
-    pub fn cust_with_values<V>(s: &str, v: Vec<V>) -> SimpleExpr
-        where V: Into<Value> {
+    pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
+    where
+        V: Into<Value>,
+        I: IntoIterator<Item = V>,
+    {
         SimpleExpr::CustomWithValues(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
     }
 
@@ -1019,10 +1022,15 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_in<V>(mut self, v: Vec<V>) -> SimpleExpr
-        where V: Into<Value> {
+    pub fn is_in<V, I>(mut self, v: I) -> SimpleExpr
+    where
+        V: Into<Value>,
+        I: IntoIterator<Item = V>,
+    {
         self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::Values(v.into_iter().map(|v| v.into()).collect()));
+        self.right = Some(SimpleExpr::Values(
+            v.into_iter().map(|v| v.into()).collect(),
+        ));
         self.into()
     }
 
@@ -1053,8 +1061,11 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_not_in<V>(mut self, v: Vec<V>) -> SimpleExpr
-        where V: Into<Value> {
+    pub fn is_not_in<V, I>(mut self, v: I) -> SimpleExpr
+    where
+        V: Into<Value>,
+        I: IntoIterator<Item = V>
+    {
         self.bopr = Some(BinOper::NotIn);
         self.right = Some(SimpleExpr::Values(v.into_iter().map(|v| v.into()).collect()));
         self.into()
@@ -1109,8 +1120,11 @@ impl Expr {
         self.into()
     }
 
-    pub fn args<T>(mut self, args: Vec<T>) -> SimpleExpr
-        where T: Into<SimpleExpr> {
+    pub fn args<T, I>(mut self, args: I) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+        I: IntoIterator<Item = T>,
+    {
         self.args = args.into_iter().map(|v| v.into()).collect();
         self.into()
     }
