@@ -3,6 +3,11 @@ mod postgres;
 #[cfg(feature="postgres")]
 pub use postgres::*;
 
+#[cfg(feature="rusqlite")]
+mod rusqlite;
+#[cfg(feature="rusqlite")]
+pub use rusqlite::*;
+
 #[cfg(feature="sqlx-mysql")]
 mod sqlx_mysql;
 #[cfg(feature="sqlx-mysql")]

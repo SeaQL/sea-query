@@ -1,8 +1,11 @@
-use postgres::{Client, NoTls, Row};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table, PostgresDriver};
+use rusqlite::{Connection, Result, Row};
+use sea_query::{ColumnDef, Expr, Func, Iden, Order, SqliteQueryBuilder, Query, Table};
 
-fn main() {
-    let mut client = Client::connect("postgresql://sea:sea@localhost/query", NoTls).unwrap();
+sea_query::sea_query_driver_rusqlite!();
+use sea_query_driver_rusqlite::RusqliteValues;
+
+fn main() -> Result<()> {
+    let conn = Connection::open_in_memory()?;
 
     // Schema
 
@@ -10,18 +13,19 @@ fn main() {
         Table::drop()
             .table(Character::Table)
             .if_exists()
-            .build(PostgresQueryBuilder),
+            .build(SqliteQueryBuilder),
         Table::create()
             .table(Character::Table)
             .if_not_exists()
             .col(ColumnDef::new(Character::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(Character::FontSize).integer())
             .col(ColumnDef::new(Character::Character).string())
-            .build(PostgresQueryBuilder),
+            .build(SqliteQueryBuilder),
     ].join("; ");
 
-    let result = client.batch_execute(&sql).unwrap();
-    println!("Create table character: {:?}\n", result);
+    conn.execute_batch(&sql)?;
+    println!("Create table character: Ok()");
+    println!();
 
     // Create
 
@@ -34,10 +38,11 @@ fn main() {
             "A".into(),
             12.into(),
         ])
-        .build(PostgresQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let result = client.execute(sql.as_str(), &values.as_params());
+    let result = conn.execute(sql.as_str(), RusqliteValues::from(values).as_params().as_slice());
     println!("Insert into character: {:?}\n", result);
+    let id = conn.last_insert_rowid();
 
     // Read
 
@@ -48,17 +53,15 @@ fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(PostgresQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from character:");
-    let mut id = None;
-    for row in rows.into_iter() {
+    let mut stmt = conn.prepare(sql.as_str())?;
+    let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
+    while let Some(row) = rows.next()? {
         let item = CharacterStruct::from(row);
         println!("{:?}", item);
-        id = Some(item.id);
     }
-    let id = id.unwrap();
     println!();
 
     // Update
@@ -69,9 +72,9 @@ fn main() {
             (Character::FontSize, 24.into()),
         ])
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(PostgresQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let result = client.execute(sql.as_str(), &values.as_params());
+    let result = conn.execute(sql.as_str(), RusqliteValues::from(values).as_params().as_slice());
     println!("Update character: {:?}\n", result);
 
     // Read
@@ -83,11 +86,12 @@ fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(PostgresQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from character:");
-    for row in rows.into_iter() {
+    let mut stmt = conn.prepare(sql.as_str())?;
+    let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
+    while let Some(row) = rows.next()? {
         let item = CharacterStruct::from(row);
         println!("{:?}", item);
     }
@@ -98,11 +102,16 @@ fn main() {
     let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
-        .build(PostgresQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
     print!("Count character: ");
-    let count: i64 = row.try_get(0).unwrap();
+    let mut stmt = conn.prepare(sql.as_str())?;
+    let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
+    let count: i64 = if let Some(row) = rows.next()? {
+        row.get_unwrap(0)
+    } else {
+        0
+    };
     println!("{}", count);
     println!();
 
@@ -111,10 +120,12 @@ fn main() {
     let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(PostgresQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let result = client.execute(sql.as_str(), &values.as_params());
+    let result = conn.execute(sql.as_str(), RusqliteValues::from(values).as_params().as_slice());
     println!("Delete character: {:?}", result);
+
+    Ok(())
 }
 
 #[derive(Iden)]
@@ -132,12 +143,12 @@ struct CharacterStruct {
     font_size: i32,
 }
 
-impl From<Row> for CharacterStruct {
-    fn from(row: Row) -> Self {
+impl From<&Row<'_>> for CharacterStruct {
+    fn from(row: &Row) -> Self {
         Self {
-            id: row.get("id"),
-            character: row.get("character"),
-            font_size: row.get("font_size"),
+            id: row.get_unwrap("id"),
+            character: row.get_unwrap("character"),
+            font_size: row.get_unwrap("font_size"),
         }
     }
 }

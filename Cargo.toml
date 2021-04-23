@@ -5,6 +5,7 @@ members = [
     "sea-query-derive",
     "examples/postgres",
     "examples/postgres_json",
+    "examples/rusqlite",
     "examples/sqlx_mysql",
     "examples/sqlx_postgres",
 ]
@@ -35,6 +36,7 @@ serde_json = { version = "^1", optional = true }
 bytes = { version = "^1", optional = true }
 chrono = { version = "^0", optional = true }
 postgres-types = { version = "^0", optional = true }
+uuid = { version = "^0", optional = true }
 
 [dev-dependencies]
 sea-query-test = { path = "sea-query-test", default-features = false }
@@ -48,12 +50,13 @@ derive = [ "sea-query-derive" ]
 postgres = [ "bytes", "postgres-types" ]
 postgres-chrono = [ "with-chrono", "postgres-types/with-chrono-0_4" ]
 postgres-json = [ "with-json", "postgres-types/with-serde_json-1" ]
-sqlx-chrono = [ "with-chrono" ]
-sqlx-json = [ "with-json" ]
+postgres-uuid = [ "with-uuid", "postgres-types/with-uuid-0_8" ]
+rusqlite = [ ]
 sqlx-mysql = [ ]
 sqlx-postgres = [ ]
 with-chrono = [ "chrono" ]
 with-json = [ "serde_json" ]
+with-uuid = [ "uuid" ]
 
 [[example]]
 name = "derive"

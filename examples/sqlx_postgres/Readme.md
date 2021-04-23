@@ -19,7 +19,7 @@ Update character: Ok(PgQueryResult { rows_affected: 1 })
 Select one from character:
 CharacterStruct { id: 1, character: "A", font_size: 24 }
 
-Delete character: Ok(PgQueryResult { rows_affected: 1 })
+Count character: 1
 
-Count character: 0
+Delete character: Ok(PgQueryResult { rows_affected: 1 })
 ```

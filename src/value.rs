@@ -5,8 +5,12 @@ use std::fmt::Write;
 use std::str::from_utf8;
 #[cfg(feature="with-json")]
 use serde_json::Value as Json;
+
 #[cfg(feature="with-chrono")]
 use chrono::NaiveDateTime;
+
+#[cfg(feature="with-uuid")]
+use uuid::Uuid;
 
 /// Value variants
 #[derive(Clone, Debug, PartialEq)]
@@ -31,6 +35,9 @@ pub enum Value {
     #[cfg(feature="with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTime(Box<NaiveDateTime>),
+    #[cfg(feature="with-uuid")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    Uuid(Box<Uuid>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -110,14 +117,14 @@ impl<'a> From<&'a [u8]> for Value {
 
 impl From<Vec<u8>> for Value {
     fn from(x: Vec<u8>) -> Value {
-        Value::Bytes(Box::new(x.into()))
+        Value::Bytes(Box::new(x))
     }
 }
 
 impl<'a> From<&'a str> for Value {
     fn from(x: &'a str) -> Value {
         let string: String = x.into();
-        Value::String(Box::new(string.to_owned()))
+        Value::String(Box::new(string))
     }
 }
 
@@ -148,6 +155,74 @@ mod with_chrono {
         fn from(x: NaiveDateTime) -> Value {
             Value::DateTime(Box::new(x))
         }
+    }
+}
+
+#[cfg(feature="with-uuid")]
+mod with_uuid {
+    use super::*;
+
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    impl From<Uuid> for Value {
+        fn from(x: Uuid) -> Value {
+            Value::Uuid(Box::new(x))
+        }
+    }
+}
+
+impl Value {
+    pub fn is_json(&self) -> bool {
+        #[cfg(feature="with-json")]
+        return matches!(self, Self::Json(_));
+        #[cfg(not(feature="with-json"))]
+        return false;
+    }
+    #[cfg(feature="with-json")]
+    pub fn as_ref_json(&self) -> &Json {
+        match self {
+            Self::Json(v) => v.as_ref(),
+            _ => panic!("not Value::Json"),
+        }
+    }
+    #[cfg(not(feature="with-json"))]
+    pub fn as_ref_json(&self) -> &bool {
+        panic!("not Value::Json")
+    }
+
+    pub fn is_date_time(&self) -> bool {
+        #[cfg(feature="with-chrono")]
+        return matches!(self, Self::DateTime(_));
+        #[cfg(not(feature="with-chrono"))]
+        return false;
+    }
+    #[cfg(feature="with-chrono")]
+    pub fn as_ref_date_time(&self) -> &NaiveDateTime {
+        match self {
+            Self::DateTime(v) => v.as_ref(),
+            _ => panic!("not Value::DateTime"),
+        }
+    }
+    #[cfg(not(feature="with-chrono"))]
+    pub fn as_ref_date_time(&self) -> &bool {
+        panic!("not Value::DateTime")
+    }
+
+    pub fn is_uuid(&self) -> bool {
+        #[cfg(feature="with-uuid")]
+        return matches!(self, Self::Uuid(_));
+        #[cfg(not(feature="with-uuid"))]
+        return false;
+    }
+    #[cfg(feature="with-uuid")]
+    pub fn as_ref_uuid(&self) -> &Uuid {
+        match self {
+            Self::Uuid(v) => v.as_ref(),
+            _ => panic!("not Value::Uuid"),
+        }
+    }
+    #[cfg(not(feature="with-uuid"))]
+    pub fn as_ref_uuid(&self) -> &bool {
+        panic!("not Value::Uuid")
     }
 }
 
@@ -236,6 +311,8 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::Json(v) => v.as_ref().clone(),
         #[cfg(feature="with-chrono")]
         Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
+        #[cfg(feature="with-uuid")]
+        Value::Uuid(v) => Json::String(v.to_string()),
     }
 }
 

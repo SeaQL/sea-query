@@ -61,7 +61,7 @@ Table of Content
 
 ### Drivers
 
-We provide integration for [SQLx](https://crates.io/crates/sqlx) and [postgres](https://crates.io/crates/postgres).
+We provide integration for [SQLx](https://crates.io/crates/sqlx), [postgres](https://crates.io/crates/postgres) and [rusqlite](https://crates.io/crates/rusqlite).
 See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
 
 ### Iden
