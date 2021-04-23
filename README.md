@@ -18,7 +18,7 @@
 
 ## Introduction
 
-SeaQuery is query builder to help you construct dynamic SQL queries in Rust. You can construct expressions, queries and schema as formal syntax trees using an ergonomic API. We support MySQL, Postgres and SQLite (WIP) behind a generic interface, while still offering engine specific features via extensions if you need them.
+SeaQuery is query builder to help you construct dynamic SQL queries in Rust. You can construct expressions, queries and schema as formal syntax trees using an ergonomic API. We support MySQL, Postgres and SQLite behind a generic interface, while still offering engine specific features via extensions if you need them.
 
 This library is the foundation of upcoming projects: Document ORM (SeaORM) and Database Synchor (SeaHorse).
 
