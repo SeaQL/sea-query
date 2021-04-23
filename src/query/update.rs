@@ -377,8 +377,8 @@ impl UpdateStatement {
     /// Order by vector of columns.
     pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
     where
-        T: IntoColumnRef
-,I: IntoIterator<Item =(T, Order)>
+        T: IntoColumnRef,
+        I: IntoIterator<Item =(T, Order)>
     {
         let mut orders = cols
             .into_iter()
