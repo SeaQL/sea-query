@@ -42,6 +42,7 @@ impl TableBuilder for PostgresQueryBuilder {
 
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
         column_def.name.prepare(sql, '"');
+
         self.prepare_column_type_check_auto_increment(column_def, sql);
 
         for column_spec in column_def.spec.iter() {

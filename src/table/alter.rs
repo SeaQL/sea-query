@@ -41,12 +41,6 @@ pub enum TableAlterOption {
     DropColumn(Rc<dyn Iden>),
 }
 
-/// All available table partition options
-#[derive(Debug, Clone)]
-pub enum TablePartitionOption {
-
-}
-
 impl Default for TableAlterStatement {
     fn default() -> Self {
         Self::new()
