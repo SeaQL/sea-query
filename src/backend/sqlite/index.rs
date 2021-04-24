@@ -2,7 +2,12 @@ use super::*;
 
 impl IndexBuilder for SqliteQueryBuilder {
     fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
-        write!(sql, "CREATE INDEX ").unwrap();
+        write!(sql, "CREATE ").unwrap();
+        if create.unique {
+            write!(sql, "UNIQUE ").unwrap();
+        }
+        write!(sql, "INDEX ").unwrap();
+
         if let Some(name) = &create.index.name {
             write!(sql, "`{}`", name).unwrap();
         }

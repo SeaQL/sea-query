@@ -31,6 +31,17 @@ use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
 pub struct IndexCreateStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) index: TableIndex,
+    pub(crate) unique: bool,
+    pub(crate) index_type: Option<IndexType>,
+}
+
+/// Specification of a table index
+#[derive(Debug, Clone)]
+pub enum IndexType {
+    BTree,
+    FullText,
+    Hash,
+    Custom(Rc<dyn Iden>),
 }
 
 impl Default for IndexCreateStatement {
@@ -45,6 +56,8 @@ impl IndexCreateStatement {
         Self {
             table: None,
             index: Default::default(),
+            unique: false,
+            index_type: None,
         }
     }
 
@@ -65,6 +78,25 @@ impl IndexCreateStatement {
     pub fn col<T: 'static>(mut self, column: T) -> Self
         where T: Iden {
         self.index.col(column);
+        self
+    }
+
+    /// Set index as unique
+    pub fn unique(mut self) -> Self {
+        self.unique = true;
+        self
+    }
+
+    /// Set index as full text. 
+    /// On MySQL, this is `FULLTEXT`. 
+    /// On PgSQL, this is `GIN`. 
+    pub fn full_text(self) -> Self {
+        self.index_type(IndexType::FullText)
+    }
+
+    /// Set index type. Not available on Sqlite.
+    pub fn index_type(mut self, index_type: IndexType) -> Self {
+        self.index_type = Some(index_type);
         self
     }
 

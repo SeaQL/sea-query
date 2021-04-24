@@ -16,12 +16,26 @@ fn create_1() {
 fn create_2() {
     assert_eq!(
         Index::create()
+            .unique()
             .name("idx-glyph-aspect-image")
             .table(Glyph::Table)
             .col(Glyph::Aspect)
             .col(Glyph::Image)
             .to_string(PostgresQueryBuilder),
-        r#"CREATE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
+        r#"CREATE UNIQUE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
+    );
+}
+
+#[test]
+fn create_3() {
+    assert_eq!(
+        Index::create()
+            .full_text()
+            .name("idx-glyph-image")
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX "idx-glyph-image" ON "glyph" USING GIN ("image")"#
     );
 }
 

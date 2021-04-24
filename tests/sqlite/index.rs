@@ -16,12 +16,13 @@ fn create_1() {
 fn create_2() {
     assert_eq!(
         Index::create()
+            .unique()
             .name("idx-glyph-aspect-image")
             .table(Glyph::Table)
             .col(Glyph::Aspect)
             .col(Glyph::Image)
             .to_string(SqliteQueryBuilder),
-        "CREATE INDEX `idx-glyph-aspect-image` ON `glyph` (`aspect`, `image`)"
+        "CREATE UNIQUE INDEX `idx-glyph-aspect-image` ON `glyph` (`aspect`, `image`)"
     );
 }
 
