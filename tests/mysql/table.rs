@@ -102,6 +102,28 @@ fn create_4() {
 }
 
 #[test]
+fn create_5() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .index(
+                Index::create()
+                    .unique()
+                    .name("idx-glyph-id")
+                    .col(Glyph::Id)
+            )
+            .to_string(MysqlQueryBuilder),
+        vec![
+            "CREATE TABLE `glyph` (",
+                "`id` int NOT NULL,",
+                "UNIQUE KEY `idx-glyph-id` (`id`)",
+            ")",
+        ].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()

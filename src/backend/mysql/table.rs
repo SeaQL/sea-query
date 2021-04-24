@@ -24,6 +24,14 @@ impl TableBuilder for MysqlQueryBuilder {
             count += 1;
         }
 
+        for index in create.indexes.iter() {
+            if count > 0 {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_table_index_create_expression(index, sql);
+            count += 1;
+        }
+
         for foreign_key in create.foreign_keys.iter() {
             if count > 0 {
                 write!(sql, ", ").unwrap();

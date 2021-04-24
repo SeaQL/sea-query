@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, types::*, prepare::*};
+use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, index::*, types::*, prepare::*};
 
 /// Create a table
 /// 
@@ -80,6 +80,7 @@ pub struct TableCreateStatement {
     pub(crate) columns: Vec<ColumnDef>,
     pub(crate) options: Vec<TableOpt>,
     pub(crate) partitions: Vec<TablePartition>,
+    pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
 }
@@ -112,6 +113,7 @@ impl TableCreateStatement {
             columns: Vec::new(),
             options: Vec::new(),
             partitions: Vec::new(),
+            indexes: Vec::new(),
             foreign_keys: Vec::new(),
             if_not_exists: false,
         }
@@ -144,6 +146,12 @@ impl TableCreateStatement {
         let mut column = column;
         column.table = self.table.clone();
         self.columns.push(column);
+        self
+    }
+
+    /// Add an index. MySQL only. 
+    pub fn index(&mut self, index: IndexCreateStatement) -> &mut Self {
+        self.indexes.push(index);
         self
     }
 
