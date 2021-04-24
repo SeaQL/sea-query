@@ -10,6 +10,43 @@ pub struct ColumnDef {
     pub(crate) spec: Vec<ColumnSpec>,
 }
 
+/// All column types
+#[derive(Debug, Clone)]
+pub enum ColumnType {
+    Char(Option<u32>),
+    String(Option<u32>),
+    Text,
+    TinyInteger(Option<u32>),
+    SmallInteger(Option<u32>),
+    Integer(Option<u32>),
+    BigInteger(Option<u32>),
+    Float(Option<u32>),
+    Double(Option<u32>),
+    Decimal(Option<(u32, u32)>),
+    DateTime(Option<u32>),
+    Timestamp(Option<u32>),
+    Time(Option<u32>),
+    Date,
+    Binary(Option<u32>),
+    Boolean,
+    Money(Option<(u32, u32)>),
+    Json,
+    JsonBinary,
+    Custom(Rc<dyn Iden>),
+}
+
+/// All column specification keywords
+#[derive(Debug, Clone)]
+pub enum ColumnSpec {
+    Null,
+    NotNull,
+    Default(Value),
+    AutoIncrement,
+    UniqueKey,
+    PrimaryKey,
+    Extra(String),
+}
+
 impl ColumnDef {
     /// Construct a table column
     pub fn new<T: 'static>(name: T) -> Self
@@ -267,41 +304,4 @@ impl ColumnDef {
         self.spec.push(ColumnSpec::Extra(string));
         self
     }
-}
-
-/// All available column types
-#[derive(Debug, Clone)]
-pub enum ColumnType {
-    Char(Option<u32>),
-    String(Option<u32>),
-    Text,
-    TinyInteger(Option<u32>),
-    SmallInteger(Option<u32>),
-    Integer(Option<u32>),
-    BigInteger(Option<u32>),
-    Float(Option<u32>),
-    Double(Option<u32>),
-    Decimal(Option<(u32, u32)>),
-    DateTime(Option<u32>),
-    Timestamp(Option<u32>),
-    Time(Option<u32>),
-    Date,
-    Binary(Option<u32>),
-    Boolean,
-    Money(Option<(u32, u32)>),
-    Json,
-    JsonBinary,
-    Custom(Rc<dyn Iden>),
-}
-
-/// All available column specification keywords
-#[derive(Debug, Clone)]
-pub enum ColumnSpec {
-    Null,
-    NotNull,
-    Default(Value),
-    AutoIncrement,
-    UniqueKey,
-    PrimaryKey,
-    Extra(String),
 }
