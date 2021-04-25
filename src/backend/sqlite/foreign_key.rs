@@ -2,8 +2,36 @@ use super::*;
 
 impl ForeignKeyBuilder for SqliteQueryBuilder {
     fn prepare_foreign_key_create_statement(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter) {
-        if !create.inside_table_creation {
-            unimplemented!()
+        self.prepare_foreign_key_create_statement_internal(create, sql, false)
+    }
+
+    fn prepare_foreign_key_action(&self, foreign_key_action: &ForeignKeyAction, sql: &mut SqlWriter) {
+        write!(sql, "{}", match foreign_key_action {
+            ForeignKeyAction::Restrict => "RESTRICT",
+            ForeignKeyAction::Cascade => "CASCADE",
+            ForeignKeyAction::SetNull => "SET NULL",
+            ForeignKeyAction::NoAction => "NO ACTION",
+            ForeignKeyAction::SetDefault => "SET DEFAULT",
+        }).unwrap()
+    }
+
+    fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut SqlWriter) {
+        write!(sql, "ALTER TABLE ").unwrap();
+        if let Some(table) = &drop.table {
+            table.prepare(sql, '`');
+        }
+
+        write!(sql, " DROP FOREIGN KEY ").unwrap();
+        if let Some(name) = &drop.foreign_key.name {
+            write!(sql, "`{}`", name).unwrap();
+        }
+    }
+}
+
+impl SqliteQueryBuilder {
+    pub(crate) fn prepare_foreign_key_create_statement_internal(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter, inside_table_creation: bool) {
+        if !inside_table_creation {
+            panic!("Sqlite does not support modification of foreign key constraints to existing tables");
         }
 
         write!(sql, "FOREIGN KEY (").unwrap();
@@ -38,28 +66,6 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         if let Some(foreign_key_action) = &create.foreign_key.on_delete {
             write!(sql, " ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(&foreign_key_action, sql);
-        }
-    }
-
-    fn prepare_foreign_key_action(&self, foreign_key_action: &ForeignKeyAction, sql: &mut SqlWriter) {
-        write!(sql, "{}", match foreign_key_action {
-            ForeignKeyAction::Restrict => "RESTRICT",
-            ForeignKeyAction::Cascade => "CASCADE",
-            ForeignKeyAction::SetNull => "SET NULL",
-            ForeignKeyAction::NoAction => "NO ACTION",
-            ForeignKeyAction::SetDefault => "SET DEFAULT",
-        }).unwrap()
-    }
-
-    fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut SqlWriter) {
-        write!(sql, "ALTER TABLE ").unwrap();
-        if let Some(table) = &drop.table {
-            table.prepare(sql, '`');
-        }
-
-        write!(sql, " DROP FOREIGN KEY ").unwrap();
-        if let Some(name) = &drop.foreign_key.name {
-            write!(sql, "`{}`", name).unwrap();
         }
     }
 }

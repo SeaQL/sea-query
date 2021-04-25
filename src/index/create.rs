@@ -31,6 +31,7 @@ use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
 pub struct IndexCreateStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) index: TableIndex,
+    pub(crate) primary: bool,
     pub(crate) unique: bool,
     pub(crate) index_type: Option<IndexType>,
 }
@@ -56,6 +57,7 @@ impl IndexCreateStatement {
         Self {
             table: None,
             index: Default::default(),
+            primary: false,
             unique: false,
             index_type: None,
         }
@@ -78,6 +80,12 @@ impl IndexCreateStatement {
     pub fn col<T: 'static>(mut self, column: T) -> Self
         where T: Iden {
         self.index.col(column);
+        self
+    }
+
+    /// Set index as primary
+    pub fn primary(mut self) -> Self {
+        self.primary = true;
         self
     }
 

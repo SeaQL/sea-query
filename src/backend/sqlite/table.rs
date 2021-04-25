@@ -24,11 +24,19 @@ impl TableBuilder for SqliteQueryBuilder {
             count += 1;
         }
 
+        for index in create.indexes.iter() {
+            if count > 0 {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_table_index_expression(index, sql);
+            count += 1;
+        }
+
         for foreign_key in create.foreign_keys.iter() {
             if count > 0 {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_foreign_key_create_statement(foreign_key, sql);
+            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, true);
             count += 1;
         }
 

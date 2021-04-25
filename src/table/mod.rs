@@ -8,6 +8,8 @@
 //! - Table Rename, see [`TableRenameStatement`]
 //! - Table Truncate, see [`TableTruncateStatement`]
 
+use crate::TableBuilder;
+
 mod alter;
 mod column;
 mod create;
@@ -60,5 +62,40 @@ impl Table {
     /// Construct table [`TableTruncateStatement`]
     pub fn truncate() -> TableTruncateStatement {
         TableTruncateStatement::new()
+    }
+}
+
+impl TableStatement {
+    /// Build corresponding SQL statement for certain database backend and return SQL string
+    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
+        match self {
+            Self::Create(stat) => stat.build(table_builder),
+            Self::Alter(stat) => stat.build(table_builder),
+            Self::Drop(stat) => stat.build(table_builder),
+            Self::Rename(stat) => stat.build(table_builder),
+            Self::Truncate(stat) => stat.build(table_builder),
+        }
+    }
+
+    /// Build corresponding SQL statement for certain database backend and return SQL string
+    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
+        match self {
+            Self::Create(stat) => stat.build_any(table_builder),
+            Self::Alter(stat) => stat.build_any(table_builder),
+            Self::Drop(stat) => stat.build_any(table_builder),
+            Self::Rename(stat) => stat.build_any(table_builder),
+            Self::Truncate(stat) => stat.build_any(table_builder),
+        }
+    }
+
+    /// Build corresponding SQL statement for certain database backend and return SQL string
+    pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
+        match self {
+            Self::Create(stat) => stat.to_string(table_builder),
+            Self::Alter(stat) => stat.to_string(table_builder),
+            Self::Drop(stat) => stat.to_string(table_builder),
+            Self::Rename(stat) => stat.to_string(table_builder),
+            Self::Truncate(stat) => stat.to_string(table_builder),
+        }
     }
 }

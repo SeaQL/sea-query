@@ -37,7 +37,6 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 #[derive(Debug, Clone)]
 pub struct ForeignKeyCreateStatement {
     pub(crate) foreign_key: TableForeignKey,
-    pub(crate) inside_table_creation: bool,
 }
 
 impl Default for ForeignKeyCreateStatement {
@@ -51,7 +50,6 @@ impl ForeignKeyCreateStatement {
     pub fn new() -> Self {
         Self {
             foreign_key: Default::default(),
-            inside_table_creation: false,
         }
     }
 

@@ -157,8 +157,6 @@ impl TableCreateStatement {
 
     /// Add a foreign key
     pub fn foreign_key(&mut self, foreign_key: ForeignKeyCreateStatement) -> &mut Self {
-        let mut foreign_key = foreign_key;
-        foreign_key.inside_table_creation = true;
         self.foreign_keys.push(foreign_key);
         self
     }

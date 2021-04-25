@@ -1,31 +1,33 @@
+use std::rc::Rc;
 use super::*;
 
 impl IndexBuilder for SqliteQueryBuilder {
+    fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+        self.prepare_index_prefix(create, sql);
+        write!(sql, "KEY ").unwrap();
+
+        self.prepare_index_name(&create.index.name, sql);
+
+        // self.prepare_index_type(&create.index_type, sql);
+
+        self.prepare_index_columns(&create.index.columns, sql);
+    }
+
     fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         write!(sql, "CREATE ").unwrap();
-        if create.unique {
-            write!(sql, "UNIQUE ").unwrap();
-        }
+        self.prepare_index_prefix(create, sql);
         write!(sql, "INDEX ").unwrap();
 
-        if let Some(name) = &create.index.name {
-            write!(sql, "`{}`", name).unwrap();
-        }
+        self.prepare_index_name(&create.index.name, sql);
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
             table.prepare(sql, '`');
         }
 
-        write!(sql, " (").unwrap();
-        create.index.columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            col.prepare(sql, '`');
-            false
-        });
-        write!(sql, ")").unwrap();
+        // self.prepare_index_type(&create.index_type, sql);
+
+        self.prepare_index_columns(&create.index.columns, sql);
     }
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
@@ -38,5 +40,34 @@ impl IndexBuilder for SqliteQueryBuilder {
         if let Some(table) = &drop.table {
             table.prepare(sql, '`');
         }
+    }
+}
+
+impl SqliteQueryBuilder {
+    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+        if create.primary {
+            write!(sql, "PRIMARY ").unwrap();
+        }
+        if create.unique {
+            write!(sql, "UNIQUE ").unwrap();
+        }
+    }
+
+    fn prepare_index_name(&self, name: &Option<String>, sql: &mut SqlWriter) {
+        if let Some(name) = name {
+            write!(sql, "`{}`", name).unwrap();
+        }
+    }
+
+    fn prepare_index_columns(&self, columns: &[Rc<dyn Iden>], sql: &mut SqlWriter) {
+        write!(sql, " (").unwrap();
+        columns.iter().fold(true, |first, col| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            col.prepare(sql, '`');
+            false
+        });
+        write!(sql, ")").unwrap();
     }
 }

@@ -28,7 +28,7 @@ impl TableBuilder for MysqlQueryBuilder {
             if count > 0 {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_table_index_create_expression(index, sql);
+            self.prepare_table_index_expression(index, sql);
             count += 1;
         }
 
@@ -36,7 +36,7 @@ impl TableBuilder for MysqlQueryBuilder {
             if count > 0 {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_foreign_key_create_statement(foreign_key, sql);
+            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, true);
             count += 1;
         }
 
@@ -59,7 +59,7 @@ impl TableBuilder for MysqlQueryBuilder {
         for column_spec in column_def.spec.iter() {
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
-        };
+        }
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut SqlWriter) {
