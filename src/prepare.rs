@@ -3,8 +3,8 @@ pub use std::fmt::Write;
 
 #[derive(Debug, Default)]
 pub struct SqlWriter {
-    pub counter: usize,
-    pub string: String,
+    pub(crate) counter: usize,
+    pub(crate) string: String,
 }
 
 pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
@@ -52,20 +52,33 @@ impl SqlWriter {
     pub fn push_param(&mut self, sign: &str, numbered: bool) {
         self.counter += 1;
         if numbered {
-            write!(&mut self.string, "{}{}", sign, self.counter).unwrap();
+            let counter = self.counter;
+            write!(self, "{}{}", sign, counter).unwrap();
         } else {
-            write!(&mut self.string, "{}", sign).unwrap();
+            write!(self, "{}", sign).unwrap();
         }
     }
 
     pub fn result(self) -> String {
         self.string
     }
+
+    fn skip_str(s: &str, n: usize) -> &str {
+        let mut it = s.chars();
+        for _ in 0..n {
+            it.next();
+        }
+        it.as_str()
+    }
 }
 
 impl std::fmt::Write for SqlWriter {
     fn write_str(&mut self, s: &str) -> Result<(), std::fmt::Error> {
-        write!(self.string, "{}", s)
+        write!(self.string, "{}", if self.string.ends_with(' ') && s.starts_with(' ') {
+            Self::skip_str(s, 1)
+        } else {
+            s
+        })
     }
 }
 

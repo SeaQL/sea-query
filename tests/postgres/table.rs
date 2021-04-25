@@ -25,14 +25,14 @@ fn create_2() {
         Table::create()
             .table(Font::Table)
             .col(ColumnDef::new(Font::Id).integer().not_null().primary_key().auto_increment())
-            .col(ColumnDef::new(Font::Name).string_len(255).not_null())
+            .col(ColumnDef::new(Font::Name).string().not_null())
             .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
             .col(ColumnDef::new(Font::Language).string_len(255).not_null())
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "font" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
-                r#""name" varchar(255) NOT NULL,"#,
+                r#""name" varchar NOT NULL,"#,
                 r#""variant" varchar(255) NOT NULL,"#,
                 r#""language" varchar(255) NOT NULL"#,
             r#")"#,
