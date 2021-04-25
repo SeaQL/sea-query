@@ -238,19 +238,19 @@ impl TableCreateStatement {
         self
     }
 
-    /// Set database engine (for MySQL only)
+    /// Set database engine. MySQL only.
     pub fn engine(&mut self, string: &str) -> &mut Self {
         self.opt(TableOpt::Engine(string.into()));
         self
     }
 
-    /// Set database collate (for MySQL only)
+    /// Set database collate. MySQL only.
     pub fn collate(&mut self, string: &str) -> &mut Self {
         self.opt(TableOpt::Collate(string.into()));
         self
     }
 
-    /// Set database character set (for MySQL only)
+    /// Set database character set. MySQL only.
     pub fn character_set(&mut self, string: &str) -> &mut Self {
         self.opt(TableOpt::CharacterSet(string.into()));
         self
