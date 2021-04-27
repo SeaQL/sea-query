@@ -25,6 +25,12 @@ pub trait IntoIden {
     fn into_iden(self) -> Rc<dyn Iden>;
 }
 
+pub trait IdenList {
+    type IntoIter: Iterator<Item = Rc<dyn Iden>>;
+
+    fn into_iter(self) -> Self::IntoIter;
+}
+
 impl fmt::Debug for dyn Iden {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.unquoted(formatter);
@@ -139,8 +145,7 @@ pub enum Keyword {
 
 // Impl begins
 
-impl<T: 'static> IntoIden for T
-    where T: Iden {
+impl<T: 'static> IntoIden for T where T: Iden {
     fn into_iden(self) -> Rc<dyn Iden> {
         Rc::new(self)
     }
@@ -152,8 +157,33 @@ impl IntoIden for Rc<dyn Iden> {
     }
 }
 
-impl<T: 'static> IntoColumnRef for T
-    where T: IntoIden {
+impl<I> IdenList for I where I: IntoIden {
+    type IntoIter = std::iter::Once<Rc<dyn Iden>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::iter::once(self.into_iden())
+    }
+}
+
+impl<A, B> IdenList for (A, B)
+    where A: IntoIden, B: IntoIden {
+    type IntoIter = std::vec::IntoIter<Rc<dyn Iden>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        vec![self.0.into_iden(), self.1.into_iden()].into_iter()
+    }
+}
+
+impl<A, B, C> IdenList for (A, B, C)
+    where A: IntoIden, B: IntoIden, C: IntoIden {
+    type IntoIter = std::vec::IntoIter<Rc<dyn Iden>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        vec![self.0.into_iden(), self.1.into_iden(), self.2.into_iden()].into_iter()
+    }
+}
+
+impl<T: 'static> IntoColumnRef for T where T: IntoIden {
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::Column(self.into_iden())
     }

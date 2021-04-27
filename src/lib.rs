@@ -282,8 +282,8 @@
 //!     .foreign_key(
 //!         ForeignKey::create()
 //!             .name("FK_2e303c3a712662f1fc2a4d0aad6")
-//!             .table(Char::Table, Font::Table)
-//!             .col(Char::FontId, Font::Id)
+//!             .from(Char::Table, Char::FontId)
+//!             .to(Font::Table, Font::Id)
 //!             .on_delete(ForeignKeyAction::Cascade)
 //!             .on_update(ForeignKeyAction::Cascade)
 //!     )
@@ -438,8 +438,8 @@
 //! 
 //! let foreign_key = ForeignKey::create()
 //!     .name("FK_character_font")
-//!     .table(Char::Table, Font::Table)
-//!     .col(Char::FontId, Font::Id)
+//!     .from(Char::Table, Char::FontId)
+//!     .to(Font::Table, Font::Id)
 //!     .on_delete(ForeignKeyAction::Cascade)
 //!     .on_update(ForeignKeyAction::Cascade)
 //!     .to_owned();

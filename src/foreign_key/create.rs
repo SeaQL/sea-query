@@ -1,6 +1,6 @@
 use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
 
-/// Create a foreign key constraint for an existing table
+/// Create a foreign key constraint for an existing table. Unsupported by Sqlite
 /// 
 /// # Examples
 /// 
@@ -9,8 +9,8 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 /// 
 /// let foreign_key = ForeignKey::create()
 ///     .name("FK_character_font")
-///     .table(Char::Table, Font::Table)
-///     .col(Char::FontId, Font::Id)
+///     .from(Char::Table, Char::FontId)
+///     .to(Font::Table, Font::Id)
 ///     .on_delete(ForeignKeyAction::Cascade)
 ///     .on_update(ForeignKeyAction::Cascade)
 ///     .to_owned();
@@ -32,7 +32,37 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
 ///     ].join(" ")
 /// );
-/// // Sqlite does not support modification of foreign key constraints to existing tables
+/// ```
+/// 
+/// Composite key
+/// ```
+/// use sea_query::{*, tests_cfg::*};
+/// 
+/// let foreign_key = ForeignKey::create()
+///     .name("FK_character_glyph")
+///     .from(Char::Table, (Char::FontId, Char::Id))
+///     .to(Glyph::Table, (Char::FontId, Glyph::Id))
+///     .on_delete(ForeignKeyAction::Cascade)
+///     .on_update(ForeignKeyAction::Cascade)
+///     .to_owned();
+/// 
+/// assert_eq!(
+///     foreign_key.to_string(MysqlQueryBuilder),
+///     vec![
+///         r#"ALTER TABLE `character`"#,
+///         r#"ADD CONSTRAINT `FK_character_glyph`"#,
+///         r#"FOREIGN KEY `FK_character_glyph` (`font_id`, `id`) REFERENCES `glyph` (`font_id`, `id`)"#,
+///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
+///     ].join(" ")
+/// );
+/// assert_eq!(
+///     foreign_key.to_string(PostgresQueryBuilder),
+///     vec![
+///         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_glyph""#,
+///         r#"FOREIGN KEY ("font_id", "id") REFERENCES "glyph" ("font_id", "id")"#,
+///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
+///     ].join(" ")
+/// );
 /// ```
 #[derive(Debug, Clone)]
 pub struct ForeignKeyCreateStatement {
@@ -60,16 +90,46 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set key table and referencing table
+    #[deprecated(
+        since = "0.10.2",
+        note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
+    )]
     pub fn table<T: 'static, R: 'static>(mut self, table: T, ref_table: R) -> Self
         where T: Iden, R: Iden {
-        self.foreign_key.table(table, ref_table);
+        self.foreign_key.from_tbl(table);
+        self.foreign_key.to_tbl(ref_table);
         self
     }
 
     /// Set key column and referencing column
+    #[deprecated(
+        since = "0.10.2",
+        note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
+    )]
     pub fn col<T: 'static, R: 'static>(mut self, column: T, ref_column: R) -> Self
         where T: Iden, R: Iden {
-        self.foreign_key.col(column, ref_column);
+        self.foreign_key.from_col(column);
+        self.foreign_key.to_col(ref_column);
+        self
+    }
+
+    /// Set key table and columns
+    pub fn from<T, C>(mut self, table: T, columns: C) -> Self
+        where T: IntoIden, C: IdenList {
+        self.foreign_key.from_tbl(table);
+        for col in columns.into_iter() {
+            self.foreign_key.from_col(col);
+        }
+        self
+    }
+
+    /// Set referencing table and columns
+    pub fn to<T, C>(mut self, table: T, columns: C) -> Self
+        where T: IntoIden, C: IdenList {
+        self.foreign_key.to_tbl(table);
+        for col in columns.into_iter() {
+            self.foreign_key.to_col(col);
+        }
         self
     }
 

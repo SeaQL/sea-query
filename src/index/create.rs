@@ -76,7 +76,7 @@ impl IndexCreateStatement {
         self
     }
 
-    /// Set index column
+    /// Add index column
     pub fn col<T: 'static>(mut self, column: T) -> Self
         where T: Iden {
         self.index.col(column);

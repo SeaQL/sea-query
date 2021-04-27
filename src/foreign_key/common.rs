@@ -49,19 +49,31 @@ impl TableForeignKey {
         self
     }
 
-    /// Set key table and referencing table
-    pub fn table<T: 'static, R: 'static>(&mut self, table: T, ref_table: R) -> &mut Self
-        where T: Iden, R: Iden {
-        self.table = Some(Rc::new(table));
-        self.ref_table = Some(Rc::new(ref_table));
+    /// Set key table
+    pub fn from_tbl<T>(&mut self, table: T) -> &mut Self
+        where T: IntoIden {
+        self.table = Some(table.into_iden());
         self
     }
 
-    /// Set key column and referencing column
-    pub fn col<T: 'static, R: 'static>(&mut self, column: T, ref_column: R) -> &mut Self
-        where T: Iden, R: Iden {
-        self.columns.push(Rc::new(column));
-        self.ref_columns.push(Rc::new(ref_column));
+    /// Set referencing table
+    pub fn to_tbl<R>(&mut self, ref_table: R) -> &mut Self
+        where R: IntoIden {
+        self.ref_table = Some(ref_table.into_iden());
+        self
+    }
+
+    /// Add key column
+    pub fn from_col<T>(&mut self, column: T) -> &mut Self
+        where T: IntoIden {
+        self.columns.push(column.into_iden());
+        self
+    }
+
+    /// Add referencing column
+    pub fn to_col<R>(&mut self, ref_column: R) -> &mut Self
+        where R: IntoIden {
+        self.ref_columns.push(ref_column.into_iden());
         self
     }
 
