@@ -133,6 +133,34 @@ impl ForeignKeyCreateStatement {
         self
     }
 
+    /// Set key table
+    pub fn from_tbl<T>(mut self, table: T) -> Self
+        where T: IntoIden {
+        self.foreign_key.from_tbl(table);
+        self
+    }
+
+    /// Set referencing table
+    pub fn to_tbl<R>(mut self, ref_table: R) -> Self
+        where R: IntoIden {
+        self.foreign_key.to_tbl(ref_table);
+        self
+    }
+
+    /// Add key column
+    pub fn from_col<T>(mut self, column: T) -> Self
+        where T: IntoIden {
+        self.foreign_key.from_col(column);
+        self
+    }
+
+    /// Add referencing column
+    pub fn to_col<R>(mut self, ref_column: R) -> Self
+        where R: IntoIden {
+        self.foreign_key.to_col(ref_column);
+        self
+    }
+
     /// Set on delete action
     pub fn on_delete(mut self, action: ForeignKeyAction) -> Self {
         self.foreign_key.on_delete(action);
