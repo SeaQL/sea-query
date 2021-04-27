@@ -64,7 +64,7 @@ fn create_3() {
                     .table(Char::Table, Font::Table)
                     .col(Char::FontId, Font::Id)
                     .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Restrict)
             )
             .engine("InnoDB")
             .character_set("utf8mb4")
@@ -80,7 +80,7 @@ fn create_3() {
                 "`font_id` int(11) DEFAULT NULL,",
                 "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
                     "FOREIGN KEY `FK_2e303c3a712662f1fc2a4d0aad6` (`font_id`) REFERENCES `font` (`id`)",
-                    "ON DELETE CASCADE ON UPDATE CASCADE",
+                    "ON DELETE CASCADE ON UPDATE RESTRICT",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         ].join(" ")
     );

@@ -78,7 +78,7 @@ impl MysqlQueryBuilder {
             self.prepare_foreign_key_action(&foreign_key_action, sql);
         }
 
-        if let Some(foreign_key_action) = &create.foreign_key.on_delete {
+        if let Some(foreign_key_action) = &create.foreign_key.on_update {
             write!(sql, " ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(&foreign_key_action, sql);
         }
