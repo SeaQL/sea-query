@@ -54,8 +54,8 @@ fn create_3() {
             .col(ColumnDef::new(Char::FontId).integer().default(Value::Null))
             .foreign_key(
                 ForeignKey::create()
-                    .table(Char::Table, Font::Table)
-                    .col(Char::FontId, Font::Id)
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade)
             )
