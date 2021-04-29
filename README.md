@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="docs/SeaQL logo dual.png" width="320"/>
+  <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL logo dual.png" width="320"/>
 
   <h1>SeaQuery</h1>
 
@@ -61,7 +61,7 @@ Table of Content
 
 ### Drivers
 
-We provide integration for [SQLx](https://crates.io/crates/sqlx), [postgres](https://crates.io/crates/postgres) and [rusqlite](https://crates.io/crates/rusqlite).
+We provide integration for [SQLx](https://crates.io/crates/sqlx) and [postgres](https://crates.io/crates/postgres).
 See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
 
 ### Iden
@@ -74,7 +74,7 @@ and its variants include table name and column name.
 [`Iden::unquoted()`] must be implemented to provide a mapping between Enum variant and its corresponding string value.
 
 ```rust
-use sea_query::Iden;
+use sea_query::{*, tests_cfg::*};
 
 // For example Character table with column id, character, font_size...
 pub enum Character {
@@ -82,6 +82,9 @@ pub enum Character {
     Id,
     Character,
     FontSize,
+    SizeW,
+    SizeH,
+    FontId,
 }
 
 // Mapping between Enum variant and its corresponding string value
@@ -92,6 +95,9 @@ impl Iden for Character {
             Self::Id => "id",
             Self::Character => "character",
             Self::FontSize => "font_size",
+            Self::SizeW => "size_w",
+            Self::SizeH => "size_h",
+            Self::FontId => "font_id",
         }).unwrap();
     }
 }
@@ -99,19 +105,22 @@ impl Iden for Character {
 
 If you're okay with running another procedural macro, you can activate
 the `derive` feature on the crate to save you some boilerplate.
-For more information, look at 
+For more information, look at
 [the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
 
 ```rust
 use sea_query::Iden;
 
-// This will implement Iden same as previous example
+// This will implement Iden exactly as shown above
 #[derive(Iden)]
 pub enum Character {
     Table,
     Id,
     Character,
     FontSize,
+    SizeW,
+    SizeH,
+    FontId,
 }
 ```
 
@@ -152,13 +161,13 @@ assert_eq!(
 
 All the query statements and table statements support the following ways to build database specific SQL statement:
 
-1. `build(&self, query_builder: T) -> (String, Values)`  
+1. `build(&self, query_builder: T) -> (String, Values)`
     Build a SQL statement as string and parameters as a vector of values, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build) for example.
 
-1. `build_collect(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String`  
+1. `build_collect(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String`
     Build a SQL statement as string and collect paramaters (usually for binding to binary protocol), see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build_collect) for example.
 
-1. `to_string(&self, query_builder: T) -> String`  
+1. `to_string(&self, query_builder: T) -> String`
     Build a SQL statement as string with parameters injected, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.to_string) for example.
 
 ### Query Select
@@ -204,10 +213,10 @@ let query = Query::insert()
         5.15.into(),
         "12A".into(),
     ])
-    .json(json!({
-        "aspect": 4.21,
-        "image": "123",
-    }))
+    .values_panic(vec![
+        4.21.into(),
+        "123".into(),
+    ])
     .to_owned();
 
 assert_eq!(

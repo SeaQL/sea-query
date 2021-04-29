@@ -1,11 +1,37 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(missing_debug_implementations)]
 
-//! A database agnostic runtime query builder for Rust.
-//!
-//! SeaQuery is query builder to help you construct dynamic SQL queries in Rust. You can construct expressions, queries and schema as formal syntax trees using an ergonomic API. We support MySQL, Postgres and SQLite (WIP) behind a generic interface, while still offering engine specific features via extensions if you need them.
+//! <div align="center">
+//! 
+//!   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL logo dual.png" width="320"/>
+//! 
+//!   <h1>SeaQuery</h1>
+//! 
+//!   <p>
+//!     <strong>A database agnostic runtime query builder for Rust</strong>
+//!   </p>
+//! 
+//!   [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
+//!   [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
+//!   [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
+//! 
+//!   <sub>Built with ❤️ by 🌊🦀🐚</sub>
+//! 
+//! </div>
+//! 
+//! ## Introduction
+//! 
+//! SeaQuery is query builder to help you construct dynamic SQL queries in Rust. You can construct expressions, queries and schema as formal syntax trees using an ergonomic API. We support MySQL, Postgres and SQLite behind a generic interface, while still offering engine specific features via extensions if you need them.
 //! 
 //! This library is the foundation of upcoming projects: Document ORM (SeaORM) and Database Synchor (SeaHorse).
+//! 
+//! ## Install
+//! 
+//! ```toml
+//! # Cargo.toml
+//! [dependencies]
+//! sea-query = "*"
+//! ```
 //! 
 //! ## Usage
 //! 
@@ -88,7 +114,7 @@
 //! ```rust
 //! # #[cfg(feature = "derive")]
 //! use sea_query::Iden;
-//!
+//! 
 //! // This will implement Iden exactly as shown above
 //! # #[cfg(feature = "derive")]
 //! #[derive(Iden)]
