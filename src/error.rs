@@ -1,0 +1,13 @@
+/// Result type for sea-query
+pub type Result<T> = anyhow::Result<T, Error>;
+
+/// Different types of error in sea-query
+#[derive(thiserror::Error, Debug, PartialEq, Eq)]
+pub enum Error {
+    /// Column and value vector having different length
+    #[error("Columns and values length mismatch: {col_len} != {val_len}")]
+    ColValNumMismatch {
+        col_len: usize,
+        val_len: usize,
+    }
+}

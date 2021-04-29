@@ -1,7 +1,7 @@
 use std::rc::Rc;
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, types::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, types::*, value::*, prepare::*, error::*};
 use std::iter::FromIterator;
 
 /// Insert any new rows into an existing table
@@ -126,17 +126,16 @@ impl InsertStatement {
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// ```
-    pub fn values<I>(&mut self, values: I) -> Result<&mut Self, String>
+    pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
     where
         I: IntoIterator<Item = Value>,
     {
         let values = Vec::from_iter(values.into_iter());
         if self.columns.len() != values.len() {
-            return Err(format!(
-                "columns and values length mismatch: {} != {}",
-                self.columns.len(),
-                values.len()
-            ));
+            return Err(Error::ColValNumMismatch {
+                col_len: self.columns.len(),
+                val_len: values.len(),
+            });
         }
         self.values.push(values);
         Ok(self)
