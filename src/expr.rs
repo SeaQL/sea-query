@@ -1003,22 +1003,45 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns(vec![Char::Id])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in(vec![1, 2, 3]))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
+    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
+    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
+    /// );
+    /// ```
+    /// Empty value list
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in(Vec::<u8>::new()))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE 1 = 2"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
@@ -1042,22 +1065,45 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     /// 
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns(vec![Char::Id])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in(vec![1, 2, 3]))
     ///     .to_owned();
     /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
+    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
+    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
+    /// );
+    /// ```
+    /// Empty value list
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in(Vec::<u8>::new()))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE 1 = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE 1 = 1"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
@@ -1398,6 +1444,17 @@ impl SimpleExpr {
 
     pub(crate) fn is_binary(&self) -> bool {
         matches!(self, Self::Binary(_, _, _))
+    }
+
+    pub(crate) fn is_values(&self) -> bool {
+        matches!(self, Self::Values(_))
+    }
+
+    pub(crate) fn get_values(&self) -> &Vec<Value> {
+        match self {
+            Self::Values(vec) => vec,
+            _ => panic!("not Values"),
+        }
     }
 
     pub(crate) fn get_bin_oper(&self) -> Option<BinOper> {

@@ -215,33 +215,12 @@ impl QueryBuilder for MysqlQueryBuilder {
                 write!(sql, ")").unwrap();
             },
             SimpleExpr::Binary(left, op, right) => {
-                let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
-                let left_paren =
-                    left.need_parentheses() &&
-                    left.is_binary() && *op != left.get_bin_oper().unwrap() &&
-                    !no_paren;
-                if left_paren {
-                    write!(sql, "(").unwrap();
-                }
-                self.prepare_simple_expr(left, sql, collector);
-                if left_paren {
-                    write!(sql, ")").unwrap();
-                }
-                write!(sql, " ").unwrap();
-                self.prepare_bin_oper(op, sql, collector);
-                write!(sql, " ").unwrap();
-                let no_right_paren = matches!(op, BinOper::Between | BinOper::NotBetween);
-                let right_paren =
-                    (right.need_parentheses() ||
-                        right.is_binary() && *op != left.get_bin_oper().unwrap()) &&
-                    !no_right_paren &&
-                    !no_paren;
-                if right_paren {
-                    write!(sql, "(").unwrap();
-                }
-                self.prepare_simple_expr(right, sql, collector);
-                if right_paren {
-                    write!(sql, ")").unwrap();
+                if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
+                    self.binary_expr(&SimpleExpr::Value(1.into()), &BinOper::Equal, &SimpleExpr::Value(2.into()), sql, collector);
+                } else if *op == BinOper::NotIn && right.is_values() && right.get_values().is_empty() {
+                    self.binary_expr(&SimpleExpr::Value(1.into()), &BinOper::Equal, &SimpleExpr::Value(1.into()), sql, collector);
+                } else {
+                    self.binary_expr(left, op, right, sql, collector);
                 }
             },
             SimpleExpr::SubQuery(sel) => {
@@ -474,6 +453,40 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn value_to_string(&self, v: &Value) -> String {
         mysql_value_to_string(v)
+    }
+}
+
+impl MysqlQueryBuilder {
+    fn binary_expr(&self, left: &SimpleExpr, op: &BinOper, right: &SimpleExpr,
+        sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
+        let left_paren =
+            left.need_parentheses() &&
+            left.is_binary() && *op != left.get_bin_oper().unwrap() &&
+            !no_paren;
+        if left_paren {
+            write!(sql, "(").unwrap();
+        }
+        self.prepare_simple_expr(left, sql, collector);
+        if left_paren {
+            write!(sql, ")").unwrap();
+        }
+        write!(sql, " ").unwrap();
+        self.prepare_bin_oper(op, sql, collector);
+        write!(sql, " ").unwrap();
+        let no_right_paren = matches!(op, BinOper::Between | BinOper::NotBetween);
+        let right_paren =
+            (right.need_parentheses() ||
+                right.is_binary() && *op != left.get_bin_oper().unwrap()) &&
+            !no_right_paren &&
+            !no_paren;
+        if right_paren {
+            write!(sql, "(").unwrap();
+        }
+        self.prepare_simple_expr(right, sql, collector);
+        if right_paren {
+            write!(sql, ")").unwrap();
+        }
     }
 }
 
