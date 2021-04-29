@@ -549,6 +549,7 @@ pub mod tests_cfg;
 pub mod token;
 pub mod types;
 pub mod value;
+pub mod error;
 
 pub use backend::*;
 pub use driver::*;
