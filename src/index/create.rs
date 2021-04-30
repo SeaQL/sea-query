@@ -1,5 +1,6 @@
 use std::rc::Rc;
-use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
+use crate::{backend::IndexBuilder, types::*, prepare::*};
+use super::common::*;
 
 /// Create an index for an existing table
 /// 
@@ -25,6 +26,75 @@ use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
 /// assert_eq!(
 ///     index.to_string(SqliteQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
+/// );
+/// ```
+/// Index with prefix
+/// ```
+/// use sea_query::{*, tests_cfg::*};
+/// 
+/// let index = Index::create()
+///     .name("idx-glyph-aspect")
+///     .table(Glyph::Table)
+///     .col((Glyph::Aspect, 128))
+///     .to_owned();
+/// 
+/// assert_eq!(
+///     index.to_string(MysqlQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (128))"#
+/// );
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" (128))"#
+/// );
+/// assert_eq!(
+///     index.to_string(SqliteQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
+/// );
+/// ```
+/// Index with order
+/// ```
+/// use sea_query::{*, tests_cfg::*};
+/// 
+/// let index = Index::create()
+///     .name("idx-glyph-aspect")
+///     .table(Glyph::Table)
+///     .col((Glyph::Aspect, IndexOrder::Desc))
+///     .to_owned();
+/// 
+/// assert_eq!(
+///     index.to_string(MysqlQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` DESC)"#
+/// );
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC)"#
+/// );
+/// assert_eq!(
+///     index.to_string(SqliteQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` DESC)"#
+/// );
+/// ```
+/// Index with prefix and order
+/// ```
+/// use sea_query::{*, tests_cfg::*};
+/// 
+/// let index = Index::create()
+///     .name("idx-glyph-aspect")
+///     .table(Glyph::Table)
+///     .col((Glyph::Aspect, 64, IndexOrder::Asc))
+///     .to_owned();
+/// 
+/// assert_eq!(
+///     index.to_string(MysqlQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (64) ASC)"#
+/// );
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" (64) ASC)"#
+/// );
+/// assert_eq!(
+///     index.to_string(SqliteQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` ASC)"#
 /// );
 /// ```
 #[derive(Debug, Clone)]
@@ -77,9 +147,9 @@ impl IndexCreateStatement {
     }
 
     /// Add index column
-    pub fn col<T: 'static>(mut self, column: T) -> Self
-        where T: Iden {
-        self.index.col(column);
+    pub fn col<C: 'static>(mut self, col: C) -> Self
+        where C: IntoIndexColumn {
+        self.index.col(col.into_index_column());
         self
     }
 

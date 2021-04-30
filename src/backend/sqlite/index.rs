@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use super::*;
 
 impl IndexBuilder for SqliteQueryBuilder {
@@ -59,13 +58,19 @@ impl SqliteQueryBuilder {
         }
     }
 
-    fn prepare_index_columns(&self, columns: &[Rc<dyn Iden>], sql: &mut SqlWriter) {
+    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut SqlWriter) {
         write!(sql, " (").unwrap();
         columns.iter().fold(true, |first, col| {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql, '`');
+            col.name.prepare(sql, '`');
+            if let Some(order) = &col.order {
+                match order {
+                    IndexOrder::Asc => write!(sql, " ASC").unwrap(),
+                    IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+                }
+            }
             false
         });
         write!(sql, ")").unwrap();
