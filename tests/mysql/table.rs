@@ -79,7 +79,7 @@ fn create_3() {
                 "`size_h` int(11) NOT NULL,",
                 "`font_id` int(11) DEFAULT NULL,",
                 "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
-                    "FOREIGN KEY `FK_2e303c3a712662f1fc2a4d0aad6` (`font_id`) REFERENCES `font` (`id`)",
+                    "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
                     "ON DELETE CASCADE ON UPDATE RESTRICT",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         ].join(" ")

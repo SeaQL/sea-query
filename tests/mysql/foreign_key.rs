@@ -13,7 +13,7 @@ fn create_1() {
         vec![
             "ALTER TABLE `character`",
             "ADD CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
-            "FOREIGN KEY `FK_2e303c3a712662f1fc2a4d0aad6` (`font_id`) REFERENCES `font` (`id`)",
+            "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE CASCADE",
         ].join(" ")
     );

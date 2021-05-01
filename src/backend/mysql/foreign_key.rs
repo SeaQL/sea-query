@@ -43,9 +43,6 @@ impl MysqlQueryBuilder {
             write!(sql, "`{}`", name).unwrap();
         }
         write!(sql, " FOREIGN KEY ").unwrap();
-        if let Some(name) = &create.foreign_key.name {
-            write!(sql, "`{}`", name).unwrap();
-        }
 
         write!(sql, " (").unwrap();
         create.foreign_key.columns.iter().fold(true, |first, col| {
