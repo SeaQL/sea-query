@@ -36,12 +36,15 @@ async fn main() {
             "A".into(),
             12.into(),
         ])
+        .returning_id()
         .build(PostgresQueryBuilder);
 
-    let result = bind_query(sqlx::query(&sql), &values)
-            .execute(&mut pool)
-            .await;
-    println!("Insert into character: {:?}\n", result);
+    let row = bind_query(sqlx::query(&sql), &values)
+            .fetch_one(&mut pool)
+            .await
+            .unwrap();
+    let id: i32 = row.try_get(0).unwrap();
+    println!("Insert into character last_insert_id = {}\n", id);
 
     // Read
 
@@ -59,12 +62,9 @@ async fn main() {
             .await
             .unwrap();
     println!("Select one from character:");
-    let mut id = None;
     for row in rows.iter() {
-        id = Some(row.id);
         println!("{:?}", row);
     }
-    let id = id.unwrap();
     println!();
 
     // Update

@@ -41,8 +41,8 @@ async fn main() {
     let result = bind_query(sqlx::query(&sql), &values)
             .execute(&mut pool)
             .await;
-    println!("Insert into character: {:?}\n", result);
     let id = result.unwrap().last_insert_id();
+    println!("Insert into character: {:?}, last_insert_id = {}\n", result, id);
 
     // Read
 

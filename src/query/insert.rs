@@ -1,8 +1,7 @@
 use std::rc::Rc;
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, types::*, value::*, prepare::*, error::*};
-use std::iter::FromIterator;
+use crate::{backend::QueryBuilder, Query, BaseIden, SelectExpr, SelectStatement, types::*, value::*, prepare::*, error::*};
 
 /// Insert any new rows into an existing table
 /// 
@@ -40,27 +39,18 @@ use std::iter::FromIterator;
 ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<Rc<dyn Iden>>,
     pub(crate) values: Vec<Vec<Value>>,
-}
-
-impl Default for InsertStatement {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub(crate) returning: Vec<SelectExpr>,
 }
 
 impl InsertStatement {
     /// Construct a new [`InsertStatement`]
     pub fn new() -> Self {
-        Self {
-            table: None,
-            columns: Vec::new(),
-            values: Vec::new(),
-        }
+        Self::default()
     }
 
     /// Specify which table to insert into.
@@ -130,7 +120,7 @@ impl InsertStatement {
     where
         I: IntoIterator<Item = Value>,
     {
-        let values = Vec::from_iter(values.into_iter());
+        let values = values.into_iter().collect::<Vec<_>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),
@@ -147,6 +137,57 @@ impl InsertStatement {
         I: IntoIterator<Item = Value>,
     {
         self.values(values).unwrap()
+    }
+
+    /// RETURNING expressions. Postgres only. 
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![
+    ///         Glyph::Image,
+    ///     ])
+    ///     .values_panic(vec![
+    ///         "12A".into(),
+    ///     ])
+    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
+    /// );
+    /// ```
+    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
+        self.returning = select.selects;
+        self
+    }
+
+    /// RETURNING id. Postgres only. Wrapper over [`InsertStatement::returning()`].
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![
+    ///         Glyph::Image,
+    ///     ])
+    ///     .values_panic(vec![
+    ///         "12A".into(),
+    ///     ])
+    ///     .returning_id()
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
+    /// );
+    /// ```
+    pub fn returning_id(&mut self) -> &mut Self {
+        self.returning(Query::select().column(BaseIden::Id).take())
     }
 
     /// Specify a row of values to be inserted, taking input of json values. A convenience method if you have multiple

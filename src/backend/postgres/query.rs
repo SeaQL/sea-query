@@ -36,6 +36,17 @@ impl QueryBuilder for PostgresQueryBuilder {
             write!(sql, ")").unwrap();
             false
         });
+
+        if !insert.returning.is_empty() {
+            write!(sql, " RETURNING ").unwrap();
+            insert.returning.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_select_expr(expr, sql, collector);
+                false
+            });
+        }
     }
 
     fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
