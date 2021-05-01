@@ -20,7 +20,7 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     vec![
 ///         r#"ALTER TABLE `character`"#,
 ///         r#"ADD CONSTRAINT `FK_character_font`"#,
-///         r#"FOREIGN KEY `FK_character_font` (`font_id`) REFERENCES `font` (`id`)"#,
+///         r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
 ///     ].join(" ")
 /// );
@@ -51,7 +51,7 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     vec![
 ///         r#"ALTER TABLE `character`"#,
 ///         r#"ADD CONSTRAINT `FK_character_glyph`"#,
-///         r#"FOREIGN KEY `FK_character_glyph` (`font_id`, `id`) REFERENCES `glyph` (`font_id`, `id`)"#,
+///         r#"FOREIGN KEY (`font_id`, `id`) REFERENCES `glyph` (`font_id`, `id`)"#,
 ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
 ///     ].join(" ")
 /// );

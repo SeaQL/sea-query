@@ -329,7 +329,7 @@
 //!             r#"`size_h` int NOT NULL,"#,
 //!             r#"`font_id` int DEFAULT NULL,"#,
 //!             r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
-//!                 r#"FOREIGN KEY `FK_2e303c3a712662f1fc2a4d0aad6` (`font_id`) REFERENCES `font` (`id`)"#,
+//!                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 //!                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
 //!         r#")"#,
 //!     ].join(" ")
@@ -478,7 +478,7 @@
 //!     vec![
 //!         r#"ALTER TABLE `character`"#,
 //!         r#"ADD CONSTRAINT `FK_character_font`"#,
-//!         r#"FOREIGN KEY `FK_character_font` (`font_id`) REFERENCES `font` (`id`)"#,
+//!         r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 //!         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
 //!     ].join(" ")
 //! );
