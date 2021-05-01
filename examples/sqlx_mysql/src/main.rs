@@ -1,15 +1,13 @@
-use async_std::task;
-use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table};
 use sqlx::{MySqlPool, Row};
+use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table};
 
 sea_query::sea_query_driver_mysql!();
 use sea_query_driver_mysql::{bind_query, bind_query_as};
 
-fn main() {
+#[async_std::main]
+async fn main() {
 
-    let connection = task::block_on(async {
-        MySqlPool::connect("mysql://sea:sea@127.0.0.1/query").await.unwrap()
-    });
+    let connection = MySqlPool::connect("mysql://sea:sea@127.0.0.1/query").await.unwrap();
     let mut pool = connection.try_acquire().unwrap();
 
     // Schema
@@ -22,11 +20,9 @@ fn main() {
         .col(ColumnDef::new(Character::Character).string())
         .build(MysqlQueryBuilder);
 
-    let result = task::block_on(async {
-        sqlx::query(&sql)
+    let result = sqlx::query(&sql)
             .execute(&mut pool)
-            .await
-    });
+            .await;
     println!("Create table character: {:?}\n", result);
 
     // Create
@@ -42,11 +38,9 @@ fn main() {
         ])
         .build(MysqlQueryBuilder);
 
-    let result = task::block_on(async {
-        bind_query(sqlx::query(&sql), &values)
+    let result = bind_query(sqlx::query(&sql), &values)
             .execute(&mut pool)
-            .await
-    });
+            .await;
     println!("Insert into character: {:?}\n", result);
     let id = result.unwrap().last_insert_id();
 
@@ -61,12 +55,10 @@ fn main() {
         .limit(1)
         .build(MysqlQueryBuilder);
 
-    let rows = task::block_on(async {
-        bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
             .fetch_all(&mut pool)
             .await
-            .unwrap()
-    });
+            .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{:?}", row);
@@ -83,11 +75,9 @@ fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build(MysqlQueryBuilder);
 
-    let result = task::block_on(async {
-        bind_query(sqlx::query(&sql), &values)
+    let result = bind_query(sqlx::query(&sql), &values)
             .execute(&mut pool)
-            .await
-    });
+            .await;
     println!("Update character: {:?}\n", result);
 
     // Read
@@ -101,12 +91,10 @@ fn main() {
         .limit(1)
         .build(MysqlQueryBuilder);
 
-    let rows = task::block_on(async {
-        bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
             .fetch_all(&mut pool)
             .await
-            .unwrap()
-    });
+            .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{:?}", row);
@@ -120,12 +108,10 @@ fn main() {
         .expr(Func::count(Expr::col(Character::Id)))
         .build(MysqlQueryBuilder);
 
-    let row = task::block_on(async {
-        bind_query(sqlx::query(&sql), &values)
+    let row = bind_query(sqlx::query(&sql), &values)
             .fetch_one(&mut pool)
             .await
-            .unwrap()
-    });
+            .unwrap();
     print!("Count character: ");
     let count: i64 = row.try_get(0).unwrap();
     println!("{}", count);
@@ -138,11 +124,9 @@ fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build(MysqlQueryBuilder);
 
-    let result = task::block_on(async {
-        bind_query(sqlx::query(&sql), &values)
+    let result = bind_query(sqlx::query(&sql), &values)
             .execute(&mut pool)
-            .await
-    });
+            .await;
     println!("Delete character: {:?}", result);
 }
 
