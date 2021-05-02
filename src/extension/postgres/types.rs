@@ -28,10 +28,22 @@ pub struct TypeDropStatement {
     pub(crate) if_exists: bool,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct TypeAlterStatement {
+    pub(crate) name: Option<Rc<dyn Iden>>,
+    pub(crate) option: Option<TypeAlterOpt>,
+}
+
 #[derive(Debug, Clone)]
 pub enum TypeDropOpt {
     Cascade,
     Restrict,
+}
+
+#[derive(Debug, Clone)]
+pub enum TypeAlterOpt {
+    Add(Vec<Rc<dyn Iden>>),
+    Rename(Rc<dyn Iden>),
 }
 
 pub trait TypeBuilder {
@@ -40,6 +52,9 @@ pub trait TypeBuilder {
 
     /// Translate [`TypeDropStatement`] into database specific SQL statement.
     fn prepare_type_drop_statement(&self, create: &TypeDropStatement, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value));
+
+    /// Translate [`TypeAlterStatement`] into database specific SQL statement.
+    fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value));
 }
 
 impl Type {
@@ -51,6 +66,11 @@ impl Type {
     /// Construct type [`TypeDropStatement`]
     pub fn drop() -> TypeDropStatement {
         TypeDropStatement::new()
+    }
+
+    /// Construct type [`TypeAlterStatement`]
+    pub fn alter() -> TypeAlterStatement {
+        TypeAlterStatement::new()
     }
 }
 
@@ -223,6 +243,76 @@ impl TypeDropStatement {
     pub fn build_collect_ref<T: TypeBuilder>(&self, type_builder: &T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         type_builder.prepare_type_drop_statement(self, &mut sql, collector);
+        sql.result()
+    }
+
+    /// Build corresponding SQL statement and return SQL string
+    pub fn to_string<T>(&self, type_builder: T) -> String
+        where T: TypeBuilder + QueryBuilder {
+        let (sql, values) = self.build_ref(&type_builder);
+        inject_parameters(&sql, values, &type_builder)
+    }
+}
+
+impl TypeAlterStatement {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn name<T>(&mut self, name: T) -> &mut Self
+        where T: IntoIden {
+        self.name = Some(name.into_iden());
+        self
+    }
+
+    pub fn add_value<T>(self, value: T) -> Self 
+    where
+        T: IntoIden
+    {
+        self.alter_option(TypeAlterOpt::Add(vec![value.into_iden()]))
+    }
+
+    pub fn add_values<T, I>(self, values: I) -> Self
+    where
+        T: IntoIden,
+        I: IntoIterator<Item = T>,
+    {
+        let values = values.into_iter().map(|iden| iden.into_iden()).collect();
+        self.alter_option(TypeAlterOpt::Add(values))
+    }
+
+    pub fn rename_to<T>(self, name: T) -> Self
+    where 
+        T: IntoIden,
+    {
+        self.alter_option(TypeAlterOpt::Rename(name.into_iden()))
+    }
+
+    fn alter_option(mut self, option: TypeAlterOpt) -> Self {
+        self.option = Some(option);
+        self
+    }
+
+    // below are boilerplate
+
+    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
+        self.build_ref(&type_builder)
+    }
+
+    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+        let mut params = Vec::new();
+        let mut collector = |v| params.push(v);
+        let sql = self.build_collect_ref(type_builder, &mut collector);
+        (sql, params)
+    }
+
+    pub fn build_collect<T: TypeBuilder>(&self, type_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+        self.build_collect_ref(&type_builder, collector)
+    }
+
+    pub fn build_collect_ref<T: TypeBuilder>(&self, type_builder: &T, collector: &mut dyn FnMut(Value)) -> String {
+        let mut sql = SqlWriter::new();
+        type_builder.prepare_type_alter_statement(self, &mut sql, collector);
         sql.result()
     }
 
