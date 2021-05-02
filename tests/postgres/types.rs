@@ -1,4 +1,4 @@
-use sea_query::{extension::postgres::Type, tests_cfg::Glyph};
+use sea_query::extension::postgres::Type;
 
 use super::*;
 
