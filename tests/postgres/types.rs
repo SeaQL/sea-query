@@ -1,7 +1,8 @@
-use sea_query::extension::postgres::Type;
+use sea_query::{extension::postgres::Type, Alias};
 
 use super::*;
 
+#[test]
 fn create_1() {
     assert_eq!(
         Type::create()
@@ -36,8 +37,6 @@ fn drop_2() {
 
 #[test]
 fn drop_3() {
-    use sea_query::extension::postgres::Type;
-
     assert_eq!(
         Type::drop()
             .if_exists()
@@ -53,18 +52,41 @@ fn alter_1() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
-            .add_value()
+            .add_value(Alias::new("weight"))
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "font" ADD VALUE 'weight'"#
     )
 }
-
 #[test]
 fn alter_2() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
-            .rename()
+            .add_value(Alias::new("weight"))
+            .before(Font::Variant)
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
+    )
+}
+
+#[test]
+fn alter_3() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .add_value(Alias::new("weight"))
+            .after(Font::Variant)
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" ADD VALUE 'weight' AFTER 'variant'"#
+    )
+}
+
+#[test]
+fn alter_4() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .rename_to(Alias::new("typeface"))
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "font" RENAME TO 'typeface'"#
     )
