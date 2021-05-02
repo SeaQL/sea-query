@@ -47,3 +47,25 @@ fn drop_3() {
         r#"DROP TYPE IF EXISTS "font" CASCADE"#
     );
 }
+
+#[test]
+fn alter_1() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .add_value()
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" ADD VALUE 'weight'"#
+    )
+}
+
+#[test]
+fn alter_2() {
+    assert_eq!(
+        Type::alter()
+            .name(Font::Table)
+            .rename()
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "font" RENAME TO 'typeface'"#
+    )
+}
