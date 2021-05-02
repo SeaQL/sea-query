@@ -22,7 +22,7 @@ enum Custom {
     LastName,
     // Custom casing if needed
     #[iden = "EMail"]
-    // the tuple variant will be ignored
+    // the tuple value will be ignored
     Email(String),
     // Custom method
     #[method = "custom_to_string"]
