@@ -34,7 +34,7 @@ fn main() {
             "A".into(),
             12.into(),
         ])
-        .returning_id()
+        .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
 
     let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();

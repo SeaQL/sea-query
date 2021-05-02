@@ -36,7 +36,7 @@ async fn main() {
             "A".into(),
             12.into(),
         ])
-        .returning_id()
+        .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
 
     let row = bind_query(sqlx::query(&sql), &values)

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, Query, BaseIden, SelectExpr, SelectStatement, types::*, value::*, prepare::*, error::*};
+use crate::{backend::QueryBuilder, Query, SelectExpr, SelectStatement, types::*, value::*, prepare::*, error::*};
 
 /// Insert any new rows into an existing table
 /// 
@@ -165,7 +165,8 @@ impl InsertStatement {
         self
     }
 
-    /// RETURNING id. Postgres only. Wrapper over [`InsertStatement::returning()`].
+    /// RETURNING a column after insertion. Postgres only. This is equivalent to MySQL's LAST_INSERT_ID.
+    /// Wrapper over [`InsertStatement::returning()`].
     /// 
     /// ```
     /// use sea_query::{*, tests_cfg::*};
@@ -178,7 +179,7 @@ impl InsertStatement {
     ///     .values_panic(vec![
     ///         "12A".into(),
     ///     ])
-    ///     .returning_id()
+    ///     .returning_col(Glyph::Id)
     ///     .to_owned();
     /// 
     /// assert_eq!(
@@ -186,8 +187,9 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
-    pub fn returning_id(&mut self) -> &mut Self {
-        self.returning(Query::select().column(BaseIden::Id).take())
+    pub fn returning_col<C>(&mut self, col: C) -> &mut Self
+        where C: IntoIden {
+        self.returning(Query::select().column(col.into_iden()).take())
     }
 
     /// Specify a row of values to be inserted, taking input of json values. A convenience method if you have multiple

@@ -143,10 +143,6 @@ pub enum Keyword {
     Custom(Rc<dyn Iden>),
 }
 
-pub(crate) enum BaseIden {
-    Id,
-}
-
 // Impl begins
 
 impl<T: 'static> IntoIden for T where T: Iden {
@@ -234,13 +230,5 @@ impl Alias {
 impl Iden for Alias {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(s, "{}", self.0).unwrap();
-    }
-}
-
-impl Iden for BaseIden {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(s, "{}", match self {
-            Self::Id => "id",
-        }).unwrap();
     }
 }
