@@ -44,7 +44,7 @@ async fn main() {
             .await
             .unwrap();
     let id: i32 = row.try_get(0).unwrap();
-    println!("Insert into character last_insert_id = {}\n", id);
+    println!("Insert into character: last_insert_id = {}\n", id);
 
     // Read
 

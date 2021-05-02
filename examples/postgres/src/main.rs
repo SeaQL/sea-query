@@ -34,10 +34,12 @@ fn main() {
             "A".into(),
             12.into(),
         ])
+        .returning_id()
         .build(PostgresQueryBuilder);
 
-    let result = client.execute(sql.as_str(), &values.as_params());
-    println!("Insert into character: {:?}\n", result);
+    let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
+    let id: i32 = row.try_get(0).unwrap();
+    println!("Insert into character: last_insert_id = {}\n", id);
 
     // Read
 
@@ -52,13 +54,10 @@ fn main() {
 
     let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from character:");
-    let mut id = None;
     for row in rows.into_iter() {
         let item = CharacterStruct::from(row);
         println!("{:?}", item);
-        id = Some(item.id);
     }
-    let id = id.unwrap();
     println!();
 
     // Update
