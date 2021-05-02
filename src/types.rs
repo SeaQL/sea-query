@@ -1,4 +1,4 @@
-//! Common types used in the library.
+//! Base types used throughout sea-query.
 
 use std::fmt;
 use std::rc::Rc;

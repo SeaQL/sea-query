@@ -1,7 +1,8 @@
+/// Error types used in sea-query.
+
 /// Result type for sea-query
 pub type Result<T> = anyhow::Result<T, Error>;
 
-/// Different types of error in sea-query
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum Error {
     /// Column and value vector having different length

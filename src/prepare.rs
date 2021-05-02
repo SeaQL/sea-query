@@ -1,3 +1,5 @@
+//! Helper for preparing SQL statements.
+
 use crate::*;
 pub use std::fmt::Write;
 

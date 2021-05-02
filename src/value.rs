@@ -1,4 +1,4 @@
-//! Generic value type for storing SQL values.
+//! Container for all SQL value types.
 use std::fmt::Write;
 
 #[cfg(feature="with-json")]

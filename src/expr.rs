@@ -1,13 +1,8 @@
-//! Building blocks for constructing select, join, where and having expression in query.
+//! Building blocks of SQL statements.
 //!
-//! [`Expr`] representing the most fundamental concept in the expression including concept like
-//! table column with and without table name prefix and any custom expression in string.
-//! Also common operations or functions can be applied to the table column,
-//! such as equal, not equal, not_null and many others. Please reference below for more details.
+//! [`Expr`] representing the primitive building block in the expressions.
 //!
-//! [`SimpleExpr`] represent various kinds of expression can be used in query.
-//! Two [`SimpleExpr`] can be chain together with method defined below, such as logical AND,
-//! logical OR, arithmetic ADD ...etc. Please reference below for more details.
+//! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
 use crate::{query::*, func::*, types::*, value::*};
 

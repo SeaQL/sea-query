@@ -1,4 +1,4 @@
-//! Table query (select, insert, update & delete).
+//! Query statements (select, insert, update & delete).
 //! 
 //! # Usage
 //! 

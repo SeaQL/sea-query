@@ -1,4 +1,4 @@
-//! Table foreign key (create and drop).
+//! Foreign key definition & alternations statements.
 //! 
 //! # Usage
 //! 

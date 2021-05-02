@@ -1,3 +1,5 @@
+//! Tokenizer for processing SQL.
+
 use std::fmt::Write;
 use std::iter::Iterator;
 

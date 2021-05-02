@@ -1,4 +1,4 @@
-//! Database table (create, alter, drop, rename & truncate).
+//! Table definition & alternations statements.
 //! 
 //! # Usage
 //! 

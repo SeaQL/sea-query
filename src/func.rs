@@ -1,3 +1,5 @@
+//! For calling built-in SQL functions.
+
 use std::rc::Rc;
 use crate::{expr::*, types::*};
 

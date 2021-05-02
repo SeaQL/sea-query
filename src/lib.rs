@@ -570,6 +570,7 @@ pub mod foreign_key;
 pub mod index;
 pub mod query;
 pub mod table;
+pub mod error;
 pub mod expr;
 pub mod func;
 pub mod prepare;
@@ -578,7 +579,6 @@ pub mod tests_cfg;
 pub mod token;
 pub mod types;
 pub mod value;
-pub mod error;
 
 pub use backend::*;
 pub use driver::*;
@@ -587,12 +587,14 @@ pub use foreign_key::*;
 pub use index::*;
 pub use query::*;
 pub use table::*;
+//pub use error::*;
 pub use expr::*;
 pub use func::*;
 pub use prepare::*;
 pub use schema::*;
-pub use types::*;
+//pub use tests_cfg::*;
 pub use token::*;
+pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]

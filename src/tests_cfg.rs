@@ -1,4 +1,4 @@
-//! Helper module setting up rustdoc and test environment.
+//! Configurations for test cases and examples. Not intended for actual use.
 
 pub use std::fmt::Write as FmtWrite;
 

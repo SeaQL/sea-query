@@ -1,4 +1,4 @@
-//! Table index (create and drop).
+//! Index definition & alternations statements.
 //! 
 //! # Usage
 //! 

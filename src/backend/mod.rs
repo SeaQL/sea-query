@@ -1,9 +1,4 @@
-//! Translating unified SQL representation into SQL statement.
-//! 
-//! There traits are defined to model the CRUD (create, read, update, delete) behaviours
-//! of each type of SQL statement, namely [`query`], [`table`], [`index`], [`foreign_key`].
-//! 
-//! NOTE: not all operations are support at the time, we will add more functionality in the future. :)
+//! Translating the SQL AST into engine-specific SQL statements.
 
 use crate::*;
 

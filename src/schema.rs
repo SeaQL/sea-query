@@ -1,6 +1,7 @@
+//! Schema definition & alternations statements
+
 use super::*;
 
-/// All schema definition & operation statements
 #[derive(Debug, Clone)]
 pub enum SchemaStatement {
     TableStatement(TableStatement),
