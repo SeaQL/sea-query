@@ -303,6 +303,37 @@ impl TypeAlterStatement {
         Self::default()
     }
 
+    /// Change the definition of a type 
+    ///
+    /// ```
+    /// use sea_query::{*, extension::postgres::Type};
+    ///
+    /// enum FontFamily {
+    ///     Type,
+    ///     Serif,
+    ///     Sans,
+    ///     Monospace,
+    /// }
+    ///
+    /// impl Iden for FontFamily {
+    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+    ///         write!(s, "{}", match self {
+    ///             Self::Type => "font_family",
+    ///             Self::Serif => "serif",
+    ///             Self::Sans => "sans",
+    ///             Self::Monospace => "monospace",
+    ///         }).unwrap();
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(
+    ///     Type::alter()
+    ///         .name(FontFamily::Type)
+    ///         .add_value(Alias::new("cursive"))
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive' "#
+    /// );
+    /// ```
     pub fn name<T>(mut self, name: T) -> Self
     where
         T: IntoIden,
