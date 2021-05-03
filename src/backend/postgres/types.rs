@@ -126,6 +126,12 @@ impl PostgresQueryBuilder {
                 write!(sql, "{}", " RENAME TO ").unwrap();
                 self.prepare_value(&new_name.to_string().into(), sql, collector);
             }
+            TypeAlterOpt::RenameValue(existing, new_name) => {
+                write!(sql, "{}", " RENAME VALUE ").unwrap();
+                self.prepare_value(&existing.to_string().into(), sql, collector);
+                write!(sql, "{}", " TO ").unwrap();
+                self.prepare_value(&new_name.to_string().into(), sql, collector);
+            }
         }
     }
 }

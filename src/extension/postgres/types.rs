@@ -44,6 +44,7 @@ pub enum TypeDropOpt {
 pub enum TypeAlterOpt {
     Add(Rc<dyn Iden>, Option<TypeAlterAddOpt>),
     Rename(Rc<dyn Iden>),
+    RenameValue(Rc<dyn Iden>, Rc<dyn Iden>)
 }
 
 #[derive(Debug, Clone)]
@@ -342,6 +343,13 @@ impl TypeAlterStatement {
         T: IntoIden,
     {
         self.alter_option(TypeAlterOpt::Rename(name.into_iden()))
+    }
+
+    pub fn rename_value<T>(self, existing: T, new_name: T) -> Self 
+    where
+        T: IntoIden,
+    {
+        self.alter_option(TypeAlterOpt::RenameValue(existing.into_iden(), new_name.into_iden()))
     }
 
     fn alter_option(mut self, option: TypeAlterOpt) -> Self {
