@@ -65,7 +65,7 @@ pub trait TypeBuilder {
     /// Translate [`TypeDropStatement`] into database specific SQL statement.
     fn prepare_type_drop_statement(
         &self,
-        create: &TypeDropStatement,
+        drop: &TypeDropStatement,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     );
