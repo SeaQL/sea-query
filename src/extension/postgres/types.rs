@@ -376,9 +376,23 @@ impl TypeAlterStatement {
         self.alter_option(TypeAlterOpt::Rename(name.into_iden()))
     }
 
-    pub fn rename_value<T>(self, existing: T, new_name: T) -> Self 
+    /// Rename a enum value
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*, extension::postgres::Type};
+    ///
+    /// assert_eq!(
+    ///     Type::alter()
+    ///         .name(Font::Table)
+    ///         .rename_value(Alias::new("variant"), Alias::new("language"))
+    ///         .to_string(PostgresQueryBuilder),
+    ///         r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
+    /// )
+    /// ```
+    pub fn rename_value<T, V>(self, existing: T, new_name: V) -> Self 
     where
         T: IntoIden,
+        V: IntoIden,
     {
         self.alter_option(TypeAlterOpt::RenameValue(existing.into_iden(), new_name.into_iden()))
     }
