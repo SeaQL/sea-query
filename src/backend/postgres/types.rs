@@ -2,7 +2,12 @@ use super::*;
 use crate::extension::postgres::types::*;
 
 impl TypeBuilder for PostgresQueryBuilder {
-    fn prepare_type_create_statement(&self, create: &TypeCreateStatement, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn prepare_type_create_statement(
+        &self,
+        create: &TypeCreateStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         write!(sql, "CREATE TYPE ").unwrap();
 
         if let Some(name) = &create.name {
@@ -28,7 +33,12 @@ impl TypeBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_type_drop_statement(&self, drop: &TypeDropStatement, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_type_drop_statement(
+        &self,
+        drop: &TypeDropStatement,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
         write!(sql, "DROP TYPE ").unwrap();
 
         if drop.if_exists {
@@ -39,7 +49,7 @@ impl TypeBuilder for PostgresQueryBuilder {
             name.prepare(sql, '"');
         }
 
-        if let Some(option) = &drop.option {        
+        if let Some(option) = &drop.option {
             write!(sql, " ").unwrap();
             self.prepare_drop_type_opt(&option, sql);
         }
@@ -48,15 +58,25 @@ impl TypeBuilder for PostgresQueryBuilder {
 
 impl PostgresQueryBuilder {
     fn prepare_create_as_type(&self, as_type: &TypeAs, sql: &mut SqlWriter) {
-        write!(sql, "{}", match as_type {
-            TypeAs::Enum => "ENUM",
-        }).unwrap()
+        write!(
+            sql,
+            "{}",
+            match as_type {
+                TypeAs::Enum => "ENUM",
+            }
+        )
+        .unwrap()
     }
 
     fn prepare_drop_type_opt(&self, opt: &TypeDropOpt, sql: &mut SqlWriter) {
-        write!(sql, "{}", match opt {
-            TypeDropOpt::Cascade => "CASCADE",
-            TypeDropOpt::Restrict => "RESTRICT",
-        }).unwrap()
+        write!(
+            sql,
+            "{}",
+            match opt {
+                TypeDropOpt::Cascade => "CASCADE",
+                TypeDropOpt::Restrict => "RESTRICT",
+            }
+        )
+        .unwrap()
     }
 }
