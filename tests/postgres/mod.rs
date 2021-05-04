@@ -1,7 +1,8 @@
+mod foreign_key;
+mod index;
+mod online;
 mod query;
 mod table;
-mod online;
-mod index;
-mod foreign_key;
+mod types;
 
 use sea_query_test::*;

@@ -54,6 +54,23 @@ impl TypeBuilder for PostgresQueryBuilder {
             self.prepare_drop_type_opt(&option, sql);
         }
     }
+
+    fn prepare_type_alter_statement(
+        &self,
+        alter: &TypeAlterStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "ALTER TYPE ").unwrap();
+
+        if let Some(name) = &alter.name {
+            name.prepare(sql, '"');
+        }
+
+        if let Some(option) = &alter.option {
+            self.prepare_alter_type_opt(&option, sql, collector)
+        }
+    }
 }
 
 impl PostgresQueryBuilder {
@@ -78,5 +95,43 @@ impl PostgresQueryBuilder {
             }
         )
         .unwrap()
+    }
+
+    fn prepare_alter_type_opt(
+        &self,
+        opt: &TypeAlterOpt,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        match opt {
+            TypeAlterOpt::Add(value, placement) => {
+                write!(sql, "{}", " ADD VALUE ").unwrap();
+                match placement {
+                    Some(add_option) => match add_option {
+                        TypeAlterAddOpt::Before(before_value) => {
+                            self.prepare_value(&value.to_string().into(), sql, collector);
+                            write!(sql, "{}", " BEFORE ").unwrap();
+                            self.prepare_value(&before_value.to_string().into(), sql, collector);
+                        }
+                        TypeAlterAddOpt::After(after_value) => {
+                            self.prepare_value(&value.to_string().into(), sql, collector);
+                            write!(sql, "{}", " AFTER ").unwrap();
+                            self.prepare_value(&after_value.to_string().into(), sql, collector);
+                        }
+                    },
+                    None => self.prepare_value(&value.to_string().into(), sql, collector),
+                }
+            }
+            TypeAlterOpt::Rename(new_name) => {
+                write!(sql, "{}", " RENAME TO ").unwrap();
+                self.prepare_value(&new_name.to_string().into(), sql, collector);
+            }
+            TypeAlterOpt::RenameValue(existing, new_name) => {
+                write!(sql, "{}", " RENAME VALUE ").unwrap();
+                self.prepare_value(&existing.to_string().into(), sql, collector);
+                write!(sql, "{}", " TO ").unwrap();
+                self.prepare_value(&new_name.to_string().into(), sql, collector);
+            }
+        }
     }
 }
