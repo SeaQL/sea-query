@@ -331,7 +331,7 @@ impl TypeAlterStatement {
     ///         .name(FontFamily::Type)
     ///         .add_value(Alias::new("cursive"))
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive' "#
+    ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive'"#
     /// );
     /// ```
     pub fn name<T>(mut self, name: T) -> Self
