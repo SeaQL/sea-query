@@ -349,6 +349,20 @@ impl TypeAlterStatement {
         self.alter_option(TypeAlterOpt::Add(value.into_iden(), None))
     }
 
+    /// Add a enum value before an existing value
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*, extension::postgres::Type};
+    ///
+    /// assert_eq!(
+    ///     Type::alter()
+    ///         .name(Font::Table)
+    ///         .add_value(Alias::new("weight"))
+    ///         .before(Font::Variant)
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
+    /// )
+    /// ```
     pub fn before<T>(mut self, value: T) -> Self
     where
         T: IntoIden,
