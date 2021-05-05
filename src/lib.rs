@@ -32,7 +32,7 @@
 //! ```toml
 //! # Cargo.toml
 //! [dependencies]
-//! sea-query = "*"
+//! sea-query = "^0"
 //! ```
 //! 
 //! ## Usage
