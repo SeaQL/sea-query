@@ -16,9 +16,4 @@ impl Default for PostgresQueryBuilder {
     }
 }
 
-impl GenericBuilder for PostgresQueryBuilder {
-    type QueryBuilder = Self;
-    type TableBuilder = Self;
-    type IndexBuilder = Self;
-    type ForeignKeyBuilder = Self;
-}
+impl GenericBuilder for PostgresQueryBuilder {}

@@ -942,7 +942,7 @@ impl SelectStatement {
         self
     }
 
-    /// And where condition, variation of [`SelectStatement::and_where`].
+    /// And where condition, short hand for `if c.is_some() q.and_where(c)`.
     pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
         if let Some(other) = other {
             self.wherei.push(LogicalChainOper::And(other));

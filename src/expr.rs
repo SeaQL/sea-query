@@ -746,6 +746,10 @@ impl Expr {
         self.bin_oper(BinOper::Like, SimpleExpr::Value(Value::String(Box::new(v.to_owned()))))
     }
 
+    pub fn not_like(self, v: &str) -> SimpleExpr  {
+        self.bin_oper(BinOper::NotLike, SimpleExpr::Value(Value::String(Box::new(v.to_owned()))))
+    }
+
     /// Express a `IS NULL` expression.
     /// 
     /// # Examples

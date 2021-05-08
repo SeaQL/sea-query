@@ -15,9 +15,4 @@ impl Default for SqliteQueryBuilder {
     }
 }
 
-impl GenericBuilder for SqliteQueryBuilder {
-    type QueryBuilder = Self;
-    type TableBuilder = Self;
-    type IndexBuilder = Self;
-    type ForeignKeyBuilder = Self;
-}
+impl GenericBuilder for SqliteQueryBuilder {}

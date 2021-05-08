@@ -19,12 +19,7 @@ pub use postgres::*;
 #[cfg(feature="backend-sqlite")]
 pub use sqlite::*;
 
-pub trait GenericBuilder {
-    type QueryBuilder: QueryBuilder;
-    type TableBuilder: TableBuilder;
-    type IndexBuilder: IndexBuilder;
-    type ForeignKeyBuilder: ForeignKeyBuilder;
-}
+pub trait GenericBuilder: QueryBuilder + TableBuilder + IndexBuilder + ForeignKeyBuilder {}
 
 pub trait QueryBuilder {
     

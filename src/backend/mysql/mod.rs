@@ -9,15 +9,12 @@ use super::*;
 #[derive(Debug)]
 pub struct MysqlQueryBuilder;
 
+pub type MySqlQueryBuilder = MysqlQueryBuilder;
+
 impl Default for MysqlQueryBuilder {
     fn default() -> Self {
         Self
     }
 }
 
-impl GenericBuilder for MysqlQueryBuilder {
-    type QueryBuilder = Self;
-    type TableBuilder = Self;
-    type IndexBuilder = Self;
-    type ForeignKeyBuilder = Self;
-}
+impl GenericBuilder for MysqlQueryBuilder {}
