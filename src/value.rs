@@ -27,7 +27,9 @@ pub enum Value {
     BigUnsigned(u64),
     Float(f32),
     Double(f64),
+    // we want Value to be exactly 1 pointer sized, so anything larger should be boxed
     String(Box<String>),
+    #[allow(clippy::box_vec)]
     Bytes(Box<Vec<u8>>),
     #[cfg(feature="with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -40,84 +42,111 @@ pub enum Value {
     Uuid(Box<Uuid>),
 }
 
+pub trait ValueType {
+    fn unwrap(v: Value) -> Self;
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Values(pub Vec<Value>);
 
-impl From<bool> for Value {
-    fn from(x: bool) -> Value {
-        Value::Bool(x)
+impl Value {
+    pub fn unwrap<T>(self) -> T
+    where
+        T: ValueType,
+    {
+        T::unwrap(self)
     }
 }
 
-impl From<i8> for Value {
-    fn from(x: i8) -> Value {
-        Value::TinyInt(x)
-    }
+macro_rules! type_to_value {
+    ( $type: ty, $name: ident ) => {
+        impl From<$type> for Value {
+            fn from(x: $type) -> Value {
+                Value::$name(x)
+            }
+        }
+
+        impl From<Option<$type>> for Value {
+            fn from(x: Option<$type>) -> Value {
+                match x {
+                    Some(v) => Value::$name(v),
+                    None => Value::Null,
+                }
+            }
+        }
+
+        impl ValueType for $type {
+            fn unwrap(v: Value) -> Self {
+                match v {
+                    Value::$name(x) => x,
+                    _ => panic!("type error"),
+                }
+            }
+        }
+
+        impl ValueType for Option<$type> {
+            fn unwrap(v: Value) -> Self {
+                match v {
+                    Value::$name(x) => Some(x),
+                    _ => panic!("type error"),
+                }
+            }
+        }
+    };
 }
 
-impl From<i16> for Value {
-    fn from(x: i16) -> Value {
-        Value::SmallInt(x)
-    }
+macro_rules! type_to_box_value {
+    ( $type: ty, $name: ident ) => {
+        impl From<$type> for Value {
+            fn from(x: $type) -> Value {
+                Value::$name(Box::new(x))
+            }
+        }
+
+        impl From<Option<$type>> for Value {
+            fn from(x: Option<$type>) -> Value {
+                match x {
+                    Some(v) => Value::$name(Box::new(v)),
+                    None => Value::Null,
+                }
+            }
+        }
+
+        impl ValueType for $type {
+            fn unwrap(v: Value) -> Self {
+                match v {
+                    Value::$name(x) => *x,
+                    _ => panic!("type error"),
+                }
+            }
+        }
+
+        impl ValueType for Option<$type> {
+            fn unwrap(v: Value) -> Self {
+                match v {
+                    Value::$name(x) => Some(*x),
+                    _ => panic!("type error"),
+                }
+            }
+        }
+    };
 }
 
-impl From<i32> for Value {
-    fn from(x: i32) -> Value {
-        Value::Int(x)
-    }
-}
-
-impl From<i64> for Value {
-    fn from(x: i64) -> Value {
-        Value::BigInt(x)
-    }
-}
-
-impl From<u8> for Value {
-    fn from(x: u8) -> Value {
-        Value::TinyUnsigned(x)
-    }
-}
-
-impl From<u16> for Value {
-    fn from(x: u16) -> Value {
-        Value::SmallUnsigned(x)
-    }
-}
-
-impl From<u32> for Value {
-    fn from(x: u32) -> Value {
-        Value::Unsigned(x)
-    }
-}
-
-impl From<u64> for Value {
-    fn from(x: u64) -> Value {
-        Value::BigUnsigned(x)
-    }
-}
-
-impl From<f32> for Value {
-    fn from(x: f32) -> Value {
-        Value::Float(x)
-    }
-}
-
-impl From<f64> for Value {
-    fn from(x: f64) -> Value {
-        Value::Double(x)
-    }
-}
+type_to_value!(bool, Bool);
+type_to_value!(i8, TinyInt);
+type_to_value!(i16, SmallInt);
+type_to_value!(i32, Int);
+type_to_value!(i64, BigInt);
+type_to_value!(u8, TinyUnsigned);
+type_to_value!(u16, SmallUnsigned);
+type_to_value!(u32, Unsigned);
+type_to_value!(u64, BigUnsigned);
+type_to_value!(f32, Float);
+type_to_value!(f64, Double);
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
         Value::Bytes(Box::<Vec<u8>>::new(x.into()))
-    }
-}
-
-impl From<Vec<u8>> for Value {
-    fn from(x: Vec<u8>) -> Value {
-        Value::Bytes(Box::new(x))
     }
 }
 
@@ -128,11 +157,8 @@ impl<'a> From<&'a str> for Value {
     }
 }
 
-impl From<String> for Value {
-    fn from(x: String) -> Value {
-        Value::String(Box::new(x))
-    }
-}
+type_to_box_value!(Vec<u8>, Bytes);
+type_to_box_value!(String, String);
 
 #[cfg(feature="with-json")]
 mod with_json {
@@ -188,7 +214,9 @@ impl Value {
     pub fn as_ref_json(&self) -> &bool {
         panic!("not Value::Json")
     }
+}
 
+impl Value {
     pub fn is_date_time(&self) -> bool {
         #[cfg(feature="with-chrono")]
         return matches!(self, Self::DateTime(_));
@@ -206,7 +234,9 @@ impl Value {
     pub fn as_ref_date_time(&self) -> &bool {
         panic!("not Value::DateTime")
     }
+}
 
+impl Value {
     pub fn is_uuid(&self) -> bool {
         #[cfg(feature="with-uuid")]
         return matches!(self, Self::Uuid(_));
@@ -352,5 +382,32 @@ mod tests {
         let test = "a\"b";
         assert_eq!(escape_string(test), "a\\\"b".to_owned());
         assert_eq!(unescape_string(escape_string(test).as_str()), test);
+    }
+
+    #[test]
+    fn test_value() {
+        macro_rules! test_value {
+            ( $type: ty, $val: literal ) => {
+                let val: $type = $val;
+                let v: Value = val.into();
+                let out: $type = v.unwrap();
+                assert_eq!(out, val);
+            };
+        }
+
+        test_value!(u8, 255);
+        test_value!(u16, 65535);
+        test_value!(i8, 127);
+        test_value!(i16, 32767);
+        test_value!(i32, 1073741824);
+        test_value!(i64, 8589934592);
+    }
+
+    #[test]
+    fn test_box_value() {
+        let val: String = "hello".to_owned();
+        let v: Value = val.clone().into();
+        let out: String = v.unwrap();
+        assert_eq!(out, val);
     }
 }
