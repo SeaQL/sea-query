@@ -156,6 +156,12 @@ impl SelectStatement {
         self
     }
 
+    /// Clear the select list
+    pub fn clear_selects(&mut self) -> &mut Self {
+        self.selects = Vec::new();
+        self
+    }
+
     /// Add an expression to the select expression list.
     /// 
     /// # Examples
@@ -892,6 +898,39 @@ impl SelectStatement {
                 .map(|c| SimpleExpr::Column(c.into_column_ref()))
                 .collect::<Vec<_>>(),
         )
+    }
+
+    /// Add a group by column.
+    /// 
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .table_column(Font::Table, Font::Name)
+    ///     .from(Char::Table)
+    ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .group_by_col((Char::Table, Char::Character))
+    ///     .to_owned();
+    /// 
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
+    /// );
+    /// ```
+    pub fn group_by_col<T>(&mut self, col: T) -> &mut Self
+    where
+        T: IntoColumnRef,
+    {
+        self.group_by_columns(vec![col])
     }
 
     #[deprecated(
