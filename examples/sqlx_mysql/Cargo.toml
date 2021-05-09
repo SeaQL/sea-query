@@ -9,6 +9,9 @@ sea-query = { path = "../../", features = ["sqlx-mysql"] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "^0.9", features = ["sqlx-mysql"] }
 
+# To fix sqlx on unstable Rust:
+# lexical-core = { version = "0.7.5" }
+
 [dependencies.sqlx]
 version = "^0.5"
 default-features = false
