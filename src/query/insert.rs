@@ -156,8 +156,16 @@ impl InsertStatement {
     ///     .to_owned();
     /// 
     /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    /// );
+    /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -183,8 +191,16 @@ impl InsertStatement {
     ///     .to_owned();
     /// 
     /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    /// );
+    /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
