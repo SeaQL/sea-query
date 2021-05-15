@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::OrderedStatement, types::*, expr::*, value::*, prepare::*};
 use std::iter::FromIterator;
 
 /// Select rows from an existing table
@@ -1135,112 +1135,6 @@ impl SelectStatement {
         self
     }
 
-    /// Order by column.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-    ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "image" DESC, "glyph"."aspect" ASC"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// ```
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
-        where T: IntoColumnRef {
-        self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col.into_column_ref()),
-            order,
-        });
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::order_by`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.order_by((table.into_iden(), col.into_iden()), order)
-    }
-
-    /// Order by [`SimpleExpr`].
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
-        self.orders.push(OrderExpr {
-            expr,
-            order,
-        });
-        self
-    }
-
-    /// Order by custom string expression.
-    pub fn order_by_customs<T: 'static, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: ToString,
-        I: IntoIterator<Item = (T, Order)>,
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Custom(c.to_string()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    /// Order by vector of columns.
-    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: IntoColumnRef,
-        I: IntoIterator<Item = (T, Order)>,
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c.into_column_ref()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        self.order_by_columns(
-            cols.into_iter()
-                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-                .collect::<Vec<_>>(),
-        )
-    }
-
     /// Limit the number of returned rows.
     ///
     /// # Examples
@@ -1360,5 +1254,12 @@ impl QueryStatementBuilder for SelectStatement {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()
+    }
+}
+
+impl OrderedStatement for SelectStatement {
+    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+        self.orders.push(order);
+        self
     }
 }

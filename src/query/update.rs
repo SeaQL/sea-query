@@ -1,6 +1,6 @@
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::OrderedStatement, types::*, expr::*, value::*, prepare::*};
 
 /// Update existing rows in the table
 ///
@@ -328,86 +328,6 @@ impl UpdateStatement {
         }))
     }
 
-    /// Order by column.
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
-        where T: IntoColumnRef {
-        self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col.into_column_ref()),
-            order,
-        });
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`UpdateStatement::order_by`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.order_by((table.into_iden(), col.into_iden()), order)
-    }
-
-    /// Order by [`SimpleExpr`].
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
-        self.orders.push(OrderExpr {
-            expr,
-            order,
-        });
-        self
-    }
-
-    /// Order by custom string.
-    pub fn order_by_customs<T, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: ToString,
-        I: IntoIterator<Item = (T, Order)>,
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Custom(c.to_string()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    /// Order by vector of columns.
-    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: IntoColumnRef,
-        I: IntoIterator<Item =(T, Order)>
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c.into_column_ref()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`UpdateStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_table_columns<T, C, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-        I: IntoIterator<Item = (T, C, Order)>,
-    {
-        self.order_by_columns(
-            cols.into_iter()
-                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-                .collect::<Vec<_>>(),
-        )
-    }
-
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
         self.limit = Some(Value::BigUnsigned(limit));
@@ -475,5 +395,12 @@ impl QueryStatementBuilder for UpdateStatement {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()
+    }
+}
+
+impl OrderedStatement for UpdateStatement {
+    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+        self.orders.push(order);
+        self
     }
 }
