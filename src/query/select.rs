@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 use std::iter::FromIterator;
+pub use crate::traits::QueryStatementBuilder;
 
 /// Select rows from an existing table
 ///
@@ -1299,6 +1300,9 @@ impl SelectStatement {
         self
     }
 
+}
+
+impl QueryStatementBuilder for SelectStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -1331,80 +1335,15 @@ impl SelectStatement {
     ///     vec![Value::Int(0), Value::Int(2)]
     /// );
     /// ```
-    pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and collect query parameters
-    pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let (query, params) = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-    ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
-    ///     .build(MysqlQueryBuilder);
-    ///
-    /// assert_eq!(
-    ///     query,
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, ?) > ? ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// assert_eq!(
-    ///     params,
-    ///     Values(vec![Value::Int(0), Value::Int(2)])
-    /// );
-    /// ```
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-    ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
-    ///     .to_string(MysqlQueryBuilder);
-    ///
-    /// assert_eq!(
-    ///     query,
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// ```
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
     }
 }

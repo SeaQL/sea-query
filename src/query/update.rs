@@ -1,6 +1,7 @@
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
 use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
+pub use crate::traits::QueryStatementBuilder;
 
 /// Update existing rows in the table
 ///
@@ -413,7 +414,9 @@ impl UpdateStatement {
         self.limit = Some(Value::BigUnsigned(limit));
         self
     }
+}
 
+impl QueryStatementBuilder for UpdateStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -451,86 +454,15 @@ impl UpdateStatement {
     ///     ]
     /// );
     /// ```
-    pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and collect query parameters
-    pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let (query, params) = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .build(MysqlQueryBuilder);
-    ///
-    /// assert_eq!(
-    ///     query,
-    ///     r#"UPDATE `glyph` SET `aspect` = ?, `image` = ? WHERE `id` = ?"#
-    /// );
-    /// assert_eq!(
-    ///     params,
-    ///     Values(vec![
-    ///         Value::Double(2.1345),
-    ///         Value::String(Box::new(String::from("235m"))),
-    ///         Value::Int(1),
-    ///     ])
-    /// );
-    /// ```
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .to_string(MysqlQueryBuilder);
-    ///
-    /// assert_eq!(
-    ///     query,
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
-    /// );
-    /// ```
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
     }
 }

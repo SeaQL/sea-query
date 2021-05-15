@@ -577,6 +577,7 @@ pub mod prepare;
 pub mod schema;
 pub mod tests_cfg;
 pub mod token;
+pub mod traits;
 pub mod types;
 pub mod value;
 

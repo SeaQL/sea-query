@@ -1,5 +1,6 @@
 use std::rc::Rc;
-use crate::{backend::TableBuilder, types::*, prepare::*};
+use crate::{backend::SchemaBuilder, types::*, prepare::*};
+pub use crate::traits::SchemaStatementBuilder;
 
 /// Rename a table
 ///
@@ -53,23 +54,19 @@ impl TableRenameStatement {
         self.to_name = Some(Rc::new(to_name));
         self
     }
+}
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
+impl SchemaStatementBuilder for TableRenameStatement {
+
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_rename_statement(self, &mut sql);
+        schema_builder.prepare_table_rename_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_rename_statement(self, &mut sql);
+        schema_builder.prepare_table_rename_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
-        self.build(table_builder)
     }
 }

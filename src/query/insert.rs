@@ -2,6 +2,7 @@ use std::rc::Rc;
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
 use crate::{backend::QueryBuilder, Query, SelectExpr, SelectStatement, types::*, value::*, prepare::*, error::*};
+pub use crate::traits::QueryStatementBuilder;
 
 /// Insert any new rows into an existing table
 ///
@@ -272,7 +273,9 @@ impl InsertStatement {
         self.values.push(values);
         self
     }
+}
 
+impl QueryStatementBuilder for InsertStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -312,91 +315,15 @@ impl InsertStatement {
     ///     ]
     /// );
     /// ```
-    pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and collect query parameters
-    pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let (query, params) = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns(vec![
-    ///         Glyph::Aspect,
-    ///         Glyph::Image,
-    ///     ])
-    ///     .values_panic(vec![
-    ///         3.1415.into(),
-    ///         "04108048005887010020060000204E0180400400".into(),
-    ///     ])
-    ///     .build(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (?, ?)"#
-    /// );
-    /// assert_eq!(
-    ///     params,
-    ///     Values(vec![
-    ///         Value::Double(3.1415),
-    ///         Value::String(Box::new(String::from("04108048005887010020060000204E0180400400"))),
-    ///     ])
-    /// );
-    /// ```
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let query = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns(vec![
-    ///         Glyph::Aspect,
-    ///         Glyph::Image,
-    ///     ])
-    ///     .values_panic(vec![
-    ///         3.1415.into(),
-    ///         "041".into(),
-    ///     ])
-    ///     .to_string(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (3.1415, '041')"#
-    /// );
-    /// ```
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
     }
 }

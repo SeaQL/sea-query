@@ -1,4 +1,5 @@
-use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
+use crate::{ForeignKeyAction, TableForeignKey, backend::SchemaBuilder, types::*, prepare::*};
+pub use crate::traits::SchemaStatementBuilder;
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite
 ///
@@ -172,23 +173,18 @@ impl ForeignKeyCreateStatement {
         self.foreign_key.on_update(action);
         self
     }
+}
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: ForeignKeyBuilder>(&self, foreign_key_builder: T) -> String {
+impl SchemaStatementBuilder for ForeignKeyCreateStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        foreign_key_builder.prepare_foreign_key_create_statement(self, &mut sql);
+        schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, foreign_key_builder: &dyn ForeignKeyBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        foreign_key_builder.prepare_foreign_key_create_statement(self, &mut sql);
+        schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: ForeignKeyBuilder>(&self, foreign_key_builder: T) -> String {
-        self.build(foreign_key_builder)
     }
 }

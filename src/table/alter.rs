@@ -1,5 +1,6 @@
 use std::rc::Rc;
-use crate::{ColumnDef, backend::TableBuilder, types::*, prepare::*};
+use crate::{ColumnDef, backend::SchemaBuilder, types::*, prepare::*};
+pub use crate::traits::SchemaStatementBuilder;
 
 /// Alter a table
 ///
@@ -183,23 +184,18 @@ impl TableAlterStatement {
         self.alter_option = Some(alter_option);
         self
     }
+}
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
+impl SchemaStatementBuilder for TableAlterStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_alter_statement(self, &mut sql);
+        schema_builder.prepare_table_alter_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_alter_statement(self, &mut sql);
+        schema_builder.prepare_table_alter_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
-        self.build(table_builder)
     }
 }

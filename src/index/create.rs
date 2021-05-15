@@ -1,6 +1,8 @@
 use std::rc::Rc;
-use crate::{backend::IndexBuilder, types::*, prepare::*};
+use crate::{backend::SchemaBuilder, types::*, prepare::*};
 use super::common::*;
+
+pub use crate::traits::SchemaStatementBuilder;
 
 /// Create an index for an existing table
 ///
@@ -177,23 +179,18 @@ impl IndexCreateStatement {
         self.index_type = Some(index_type);
         self
     }
+}
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: IndexBuilder>(&self, index_builder: T) -> String {
+impl SchemaStatementBuilder for IndexCreateStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        index_builder.prepare_index_create_statement(self, &mut sql);
+        schema_builder.prepare_index_create_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, index_builder: &dyn IndexBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        index_builder.prepare_index_create_statement(self, &mut sql);
+        schema_builder.prepare_index_create_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: IndexBuilder>(&self, index_builder: T) -> String {
-        self.build(index_builder)
     }
 }

@@ -1,5 +1,6 @@
 use std::rc::Rc;
-use crate::{TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
+use crate::{TableForeignKey, backend::SchemaBuilder, types::*, prepare::*};
+pub use crate::traits::SchemaStatementBuilder;
 
 /// Drop a foreign key constraint for an existing table
 ///
@@ -56,23 +57,18 @@ impl ForeignKeyDropStatement {
         self.table = Some(Rc::new(table));
         self
     }
+}
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: ForeignKeyBuilder>(&self, foreign_key_builder: T) -> String {
+impl SchemaStatementBuilder for ForeignKeyDropStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        foreign_key_builder.prepare_foreign_key_drop_statement(self, &mut sql);
+        schema_builder.prepare_foreign_key_drop_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, foreign_key_builder: &dyn ForeignKeyBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        foreign_key_builder.prepare_foreign_key_drop_statement(self, &mut sql);
+        schema_builder.prepare_foreign_key_drop_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: ForeignKeyBuilder>(&self, foreign_key_builder: T) -> String {
-        self.build(foreign_key_builder)
     }
 }
