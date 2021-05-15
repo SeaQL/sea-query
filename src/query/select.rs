@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::OrderedStatement, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, ConditionalStatement}, types::*, expr::*, value::*, prepare::*};
 use std::iter::FromIterator;
 
 /// Select rows from an existing table
@@ -954,78 +954,6 @@ impl SelectStatement {
         )
     }
 
-    /// And where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .table_column(Glyph::Table, Glyph::Image)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "glyph"."image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND "glyph"."image" LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// ```
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.wherei.push(LogicalChainOper::And(other));
-        self
-    }
-
-    /// And where condition, short hand for `if c.is_some() q.and_where(c)`.
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
-        if let Some(other) = other {
-            self.wherei.push(LogicalChainOper::And(other));
-        }
-        self
-    }
-
-    /// Or where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .table_column(Glyph::Table, Glyph::Image)
-    ///     .from(Glyph::Table)
-    ///     .or_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///     .or_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "glyph"."image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) OR "glyph"."image" LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// ```
-    pub fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.wherei.push(LogicalChainOper::Or(other));
-        self
-    }
-
     /// Add group by expressions from vector of [`SelectExpr`].
     ///
     /// # Examples
@@ -1260,6 +1188,13 @@ impl QueryStatementBuilder for SelectStatement {
 impl OrderedStatement for SelectStatement {
     fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.orders.push(order);
+        self
+    }
+}
+
+impl ConditionalStatement for SelectStatement {
+    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+        self.wherei.push(condition);
         self
     }
 }

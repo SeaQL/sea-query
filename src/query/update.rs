@@ -1,6 +1,6 @@
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::OrderedStatement, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, ConditionalStatement}, types::*, expr::*, value::*, prepare::*};
 
 /// Update existing rows in the table
 ///
@@ -35,7 +35,7 @@ use crate::{backend::QueryBuilder, QueryStatementBuilder, query::OrderedStatemen
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) values: Vec<(String, Box<SimpleExpr>)>,
-    pub(crate) wherei: Option<Box<SimpleExpr>>,
+    pub(crate) wherei: Vec<LogicalChainOper>,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
 }
@@ -52,7 +52,7 @@ impl UpdateStatement {
         Self {
             table: None,
             values: Vec::new(),
-            wherei: None,
+            wherei: Vec::new(),
             orders: Vec::new(),
             limit: None,
         }
@@ -236,98 +236,6 @@ impl UpdateStatement {
         self
     }
 
-    /// And where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).gt(1))
-    ///     .and_where(Expr::col(Glyph::Id).lt(3))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`id` > 1) AND (`id` < 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE ("id" > 1) AND ("id" < 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`id` > 1) AND (`id` < 3)"#
-    /// );
-    /// ```
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(BinOper::And, other)
-    }
-
-    /// Or where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .or_where(Expr::col(Glyph::Aspect).lt(1))
-    ///     .or_where(Expr::col(Glyph::Aspect).gt(3))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`aspect` < 1) OR (`aspect` > 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE ("aspect" < 1) OR ("aspect" > 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`aspect` < 1) OR (`aspect` > 3)"#
-    /// );
-    /// ```
-    pub fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(BinOper::Or, other)
-    }
-
-    fn and_or_where(&mut self, bopr: BinOper, right: SimpleExpr) -> &mut Self {
-        self.wherei = Self::merge_expr(
-            self.wherei.take(),
-            match bopr {
-                BinOper::And => BinOper::And,
-                BinOper::Or => BinOper::Or,
-                _ => panic!("not allow"),
-            },
-            right
-        );
-        self
-    }
-
-    fn merge_expr(left: Option<Box<SimpleExpr>>, bopr: BinOper, right: SimpleExpr) -> Option<Box<SimpleExpr>> {
-        Some(Box::new(match left {
-            Some(left) => SimpleExpr::Binary(
-                left,
-                bopr,
-                Box::new(right)
-            ),
-            None => right,
-        }))
-    }
-
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
         self.limit = Some(Value::BigUnsigned(limit));
@@ -401,6 +309,13 @@ impl QueryStatementBuilder for UpdateStatement {
 impl OrderedStatement for UpdateStatement {
     fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.orders.push(order);
+        self
+    }
+}
+
+impl ConditionalStatement for UpdateStatement {
+    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+        self.wherei.push(condition);
         self
     }
 }

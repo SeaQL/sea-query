@@ -133,9 +133,11 @@ impl QueryBuilder for MysqlQueryBuilder {
             false
         });
 
-        if let Some(wherei) = &update.wherei {
+        if !update.wherei.is_empty() {
             write!(sql, " WHERE ").unwrap();
-            self.prepare_simple_expr(wherei, sql, collector);
+        }
+        for (i, log_chain_oper) in update.wherei.iter().enumerate() {
+            self.prepare_logical_chain_oper(log_chain_oper, i, update.wherei.len(), sql, collector);
         }
 
         if !update.orders.is_empty() {
@@ -163,9 +165,11 @@ impl QueryBuilder for MysqlQueryBuilder {
             self.prepare_table_ref(table, sql, collector);
         }
 
-        if let Some(wherei) = &delete.wherei {
+        if !delete.wherei.is_empty() {
             write!(sql, " WHERE ").unwrap();
-            self.prepare_simple_expr(wherei, sql, collector);
+        }
+        for (i, log_chain_oper) in delete.wherei.iter().enumerate() {
+            self.prepare_logical_chain_oper(log_chain_oper, i, delete.wherei.len(), sql, collector);
         }
 
         if !delete.orders.is_empty() {

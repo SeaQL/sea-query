@@ -1,4 +1,4 @@
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::OrderedStatement, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, ConditionalStatement}, types::*, value::*, prepare::*};
 
 /// Delete existing rows from the table
 ///
@@ -15,21 +15,21 @@ use crate::{backend::QueryBuilder, QueryStatementBuilder, query::OrderedStatemen
 ///
 /// assert_eq!(
 ///     query.to_string(MysqlQueryBuilder),
-///     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
+///     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 /// );
 /// assert_eq!(
 ///     query.to_string(PostgresQueryBuilder),
-///     r#"DELETE FROM "glyph" WHERE ("id" < 1) OR ("id" > 10)"#
+///     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 /// );
 /// assert_eq!(
 ///     query.to_string(SqliteQueryBuilder),
-///     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
+///     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 /// );
 /// ```
 #[derive(Debug, Clone)]
 pub struct DeleteStatement {
     pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) wherei: Option<Box<SimpleExpr>>,
+    pub(crate) wherei: Vec<LogicalChainOper>,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
 }
@@ -45,7 +45,7 @@ impl DeleteStatement {
     pub fn new() -> Self {
         Self {
             table: None,
-            wherei: None,
+            wherei: Vec::new(),
             orders: Vec::new(),
             limit: None,
         }
@@ -81,90 +81,6 @@ impl DeleteStatement {
         where T: IntoTableRef {
         self.table = Some(Box::new(tbl_ref.into_table_ref()));
         self
-    }
-
-    /// And where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::delete()
-    ///     .from_table(Glyph::Table)
-    ///     .and_where(Expr::col(Glyph::Id).gt(1))
-    ///     .and_where(Expr::col(Glyph::Id).lt(10))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE (`id` > 1) AND (`id` < 10)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"DELETE FROM "glyph" WHERE ("id" > 1) AND ("id" < 10)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE (`id` > 1) AND (`id` < 10)"#
-    /// );
-    /// ```
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(BinOper::And, other)
-    }
-
-    /// And where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::delete()
-    ///     .from_table(Glyph::Table)
-    ///     .or_where(Expr::col(Glyph::Id).lt(1))
-    ///     .or_where(Expr::col(Glyph::Id).gt(10))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"DELETE FROM "glyph" WHERE ("id" < 1) OR ("id" > 10)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
-    /// );
-    /// ```
-    pub fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(BinOper::Or, other)
-    }
-
-    fn and_or_where(&mut self, bopr: BinOper, right: SimpleExpr) -> &mut Self {
-        self.wherei = Self::merge_expr(
-            self.wherei.take(),
-            match bopr {
-                BinOper::And => BinOper::And,
-                BinOper::Or => BinOper::Or,
-                _ => panic!("not allow"),
-            },
-            right
-        );
-        self
-    }
-
-    fn merge_expr(left: Option<Box<SimpleExpr>>, bopr: BinOper, right: SimpleExpr) -> Option<Box<SimpleExpr>> {
-        Some(Box::new(match left {
-            Some(left) => SimpleExpr::Binary(
-                left,
-                bopr,
-                Box::new(right)
-            ),
-            None => right,
-        }))
     }
 
     /// Limit number of updated rows.
@@ -234,6 +150,13 @@ impl QueryStatementBuilder for DeleteStatement {
 impl OrderedStatement for DeleteStatement {
     fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.orders.push(order);
+        self
+    }
+}
+
+impl ConditionalStatement for DeleteStatement {
+    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+        self.wherei.push(condition);
         self
     }
 }
