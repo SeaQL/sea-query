@@ -157,7 +157,7 @@ impl QueryBuilder for SqliteQueryBuilder {
 
     fn prepare_delete_statement(&self, delete: &DeleteStatement, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         write!(sql, "DELETE ").unwrap();
-        
+
         if let Some(table) = &delete.table {
             write!(sql, "FROM ").unwrap();
             self.prepare_table_ref(table, sql, collector);
