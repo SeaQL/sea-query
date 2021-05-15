@@ -2,16 +2,16 @@ use std::rc::Rc;
 use crate::{backend::TableBuilder, types::*, prepare::*};
 
 /// Rename a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::rename()
 ///     .table(Font::Table, Alias::new("font_new"))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     r#"RENAME TABLE `font` TO `font_new`"#

@@ -2,17 +2,17 @@ use std::rc::Rc;
 use crate::{backend::TableBuilder, types::*, prepare::*};
 
 /// Drop a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::drop()
 ///     .table(Glyph::Table)
 ///     .table(Char::Table)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     r#"DROP TABLE `glyph`, `character`"#

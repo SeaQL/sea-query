@@ -3,18 +3,18 @@ use crate::{backend::IndexBuilder, types::*, prepare::*};
 use super::common::*;
 
 /// Create an index for an existing table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col(Glyph::Aspect)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
@@ -31,13 +31,13 @@ use super::common::*;
 /// Index with prefix
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col((Glyph::Aspect, 128))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (128))"#
@@ -54,13 +54,13 @@ use super::common::*;
 /// Index with order
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col((Glyph::Aspect, IndexOrder::Desc))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` DESC)"#
@@ -77,13 +77,13 @@ use super::common::*;
 /// Index with prefix and order
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col((Glyph::Aspect, 64, IndexOrder::Asc))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (64) ASC)"#
@@ -165,9 +165,9 @@ impl IndexCreateStatement {
         self
     }
 
-    /// Set index as full text. 
-    /// On MySQL, this is `FULLTEXT`. 
-    /// On PgSQL, this is `GIN`. 
+    /// Set index as full text.
+    /// On MySQL, this is `FULLTEXT`.
+    /// On PgSQL, this is `GIN`.
     pub fn full_text(self) -> Self {
         self.index_type(IndexType::FullText)
     }

@@ -2,12 +2,12 @@ use std::rc::Rc;
 use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, index::*, types::*, prepare::*};
 
 /// Create a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::create()
 ///     .table(Char::Table)
 ///     .if_not_exists()
@@ -26,7 +26,7 @@ use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, index::*, types::*
 ///             .on_update(ForeignKeyAction::Cascade)
 ///     )
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     vec![
@@ -149,13 +149,13 @@ impl TableCreateStatement {
         self
     }
 
-    /// Add an index. MySQL only. 
-    /// 
+    /// Add an index. MySQL only.
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
@@ -181,12 +181,12 @@ impl TableCreateStatement {
     }
 
     /// Add an primary key.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let mut statement = Table::create();
     /// statement
     ///     .table(Glyph::Table)

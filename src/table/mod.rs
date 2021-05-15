@@ -1,7 +1,7 @@
 //! Table definition & alternations statements.
-//! 
+//!
 //! # Usage
-//! 
+//!
 //! - Table Create, see [`TableCreateStatement`]
 //! - Table Alter, see [`TableAlterStatement`]
 //! - Table Drop, see [`TableDropStatement`]
@@ -43,7 +43,7 @@ impl Table {
     pub fn create() -> TableCreateStatement {
         TableCreateStatement::new()
     }
-    
+
     /// Construct table [`TableAlterStatement`]
     pub fn alter() -> TableAlterStatement {
         TableAlterStatement::new()

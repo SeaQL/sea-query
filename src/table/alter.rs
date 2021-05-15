@@ -2,17 +2,17 @@ use std::rc::Rc;
 use crate::{ColumnDef, backend::TableBuilder, types::*, prepare::*};
 
 /// Alter a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::alter()
 ///     .table(Font::Table)
 ///     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
@@ -64,17 +64,17 @@ impl TableAlterStatement {
     }
 
     /// Add a column to an existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
@@ -93,17 +93,17 @@ impl TableAlterStatement {
     }
 
     /// Modify a column in an existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .modify_column(ColumnDef::new(Alias::new("new_col")).big_integer().default(999))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` MODIFY COLUMN `new_col` bigint DEFAULT 999"#
@@ -123,17 +123,17 @@ impl TableAlterStatement {
     }
 
     /// Rename a column in an existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .rename_column(Alias::new("new_col"), Alias::new("new_column"))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"#
@@ -153,17 +153,17 @@ impl TableAlterStatement {
     }
 
     /// Add a column to existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .drop_column(Alias::new("new_column"))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` DROP COLUMN `new_column`"#

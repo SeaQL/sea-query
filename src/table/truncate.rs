@@ -2,16 +2,16 @@ use std::rc::Rc;
 use crate::{backend::TableBuilder, types::*, prepare::*};
 
 /// Drop a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::truncate()
 ///     .table(Font::Table)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     r#"TRUNCATE TABLE `font`"#

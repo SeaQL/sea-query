@@ -2,17 +2,17 @@ use std::rc::Rc;
 use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
 
 /// Drop an index for an existing table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::drop()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#

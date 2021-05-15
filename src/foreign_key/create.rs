@@ -1,12 +1,12 @@
 use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let foreign_key = ForeignKey::create()
 ///     .name("FK_character_font")
 ///     .from(Char::Table, Char::FontId)
@@ -14,7 +14,7 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     .on_delete(ForeignKeyAction::Cascade)
 ///     .on_update(ForeignKeyAction::Cascade)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     foreign_key.to_string(MysqlQueryBuilder),
 ///     vec![
@@ -33,11 +33,11 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     ].join(" ")
 /// );
 /// ```
-/// 
+///
 /// Composite key
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let foreign_key = ForeignKey::create()
 ///     .name("FK_character_glyph")
 ///     .from(Char::Table, (Char::FontId, Char::Id))
@@ -45,7 +45,7 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     .on_delete(ForeignKeyAction::Cascade)
 ///     .on_update(ForeignKeyAction::Cascade)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     foreign_key.to_string(MysqlQueryBuilder),
 ///     vec![

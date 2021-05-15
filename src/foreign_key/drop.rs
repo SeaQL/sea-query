@@ -2,17 +2,17 @@ use std::rc::Rc;
 use crate::{TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
 
 /// Drop a foreign key constraint for an existing table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let foreign_key = ForeignKey::drop()
 ///     .name("FK_character_font")
 ///     .table(Char::Table)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     foreign_key.to_string(MysqlQueryBuilder),
 ///     r#"ALTER TABLE `character` DROP FOREIGN KEY `FK_character_font`"#
