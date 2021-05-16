@@ -116,7 +116,7 @@ fn select_8() {
     assert_eq!(
         Query::select()
             .columns(vec![
-                Char::Character, 
+                Char::Character,
             ])
             .from(Char::Table)
             .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
@@ -130,7 +130,7 @@ fn select_9() {
     assert_eq!(
         Query::select()
             .columns(vec![
-                Char::Character, 
+                Char::Character,
             ])
             .from(Char::Table)
             .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
@@ -145,10 +145,10 @@ fn select_10() {
     assert_eq!(
         Query::select()
             .columns(vec![
-                Char::Character, 
+                Char::Character,
             ])
             .from(Char::Table)
-            .left_join(Font::Table, 
+            .left_join(Font::Table,
                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
                 .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
             )
