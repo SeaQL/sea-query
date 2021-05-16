@@ -78,12 +78,7 @@ impl QueryBuilder for PostgresQueryBuilder {
             }
         }
 
-        if !select.wherei.is_empty() {
-            write!(sql, " WHERE ").unwrap();
-        }
-        for (i, log_chain_oper) in select.wherei.iter().enumerate() {
-            self.prepare_logical_chain_oper(log_chain_oper, i, select.wherei.len(), sql, collector);
-        }
+        self.prepare_condition(&select.wherei, sql, collector);
 
         if !select.groups.is_empty() {
             write!(sql, " GROUP BY ").unwrap();
@@ -144,12 +139,7 @@ impl QueryBuilder for PostgresQueryBuilder {
             false
         });
 
-        if !update.wherei.is_empty() {
-            write!(sql, " WHERE ").unwrap();
-        }
-        for (i, log_chain_oper) in update.wherei.iter().enumerate() {
-            self.prepare_logical_chain_oper(log_chain_oper, i, update.wherei.len(), sql, collector);
-        }
+        self.prepare_condition(&update.wherei, sql, collector);
 
         if !update.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
@@ -176,12 +166,7 @@ impl QueryBuilder for PostgresQueryBuilder {
             self.prepare_table_ref(table, sql, collector);
         }
 
-        if !delete.wherei.is_empty() {
-            write!(sql, " WHERE ").unwrap();
-        }
-        for (i, log_chain_oper) in delete.wherei.iter().enumerate() {
-            self.prepare_logical_chain_oper(log_chain_oper, i, delete.wherei.len(), sql, collector);
-        }
+        self.prepare_condition(&delete.wherei, sql, collector);
 
         if !delete.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
@@ -472,6 +457,49 @@ impl QueryBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
+    fn prepare_condition(&self, condition: &ConditionHolder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        if !condition.is_empty() {
+            write!(sql, " WHERE ").unwrap();
+        }
+        match &condition.contents {
+            ConditionHolderContents::Empty => (),
+            ConditionHolderContents::And(conditions) => {
+                for (i, log_chain_oper) in conditions.iter().enumerate() {
+                    self.prepare_logical_chain_oper(log_chain_oper, i, conditions.len(), sql, collector);
+                }
+            }
+            ConditionHolderContents::Where(c) => {
+                self.prepare_condition_where(&c, sql, collector);
+            }
+        }
+    }
+
+    fn prepare_condition_where(&self, condition: &ConditionWhere, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        let is_any =  ConditionWhereType::Any == condition.condition_type;
+        let mut is_first = true;
+        for cond in &condition.conditions {
+            if is_first {
+                is_first = false;
+            } else {
+                if is_any {
+                    write!(sql, " OR ").unwrap();
+                } else {
+                    write!(sql, " AND ").unwrap();
+                }
+            }
+            match cond {
+                ConditionExpression::ConditionWhere(c) => {
+                    write!(sql, "(").unwrap();
+                    self.prepare_condition_where(&c, sql, collector);
+                    write!(sql, ")").unwrap();
+                }
+                ConditionExpression::SimpleExpr(e) => {
+                    self.prepare_simple_expr(&e, sql, collector);
+                }
+            }
+        }
+    }
+
     fn binary_expr(&self, left: &SimpleExpr, op: &BinOper, right: &SimpleExpr,
         sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);

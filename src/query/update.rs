@@ -1,6 +1,6 @@
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, ConditionalStatement}, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, condition::*}, types::*, expr::*, value::*, prepare::*};
 
 /// Update existing rows in the table
 ///
@@ -35,7 +35,7 @@ use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStateme
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) values: Vec<(String, Box<SimpleExpr>)>,
-    pub(crate) wherei: Vec<LogicalChainOper>,
+    pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
 }
@@ -52,7 +52,7 @@ impl UpdateStatement {
         Self {
             table: None,
             values: Vec::new(),
-            wherei: Vec::new(),
+            wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
         }
@@ -315,7 +315,12 @@ impl OrderedStatement for UpdateStatement {
 
 impl ConditionalStatement for UpdateStatement {
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
-        self.wherei.push(condition);
+        self.wherei.add_and_or(condition);
+        self
+    }
+
+    fn cond_where(&mut self, condition: ConditionWhere) -> &mut Self {
+        self.wherei.set_where(condition);
         self
     }
 }

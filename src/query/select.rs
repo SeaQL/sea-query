@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, ConditionalStatement}, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, condition::*}, types::*, expr::*, value::*, prepare::*};
 use std::iter::FromIterator;
 
 /// Select rows from an existing table
@@ -37,7 +37,7 @@ pub struct SelectStatement {
     pub(crate) selects: Vec<SelectExpr>,
     pub(crate) from: Option<Box<TableRef>>,
     pub(crate) join: Vec<JoinExpr>,
-    pub(crate) wherei: Vec<LogicalChainOper>,
+    pub(crate) wherei: ConditionHolder,
     pub(crate) groups: Vec<SimpleExpr>,
     pub(crate) having: Vec<LogicalChainOper>,
     pub(crate) orders: Vec<OrderExpr>,
@@ -91,7 +91,7 @@ impl SelectStatement {
             selects: Vec::new(),
             from: None,
             join: Vec::new(),
-            wherei: Vec::new(),
+            wherei: ConditionHolder::new(),
             groups: Vec::new(),
             having: Vec::new(),
             orders: Vec::new(),
@@ -107,7 +107,7 @@ impl SelectStatement {
             selects: std::mem::replace(&mut self.selects, Vec::new()),
             from: self.from.take(),
             join: std::mem::replace(&mut self.join, Vec::new()),
-            wherei: std::mem::replace(&mut self.wherei, Vec::new()),
+            wherei: std::mem::replace(&mut self.wherei, ConditionHolder::new()),
             groups: std::mem::replace(&mut self.groups, Vec::new()),
             having: std::mem::replace(&mut self.having, Vec::new()),
             orders: std::mem::replace(&mut self.orders, Vec::new()),
@@ -1194,7 +1194,12 @@ impl OrderedStatement for SelectStatement {
 
 impl ConditionalStatement for SelectStatement {
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
-        self.wherei.push(condition);
+        self.wherei.add_and_or(condition);
+        self
+    }
+
+    fn cond_where(&mut self, condition: ConditionWhere) -> &mut Self {
+        self.wherei.set_where(condition);
         self
     }
 }

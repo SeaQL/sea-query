@@ -544,6 +544,84 @@ fn select_35() {
 }
 
 #[test]
+fn select_36() {
+    let (statement, values) = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            any()
+            .add(Expr::col(Glyph::Aspect).is_null())
+        )
+        .build(sea_query::MysqlQueryBuilder);
+
+    assert_eq!(statement, r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"#);
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
+fn select_37() {
+    let (statement, values) = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(any().add(all()).add(any()))
+        .build(sea_query::MysqlQueryBuilder);
+
+    assert_eq!(statement, r#"SELECT `id` FROM `glyph`"#);
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
+fn select_38() {
+    let (statement, values) = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            any()
+            .add(Expr::col(Glyph::Aspect).is_null())
+            .add(Expr::col(Glyph::Aspect).is_not_null())
+        )
+        .build(sea_query::MysqlQueryBuilder);
+
+    assert_eq!(statement, r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR `aspect` IS NOT NULL"#);
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
+fn select_39() {
+    let (statement, values) = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            all()
+            .add(Expr::col(Glyph::Aspect).is_null())
+            .add(Expr::col(Glyph::Aspect).is_not_null())
+        )
+        .build(sea_query::MysqlQueryBuilder);
+
+    assert_eq!(statement, r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL AND `aspect` IS NOT NULL"#);
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
+fn select_40() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            any![
+                Expr::col(Glyph::Aspect).is_null(),
+                all![
+                    Expr::col(Glyph::Aspect).is_not_null(),
+                    Expr::col(Glyph::Aspect).lt(8)
+                ]
+            ]
+        )
+        .to_string(sea_query::MysqlQueryBuilder);
+
+    assert_eq!(statement, r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR (`aspect` IS NOT NULL AND `aspect` < 8)"#);
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 #[cfg(feature="with-json")]
 fn insert_1() {
