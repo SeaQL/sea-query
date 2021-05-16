@@ -237,6 +237,11 @@ impl SelectStatement {
         self
     }
 
+    pub fn exprs_mut_for_each<F>(&mut self, func: F)
+        where F: FnMut(&mut SelectExpr) {
+        self.selects.iter_mut().for_each(func);
+    }
+
     /// Select distinct
     pub fn distinct(&mut self) -> &mut Self {
         self.distinct = Some(SelectDistinct::Distinct);
