@@ -1,6 +1,5 @@
 use std::rc::Rc;
-use crate::{TableIndex, backend::SchemaBuilder, types::*, prepare::*};
-pub use crate::traits::SchemaStatementBuilder;
+use crate::{TableIndex, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Drop an index for an existing table
 ///
@@ -59,6 +58,18 @@ impl IndexDropStatement {
         where T: Iden {
         self.table = Some(Rc::new(table));
         self
+    }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
     }
 }
 

@@ -26,7 +26,6 @@ pub trait QueryStatementBuilder {
         inject_parameters(&sql, values.0, &query_builder)
     }
 
-
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
     ///
     /// # Examples

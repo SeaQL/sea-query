@@ -1,5 +1,4 @@
-use crate::{ForeignKeyAction, TableForeignKey, backend::SchemaBuilder, types::*, prepare::*};
-pub use crate::traits::SchemaStatementBuilder;
+use crate::{ForeignKeyAction, TableForeignKey, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite
 ///
@@ -172,6 +171,18 @@ impl ForeignKeyCreateStatement {
     pub fn on_update(mut self, action: ForeignKeyAction) -> Self {
         self.foreign_key.on_update(action);
         self
+    }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
     }
 }
 

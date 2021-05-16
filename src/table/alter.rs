@@ -1,6 +1,5 @@
 use std::rc::Rc;
-use crate::{ColumnDef, backend::SchemaBuilder, types::*, prepare::*};
-pub use crate::traits::SchemaStatementBuilder;
+use crate::{ColumnDef, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Alter a table
 ///
@@ -183,6 +182,18 @@ impl TableAlterStatement {
     fn alter_option(mut self, alter_option: TableAlterOption) -> Self {
         self.alter_option = Some(alter_option);
         self
+    }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
     }
 }
 

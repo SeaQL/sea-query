@@ -1,8 +1,7 @@
 use std::rc::Rc;
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, Query, SelectExpr, SelectStatement, types::*, value::*, prepare::*, error::*};
-pub use crate::traits::QueryStatementBuilder;
+use crate::{backend::QueryBuilder, QueryStatementBuilder, Query, SelectExpr, SelectStatement, types::*, value::*, prepare::*, error::*};
 
 /// Insert any new rows into an existing table
 ///
@@ -272,6 +271,18 @@ impl InsertStatement {
         }
         self.values.push(values);
         self
+    }
+
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementBuilder>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build(self, query_builder)
+    }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build_any(self, query_builder)
     }
 }
 

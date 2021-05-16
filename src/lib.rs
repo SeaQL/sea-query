@@ -595,6 +595,7 @@ pub use prepare::*;
 pub use schema::*;
 //pub use tests_cfg::*;
 pub use token::*;
+pub use traits::*;
 pub use types::*;
 pub use value::*;
 

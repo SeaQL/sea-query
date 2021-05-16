@@ -1,5 +1,4 @@
-use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
-pub use crate::traits::QueryStatementBuilder;
+use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
 
 /// Delete existing rows from the table
 ///
@@ -252,6 +251,18 @@ impl DeleteStatement {
     pub fn limit(&mut self, limit: u64) -> &mut Self {
         self.limit = Some(Value::BigUnsigned(limit));
         self
+    }
+
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementBuilder>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build(self, query_builder)
+    }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build_any(self, query_builder)
     }
 }
 
