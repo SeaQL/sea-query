@@ -1,52 +1,6 @@
 use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
-    fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut SqlWriter) {
-        write!(sql, "CREATE TABLE ").unwrap();
-
-        if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap();
-        }
-
-        if let Some(table) = &create.table {
-            table.prepare(sql, '`');
-        }
-
-        write!(sql, " ( ").unwrap();
-        let mut count = 0;
-
-        for column_def in create.columns.iter() {
-            if count > 0 {
-                write!(sql, ", ").unwrap();
-            }
-            self.prepare_column_def(column_def, sql);
-            count += 1;
-        }
-
-        for index in create.indexes.iter() {
-            if count > 0 {
-                write!(sql, ", ").unwrap();
-            }
-            self.prepare_table_index_expression(index, sql);
-            count += 1;
-        }
-
-        for foreign_key in create.foreign_keys.iter() {
-            if count > 0 {
-                write!(sql, ", ").unwrap();
-            }
-            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, true);
-            count += 1;
-        }
-
-        write!(sql, " )").unwrap();
-
-        for table_opt in create.options.iter() {
-            write!(sql, " ").unwrap();
-            self.prepare_table_opt(table_opt, sql);
-        }
-    }
-
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
         column_def.name.prepare(sql, '`');
 
@@ -140,52 +94,8 @@ impl TableBuilder for MysqlQueryBuilder {
         }.unwrap()
     }
 
-    fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut SqlWriter) {
-        write!(sql, "{}", match table_opt {
-            TableOpt::Engine(s) => format!("ENGINE={}", s),
-            TableOpt::Collate(s) => format!("COLLATE={}", s),
-            TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={}", s),
-        }).unwrap()
-    }
-
     fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut SqlWriter) {
         panic!("unsupported");
-    }
-
-    fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut SqlWriter) {
-        write!(sql, "DROP TABLE ").unwrap();
-
-        if drop.if_exists {
-            write!(sql, "IF EXISTS ").unwrap();
-        }
-
-        drop.tables.iter().fold(true, |first, table| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            table.prepare(sql, '`');
-            false
-        });
-
-        for drop_opt in drop.options.iter() {
-            write!(sql, " ").unwrap();
-            self.prepare_table_drop_opt(drop_opt, sql);
-        }
-    }
-
-    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut SqlWriter) {
-        write!(sql, "{}", match drop_opt {
-            TableDropOpt::Restrict => "RESTRICT",
-            TableDropOpt::Cascade => "CASCADE",
-        }).unwrap();
-    }
-
-    fn prepare_table_truncate_statement(&self, truncate: &TableTruncateStatement, sql: &mut SqlWriter) {
-        write!(sql, "TRUNCATE TABLE ").unwrap();
-
-        if let Some(table) = &truncate.table {
-            table.prepare(sql, '`');
-        }
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {

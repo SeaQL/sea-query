@@ -1,15 +1,10 @@
 use crate::*;
 
-pub trait QueryBuilder {
-
-    /// The type of quote the builder uses.
-    fn quote(&self) -> char {
-        '`'
-    }
+pub trait QueryBuilder : QuotedBuilder {
 
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
-        ("?", true)
+        ("?", false)
     }
 
     /// Translate [`InsertStatement`] into SQL statement.

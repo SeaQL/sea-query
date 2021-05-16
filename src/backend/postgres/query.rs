@@ -1,12 +1,8 @@
 use super::*;
 
 impl QueryBuilder for PostgresQueryBuilder {
-    fn quote(&self) -> char {
-        '"'
-    }
-
     fn placeholder(&self) -> (&str, bool) {
-        ("$", false)
+        ("$", true)
     }
 
     fn prepare_returning(&self, returning: &Vec<SelectExpr>,  sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {

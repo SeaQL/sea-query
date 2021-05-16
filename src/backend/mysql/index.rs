@@ -40,27 +40,6 @@ impl IndexBuilder for MysqlQueryBuilder {
             table.prepare(sql, '`');
         }
     }
-}
-
-impl MysqlQueryBuilder {
-    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
-        if create.primary {
-            write!(sql, "PRIMARY ").unwrap();
-        }
-        if create.unique {
-            write!(sql, "UNIQUE ").unwrap();
-        }
-        if matches!(create.index_type, Some(IndexType::FullText)) {
-            write!(sql, "FULLTEXT ").unwrap();
-        }
-    }
-
-    fn prepare_index_name(&self, name: &Option<String>, sql: &mut SqlWriter) {
-        if let Some(name) = name {
-            write!(sql, "`{}`", name).unwrap();
-        }
-    }
-
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut SqlWriter) {
         if let Some(index_type) = col_index_type {
             if !matches!(index_type, IndexType::FullText) {
@@ -74,26 +53,16 @@ impl MysqlQueryBuilder {
         }
     }
 
-    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut SqlWriter) {
-        write!(sql, " (").unwrap();
-        columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            col.name.prepare(sql, '`');
-            if let Some(prefix) = col.prefix {
-                write!(sql, " (").unwrap();
-                write!(sql, "{}", prefix).unwrap();
-                write!(sql, ")").unwrap();
-            }
-            if let Some(order) = &col.order {
-                match order {
-                    IndexOrder::Asc => write!(sql, " ASC").unwrap(),
-                    IndexOrder::Desc => write!(sql, " DESC").unwrap(),
-                }
-            }
-            false
-        });
-        write!(sql, ")").unwrap();
+    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+        if create.primary {
+            write!(sql, "PRIMARY ").unwrap();
+        }
+        if create.unique {
+            write!(sql, "UNIQUE ").unwrap();
+        }
+        if matches!(create.index_type, Some(IndexType::FullText)) {
+            write!(sql, "FULLTEXT ").unwrap();
+        }
     }
+
 }

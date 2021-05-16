@@ -1,0 +1,27 @@
+use crate::*;
+
+pub trait ForeignKeyBuilder : QuotedBuilder {
+
+    /// Translate [`ForeignKeyCreateStatement`] into SQL statement.
+    fn prepare_foreign_key_create_statement(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter) {
+        self.prepare_foreign_key_create_statement_internal(create, sql, false)
+    }
+
+    /// Translate [`ForeignKeyAction`] into SQL statement.
+    fn prepare_foreign_key_action(&self, foreign_key_action: &ForeignKeyAction, sql: &mut SqlWriter) {
+        write!(sql, "{}", match foreign_key_action {
+            ForeignKeyAction::Restrict => "RESTRICT",
+            ForeignKeyAction::Cascade => "CASCADE",
+            ForeignKeyAction::SetNull => "SET NULL",
+            ForeignKeyAction::NoAction => "NO ACTION",
+            ForeignKeyAction::SetDefault => "SET DEFAULT",
+        }).unwrap()
+    }
+
+    /// Translate [`ForeignKeyDropStatement`] into SQL statement.
+    fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut SqlWriter);
+
+    #[doc(hidden)]
+    /// Internal function to factor foreign key creation in table and outside.
+    fn prepare_foreign_key_create_statement_internal(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter, inside_table_creation: bool);
+}
