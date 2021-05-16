@@ -246,14 +246,14 @@ pub trait ConditionalStatement {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum ConditionHolderContents {
+pub enum ConditionHolderContents {
     Empty,
     And(Vec<LogicalChainOper>),
     Where(ConditionWhere),
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ConditionHolder {
+pub struct ConditionHolder {
     pub contents: ConditionHolderContents,
 }
 
