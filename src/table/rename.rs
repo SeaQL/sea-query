@@ -1,17 +1,17 @@
 use std::rc::Rc;
-use crate::{backend::TableBuilder, types::*, prepare::*};
+use crate::{backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Rename a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::rename()
 ///     .table(Font::Table, Alias::new("font_new"))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     r#"RENAME TABLE `font` TO `font_new`"#
@@ -54,22 +54,30 @@ impl TableRenameStatement {
         self
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
+    }
+}
+
+impl SchemaStatementBuilder for TableRenameStatement {
+
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_rename_statement(self, &mut sql);
+        schema_builder.prepare_table_rename_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_rename_statement(self, &mut sql);
+        schema_builder.prepare_table_rename_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
-        self.build(table_builder)
     }
 }

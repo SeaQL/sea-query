@@ -1,18 +1,18 @@
 use std::rc::Rc;
-use crate::{ColumnDef, backend::TableBuilder, types::*, prepare::*};
+use crate::{ColumnDef, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Alter a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::alter()
 ///     .table(Font::Table)
 ///     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
@@ -64,17 +64,17 @@ impl TableAlterStatement {
     }
 
     /// Add a column to an existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
@@ -93,17 +93,17 @@ impl TableAlterStatement {
     }
 
     /// Modify a column in an existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .modify_column(ColumnDef::new(Alias::new("new_col")).big_integer().default(999))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` MODIFY COLUMN `new_col` bigint DEFAULT 999"#
@@ -123,17 +123,17 @@ impl TableAlterStatement {
     }
 
     /// Rename a column in an existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .rename_column(Alias::new("new_col"), Alias::new("new_column"))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"#
@@ -153,17 +153,17 @@ impl TableAlterStatement {
     }
 
     /// Add a column to existing table
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
     ///     .drop_column(Alias::new("new_column"))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` DROP COLUMN `new_column`"#
@@ -184,22 +184,29 @@ impl TableAlterStatement {
         self
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
+    }
+}
+
+impl SchemaStatementBuilder for TableAlterStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_alter_statement(self, &mut sql);
+        schema_builder.prepare_table_alter_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_alter_statement(self, &mut sql);
+        schema_builder.prepare_table_alter_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
-        self.build(table_builder)
     }
 }

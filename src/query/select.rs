@@ -1,14 +1,14 @@
 use std::rc::Rc;
-use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
 use std::iter::FromIterator;
 
 /// Select rows from an existing table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let query = Query::select()
 ///     .column(Char::Character)
 ///     .table_column(Font::Table, Font::Name)
@@ -17,7 +17,7 @@ use std::iter::FromIterator;
 ///     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
 ///     .and_where(Expr::col(Char::Character).like("A%"))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     query.to_string(MysqlQueryBuilder),
 ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
@@ -117,12 +117,12 @@ impl SelectStatement {
     }
 
     /// A shorthand to express if ... else ... when constructing the select statement.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
@@ -132,7 +132,7 @@ impl SelectStatement {
     ///         |x| { x.and_where(Expr::col(Char::FontId).eq(10)); }
     ///     )
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5"#
@@ -163,12 +163,12 @@ impl SelectStatement {
     }
 
     /// Add an expression to the select expression list.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr(Expr::val(42))
@@ -177,7 +177,7 @@ impl SelectStatement {
     ///         expr.add(Expr::value(i))
     ///     }))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT 42, MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
@@ -198,12 +198,12 @@ impl SelectStatement {
     }
 
     /// Add select expressions from vector of [`SelectExpr`].
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .exprs(vec![
@@ -213,7 +213,7 @@ impl SelectStatement {
     ///         }),
     ///     ])
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
@@ -249,19 +249,19 @@ impl SelectStatement {
     }
 
     /// Add a column to the select expression list.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column(Char::Character)
     ///     .column(Char::SizeW)
     ///     .column(Char::SizeH)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
@@ -275,15 +275,15 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// ```
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column((Char::Table, Char::Character))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`.`character` FROM `character`"#
@@ -312,12 +312,12 @@ impl SelectStatement {
     }
 
     /// Select columns.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .columns(vec![
@@ -326,7 +326,7 @@ impl SelectStatement {
     ///         Char::SizeH,
     ///     ])
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
@@ -340,10 +340,10 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// ```
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .columns(vec![
@@ -352,7 +352,7 @@ impl SelectStatement {
     ///         (Char::Table, Char::SizeH),
     ///     ])
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
@@ -395,17 +395,17 @@ impl SelectStatement {
     }
 
     /// Select column.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr_as(Expr::col(Char::Character), Alias::new("C"))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character` AS `C` FROM `character`"#
@@ -438,17 +438,17 @@ impl SelectStatement {
     }
 
     /// From table.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::FontSize)
     ///     .from(Char::Table)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `character`"#
@@ -462,15 +462,15 @@ impl SelectStatement {
     ///     r#"SELECT `font_size` FROM `character`"#
     /// );
     /// ```
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::FontSize)
     ///     .from((Char::Table, Glyph::Table))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
@@ -494,17 +494,17 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::from`] with a tuple as [`TableRef`]"
     )]
     /// From schema.table.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::FontSize)
     ///     .from_schema(Char::Table, Glyph::Table)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
@@ -524,20 +524,20 @@ impl SelectStatement {
     }
 
     /// From table with alias.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::rc::Rc;
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table_as: Rc<dyn Iden> = Rc::new(Alias::new("char"));
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from_as(Char::Table, table_as.clone())
     ///     .table_column(table_as.clone(), Char::Character)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `char`.`character` FROM `character` AS `char`"#
@@ -554,14 +554,14 @@ impl SelectStatement {
     ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let table_as = Alias::new("alias");
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from_as((Font::Table, Char::Table), table_as.clone())
     ///     .table_column(table_as, Char::Character)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
@@ -599,12 +599,12 @@ impl SelectStatement {
     }
 
     /// From sub-query.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .columns(vec![
     ///         Glyph::Image
@@ -619,7 +619,7 @@ impl SelectStatement {
     ///         Alias::new("subglyph")
     ///     )
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"#
@@ -644,19 +644,19 @@ impl SelectStatement {
     }
 
     /// Left join.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .table_column(Font::Table, Font::Name)
     ///     .from(Char::Table)
     ///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
@@ -670,25 +670,25 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn left_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self 
+    pub fn left_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
         where R: IntoTableRef {
         self.join(JoinType::LeftJoin, tbl_ref, condition)
     }
 
     /// Inner join.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .table_column(Font::Table, Font::Name)
     ///     .from(Char::Table)
     ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
@@ -702,25 +702,25 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn inner_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self 
+    pub fn inner_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
         where R: IntoTableRef {
         self.join(JoinType::InnerJoin, tbl_ref, condition)
     }
 
     /// Join with other table by [`JoinType`].
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .table_column(Font::Table, Font::Name)
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
@@ -734,7 +734,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join<R>(&mut self, join: JoinType, tbl_ref: R, condition: SimpleExpr) -> &mut Self 
+    pub fn join<R>(&mut self, join: JoinType, tbl_ref: R, condition: SimpleExpr) -> &mut Self
         where R: IntoTableRef {
         self.join_join(join, tbl_ref.into_table_ref(), JoinOn::Condition(Box::new(condition)))
     }
@@ -771,7 +771,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join_as<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self 
+    pub fn join_as<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self
         where R: IntoTableRef, A: IntoIden {
         self.join_join(join, tbl_ref.into_table_ref().alias(alias.into_iden()), JoinOn::Condition(Box::new(condition)))
     }
@@ -780,19 +780,19 @@ impl SelectStatement {
         since = "0.6.1",
         note = "Please use the [`SelectStatement::join_as`] instead"
     )]
-    pub fn join_alias<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self 
+    pub fn join_alias<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self
         where R: IntoTableRef, A: IntoIden {
         self.join_as(join, tbl_ref, alias, condition)
     }
 
     /// Join with sub-query.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::rc::Rc;
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let sub_glyph: Rc<dyn Iden> = Rc::new(Alias::new("sub_glyph"));
     /// let query = Query::select()
     ///     .column(Font::Name)
@@ -807,7 +807,7 @@ impl SelectStatement {
     ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
     ///     )
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
@@ -821,7 +821,7 @@ impl SelectStatement {
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// ```
-    /// 
+    ///
     pub fn join_subquery<T>(&mut self, join: JoinType, query: SelectStatement, alias: T, condition: SimpleExpr) -> &mut Self
         where T: IntoIden {
         self.join_join(join, TableRef::SubQuery(query, alias.into_iden()), JoinOn::Condition(Box::new(condition)))
@@ -837,12 +837,12 @@ impl SelectStatement {
     }
 
     /// Group by columns.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .table_column(Font::Table, Font::Name)
@@ -852,7 +852,7 @@ impl SelectStatement {
     ///         Char::Character,
     ///     ])
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`"#
@@ -866,10 +866,10 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`"#
     /// );
     /// ```
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .table_column(Font::Table, Font::Name)
@@ -879,7 +879,7 @@ impl SelectStatement {
     ///         (Char::Table, Char::Character),
     ///     ])
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
@@ -906,10 +906,10 @@ impl SelectStatement {
     }
 
     /// Add a group by column.
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .table_column(Font::Table, Font::Name)
@@ -917,7 +917,7 @@ impl SelectStatement {
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .group_by_col((Char::Table, Char::Character))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
@@ -955,19 +955,19 @@ impl SelectStatement {
     }
 
     /// And where condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .table_column(Glyph::Table, Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
     ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
@@ -995,19 +995,19 @@ impl SelectStatement {
     }
 
     /// Or where condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .table_column(Glyph::Table, Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .or_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
     ///     .or_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
@@ -1027,12 +1027,12 @@ impl SelectStatement {
     }
 
     /// Add group by expressions from vector of [`SelectExpr`].
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column(Char::Character)
@@ -1041,7 +1041,7 @@ impl SelectStatement {
     ///         Expr::col(Char::SizeH).into(),
     ///     ])
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` GROUP BY `size_w`, `size_h`"#
@@ -1064,12 +1064,12 @@ impl SelectStatement {
     }
 
     /// And having condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .expr(Expr::col(Glyph::Image).max())
@@ -1080,7 +1080,7 @@ impl SelectStatement {
     ///     .and_having(Expr::col(Glyph::Aspect).gt(2))
     ///     .and_having(Expr::col(Glyph::Aspect).lt(8))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 AND `aspect` < 8"#
@@ -1100,12 +1100,12 @@ impl SelectStatement {
     }
 
     /// Or having condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .expr(Expr::col(Glyph::Image).max())
@@ -1116,7 +1116,7 @@ impl SelectStatement {
     ///     .or_having(Expr::col(Glyph::Aspect).lt(1))
     ///     .or_having(Expr::col(Glyph::Aspect).gt(10))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` < 1 OR `aspect` > 10"#
@@ -1136,12 +1136,12 @@ impl SelectStatement {
     }
 
     /// Order by column.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
@@ -1149,7 +1149,7 @@ impl SelectStatement {
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
@@ -1163,7 +1163,7 @@ impl SelectStatement {
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
         where T: IntoColumnRef {
         self.orders.push(OrderExpr {
             expr: SimpleExpr::Column(col.into_column_ref()),
@@ -1177,7 +1177,7 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::order_by`] with a tuple as [`ColumnRef`]"
     )]
     pub fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self 
+        (&mut self, table: T, col: C, order: Order) -> &mut Self
         where T: IntoIden, C: IntoIden {
         self.order_by((table.into_iden(), col.into_iden()), order)
     }
@@ -1242,18 +1242,18 @@ impl SelectStatement {
     }
 
     /// Limit the number of returned rows.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
     ///     .limit(10)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10"#
@@ -1273,19 +1273,19 @@ impl SelectStatement {
     }
 
     /// Offset number of returned rows.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
     ///     .limit(10)
     ///     .offset(10)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10 OFFSET 10"#
@@ -1304,13 +1304,27 @@ impl SelectStatement {
         self
     }
 
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementBuilder>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build(self, query_builder)
+    }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build_any(self, query_builder)
+    }
+}
+
+impl QueryStatementBuilder for SelectStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
@@ -1318,15 +1332,15 @@ impl SelectStatement {
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
-    /// 
+    ///
     /// let mut params = Vec::new();
     /// let mut collector = |v| params.push(v);
-    /// 
+    ///
     /// assert_eq!(
     ///     query.build_collect(MysqlQueryBuilder, &mut collector),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, ?) > ? ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
@@ -1336,80 +1350,15 @@ impl SelectStatement {
     ///     vec![Value::Int(0), Value::Int(2)]
     /// );
     /// ```
-    pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and collect query parameters
-    pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let (query, params) = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-    ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
-    ///     .build(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, ?) > ? ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// assert_eq!(
-    ///     params,
-    ///     Values(vec![Value::Int(0), Value::Int(2)])
-    /// );
-    /// ```
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let query = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-    ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
-    ///     .to_string(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// ```
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
     }
 }

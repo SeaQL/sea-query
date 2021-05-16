@@ -1,12 +1,12 @@
-use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types::*, prepare::*};
+use crate::{ForeignKeyAction, TableForeignKey, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let foreign_key = ForeignKey::create()
 ///     .name("FK_character_font")
 ///     .from(Char::Table, Char::FontId)
@@ -14,7 +14,7 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     .on_delete(ForeignKeyAction::Cascade)
 ///     .on_update(ForeignKeyAction::Cascade)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     foreign_key.to_string(MysqlQueryBuilder),
 ///     vec![
@@ -33,11 +33,11 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     ].join(" ")
 /// );
 /// ```
-/// 
+///
 /// Composite key
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let foreign_key = ForeignKey::create()
 ///     .name("FK_character_glyph")
 ///     .from(Char::Table, (Char::FontId, Char::Id))
@@ -45,7 +45,7 @@ use crate::{ForeignKeyAction, TableForeignKey, backend::ForeignKeyBuilder, types
 ///     .on_delete(ForeignKeyAction::Cascade)
 ///     .on_update(ForeignKeyAction::Cascade)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     foreign_key.to_string(MysqlQueryBuilder),
 ///     vec![
@@ -173,22 +173,29 @@ impl ForeignKeyCreateStatement {
         self
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: ForeignKeyBuilder>(&self, foreign_key_builder: T) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
+    }
+}
+
+impl SchemaStatementBuilder for ForeignKeyCreateStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        foreign_key_builder.prepare_foreign_key_create_statement(self, &mut sql);
+        schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, foreign_key_builder: &dyn ForeignKeyBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        foreign_key_builder.prepare_foreign_key_create_statement(self, &mut sql);
+        schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: ForeignKeyBuilder>(&self, foreign_key_builder: T) -> String {
-        self.build(foreign_key_builder)
     }
 }

@@ -1,14 +1,14 @@
 //! Table definition & alternations statements.
-//! 
+//!
 //! # Usage
-//! 
+//!
 //! - Table Create, see [`TableCreateStatement`]
 //! - Table Alter, see [`TableAlterStatement`]
 //! - Table Drop, see [`TableDropStatement`]
 //! - Table Rename, see [`TableRenameStatement`]
 //! - Table Truncate, see [`TableTruncateStatement`]
 
-use crate::TableBuilder;
+use crate::SchemaBuilder;
 
 mod alter;
 mod column;
@@ -43,7 +43,7 @@ impl Table {
     pub fn create() -> TableCreateStatement {
         TableCreateStatement::new()
     }
-    
+
     /// Construct table [`TableAlterStatement`]
     pub fn alter() -> TableAlterStatement {
         TableAlterStatement::new()
@@ -67,7 +67,7 @@ impl Table {
 
 impl TableStatement {
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
+    pub fn build<T: SchemaBuilder>(&self, table_builder: T) -> String {
         match self {
             Self::Create(stat) => stat.build(table_builder),
             Self::Alter(stat) => stat.build(table_builder),
@@ -78,7 +78,7 @@ impl TableStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
+    pub fn build_any(&self, table_builder: &dyn SchemaBuilder) -> String {
         match self {
             Self::Create(stat) => stat.build_any(table_builder),
             Self::Alter(stat) => stat.build_any(table_builder),
@@ -89,7 +89,7 @@ impl TableStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self, table_builder: T) -> String {
         match self {
             Self::Create(stat) => stat.to_string(table_builder),
             Self::Alter(stat) => stat.to_string(table_builder),

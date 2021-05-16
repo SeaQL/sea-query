@@ -16,3 +16,5 @@ impl Default for SqliteQueryBuilder {
 }
 
 impl GenericBuilder for SqliteQueryBuilder {}
+
+impl SchemaBuilder for SqliteQueryBuilder {}

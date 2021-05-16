@@ -1,7 +1,7 @@
 //! Query statements (select, insert, update & delete).
-//! 
+//!
 //! # Usage
-//! 
+//!
 //! - Query Select, see [`SelectStatement`]
 //! - Query Insert, see [`InsertStatement`]
 //! - Query Update, see [`UpdateStatement`]

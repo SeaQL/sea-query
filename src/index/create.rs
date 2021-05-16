@@ -1,20 +1,20 @@
 use std::rc::Rc;
-use crate::{backend::IndexBuilder, types::*, prepare::*};
+use crate::{backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 use super::common::*;
 
 /// Create an index for an existing table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col(Glyph::Aspect)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
@@ -31,13 +31,13 @@ use super::common::*;
 /// Index with prefix
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col((Glyph::Aspect, 128))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (128))"#
@@ -54,13 +54,13 @@ use super::common::*;
 /// Index with order
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col((Glyph::Aspect, IndexOrder::Desc))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` DESC)"#
@@ -77,13 +77,13 @@ use super::common::*;
 /// Index with prefix and order
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .col((Glyph::Aspect, 64, IndexOrder::Asc))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (64) ASC)"#
@@ -165,9 +165,9 @@ impl IndexCreateStatement {
         self
     }
 
-    /// Set index as full text. 
-    /// On MySQL, this is `FULLTEXT`. 
-    /// On PgSQL, this is `GIN`. 
+    /// Set index as full text.
+    /// On MySQL, this is `FULLTEXT`.
+    /// On PgSQL, this is `GIN`.
     pub fn full_text(self) -> Self {
         self.index_type(IndexType::FullText)
     }
@@ -178,22 +178,29 @@ impl IndexCreateStatement {
         self
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: IndexBuilder>(&self, index_builder: T) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
+    }
+}
+
+impl SchemaStatementBuilder for IndexCreateStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        index_builder.prepare_index_create_statement(self, &mut sql);
+        schema_builder.prepare_index_create_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, index_builder: &dyn IndexBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        index_builder.prepare_index_create_statement(self, &mut sql);
+        schema_builder.prepare_index_create_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: IndexBuilder>(&self, index_builder: T) -> String {
-        self.build(index_builder)
     }
 }

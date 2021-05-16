@@ -1,14 +1,14 @@
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
 
 /// Update existing rows in the table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let query = Query::update()
 ///     .table(Glyph::Table)
 ///     .values(vec![
@@ -17,7 +17,7 @@ use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
 ///     ])
 ///     .and_where(Expr::col(Glyph::Id).eq(1))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     query.to_string(MysqlQueryBuilder),
 ///     r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
@@ -59,9 +59,9 @@ impl UpdateStatement {
     }
 
     /// Specify which table to update.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// See [`UpdateStatement::values`]
     #[allow(clippy::wrong_self_convention)]
     pub fn table<T>(&mut self, tbl_ref: T) -> &mut Self
@@ -81,12 +81,12 @@ impl UpdateStatement {
     }
 
     /// Update column value by [`SimpleExpr`].
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
@@ -95,7 +95,7 @@ impl UpdateStatement {
     ///     ])
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
@@ -116,12 +116,12 @@ impl UpdateStatement {
     }
 
     /// Update column values by [`JsonValue`]. A convenience method if you have multiple column-value pairs to set at once.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .json(json!({
@@ -130,7 +130,7 @@ impl UpdateStatement {
     ///     }))
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
@@ -159,12 +159,12 @@ impl UpdateStatement {
     }
 
     /// Update column values.. A convenience method if you have multiple column-value pairs to set at once.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .values(vec![
@@ -173,7 +173,7 @@ impl UpdateStatement {
     ///     ])
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
@@ -199,19 +199,19 @@ impl UpdateStatement {
     }
 
     /// Update column values.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
@@ -237,12 +237,12 @@ impl UpdateStatement {
     }
 
     /// And where condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .values(vec![
@@ -252,7 +252,7 @@ impl UpdateStatement {
     ///     .and_where(Expr::col(Glyph::Id).gt(1))
     ///     .and_where(Expr::col(Glyph::Id).lt(3))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`id` > 1) AND (`id` < 3)"#
@@ -271,12 +271,12 @@ impl UpdateStatement {
     }
 
     /// Or where condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .values(vec![
@@ -286,7 +286,7 @@ impl UpdateStatement {
     ///     .or_where(Expr::col(Glyph::Aspect).lt(1))
     ///     .or_where(Expr::col(Glyph::Aspect).gt(3))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`aspect` < 1) OR (`aspect` > 3)"#
@@ -306,7 +306,7 @@ impl UpdateStatement {
 
     fn and_or_where(&mut self, bopr: BinOper, right: SimpleExpr) -> &mut Self {
         self.wherei = Self::merge_expr(
-            self.wherei.take(), 
+            self.wherei.take(),
             match bopr {
                 BinOper::And => BinOper::And,
                 BinOper::Or => BinOper::Or,
@@ -329,7 +329,7 @@ impl UpdateStatement {
     }
 
     /// Order by column.
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
         where T: IntoColumnRef {
         self.orders.push(OrderExpr {
             expr: SimpleExpr::Column(col.into_column_ref()),
@@ -343,7 +343,7 @@ impl UpdateStatement {
         note = "Please use the [`UpdateStatement::order_by`] with a tuple as [`ColumnRef`]"
     )]
     pub fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self 
+        (&mut self, table: T, col: C, order: Order) -> &mut Self
         where T: IntoIden, C: IntoIden {
         self.order_by((table.into_iden(), col.into_iden()), order)
     }
@@ -414,13 +414,27 @@ impl UpdateStatement {
         self
     }
 
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementBuilder>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build(self, query_builder)
+    }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build_any(self, query_builder)
+    }
+}
+
+impl QueryStatementBuilder for UpdateStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .values(vec![
@@ -429,15 +443,15 @@ impl UpdateStatement {
     ///     ])
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
-    /// 
+    ///
     /// let mut params = Vec::new();
     /// let mut collector = |v| params.push(v);
-    /// 
+    ///
     /// assert_eq!(
     ///     query.build_collect(MysqlQueryBuilder, &mut collector),
     ///     r#"UPDATE `glyph` SET `aspect` = ?, `image` = ? WHERE `id` = ?"#
@@ -451,86 +465,15 @@ impl UpdateStatement {
     ///     ]
     /// );
     /// ```
-    pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and collect query parameters
-    pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let (query, params) = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .build(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"UPDATE `glyph` SET `aspect` = ?, `image` = ? WHERE `id` = ?"#
-    /// );
-    /// assert_eq!(
-    ///     params,
-    ///     Values(vec![
-    ///         Value::Double(2.1345),
-    ///         Value::String(Box::new(String::from("235m"))),
-    ///         Value::Int(1),
-    ///     ])
-    /// );
-    /// ```
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .to_string(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
-    /// );
-    /// ```
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
     }
 }

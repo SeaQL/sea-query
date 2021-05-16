@@ -1,13 +1,13 @@
 use std::rc::Rc;
-use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, index::*, types::*, prepare::*};
+use crate::{ColumnDef, backend::SchemaBuilder, SchemaStatementBuilder, foreign_key::*, index::*, types::*, prepare::*};
 
 /// Create a table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let table = Table::create()
 ///     .table(Char::Table)
 ///     .if_not_exists()
@@ -26,7 +26,7 @@ use crate::{ColumnDef, backend::TableBuilder, foreign_key::*, index::*, types::*
 ///             .on_update(ForeignKeyAction::Cascade)
 ///     )
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
 ///     vec![
@@ -149,13 +149,13 @@ impl TableCreateStatement {
         self
     }
 
-    /// Add an index. MySQL only. 
-    /// 
+    /// Add an index. MySQL only.
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
@@ -181,12 +181,12 @@ impl TableCreateStatement {
     }
 
     /// Add an primary key.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let mut statement = Table::create();
     /// statement
     ///     .table(Glyph::Table)
@@ -267,22 +267,29 @@ impl TableCreateStatement {
         self
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: TableBuilder>(&self, table_builder: T) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
+    }
+}
+
+impl SchemaStatementBuilder for TableCreateStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_create_statement(self, &mut sql);
+        schema_builder.prepare_table_create_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &dyn TableBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        table_builder.prepare_table_create_statement(self, &mut sql);
+        schema_builder.prepare_table_create_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: TableBuilder>(&self, table_builder: T) -> String {
-        self.build(table_builder)
     }
 }

@@ -17,3 +17,5 @@ impl Default for PostgresQueryBuilder {
 }
 
 impl GenericBuilder for PostgresQueryBuilder {}
+
+impl SchemaBuilder for PostgresQueryBuilder {}

@@ -1,18 +1,18 @@
-use crate::{backend::QueryBuilder, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
 
 /// Delete existing rows from the table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let query = Query::delete()
 ///     .from_table(Glyph::Table)
 ///     .or_where(Expr::col(Glyph::Id).lt(1))
 ///     .or_where(Expr::col(Glyph::Id).gt(10))
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     query.to_string(MysqlQueryBuilder),
 ///     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
@@ -52,17 +52,17 @@ impl DeleteStatement {
     }
 
     /// Specify which table to delete from.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
@@ -84,18 +84,18 @@ impl DeleteStatement {
     }
 
     /// And where condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Id).gt(1))
     ///     .and_where(Expr::col(Glyph::Id).lt(10))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE (`id` > 1) AND (`id` < 10)"#
@@ -114,18 +114,18 @@ impl DeleteStatement {
     }
 
     /// And where condition.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .or_where(Expr::col(Glyph::Id).lt(1))
     ///     .or_where(Expr::col(Glyph::Id).gt(10))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
@@ -145,7 +145,7 @@ impl DeleteStatement {
 
     fn and_or_where(&mut self, bopr: BinOper, right: SimpleExpr) -> &mut Self {
         self.wherei = Self::merge_expr(
-            self.wherei.take(), 
+            self.wherei.take(),
             match bopr {
                 BinOper::And => BinOper::And,
                 BinOper::Or => BinOper::Or,
@@ -168,7 +168,7 @@ impl DeleteStatement {
     }
 
     /// Order by column.
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self 
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
         where T: IntoColumnRef {
         self.orders.push(OrderExpr {
             expr: SimpleExpr::Column(col.into_column_ref()),
@@ -183,7 +183,7 @@ impl DeleteStatement {
     )]
     /// Order by column with table name prefix.
     pub fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self 
+        (&mut self, table: T, col: C, order: Order) -> &mut Self
         where T: IntoIden, C: IntoIden {
         self.order_by((table.into_iden(), col.into_iden()), order)
     }
@@ -253,26 +253,40 @@ impl DeleteStatement {
         self
     }
 
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementBuilder>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build(self, query_builder)
+    }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build_any(self, query_builder)
+    }
+}
+
+impl QueryStatementBuilder for DeleteStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
-    /// 
+    ///
     /// let mut params = Vec::new();
     /// let mut collector = |v| params.push(v);
-    /// 
+    ///
     /// assert_eq!(
     ///     query.build_collect(MysqlQueryBuilder, &mut collector),
     ///     r#"DELETE FROM `glyph` WHERE `id` = ?"#
@@ -284,76 +298,15 @@ impl DeleteStatement {
     ///     ]
     /// );
     /// ```
-    pub fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_delete_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and collect query parameters    
-    pub fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_delete_statement(self, &mut sql, collector);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let (query, params) = Query::delete()
-    ///     .from_table(Glyph::Table)
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .build(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"DELETE FROM `glyph` WHERE `id` = ?"#
-    /// );
-    /// assert_eq!(
-    ///     params,
-    ///     Values(vec![
-    ///         Value::Int(1),
-    ///     ])
-    /// );
-    /// ```
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    /// 
-    /// # Examples
-    /// 
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    /// 
-    /// let query = Query::delete()
-    ///     .from_table(Glyph::Table)
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .to_string(MysqlQueryBuilder);
-    /// 
-    /// assert_eq!(
-    ///     query,
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
-    /// );
-    /// ```
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
     }
 }

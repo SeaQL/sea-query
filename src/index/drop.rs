@@ -1,18 +1,18 @@
 use std::rc::Rc;
-use crate::{TableIndex, backend::IndexBuilder, types::*, prepare::*};
+use crate::{TableIndex, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Drop an index for an existing table
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use sea_query::{*, tests_cfg::*};
-/// 
+///
 /// let index = Index::drop()
 ///     .name("idx-glyph-aspect")
 ///     .table(Glyph::Table)
 ///     .to_owned();
-/// 
+///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
 ///     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
@@ -60,22 +60,29 @@ impl IndexDropStatement {
         self
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: IndexBuilder>(&self, index_builder: T) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
+
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
+    }
+}
+
+impl SchemaStatementBuilder for IndexDropStatement {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
-        index_builder.prepare_index_drop_statement(self, &mut sql);
+        schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql.result()
     }
 
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, index_builder: &dyn IndexBuilder) -> String {
+    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
-        index_builder.prepare_index_drop_statement(self, &mut sql);
+        schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql.result()
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: IndexBuilder>(&self, index_builder: T) -> String {
-        self.build(index_builder)
     }
 }
