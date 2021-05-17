@@ -19,3 +19,9 @@ impl Default for PostgresQueryBuilder {
 impl GenericBuilder for PostgresQueryBuilder {}
 
 impl SchemaBuilder for PostgresQueryBuilder {}
+
+impl QuotedBuilder for PostgresQueryBuilder {
+    fn quote(&self) -> char {
+        '"'
+    }
+}

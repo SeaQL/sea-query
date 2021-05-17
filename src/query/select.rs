@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, condition::*}, types::*, expr::*, value::*, prepare::*};
 use std::iter::FromIterator;
 
 /// Select rows from an existing table
@@ -37,7 +37,7 @@ pub struct SelectStatement {
     pub(crate) selects: Vec<SelectExpr>,
     pub(crate) from: Option<Box<TableRef>>,
     pub(crate) join: Vec<JoinExpr>,
-    pub(crate) wherei: Vec<LogicalChainOper>,
+    pub(crate) wherei: ConditionHolder,
     pub(crate) groups: Vec<SimpleExpr>,
     pub(crate) having: Vec<LogicalChainOper>,
     pub(crate) orders: Vec<OrderExpr>,
@@ -91,7 +91,7 @@ impl SelectStatement {
             selects: Vec::new(),
             from: None,
             join: Vec::new(),
-            wherei: Vec::new(),
+            wherei: ConditionHolder::new(),
             groups: Vec::new(),
             having: Vec::new(),
             orders: Vec::new(),
@@ -107,7 +107,7 @@ impl SelectStatement {
             selects: std::mem::replace(&mut self.selects, Vec::new()),
             from: self.from.take(),
             join: std::mem::replace(&mut self.join, Vec::new()),
-            wherei: std::mem::replace(&mut self.wherei, Vec::new()),
+            wherei: std::mem::replace(&mut self.wherei, ConditionHolder::new()),
             groups: std::mem::replace(&mut self.groups, Vec::new()),
             having: std::mem::replace(&mut self.having, Vec::new()),
             orders: std::mem::replace(&mut self.orders, Vec::new()),
@@ -954,78 +954,6 @@ impl SelectStatement {
         )
     }
 
-    /// And where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .table_column(Glyph::Table, Glyph::Image)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "glyph"."image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND "glyph"."image" LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// ```
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.wherei.push(LogicalChainOper::And(other));
-        self
-    }
-
-    /// And where condition, short hand for `if c.is_some() q.and_where(c)`.
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
-        if let Some(other) = other {
-            self.wherei.push(LogicalChainOper::And(other));
-        }
-        self
-    }
-
-    /// Or where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .table_column(Glyph::Table, Glyph::Image)
-    ///     .from(Glyph::Table)
-    ///     .or_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///     .or_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "glyph"."image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) OR "glyph"."image" LIKE 'A%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
-    /// );
-    /// ```
-    pub fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.wherei.push(LogicalChainOper::Or(other));
-        self
-    }
-
     /// Add group by expressions from vector of [`SelectExpr`].
     ///
     /// # Examples
@@ -1133,112 +1061,6 @@ impl SelectStatement {
     pub fn or_having(&mut self, other: SimpleExpr) -> &mut Self {
         self.having.push(LogicalChainOper::Or(other));
         self
-    }
-
-    /// Order by column.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-    ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "image" DESC, "glyph"."aspect" ASC"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
-    /// );
-    /// ```
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
-        where T: IntoColumnRef {
-        self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col.into_column_ref()),
-            order,
-        });
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::order_by`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.order_by((table.into_iden(), col.into_iden()), order)
-    }
-
-    /// Order by [`SimpleExpr`].
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
-        self.orders.push(OrderExpr {
-            expr,
-            order,
-        });
-        self
-    }
-
-    /// Order by custom string expression.
-    pub fn order_by_customs<T: 'static, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: ToString,
-        I: IntoIterator<Item = (T, Order)>,
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Custom(c.to_string()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    /// Order by vector of columns.
-    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: IntoColumnRef,
-        I: IntoIterator<Item = (T, Order)>,
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c.into_column_ref()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        self.order_by_columns(
-            cols.into_iter()
-                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-                .collect::<Vec<_>>(),
-        )
     }
 
     /// Limit the number of returned rows.
@@ -1360,5 +1182,24 @@ impl QueryStatementBuilder for SelectStatement {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()
+    }
+}
+
+impl OrderedStatement for SelectStatement {
+    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+        self.orders.push(order);
+        self
+    }
+}
+
+impl ConditionalStatement for SelectStatement {
+    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+        self.wherei.add_and_or(condition);
+        self
+    }
+
+    fn cond_where(&mut self, condition: ConditionWhere) -> &mut Self {
+        self.wherei.set_where(condition);
+        self
     }
 }

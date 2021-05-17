@@ -1,3 +1,4 @@
+#[allow(deprecated)]
 mod query;
 mod table;
 mod online;

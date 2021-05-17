@@ -7,11 +7,15 @@
 //! - Query Update, see [`UpdateStatement`]
 //! - Query Delete, see [`DeleteStatement`]
 
+mod condition;
+mod ordered;
 mod select;
 mod insert;
 mod update;
 mod delete;
 
+pub use condition::*;
+pub use ordered::*;
 pub use select::*;
 pub use insert::*;
 pub use update::*;

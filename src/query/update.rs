@@ -1,6 +1,6 @@
 #[cfg(feature="with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, value::*, prepare::*};
+use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, condition::*}, types::*, expr::*, value::*, prepare::*};
 
 /// Update existing rows in the table
 ///
@@ -35,7 +35,7 @@ use crate::{backend::QueryBuilder, QueryStatementBuilder, types::*, expr::*, val
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) values: Vec<(String, Box<SimpleExpr>)>,
-    pub(crate) wherei: Option<Box<SimpleExpr>>,
+    pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
 }
@@ -52,7 +52,7 @@ impl UpdateStatement {
         Self {
             table: None,
             values: Vec::new(),
-            wherei: None,
+            wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
         }
@@ -236,178 +236,6 @@ impl UpdateStatement {
         self
     }
 
-    /// And where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).gt(1))
-    ///     .and_where(Expr::col(Glyph::Id).lt(3))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`id` > 1) AND (`id` < 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE ("id" > 1) AND ("id" < 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`id` > 1) AND (`id` < 3)"#
-    /// );
-    /// ```
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(BinOper::And, other)
-    }
-
-    /// Or where condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .or_where(Expr::col(Glyph::Aspect).lt(1))
-    ///     .or_where(Expr::col(Glyph::Aspect).gt(3))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`aspect` < 1) OR (`aspect` > 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE ("aspect" < 1) OR ("aspect" > 3)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE (`aspect` < 1) OR (`aspect` > 3)"#
-    /// );
-    /// ```
-    pub fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(BinOper::Or, other)
-    }
-
-    fn and_or_where(&mut self, bopr: BinOper, right: SimpleExpr) -> &mut Self {
-        self.wherei = Self::merge_expr(
-            self.wherei.take(),
-            match bopr {
-                BinOper::And => BinOper::And,
-                BinOper::Or => BinOper::Or,
-                _ => panic!("not allow"),
-            },
-            right
-        );
-        self
-    }
-
-    fn merge_expr(left: Option<Box<SimpleExpr>>, bopr: BinOper, right: SimpleExpr) -> Option<Box<SimpleExpr>> {
-        Some(Box::new(match left {
-            Some(left) => SimpleExpr::Binary(
-                left,
-                bopr,
-                Box::new(right)
-            ),
-            None => right,
-        }))
-    }
-
-    /// Order by column.
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
-        where T: IntoColumnRef {
-        self.orders.push(OrderExpr {
-            expr: SimpleExpr::Column(col.into_column_ref()),
-            order,
-        });
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`UpdateStatement::order_by`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self
-        where T: IntoIden, C: IntoIden {
-        self.order_by((table.into_iden(), col.into_iden()), order)
-    }
-
-    /// Order by [`SimpleExpr`].
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
-        self.orders.push(OrderExpr {
-            expr,
-            order,
-        });
-        self
-    }
-
-    /// Order by custom string.
-    pub fn order_by_customs<T, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: ToString,
-        I: IntoIterator<Item = (T, Order)>,
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Custom(c.to_string()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    /// Order by vector of columns.
-    pub fn order_by_columns<T, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: IntoColumnRef,
-        I: IntoIterator<Item =(T, Order)>
-    {
-        let mut orders = cols
-            .into_iter()
-            .map(|(c, order)| OrderExpr {
-                expr: SimpleExpr::Column(c.into_column_ref()),
-                order,
-            })
-            .collect();
-        self.orders.append(&mut orders);
-        self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`UpdateStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn order_by_table_columns<T, C, I>(&mut self, cols: I) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-        I: IntoIterator<Item = (T, C, Order)>,
-    {
-        self.order_by_columns(
-            cols.into_iter()
-                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-                .collect::<Vec<_>>(),
-        )
-    }
-
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
         self.limit = Some(Value::BigUnsigned(limit));
@@ -475,5 +303,24 @@ impl QueryStatementBuilder for UpdateStatement {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()
+    }
+}
+
+impl OrderedStatement for UpdateStatement {
+    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+        self.orders.push(order);
+        self
+    }
+}
+
+impl ConditionalStatement for UpdateStatement {
+    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+        self.wherei.add_and_or(condition);
+        self
+    }
+
+    fn cond_where(&mut self, condition: ConditionWhere) -> &mut Self {
+        self.wherei.set_where(condition);
+        self
     }
 }

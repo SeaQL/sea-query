@@ -20,3 +20,5 @@ impl Default for MysqlQueryBuilder {
 impl GenericBuilder for MysqlQueryBuilder {}
 
 impl SchemaBuilder for MysqlQueryBuilder {}
+
+impl QuotedBuilder for MysqlQueryBuilder {}

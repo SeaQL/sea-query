@@ -1,20 +1,6 @@
 use super::*;
 
 impl ForeignKeyBuilder for PostgresQueryBuilder {
-    fn prepare_foreign_key_create_statement(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter) {
-        self.prepare_foreign_key_create_statement_internal(create, sql, false)
-    }
-
-    fn prepare_foreign_key_action(&self, foreign_key_action: &ForeignKeyAction, sql: &mut SqlWriter) {
-        write!(sql, "{}", match foreign_key_action {
-            ForeignKeyAction::Restrict => "RESTRICT",
-            ForeignKeyAction::Cascade => "CASCADE",
-            ForeignKeyAction::SetNull => "SET NULL",
-            ForeignKeyAction::NoAction => "NO ACTION",
-            ForeignKeyAction::SetDefault => "SET DEFAULT",
-        }).unwrap()
-    }
-
     fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &drop.table {
@@ -26,10 +12,8 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             write!(sql, "\"{}\"", name).unwrap();
         }
     }
-}
 
-impl PostgresQueryBuilder {
-    pub(crate) fn prepare_foreign_key_create_statement_internal(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter, inside_table_creation: bool) {
+    fn prepare_foreign_key_create_statement_internal(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter, inside_table_creation: bool) {
         if !inside_table_creation {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {

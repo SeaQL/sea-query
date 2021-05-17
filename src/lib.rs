@@ -282,15 +282,15 @@
 //!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
-//!     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
+//!     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 //! );
 //! assert_eq!(
 //!     query.to_string(PostgresQueryBuilder),
-//!     r#"DELETE FROM "glyph" WHERE ("id" < 1) OR ("id" > 10)"#
+//!     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 //! );
 //! assert_eq!(
 //!     query.to_string(SqliteQueryBuilder),
-//!     r#"DELETE FROM `glyph` WHERE (`id` < 1) OR (`id` > 10)"#
+//!     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 //! );
 //! ```
 //!
