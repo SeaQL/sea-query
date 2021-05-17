@@ -622,6 +622,20 @@ fn select_40() {
 }
 
 #[test]
+fn select_41() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect])
+            .exprs(vec![Expr::col(Glyph::Image).max()])
+            .from(Glyph::Table)
+            .group_by_columns(vec![Glyph::Aspect])
+            .cond_having(any![Expr::col(Glyph::Aspect).gt(2)])
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 #[cfg(feature="with-json")]
 fn insert_1() {

@@ -77,7 +77,7 @@ pub trait QueryBuilder : QuotedBuilder {
             }
         }
 
-        self.prepare_condition(&select.wherei, sql, collector);
+        self.prepare_condition(&select.wherei, "WHERE", sql, collector);
 
         if !select.groups.is_empty() {
             write!(sql, " GROUP BY ").unwrap();
@@ -90,12 +90,7 @@ pub trait QueryBuilder : QuotedBuilder {
             });
         }
 
-        if !select.having.is_empty() {
-            write!(sql, " HAVING ").unwrap();
-        }
-        for (i, log_chain_oper) in select.having.iter().enumerate() {
-            self.prepare_logical_chain_oper(log_chain_oper, i, select.having.len(), sql, collector);
-        }
+        self.prepare_condition(&select.having, "HAVING", sql, collector);
 
         if !select.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
@@ -139,7 +134,7 @@ pub trait QueryBuilder : QuotedBuilder {
             false
         });
 
-        self.prepare_condition(&update.wherei, sql, collector);
+        self.prepare_condition(&update.wherei, "WHERE", sql, collector);
 
         if !update.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
@@ -167,7 +162,7 @@ pub trait QueryBuilder : QuotedBuilder {
             self.prepare_table_ref(table, sql, collector);
         }
 
-        self.prepare_condition(&delete.wherei, sql, collector);
+        self.prepare_condition(&delete.wherei, "WHERE", sql, collector);
 
         if !delete.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
@@ -509,9 +504,9 @@ pub trait QueryBuilder : QuotedBuilder {
 
     #[doc(hidden)]
     /// Translate a condition to a "WHERE" clause.
-    fn prepare_condition(&self, condition: &ConditionHolder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn prepare_condition(&self, condition: &ConditionHolder, keyword: &str, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         if !condition.is_empty() {
-            write!(sql, " WHERE ").unwrap();
+            write!(sql, " {} ", keyword).unwrap();
         }
         match &condition.contents {
             ConditionHolderContents::Empty => (),

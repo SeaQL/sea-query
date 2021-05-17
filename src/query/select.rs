@@ -39,7 +39,7 @@ pub struct SelectStatement {
     pub(crate) join: Vec<JoinExpr>,
     pub(crate) wherei: ConditionHolder,
     pub(crate) groups: Vec<SimpleExpr>,
-    pub(crate) having: Vec<LogicalChainOper>,
+    pub(crate) having: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
@@ -93,7 +93,7 @@ impl SelectStatement {
             join: Vec::new(),
             wherei: ConditionHolder::new(),
             groups: Vec::new(),
-            having: Vec::new(),
+            having: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
             offset: None,
@@ -109,7 +109,7 @@ impl SelectStatement {
             join: std::mem::replace(&mut self.join, Vec::new()),
             wherei: std::mem::replace(&mut self.wherei, ConditionHolder::new()),
             groups: std::mem::replace(&mut self.groups, Vec::new()),
-            having: std::mem::replace(&mut self.having, Vec::new()),
+            having: std::mem::replace(&mut self.having, ConditionHolder::new()),
             orders: std::mem::replace(&mut self.orders, Vec::new()),
             limit: self.limit.take(),
             offset: self.offset.take(),
@@ -991,6 +991,38 @@ impl SelectStatement {
         self
     }
 
+    /// Having condition, expressed with [`any!`] and [`all!`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Aspect)
+    ///     .expr(Expr::col(Glyph::Image).max())
+    ///     .from(Glyph::Table)
+    ///     .group_by_columns(vec![
+    ///         Glyph::Aspect,
+    ///     ])
+    ///     .cond_having(
+    ///       all![
+    ///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
+    ///         any![
+    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
+    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("B%")]])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
+    /// );
+    /// ```
+    pub fn cond_having(&mut self, condition: ConditionWhere) -> &mut Self {
+        self.having.set_where(condition);
+        self
+    }
+
     /// And having condition.
     ///
     /// # Examples
@@ -1023,43 +1055,16 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn and_having(&mut self, other: SimpleExpr) -> &mut Self {
-        self.having.push(LogicalChainOper::And(other));
+        self.having.add_and_or(LogicalChainOper::And(other));
         self
     }
 
-    /// Or having condition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .expr(Expr::col(Glyph::Image).max())
-    ///     .from(Glyph::Table)
-    ///     .group_by_columns(vec![
-    ///         Glyph::Aspect,
-    ///     ])
-    ///     .or_having(Expr::col(Glyph::Aspect).lt(1))
-    ///     .or_having(Expr::col(Glyph::Aspect).gt(10))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` < 1 OR `aspect` > 10"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" < 1 OR "aspect" > 10"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` < 1 OR `aspect` > 10"#
-    /// );
-    /// ```
+    #[deprecated(
+        since = "0.11.0",
+        note = "Please use [`SelectStatement::cond_having`] or only [`SelectStatement::and_having`]. The evaluation of mixed `and_having` and `or_having` can be surprising."
+    )]
     pub fn or_having(&mut self, other: SimpleExpr) -> &mut Self {
-        self.having.push(LogicalChainOper::Or(other));
+        self.having.add_and_or(LogicalChainOper::Or(other));
         self
     }
 
