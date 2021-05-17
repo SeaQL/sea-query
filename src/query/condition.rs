@@ -208,7 +208,7 @@ pub trait ConditionalStatement {
     }
 
     #[deprecated(
-        since = "0.10.7",
+        since = "0.11.0",
         note = "Please use [`ConditionalStatement::cond_where`] or only [`ConditionalStatement::and_where`]. The evaluation of mixed `and_where` and `or_where` can be surprising."
     )]
     fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
