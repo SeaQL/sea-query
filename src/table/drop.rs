@@ -80,18 +80,6 @@ impl TableDropStatement {
         self.options.push(TableDropOpt::Cascade);
         self
     }
-
-    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
-    }
-
-    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        <Self as SchemaStatementBuilder>::build(self, schema_builder)
-    }
-
-    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        <Self as SchemaStatementBuilder>::build_any(self, schema_builder)
-    }
 }
 
 impl SchemaStatementBuilder for TableDropStatement {

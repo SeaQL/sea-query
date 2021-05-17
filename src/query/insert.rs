@@ -272,18 +272,6 @@ impl InsertStatement {
         self.values.push(values);
         self
     }
-
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        <Self as QueryStatementBuilder>::to_string(self, query_builder)
-    }
-
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        <Self as QueryStatementBuilder>::build(self, query_builder)
-    }
-
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        <Self as QueryStatementBuilder>::build_any(self, query_builder)
-    }
 }
 
 impl QueryStatementBuilder for InsertStatement {

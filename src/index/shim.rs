@@ -1,0 +1,4 @@
+use crate::impl_schema_statement_builder;
+
+impl_schema_statement_builder!(index_create_statement_builder, IndexCreateStatement);
+impl_schema_statement_builder!(index_drop_statement_builder, IndexDropStatement);

@@ -16,6 +16,7 @@ mod create;
 mod drop;
 mod rename;
 mod truncate;
+mod shim;
 
 pub use alter::*;
 pub use column::*;

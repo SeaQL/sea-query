@@ -13,6 +13,7 @@ mod select;
 mod insert;
 mod update;
 mod delete;
+mod shim;
 
 pub use condition::*;
 pub use ordered::*;
