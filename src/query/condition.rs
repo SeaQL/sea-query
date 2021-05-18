@@ -27,6 +27,7 @@ impl ConditionWhere {
     ///
     /// If it's an [`any()`], it will be separated from the others by an `" OR "` in the query. If it's
     /// an [`all()`], it will be separated by an `" AND "`.
+    #[allow(clippy::should_implement_trait)]
     pub fn add<C: Into<ConditionExpression>>(mut self, condition: C) -> Self {
         let expr = condition.into();
         // Don't add empty `any()` and `all()`.
@@ -281,6 +282,12 @@ pub enum ConditionHolderContents {
 #[derive(Debug, Clone)]
 pub struct ConditionHolder {
     pub contents: ConditionHolderContents,
+}
+
+impl Default for ConditionHolder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ConditionHolder {
