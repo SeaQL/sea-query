@@ -219,9 +219,33 @@ pub trait ConditionalStatement {
     // Trait implementation.
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self;
 
-    /// Where condition, expressed with [`any!`] and [`all!`].
+    /// Where condition, expressed with `any` and `all`.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Image)
+    ///     .from(Glyph::Table)
+    ///     .cond_where(
+    ///       all()
+    ///         .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+    ///         .add(any()
+    ///           .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///           .add(Expr::tbl(Glyph::Table, Glyph::Image).like("B%"))
+    ///         )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
+    /// );
+    /// ```
+    ///
+    /// Using macro
     ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
@@ -234,7 +258,9 @@ pub trait ConditionalStatement {
     ///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
     ///         any![
     ///           Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("B%")]])
+    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
+    ///         ]
+    ///       ])
     ///     .to_owned();
     ///
     /// assert_eq!(
