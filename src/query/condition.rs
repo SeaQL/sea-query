@@ -6,7 +6,7 @@ pub enum ConditionType {
     All,
 }
 
-/// Represents the value of an [`any()`] or [`all()`]: a set of disjunctive or conjunctive conditions.
+/// Represents the value of an [`Condition::any`] or [`Condition::all`]: a set of disjunctive or conjunctive conditions.
 #[derive(Debug, Clone)]
 pub struct Condition {
     pub(crate) condition_type: ConditionType,
@@ -15,7 +15,7 @@ pub struct Condition {
 
 pub type Cond = Condition;
 
-/// Represents anything that can be passed to an [`any()`] or [`all()`]'s [`Condition::add`] method.
+/// Represents anything that can be passed to an [`Condition::any`] or [`Condition::all`]'s [`Condition::add`] method.
 ///
 /// The arguments are automatically converted to the right enum.
 #[derive(Debug, Clone)]
@@ -27,12 +27,12 @@ pub enum ConditionExpression {
 impl Condition {
     /// Add a condition to the set.
     ///
-    /// If it's an [`any()`], it will be separated from the others by an `" OR "` in the query. If it's
-    /// an [`all()`], it will be separated by an `" AND "`.
+    /// If it's an [`Condition::any`], it will be separated from the others by an `" OR "` in the query. If it's
+    /// an [`Condition::all`], it will be separated by an `" AND "`.
     #[allow(clippy::should_implement_trait)]
     pub fn add<C: Into<ConditionExpression>>(mut self, condition: C) -> Self {
         let expr = condition.into();
-        // Don't add empty `any()` and `all()`.
+        // Don't add empty `Condition::any` and `Condition::all`.
         if let ConditionExpression::Condition(c) = &expr {
             if c.conditions.is_empty() {
                 return self;
@@ -111,7 +111,7 @@ impl std::convert::From<SimpleExpr> for ConditionExpression {
     }
 }
 
-/// Macro to easily create an [`Cond::any()`].
+/// Macro to easily create an [`Condition::any`].
 ///
 /// # Examples
 ///
@@ -146,7 +146,7 @@ macro_rules! any {
     };
 }
 
-/// Macro to easily create an [`Cond::all()`].
+/// Macro to easily create an [`Condition::all`].
 ///
 /// # Examples
 ///
