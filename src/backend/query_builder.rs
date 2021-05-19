@@ -523,8 +523,8 @@ pub trait QueryBuilder : QuotedBuilder {
 
     #[doc(hidden)]
     /// Translate part of a condition to part of a "WHERE" clause.
-    fn prepare_condition_where(&self, condition: &ConditionWhere, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
-        let is_any =  ConditionWhereType::Any == condition.condition_type;
+    fn prepare_condition_where(&self, condition: &Condition, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        let is_any =  ConditionType::Any == condition.condition_type;
         let mut is_first = true;
         for cond in &condition.conditions {
             if is_first {
@@ -537,7 +537,7 @@ pub trait QueryBuilder : QuotedBuilder {
                 }
             }
             match cond {
-                ConditionExpression::ConditionWhere(c) => {
+                ConditionExpression::Condition(c) => {
                     write!(sql, "(").unwrap();
                     self.prepare_condition_where(&c, sql, collector);
                     write!(sql, ")").unwrap();

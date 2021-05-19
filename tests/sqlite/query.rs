@@ -549,7 +549,7 @@ fn select_36() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            any()
+            Cond::any()
             .add(Expr::col(Glyph::Aspect).is_null())
         )
         .build(sea_query::SqliteQueryBuilder);
@@ -563,7 +563,7 @@ fn select_37() {
     let (statement, values) = sea_query::Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .cond_where(any().add(all()).add(any()))
+        .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
         .build(sea_query::SqliteQueryBuilder);
 
     assert_eq!(statement, r#"SELECT `id` FROM `glyph`"#);
@@ -576,7 +576,7 @@ fn select_38() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            any()
+            Cond::any()
             .add(Expr::col(Glyph::Aspect).is_null())
             .add(Expr::col(Glyph::Aspect).is_not_null())
         )
@@ -592,7 +592,7 @@ fn select_39() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            all()
+            Cond::all()
             .add(Expr::col(Glyph::Aspect).is_null())
             .add(Expr::col(Glyph::Aspect).is_not_null())
         )

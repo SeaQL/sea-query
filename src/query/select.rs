@@ -1018,7 +1018,7 @@ impl SelectStatement {
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
     /// );
     /// ```
-    pub fn cond_having(&mut self, condition: ConditionWhere) -> &mut Self {
+    pub fn cond_having(&mut self, condition: Condition) -> &mut Self {
         self.having.set_where(condition);
         self
     }
@@ -1191,7 +1191,7 @@ impl ConditionalStatement for SelectStatement {
         self
     }
 
-    fn cond_where(&mut self, condition: ConditionWhere) -> &mut Self {
+    fn cond_where(&mut self, condition: Condition) -> &mut Self {
         self.wherei.set_where(condition);
         self
     }

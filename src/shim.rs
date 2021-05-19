@@ -53,7 +53,7 @@ macro_rules! impl_conditional_statement {
         #[allow(deprecated)]
         mod $mod_name {
 
-            use crate::{ConditionalStatement, SimpleExpr, ConditionWhere, $struct_name};
+            use crate::{ConditionalStatement, SimpleExpr, Condition, $struct_name};
 
             impl $struct_name {
                 pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
@@ -72,7 +72,7 @@ macro_rules! impl_conditional_statement {
                     <Self as ConditionalStatement>::or_where(self, other)
                 }
 
-                pub fn cond_where(&mut self, condition: ConditionWhere) -> &mut Self {
+                pub fn cond_where(&mut self, condition: Condition) -> &mut Self {
                     <Self as ConditionalStatement>::cond_where(self, condition)
                 }
             }
