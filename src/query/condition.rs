@@ -13,6 +13,8 @@ pub struct Condition {
     pub(crate) conditions: Vec<ConditionExpression>,
 }
 
+pub type Cond = Condition;
+
 /// Represents anything that can be passed to an [`any()`] or [`all()`]'s [`Condition::add`] method.
 ///
 /// The arguments are automatically converted to the right enum.
@@ -39,6 +41,62 @@ impl Condition {
         self.conditions.push(expr);
         self
     }
+
+    /// Create a condition that is true if any of the conditions is true.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Image)
+    ///     .from(Glyph::Table)
+    ///     .cond_where(
+    ///       Cond::any()
+    ///       .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+    ///       .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
+    /// );
+    /// ```
+    pub fn any() -> Condition {
+        Condition {
+            condition_type: ConditionType::Any,
+            conditions: Vec::new(),
+        }
+    }
+
+    /// Create a condition that is false if any of the conditions is false.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Image)
+    ///     .from(Glyph::Table)
+    ///     .cond_where(
+    ///       Cond::all()
+    ///       .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+    ///       .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
+    /// );
+    /// ```
+    pub fn all() -> Condition {
+        Condition {
+            condition_type: ConditionType::All,
+            conditions: Vec::new(),
+        }
+    }
 }
 
 impl std::convert::From<Condition> for ConditionExpression {
@@ -53,63 +111,7 @@ impl std::convert::From<SimpleExpr> for ConditionExpression {
     }
 }
 
-/// Create a condition that is true if any of the conditions is true.
-///
-/// # Examples
-///
-/// ```
-/// use sea_query::{*, tests_cfg::*};
-///
-/// let query = Query::select()
-///     .column(Glyph::Image)
-///     .from(Glyph::Table)
-///     .cond_where(
-///       any()
-///       .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-///       .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
-///     .to_owned();
-///
-/// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
-///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
-/// );
-/// ```
-pub fn any() -> Condition {
-    Condition {
-        condition_type: ConditionType::Any,
-        conditions: Vec::new(),
-    }
-}
-
-/// Create a condition that is false if any of the conditions is false.
-///
-/// # Examples
-///
-/// ```
-/// use sea_query::{*, tests_cfg::*};
-///
-/// let query = Query::select()
-///     .column(Glyph::Image)
-///     .from(Glyph::Table)
-///     .cond_where(
-///       all()
-///       .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-///       .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
-///     .to_owned();
-///
-/// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
-///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
-/// );
-/// ```
-pub fn all() -> Condition {
-    Condition {
-        condition_type: ConditionType::All,
-        conditions: Vec::new(),
-    }
-}
-
-/// Macro to easily create an [`any()`].
+/// Macro to easily create an [`Cond::any()`].
 ///
 /// # Examples
 ///
@@ -122,7 +124,8 @@ pub fn all() -> Condition {
 ///     .cond_where(
 ///       any![
 ///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-///         Expr::tbl(Glyph::Table, Glyph::Image).like("A%")])
+///         Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///       ])
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -134,7 +137,7 @@ pub fn all() -> Condition {
 macro_rules! any {
     ( $( $x:expr ),* ) => {
         {
-            let mut tmp = any();
+            let mut tmp = sea_query::Condition::any();
             $(
                 tmp = tmp.add($x);
             )*
@@ -143,7 +146,7 @@ macro_rules! any {
     };
 }
 
-/// Macro to easily create an [`all()`].
+/// Macro to easily create an [`Cond::all()`].
 ///
 /// # Examples
 ///
@@ -156,7 +159,8 @@ macro_rules! any {
 ///     .cond_where(
 ///       all![
 ///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-///         Expr::tbl(Glyph::Table, Glyph::Image).like("A%")])
+///         Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///       ])
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -167,7 +171,7 @@ macro_rules! any {
 macro_rules! all {
     ( $( $x:expr ),* ) => {
         {
-            let mut tmp = all();
+            let mut tmp = sea_query::Condition::all();
             $(
                 tmp = tmp.add($x);
             )*
@@ -231,9 +235,9 @@ pub trait ConditionalStatement {
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .cond_where(
-    ///       all()
+    ///       Cond::all()
     ///         .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///         .add(any()
+    ///         .add(Cond::any()
     ///           .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
     ///           .add(Expr::tbl(Glyph::Table, Glyph::Image).like("B%"))
     ///         )
