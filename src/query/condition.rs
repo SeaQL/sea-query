@@ -1,28 +1,28 @@
 use crate::{expr::SimpleExpr, types::LogicalChainOper};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ConditionWhereType {
+pub enum ConditionType {
     Any,
     All,
 }
 
 /// Represents the value of an [`any()`] or [`all()`]: a set of disjunctive or conjunctive conditions.
 #[derive(Debug, Clone)]
-pub struct ConditionWhere {
-    pub(crate) condition_type: ConditionWhereType,
+pub struct Condition {
+    pub(crate) condition_type: ConditionType,
     pub(crate) conditions: Vec<ConditionExpression>,
 }
 
-/// Represents anything that can be passed to an [`any()`] or [`all()`]'s [`ConditionWhere::add`] method.
+/// Represents anything that can be passed to an [`any()`] or [`all()`]'s [`Condition::add`] method.
 ///
 /// The arguments are automatically converted to the right enum.
 #[derive(Debug, Clone)]
 pub enum ConditionExpression {
-    ConditionWhere(ConditionWhere),
+    Condition(Condition),
     SimpleExpr(SimpleExpr),
 }
 
-impl ConditionWhere {
+impl Condition {
     /// Add a condition to the set.
     ///
     /// If it's an [`any()`], it will be separated from the others by an `" OR "` in the query. If it's
@@ -31,7 +31,7 @@ impl ConditionWhere {
     pub fn add<C: Into<ConditionExpression>>(mut self, condition: C) -> Self {
         let expr = condition.into();
         // Don't add empty `any()` and `all()`.
-        if let ConditionExpression::ConditionWhere(c) = &expr {
+        if let ConditionExpression::Condition(c) = &expr {
             if c.conditions.is_empty() {
                 return self;
             }
@@ -41,9 +41,9 @@ impl ConditionWhere {
     }
 }
 
-impl std::convert::From<ConditionWhere> for ConditionExpression {
-    fn from(condition: ConditionWhere) -> Self {
-        ConditionExpression::ConditionWhere(condition)
+impl std::convert::From<Condition> for ConditionExpression {
+    fn from(condition: Condition) -> Self {
+        ConditionExpression::Condition(condition)
     }
 }
 
@@ -74,9 +74,9 @@ impl std::convert::From<SimpleExpr> for ConditionExpression {
 ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
 /// );
 /// ```
-pub fn any() -> ConditionWhere {
-    ConditionWhere {
-        condition_type: ConditionWhereType::Any,
+pub fn any() -> Condition {
+    Condition {
+        condition_type: ConditionType::Any,
         conditions: Vec::new(),
     }
 }
@@ -102,9 +102,9 @@ pub fn any() -> ConditionWhere {
 ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
 /// );
 /// ```
-pub fn all() -> ConditionWhere {
-    ConditionWhere {
-        condition_type: ConditionWhereType::All,
+pub fn all() -> Condition {
+    Condition {
+        condition_type: ConditionType::All,
         conditions: Vec::new(),
     }
 }
@@ -269,14 +269,14 @@ pub trait ConditionalStatement {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
     /// );
     /// ```
-    fn cond_where(&mut self, condition: ConditionWhere) -> &mut Self;
+    fn cond_where(&mut self, condition: Condition) -> &mut Self;
 }
 
 #[derive(Debug, Clone)]
 pub enum ConditionHolderContents {
     Empty,
     And(Vec<LogicalChainOper>),
-    Where(ConditionWhere),
+    Where(Condition),
 }
 
 #[derive(Debug, Clone)]
@@ -312,7 +312,7 @@ impl ConditionHolder {
         }
     }
 
-    pub fn set_where(&mut self, condition: ConditionWhere) {
+    pub fn set_where(&mut self, condition: Condition) {
         match &mut self.contents {
             ConditionHolderContents::Empty => self.contents = ConditionHolderContents::Where(condition),
             ConditionHolderContents::Where(_) => panic!("Multiple `cond_where` are not supported"),
