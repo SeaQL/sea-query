@@ -43,7 +43,8 @@
 //!
 //!     1. [Iden](#iden)
 //!     1. [Expression](#expression)
-//!     1. [Builder](#builder)
+//!     1. [Condition](#condition)
+//!     1. [Statement Builders](#statement-builders)
 //!
 //! 1. Query Statement
 //!
@@ -64,7 +65,7 @@
 //!     1. [Index Create](#index-create)
 //!     1. [Index Drop](#index-drop)
 //!
-//! ### Drivers
+//! ### Integration
 //!
 //! We provide integration for [SQLx](https://crates.io/crates/sqlx),
 //! [postgres](https://crates.io/crates/postgres) and [rusqlite](https://crates.io/crates/rusqlite).
@@ -80,30 +81,24 @@
 //! [`Iden::unquoted()`] must be implemented to provide a mapping between Enum variant and its corresponding string value.
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
+//! use sea_query::{*};
 //!
 //! // For example Character table with column id, character, font_size...
 //! pub enum Character {
 //!     Table,
 //!     Id,
-//!     Character,
-//!     FontSize,
-//!     SizeW,
-//!     SizeH,
 //!     FontId,
+//!     FontSize,
 //! }
 //!
 //! // Mapping between Enum variant and its corresponding string value
 //! impl Iden for Character {
-//!     fn unquoted(&self, s: &mut dyn FmtWrite) {
+//!     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
 //!         write!(s, "{}", match self {
 //!             Self::Table => "character",
 //!             Self::Id => "id",
-//!             Self::Character => "character",
-//!             Self::FontSize => "font_size",
-//!             Self::SizeW => "size_w",
-//!             Self::SizeH => "size_h",
 //!             Self::FontId => "font_id",
+//!             Self::FontSize => "font_size",
 //!         }).unwrap();
 //!     }
 //! }
@@ -111,25 +106,15 @@
 //!
 //! If you're okay with running another procedural macro, you can activate
 //! the `derive` feature on the crate to save you some boilerplate.
-//! For more information, look at
+//! For more usage information, look at
 //! [the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
 //!
-//! ```rust
-//! # #[cfg(feature = "derive")]
+//! ```ignore
 //! use sea_query::Iden;
 //!
 //! // This will implement Iden exactly as shown above
-//! # #[cfg(feature = "derive")]
 //! #[derive(Iden)]
-//! pub enum Character {
-//!     Table,
-//!     Id,
-//!     Character,
-//!     FontSize,
-//!     SizeW,
-//!     SizeH,
-//!     FontId,
-//! }
+//! pub enum Character { ... }
 //! ```
 //!
 //! ### Expression
@@ -137,52 +122,111 @@
 //! Use [`Expr`] to construct select, join, where and having expression in query.
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! assert_eq!(
 //!     Query::select()
 //!         .column(Char::Character)
 //!         .from(Char::Table)
-//!         .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
 //!         .and_where(
 //!             Expr::expr(Expr::col(Char::SizeW).add(1)).mul(2)
 //!                 .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
 //!         )
 //!         .and_where(Expr::col(Char::SizeW).in_subquery(
 //!             Query::select()
-//!                 .expr(Expr::cust("3 + 2 * 2"))
+//!                 .expr(Expr::cust_with_values("ln(? ^ ?)", vec![2.4, 1.2]))
 //!                 .take()
 //!         ))
-//!         .or_where(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
-//!         .to_string(MysqlQueryBuilder),
-//!     vec![
-//!         "SELECT `character` FROM `character`",
-//!         "LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`",
-//!         "WHERE ((`size_w` + 1) * 2 = (`size_h` / 2) - 1)",
-//!             "AND `size_w` IN (SELECT 3 + 2 * 2)",
-//!             "OR ((`character` LIKE 'D') AND (`character` LIKE 'E'))",
+//!         .and_where(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
+//!         .to_string(PostgresQueryBuilder),
+//!     [
+//!         r#"SELECT "character" FROM "character""#,
+//!         r#"WHERE (("size_w" + 1) * 2 = ("size_h" / 2) - 1)"#,
+//!         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
+//!         r#"AND (("character" LIKE 'D') AND ("character" LIKE 'E'))"#,
 //!     ].join(" ")
 //! );
 //! ```
 //!
-//! ### Builder
+//! ### Condition
+//! 
+//! If you have complex conditions to express, you can use the [`Condition`] builder,
+//! usable for [`ConditionalStatement::cond_where`] and [`SelectStatement::cond_having`].
 //!
-//! All the query statements and table statements support the following ways to build database specific SQL statement:
+//! ```
+//! # use sea_query::{*, tests_cfg::*};
+//! assert_eq!(
+//!     Query::select()
+//!         .column(Glyph::Id)
+//!         .from(Glyph::Table)
+//!         .cond_where(
+//!             Cond::any()
+//!             .add(
+//!                 Cond::all()
+//!                 .add(Expr::col(Glyph::Aspect).is_null())
+//!                 .add(Expr::col(Glyph::Image).is_null())
+//!             )
+//!             .add(
+//!                 Cond::all()
+//!                 .add(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
+//!                 .add(Expr::col(Glyph::Image).like("A%"))
+//!             )
+//!         )
+//!         .to_string(PostgresQueryBuilder),
+//!     [
+//!         r#"SELECT "id" FROM "glyph""#,
+//!         r#"WHERE"#,
+//!         r#"("aspect" IS NULL AND "image" IS NULL)"#,
+//!         r#"OR"#,
+//!         r#"("aspect" IN (3, 4) AND "image" LIKE 'A%')"#,
+//!     ].join(" ")
+//! );
+//! ```
 //!
-//! 1. `build(&self, query_builder: T) -> (String, Values)`
-//!     Build a SQL statement as string and parameters as a vector of values, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build) for example.
+//! There is also the [`any!`] and [`all!`] macro at your convenience:
 //!
-//! 1. `build_collect(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String`
-//!     Build a SQL statement as string and collect paramaters (usually for binding to binary protocol), see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.build_collect) for example.
+//! ```
+//! # use sea_query::{*, tests_cfg::*};
+//! Query::select()
+//!     .cond_where(
+//!         any![
+//!             Expr::col(Glyph::Aspect).is_in(vec![3, 4]),
+//!             all![
+//!                 Expr::col(Glyph::Aspect).is_null(),
+//!                 Expr::col(Glyph::Image).like("A%")
+//!             ]
+//!         ]
+//!     );
+//! ```
 //!
-//! 1. `to_string(&self, query_builder: T) -> String`
-//!     Build a SQL statement as string with parameters injected, see [here](https://docs.rs/sea-query/*/sea_query/query/struct.SelectStatement.html#method.to_string) for example.
+//! ### Statement Builders
 //!
+//! Statements are divided into 2 categories: Query and Schema, and to be serialized into SQL
+//! with [`QueryStatementBuilder`] and [`SchemaStatementBuilder`] respectively.
+//!
+//! Schema statement has the following interface: 
+//!
+//! ```ignore
+//! fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String;
+//! ```
+//! 
+//! Query statement has the following interfaces:
+//!
+//! ```ignore
+//! fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
+//!
+//! fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
+//! ```
+//!
+//! `build` builds a SQL statement as string and parameters to be passed to the database driver 
+//! through the binary protocol. This is the preferred way as it has less overhead and is more secure.
+//!
+//! `to_string` builds a SQL statement as string with parameters injected. This is good for testing 
+//! and debugging.
+//! 
 //! ### Query Select
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::select()
 //!     .column(Char::Character)
 //!     .column((Font::Table, Font::Name))
@@ -209,8 +253,7 @@
 //! ### Query Insert
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::insert()
 //!     .into_table(Glyph::Table)
 //!     .columns(vec![
@@ -244,8 +287,7 @@
 //! ### Query Update
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::update()
 //!     .table(Glyph::Table)
 //!     .values(vec![
@@ -272,12 +314,14 @@
 //! ### Query Delete
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::delete()
 //!     .from_table(Glyph::Table)
-//!     .or_where(Expr::col(Glyph::Id).lt(1))
-//!     .or_where(Expr::col(Glyph::Id).gt(10))
+//!     .cond_where(
+//!         Cond::any()
+//!             .add(Expr::col(Glyph::Id).lt(1))
+//!             .add(Expr::col(Glyph::Id).gt(10))
+//!     )
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -297,8 +341,7 @@
 //! ### Table Create
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::create()
 //!     .table(Char::Table)
 //!     .if_not_exists()
@@ -369,8 +412,7 @@
 //! ### Table Alter
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::alter()
 //!     .table(Font::Table)
 //!     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
@@ -393,8 +435,7 @@
 //! ### Table Drop
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::drop()
 //!     .table(Glyph::Table)
 //!     .table(Char::Table)
@@ -417,8 +458,7 @@
 //! ### Table Rename
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::rename()
 //!     .table(Font::Table, Alias::new("font_new"))
 //!     .to_owned();
@@ -440,8 +480,7 @@
 //! ### Table Truncate
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::truncate()
 //!     .table(Font::Table)
 //!     .to_owned();
@@ -463,8 +502,7 @@
 //! ### Foreign Key Create
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let foreign_key = ForeignKey::create()
 //!     .name("FK_character_font")
 //!     .from(Char::Table, Char::FontId)
@@ -496,8 +534,7 @@
 //! ### Foreign Key Drop
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let foreign_key = ForeignKey::drop()
 //!     .name("FK_character_font")
 //!     .table(Char::Table)
@@ -517,8 +554,7 @@
 //! ### Index Create
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let index = Index::create()
 //!     .name("idx-glyph-aspect")
 //!     .table(Glyph::Table)
@@ -542,8 +578,7 @@
 //! ### Index Drop
 //!
 //! ```rust
-//! use sea_query::{*, tests_cfg::*};
-//!
+//! # use sea_query::{*, tests_cfg::*};
 //! let index = Index::drop()
 //!     .name("idx-glyph-aspect")
 //!     .table(Glyph::Table)

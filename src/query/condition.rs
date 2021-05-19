@@ -53,9 +53,10 @@ impl Condition {
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .cond_where(
-    ///       Cond::any()
-    ///       .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///       .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
+    ///         Cond::any()
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -81,9 +82,10 @@ impl Condition {
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .cond_where(
-    ///       Cond::all()
-    ///       .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///       .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
+    ///         Cond::all()
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -122,10 +124,11 @@ impl std::convert::From<SimpleExpr> for ConditionExpression {
 ///     .column(Glyph::Image)
 ///     .from(Glyph::Table)
 ///     .cond_where(
-///       any![
-///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-///         Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
-///       ])
+///         any![
+///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
+///             Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///         ]
+///     )
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -157,10 +160,11 @@ macro_rules! any {
 ///     .column(Glyph::Image)
 ///     .from(Glyph::Table)
 ///     .cond_where(
-///       all![
-///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-///         Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
-///       ])
+///         all![
+///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
+///             Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///         ]
+///     )
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -235,12 +239,12 @@ pub trait ConditionalStatement {
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .cond_where(
-    ///       Cond::all()
-    ///         .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///         .add(Cond::any()
-    ///           .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
-    ///           .add(Expr::tbl(Glyph::Table, Glyph::Image).like("B%"))
-    ///         )
+    ///         Cond::all()
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+    ///             .add(Cond::any()
+    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like("B%"))
+    ///             )
     ///     )
     ///     .to_owned();
     ///
@@ -259,13 +263,13 @@ pub trait ConditionalStatement {
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .cond_where(
-    ///       all![
-    ///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-    ///         any![
-    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
-    ///         ]
-    ///       ])
+    ///         all![
+    ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
+    ///             any![
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
+    ///             ]
+    ///         ])
     ///     .to_owned();
     ///
     /// assert_eq!(
