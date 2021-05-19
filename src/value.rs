@@ -49,6 +49,17 @@ pub trait ValueType {
 #[derive(Debug, PartialEq)]
 pub struct Values(pub Vec<Value>);
 
+#[derive(Debug, PartialEq)]
+pub enum ValueTuple {
+    One(Value),
+    Two(Value, Value),
+    Three(Value, Value, Value),
+}
+
+pub trait IntoValueTuple {
+    fn into_value_tuple(self) -> ValueTuple;
+}
+
 impl Value {
     pub fn unwrap<T>(self) -> T
     where
@@ -256,6 +267,49 @@ impl Value {
     }
 }
 
+impl IntoIterator for ValueTuple {
+    type Item = Value;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            ValueTuple::One(v) => vec![v].into_iter(),
+            ValueTuple::Two(v, w) => vec![v, w].into_iter(),
+            ValueTuple::Three(u, v, w) => vec![u, v, w].into_iter(),
+        }
+    }
+}
+
+impl<V> IntoValueTuple for V
+where
+    V: Into<Value>,
+{
+    fn into_value_tuple(self) -> ValueTuple {
+        ValueTuple::One(self.into())
+    }
+}
+
+impl<V, W> IntoValueTuple for (V, W)
+where
+    V: Into<Value>,
+    W: Into<Value>,
+{
+    fn into_value_tuple(self) -> ValueTuple {
+        ValueTuple::Two(self.0.into(), self.1.into())
+    }
+}
+
+impl<U, V, W> IntoValueTuple for (U, V, W)
+where
+    U: Into<Value>,
+    V: Into<Value>,
+    W: Into<Value>,
+{
+    fn into_value_tuple(self) -> ValueTuple {
+        ValueTuple::Three(self.0.into(), self.1.into(), self.2.into())
+    }
+}
+
 /// Escape a SQL string literal
 pub fn escape_string(string: &str) -> String {
     string
@@ -415,5 +469,47 @@ mod tests {
         let v: Value = val.clone().into();
         let out: String = v.unwrap();
         assert_eq!(out, val);
+    }
+
+    #[test]
+    fn test_value_tuple() {
+        assert_eq!(1i32.into_value_tuple(), ValueTuple::One(Value::Int(1)));
+        assert_eq!(
+            "b".into_value_tuple(),
+            ValueTuple::One(Value::String(Box::new("b".to_owned())))
+        );
+        assert_eq!(
+            (1i32, "b").into_value_tuple(),
+            ValueTuple::Two(Value::Int(1), Value::String(Box::new("b".to_owned())))
+        );
+        assert_eq!(
+            (1i32, 2.4f64, "b").into_value_tuple(),
+            ValueTuple::Three(
+                Value::Int(1),
+                Value::Double(2.4),
+                Value::String(Box::new("b".to_owned()))
+            )
+        );
+    }
+
+    #[test]
+    fn test_value_tuple_iter() {
+        let mut iter = (1i32).into_value_tuple().into_iter();
+        assert_eq!(iter.next().unwrap(), Value::Int(1));
+        assert_eq!(iter.next(), None);
+
+        let mut iter = (1i32, 2.4f64).into_value_tuple().into_iter();
+        assert_eq!(iter.next().unwrap(), Value::Int(1));
+        assert_eq!(iter.next().unwrap(), Value::Double(2.4));
+        assert_eq!(iter.next(), None);
+
+        let mut iter = (1i32, 2.4f64, "b").into_value_tuple().into_iter();
+        assert_eq!(iter.next().unwrap(), Value::Int(1));
+        assert_eq!(iter.next().unwrap(), Value::Double(2.4));
+        assert_eq!(
+            iter.next().unwrap(),
+            Value::String(Box::new("b".to_owned()))
+        );
+        assert_eq!(iter.next(), None);
     }
 }
