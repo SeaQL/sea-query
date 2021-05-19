@@ -50,7 +50,7 @@ Table of Content
     1. [Query Update](#query-update)
     1. [Query Delete](#query-delete)
 
-1. Table Statement
+1. Schema Statement
 
     1. [Table Create](#table-create)
     1. [Table Alter](#table-alter)
