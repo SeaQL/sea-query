@@ -1,4 +1,7 @@
-use crate::{ForeignKeyAction, TableForeignKey, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
+use crate::{
+    backend::SchemaBuilder, prepare::*, types::*, ForeignKeyAction, SchemaStatementBuilder,
+    TableForeignKey,
+};
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite
 ///
@@ -95,7 +98,10 @@ impl ForeignKeyCreateStatement {
         note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
     )]
     pub fn table<T: 'static, R: 'static>(mut self, table: T, ref_table: R) -> Self
-        where T: Iden, R: Iden {
+    where
+        T: Iden,
+        R: Iden,
+    {
         self.foreign_key.from_tbl(table);
         self.foreign_key.to_tbl(ref_table);
         self
@@ -107,7 +113,10 @@ impl ForeignKeyCreateStatement {
         note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
     )]
     pub fn col<T: 'static, R: 'static>(mut self, column: T, ref_column: R) -> Self
-        where T: Iden, R: Iden {
+    where
+        T: Iden,
+        R: Iden,
+    {
         self.foreign_key.from_col(column);
         self.foreign_key.to_col(ref_column);
         self
@@ -115,7 +124,10 @@ impl ForeignKeyCreateStatement {
 
     /// Set key table and columns
     pub fn from<T, C>(mut self, table: T, columns: C) -> Self
-        where T: IntoIden, C: IdenList {
+    where
+        T: IntoIden,
+        C: IdenList,
+    {
         self.foreign_key.from_tbl(table);
         for col in columns.into_iter() {
             self.foreign_key.from_col(col);
@@ -125,7 +137,10 @@ impl ForeignKeyCreateStatement {
 
     /// Set referencing table and columns
     pub fn to<T, C>(mut self, table: T, columns: C) -> Self
-        where T: IntoIden, C: IdenList {
+    where
+        T: IntoIden,
+        C: IdenList,
+    {
         self.foreign_key.to_tbl(table);
         for col in columns.into_iter() {
             self.foreign_key.to_col(col);
@@ -135,28 +150,36 @@ impl ForeignKeyCreateStatement {
 
     /// Set key table
     pub fn from_tbl<T>(mut self, table: T) -> Self
-        where T: IntoIden {
+    where
+        T: IntoIden,
+    {
         self.foreign_key.from_tbl(table);
         self
     }
 
     /// Set referencing table
     pub fn to_tbl<R>(mut self, ref_table: R) -> Self
-        where R: IntoIden {
+    where
+        R: IntoIden,
+    {
         self.foreign_key.to_tbl(ref_table);
         self
     }
 
     /// Add key column
     pub fn from_col<T>(mut self, column: T) -> Self
-        where T: IntoIden {
+    where
+        T: IntoIden,
+    {
         self.foreign_key.from_col(column);
         self
     }
 
     /// Add referencing column
     pub fn to_col<R>(mut self, ref_column: R) -> Self
-        where R: IntoIden {
+    where
+        R: IntoIden,
+    {
         self.foreign_key.to_col(ref_column);
         self
     }

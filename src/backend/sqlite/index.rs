@@ -51,5 +51,4 @@ impl IndexBuilder for SqliteQueryBuilder {
             write!(sql, "UNIQUE ").unwrap();
         }
     }
-
 }

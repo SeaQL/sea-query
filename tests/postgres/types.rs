@@ -1,4 +1,4 @@
-use sea_query::{Alias, PostgresQueryBuilder, extension::postgres::Type};
+use sea_query::{extension::postgres::Type, Alias, PostgresQueryBuilder};
 
 use super::*;
 
@@ -99,6 +99,6 @@ fn alter_5() {
             .name(Font::Table)
             .rename_value(Font::Variant, Font::Language)
             .to_string(PostgresQueryBuilder),
-            r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
+        r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     )
 }

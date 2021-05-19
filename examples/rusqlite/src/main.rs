@@ -1,5 +1,5 @@
 use rusqlite::{Connection, Result, Row};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, SqliteQueryBuilder, Query, Table};
+use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
 
 sea_query::sea_query_driver_rusqlite!();
 use sea_query_driver_rusqlite::RusqliteValues;
@@ -17,11 +17,18 @@ fn main() -> Result<()> {
         Table::create()
             .table(Character::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Character::Id).integer().not_null().auto_increment().primary_key())
+            .col(
+                ColumnDef::new(Character::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Character::FontSize).integer())
             .col(ColumnDef::new(Character::Character).string())
             .build(SqliteQueryBuilder),
-    ].join("; ");
+    ]
+    .join("; ");
 
     conn.execute_batch(&sql)?;
     println!("Create table character: Ok()");
@@ -31,16 +38,14 @@ fn main() -> Result<()> {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![
-            Character::Character, Character::FontSize
-        ])
-        .values_panic(vec![
-            "A".into(),
-            12.into(),
-        ])
+        .columns(vec![Character::Character, Character::FontSize])
+        .values_panic(vec!["A".into(), 12.into()])
         .build(SqliteQueryBuilder);
 
-    let result = conn.execute(sql.as_str(), RusqliteValues::from(values).as_params().as_slice());
+    let result = conn.execute(
+        sql.as_str(),
+        RusqliteValues::from(values).as_params().as_slice(),
+    );
     println!("Insert into character: {:?}\n", result);
     let id = conn.last_insert_rowid();
 
@@ -48,7 +53,9 @@ fn main() -> Result<()> {
 
     let (sql, values) = Query::select()
         .columns(vec![
-            Character::Id, Character::Character, Character::FontSize
+            Character::Id,
+            Character::Character,
+            Character::FontSize,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -68,20 +75,23 @@ fn main() -> Result<()> {
 
     let (sql, values) = Query::update()
         .table(Character::Table)
-        .values(vec![
-            (Character::FontSize, 24.into()),
-        ])
+        .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
         .build(SqliteQueryBuilder);
 
-    let result = conn.execute(sql.as_str(), RusqliteValues::from(values).as_params().as_slice());
+    let result = conn.execute(
+        sql.as_str(),
+        RusqliteValues::from(values).as_params().as_slice(),
+    );
     println!("Update character: {:?}\n", result);
 
     // Read
 
     let (sql, values) = Query::select()
         .columns(vec![
-            Character::Id, Character::Character, Character::FontSize
+            Character::Id,
+            Character::Character,
+            Character::FontSize,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -122,7 +132,10 @@ fn main() -> Result<()> {
         .and_where(Expr::col(Character::Id).eq(id))
         .build(SqliteQueryBuilder);
 
-    let result = conn.execute(sql.as_str(), RusqliteValues::from(values).as_params().as_slice());
+    let result = conn.execute(
+        sql.as_str(),
+        RusqliteValues::from(values).as_params().as_slice(),
+    );
     println!("Delete character: {:?}", result);
 
     Ok(())

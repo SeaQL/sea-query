@@ -1,7 +1,7 @@
 //! Foreign key definition & alternations statements.
-//! 
+//!
 //! # Usage
-//! 
+//!
 //! - Table Foreign Key Create, see [`ForeignKeyCreateStatement`]
 //! - Table Foreign Key Drop, see [`ForeignKeyDropStatement`]
 

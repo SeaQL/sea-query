@@ -8,19 +8,19 @@
 //! - Query Delete, see [`DeleteStatement`]
 
 mod condition;
+mod delete;
+mod insert;
 mod ordered;
 mod select;
-mod insert;
-mod update;
-mod delete;
 mod shim;
+mod update;
 
 pub use condition::*;
+pub use delete::*;
+pub use insert::*;
 pub use ordered::*;
 pub use select::*;
-pub use insert::*;
 pub use update::*;
-pub use delete::*;
 
 /// Shorthand for constructing any table query
 #[derive(Debug, Clone)]

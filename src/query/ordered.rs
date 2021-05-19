@@ -1,7 +1,6 @@
-use crate::{types::*, expr::*};
+use crate::{expr::*, types::*};
 
 pub trait OrderedStatement {
-
     #[doc(hidden)]
     // Implementation for the trait.
     fn add_order_by(&mut self, order: OrderExpr) -> &mut Self;
@@ -27,7 +26,9 @@ pub trait OrderedStatement {
     /// );
     /// ```
     fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
-        where T: IntoColumnRef {
+    where
+        T: IntoColumnRef,
+    {
         self.add_order_by(OrderExpr {
             expr: SimpleExpr::Column(col.into_column_ref()),
             order,
@@ -38,43 +39,44 @@ pub trait OrderedStatement {
         since = "0.9.0",
         note = "Please use the [`OrderedStatement::order_by`] with a tuple as [`ColumnRef`]"
     )]
-    fn order_by_tbl<T, C>
-        (&mut self, table: T, col: C, order: Order) -> &mut Self
-        where T: IntoIden, C: IntoIden {
+    fn order_by_tbl<T, C>(&mut self, table: T, col: C, order: Order) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
         self.order_by((table.into_iden(), col.into_iden()), order)
     }
 
     /// Order by [`SimpleExpr`].
     fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
-        self.add_order_by(OrderExpr {
-            expr,
-            order,
-        })
+        self.add_order_by(OrderExpr { expr, order })
     }
 
     /// Order by custom string.
     fn order_by_customs<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self
-        where T: ToString {
-        cols.into_iter().for_each(
-            |(c, order)| {
-                self.add_order_by(OrderExpr {
-                    expr: SimpleExpr::Custom(c.to_string()),
-                    order,
-                });
+    where
+        T: ToString,
+    {
+        cols.into_iter().for_each(|(c, order)| {
+            self.add_order_by(OrderExpr {
+                expr: SimpleExpr::Custom(c.to_string()),
+                order,
             });
+        });
         self
     }
 
     /// Order by vector of columns.
     fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self
-        where T: IntoColumnRef {
-        cols.into_iter().for_each(
-            |(c, order)| {
-                self.add_order_by(OrderExpr {
-                    expr: SimpleExpr::Column(c.into_column_ref()),
-                    order,
-                });
+    where
+        T: IntoColumnRef,
+    {
+        cols.into_iter().for_each(|(c, order)| {
+            self.add_order_by(OrderExpr {
+                expr: SimpleExpr::Column(c.into_column_ref()),
+                order,
             });
+        });
         self
     }
 
@@ -82,13 +84,15 @@ pub trait OrderedStatement {
         since = "0.9.0",
         note = "Please use the [`OrderedStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
     )]
-    fn order_by_table_columns<T, C>
-        (&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
-        where T: IntoIden, C: IntoIden {
+    fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
         self.order_by_columns(
-            cols
-            .into_iter()
-            .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-            .collect())
+            cols.into_iter()
+                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
+                .collect(),
+        )
     }
 }

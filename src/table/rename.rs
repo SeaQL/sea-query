@@ -1,5 +1,5 @@
+use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
 use std::rc::Rc;
-use crate::{backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Rename a table
 ///
@@ -48,7 +48,10 @@ impl TableRenameStatement {
 
     /// Set old and new table name
     pub fn table<T: 'static, R: 'static>(mut self, from_name: T, to_name: R) -> Self
-        where T: Iden, R: Iden {
+    where
+        T: Iden,
+        R: Iden,
+    {
         self.from_name = Some(Rc::new(from_name));
         self.to_name = Some(Rc::new(to_name));
         self
@@ -56,7 +59,6 @@ impl TableRenameStatement {
 }
 
 impl SchemaStatementBuilder for TableRenameStatement {
-
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_rename_statement(self, &mut sql);

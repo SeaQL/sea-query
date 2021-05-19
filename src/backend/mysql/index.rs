@@ -43,12 +43,17 @@ impl IndexBuilder for MysqlQueryBuilder {
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut SqlWriter) {
         if let Some(index_type) = col_index_type {
             if !matches!(index_type, IndexType::FullText) {
-                write!(sql, " USING {}", match index_type {
-                    IndexType::BTree => "BTREE".to_owned(),
-                    IndexType::FullText => unreachable!(),
-                    IndexType::Hash => "HASH".to_owned(),
-                    IndexType::Custom(custom) => custom.to_string(),
-                }).unwrap();
+                write!(
+                    sql,
+                    " USING {}",
+                    match index_type {
+                        IndexType::BTree => "BTREE".to_owned(),
+                        IndexType::FullText => unreachable!(),
+                        IndexType::Hash => "HASH".to_owned(),
+                        IndexType::Custom(custom) => custom.to_string(),
+                    }
+                )
+                .unwrap();
             }
         }
     }
@@ -64,5 +69,4 @@ impl IndexBuilder for MysqlQueryBuilder {
             write!(sql, "FULLTEXT ").unwrap();
         }
     }
-
 }

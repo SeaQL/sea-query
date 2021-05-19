@@ -1,5 +1,5 @@
+use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaStatementBuilder};
 use std::rc::Rc;
-use crate::{ColumnDef, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Alter a table
 ///
@@ -58,7 +58,9 @@ impl TableAlterStatement {
 
     /// Set table name
     pub fn table<T: 'static>(mut self, table: T) -> Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.table = Some(Rc::new(table));
         self
     }
@@ -148,8 +150,14 @@ impl TableAlterStatement {
     /// );
     /// ```
     pub fn rename_column<T: 'static, R: 'static>(self, from_name: T, to_name: R) -> Self
-        where T: Iden, R: Iden {
-        self.alter_option(TableAlterOption::RenameColumn(Rc::new(from_name), Rc::new(to_name)))
+    where
+        T: Iden,
+        R: Iden,
+    {
+        self.alter_option(TableAlterOption::RenameColumn(
+            Rc::new(from_name),
+            Rc::new(to_name),
+        ))
     }
 
     /// Add a column to existing table
@@ -175,7 +183,9 @@ impl TableAlterStatement {
     /// // Sqlite not support modifying table column
     /// ```
     pub fn drop_column<T: 'static>(self, col_name: T) -> Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.alter_option(TableAlterOption::DropColumn(Rc::new(col_name)))
     }
 

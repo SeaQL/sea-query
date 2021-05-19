@@ -38,8 +38,8 @@ where
                     }
                 }
                 output.push(mark.to_string())
-            },
-            _ => output.push(token.to_string())
+            }
+            _ => output.push(token.to_string()),
         }
         i += 1;
     }
@@ -76,11 +76,15 @@ impl SqlWriter {
 
 impl std::fmt::Write for SqlWriter {
     fn write_str(&mut self, s: &str) -> Result<(), std::fmt::Error> {
-        write!(self.string, "{}", if self.string.ends_with(' ') && s.starts_with(' ') {
-            Self::skip_str(s, 1)
-        } else {
-            s
-        })
+        write!(
+            self.string,
+            "{}",
+            if self.string.ends_with(' ') && s.starts_with(' ') {
+                Self::skip_str(s, 1)
+            } else {
+                s
+            }
+        )
     }
 }
 
@@ -90,44 +94,77 @@ mod tests {
 
     #[test]
     fn inject_parameters_1() {
-        assert_eq!(inject_parameters("WHERE A = ?", vec!["B".into()], &MysqlQueryBuilder),
-            "WHERE A = 'B'");
+        assert_eq!(
+            inject_parameters("WHERE A = ?", vec!["B".into()], &MysqlQueryBuilder),
+            "WHERE A = 'B'"
+        );
     }
 
     #[test]
     fn inject_parameters_2() {
-        assert_eq!(inject_parameters("WHERE A = '?' AND B = ?", vec!["C".into()], &MysqlQueryBuilder),
-            "WHERE A = '?' AND B = 'C'");
+        assert_eq!(
+            inject_parameters(
+                "WHERE A = '?' AND B = ?",
+                vec!["C".into()],
+                &MysqlQueryBuilder
+            ),
+            "WHERE A = '?' AND B = 'C'"
+        );
     }
 
     #[test]
     fn inject_parameters_3() {
-        assert_eq!(inject_parameters("WHERE A = ? AND C = ?", vec!["B".into(), "D".into()], &MysqlQueryBuilder),
-            "WHERE A = 'B' AND C = 'D'");
+        assert_eq!(
+            inject_parameters(
+                "WHERE A = ? AND C = ?",
+                vec!["B".into(), "D".into()],
+                &MysqlQueryBuilder
+            ),
+            "WHERE A = 'B' AND C = 'D'"
+        );
     }
 
     #[test]
     fn inject_parameters_4() {
-        assert_eq!(inject_parameters("WHERE A = $1 AND C = $2", vec!["B".into(), "D".into()], &PostgresQueryBuilder),
-            "WHERE A = 'B' AND C = 'D'");
+        assert_eq!(
+            inject_parameters(
+                "WHERE A = $1 AND C = $2",
+                vec!["B".into(), "D".into()],
+                &PostgresQueryBuilder
+            ),
+            "WHERE A = 'B' AND C = 'D'"
+        );
     }
 
     #[test]
     fn inject_parameters_5() {
-        assert_eq!(inject_parameters("WHERE A = $2 AND C = $1", vec!["B".into(), "D".into()], &PostgresQueryBuilder),
-            "WHERE A = 'D' AND C = 'B'");
+        assert_eq!(
+            inject_parameters(
+                "WHERE A = $2 AND C = $1",
+                vec!["B".into(), "D".into()],
+                &PostgresQueryBuilder
+            ),
+            "WHERE A = 'D' AND C = 'B'"
+        );
     }
 
     #[test]
     fn inject_parameters_6() {
-        assert_eq!(inject_parameters("WHERE A = $1", vec!["B'C".into()], &PostgresQueryBuilder),
-            "WHERE A = E'B\\'C'");
+        assert_eq!(
+            inject_parameters("WHERE A = $1", vec!["B'C".into()], &PostgresQueryBuilder),
+            "WHERE A = E'B\\'C'"
+        );
     }
 
     #[test]
     fn inject_parameters_7() {
-        assert_eq!(inject_parameters("?", vec![vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
-            "x'ABCDEF'");
+        assert_eq!(
+            inject_parameters(
+                "?",
+                vec![vec![0xABu8, 0xCD, 0xEF].into()],
+                &MysqlQueryBuilder
+            ),
+            "x'ABCDEF'"
+        );
     }
-
 }

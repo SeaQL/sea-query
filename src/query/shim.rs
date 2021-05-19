@@ -1,4 +1,4 @@
-use crate::{impl_query_statement_builder, impl_ordered_statement, impl_conditional_statement};
+use crate::{impl_conditional_statement, impl_ordered_statement, impl_query_statement_builder};
 
 impl_query_statement_builder!(select_statement_builder, SelectStatement);
 impl_query_statement_builder!(insert_statement_builder, InsertStatement);

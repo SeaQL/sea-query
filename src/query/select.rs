@@ -1,6 +1,14 @@
-use std::rc::Rc;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, condition::*}, types::*, expr::*, value::*, prepare::*};
+use crate::{
+    backend::QueryBuilder,
+    expr::*,
+    prepare::*,
+    query::{condition::*, OrderedStatement},
+    types::*,
+    value::*,
+    QueryStatementBuilder,
+};
 use std::iter::FromIterator;
+use std::rc::Rc;
 
 /// Select rows from an existing table
 ///
@@ -147,7 +155,10 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn conditions<T, F>(&mut self, b: bool, if_true: T, if_false: F) -> &mut Self
-        where T: FnOnce(&mut Self), F: FnOnce(&mut Self) {
+    where
+        T: FnOnce(&mut Self),
+        F: FnOnce(&mut Self),
+    {
         if b {
             if_true(self)
         } else {
@@ -192,7 +203,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn expr<T>(&mut self, expr: T) -> &mut Self
-        where T: Into<SelectExpr> {
+    where
+        T: Into<SelectExpr>,
+    {
         self.selects.push(expr.into());
         self
     }
@@ -238,7 +251,9 @@ impl SelectStatement {
     }
 
     pub fn exprs_mut_for_each<F>(&mut self, func: F)
-        where F: FnMut(&mut SelectExpr) {
+    where
+        F: FnMut(&mut SelectExpr),
+    {
         self.selects.iter_mut().for_each(func);
     }
 
@@ -298,7 +313,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn column<C>(&mut self, col: C) -> &mut Self
-        where C: IntoColumnRef {
+    where
+        C: IntoColumnRef,
+    {
         self.expr(SimpleExpr::Column(col.into_column_ref()))
     }
 
@@ -307,7 +324,10 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::column`] with a tuple as [`ColumnRef`]"
     )]
     pub fn table_column<T, C>(&mut self, t: T, c: C) -> &mut Self
-        where T: IntoIden, C: IntoIden {
+    where
+        T: IntoIden,
+        C: IntoIden,
+    {
         self.column((t.into_iden(), c.into_iden()))
     }
 
@@ -420,10 +440,13 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn expr_as<T, A>(&mut self, expr: T, alias: A) -> &mut Self
-        where T: Into<SimpleExpr>, A: IntoIden {
+    where
+        T: Into<SimpleExpr>,
+        A: IntoIden,
+    {
         self.expr(SelectExpr {
             expr: expr.into(),
-            alias: Some(alias.into_iden())
+            alias: Some(alias.into_iden()),
         });
         self
     }
@@ -433,7 +456,10 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::expr_as`] instead"
     )]
     pub fn expr_alias<T, A>(&mut self, expr: T, alias: A) -> &mut Self
-        where T: Into<SimpleExpr>, A: IntoIden {
+    where
+        T: Into<SimpleExpr>,
+        A: IntoIden,
+    {
         self.expr_as(expr, alias)
     }
 
@@ -485,7 +511,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
-        where R: IntoTableRef {
+    where
+        R: IntoTableRef,
+    {
         self.from_from(tbl_ref.into_table_ref())
     }
 
@@ -519,7 +547,10 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn from_schema<S: 'static, T: 'static>(&mut self, schema: S, table: T) -> &mut Self
-        where S: IntoIden, T: IntoIden {
+    where
+        S: IntoIden,
+        T: IntoIden,
+    {
         self.from((schema, table))
     }
 
@@ -576,7 +607,10 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
-        where R: IntoTableRef, A: IntoIden {
+    where
+        R: IntoTableRef,
+        A: IntoIden,
+    {
         self.from_from(tbl_ref.into_table_ref().alias(alias.into_iden()))
     }
 
@@ -585,7 +619,10 @@ impl SelectStatement {
         note = "Please use the [`SelectStatement::from_as`] instead"
     )]
     pub fn from_alias<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
-        where R: IntoTableRef, A: IntoIden {
+    where
+        R: IntoTableRef,
+        A: IntoIden,
+    {
         self.from_as(tbl_ref, alias)
     }
 
@@ -593,8 +630,17 @@ impl SelectStatement {
         since = "0.9.0",
         note = "Please use the [`SelectStatement::from_as`] with a tuple as [`TableRef`]"
     )]
-    pub fn from_schema_as<S: 'static, T: 'static, A>(&mut self, schema: S, table: T, alias: A) -> &mut Self
-        where S: IntoIden, T: IntoIden, A: IntoIden {
+    pub fn from_schema_as<S: 'static, T: 'static, A>(
+        &mut self,
+        schema: S,
+        table: T,
+        alias: A,
+    ) -> &mut Self
+    where
+        S: IntoIden,
+        T: IntoIden,
+        A: IntoIden,
+    {
         self.from_as((schema, table), alias)
     }
 
@@ -634,7 +680,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn from_subquery<T>(&mut self, query: SelectStatement, alias: T) -> &mut Self
-        where T: IntoIden {
+    where
+        T: IntoIden,
+    {
         self.from_from(TableRef::SubQuery(query, alias.into_iden()))
     }
 
@@ -671,7 +719,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn left_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
-        where R: IntoTableRef {
+    where
+        R: IntoTableRef,
+    {
         self.join(JoinType::LeftJoin, tbl_ref, condition)
     }
 
@@ -703,7 +753,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn inner_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
-        where R: IntoTableRef {
+    where
+        R: IntoTableRef,
+    {
         self.join(JoinType::InnerJoin, tbl_ref, condition)
     }
 
@@ -735,8 +787,14 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn join<R>(&mut self, join: JoinType, tbl_ref: R, condition: SimpleExpr) -> &mut Self
-        where R: IntoTableRef {
-        self.join_join(join, tbl_ref.into_table_ref(), JoinOn::Condition(Box::new(condition)))
+    where
+        R: IntoTableRef,
+    {
+        self.join_join(
+            join,
+            tbl_ref.into_table_ref(),
+            JoinOn::Condition(Box::new(condition)),
+        )
     }
 
     /// Join with other table by [`JoinType`], assigning an alias to the joined table.
@@ -771,17 +829,39 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join_as<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self
-        where R: IntoTableRef, A: IntoIden {
-        self.join_join(join, tbl_ref.into_table_ref().alias(alias.into_iden()), JoinOn::Condition(Box::new(condition)))
+    pub fn join_as<R, A>(
+        &mut self,
+        join: JoinType,
+        tbl_ref: R,
+        alias: A,
+        condition: SimpleExpr,
+    ) -> &mut Self
+    where
+        R: IntoTableRef,
+        A: IntoIden,
+    {
+        self.join_join(
+            join,
+            tbl_ref.into_table_ref().alias(alias.into_iden()),
+            JoinOn::Condition(Box::new(condition)),
+        )
     }
 
     #[deprecated(
         since = "0.6.1",
         note = "Please use the [`SelectStatement::join_as`] instead"
     )]
-    pub fn join_alias<R, A>(&mut self, join: JoinType, tbl_ref: R, alias: A, condition: SimpleExpr) -> &mut Self
-        where R: IntoTableRef, A: IntoIden {
+    pub fn join_alias<R, A>(
+        &mut self,
+        join: JoinType,
+        tbl_ref: R,
+        alias: A,
+        condition: SimpleExpr,
+    ) -> &mut Self
+    where
+        R: IntoTableRef,
+        A: IntoIden,
+    {
         self.join_as(join, tbl_ref, alias, condition)
     }
 
@@ -822,9 +902,21 @@ impl SelectStatement {
     /// );
     /// ```
     ///
-    pub fn join_subquery<T>(&mut self, join: JoinType, query: SelectStatement, alias: T, condition: SimpleExpr) -> &mut Self
-        where T: IntoIden {
-        self.join_join(join, TableRef::SubQuery(query, alias.into_iden()), JoinOn::Condition(Box::new(condition)))
+    pub fn join_subquery<T>(
+        &mut self,
+        join: JoinType,
+        query: SelectStatement,
+        alias: T,
+        condition: SimpleExpr,
+    ) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.join_join(
+            join,
+            TableRef::SubQuery(query, alias.into_iden()),
+            JoinOn::Condition(Box::new(condition)),
+        )
     }
 
     fn join_join(&mut self, join: JoinType, table: TableRef, on: JoinOn) -> &mut Self {
@@ -1165,13 +1257,21 @@ impl QueryStatementBuilder for SelectStatement {
     ///     vec![Value::Int(0), Value::Int(2)]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
         sql.result()

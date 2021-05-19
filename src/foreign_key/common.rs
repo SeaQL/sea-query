@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use crate::types::*;
+use std::rc::Rc;
 
 /// Specification of a foreign key
 #[derive(Debug, Clone)]
@@ -51,28 +51,36 @@ impl TableForeignKey {
 
     /// Set key table
     pub fn from_tbl<T>(&mut self, table: T) -> &mut Self
-        where T: IntoIden {
+    where
+        T: IntoIden,
+    {
         self.table = Some(table.into_iden());
         self
     }
 
     /// Set referencing table
     pub fn to_tbl<R>(&mut self, ref_table: R) -> &mut Self
-        where R: IntoIden {
+    where
+        R: IntoIden,
+    {
         self.ref_table = Some(ref_table.into_iden());
         self
     }
 
     /// Add key column
     pub fn from_col<T>(&mut self, column: T) -> &mut Self
-        where T: IntoIden {
+    where
+        T: IntoIden,
+    {
         self.columns.push(column.into_iden());
         self
     }
 
     /// Add referencing column
     pub fn to_col<R>(&mut self, ref_column: R) -> &mut Self
-        where R: IntoIden {
+    where
+        R: IntoIden,
+    {
         self.ref_columns.push(ref_column.into_iden());
         self
     }

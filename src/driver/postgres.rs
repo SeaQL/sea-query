@@ -1,7 +1,7 @@
-use std::error::Error;
-use bytes::BytesMut;
-use postgres_types::{IsNull, ToSql, Type, to_sql_checked};
 use crate::{Value, Values};
+use bytes::BytesMut;
+use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
+use std::error::Error;
 
 pub trait PostgresDriver<'a> {
     fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)>;
@@ -28,11 +28,11 @@ impl ToSql for Value {
             Value::Double(v) => v.to_sql(ty, out),
             Value::String(v) => v.as_str().to_sql(ty, out),
             Value::Bytes(v) => v.as_ref().to_sql(ty, out),
-            #[cfg(feature="postgres-json")]
+            #[cfg(feature = "postgres-json")]
             Value::Json(v) => v.as_ref().to_sql(ty, out),
-            #[cfg(feature="postgres-chrono")]
+            #[cfg(feature = "postgres-chrono")]
             Value::DateTime(v) => v.as_ref().to_sql(ty, out),
-            #[cfg(feature="postgres-uuid")]
+            #[cfg(feature = "postgres-uuid")]
             Value::Uuid(v) => v.as_ref().to_sql(ty, out),
         }
     }
@@ -52,9 +52,12 @@ impl From<Vec<Value>> for Values {
 
 impl<'a> PostgresDriver<'a> for Values {
     fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)> {
-        self.0.iter().map(|x| {
-            let y: &(dyn ToSql + Sync) = x;
-            y
-        }).collect()
+        self.0
+            .iter()
+            .map(|x| {
+                let y: &(dyn ToSql + Sync) = x;
+                y
+            })
+            .collect()
     }
 }

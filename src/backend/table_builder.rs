@@ -1,7 +1,6 @@
 use crate::*;
 
-pub trait TableBuilder : IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
-
+pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
     /// Translate [`TableCreateStatement`] into SQL statement.
     fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut SqlWriter) {
         write!(sql, "CREATE TABLE ").unwrap();
@@ -60,11 +59,16 @@ pub trait TableBuilder : IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
 
     /// Translate [`TableOpt`] into SQL statement.
     fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut SqlWriter) {
-        write!(sql, "{}", match table_opt {
-            TableOpt::Engine(s) => format!("ENGINE={}", s),
-            TableOpt::Collate(s) => format!("COLLATE={}", s),
-            TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={}", s),
-        }).unwrap()
+        write!(
+            sql,
+            "{}",
+            match table_opt {
+                TableOpt::Engine(s) => format!("ENGINE={}", s),
+                TableOpt::Collate(s) => format!("COLLATE={}", s),
+                TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={}", s),
+            }
+        )
+        .unwrap()
     }
 
     /// Translate [`TablePartition`] into SQL statement.
@@ -94,21 +98,29 @@ pub trait TableBuilder : IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
 
     /// Translate [`TableDropOpt`] into SQL statement.
     fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut SqlWriter) {
-        write!(sql, "{}", match drop_opt {
-            TableDropOpt::Restrict => "RESTRICT",
-            TableDropOpt::Cascade => "CASCADE",
-        }).unwrap();
+        write!(
+            sql,
+            "{}",
+            match drop_opt {
+                TableDropOpt::Restrict => "RESTRICT",
+                TableDropOpt::Cascade => "CASCADE",
+            }
+        )
+        .unwrap();
     }
 
     /// Translate [`TableTruncateStatement`] into SQL statement.
-    fn prepare_table_truncate_statement(&self, truncate: &TableTruncateStatement, sql: &mut SqlWriter) {
+    fn prepare_table_truncate_statement(
+        &self,
+        truncate: &TableTruncateStatement,
+        sql: &mut SqlWriter,
+    ) {
         write!(sql, "TRUNCATE TABLE ").unwrap();
 
         if let Some(table) = &truncate.table {
             table.prepare(sql, self.quote());
         }
     }
-
 
     /// Translate [`TableAlterStatement`] into SQL statement.
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter);

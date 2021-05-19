@@ -1,4 +1,11 @@
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, condition::*}, types::*, value::*, prepare::*};
+use crate::{
+    backend::QueryBuilder,
+    prepare::*,
+    query::{condition::*, OrderedStatement},
+    types::*,
+    value::*,
+    QueryStatementBuilder,
+};
 
 /// Delete existing rows from the table
 ///
@@ -78,7 +85,9 @@ impl DeleteStatement {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn from_table<T>(&mut self, tbl_ref: T) -> &mut Self
-        where T: IntoTableRef {
+    where
+        T: IntoTableRef,
+    {
         self.table = Some(Box::new(tbl_ref.into_table_ref()));
         self
     }
@@ -122,13 +131,21 @@ impl QueryStatementBuilder for DeleteStatement {
     ///     ]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_delete_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_delete_statement(self, &mut sql, collector);
         sql.result()

@@ -2,7 +2,10 @@ use heck::SnakeCase;
 use proc_macro::{self, TokenStream};
 use proc_macro2::Span;
 use quote::{quote, quote_spanned};
-use syn::{parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields, Ident, Lit, Meta, Variant};
+use syn::{
+    parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields, Ident, Lit, Meta,
+    Variant,
+};
 
 fn get_iden_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
     for attr in attrs {
@@ -60,10 +63,11 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
                     }
                 }
                 .into()
-            },
+            }
             _ => return quote_spanned! {
                 ident.span() => compile_error!("you can only derive Iden on enums or unit structs");
-            }.into(),
+            }
+            .into(),
         };
 
     if variants.is_empty() {
@@ -72,16 +76,14 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
 
     let variant = variants
         .iter()
-        .map(|Variant { ident, fields, .. }| {
-            match fields {
-                Fields::Named(_) => quote! { #ident{..} },
-                Fields::Unnamed(_) => quote! { #ident(..) },
-                Fields::Unit => quote! { #ident },
-            }
+        .map(|Variant { ident, fields, .. }| match fields {
+            Fields::Named(_) => quote! { #ident{..} },
+            Fields::Unnamed(_) => quote! { #ident(..) },
+            Fields::Unit => quote! { #ident },
         });
 
     let name = variants.iter().map(|v| {
-        if let Some(lit) = get_iden_attr(&v.attrs) {    
+        if let Some(lit) = get_iden_attr(&v.attrs) {
             // If the user supplied a name, just use it
             quote! { #lit }
         } else if let Some(lit) = get_method_attr(&v.attrs) {

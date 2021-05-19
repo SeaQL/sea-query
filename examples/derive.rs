@@ -67,8 +67,16 @@ fn main() {
     assert_eq!(dbg!(Iden::to_string(&Custom::Id)), "my_id");
     assert_eq!(dbg!(Iden::to_string(&Custom::FirstName)), "name");
     assert_eq!(dbg!(Iden::to_string(&Custom::LastName)), "surname");
-    assert_eq!(dbg!(Iden::to_string(&Custom::Email("chris@gmail.com".to_owned()))), "EMail");
-    assert_eq!(dbg!(Iden::to_string(&Custom::Custom("hello".to_owned()))), "hello");
+    assert_eq!(
+        dbg!(Iden::to_string(&Custom::Email(
+            "chris@gmail.com".to_owned()
+        ))),
+        "EMail"
+    );
+    assert_eq!(
+        dbg!(Iden::to_string(&Custom::Custom("hello".to_owned()))),
+        "hello"
+    );
 
     println!("Single custom field name");
     assert_eq!(dbg!(Iden::to_string(&Something::Table)), "something_else");

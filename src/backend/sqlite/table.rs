@@ -15,15 +15,15 @@ impl TableBuilder for SqliteQueryBuilder {
         for column_spec in column_def.spec.iter() {
             if let ColumnSpec::PrimaryKey = column_spec {
                 is_primary_key = true;
-                continue
+                continue;
             }
             if let ColumnSpec::AutoIncrement = column_spec {
                 is_auto_increment = true;
-                continue
+                continue;
             }
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
-        };
+        }
 
         if is_primary_key {
             write!(sql, " ").unwrap();
@@ -36,70 +36,75 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut SqlWriter) {
-        write!(sql, "{}", match column_type {
-            ColumnType::Char(length) => match length {
-                Some(length) => format!("text({})", length),
-                None => "text".into(),
-            },
-            ColumnType::String(length) => match length {
-                Some(length) => format!("text({})", length),
-                None => "text".into(),
-            },
-            ColumnType::Text => "text".into(),
-            ColumnType::TinyInteger(length) => match length {
-                Some(length) => format!("integer({})", length),
-                None => "integer".into(),
-            },
-            ColumnType::SmallInteger(length) => match length {
-                Some(length) => format!("integer({})", length),
-                None => "integer".into(),
-            },
-            ColumnType::Integer(length) => match length {
-                Some(length) => format!("integer({})", length),
-                None => "integer".into(),
-            },
-            ColumnType::BigInteger(length) => match length {
-                Some(length) => format!("integer({})", length),
-                None => "integer".into(),
-            },
-            ColumnType::Float(precision) => match precision {
-                Some(precision) => format!("real({})", precision),
-                None => "real".into(),
-            },
-            ColumnType::Double(precision) => match precision {
-                Some(precision) => format!("real({})", precision),
-                None => "real".into(),
-            },
-            ColumnType::Decimal(precision) => match precision {
-                Some((precision, scale)) => format!("real({}, {})", precision, scale),
-                None => "real".into(),
-            },
-            ColumnType::DateTime(precision) => match precision {
-                Some(precision) => format!("text({})", precision),
-                None => "text".into(),
-            },
-            ColumnType::Timestamp(precision) => match precision {
-                Some(precision) => format!("text({})", precision),
-                None => "text".into(),
-            },
-            ColumnType::Time(precision) => match precision {
-                Some(precision) => format!("text({})", precision),
-                None => "text".into(),
-            },
-            ColumnType::Date => "text".into(),
-            ColumnType::Binary(length) => match length {
-                Some(length) => format!("binary({})", length),
-                None => "binary".into(),
-            },
-            ColumnType::Boolean => "integer".into(),
-            ColumnType::Money(precision) => match precision {
-                Some((precision, scale)) => format!("integer({}, {})", precision, scale),
-                None => "integer".into(),
-            },
-            ColumnType::Json => "text".into(),
-            ColumnType::JsonBinary => "text".into(),
-            ColumnType::Custom(iden) => iden.to_string(),
-        }).unwrap()
+        write!(
+            sql,
+            "{}",
+            match column_type {
+                ColumnType::Char(length) => match length {
+                    Some(length) => format!("text({})", length),
+                    None => "text".into(),
+                },
+                ColumnType::String(length) => match length {
+                    Some(length) => format!("text({})", length),
+                    None => "text".into(),
+                },
+                ColumnType::Text => "text".into(),
+                ColumnType::TinyInteger(length) => match length {
+                    Some(length) => format!("integer({})", length),
+                    None => "integer".into(),
+                },
+                ColumnType::SmallInteger(length) => match length {
+                    Some(length) => format!("integer({})", length),
+                    None => "integer".into(),
+                },
+                ColumnType::Integer(length) => match length {
+                    Some(length) => format!("integer({})", length),
+                    None => "integer".into(),
+                },
+                ColumnType::BigInteger(length) => match length {
+                    Some(length) => format!("integer({})", length),
+                    None => "integer".into(),
+                },
+                ColumnType::Float(precision) => match precision {
+                    Some(precision) => format!("real({})", precision),
+                    None => "real".into(),
+                },
+                ColumnType::Double(precision) => match precision {
+                    Some(precision) => format!("real({})", precision),
+                    None => "real".into(),
+                },
+                ColumnType::Decimal(precision) => match precision {
+                    Some((precision, scale)) => format!("real({}, {})", precision, scale),
+                    None => "real".into(),
+                },
+                ColumnType::DateTime(precision) => match precision {
+                    Some(precision) => format!("text({})", precision),
+                    None => "text".into(),
+                },
+                ColumnType::Timestamp(precision) => match precision {
+                    Some(precision) => format!("text({})", precision),
+                    None => "text".into(),
+                },
+                ColumnType::Time(precision) => match precision {
+                    Some(precision) => format!("text({})", precision),
+                    None => "text".into(),
+                },
+                ColumnType::Date => "text".into(),
+                ColumnType::Binary(length) => match length {
+                    Some(length) => format!("binary({})", length),
+                    None => "binary".into(),
+                },
+                ColumnType::Boolean => "integer".into(),
+                ColumnType::Money(precision) => match precision {
+                    Some((precision, scale)) => format!("integer({}, {})", precision, scale),
+                    None => "integer".into(),
+                },
+                ColumnType::Json => "text".into(),
+                ColumnType::JsonBinary => "text".into(),
+                ColumnType::Custom(iden) => iden.to_string(),
+            }
+        )
+        .unwrap()
     }
 
     fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter) {
@@ -111,12 +116,11 @@ impl TableBuilder for SqliteQueryBuilder {
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
             ColumnSpec::Extra(string) => write!(sql, "{}", string),
-        }.unwrap()
+        }
+        .unwrap()
     }
 
-    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut SqlWriter) {
-
-    }
+    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut SqlWriter) {}
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {
         let alter_option = match &alter.alter_option {
@@ -132,19 +136,19 @@ impl TableBuilder for SqliteQueryBuilder {
             TableAlterOption::AddColumn(column_def) => {
                 write!(sql, "ADD COLUMN ").unwrap();
                 self.prepare_column_def(column_def, sql);
-            },
+            }
             TableAlterOption::ModifyColumn(_) => {
                 panic!("Sqlite not support modifying table column")
-            },
+            }
             TableAlterOption::RenameColumn(from_name, to_name) => {
                 write!(sql, "RENAME COLUMN ").unwrap();
                 from_name.prepare(sql, '`');
                 write!(sql, " TO ").unwrap();
                 to_name.prepare(sql, '`');
-            },
+            }
             TableAlterOption::DropColumn(_) => {
                 panic!("Sqlite not support dropping table column")
-            },
+            }
         }
     }
 

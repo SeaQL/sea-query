@@ -1,5 +1,5 @@
+use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder, TableIndex};
 use std::rc::Rc;
-use crate::{TableIndex, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Drop an index for an existing table
 ///
@@ -55,7 +55,9 @@ impl IndexDropStatement {
 
     /// Set target table
     pub fn table<T: 'static>(mut self, table: T) -> Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.table = Some(Rc::new(table));
         self
     }

@@ -1,6 +1,6 @@
 use crate::*;
 
-pub trait IndexBuilder : QuotedBuilder {
+pub trait IndexBuilder: QuotedBuilder {
     /// Translate [`IndexCreateStatement`] into SQL expression.
     fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         self.prepare_index_prefix(create, sql);

@@ -15,7 +15,8 @@ fn create_1() {
             "ADD CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE CASCADE",
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 

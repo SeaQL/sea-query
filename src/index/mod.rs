@@ -1,7 +1,7 @@
 //! Index definition & alternations statements.
-//! 
+//!
 //! # Usage
-//! 
+//!
 //! - Table Index Create, see [`IndexCreateStatement`]
 //! - Table Index Drop, see [`IndexDropStatement`]
 

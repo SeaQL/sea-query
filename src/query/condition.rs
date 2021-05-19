@@ -299,9 +299,10 @@ impl Default for ConditionHolder {
 }
 
 impl ConditionHolder {
-
     pub fn new() -> Self {
-        Self { contents: ConditionHolderContents::Empty }
+        Self {
+            contents: ConditionHolderContents::Empty,
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -314,17 +315,25 @@ impl ConditionHolder {
 
     pub fn add_and_or(&mut self, condition: LogicalChainOper) {
         match &mut self.contents {
-            ConditionHolderContents::Empty => self.contents = ConditionHolderContents::And(vec![condition]),
+            ConditionHolderContents::Empty => {
+                self.contents = ConditionHolderContents::And(vec![condition])
+            }
             ConditionHolderContents::And(c) => c.push(condition),
-            ConditionHolderContents::Where(_) => panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
+            ConditionHolderContents::Where(_) => {
+                panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
+            }
         }
     }
 
     pub fn set_where(&mut self, condition: Condition) {
         match &mut self.contents {
-            ConditionHolderContents::Empty => self.contents = ConditionHolderContents::Where(condition),
+            ConditionHolderContents::Empty => {
+                self.contents = ConditionHolderContents::Where(condition)
+            }
             ConditionHolderContents::Where(_) => panic!("Multiple `cond_where` are not supported"),
-            ConditionHolderContents::And(_) => panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
+            ConditionHolderContents::And(_) => {
+                panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
+            }
         }
     }
 }

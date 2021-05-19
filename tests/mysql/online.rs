@@ -8,7 +8,13 @@ fn online_1() {
 
     let sql = Table::create()
         .table(Font::Table)
-        .col(ColumnDef::new(Font::Id).integer_len(11).not_null().auto_increment().primary_key())
+        .col(
+            ColumnDef::new(Font::Id)
+                .integer_len(11)
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
         .col(ColumnDef::new(Font::Name).string_len(255).not_null())
         .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
         .col(ColumnDef::new(Font::Language).string_len(255).not_null())
@@ -20,12 +26,13 @@ fn online_1() {
         sql,
         vec![
             "CREATE TABLE `font` (",
-                "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
-                "`name` varchar(255) NOT NULL,",
-                "`variant` varchar(255) NOT NULL,",
-                "`language` varchar(255) NOT NULL",
+            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`name` varchar(255) NOT NULL,",
+            "`variant` varchar(255) NOT NULL,",
+            "`language` varchar(255) NOT NULL",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        ].join(" ")
+        ]
+        .join(" ")
     );
     env.exec(&sql);
 
@@ -34,31 +41,35 @@ fn online_1() {
         .table(Font::Table)
         .col(Font::Name)
         .to_string(MysqlQueryBuilder);
-    assert_eq!(
-        sql,
-        "CREATE INDEX `idx-font-name` ON `font` (`name`)"
-    );
+    assert_eq!(sql, "CREATE INDEX `idx-font-name` ON `font` (`name`)");
     env.exec(&sql);
 
     let sql = Index::drop()
         .name("idx-font-name")
         .table(Font::Table)
         .to_string(MysqlQueryBuilder);
-    assert_eq!(
-        sql,
-        "DROP INDEX `idx-font-name` ON `font`"
-    );
+    assert_eq!(sql, "DROP INDEX `idx-font-name` ON `font`");
     env.exec(&sql);
 
     let sql = Table::create()
         .table(Char::Table)
         .if_not_exists()
-        .col(ColumnDef::new(Char::Id).integer_len(11).not_null().auto_increment().primary_key())
+        .col(
+            ColumnDef::new(Char::Id)
+                .integer_len(11)
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
         .col(ColumnDef::new(Char::FontSize).integer_len(11).not_null())
         .col(ColumnDef::new(Char::Character).string_len(255).not_null())
         .col(ColumnDef::new(Char::SizeW).integer_len(11).not_null())
         .col(ColumnDef::new(Char::SizeH).integer_len(11).not_null())
-        .col(ColumnDef::new(Char::FontId).integer_len(11).default(Value::Null))
+        .col(
+            ColumnDef::new(Char::FontId)
+                .integer_len(11)
+                .default(Value::Null),
+        )
         .engine("InnoDB")
         .character_set("utf8mb4")
         .collate("utf8mb4_unicode_ci")
@@ -67,14 +78,15 @@ fn online_1() {
         sql,
         vec![
             "CREATE TABLE IF NOT EXISTS `character` (",
-                "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
-                "`font_size` int(11) NOT NULL,",
-                "`character` varchar(255) NOT NULL,",
-                "`size_w` int(11) NOT NULL,",
-                "`size_h` int(11) NOT NULL,",
-                "`font_id` int(11) DEFAULT NULL",
+            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`font_size` int(11) NOT NULL,",
+            "`character` varchar(255) NOT NULL,",
+            "`size_w` int(11) NOT NULL,",
+            "`size_h` int(11) NOT NULL,",
+            "`font_id` int(11) DEFAULT NULL",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        ].join(" ")
+        ]
+        .join(" ")
     );
     env.exec(&sql);
 
@@ -93,10 +105,7 @@ fn online_1() {
         .name("idx-character-font_size")
         .table(Char::Table)
         .to_string(MysqlQueryBuilder);
-    assert_eq!(
-        sql,
-        "DROP INDEX `idx-character-font_size` ON `character`"
-    );
+    assert_eq!(sql, "DROP INDEX `idx-character-font_size` ON `character`");
     env.exec(&sql);
 
     let sql = ForeignKey::create()
@@ -113,7 +122,8 @@ fn online_1() {
             "ADD CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY `FK_2e303c3a712662f1fc2a4d0aad6` (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE CASCADE",
-        ].join(" ")
+        ]
+        .join(" ")
     );
     env.exec(&sql);
 
@@ -128,9 +138,7 @@ fn online_1() {
     env.exec(&sql);
 
     let sql = Query::select()
-        .columns(vec![
-            Char::Character, Char::SizeW, Char::SizeH
-        ])
+        .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
         .from(Char::Table)
         .limit(10)
         .offset(100)
@@ -144,7 +152,11 @@ fn online_1() {
     let sql = Query::insert()
         .into_table(Char::Table)
         .columns(vec![
-            Char::Character, Char::SizeW, Char::SizeH, Char::FontSize, Char::FontId
+            Char::Character,
+            Char::SizeW,
+            Char::SizeH,
+            Char::FontSize,
+            Char::FontId,
         ])
         .values_panic(vec![
             "Character".into(),
@@ -187,19 +199,13 @@ fn online_1() {
     let sql = Table::truncate()
         .table(Char::Table)
         .to_string(MysqlQueryBuilder);
-    assert_eq!(
-        sql,
-        "TRUNCATE TABLE `character`"
-    );
+    assert_eq!(sql, "TRUNCATE TABLE `character`");
     env.exec(&sql);
 
     let sql = Table::drop()
         .table(Char::Table)
         .cascade()
         .to_string(MysqlQueryBuilder);
-    assert_eq!(
-        sql,
-        "DROP TABLE `character` CASCADE"
-    );
+    assert_eq!(sql, "DROP TABLE `character` CASCADE");
     env.exec(&sql);
 }

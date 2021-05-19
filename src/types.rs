@@ -1,8 +1,8 @@
 //! Base types used throughout sea-query.
 
+use crate::{expr::*, query::*};
 use std::fmt;
 use std::rc::Rc;
-use crate::{query::*, expr::*};
 
 /// Identifier in query
 pub trait Iden {
@@ -145,7 +145,10 @@ pub enum Keyword {
 
 // Impl begins
 
-impl<T: 'static> IntoIden for T where T: Iden {
+impl<T: 'static> IntoIden for T
+where
+    T: Iden,
+{
     fn into_iden(self) -> Rc<dyn Iden> {
         Rc::new(self)
     }
@@ -157,7 +160,10 @@ impl IntoIden for Rc<dyn Iden> {
     }
 }
 
-impl<I> IdenList for I where I: IntoIden {
+impl<I> IdenList for I
+where
+    I: IntoIden,
+{
     type IntoIter = std::iter::Once<Rc<dyn Iden>>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -166,7 +172,10 @@ impl<I> IdenList for I where I: IntoIden {
 }
 
 impl<A, B> IdenList for (A, B)
-    where A: IntoIden, B: IntoIden {
+where
+    A: IntoIden,
+    B: IntoIden,
+{
     type IntoIter = std::vec::IntoIter<Rc<dyn Iden>>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -175,7 +184,11 @@ impl<A, B> IdenList for (A, B)
 }
 
 impl<A, B, C> IdenList for (A, B, C)
-    where A: IntoIden, B: IntoIden, C: IntoIden {
+where
+    A: IntoIden,
+    B: IntoIden,
+    C: IntoIden,
+{
     type IntoIter = std::vec::IntoIter<Rc<dyn Iden>>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -183,28 +196,39 @@ impl<A, B, C> IdenList for (A, B, C)
     }
 }
 
-impl<T: 'static> IntoColumnRef for T where T: IntoIden {
+impl<T: 'static> IntoColumnRef for T
+where
+    T: IntoIden,
+{
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::Column(self.into_iden())
     }
 }
 
 impl<S: 'static, T: 'static> IntoColumnRef for (S, T)
-    where S: IntoIden, T: IntoIden {
+where
+    S: IntoIden,
+    T: IntoIden,
+{
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
     }
 }
 
 impl<T: 'static> IntoTableRef for T
-    where T: IntoIden {
+where
+    T: IntoIden,
+{
     fn into_table_ref(self) -> TableRef {
         TableRef::Table(self.into_iden())
     }
 }
 
 impl<S: 'static, T: 'static> IntoTableRef for (S, T)
-    where S: IntoIden, T: IntoIden {
+where
+    S: IntoIden,
+    T: IntoIden,
+{
     fn into_table_ref(self) -> TableRef {
         TableRef::SchemaTable(self.0.into_iden(), self.1.into_iden())
     }
@@ -212,11 +236,15 @@ impl<S: 'static, T: 'static> IntoTableRef for (S, T)
 
 impl TableRef {
     pub fn alias<A: 'static>(self, alias: A) -> Self
-        where A: IntoIden {
+    where
+        A: IntoIden,
+    {
         match self {
             Self::Table(table) => Self::TableAlias(table, alias.into_iden()),
-            Self::SchemaTable(schema, table) => Self::SchemaTableAlias(schema, table, alias.into_iden()),
-            _ => panic!("unexpected TableRef variant")
+            Self::SchemaTable(schema, table) => {
+                Self::SchemaTableAlias(schema, table, alias.into_iden())
+            }
+            _ => panic!("unexpected TableRef variant"),
         }
     }
 }

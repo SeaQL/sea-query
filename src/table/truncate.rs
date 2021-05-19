@@ -1,5 +1,5 @@
+use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
 use std::rc::Rc;
-use crate::{backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Drop a table
 ///
@@ -39,14 +39,14 @@ impl Default for TableTruncateStatement {
 impl TableTruncateStatement {
     /// Construct truncate table statement
     pub fn new() -> Self {
-        Self {
-            table: None,
-        }
+        Self { table: None }
     }
 
     /// Set table name
     pub fn table<T: 'static>(mut self, table: T) -> Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.table = Some(Rc::new(table));
         self
     }

@@ -5,7 +5,12 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn prepare_returning(&self, returning: &Vec<SelectExpr>,  sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn prepare_returning(
+        &self,
+        returning: &Vec<SelectExpr>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         if !returning.is_empty() {
             write!(sql, " RETURNING ").unwrap();
             returning.iter().fold(true, |first, expr| {

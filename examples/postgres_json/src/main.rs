@@ -1,6 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
-use sea_query::{ColumnDef, Iden, Order, PostgresQueryBuilder, Query, Table, PostgresDriver};
+use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
 
 fn main() {
     let mut client = Client::connect("postgresql://sea:sea@localhost/query", NoTls).unwrap();
@@ -15,11 +15,18 @@ fn main() {
         Table::create()
             .table(Document::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Document::Id).integer().not_null().auto_increment().primary_key())
+            .col(
+                ColumnDef::new(Document::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Document::JsonField).json_binary())
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .build(PostgresQueryBuilder),
-    ].join("; ");
+    ]
+    .join("; ");
 
     println!("{}", sql);
     let result = client.batch_execute(&sql).unwrap();
@@ -40,9 +47,7 @@ fn main() {
     };
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
-        .columns(vec![
-            Document::JsonField, Document::Timestamp,
-        ])
+        .columns(vec![Document::JsonField, Document::Timestamp])
         .values_panic(vec![
             serde_json::to_value(document.json_field).unwrap().into(),
             document.timestamp.into(),
@@ -55,9 +60,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
-            Document::Id, Document::JsonField, Document::Timestamp,
-        ])
+        .columns(vec![Document::Id, Document::JsonField, Document::Timestamp])
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
         .limit(1)

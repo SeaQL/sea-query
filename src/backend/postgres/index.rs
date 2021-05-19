@@ -38,12 +38,17 @@ impl IndexBuilder for PostgresQueryBuilder {
 
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut SqlWriter) {
         if let Some(index_type) = col_index_type {
-            write!(sql, " USING {}", match index_type {
-                IndexType::BTree => "BTREE".to_owned(),
-                IndexType::FullText => "GIN".to_owned(),
-                IndexType::Hash => "HASH".to_owned(),
-                IndexType::Custom(custom) => custom.to_string(),
-            }).unwrap();
+            write!(
+                sql,
+                " USING {}",
+                match index_type {
+                    IndexType::BTree => "BTREE".to_owned(),
+                    IndexType::FullText => "GIN".to_owned(),
+                    IndexType::Hash => "HASH".to_owned(),
+                    IndexType::Custom(custom) => custom.to_string(),
+                }
+            )
+            .unwrap();
         }
     }
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {

@@ -5,17 +5,24 @@ fn create_1() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Id).integer().not_null().auto_increment().primary_key())
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
             .col(ColumnDef::new(Glyph::Aspect).double().not_null())
             .col(ColumnDef::new(Glyph::Image).text())
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
-                r#""id" serial NOT NULL PRIMARY KEY,"#,
-                r#""aspect" double precision NOT NULL,"#,
-                r#""image" text"#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""aspect" double precision NOT NULL,"#,
+            r#""image" text"#,
             r#")"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -24,45 +31,58 @@ fn create_2() {
     assert_eq!(
         Table::create()
             .table(Font::Table)
-            .col(ColumnDef::new(Font::Id).integer().not_null().primary_key().auto_increment())
+            .col(
+                ColumnDef::new(Font::Id)
+                    .integer()
+                    .not_null()
+                    .primary_key()
+                    .auto_increment()
+            )
             .col(ColumnDef::new(Font::Name).string().not_null())
             .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
             .col(ColumnDef::new(Font::Language).string_len(255).not_null())
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "font" ("#,
-                r#""id" serial NOT NULL PRIMARY KEY,"#,
-                r#""name" varchar NOT NULL,"#,
-                r#""variant" varchar(255) NOT NULL,"#,
-                r#""language" varchar(255) NOT NULL"#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""name" varchar NOT NULL,"#,
+            r#""variant" varchar(255) NOT NULL,"#,
+            r#""language" varchar(255) NOT NULL"#,
             r#")"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
 #[test]
 fn create_3() {
-assert_eq!(
-    Table::create()
-        .table(Char::Table)
-        .if_not_exists()
-        .col(ColumnDef::new(Char::Id).integer().not_null().primary_key().auto_increment())
-        .col(ColumnDef::new(Char::FontSize).integer().not_null())
-        .col(ColumnDef::new(Char::Character).string_len(255).not_null())
-        .col(ColumnDef::new(Char::SizeW).integer().not_null())
-        .col(ColumnDef::new(Char::SizeH).integer().not_null())
-        .col(ColumnDef::new(Char::FontId).integer().default(Value::Null))
-        .foreign_key(
-            ForeignKey::create()
-                .name("FK_2e303c3a712662f1fc2a4d0aad6")
-                .from(Char::Table, Char::FontId)
-                .to(Font::Table, Font::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .on_update(ForeignKeyAction::Cascade)
-        )
-        .to_string(PostgresQueryBuilder),
-    vec![
-        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Char::Id)
+                    .integer()
+                    .not_null()
+                    .primary_key()
+                    .auto_increment()
+            )
+            .col(ColumnDef::new(Char::FontSize).integer().not_null())
+            .col(ColumnDef::new(Char::Character).string_len(255).not_null())
+            .col(ColumnDef::new(Char::SizeW).integer().not_null())
+            .col(ColumnDef::new(Char::SizeH).integer().not_null())
+            .col(ColumnDef::new(Char::FontId).integer().default(Value::Null))
+            .foreign_key(
+                ForeignKey::create()
+                    .name("FK_2e303c3a712662f1fc2a4d0aad6")
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .on_delete(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade)
+            )
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
             r#""font_size" integer NOT NULL,"#,
             r#""character" varchar(255) NOT NULL,"#,
@@ -70,11 +90,12 @@ assert_eq!(
             r#""size_h" integer NOT NULL,"#,
             r#""font_id" integer DEFAULT NULL,"#,
             r#"CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
-                    r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
-                    r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-        r#")"#,
-    ].join(" ")
-);
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
+            r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
 }
 
 #[test]
@@ -84,11 +105,7 @@ fn create_4() {
             .table(Glyph::Table)
             .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
             .to_string(PostgresQueryBuilder),
-        vec![
-            r#"CREATE TABLE "glyph" ("#,
-                r#""image" aspect"#,
-            r#")"#,
-        ].join(" ")
+        vec![r#"CREATE TABLE "glyph" ("#, r#""image" aspect"#, r#")"#,].join(" ")
     );
 }
 
@@ -102,10 +119,11 @@ fn create_5() {
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
-                r#""image" json,"#,
-                r#""aspect" jsonb"#,
+            r#""image" json,"#,
+            r#""aspect" jsonb"#,
             r#")"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -114,13 +132,19 @@ fn create_6() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Id).integer().not_null().extra("ANYTHING I WANT TO SAY".to_owned()))
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .extra("ANYTHING I WANT TO SAY".to_owned())
+            )
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
-                r#""id" integer NOT NULL ANYTHING I WANT TO SAY"#,
+            r#""id" integer NOT NULL ANYTHING I WANT TO SAY"#,
             r#")"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -151,7 +175,12 @@ fn alter_1() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
+            .add_column(
+                ColumnDef::new(Alias::new("new_col"))
+                    .integer()
+                    .not_null()
+                    .default(100)
+            )
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
     );
@@ -162,13 +191,18 @@ fn alter_2() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .modify_column(ColumnDef::new(Alias::new("new_col")).big_integer().default(999))
+            .modify_column(
+                ColumnDef::new(Alias::new("new_col"))
+                    .big_integer()
+                    .default(999)
+            )
             .to_string(PostgresQueryBuilder),
         vec![
             r#"ALTER TABLE "font""#,
-                r#"ALTER COLUMN "new_col" TYPE bigint,"#,
-                r#"ALTER COLUMN "new_col" SET DEFAULT 999"#,
-        ].join(" ")
+            r#"ALTER COLUMN "new_col" TYPE bigint,"#,
+            r#"ALTER COLUMN "new_col" SET DEFAULT 999"#,
+        ]
+        .join(" ")
     );
 }
 

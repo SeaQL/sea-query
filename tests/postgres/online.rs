@@ -8,7 +8,13 @@ fn online_1() {
 
     let sql = Table::create()
         .table(Font::Table)
-        .col(ColumnDef::new(Font::Id).integer().not_null().primary_key().auto_increment())
+        .col(
+            ColumnDef::new(Font::Id)
+                .integer()
+                .not_null()
+                .primary_key()
+                .auto_increment(),
+        )
         .col(ColumnDef::new(Font::Name).string_len(255).not_null())
         .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
         .col(ColumnDef::new(Font::Language).string_len(255).not_null())
@@ -17,12 +23,13 @@ fn online_1() {
         sql,
         vec![
             r#"CREATE TABLE "font" ("#,
-                r#""id" serial NOT NULL PRIMARY KEY,"#,
-                r#""name" varchar(255) NOT NULL,"#,
-                r#""variant" varchar(255) NOT NULL,"#,
-                r#""language" varchar(255) NOT NULL"#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""name" varchar(255) NOT NULL,"#,
+            r#""variant" varchar(255) NOT NULL,"#,
+            r#""language" varchar(255) NOT NULL"#,
             r#")"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
     env.exec(&sql);
 
@@ -31,25 +38,25 @@ fn online_1() {
         .table(Font::Table)
         .col(Font::Name)
         .to_string(PostgresQueryBuilder);
-    assert_eq!(
-        sql,
-        r#"CREATE INDEX "idx-font-name" ON "font" ("name")"#
-    );
+    assert_eq!(sql, r#"CREATE INDEX "idx-font-name" ON "font" ("name")"#);
     env.exec(&sql);
 
     let sql = Index::drop()
         .name("idx-font-name")
         .to_string(PostgresQueryBuilder);
-    assert_eq!(
-        sql,
-        r#"DROP INDEX "idx-font-name""#
-    );
+    assert_eq!(sql, r#"DROP INDEX "idx-font-name""#);
     env.exec(&sql);
 
     let sql = Table::create()
         .table(Char::Table)
         .if_not_exists()
-        .col(ColumnDef::new(Char::Id).integer().not_null().primary_key().auto_increment())
+        .col(
+            ColumnDef::new(Char::Id)
+                .integer()
+                .not_null()
+                .primary_key()
+                .auto_increment(),
+        )
         .col(ColumnDef::new(Char::FontSize).integer().not_null())
         .col(ColumnDef::new(Char::Character).string_len(255).not_null())
         .col(ColumnDef::new(Char::SizeW).integer().not_null())
@@ -60,14 +67,15 @@ fn online_1() {
         sql,
         vec![
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-                r#""id" serial NOT NULL PRIMARY KEY,"#,
-                r#""font_size" integer NOT NULL,"#,
-                r#""character" varchar(255) NOT NULL,"#,
-                r#""size_w" integer NOT NULL,"#,
-                r#""size_h" integer NOT NULL,"#,
-                r#""font_id" integer DEFAULT NULL"#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""font_size" integer NOT NULL,"#,
+            r#""character" varchar(255) NOT NULL,"#,
+            r#""size_w" integer NOT NULL,"#,
+            r#""size_h" integer NOT NULL,"#,
+            r#""font_id" integer DEFAULT NULL"#,
             r#")"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
     env.exec(&sql);
 
@@ -85,10 +93,7 @@ fn online_1() {
     let sql = Index::drop()
         .name("idx-character-font_size")
         .to_string(PostgresQueryBuilder);
-    assert_eq!(
-        sql,
-        r#"DROP INDEX "idx-character-font_size""#
-    );
+    assert_eq!(sql, r#"DROP INDEX "idx-character-font_size""#);
     env.exec(&sql);
 
     let sql = ForeignKey::create()
@@ -105,7 +110,8 @@ fn online_1() {
             r#"ADD CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
             r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
     env.exec(&sql);
 
@@ -120,9 +126,7 @@ fn online_1() {
     env.exec(&sql);
 
     let sql = Query::select()
-        .columns(vec![
-            Char::Character, Char::SizeW, Char::SizeH
-        ])
+        .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
         .from(Char::Table)
         .limit(10)
         .offset(100)
@@ -136,7 +140,11 @@ fn online_1() {
     let sql = Query::insert()
         .into_table(Char::Table)
         .columns(vec![
-            Char::Character, Char::SizeW, Char::SizeH, Char::FontSize, Char::FontId
+            Char::Character,
+            Char::SizeW,
+            Char::SizeH,
+            Char::FontSize,
+            Char::FontId,
         ])
         .values_panic(vec![
             "Character".into(),
@@ -177,10 +185,7 @@ fn online_1() {
     let sql = Table::truncate()
         .table(Char::Table)
         .to_string(PostgresQueryBuilder);
-    assert_eq!(
-        sql,
-        r#"TRUNCATE TABLE "character""#
-    );
+    assert_eq!(sql, r#"TRUNCATE TABLE "character""#);
     env.exec(&sql);
 
     let sql = Table::drop()
@@ -188,9 +193,6 @@ fn online_1() {
         .table(Font::Table)
         .cascade()
         .to_string(PostgresQueryBuilder);
-    assert_eq!(
-        sql,
-        r#"DROP TABLE "character", "font" CASCADE"#
-    );
+    assert_eq!(sql, r#"DROP TABLE "character", "font" CASCADE"#);
     env.exec(&sql);
 }

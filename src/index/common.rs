@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use crate::types::*;
+use std::rc::Rc;
 
 /// Specification of a table index
 #[derive(Debug, Clone)]
@@ -31,7 +31,10 @@ impl Default for TableIndex {
     }
 }
 
-impl<I> IntoIndexColumn for I where I: IntoIden {
+impl<I> IntoIndexColumn for I
+where
+    I: IntoIden,
+{
     fn into_index_column(self) -> IndexColumn {
         IndexColumn {
             name: self.into_iden(),
@@ -41,7 +44,10 @@ impl<I> IntoIndexColumn for I where I: IntoIden {
     }
 }
 
-impl<I> IntoIndexColumn for (I, u32) where I: IntoIden {
+impl<I> IntoIndexColumn for (I, u32)
+where
+    I: IntoIden,
+{
     fn into_index_column(self) -> IndexColumn {
         IndexColumn {
             name: self.0.into_iden(),
@@ -51,7 +57,10 @@ impl<I> IntoIndexColumn for (I, u32) where I: IntoIden {
     }
 }
 
-impl<I> IntoIndexColumn for (I, IndexOrder) where I: IntoIden {
+impl<I> IntoIndexColumn for (I, IndexOrder)
+where
+    I: IntoIden,
+{
     fn into_index_column(self) -> IndexColumn {
         IndexColumn {
             name: self.0.into_iden(),
@@ -61,7 +70,10 @@ impl<I> IntoIndexColumn for (I, IndexOrder) where I: IntoIden {
     }
 }
 
-impl<I> IntoIndexColumn for (I, u32, IndexOrder) where I: IntoIden {
+impl<I> IntoIndexColumn for (I, u32, IndexOrder)
+where
+    I: IntoIden,
+{
     fn into_index_column(self) -> IndexColumn {
         IndexColumn {
             name: self.0.into_iden(),

@@ -1,5 +1,8 @@
+use crate::{
+    backend::SchemaBuilder, foreign_key::*, index::*, prepare::*, types::*, ColumnDef,
+    SchemaStatementBuilder,
+};
 use std::rc::Rc;
-use crate::{ColumnDef, backend::SchemaBuilder, SchemaStatementBuilder, foreign_key::*, index::*, types::*, prepare::*};
 
 /// Create a table
 ///
@@ -95,9 +98,7 @@ pub enum TableOpt {
 
 /// All available table partition options
 #[derive(Debug, Clone)]
-pub enum TablePartition {
-
-}
+pub enum TablePartition {}
 
 impl Default for TableCreateStatement {
     fn default() -> Self {
@@ -136,7 +137,9 @@ impl TableCreateStatement {
 
     /// Set table name
     pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.table = Some(Rc::new(table));
         self
     }

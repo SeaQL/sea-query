@@ -1,5 +1,7 @@
 use postgres::{Client, NoTls, Row};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table, PostgresDriver};
+use sea_query::{
+    ColumnDef, Expr, Func, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table,
+};
 
 fn main() {
     let mut client = Client::connect("postgresql://sea:sea@localhost/query", NoTls).unwrap();
@@ -14,11 +16,18 @@ fn main() {
         Table::create()
             .table(Character::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Character::Id).integer().not_null().auto_increment().primary_key())
+            .col(
+                ColumnDef::new(Character::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Character::FontSize).integer())
             .col(ColumnDef::new(Character::Character).string())
             .build(PostgresQueryBuilder),
-    ].join("; ");
+    ]
+    .join("; ");
 
     let result = client.batch_execute(&sql).unwrap();
     println!("Create table character: {:?}\n", result);
@@ -27,13 +36,8 @@ fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![
-            Character::Character, Character::FontSize
-        ])
-        .values_panic(vec![
-            "A".into(),
-            12.into(),
-        ])
+        .columns(vec![Character::Character, Character::FontSize])
+        .values_panic(vec!["A".into(), 12.into()])
         .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
 
@@ -45,7 +49,9 @@ fn main() {
 
     let (sql, values) = Query::select()
         .columns(vec![
-            Character::Id, Character::Character, Character::FontSize
+            Character::Id,
+            Character::Character,
+            Character::FontSize,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -64,9 +70,7 @@ fn main() {
 
     let (sql, values) = Query::update()
         .table(Character::Table)
-        .values(vec![
-            (Character::FontSize, 24.into()),
-        ])
+        .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
         .build(PostgresQueryBuilder);
 
@@ -77,7 +81,9 @@ fn main() {
 
     let (sql, values) = Query::select()
         .columns(vec![
-            Character::Id, Character::Character, Character::FontSize
+            Character::Id,
+            Character::Character,
+            Character::FontSize,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)

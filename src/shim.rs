@@ -3,7 +3,7 @@ macro_rules! impl_schema_statement_builder {
     ( $mod_name: ident, $struct_name: ident ) => {
         mod $mod_name {
 
-            use crate::{SchemaBuilder, SchemaStatementBuilder, $struct_name};
+            use crate::{$struct_name, SchemaBuilder, SchemaStatementBuilder};
 
             impl $struct_name {
                 pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
@@ -19,7 +19,7 @@ macro_rules! impl_schema_statement_builder {
                 }
             }
         }
-    }
+    };
 }
 
 #[macro_export]
@@ -27,10 +27,9 @@ macro_rules! impl_query_statement_builder {
     ( $mod_name: ident, $struct_name: ident ) => {
         mod $mod_name {
 
-            use crate::{QueryBuilder, QueryStatementBuilder, Values, $struct_name};
+            use crate::{$struct_name, QueryBuilder, QueryStatementBuilder, Values};
 
             impl $struct_name {
-
                 pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
                     <Self as QueryStatementBuilder>::to_string(self, query_builder)
                 }
@@ -44,7 +43,7 @@ macro_rules! impl_query_statement_builder {
                 }
             }
         }
-    }
+    };
 }
 
 #[macro_export]

@@ -1,7 +1,10 @@
-use std::rc::Rc;
-#[cfg(feature="with-json")]
+use crate::{
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Query, QueryStatementBuilder,
+    SelectExpr, SelectStatement,
+};
+#[cfg(feature = "with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, Query, SelectExpr, SelectStatement, types::*, value::*, prepare::*, error::*};
+use std::rc::Rc;
 
 /// Insert any new rows into an existing table
 ///
@@ -60,9 +63,11 @@ impl InsertStatement {
     /// See [`InsertStatement::values`]
     #[allow(clippy::wrong_self_convention)]
     pub fn into_table<T>(&mut self, tbl_ref: T) -> &mut Self
-        where T: IntoTableRef {
-            self.table = Some(Box::new(tbl_ref.into_table_ref()));
-            self
+    where
+        T: IntoTableRef,
+    {
+        self.table = Some(Box::new(tbl_ref.into_table_ref()));
+        self
     }
 
     /// Specify what columns to insert.
@@ -204,7 +209,9 @@ impl InsertStatement {
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
-        where C: IntoIden {
+    where
+        C: IntoIden,
+    {
         self.returning(Query::select().column(col.into_iden()).take())
     }
 
@@ -245,7 +252,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (4.21, '123')"#
     /// );
     /// ```
-    #[cfg(feature="with-json")]
+    #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     pub fn json(&mut self, object: JsonValue) -> &mut Self {
         match object {
@@ -262,12 +269,10 @@ impl InsertStatement {
             }
         }
         for col in self.columns.iter() {
-            values.push(
-                match object.get(col.to_string()) {
-                    Some(value) => json_value_to_sea_value(value),
-                    None => Value::Null,
-                }
-            );
+            values.push(match object.get(col.to_string()) {
+                Some(value) => json_value_to_sea_value(value),
+                None => Value::Null,
+            });
         }
         self.values.push(values);
         self
@@ -314,13 +319,21 @@ impl QueryStatementBuilder for InsertStatement {
     ///     ]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
         sql.result()

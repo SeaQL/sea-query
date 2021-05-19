@@ -14,7 +14,8 @@ fn create_1() {
             r#"ALTER TABLE "character" ADD CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
             r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 

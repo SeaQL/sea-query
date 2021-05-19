@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use crate::{types::*, value::*};
+use std::rc::Rc;
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -50,7 +50,9 @@ pub enum ColumnSpec {
 impl ColumnDef {
     /// Construct a table column
     pub fn new<T: 'static>(name: T) -> Self
-        where T: Iden{
+    where
+        T: Iden,
+    {
         Self {
             table: None,
             name: Rc::new(name),
@@ -67,7 +69,9 @@ impl ColumnDef {
 
     /// Set default value of a column
     pub fn default<T>(mut self, value: T) -> Self
-        where T: Into<Value> {
+    where
+        T: Into<Value>,
+    {
         self.spec.push(ColumnSpec::Default(value.into()));
         self
     }
@@ -294,7 +298,9 @@ impl ColumnDef {
 
     /// Use a custom type on this column.
     pub fn custom<T: 'static>(mut self, n: T) -> Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.types = Some(ColumnType::Custom(Rc::new(n)));
         self
     }

@@ -44,7 +44,7 @@ pub enum TypeDropOpt {
 pub enum TypeAlterOpt {
     Add(Rc<dyn Iden>, Option<TypeAlterAddOpt>),
     Rename(Rc<dyn Iden>),
-    RenameValue(Rc<dyn Iden>, Rc<dyn Iden>)
+    RenameValue(Rc<dyn Iden>, Rc<dyn Iden>),
 }
 
 #[derive(Debug, Clone)]
@@ -303,7 +303,7 @@ impl TypeAlterStatement {
         Self::default()
     }
 
-    /// Change the definition of a type 
+    /// Change the definition of a type
     ///
     /// ```
     /// use sea_query::{*, extension::postgres::Type};
@@ -403,12 +403,15 @@ impl TypeAlterStatement {
     ///         r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )
     /// ```
-    pub fn rename_value<T, V>(self, existing: T, new_name: V) -> Self 
+    pub fn rename_value<T, V>(self, existing: T, new_name: V) -> Self
     where
         T: IntoIden,
         V: IntoIden,
     {
-        self.alter_option(TypeAlterOpt::RenameValue(existing.into_iden(), new_name.into_iden()))
+        self.alter_option(TypeAlterOpt::RenameValue(
+            existing.into_iden(),
+            new_name.into_iden(),
+        ))
     }
 
     fn alter_option(mut self, option: TypeAlterOpt) -> Self {

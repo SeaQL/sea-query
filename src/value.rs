@@ -1,15 +1,15 @@
 //! Container for all SQL value types.
 use std::fmt::Write;
 
-#[cfg(feature="with-json")]
-use std::str::from_utf8;
-#[cfg(feature="with-json")]
+#[cfg(feature = "with-json")]
 use serde_json::Value as Json;
+#[cfg(feature = "with-json")]
+use std::str::from_utf8;
 
-#[cfg(feature="with-chrono")]
+#[cfg(feature = "with-chrono")]
 use chrono::NaiveDateTime;
 
-#[cfg(feature="with-uuid")]
+#[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
 /// Value variants
@@ -31,13 +31,13 @@ pub enum Value {
     String(Box<String>),
     #[allow(clippy::box_vec)]
     Bytes(Box<Vec<u8>>),
-    #[cfg(feature="with-json")]
+    #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     Json(Box<Json>),
-    #[cfg(feature="with-chrono")]
+    #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTime(Box<NaiveDateTime>),
-    #[cfg(feature="with-uuid")]
+    #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Box<Uuid>),
 }
@@ -160,7 +160,7 @@ impl<'a> From<&'a str> for Value {
 type_to_box_value!(Vec<u8>, Bytes);
 type_to_box_value!(String, String);
 
-#[cfg(feature="with-json")]
+#[cfg(feature = "with-json")]
 mod with_json {
     use super::*;
 
@@ -172,7 +172,7 @@ mod with_json {
     }
 }
 
-#[cfg(feature="with-chrono")]
+#[cfg(feature = "with-chrono")]
 mod with_chrono {
     use super::*;
 
@@ -184,7 +184,7 @@ mod with_chrono {
     }
 }
 
-#[cfg(feature="with-uuid")]
+#[cfg(feature = "with-uuid")]
 mod with_uuid {
     use super::*;
 
@@ -198,19 +198,19 @@ mod with_uuid {
 
 impl Value {
     pub fn is_json(&self) -> bool {
-        #[cfg(feature="with-json")]
+        #[cfg(feature = "with-json")]
         return matches!(self, Self::Json(_));
-        #[cfg(not(feature="with-json"))]
+        #[cfg(not(feature = "with-json"))]
         return false;
     }
-    #[cfg(feature="with-json")]
+    #[cfg(feature = "with-json")]
     pub fn as_ref_json(&self) -> &Json {
         match self {
             Self::Json(v) => v.as_ref(),
             _ => panic!("not Value::Json"),
         }
     }
-    #[cfg(not(feature="with-json"))]
+    #[cfg(not(feature = "with-json"))]
     pub fn as_ref_json(&self) -> &bool {
         panic!("not Value::Json")
     }
@@ -218,19 +218,19 @@ impl Value {
 
 impl Value {
     pub fn is_date_time(&self) -> bool {
-        #[cfg(feature="with-chrono")]
+        #[cfg(feature = "with-chrono")]
         return matches!(self, Self::DateTime(_));
-        #[cfg(not(feature="with-chrono"))]
+        #[cfg(not(feature = "with-chrono"))]
         return false;
     }
-    #[cfg(feature="with-chrono")]
+    #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time(&self) -> &NaiveDateTime {
         match self {
             Self::DateTime(v) => v.as_ref(),
             _ => panic!("not Value::DateTime"),
         }
     }
-    #[cfg(not(feature="with-chrono"))]
+    #[cfg(not(feature = "with-chrono"))]
     pub fn as_ref_date_time(&self) -> &bool {
         panic!("not Value::DateTime")
     }
@@ -238,19 +238,19 @@ impl Value {
 
 impl Value {
     pub fn is_uuid(&self) -> bool {
-        #[cfg(feature="with-uuid")]
+        #[cfg(feature = "with-uuid")]
         return matches!(self, Self::Uuid(_));
-        #[cfg(not(feature="with-uuid"))]
+        #[cfg(not(feature = "with-uuid"))]
         return false;
     }
-    #[cfg(feature="with-uuid")]
+    #[cfg(feature = "with-uuid")]
     pub fn as_ref_uuid(&self) -> &Uuid {
         match self {
             Self::Uuid(v) => v.as_ref(),
             _ => panic!("not Value::Uuid"),
         }
     }
-    #[cfg(not(feature="with-uuid"))]
+    #[cfg(not(feature = "with-uuid"))]
     pub fn as_ref_uuid(&self) -> &bool {
         panic!("not Value::Uuid")
     }
@@ -278,15 +278,20 @@ pub fn unescape_string(input: &str) -> String {
         if !escape && c == '\\' {
             escape = true;
         } else if escape {
-            write!(output, "{}", match c {
-                '0' => '\0',
-                'b' => '\x08',
-                't' => '\x09',
-                'z' => '\x1a',
-                'n' => '\n',
-                'r' => '\r',
-                c => c,
-            }).unwrap();
+            write!(
+                output,
+                "{}",
+                match c {
+                    '0' => '\0',
+                    'b' => '\x08',
+                    't' => '\x09',
+                    'z' => '\x1a',
+                    'n' => '\n',
+                    'r' => '\r',
+                    c => c,
+                }
+            )
+            .unwrap();
             escape = false;
         } else {
             write!(output, "{}", c).unwrap();
@@ -296,13 +301,13 @@ pub fn unescape_string(input: &str) -> String {
 }
 
 /// Convert json value to value
-#[cfg(feature="with-json")]
+#[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn json_value_to_sea_value(v: &Json) -> Value {
     match v {
         Json::Null => Value::Null,
         Json::Bool(v) => Value::Int(v.to_owned().into()),
-        Json::Number(v) =>
+        Json::Number(v) => {
             if v.is_f64() {
                 Value::Double(v.as_f64().unwrap())
             } else if v.is_i64() {
@@ -311,7 +316,8 @@ pub fn json_value_to_sea_value(v: &Json) -> Value {
                 Value::BigUnsigned(v.as_u64().unwrap())
             } else {
                 unimplemented!()
-            },
+            }
+        }
         Json::String(v) => Value::String(Box::new(v.clone())),
         Json::Array(_) => unimplemented!(),
         Json::Object(v) => Value::Json(Box::new(Json::Object(v.clone()))),
@@ -320,7 +326,7 @@ pub fn json_value_to_sea_value(v: &Json) -> Value {
 
 /// Convert value to json value
 #[allow(clippy::many_single_char_names)]
-#[cfg(feature="with-json")]
+#[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn sea_value_to_json_value(v: &Value) -> Json {
     match v {
@@ -339,9 +345,9 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::String(s) => Json::String(s.as_ref().clone()),
         Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(v) => v.as_ref().clone(),
-        #[cfg(feature="with-chrono")]
+        #[cfg(feature = "with-chrono")]
         Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
-        #[cfg(feature="with-uuid")]
+        #[cfg(feature = "with-uuid")]
         Value::Uuid(v) => Json::String(v.to_string()),
     }
 }

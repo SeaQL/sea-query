@@ -1,6 +1,14 @@
-#[cfg(feature="with-json")]
+use crate::{
+    backend::QueryBuilder,
+    expr::*,
+    prepare::*,
+    query::{condition::*, OrderedStatement},
+    types::*,
+    value::*,
+    QueryStatementBuilder,
+};
+#[cfg(feature = "with-json")]
 use serde_json::Value as JsonValue;
-use crate::{backend::QueryBuilder, QueryStatementBuilder, query::{OrderedStatement, condition::*}, types::*, expr::*, value::*, prepare::*};
 
 /// Update existing rows in the table
 ///
@@ -65,7 +73,9 @@ impl UpdateStatement {
     /// See [`UpdateStatement::values`]
     #[allow(clippy::wrong_self_convention)]
     pub fn table<T>(&mut self, tbl_ref: T) -> &mut Self
-        where T: IntoTableRef {
+    where
+        T: IntoTableRef,
+    {
         self.table = Some(Box::new(tbl_ref.into_table_ref()));
         self
     }
@@ -76,7 +86,9 @@ impl UpdateStatement {
     )]
     #[allow(clippy::wrong_self_convention)]
     pub fn into_table<T>(&mut self, table: T) -> &mut Self
-        where T: IntoTableRef {
+    where
+        T: IntoTableRef,
+    {
         self.table(table)
     }
 
@@ -110,7 +122,9 @@ impl UpdateStatement {
     /// );
     /// ```
     pub fn value_expr<T>(&mut self, col: T, exp: SimpleExpr) -> &mut Self
-        where T: IntoIden {
+    where
+        T: IntoIden,
+    {
         self.push_boxed_value(col.into_iden().to_string(), exp);
         self
     }
@@ -144,7 +158,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
-    #[cfg(feature="with-json")]
+    #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     pub fn json(&mut self, values: JsonValue) -> &mut Self {
         match values {
@@ -226,7 +240,9 @@ impl UpdateStatement {
     /// );
     /// ```
     pub fn value<T>(&mut self, col: T, value: Value) -> &mut Self
-        where T: IntoIden {
+    where
+        T: IntoIden,
+    {
         self.push_boxed_value(col.into_iden().to_string(), SimpleExpr::Value(value));
         self
     }
@@ -281,13 +297,21 @@ impl QueryStatementBuilder for UpdateStatement {
     ///     ]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()
     }
 
-    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String {
+    fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
         sql.result()

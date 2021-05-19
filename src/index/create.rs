@@ -1,6 +1,6 @@
-use std::rc::Rc;
-use crate::{backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 use super::common::*;
+use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
+use std::rc::Rc;
 
 /// Create an index for an existing table
 ///
@@ -141,14 +141,18 @@ impl IndexCreateStatement {
 
     /// Set target table
     pub fn table<T: 'static>(mut self, table: T) -> Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.table = Some(Rc::new(table));
         self
     }
 
     /// Add index column
     pub fn col<C: 'static>(mut self, col: C) -> Self
-        where C: IntoIndexColumn {
+    where
+        C: IntoIndexColumn,
+    {
         self.index.col(col.into_index_column());
         self
     }

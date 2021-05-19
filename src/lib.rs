@@ -148,7 +148,7 @@
 //! ```
 //!
 //! ### Condition
-//! 
+//!
 //! If you have complex conditions to express, you can use the [`Condition`] builder,
 //! usable for [`ConditionalStatement::cond_where`] and [`SelectStatement::cond_having`].
 //!
@@ -203,12 +203,12 @@
 //! Statements are divided into 2 categories: Query and Schema, and to be serialized into SQL
 //! with [`QueryStatementBuilder`] and [`SchemaStatementBuilder`] respectively.
 //!
-//! Schema statement has the following interface: 
+//! Schema statement has the following interface:
 //!
 //! ```ignore
 //! fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String;
 //! ```
-//! 
+//!
 //! Query statement has the following interfaces:
 //!
 //! ```ignore
@@ -217,12 +217,12 @@
 //! fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 //! ```
 //!
-//! `build` builds a SQL statement as string and parameters to be passed to the database driver 
+//! `build` builds a SQL statement as string and parameters to be passed to the database driver
 //! through the binary protocol. This is the preferred way as it has less overhead and is more secure.
 //!
-//! `to_string` builds a SQL statement as string with parameters injected. This is good for testing 
+//! `to_string` builds a SQL statement as string with parameters injected. This is good for testing
 //! and debugging.
-//! 
+//!
 //! ### Query Select
 //!
 //! ```rust
@@ -600,17 +600,17 @@
 
 pub mod backend;
 pub mod driver;
-pub mod extension;
-pub mod foreign_key;
-pub mod index;
-pub mod query;
-pub mod table;
 pub mod error;
 pub mod expr;
+pub mod extension;
+pub mod foreign_key;
 pub mod func;
+pub mod index;
 pub mod prepare;
+pub mod query;
 pub mod schema;
 mod shim;
+pub mod table;
 pub mod tests_cfg;
 pub mod token;
 pub mod traits;

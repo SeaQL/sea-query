@@ -2,8 +2,8 @@
 macro_rules! sea_query_driver_rusqlite {
     () => {
         mod sea_query_driver_rusqlite {
-            use rusqlite::{Result, ToSql, types::ToSqlOutput};
-            use sea_query::{Values, Value};
+            use rusqlite::{types::ToSqlOutput, Result, ToSql};
+            use sea_query::{Value, Values};
 
             pub struct RusqliteValue(pub Value);
 
@@ -17,10 +17,13 @@ macro_rules! sea_query_driver_rusqlite {
 
             impl<'a> RusqliteValues {
                 pub fn as_params(&'a self) -> Vec<&'a dyn ToSql> {
-                    self.0.iter().map(|x| {
-                        let y: &dyn ToSql = x;
-                        y
-                    }).collect()
+                    self.0
+                        .iter()
+                        .map(|x| {
+                            let y: &dyn ToSql = x;
+                            y
+                        })
+                        .collect()
                 }
             }
 
@@ -51,10 +54,10 @@ macro_rules! sea_query_driver_rusqlite {
                             } else {
                                 unimplemented!();
                             }
-                        },
+                        }
                     }
                 }
             }
         }
-    }
+    };
 }

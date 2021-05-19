@@ -1,4 +1,9 @@
-use crate::{backend::QueryBuilder, value::{Values, Value}, prepare::inject_parameters, SchemaBuilder};
+use crate::{
+    backend::QueryBuilder,
+    prepare::inject_parameters,
+    value::{Value, Values},
+    SchemaBuilder,
+};
 
 pub trait QueryStatementBuilder {
     /// Build corresponding SQL statement for certain database backend and return SQL string
@@ -97,10 +102,18 @@ pub trait QueryStatementBuilder {
     ///     vec![Value::Int(0), Value::Int(2)]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(&self, query_builder: T, collector: &mut dyn FnMut(Value)) -> String;
+    fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        collector: &mut dyn FnMut(Value),
+    ) -> String;
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters
-    fn build_collect_any(&self, query_builder: &dyn QueryBuilder, collector: &mut dyn FnMut(Value)) -> String;
+    fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        collector: &mut dyn FnMut(Value),
+    ) -> String;
 }
 
 pub trait SchemaStatementBuilder {

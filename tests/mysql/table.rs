@@ -5,7 +5,13 @@ fn create_1() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Id).integer_len(11).not_null().auto_increment().primary_key())
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer_len(11)
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
             .col(ColumnDef::new(Glyph::Aspect).double().not_null())
             .col(ColumnDef::new(Glyph::Image).text())
             .engine("InnoDB")
@@ -14,11 +20,12 @@ fn create_1() {
             .to_string(MysqlQueryBuilder),
         vec![
             "CREATE TABLE `glyph` (",
-                "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
-                "`aspect` double NOT NULL,",
-                "`image` text",
+            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`aspect` double NOT NULL,",
+            "`image` text",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -27,7 +34,13 @@ fn create_2() {
     assert_eq!(
         Table::create()
             .table(Font::Table)
-            .col(ColumnDef::new(Font::Id).integer_len(11).not_null().auto_increment().primary_key())
+            .col(
+                ColumnDef::new(Font::Id)
+                    .integer_len(11)
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
             .col(ColumnDef::new(Font::Name).string().not_null())
             .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
             .col(ColumnDef::new(Font::Language).string_len(1024).not_null())
@@ -37,12 +50,13 @@ fn create_2() {
             .to_string(MysqlQueryBuilder),
         vec![
             "CREATE TABLE `font` (",
-                "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
-                "`name` varchar(255) NOT NULL,",
-                "`variant` varchar(255) NOT NULL,",
-                "`language` varchar(1024) NOT NULL",
+            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`name` varchar(255) NOT NULL,",
+            "`variant` varchar(255) NOT NULL,",
+            "`language` varchar(1024) NOT NULL",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -52,12 +66,22 @@ fn create_3() {
         Table::create()
             .table(Char::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Char::Id).integer_len(11).not_null().auto_increment().primary_key())
+            .col(
+                ColumnDef::new(Char::Id)
+                    .integer_len(11)
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
             .col(ColumnDef::new(Char::FontSize).integer_len(11).not_null())
             .col(ColumnDef::new(Char::Character).string_len(255).not_null())
             .col(ColumnDef::new(Char::SizeW).integer_len(11).not_null())
             .col(ColumnDef::new(Char::SizeH).integer_len(11).not_null())
-            .col(ColumnDef::new(Char::FontId).integer_len(11).default(Value::Null))
+            .col(
+                ColumnDef::new(Char::FontId)
+                    .integer_len(11)
+                    .default(Value::Null)
+            )
             .foreign_key(
                 ForeignKey::create()
                     .name("FK_2e303c3a712662f1fc2a4d0aad6")
@@ -72,17 +96,18 @@ fn create_3() {
             .to_string(MysqlQueryBuilder),
         vec![
             "CREATE TABLE IF NOT EXISTS `character` (",
-                "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
-                "`font_size` int(11) NOT NULL,",
-                "`character` varchar(255) NOT NULL,",
-                "`size_w` int(11) NOT NULL,",
-                "`size_h` int(11) NOT NULL,",
-                "`font_id` int(11) DEFAULT NULL,",
-                "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
-                    "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
-                    "ON DELETE CASCADE ON UPDATE RESTRICT",
+            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`font_size` int(11) NOT NULL,",
+            "`character` varchar(255) NOT NULL,",
+            "`size_w` int(11) NOT NULL,",
+            "`size_h` int(11) NOT NULL,",
+            "`font_id` int(11) DEFAULT NULL,",
+            "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
+            "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
+            "ON DELETE CASCADE ON UPDATE RESTRICT",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -91,13 +116,19 @@ fn create_4() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Id).integer().not_null().extra("ANYTHING I WANT TO SAY".to_owned()))
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .extra("ANYTHING I WANT TO SAY".to_owned())
+            )
             .to_string(MysqlQueryBuilder),
         vec![
             "CREATE TABLE `glyph` (",
-                "`id` int NOT NULL ANYTHING I WANT TO SAY",
+            "`id` int NOT NULL ANYTHING I WANT TO SAY",
             ")",
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -107,19 +138,15 @@ fn create_5() {
         Table::create()
             .table(Glyph::Table)
             .col(ColumnDef::new(Glyph::Id).integer().not_null())
-            .index(
-                Index::create()
-                    .unique()
-                    .name("idx-glyph-id")
-                    .col(Glyph::Id)
-            )
+            .index(Index::create().unique().name("idx-glyph-id").col(Glyph::Id))
             .to_string(MysqlQueryBuilder),
         vec![
             "CREATE TABLE `glyph` (",
-                "`id` int NOT NULL,",
-                "UNIQUE KEY `idx-glyph-id` (`id`)",
+            "`id` int NOT NULL,",
+            "UNIQUE KEY `idx-glyph-id` (`id`)",
             ")",
-        ].join(" ")
+        ]
+        .join(" ")
     );
 }
 
@@ -150,7 +177,12 @@ fn alter_1() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
+            .add_column(
+                ColumnDef::new(Alias::new("new_col"))
+                    .integer()
+                    .not_null()
+                    .default(100)
+            )
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"
     );
@@ -161,7 +193,11 @@ fn alter_2() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .modify_column(ColumnDef::new(Alias::new("new_col")).big_integer().default(999))
+            .modify_column(
+                ColumnDef::new(Alias::new("new_col"))
+                    .big_integer()
+                    .default(999)
+            )
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` MODIFY COLUMN `new_col` bigint DEFAULT 999"
     );

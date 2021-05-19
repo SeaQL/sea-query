@@ -1,7 +1,11 @@
 use super::*;
 
 impl ForeignKeyBuilder for MysqlQueryBuilder {
-    fn prepare_foreign_key_drop_statement(&self, drop: &ForeignKeyDropStatement, sql: &mut SqlWriter) {
+    fn prepare_foreign_key_drop_statement(
+        &self,
+        drop: &ForeignKeyDropStatement,
+        sql: &mut SqlWriter,
+    ) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &drop.table {
             table.prepare(sql, '`');
@@ -13,7 +17,12 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_foreign_key_create_statement_internal(&self, create: &ForeignKeyCreateStatement, sql: &mut SqlWriter, inside_table_creation: bool) {
+    fn prepare_foreign_key_create_statement_internal(
+        &self,
+        create: &ForeignKeyCreateStatement,
+        sql: &mut SqlWriter,
+        inside_table_creation: bool,
+    ) {
         if !inside_table_creation {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
@@ -45,13 +54,17 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         write!(sql, " ").unwrap();
 
         write!(sql, "(").unwrap();
-        create.foreign_key.ref_columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            col.prepare(sql, '`');
-            false
-        });
+        create
+            .foreign_key
+            .ref_columns
+            .iter()
+            .fold(true, |first, col| {
+                if !first {
+                    write!(sql, ", ").unwrap();
+                }
+                col.prepare(sql, '`');
+                false
+            });
         write!(sql, ")").unwrap();
 
         if let Some(foreign_key_action) = &create.foreign_key.on_delete {

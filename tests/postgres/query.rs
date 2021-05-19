@@ -4,9 +4,7 @@ use super::*;
 fn select_1() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .limit(10)
             .offset(100)
@@ -19,9 +17,7 @@ fn select_1() {
 fn select_2() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .to_string(PostgresQueryBuilder),
@@ -33,9 +29,7 @@ fn select_2() {
 fn select_3() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
@@ -48,14 +42,10 @@ fn select_3() {
 fn select_4() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect
-            ])
+            .columns(vec![Glyph::Aspect])
             .from_subquery(
                 Query::select()
-                    .columns(vec![
-                        Glyph::Image, Glyph::Aspect
-                    ])
+                    .columns(vec![Glyph::Image, Glyph::Aspect])
                     .from(Glyph::Table)
                     .take(),
                 Alias::new("subglyph")
@@ -81,16 +71,10 @@ fn select_5() {
 fn select_6() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
-            .exprs(vec![
-                Expr::col(Glyph::Image).max(),
-            ])
+            .columns(vec![Glyph::Aspect,])
+            .exprs(vec![Expr::col(Glyph::Image).max(),])
             .from(Glyph::Table)
-            .group_by_columns(vec![
-                Glyph::Aspect,
-            ])
+            .group_by_columns(vec![Glyph::Aspect,])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(PostgresQueryBuilder),
         r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
@@ -101,9 +85,7 @@ fn select_6() {
 fn select_7() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .to_string(PostgresQueryBuilder),
@@ -115,11 +97,12 @@ fn select_7() {
 fn select_8() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character,
-            ])
+            .columns(vec![Char::Character,])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+            .left_join(
+                Font::Table,
+                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+            )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     );
@@ -129,12 +112,16 @@ fn select_8() {
 fn select_9() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character,
-            ])
+            .columns(vec![Char::Character,])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-            .inner_join(Glyph::Table, Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image))
+            .left_join(
+                Font::Table,
+                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+            )
+            .inner_join(
+                Glyph::Table,
+                Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image)
+            )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" INNER JOIN "glyph" ON "character"."character" = "glyph"."image""#
     );
@@ -144,13 +131,13 @@ fn select_9() {
 fn select_10() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character,
-            ])
+            .columns(vec![Char::Character,])
             .from(Char::Table)
-            .left_join(Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
-                .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+            .left_join(
+                Font::Table,
+                Expr::tbl(Char::Table, Char::FontId)
+                    .equals(Font::Table, Font::Id)
+                    .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
@@ -161,9 +148,7 @@ fn select_10() {
 fn select_11() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(Glyph::Image, Order::Desc)
@@ -177,15 +162,10 @@ fn select_11() {
 fn select_12() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-            .order_by_columns(vec![
-                (Glyph::Id, Order::Asc),
-                (Glyph::Aspect, Order::Desc),
-            ])
+            .order_by_columns(vec![(Glyph::Id, Order::Asc), (Glyph::Aspect, Order::Desc),])
             .to_string(PostgresQueryBuilder),
         r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "id" ASC, "aspect" DESC"#
     );
@@ -195,9 +175,7 @@ fn select_12() {
 fn select_13() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns(vec![
@@ -213,10 +191,7 @@ fn select_13() {
 fn select_14() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Id,
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Id, Glyph::Aspect,])
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
             .group_by_columns(vec![
@@ -233,9 +208,7 @@ fn select_14() {
 fn select_15() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
             .and_where(Expr::col(Char::FontId).is_null())
             .to_string(PostgresQueryBuilder),
@@ -247,9 +220,7 @@ fn select_15() {
 fn select_16() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
             .and_where(Expr::col(Char::FontId).is_null())
             .and_where(Expr::col(Char::Character).is_not_null())
@@ -262,9 +233,7 @@ fn select_16() {
 fn select_17() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                (Glyph::Table, Glyph::Image),
-            ])
+            .columns(vec![(Glyph::Table, Glyph::Image),])
             .from(Glyph::Table)
             .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).between(3, 5))
             .to_string(PostgresQueryBuilder),
@@ -276,9 +245,7 @@ fn select_17() {
 fn select_18() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).between(3, 5))
             .and_where(Expr::col(Glyph::Aspect).not_between(8, 10))
@@ -291,9 +258,7 @@ fn select_18() {
 fn select_19() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).eq("A"))
             .to_string(PostgresQueryBuilder),
@@ -317,9 +282,7 @@ fn select_20() {
 fn select_21() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
             .or_where(Expr::col(Char::Character).like("A%"))
             .or_where(Expr::col(Char::Character).like("%B"))
@@ -336,8 +299,16 @@ fn select_22() {
             .column(Char::Character)
             .from(Char::Table)
             .or_where(Expr::col(Char::Character).like("C"))
-            .or_where(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
-            .and_where(Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G")))
+            .or_where(
+                Expr::col(Char::Character)
+                    .like("D")
+                    .and(Expr::col(Char::Character).like("E"))
+            )
+            .and_where(
+                Expr::col(Char::Character)
+                    .like("F")
+                    .or(Expr::col(Char::Character).like("G"))
+            )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E')) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
     );
@@ -361,9 +332,13 @@ fn select_24() {
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .conditions(true, |x| {
-                x.and_where(Expr::col(Char::FontId).eq(5));
-            }, |_|())
+            .conditions(
+                true,
+                |x| {
+                    x.and_where(Expr::col(Char::FontId).eq(5));
+                },
+                |_| ()
+            )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
     );
@@ -376,7 +351,8 @@ fn select_25() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where(
-                Expr::col(Char::SizeW).mul(2)
+                Expr::col(Char::SizeW)
+                    .mul(2)
                     .equals(Expr::col(Char::SizeH).div(2))
             )
             .to_string(PostgresQueryBuilder),
@@ -391,7 +367,8 @@ fn select_26() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where(
-                Expr::expr(Expr::col(Char::SizeW).add(1)).mul(2)
+                Expr::expr(Expr::col(Char::SizeW).add(1))
+                    .mul(2)
                     .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
             )
             .to_string(PostgresQueryBuilder),
@@ -403,9 +380,7 @@ fn select_26() {
 fn select_27() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
@@ -419,9 +394,7 @@ fn select_27() {
 fn select_28() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .or_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
@@ -435,9 +408,7 @@ fn select_28() {
 fn select_29() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
@@ -451,12 +422,11 @@ fn select_29() {
 fn select_30() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(
-                Expr::col(Char::SizeW).mul(2)
+                Expr::col(Char::SizeW)
+                    .mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
                     .equals(Expr::value(4))
             )
@@ -469,9 +439,7 @@ fn select_30() {
 fn select_31() {
     assert_eq!(
         Query::select()
-            .expr((1..10_i32).fold(Expr::value(0), |expr, i| {
-                expr.add(Expr::value(i))
-            }))
+            .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(Expr::value(i)) }))
             .to_string(PostgresQueryBuilder),
         r#"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"#
     );
@@ -494,11 +462,10 @@ fn select_33() {
         Query::select()
             .column(Glyph::Image)
             .from(Glyph::Table)
-            .and_where(Expr::col(Glyph::Aspect).in_subquery(
-                Query::select()
-                    .expr(Expr::cust("3 + 2 * 2"))
-                    .take()
-            ))
+            .and_where(
+                Expr::col(Glyph::Aspect)
+                    .in_subquery(Query::select().expr(Expr::cust("3 + 2 * 2")).take())
+            )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "image" FROM "glyph" WHERE "aspect" IN (SELECT 3 + 2 * 2)"#
     );
@@ -511,21 +478,32 @@ fn select_34() {
             .column(Glyph::Aspect)
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_columns(vec![
-                Glyph::Aspect,
-            ])
-            .or_having(Expr::col(Glyph::Aspect).gt(2).or(Expr::col(Glyph::Aspect).lt(8)))
-            .or_having(Expr::col(Glyph::Aspect).gt(12).and(Expr::col(Glyph::Aspect).lt(18)))
-            .and_having(Expr::col(Glyph::Aspect).gt(22).or(Expr::col(Glyph::Aspect).lt(28)))
+            .group_by_columns(vec![Glyph::Aspect,])
+            .or_having(
+                Expr::col(Glyph::Aspect)
+                    .gt(2)
+                    .or(Expr::col(Glyph::Aspect).lt(8))
+            )
+            .or_having(
+                Expr::col(Glyph::Aspect)
+                    .gt(12)
+                    .and(Expr::col(Glyph::Aspect).lt(18))
+            )
+            .and_having(
+                Expr::col(Glyph::Aspect)
+                    .gt(22)
+                    .or(Expr::col(Glyph::Aspect).lt(28))
+            )
             .or_having(Expr::col(Glyph::Aspect).gt(32))
             .to_string(PostgresQueryBuilder),
         vec![
             r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
             r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
-                r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
-                r#"AND (("aspect" > 22) OR ("aspect" < 28))"#,
-                r#"OR "aspect" > 32"#,
-        ].join(" ")
+            r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
+            r#"AND (("aspect" > 22) OR ("aspect" < 28))"#,
+            r#"OR "aspect" > 32"#,
+        ]
+        .join(" ")
     );
 }
 
@@ -534,12 +512,13 @@ fn select_35() {
     let (statement, values) = sea_query::Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .and_where(
-            Expr::col(Glyph::Aspect).is_null(),
-        )
+        .and_where(Expr::col(Glyph::Aspect).is_null())
         .build(sea_query::PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL"#);
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL"#
+    );
     assert_eq!(values.0, vec![]);
 }
 
@@ -548,13 +527,13 @@ fn select_36() {
     let (statement, values) = sea_query::Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .cond_where(
-            Cond::any()
-            .add(Expr::col(Glyph::Aspect).is_null())
-        )
+        .cond_where(Cond::any().add(Expr::col(Glyph::Aspect).is_null()))
         .build(sea_query::PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL"#);
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL"#
+    );
     assert_eq!(values.0, vec![]);
 }
 
@@ -577,12 +556,15 @@ fn select_38() {
         .from(Glyph::Table)
         .cond_where(
             Cond::any()
-            .add(Expr::col(Glyph::Aspect).is_null())
-            .add(Expr::col(Glyph::Aspect).is_not_null())
+                .add(Expr::col(Glyph::Aspect).is_null())
+                .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
         .build(sea_query::PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR "aspect" IS NOT NULL"#);
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR "aspect" IS NOT NULL"#
+    );
     assert_eq!(values.0, vec![]);
 }
 
@@ -593,12 +575,15 @@ fn select_39() {
         .from(Glyph::Table)
         .cond_where(
             Cond::all()
-            .add(Expr::col(Glyph::Aspect).is_null())
-            .add(Expr::col(Glyph::Aspect).is_not_null())
+                .add(Expr::col(Glyph::Aspect).is_null())
+                .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
         .build(sea_query::PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL AND "aspect" IS NOT NULL"#);
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL AND "aspect" IS NOT NULL"#
+    );
     assert_eq!(values.0, vec![]);
 }
 
@@ -607,18 +592,19 @@ fn select_40() {
     let statement = sea_query::Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .cond_where(
-            any![
-                Expr::col(Glyph::Aspect).is_null(),
-                all![
-                    Expr::col(Glyph::Aspect).is_not_null(),
-                    Expr::col(Glyph::Aspect).lt(8)
-                ]
+        .cond_where(any![
+            Expr::col(Glyph::Aspect).is_null(),
+            all![
+                Expr::col(Glyph::Aspect).is_not_null(),
+                Expr::col(Glyph::Aspect).lt(8)
             ]
-        )
+        ])
         .to_string(sea_query::PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR ("aspect" IS NOT NULL AND "aspect" < 8)"#);
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR ("aspect" IS NOT NULL AND "aspect" < 8)"#
+    );
 }
 
 #[test]
@@ -637,7 +623,7 @@ fn select_41() {
 
 #[test]
 #[allow(clippy::approx_constant)]
-#[cfg(feature="with-json")]
+#[cfg(feature = "with-json")]
 fn insert_1() {
     assert_eq!(
         Query::insert()
@@ -657,10 +643,7 @@ fn insert_2() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![
-                Glyph::Image,
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -676,25 +659,19 @@ fn insert_3() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![
-                Glyph::Image,
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .values_panic(vec![
-                Value::Null,
-                2.1345.into(),
-            ])
+            .values_panic(vec![Value::Null, 2.1345.into(),])
             .to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"#
     );
 }
 
 #[test]
-#[cfg(feature="with-chrono")]
+#[cfg(feature = "with-chrono")]
 fn insert_4() {
     assert_eq!(
         Query::insert()
@@ -707,7 +684,7 @@ fn insert_4() {
 }
 
 #[test]
-#[cfg(feature="with-uuid")]
+#[cfg(feature = "with-uuid")]
 fn insert_5() {
     assert_eq!(
         Query::insert()
@@ -726,7 +703,10 @@ fn update_1() {
             .table(Glyph::Table)
             .values(vec![
                 (Glyph::Aspect, 2.1345.into()),
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
+                (
+                    Glyph::Image,
+                    "24B0E11951B03B07F8300FD003983F03F0780060".into()
+                ),
             ])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(PostgresQueryBuilder),
@@ -735,7 +715,7 @@ fn update_1() {
 }
 
 #[test]
-#[cfg(feature="with-json")]
+#[cfg(feature = "with-json")]
 fn update_2() {
     assert_eq!(
         Query::update()
@@ -756,9 +736,10 @@ fn update_3() {
         Query::update()
             .table(Glyph::Table)
             .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .values(vec![
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
-            ])
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(PostgresQueryBuilder),
         r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#

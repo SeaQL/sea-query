@@ -1,5 +1,7 @@
+use crate::{
+    backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder, TableForeignKey,
+};
 use std::rc::Rc;
-use crate::{TableForeignKey, backend::SchemaBuilder, SchemaStatementBuilder, types::*, prepare::*};
 
 /// Drop a foreign key constraint for an existing table
 ///
@@ -52,7 +54,9 @@ impl ForeignKeyDropStatement {
 
     /// Set key table and referencing table
     pub fn table<T: 'static>(mut self, table: T) -> Self
-        where T: Iden {
+    where
+        T: Iden,
+    {
         self.table = Some(Rc::new(table));
         self
     }
