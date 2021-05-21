@@ -109,12 +109,19 @@
 //! For more usage information, look at
 //! [the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
 //!
-//! ```ignore
+//! ```rust
+//! # #[cfg(feature = "derive")]
 //! use sea_query::Iden;
 //!
 //! // This will implement Iden exactly as shown above
 //! #[derive(Iden)]
-//! pub enum Character { ... }
+//! enum Character { Table }
+//! assert_eq!(Character::Table.to_string(), "character");
+//!
+//! // You can also derive a unit struct
+//! #[derive(Iden)]
+//! struct Glyph;
+//! assert_eq!(Glyph.to_string(), "glyph");
 //! ```
 //!
 //! ### Expression
@@ -205,16 +212,22 @@
 //!
 //! Schema statement has the following interface:
 //!
-//! ```ignore
+//! ```rust
+//! # use sea_query::{*};
+//! # trait ExampleSchemaBuilder {
 //! fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String;
+//! # }
 //! ```
 //!
 //! Query statement has the following interfaces:
 //!
-//! ```ignore
+//! ```rust
+//! # use sea_query::{*};
+//! # trait ExampleQueryBuilder {
 //! fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
 //!
 //! fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
+//! # }
 //! ```
 //!
 //! `build` builds a SQL statement as string and parameters to be passed to the database driver
