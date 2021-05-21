@@ -1,3 +1,5 @@
+//! Public traits exposed by sea-query.
+
 use crate::{
     backend::QueryBuilder,
     prepare::inject_parameters,
