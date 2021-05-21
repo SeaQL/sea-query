@@ -1,10 +1,7 @@
-//! Public traits exposed by sea-query.
-
 use crate::{
     backend::QueryBuilder,
     prepare::inject_parameters,
     value::{Value, Values},
-    SchemaBuilder,
 };
 
 pub trait QueryStatementBuilder {
@@ -116,17 +113,4 @@ pub trait QueryStatementBuilder {
         query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String;
-}
-
-pub trait SchemaStatementBuilder {
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String;
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String;
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        self.build(schema_builder)
-    }
 }

@@ -626,7 +626,6 @@ mod shim;
 pub mod table;
 pub mod tests_cfg;
 pub mod token;
-pub mod traits;
 pub mod types;
 pub mod value;
 
@@ -645,7 +644,6 @@ pub use schema::*;
 //pub use shim::*;
 //pub use tests_cfg::*;
 pub use token::*;
-pub use traits::*;
 pub use types::*;
 pub use value::*;
 

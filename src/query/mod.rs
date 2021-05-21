@@ -13,6 +13,7 @@ mod insert;
 mod ordered;
 mod select;
 mod shim;
+mod traits;
 mod update;
 
 pub use condition::*;
@@ -20,6 +21,7 @@ pub use delete::*;
 pub use insert::*;
 pub use ordered::*;
 pub use select::*;
+pub use traits::*;
 pub use update::*;
 
 /// Shorthand for constructing any table query
