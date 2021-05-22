@@ -22,7 +22,7 @@ SeaQuery is query builder to help you construct dynamic SQL queries in Rust.
 You can construct expressions, queries and schema as abstract syntax trees using an ergonomic API.
 We support MySQL, Postgres and SQLite behind a common interface that aligns their behaviour where appropriate.
 
-This library is the foundation of upcoming projects: Document ORM (SeaORM) and Database Synchor (SeaHorse).
+This library is the foundation of SeaORM.
 
 ## Install
 
@@ -62,6 +62,45 @@ Table of Content
     1. [Index Create](#index-create)
     1. [Index Drop](#index-drop)
 
+### Motivation
+
+Why would you want to use a dynamic query builder?
+
+1. Parameter bindings
+
+One of the headaches if you are using raw SQL is parameter binding, where `IN` clauses are not very
+friendly.
+
+```rust
+assert_eq!(
+    Query::select()
+        .column(Glyph::Image)
+        .from(Glyph::Table)
+        .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
+        .build(PostgresQueryBuilder),
+    (r#"SELECT "image" FROM "glyph" WHERE "id" IN ($1, $2, $3)"#.to_owned(),
+     Values(vec![Value::Int(1), Value::Int(2), Value::Int(3)]))
+);
+```
+
+2. Dynamic query
+
+If you need to construct the query at runtime based on user inputs, then you can:
+
+```rust
+Query::select()
+    .column(Char::Character)
+    .from(Char::Table)
+    .conditions(
+        // some runtime condition
+        true,
+        // if condition is true then add the following condition
+        |q| { q.and_where(Expr::col(Char::Id).eq(1)); },
+        // otherwise leave it as is
+        |q| { }
+    );
+```
+
 ### Integration
 
 We provide integration for [SQLx](https://crates.io/crates/sqlx),
@@ -72,10 +111,11 @@ See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usag
 
 `Iden` is a trait for identifiers used in any query statement.
 
-Commonly implemented by Enum where each Enum represent a table found in a database,
+Commonly implemented by Enum where each Enum represents a table found in a database,
 and its variants include table name and column name.
 
-[`Iden::unquoted()`] must be implemented to provide a mapping between Enum variant and its corresponding string value.
+[`Iden::unquoted()`] must be implemented to provide a mapping between Enum variants and its
+corresponding string value.
 
 ```rust
 use sea_query::{*};
