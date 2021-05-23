@@ -8,6 +8,7 @@ members = [
     "examples/rusqlite",
     "examples/sqlx_mysql",
     "examples/sqlx_postgres",
+    "examples/sqlx_sqlite",
 ]
 
 [package]
@@ -56,6 +57,7 @@ postgres-uuid = [ "with-uuid", "postgres-types/with-uuid-0_8" ]
 rusqlite = [ ]
 sqlx-mysql = [ ]
 sqlx-postgres = [ ]
+sqlx-sqlite = [ ]
 with-chrono = [ "chrono" ]
 with-json = [ "serde_json" ]
 with-uuid = [ "uuid" ]

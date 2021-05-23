@@ -19,3 +19,8 @@ pub use sqlx_mysql::*;
 mod sqlx_postgres;
 #[cfg(feature = "sqlx-postgres")]
 pub use sqlx_postgres::*;
+
+#[cfg(feature = "sqlx-sqlite")]
+mod sqlx_sqlite;
+#[cfg(feature = "sqlx-sqlite")]
+pub use sqlx_sqlite::*;
