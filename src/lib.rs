@@ -68,12 +68,12 @@
 //! ### Motivation
 //!
 //! Why would you want to use a dynamic query builder?
-//! 
+//!
 //! 1. Parameter bindings
 //!
 //! One of the headaches if you are using raw SQL is parameter binding, where `IN` clauses are not very
 //! friendly.
-//! 
+//!
 //! ```
 //! # use sea_query::{*, tests_cfg::*};
 //! assert_eq!(
@@ -119,7 +119,7 @@
 //! Commonly implemented by Enum where each Enum represents a table found in a database,
 //! and its variants include table name and column name.
 //!
-//! [`Iden::unquoted()`] must be implemented to provide a mapping between Enum variants and its 
+//! [`Iden::unquoted()`] must be implemented to provide a mapping between Enum variants and its
 //! corresponding string value.
 //!
 //! ```rust
