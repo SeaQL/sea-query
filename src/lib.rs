@@ -71,8 +71,7 @@
 //!
 //! 1. Parameter bindings
 //!
-//! One of the headaches if you are using raw SQL is parameter binding, where `IN` clauses are not very
-//! friendly.
+//! One of the headaches when using raw SQL is parameter binding. With SeaQuery you can:
 //!
 //! ```
 //! # use sea_query::{*, tests_cfg::*};
@@ -80,16 +79,17 @@
 //!     Query::select()
 //!         .column(Glyph::Image)
 //!         .from(Glyph::Table)
+//!         .and_where(Expr::col(Glyph::Image).like("A"))
 //!         .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
 //!         .build(PostgresQueryBuilder),
-//!     (r#"SELECT "image" FROM "glyph" WHERE "id" IN ($1, $2, $3)"#.to_owned(),
-//!      Values(vec![Value::Int(1), Value::Int(2), Value::Int(3)]))
+//!     (r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#.to_owned(),
+//!      Values(vec![Value::String(Box::new("A".to_owned())), Value::Int(1), Value::Int(2), Value::Int(3)]))
 //! );
 //! ```
 //!
 //! 2. Dynamic query
 //!
-//! If you need to construct the query at runtime based on user inputs, then you can:
+//! You can construct the query at runtime based on user inputs:
 //!
 //! ```
 //! # use sea_query::{*, tests_cfg::*};
