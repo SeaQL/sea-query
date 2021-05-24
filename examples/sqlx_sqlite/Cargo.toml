@@ -1,0 +1,19 @@
+[package]
+name = "sea-query-sqlx-sqlite-example"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+async-std = { version = "1.8", features = [ "attributes" ] }
+sea-query = { path = "../../", features = ["sqlx-sqlite"] }
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0.11", features = ["sqlx-sqlite"] }
+
+[dependencies.sqlx]
+version = "^0.5"
+default-features = false
+features = [
+    "runtime-async-std-native-tls",
+    "macros",
+    "sqlite",
+]

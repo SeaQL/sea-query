@@ -185,7 +185,8 @@ macro_rules! all {
 }
 
 pub trait ConditionalStatement {
-    /// And where condition.
+    /// And where condition. This cannot be mixed with [`ConditionalStatement::cond_where`].
+    /// Calling `and_where` after `cond_where` will panic.
     ///
     /// # Examples
     ///
@@ -229,6 +230,9 @@ pub trait ConditionalStatement {
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self;
 
     /// Where condition, expressed with `any` and `all`.
+    /// This cannot be mixed with [`ConditionalStatement::and_where`].
+    /// Calling `cond_where` after `and_where` will panic.
+    /// Calling `cond_where` multiple times will conjoin them.
     ///
     /// # Examples
     ///
@@ -249,8 +253,8 @@ pub trait ConditionalStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
     /// );
     /// ```
     ///
@@ -273,8 +277,44 @@ pub trait ConditionalStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
+    /// );
+    ///
+    /// ```
+    /// Calling multiple times
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .cond_where(Cond::all().add(Expr::col(Glyph::Id).eq(1)))
+    ///         .cond_where(
+    ///             Cond::any()
+    ///                 .add(Expr::col(Glyph::Id).eq(2))
+    ///                 .add(Expr::col(Glyph::Id).eq(3)),
+    ///         )
+    ///         .to_owned()
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
+    /// );
+    ///
+    /// ```
+    /// Calling multiple times
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .cond_where(
+    ///             Cond::any()
+    ///                 .add(Expr::col(Glyph::Id).eq(1))
+    ///                 .add(Expr::col(Glyph::Id).eq(2)),
+    ///         )
+    ///         .cond_where(Cond::all().add(Expr::col(Glyph::Id).eq(3)))
+    ///         .to_owned()
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"SELECT WHERE "id" = 1 OR "id" = 2 OR ("id" = 3)"#
     /// );
     /// ```
     fn cond_where(&mut self, condition: Condition) -> &mut Self;
@@ -290,6 +330,12 @@ pub enum ConditionHolderContents {
 #[derive(Debug, Clone)]
 pub struct ConditionHolder {
     pub contents: ConditionHolderContents,
+}
+
+impl Default for ConditionHolderContents {
+    fn default() -> Self {
+        Self::Empty
+    }
 }
 
 impl Default for ConditionHolder {
@@ -325,12 +371,14 @@ impl ConditionHolder {
         }
     }
 
-    pub fn set_where(&mut self, condition: Condition) {
-        match &mut self.contents {
+    pub fn add_condition(&mut self, condition: Condition) {
+        match std::mem::take(&mut self.contents) {
             ConditionHolderContents::Empty => {
-                self.contents = ConditionHolderContents::Where(condition)
+                self.contents = ConditionHolderContents::Where(condition);
             }
-            ConditionHolderContents::Where(_) => panic!("Multiple `cond_where` are not supported"),
+            ConditionHolderContents::Where(current) => {
+                self.contents = ConditionHolderContents::Where(current.add(condition));
+            }
             ConditionHolderContents::And(_) => {
                 panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
             }

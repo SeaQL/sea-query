@@ -1111,7 +1111,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn cond_having(&mut self, condition: Condition) -> &mut Self {
-        self.having.set_where(condition);
+        self.having.add_condition(condition);
         self
     }
 
@@ -1292,7 +1292,7 @@ impl ConditionalStatement for SelectStatement {
     }
 
     fn cond_where(&mut self, condition: Condition) -> &mut Self {
-        self.wherei.set_where(condition);
+        self.wherei.add_condition(condition);
         self
     }
 }
