@@ -298,19 +298,19 @@ fn select_22() {
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .or_where(Expr::col(Char::Character).like("C"))
-            .or_where(
-                Expr::col(Char::Character)
-                    .like("D")
-                    .and(Expr::col(Char::Character).like("E"))
-            )
-            .and_where(
-                Expr::col(Char::Character)
-                    .like("F")
-                    .or(Expr::col(Char::Character).like("G"))
+            .cond_where(
+                Cond::all()
+                .add(
+                    Cond::any()
+                    .add(Expr::col(Char::Character).like("C"))
+                    .add(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
+                )
+                .add(
+                    Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G"))
+                )
             )
             .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E')) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
+        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
     );
 }
 
@@ -405,6 +405,7 @@ fn select_28() {
 }
 
 #[test]
+#[should_panic]
 fn select_29() {
     assert_eq!(
         Query::select()

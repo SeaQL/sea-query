@@ -13,6 +13,10 @@ pub struct Condition {
     pub(crate) conditions: Vec<ConditionExpression>,
 }
 
+pub trait IntoCondition {
+    fn into_condition(self) -> Condition;
+}
+
 pub type Cond = Condition;
 
 /// Represents anything that can be passed to an [`Condition::any`] or [`Condition::all`]'s [`Condition::add`] method.
@@ -24,18 +28,34 @@ pub enum ConditionExpression {
     SimpleExpr(SimpleExpr),
 }
 
+#[derive(Debug, Clone)]
+pub enum ConditionHolderContents {
+    Empty,
+    Chain(Vec<LogicalChainOper>),
+    Condition(Condition),
+}
+
+#[derive(Debug, Clone)]
+pub struct ConditionHolder {
+    pub contents: ConditionHolderContents,
+}
+
 impl Condition {
     /// Add a condition to the set.
     ///
     /// If it's an [`Condition::any`], it will be separated from the others by an `" OR "` in the query. If it's
     /// an [`Condition::all`], it will be separated by an `" AND "`.
     #[allow(clippy::should_implement_trait)]
-    pub fn add<C: Into<ConditionExpression>>(mut self, condition: C) -> Self {
-        let expr = condition.into();
-        // Don't add empty `Condition::any` and `Condition::all`.
-        if let ConditionExpression::Condition(c) = &expr {
+    pub fn add<C>(mut self, condition: C) -> Self where C: Into<ConditionExpression> {
+        let mut expr: ConditionExpression = condition.into();
+        if let ConditionExpression::Condition(ref mut c) = expr {
+            // Don't add empty `Condition::any` and `Condition::all`.
             if c.conditions.is_empty() {
                 return self;
+            }
+            // Skip the junction if there is only one.
+            if c.conditions.len() == 1 {
+                expr = c.conditions.pop().unwrap();
             }
         }
         self.conditions.push(expr);
@@ -185,8 +205,8 @@ macro_rules! all {
 }
 
 pub trait ConditionalStatement {
-    /// And where condition. This cannot be mixed with [`ConditionalStatement::cond_where`].
-    /// Calling `and_where` after `cond_where` will panic.
+    /// And where condition. This cannot be mixed with [`ConditionalStatement::or_where`].
+    /// Calling `or_where` after `and_where` will panic.
     ///
     /// # Examples
     ///
@@ -206,7 +226,7 @@ pub trait ConditionalStatement {
     /// );
     /// ```
     fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(LogicalChainOper::And(other))
+        self.cond_where(other)
     }
 
     /// And where condition, short hand for `if c.is_some() q.and_where(c)`.
@@ -218,8 +238,8 @@ pub trait ConditionalStatement {
     }
 
     #[deprecated(
-        since = "0.11.0",
-        note = "Please use [`ConditionalStatement::cond_where`] or only [`ConditionalStatement::and_where`]. The evaluation of mixed `and_where` and `or_where` can be surprising."
+        since = "0.12.0",
+        note = "Please use [`ConditionalStatement::cond_where`]. Calling `or_where` after `and_where` will panic."
     )]
     fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
         self.and_or_where(LogicalChainOper::Or(other))
@@ -311,25 +331,26 @@ pub trait ConditionalStatement {
     ///                 .add(Expr::col(Glyph::Id).eq(1))
     ///                 .add(Expr::col(Glyph::Id).eq(2)),
     ///         )
-    ///         .cond_where(Cond::all().add(Expr::col(Glyph::Id).eq(3)))
+    ///         .cond_where(Expr::col(Glyph::Id).eq(3))
+    ///         .cond_where(Expr::col(Glyph::Id).eq(4))
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE "id" = 1 OR "id" = 2 OR ("id" = 3)"#
+    ///     r#"SELECT WHERE "id" = 1 OR "id" = 2 OR "id" = 3 OR "id" = 4"#
     /// );
     /// ```
-    fn cond_where(&mut self, condition: Condition) -> &mut Self;
+    fn cond_where<C>(&mut self, condition: C) -> &mut Self where C: IntoCondition;
 }
 
-#[derive(Debug, Clone)]
-pub enum ConditionHolderContents {
-    Empty,
-    And(Vec<LogicalChainOper>),
-    Where(Condition),
+impl IntoCondition for SimpleExpr {
+    fn into_condition(self) -> Condition {
+        Condition::all().add(self)
+    }
 }
 
-#[derive(Debug, Clone)]
-pub struct ConditionHolder {
-    pub contents: ConditionHolderContents,
+impl IntoCondition for Condition {
+    fn into_condition(self) -> Condition {
+        self
+    }
 }
 
 impl Default for ConditionHolderContents {
@@ -354,18 +375,26 @@ impl ConditionHolder {
     pub fn is_empty(&self) -> bool {
         match &self.contents {
             ConditionHolderContents::Empty => true,
-            ConditionHolderContents::And(c) => c.is_empty(),
-            ConditionHolderContents::Where(c) => c.conditions.is_empty(),
+            ConditionHolderContents::Chain(c) => c.is_empty(),
+            ConditionHolderContents::Condition(c) => c.conditions.is_empty(),
+        }
+    }
+
+    pub fn is_one(&self) -> bool {
+        match &self.contents {
+            ConditionHolderContents::Empty => true,
+            ConditionHolderContents::Chain(c) => c.len() == 1,
+            ConditionHolderContents::Condition(c) => c.conditions.len() == 1,
         }
     }
 
     pub fn add_and_or(&mut self, condition: LogicalChainOper) {
         match &mut self.contents {
             ConditionHolderContents::Empty => {
-                self.contents = ConditionHolderContents::And(vec![condition])
+                self.contents = ConditionHolderContents::Chain(vec![condition])
             }
-            ConditionHolderContents::And(c) => c.push(condition),
-            ConditionHolderContents::Where(_) => {
+            ConditionHolderContents::Chain(c) => c.push(condition),
+            ConditionHolderContents::Condition(_) => {
                 panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
             }
         }
@@ -374,12 +403,12 @@ impl ConditionHolder {
     pub fn add_condition(&mut self, condition: Condition) {
         match std::mem::take(&mut self.contents) {
             ConditionHolderContents::Empty => {
-                self.contents = ConditionHolderContents::Where(condition);
+                self.contents = ConditionHolderContents::Condition(condition);
             }
-            ConditionHolderContents::Where(current) => {
-                self.contents = ConditionHolderContents::Where(current.add(condition));
+            ConditionHolderContents::Condition(current) => {
+                self.contents = ConditionHolderContents::Condition(current.add(condition));
             }
-            ConditionHolderContents::And(_) => {
+            ConditionHolderContents::Chain(_) => {
                 panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
             }
         }

@@ -651,7 +651,7 @@ pub trait QueryBuilder: QuotedBuilder {
         }
         match &condition.contents {
             ConditionHolderContents::Empty => (),
-            ConditionHolderContents::And(conditions) => {
+            ConditionHolderContents::Chain(conditions) => {
                 for (i, log_chain_oper) in conditions.iter().enumerate() {
                     self.prepare_logical_chain_oper(
                         log_chain_oper,
@@ -662,7 +662,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     );
                 }
             }
-            ConditionHolderContents::Where(c) => {
+            ConditionHolderContents::Condition(c) => {
                 self.prepare_condition_where(&c, sql, collector);
             }
         }
@@ -676,26 +676,34 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        let is_any = ConditionType::Any == condition.condition_type;
         let mut is_first = true;
         for cond in &condition.conditions {
             if is_first {
                 is_first = false;
             } else {
-                if is_any {
-                    write!(sql, " OR ").unwrap();
-                } else {
-                    write!(sql, " AND ").unwrap();
+                match condition.condition_type {
+                    ConditionType::Any => write!(sql, " OR ").unwrap(),
+                    ConditionType::All => write!(sql, " AND ").unwrap(),
                 }
             }
             match cond {
                 ConditionExpression::Condition(c) => {
-                    write!(sql, "(").unwrap();
+                    if condition.conditions.len() > 1 {
+                        write!(sql, "(").unwrap();
+                    }
                     self.prepare_condition_where(&c, sql, collector);
-                    write!(sql, ")").unwrap();
+                    if condition.conditions.len() > 1 {
+                        write!(sql, ")").unwrap();
+                    }
                 }
                 ConditionExpression::SimpleExpr(e) => {
+                    if condition.conditions.len() > 1 && (e.is_logical() || e.is_between()) {
+                        write!(sql, "(").unwrap();
+                    }
                     self.prepare_simple_expr(&e, sql, collector);
+                    if condition.conditions.len() > 1 && (e.is_logical() || e.is_between()) {
+                        write!(sql, ")").unwrap();
+                    }
                 }
             }
         }

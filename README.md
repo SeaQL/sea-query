@@ -182,7 +182,7 @@ assert_eq!(
         .to_string(PostgresQueryBuilder),
     [
         r#"SELECT "character" FROM "character""#,
-        r#"WHERE (("size_w" + 1) * 2 = ("size_h" / 2) - 1)"#,
+        r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
         r#"AND (("character" LIKE 'D') AND ("character" LIKE 'E'))"#,
     ].join(" ")

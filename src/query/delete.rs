@@ -165,8 +165,8 @@ impl ConditionalStatement for DeleteStatement {
         self
     }
 
-    fn cond_where(&mut self, condition: Condition) -> &mut Self {
-        self.wherei.add_condition(condition);
+    fn cond_where<C>(&mut self, condition: C) -> &mut Self where C: IntoCondition {
+        self.wherei.add_condition(condition.into_condition());
         self
     }
 }

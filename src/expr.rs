@@ -1510,6 +1510,19 @@ impl SimpleExpr {
         matches!(self, Self::Binary(_, _, _))
     }
 
+    pub(crate) fn is_logical(&self) -> bool {
+        match self {
+            Self::Binary(_, op, _) => {
+                matches!(op, BinOper::And | BinOper::Or)
+            }
+            _ => false,
+        }
+    }
+
+    pub(crate) fn is_between(&self) -> bool {
+        matches!(self, Self::Binary(_, BinOper::Between, _) | Self::Binary(_, BinOper::NotBetween, _))
+    }
+
     pub(crate) fn is_values(&self) -> bool {
         matches!(self, Self::Values(_))
     }
