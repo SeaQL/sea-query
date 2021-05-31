@@ -69,6 +69,12 @@ impl Value {
     }
 }
 
+impl Default for Value {
+    fn default() -> Self {
+        Self::Null
+    }
+}
+
 macro_rules! type_to_value {
     ( $type: ty, $name: ident ) => {
         impl From<$type> for Value {
