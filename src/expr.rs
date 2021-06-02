@@ -1210,6 +1210,43 @@ impl Expr {
         self.into()
     }
 
+    /// Express a `NOT IN` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::SizeW).not_in_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` NOT IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` NOT IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
+    #[allow(clippy::wrong_self_convention)]
+    pub fn not_in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
+        self.bopr = Some(BinOper::NotIn);
+        self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
+        self.into()
+    }
+
     pub(crate) fn func(func: Function) -> Self {
         let mut expr = Expr::new();
         expr.func = Some(func);
