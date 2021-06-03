@@ -643,6 +643,35 @@ fn select_41() {
 }
 
 #[test]
+fn select_42() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .add_option(Some(Expr::col(Glyph::Aspect).lt(8)))
+                .add(Expr::col(Glyph::Aspect).is_not_null()),
+        )
+        .to_string(MysqlQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE `aspect` < 8 AND `aspect` IS NOT NULL"#
+    );
+}
+
+#[test]
+fn select_43() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(Cond::all().add_option::<SimpleExpr>(None))
+        .to_string(MysqlQueryBuilder);
+
+    assert_eq!(statement, "SELECT `id` FROM `glyph`");
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 #[cfg(feature = "with-json")]
 fn insert_1() {
