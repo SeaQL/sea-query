@@ -1557,7 +1557,10 @@ impl SimpleExpr {
     }
 
     pub(crate) fn is_between(&self) -> bool {
-        matches!(self, Self::Binary(_, BinOper::Between, _) | Self::Binary(_, BinOper::NotBetween, _))
+        matches!(
+            self,
+            Self::Binary(_, BinOper::Between, _) | Self::Binary(_, BinOper::NotBetween, _)
+        )
     }
 
     pub(crate) fn is_values(&self) -> bool {

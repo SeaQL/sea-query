@@ -46,7 +46,10 @@ impl Condition {
     /// If it's an [`Condition::any`], it will be separated from the others by an `" OR "` in the query. If it's
     /// an [`Condition::all`], it will be separated by an `" AND "`.
     #[allow(clippy::should_implement_trait)]
-    pub fn add<C>(mut self, condition: C) -> Self where C: Into<ConditionExpression> {
+    pub fn add<C>(mut self, condition: C) -> Self
+    where
+        C: Into<ConditionExpression>,
+    {
         let mut expr: ConditionExpression = condition.into();
         if let ConditionExpression::Condition(ref mut c) = expr {
             // Don't add empty `Condition::any` and `Condition::all`.
@@ -338,7 +341,9 @@ pub trait ConditionalStatement {
     ///     r#"SELECT WHERE "id" = 1 OR "id" = 2 OR "id" = 3 OR "id" = 4"#
     /// );
     /// ```
-    fn cond_where<C>(&mut self, condition: C) -> &mut Self where C: IntoCondition;
+    fn cond_where<C>(&mut self, condition: C) -> &mut Self
+    where
+        C: IntoCondition;
 }
 
 impl IntoCondition for SimpleExpr {

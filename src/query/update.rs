@@ -331,7 +331,10 @@ impl ConditionalStatement for UpdateStatement {
         self
     }
 
-    fn cond_where<C>(&mut self, condition: C) -> &mut Self where C: IntoCondition {
+    fn cond_where<C>(&mut self, condition: C) -> &mut Self
+    where
+        C: IntoCondition,
+    {
         self.wherei.add_condition(condition.into_condition());
         self
     }

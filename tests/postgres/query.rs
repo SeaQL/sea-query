@@ -300,14 +300,18 @@ fn select_22() {
             .from(Char::Table)
             .cond_where(
                 Cond::all()
-                .add(
-                    Cond::any()
-                    .add(Expr::col(Char::Character).like("C"))
-                    .add(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
-                )
-                .add(
-                    Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G"))
-                )
+                    .add(
+                        Cond::any().add(Expr::col(Char::Character).like("C")).add(
+                            Expr::col(Char::Character)
+                                .like("D")
+                                .and(Expr::col(Char::Character).like("E"))
+                        )
+                    )
+                    .add(
+                        Expr::col(Char::Character)
+                            .like("F")
+                            .or(Expr::col(Char::Character).like("G"))
+                    )
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
