@@ -652,7 +652,9 @@
 //!     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 //! );
 //! ```
-
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL icon dark.png"
+)]
 pub mod backend;
 pub mod driver;
 pub mod error;
