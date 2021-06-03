@@ -1191,6 +1191,12 @@ impl SelectStatement {
         self
     }
 
+    /// Reset limit
+    pub fn reset_limit(&mut self) -> &mut Self {
+        self.limit = None;
+        self
+    }
+
     /// Offset number of returned rows.
     ///
     /// # Examples
@@ -1220,6 +1226,12 @@ impl SelectStatement {
     /// ```
     pub fn offset(&mut self, offset: u64) -> &mut Self {
         self.offset = Some(Value::BigUnsigned(offset));
+        self
+    }
+
+    /// Reset offset
+    pub fn reset_offset(&mut self) -> &mut Self {
+        self.offset = None;
         self
     }
 }
