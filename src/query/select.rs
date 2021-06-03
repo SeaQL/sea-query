@@ -1191,8 +1191,8 @@ impl SelectStatement {
         self
     }
 
-    /// Clear limit
-    pub fn clear_limit(&mut self) -> &mut Self {
+    /// Reset limit
+    pub fn reset_limit(&mut self) -> &mut Self {
         self.limit = None;
         self
     }
@@ -1229,8 +1229,8 @@ impl SelectStatement {
         self
     }
 
-    /// Clear offset
-    pub fn clear_offset(&mut self) -> &mut Self {
+    /// Reset offset
+    pub fn reset_offset(&mut self) -> &mut Self {
         self.offset = None;
         self
     }
