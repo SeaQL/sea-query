@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "derive", derive(sea_query_derive::ReadOnly))]
 pub struct ColumnDef {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) name: Rc<dyn Iden>,

@@ -78,6 +78,7 @@ use std::rc::Rc;
 /// );
 /// ```
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "derive", derive(sea_query_derive::ReadOnly))]
 pub struct TableCreateStatement {
     pub(crate) table: Option<Rc<dyn Iden>>,
     pub(crate) columns: Vec<ColumnDef>,

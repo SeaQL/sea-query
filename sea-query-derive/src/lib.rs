@@ -1,11 +1,8 @@
-use heck::SnakeCase;
-use proc_macro::{self, TokenStream};
+use heck::{SnakeCase, CamelCase};
+use proc_macro::{TokenStream};
 use proc_macro2::Span;
-use quote::{quote, quote_spanned};
-use syn::{
-    parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields, Ident, Lit, Meta,
-    Variant,
-};
+use quote::{format_ident, quote, quote_spanned};
+use syn::{Attribute, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Ident, Lit, Meta, Type, Variant, parse_macro_input};
 
 fn get_iden_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
     for attr in attrs {
@@ -113,4 +110,49 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
     };
 
     output.into()
+}
+
+#[proc_macro_derive(ReadOnly)]
+pub fn derive_read_only(input: TokenStream) -> TokenStream {
+    let DeriveInput {
+        ident, data, ..
+    } = parse_macro_input!(input);
+
+    let read_only_ident = format_ident!("ReadOnly{}", ident.to_string().to_camel_case());
+
+    let fields = match data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(named),
+            ..
+        }) => named.named,
+        _ => return quote_spanned! {
+            ident.span() => compile_error!("you can only derive ReadOnly on structs");
+        }.into(),
+    };
+
+    let field: Vec<Ident> = fields
+        .clone()
+        .into_iter()
+        .map(|Field { ident, .. }| format_ident!("{}", ident.unwrap().to_string()))
+        .collect();
+
+    let ty: Vec<Type> = fields
+        .into_iter()
+        .map(|Field { ty, .. }| ty)
+        .collect();
+
+    quote!(
+        impl #ident {
+            pub fn into_read_only(self) -> #read_only_ident {
+                #read_only_ident {
+                    #(#field: self.#field),*
+                }
+            }
+        }
+
+        #[derive(Debug, Clone)]
+        pub struct #read_only_ident {
+            #(pub #field: #ty),*
+        }
+    ).into()
 }
