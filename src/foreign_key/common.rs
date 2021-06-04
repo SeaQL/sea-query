@@ -95,4 +95,14 @@ impl TableForeignKey {
         self.on_update = Some(action);
         self
     }
+
+    pub fn get_ref_table(&self) -> Option<String> {
+        self.ref_table.as_ref().map(|ref_tbl| ref_tbl.to_string())
+    }
+    pub fn get_columns(&self) -> Vec<String> {
+        self.columns.iter().map(|col| col.to_string()).collect()
+    }
+    pub fn get_ref_columns(&self) -> Vec<String> {
+        self.ref_columns.iter().map(|ref_col| ref_col.to_string()).collect()
+    }
 }

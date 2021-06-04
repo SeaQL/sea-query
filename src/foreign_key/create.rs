@@ -195,6 +195,10 @@ impl ForeignKeyCreateStatement {
         self.foreign_key.on_update(action);
         self
     }
+
+    pub fn get_foreign_key(&self) -> &TableForeignKey {
+        &self.foreign_key
+    }
 }
 
 impl SchemaStatementBuilder for ForeignKeyCreateStatement {
