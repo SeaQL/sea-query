@@ -65,6 +65,22 @@ impl Condition {
         self
     }
 
+    /// Add an optional condition to the set.
+    ///
+    /// If it's an [`Condition::any`], it will be separated from the others by an `" OR "` in the query. If it's
+    /// an [`Condition::all`], it will be separated by an `" AND "`.
+    #[allow(clippy::should_implement_trait)]
+    pub fn add_option<C>(self, other: Option<C>) -> Self
+    where
+        C: Into<ConditionExpression>,
+    {
+        if let Some(other) = other {
+            self.add(other)
+        } else {
+            self
+        }
+    }
+
     /// Create a condition that is true if any of the conditions is true.
     ///
     /// # Examples
