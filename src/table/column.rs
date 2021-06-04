@@ -310,4 +310,16 @@ impl ColumnDef {
         self.spec.push(ColumnSpec::Extra(string));
         self
     }
+
+    pub fn get_column_name(&self) -> String {
+        self.name.to_string()
+    }
+
+    pub fn get_column_type(&self) -> Option<&ColumnType> {
+        self.types.as_ref()
+    }
+
+    pub fn get_column_spec(&self) -> &Vec<ColumnSpec> {
+        self.spec.as_ref()
+    }
 }

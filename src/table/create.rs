@@ -269,6 +269,18 @@ impl TableCreateStatement {
         self.partitions.push(partition);
         self
     }
+
+    pub fn get_table_name(&self) -> Option<String> {
+        self.table.as_ref().map(|table| table.to_string())
+    }
+
+    pub fn get_columns(&self) -> &Vec<ColumnDef> {
+        self.columns.as_ref()
+    }
+
+    pub fn get_foreign_key_create_stmts(&self) -> &Vec<ForeignKeyCreateStatement> {
+        self.foreign_keys.as_ref()
+    }
 }
 
 impl SchemaStatementBuilder for TableCreateStatement {
