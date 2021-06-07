@@ -28,7 +28,7 @@ use std::rc::Rc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct IndexDropStatement {
-    pub(crate) table: Option<Rc<dyn Iden>>,
+    pub(crate) table: Option<DynIden>,
     pub(crate) index: TableIndex,
 }
 

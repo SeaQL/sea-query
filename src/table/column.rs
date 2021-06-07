@@ -4,8 +4,8 @@ use std::rc::Rc;
 /// Specification of a table column
 #[derive(Debug, Clone)]
 pub struct ColumnDef {
-    pub(crate) table: Option<Rc<dyn Iden>>,
-    pub(crate) name: Rc<dyn Iden>,
+    pub(crate) table: Option<DynIden>,
+    pub(crate) name: DynIden,
     pub(crate) types: Option<ColumnType>,
     pub(crate) spec: Vec<ColumnSpec>,
 }
@@ -32,7 +32,7 @@ pub enum ColumnType {
     Money(Option<(u32, u32)>),
     Json,
     JsonBinary,
-    Custom(Rc<dyn Iden>),
+    Custom(DynIden),
 }
 
 /// All column specification keywords

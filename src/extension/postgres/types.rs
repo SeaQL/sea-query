@@ -7,9 +7,9 @@ pub struct Type;
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeCreateStatement {
-    pub(crate) name: Option<Rc<dyn Iden>>,
+    pub(crate) name: Option<DynIden>,
     pub(crate) as_type: Option<TypeAs>,
-    pub(crate) values: Vec<Rc<dyn Iden>>,
+    pub(crate) values: Vec<DynIden>,
 }
 
 #[derive(Debug, Clone)]
@@ -23,14 +23,14 @@ pub enum TypeAs {
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeDropStatement {
-    pub(crate) names: Vec<Rc<dyn Iden>>,
+    pub(crate) names: Vec<DynIden>,
     pub(crate) option: Option<TypeDropOpt>,
     pub(crate) if_exists: bool,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeAlterStatement {
-    pub(crate) name: Option<Rc<dyn Iden>>,
+    pub(crate) name: Option<DynIden>,
     pub(crate) option: Option<TypeAlterOpt>,
 }
 
@@ -42,15 +42,15 @@ pub enum TypeDropOpt {
 
 #[derive(Debug, Clone)]
 pub enum TypeAlterOpt {
-    Add(Rc<dyn Iden>, Option<TypeAlterAddOpt>),
-    Rename(Rc<dyn Iden>),
-    RenameValue(Rc<dyn Iden>, Rc<dyn Iden>),
+    Add(DynIden, Option<TypeAlterAddOpt>),
+    Rename(DynIden),
+    RenameValue(DynIden, DynIden),
 }
 
 #[derive(Debug, Clone)]
 pub enum TypeAlterAddOpt {
-    Before(Rc<dyn Iden>),
-    After(Rc<dyn Iden>),
+    Before(DynIden),
+    After(DynIden),
 }
 
 pub trait TypeBuilder {

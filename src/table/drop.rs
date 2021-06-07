@@ -28,7 +28,7 @@ use std::rc::Rc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableDropStatement {
-    pub(crate) tables: Vec<Rc<dyn Iden>>,
+    pub(crate) tables: Vec<DynIden>,
     pub(crate) options: Vec<TableDropOpt>,
     pub(crate) if_exists: bool,
 }

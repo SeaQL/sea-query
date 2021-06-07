@@ -28,7 +28,7 @@ use std::rc::Rc;
 #[derive(Debug, Clone)]
 pub struct ForeignKeyDropStatement {
     pub(crate) foreign_key: TableForeignKey,
-    pub(crate) table: Option<Rc<dyn Iden>>,
+    pub(crate) table: Option<DynIden>,
 }
 
 impl Default for ForeignKeyDropStatement {

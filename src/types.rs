@@ -21,12 +21,14 @@ pub trait Iden {
     fn unquoted(&self, s: &mut dyn fmt::Write);
 }
 
+pub type DynIden = Rc<dyn Iden>;
+
 pub trait IntoIden {
-    fn into_iden(self) -> Rc<dyn Iden>;
+    fn into_iden(self) -> DynIden;
 }
 
 pub trait IdenList {
-    type IntoIter: Iterator<Item = Rc<dyn Iden>>;
+    type IntoIter: Iterator<Item = DynIden>;
 
     fn into_iter(self) -> Self::IntoIter;
 }
@@ -41,8 +43,8 @@ impl fmt::Debug for dyn Iden {
 /// Column references
 #[derive(Debug, Clone)]
 pub enum ColumnRef {
-    Column(Rc<dyn Iden>),
-    TableColumn(Rc<dyn Iden>, Rc<dyn Iden>),
+    Column(DynIden),
+    TableColumn(DynIden, DynIden),
 }
 
 pub trait IntoColumnRef {
@@ -53,11 +55,11 @@ pub trait IntoColumnRef {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum TableRef {
-    Table(Rc<dyn Iden>),
-    SchemaTable(Rc<dyn Iden>, Rc<dyn Iden>),
-    TableAlias(Rc<dyn Iden>, Rc<dyn Iden>),
-    SchemaTableAlias(Rc<dyn Iden>, Rc<dyn Iden>, Rc<dyn Iden>),
-    SubQuery(SelectStatement, Rc<dyn Iden>),
+    Table(DynIden),
+    SchemaTable(DynIden, DynIden),
+    TableAlias(DynIden, DynIden),
+    SchemaTableAlias(DynIden, DynIden, DynIden),
+    SubQuery(SelectStatement, DynIden),
 }
 
 pub trait IntoTableRef {
@@ -140,7 +142,7 @@ pub struct Alias(String);
 #[derive(Debug, Clone)]
 pub enum Keyword {
     Null,
-    Custom(Rc<dyn Iden>),
+    Custom(DynIden),
 }
 
 // Impl begins
@@ -149,13 +151,13 @@ impl<T: 'static> IntoIden for T
 where
     T: Iden,
 {
-    fn into_iden(self) -> Rc<dyn Iden> {
+    fn into_iden(self) -> DynIden {
         Rc::new(self)
     }
 }
 
-impl IntoIden for Rc<dyn Iden> {
-    fn into_iden(self) -> Rc<dyn Iden> {
+impl IntoIden for DynIden {
+    fn into_iden(self) -> DynIden {
         self
     }
 }
@@ -164,7 +166,7 @@ impl<I> IdenList for I
 where
     I: IntoIden,
 {
-    type IntoIter = std::iter::Once<Rc<dyn Iden>>;
+    type IntoIter = std::iter::Once<DynIden>;
 
     fn into_iter(self) -> Self::IntoIter {
         std::iter::once(self.into_iden())
@@ -176,7 +178,7 @@ where
     A: IntoIden,
     B: IntoIden,
 {
-    type IntoIter = std::vec::IntoIter<Rc<dyn Iden>>;
+    type IntoIter = std::vec::IntoIter<DynIden>;
 
     fn into_iter(self) -> Self::IntoIter {
         vec![self.0.into_iden(), self.1.into_iden()].into_iter()
@@ -189,7 +191,7 @@ where
     B: IntoIden,
     C: IntoIden,
 {
-    type IntoIter = std::vec::IntoIter<Rc<dyn Iden>>;
+    type IntoIter = std::vec::IntoIter<DynIden>;
 
     fn into_iter(self) -> Self::IntoIter {
         vec![self.0.into_iden(), self.1.into_iden(), self.2.into_iden()].into_iter()

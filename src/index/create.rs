@@ -99,7 +99,7 @@ use std::rc::Rc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct IndexCreateStatement {
-    pub(crate) table: Option<Rc<dyn Iden>>,
+    pub(crate) table: Option<DynIden>,
     pub(crate) index: TableIndex,
     pub(crate) primary: bool,
     pub(crate) unique: bool,
@@ -112,7 +112,7 @@ pub enum IndexType {
     BTree,
     FullText,
     Hash,
-    Custom(Rc<dyn Iden>),
+    Custom(DynIden),
 }
 
 impl Default for IndexCreateStatement {

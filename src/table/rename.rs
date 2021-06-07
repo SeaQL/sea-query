@@ -27,8 +27,8 @@ use std::rc::Rc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableRenameStatement {
-    pub(crate) from_name: Option<Rc<dyn Iden>>,
-    pub(crate) to_name: Option<Rc<dyn Iden>>,
+    pub(crate) from_name: Option<DynIden>,
+    pub(crate) to_name: Option<DynIden>,
 }
 
 impl Default for TableRenameStatement {

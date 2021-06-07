@@ -79,7 +79,7 @@ use std::rc::Rc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableCreateStatement {
-    pub(crate) table: Option<Rc<dyn Iden>>,
+    pub(crate) table: Option<DynIden>,
     pub(crate) columns: Vec<ColumnDef>,
     pub(crate) options: Vec<TableOpt>,
     pub(crate) partitions: Vec<TablePartition>,

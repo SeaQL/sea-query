@@ -28,7 +28,7 @@ use std::rc::Rc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableAlterStatement {
-    pub(crate) table: Option<Rc<dyn Iden>>,
+    pub(crate) table: Option<DynIden>,
     pub(crate) alter_option: Option<TableAlterOption>,
 }
 
@@ -37,8 +37,8 @@ pub struct TableAlterStatement {
 pub enum TableAlterOption {
     AddColumn(ColumnDef),
     ModifyColumn(ColumnDef),
-    RenameColumn(Rc<dyn Iden>, Rc<dyn Iden>),
-    DropColumn(Rc<dyn Iden>),
+    RenameColumn(DynIden, DynIden),
+    DropColumn(DynIden),
 }
 
 impl Default for TableAlterStatement {

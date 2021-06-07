@@ -27,7 +27,7 @@ use std::rc::Rc;
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableTruncateStatement {
-    pub(crate) table: Option<Rc<dyn Iden>>,
+    pub(crate) table: Option<DynIden>,
 }
 
 impl Default for TableTruncateStatement {

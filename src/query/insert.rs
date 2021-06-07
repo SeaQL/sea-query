@@ -4,7 +4,6 @@ use crate::{
 };
 #[cfg(feature = "with-json")]
 use serde_json::Value as JsonValue;
-use std::rc::Rc;
 
 /// Insert any new rows into an existing table
 ///
@@ -45,7 +44,7 @@ use std::rc::Rc;
 #[derive(Debug, Default, Clone)]
 pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) columns: Vec<Rc<dyn Iden>>,
+    pub(crate) columns: Vec<DynIden>,
     pub(crate) values: Vec<Vec<Value>>,
     pub(crate) returning: Vec<SelectExpr>,
 }

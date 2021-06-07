@@ -1,5 +1,4 @@
 use crate::types::*;
-use std::rc::Rc;
 
 /// Specification of a table index
 #[derive(Debug, Clone)]
@@ -10,7 +9,7 @@ pub struct TableIndex {
 
 #[derive(Debug, Clone)]
 pub struct IndexColumn {
-    pub(crate) name: Rc<dyn Iden>,
+    pub(crate) name: DynIden,
     pub(crate) prefix: Option<u32>,
     pub(crate) order: Option<IndexOrder>,
 }

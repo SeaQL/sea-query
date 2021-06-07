@@ -8,7 +8,6 @@ use crate::{
     QueryStatementBuilder,
 };
 use std::iter::FromIterator;
-use std::rc::Rc;
 
 /// Select rows from an existing table
 ///
@@ -65,7 +64,7 @@ pub enum SelectDistinct {
 #[derive(Debug, Clone)]
 pub struct SelectExpr {
     pub expr: SimpleExpr,
-    pub alias: Option<Rc<dyn Iden>>,
+    pub alias: Option<DynIden>,
 }
 
 /// Join expression used in select statement
@@ -562,7 +561,7 @@ impl SelectStatement {
     /// use std::rc::Rc;
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let table_as: Rc<dyn Iden> = Rc::new(Alias::new("char"));
+    /// let table_as: DynIden = Rc::new(Alias::new("char"));
     ///
     /// let query = Query::select()
     ///     .from_as(Char::Table, table_as.clone())
@@ -873,7 +872,7 @@ impl SelectStatement {
     /// use std::rc::Rc;
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let sub_glyph: Rc<dyn Iden> = Rc::new(Alias::new("sub_glyph"));
+    /// let sub_glyph: DynIden = Rc::new(Alias::new("sub_glyph"));
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)

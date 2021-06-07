@@ -1,7 +1,6 @@
 //! For calling built-in SQL functions.
 
 use crate::{expr::*, types::*};
-use std::rc::Rc;
 
 /// Functions
 #[derive(Debug, Clone)]
@@ -13,7 +12,7 @@ pub enum Function {
     Count,
     IfNull,
     CharLength,
-    Custom(Rc<dyn Iden>),
+    Custom(DynIden),
 }
 
 /// Function call helper.

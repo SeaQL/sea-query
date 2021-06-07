@@ -1,14 +1,13 @@
 use crate::types::*;
-use std::rc::Rc;
 
 /// Specification of a foreign key
 #[derive(Debug, Clone)]
 pub struct TableForeignKey {
     pub(crate) name: Option<String>,
-    pub(crate) table: Option<Rc<dyn Iden>>,
-    pub(crate) ref_table: Option<Rc<dyn Iden>>,
-    pub(crate) columns: Vec<Rc<dyn Iden>>,
-    pub(crate) ref_columns: Vec<Rc<dyn Iden>>,
+    pub(crate) table: Option<DynIden>,
+    pub(crate) ref_table: Option<DynIden>,
+    pub(crate) columns: Vec<DynIden>,
+    pub(crate) ref_columns: Vec<DynIden>,
     pub(crate) on_delete: Option<ForeignKeyAction>,
     pub(crate) on_update: Option<ForeignKeyAction>,
 }
