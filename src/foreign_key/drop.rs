@@ -1,7 +1,6 @@
 use crate::{
     backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder, TableForeignKey,
 };
-use std::rc::Rc;
 
 /// Drop a foreign key constraint for an existing table
 ///
@@ -57,7 +56,7 @@ impl ForeignKeyDropStatement {
     where
         T: Iden,
     {
-        self.table = Some(Rc::new(table));
+        self.table = Some(SeaRc::new(table));
         self
     }
 }

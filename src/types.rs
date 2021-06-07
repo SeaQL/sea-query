@@ -2,7 +2,7 @@
 
 use crate::{expr::*, query::*};
 use std::fmt;
-use std::rc::Rc;
+pub use std::rc::Rc as SeaRc; // in case we some day we want to use Arc instead of Rc
 
 /// Identifier in query
 pub trait Iden {
@@ -21,7 +21,7 @@ pub trait Iden {
     fn unquoted(&self, s: &mut dyn fmt::Write);
 }
 
-pub type DynIden = Rc<dyn Iden>;
+pub type DynIden = SeaRc<dyn Iden>;
 
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
@@ -152,7 +152,7 @@ where
     T: Iden,
 {
     fn into_iden(self) -> DynIden {
-        Rc::new(self)
+        SeaRc::new(self)
     }
 }
 

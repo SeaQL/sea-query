@@ -1,6 +1,5 @@
 use super::common::*;
 use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
-use std::rc::Rc;
 
 /// Create an index for an existing table
 ///
@@ -144,7 +143,7 @@ impl IndexCreateStatement {
     where
         T: Iden,
     {
-        self.table = Some(Rc::new(table));
+        self.table = Some(SeaRc::new(table));
         self
     }
 

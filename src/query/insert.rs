@@ -264,7 +264,7 @@ impl InsertStatement {
             let mut keys: Vec<String> = map.keys().cloned().collect();
             keys.sort();
             for k in keys.iter() {
-                self.columns.push(Rc::new(Alias::new(k)));
+                self.columns.push(SeaRc::new(Alias::new(k)));
             }
         }
         for col in self.columns.iter() {

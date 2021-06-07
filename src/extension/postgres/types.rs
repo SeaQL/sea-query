@@ -1,5 +1,4 @@
 use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
-use std::rc::Rc;
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
@@ -136,7 +135,7 @@ impl TypeCreateStatement {
     where
         T: Iden,
     {
-        self.name = Some(Rc::new(name));
+        self.name = Some(SeaRc::new(name));
         self.as_type = Some(TypeAs::Enum);
         self
     }

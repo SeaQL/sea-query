@@ -2,7 +2,6 @@ use crate::{
     backend::SchemaBuilder, foreign_key::*, index::*, prepare::*, types::*, ColumnDef,
     SchemaStatementBuilder,
 };
-use std::rc::Rc;
 
 /// Create a table
 ///
@@ -140,7 +139,7 @@ impl TableCreateStatement {
     where
         T: Iden,
     {
-        self.table = Some(Rc::new(table));
+        self.table = Some(SeaRc::new(table));
         self
     }
 

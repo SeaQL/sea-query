@@ -558,10 +558,9 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use std::rc::Rc;
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let table_as: DynIden = Rc::new(Alias::new("char"));
+    /// let table_as: DynIden = SeaRc::new(Alias::new("char"));
     ///
     /// let query = Query::select()
     ///     .from_as(Char::Table, table_as.clone())
@@ -869,10 +868,9 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use std::rc::Rc;
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let sub_glyph: DynIden = Rc::new(Alias::new("sub_glyph"));
+    /// let sub_glyph: DynIden = SeaRc::new(Alias::new("sub_glyph"));
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)

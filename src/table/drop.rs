@@ -1,5 +1,4 @@
 use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
-use std::rc::Rc;
 
 /// Drop a table
 ///
@@ -61,7 +60,7 @@ impl TableDropStatement {
     where
         T: Iden,
     {
-        self.tables.push(Rc::new(table));
+        self.tables.push(SeaRc::new(table));
         self
     }
 

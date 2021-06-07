@@ -1,5 +1,4 @@
 use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder, TableIndex};
-use std::rc::Rc;
 
 /// Drop an index for an existing table
 ///
@@ -58,7 +57,7 @@ impl IndexDropStatement {
     where
         T: Iden,
     {
-        self.table = Some(Rc::new(table));
+        self.table = Some(SeaRc::new(table));
         self
     }
 }

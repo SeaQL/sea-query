@@ -1,5 +1,4 @@
 use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
-use std::rc::Rc;
 
 /// Drop a table
 ///
@@ -47,7 +46,7 @@ impl TableTruncateStatement {
     where
         T: Iden,
     {
-        self.table = Some(Rc::new(table));
+        self.table = Some(SeaRc::new(table));
         self
     }
 }

@@ -1,5 +1,4 @@
 use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaStatementBuilder};
-use std::rc::Rc;
 
 /// Alter a table
 ///
@@ -61,7 +60,7 @@ impl TableAlterStatement {
     where
         T: Iden,
     {
-        self.table = Some(Rc::new(table));
+        self.table = Some(SeaRc::new(table));
         self
     }
 
@@ -155,8 +154,8 @@ impl TableAlterStatement {
         R: Iden,
     {
         self.alter_option(TableAlterOption::RenameColumn(
-            Rc::new(from_name),
-            Rc::new(to_name),
+            SeaRc::new(from_name),
+            SeaRc::new(to_name),
         ))
     }
 
@@ -186,7 +185,7 @@ impl TableAlterStatement {
     where
         T: Iden,
     {
-        self.alter_option(TableAlterOption::DropColumn(Rc::new(col_name)))
+        self.alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
     }
 
     fn alter_option(mut self, alter_option: TableAlterOption) -> Self {

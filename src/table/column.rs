@@ -1,5 +1,4 @@
 use crate::{types::*, value::*};
-use std::rc::Rc;
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -55,7 +54,7 @@ impl ColumnDef {
     {
         Self {
             table: None,
-            name: Rc::new(name),
+            name: SeaRc::new(name),
             types: None,
             spec: Vec::new(),
         }
@@ -301,7 +300,7 @@ impl ColumnDef {
     where
         T: Iden,
     {
-        self.types = Some(ColumnType::Custom(Rc::new(n)));
+        self.types = Some(ColumnType::Custom(SeaRc::new(n)));
         self
     }
 

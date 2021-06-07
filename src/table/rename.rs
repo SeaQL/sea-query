@@ -1,5 +1,4 @@
 use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
-use std::rc::Rc;
 
 /// Rename a table
 ///
@@ -52,8 +51,8 @@ impl TableRenameStatement {
         T: Iden,
         R: Iden,
     {
-        self.from_name = Some(Rc::new(from_name));
-        self.to_name = Some(Rc::new(to_name));
+        self.from_name = Some(SeaRc::new(from_name));
+        self.to_name = Some(SeaRc::new(to_name));
         self
     }
 }
