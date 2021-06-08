@@ -101,7 +101,7 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+    ///     .col_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
     ///     .values(vec![
     ///         (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
     ///     ])
@@ -121,12 +121,20 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn value_expr<T>(&mut self, col: T, exp: SimpleExpr) -> &mut Self
+    pub fn col_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
     where
         T: IntoIden,
     {
-        self.push_boxed_value(col.into_iden().to_string(), exp);
+        self.push_boxed_value(col.into_iden().to_string(), expr);
         self
+    }
+
+    /// Alias of [`UpdateStatement::col_expr`]
+    pub fn value_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.col_expr(col, expr)
     }
 
     /// Update column values by [`JsonValue`]. A convenience method if you have multiple column-value pairs to set at once.
