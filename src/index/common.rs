@@ -103,4 +103,8 @@ impl TableIndex {
         self.columns.push(col);
         self
     }
+
+    pub fn get_column_names(&self) -> Vec<String> {
+        self.columns.iter().map(|col| col.name.to_string()).collect()
+    }
 }
