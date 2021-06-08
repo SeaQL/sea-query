@@ -280,6 +280,10 @@ impl TableCreateStatement {
     pub fn get_foreign_key_create_stmts(&self) -> &Vec<ForeignKeyCreateStatement> {
         self.foreign_keys.as_ref()
     }
+
+    pub fn get_indexes(&self) -> &Vec<IndexCreateStatement> {
+        self.indexes.as_ref()
+    }
 }
 
 impl SchemaStatementBuilder for TableCreateStatement {
