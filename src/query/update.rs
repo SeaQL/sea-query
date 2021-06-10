@@ -220,6 +220,19 @@ impl UpdateStatement {
         self
     }
 
+    pub fn values_option<T, I>(&mut self, values: I) -> &mut Self
+    where
+        T: IntoIden,
+        I: IntoIterator<Item = (T, Option<Value>)>,
+    {
+        for (k, v) in values.into_iter() {
+            if v.is_some() {
+                self.push_boxed_value(k.into_iden().to_string(), SimpleExpr::Value(v.unwrap()));
+            }
+        }
+        self
+    }
+
     /// Update column values.
     ///
     /// # Examples
@@ -345,5 +358,61 @@ impl ConditionalStatement for UpdateStatement {
     {
         self.wherei.add_condition(condition.into_condition());
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg(feature = "derive")]
+    fn test_partial_update() {
+        use crate::{Iden, Query, PostgresQueryBuilder};
+        use crate as sea_query;
+
+        struct TableUpdate {
+            column_one: Option<Option<i32>>,
+            column_two: Option<Option<i32>>,
+            column_three: Option<Option<i32>>,
+        }
+
+        // some how we'd like to generate the following code:
+
+        #[derive(Iden)]
+        #[allow(clippy::enum_variant_names)]
+        enum TableUpdateColumn {
+            ColumnOne,
+            ColumnTwo,
+            ColumnThree,
+        }
+
+        impl TableUpdate {
+            fn into_column_value_tuple(self) -> Vec<(TableUpdateColumn, Option<Value>)> {
+                vec![
+                    (TableUpdateColumn::ColumnOne, if let Some(v) = self.column_one { Some(v.into()) } else { None }),
+                    (TableUpdateColumn::ColumnTwo, if let Some(v) = self.column_two { Some(v.into()) } else { None }),
+                    (TableUpdateColumn::ColumnThree, if let Some(v) = self.column_three { Some(v.into()) } else { None }),
+                ]
+            }
+        }
+
+        // how to use
+
+        let table_update = TableUpdate {
+            column_one: None, // Don't update column_one
+            column_two: Some(None), // Update column_two to be null
+            column_three: Some(Some(10)), // Update column_three to be 10
+        };
+
+        let query = Query::update()
+            .table(Alias::new("my_table"))
+            .values_option(table_update.into_column_value_tuple())
+            .to_owned();
+
+        assert_eq!(
+            query.to_string(PostgresQueryBuilder),
+            r#"UPDATE "my_table" SET "column_two" = NULL, "column_three" = 10"#
+        );
     }
 }
