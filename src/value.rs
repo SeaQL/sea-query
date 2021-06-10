@@ -470,6 +470,40 @@ mod tests {
     }
 
     #[test]
+    fn test_option_value() {
+        macro_rules! test_some_value {
+            ( $type: ty, $val: literal ) => {
+                let val: Option<$type> = Some($val);
+                let v: Value = val.into();
+                let out: $type = v.unwrap();
+                assert_eq!(out, val.unwrap());
+            };
+        }
+
+        macro_rules! test_none {
+            ( $type: ty ) => {
+                let val: Option<$type> = None;
+                let v: Value = val.into();
+                assert_eq!(v, Value::Null);
+            };
+        }
+
+        test_some_value!(u8, 255);
+        test_some_value!(u16, 65535);
+        test_some_value!(i8, 127);
+        test_some_value!(i16, 32767);
+        test_some_value!(i32, 1073741824);
+        test_some_value!(i64, 8589934592);
+
+        test_none!(u8);
+        test_none!(u16);
+        test_none!(i8);
+        test_none!(i16);
+        test_none!(i32);
+        test_none!(i64);
+    }
+
+    #[test]
     fn test_box_value() {
         let val: String = "hello".to_owned();
         let v: Value = val.clone().into();
