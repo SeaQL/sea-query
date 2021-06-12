@@ -180,6 +180,14 @@ impl IndexCreateStatement {
         self.index_type = Some(index_type);
         self
     }
+
+    pub fn is_primary_key(&self) -> bool {
+        self.primary
+    }
+
+    pub fn get_index_spec(&self) -> &TableIndex {
+        &self.index
+    }
 }
 
 impl SchemaStatementBuilder for IndexCreateStatement {
