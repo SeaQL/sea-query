@@ -46,7 +46,7 @@ pub trait ValueType {
     fn unwrap(v: Value) -> Self;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Values(pub Vec<Value>);
 
 #[derive(Debug, PartialEq)]
