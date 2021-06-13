@@ -5,7 +5,7 @@
   <h1>SeaQuery</h1>
 
   <p>
-    <strong>A dynamic query builder for MySQL, Postgres and SQLite</strong>
+    <strong>🌊 A dynamic query builder for MySQL, Postgres and SQLite</strong>
   </p>
 
   [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
