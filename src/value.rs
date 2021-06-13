@@ -44,6 +44,8 @@ pub enum Value {
 
 pub trait ValueType {
     fn unwrap(v: Value) -> Self;
+
+    fn type_name() -> &'static str;
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -99,6 +101,10 @@ macro_rules! type_to_value {
                     _ => panic!("type error"),
                 }
             }
+
+            fn type_name() -> &'static str {
+                stringify!($type)
+            }
         }
 
         impl ValueType for Option<$type> {
@@ -107,6 +113,10 @@ macro_rules! type_to_value {
                     Value::$name(x) => Some(x),
                     _ => panic!("type error"),
                 }
+            }
+
+            fn type_name() -> &'static str {
+                concat!("Option<", stringify!($type), ">")
             }
         }
     };
@@ -136,6 +146,10 @@ macro_rules! type_to_box_value {
                     _ => panic!("type error"),
                 }
             }
+
+            fn type_name() -> &'static str {
+                stringify!($type)
+            }
         }
 
         impl ValueType for Option<$type> {
@@ -144,6 +158,10 @@ macro_rules! type_to_box_value {
                     Value::$name(x) => Some(*x),
                     _ => panic!("type error"),
                 }
+            }
+
+            fn type_name() -> &'static str {
+                concat!("Option<", stringify!($type), ">")
             }
         }
     };
