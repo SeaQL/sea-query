@@ -21,4 +21,8 @@ impl GenericBuilder for MysqlQueryBuilder {}
 
 impl SchemaBuilder for MysqlQueryBuilder {}
 
-impl QuotedBuilder for MysqlQueryBuilder {}
+impl QuotedBuilder for MysqlQueryBuilder {
+    fn quote(&self) -> char {
+        '`'
+    }
+}

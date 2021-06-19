@@ -19,4 +19,8 @@ impl GenericBuilder for SqliteQueryBuilder {}
 
 impl SchemaBuilder for SqliteQueryBuilder {}
 
-impl QuotedBuilder for SqliteQueryBuilder {}
+impl QuotedBuilder for SqliteQueryBuilder {
+    fn quote(&self) -> char {
+        '`'
+    }
+}

@@ -103,6 +103,9 @@ impl TableForeignKey {
         self.columns.iter().map(|col| col.to_string()).collect()
     }
     pub fn get_ref_columns(&self) -> Vec<String> {
-        self.ref_columns.iter().map(|ref_col| ref_col.to_string()).collect()
+        self.ref_columns
+            .iter()
+            .map(|ref_col| ref_col.to_string())
+            .collect()
     }
 }
