@@ -493,7 +493,7 @@ fn select_33() {
 }
 
 #[test]
-fn select_34() {
+fn select_34a() {
     assert_eq!(
         Query::select()
             .column(Glyph::Aspect)
@@ -510,19 +510,42 @@ fn select_34() {
                     .gt(12)
                     .and(Expr::col(Glyph::Aspect).lt(18))
             )
-            .and_having(
-                Expr::col(Glyph::Aspect)
-                    .gt(22)
-                    .or(Expr::col(Glyph::Aspect).lt(28))
-            )
             .or_having(Expr::col(Glyph::Aspect).gt(32))
             .to_string(SqliteQueryBuilder),
         vec![
             "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect`",
             "HAVING ((`aspect` > 2) OR (`aspect` < 8))",
             "OR ((`aspect` > 12) AND (`aspect` < 18))",
-            "AND ((`aspect` > 22) OR (`aspect` < 28))",
             "OR `aspect` > 32",
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[should_panic]
+fn select_34b() {
+    assert_eq!(
+        Query::select()
+            .column(Glyph::Aspect)
+            .expr(Expr::col(Glyph::Image).max())
+            .from(Glyph::Table)
+            .group_by_columns(vec![Glyph::Aspect,])
+            .or_having(
+                Expr::col(Glyph::Aspect)
+                    .gt(2)
+                    .or(Expr::col(Glyph::Aspect).lt(8))
+            )
+            .and_having(
+                Expr::col(Glyph::Aspect)
+                    .gt(22)
+                    .or(Expr::col(Glyph::Aspect).lt(28))
+            )
+            .to_string(SqliteQueryBuilder),
+        vec![
+            "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect`",
+            "HAVING ((`aspect` > 2) OR (`aspect` < 8))",
+            "AND ((`aspect` > 22) OR (`aspect` < 28))",
         ]
         .join(" ")
     );
