@@ -378,7 +378,8 @@ pub fn unescape_string(input: &str) -> String {
     output
 }
 
-/// Convert json value to value
+/// Convert JSON value to Sea Value.
+/// `Json::Array` is not supported and will panic.
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn json_value_to_sea_value(v: &Json) -> Value {
@@ -393,11 +394,11 @@ pub fn json_value_to_sea_value(v: &Json) -> Value {
             } else if v.is_u64() {
                 Value::BigUnsigned(v.as_u64().unwrap())
             } else {
-                unimplemented!()
+                unreachable!()
             }
         }
         Json::String(v) => Value::String(Box::new(v.clone())),
-        Json::Array(_) => unimplemented!(),
+        Json::Array(_) => panic!("Json::Array is not supported"),
         Json::Object(v) => Value::Json(Box::new(Json::Object(v.clone()))),
     }
 }

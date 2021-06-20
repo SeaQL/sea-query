@@ -1157,7 +1157,8 @@ impl SelectStatement {
         since = "0.12.0",
         note = "Please use [`ConditionalStatement::cond_having`]. Calling `or_having` after `and_having` will panic."
     )]
-    /// Or having condition.
+    /// Or having condition. Please use `cond_having` instead.
+    /// Calling `or_having` after `and_having` will panic.
     ///
     /// # Examples
     ///

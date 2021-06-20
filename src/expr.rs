@@ -1295,6 +1295,7 @@ impl Expr {
 }
 
 impl Into<SimpleExpr> for Expr {
+    /// Convert into SimpleExpr. Will panic if this Expr is missing an operand
     fn into(self) -> SimpleExpr {
         if let Some(uopr) = self.uopr {
             SimpleExpr::Unary(uopr, Box::new(self.left.unwrap()))

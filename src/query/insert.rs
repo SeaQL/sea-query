@@ -214,10 +214,10 @@ impl InsertStatement {
         self.returning(Query::select().column(col.into_iden()).take())
     }
 
-    /// Specify a row of values to be inserted, taking input of json values. A convenience method if you have multiple
-    /// rows to insert at once.
+    /// Specify a row of values to be inserted, taking a JSON Object as input.
+    /// Will panic if `object` is not serde_json::Value::Object.
     ///
-    /// # Examples
+    /// # Example
     ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
@@ -256,7 +256,7 @@ impl InsertStatement {
     pub fn json(&mut self, object: JsonValue) -> &mut Self {
         match object {
             JsonValue::Object(_) => (),
-            _ => panic!("object must be JsonValue::Object"),
+            _ => panic!("must be JsonValue::Object"),
         }
         let mut values = Vec::new();
         if self.columns.is_empty() {

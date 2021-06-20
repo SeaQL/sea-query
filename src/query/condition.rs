@@ -276,6 +276,8 @@ pub trait ConditionalStatement {
         since = "0.12.0",
         note = "Please use [`ConditionalStatement::cond_where`]. Calling `or_where` after `and_where` will panic."
     )]
+    /// Or where condition. This cannot be mixed with [`ConditionalStatement::and_where`].
+    /// Calling `or_where` after `and_where` will panic.
     fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
         self.and_or_where(LogicalChainOper::Or(other))
     }
@@ -285,9 +287,8 @@ pub trait ConditionalStatement {
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self;
 
     /// Where condition, expressed with `any` and `all`.
-    /// This cannot be mixed with [`ConditionalStatement::and_where`].
-    /// Calling `cond_where` after `and_where` will panic.
     /// Calling `cond_where` multiple times will conjoin them.
+    /// Calling `or_where` after `cond_where` will panic.
     ///
     /// # Examples
     ///

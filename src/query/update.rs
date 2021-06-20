@@ -137,7 +137,8 @@ impl UpdateStatement {
         self.col_expr(col, expr)
     }
 
-    /// Update column values by [`JsonValue`]. A convenience method if you have multiple column-value pairs to set at once.
+    /// Update multiple columns, taking a JSON Object as input.
+    /// Will panic if `values` is not serde_json::Value::Object.
     ///
     /// # Examples
     ///
@@ -171,7 +172,7 @@ impl UpdateStatement {
     pub fn json(&mut self, values: JsonValue) -> &mut Self {
         match values {
             JsonValue::Object(_) => (),
-            _ => unimplemented!(),
+            _ => panic!("must be JsonValue::Object"),
         }
         for (k, v) in values.as_object().unwrap() {
             let v = json_value_to_sea_value(v);
