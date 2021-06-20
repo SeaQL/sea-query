@@ -1,7 +1,6 @@
 [workspace]
 members = [
     ".",
-    "sea-query-test",
     "sea-query-derive",
     "examples/postgres",
     "examples/postgres_json",
@@ -40,9 +39,6 @@ postgres-types = { version = "^0", optional = true }
 uuid = { version = "^0", optional = true }
 anyhow = { version = "1.0" }
 thiserror = { version = "1.0" }
-
-[dev-dependencies]
-sea-query-test = { path = "sea-query-test", default-features = false }
 
 [features]
 backend-mysql = [ ]

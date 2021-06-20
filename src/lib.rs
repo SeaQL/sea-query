@@ -680,7 +680,7 @@ pub use foreign_key::*;
 pub use index::*;
 pub use query::*;
 pub use table::*;
-//pub use error::*;
+// pub use error::*;
 pub use expr::*;
 pub use func::*;
 pub use prepare::*;

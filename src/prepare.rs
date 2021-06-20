@@ -75,7 +75,7 @@ impl SqlWriter {
 }
 
 impl std::fmt::Write for SqlWriter {
-    fn write_str(&mut self, s: &str) -> Result<(), std::fmt::Error> {
+    fn write_str(&mut self, s: &str) -> std::result::Result<(), std::fmt::Error> {
         write!(
             self.string,
             "{}",
