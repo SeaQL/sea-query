@@ -1086,7 +1086,7 @@ impl SelectStatement {
     ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    ///
+    /// 
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .expr(Expr::col(Glyph::Image).max())
@@ -1095,20 +1095,26 @@ impl SelectStatement {
     ///         Glyph::Aspect,
     ///     ])
     ///     .cond_having(
-    ///       all![
-    ///         Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-    ///         any![
-    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///           Expr::tbl(Glyph::Table, Glyph::Image).like("B%")]])
+    ///         all![
+    ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
+    ///             any![
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
+    ///             ]
+    ///         ]
+    ///     )
     ///     .to_owned();
-    ///
+    /// 
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
     /// );
     /// ```
-    pub fn cond_having(&mut self, condition: Condition) -> &mut Self {
-        self.having.add_condition(condition);
+    pub fn cond_having<C>(&mut self, condition: C) -> &mut Self
+    where
+        C: IntoCondition,
+    {
+        self.having.add_condition(condition.into_condition());
         self
     }
 
@@ -1127,7 +1133,7 @@ impl SelectStatement {
     ///         Glyph::Aspect,
     ///     ])
     ///     .and_having(Expr::col(Glyph::Aspect).gt(2))
-    ///     .and_having(Expr::col(Glyph::Aspect).lt(8))
+    ///     .cond_having(Expr::col(Glyph::Aspect).lt(8))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1144,14 +1150,44 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn and_having(&mut self, other: SimpleExpr) -> &mut Self {
-        self.having.add_and_or(LogicalChainOper::And(other));
-        self
+        self.cond_having(other)
     }
 
     #[deprecated(
-        since = "0.11.0",
-        note = "Please use [`SelectStatement::cond_having`] or only [`SelectStatement::and_having`]. The evaluation of mixed `and_having` and `or_having` can be surprising."
+        since = "0.12.0",
+        note = "Please use [`ConditionalStatement::cond_having`]. Calling `or_having` after `and_having` will panic."
     )]
+    /// Or having condition.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Aspect)
+    ///     .expr(Expr::col(Glyph::Image).max())
+    ///     .from(Glyph::Table)
+    ///     .group_by_columns(vec![
+    ///         Glyph::Aspect,
+    ///     ])
+    ///     .or_having(Expr::col(Glyph::Aspect).gt(2))
+    ///     .or_having(Expr::col(Glyph::Aspect).lt(8))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 OR `aspect` < 8"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 OR "aspect" < 8"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 OR `aspect` < 8"#
+    /// );
+    /// ```
     pub fn or_having(&mut self, other: SimpleExpr) -> &mut Self {
         self.having.add_and_or(LogicalChainOper::Or(other));
         self
