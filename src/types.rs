@@ -237,16 +237,21 @@ where
 }
 
 impl TableRef {
+    /// Add or replace the current alias
     pub fn alias<A: 'static>(self, alias: A) -> Self
     where
         A: IntoIden,
     {
         match self {
             Self::Table(table) => Self::TableAlias(table, alias.into_iden()),
+            Self::TableAlias(table, _) => Self::TableAlias(table, alias.into_iden()),
             Self::SchemaTable(schema, table) => {
                 Self::SchemaTableAlias(schema, table, alias.into_iden())
             }
-            _ => panic!("unexpected TableRef variant"),
+            Self::SchemaTableAlias(schema, table, _) => {
+                Self::SchemaTableAlias(schema, table, alias.into_iden())
+            }
+            Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
         }
     }
 }

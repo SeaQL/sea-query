@@ -1086,7 +1086,7 @@ impl SelectStatement {
     ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .expr(Expr::col(Glyph::Image).max())
@@ -1104,7 +1104,7 @@ impl SelectStatement {
     ///         ]
     ///     )
     ///     .to_owned();
-    /// 
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
