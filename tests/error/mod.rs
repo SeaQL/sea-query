@@ -1,4 +1,4 @@
-use sea_query::{*, tests_cfg::*, error::*};
+use sea_query::{error::*, tests_cfg::*, *};
 
 #[test]
 fn insert_values_1() {

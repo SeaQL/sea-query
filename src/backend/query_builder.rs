@@ -165,6 +165,8 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " LIMIT ").unwrap();
             self.prepare_value(limit, sql, collector);
         }
+
+        self.prepare_returning(&update.returning, sql, collector);
     }
 
     /// Translate [`DeleteStatement`] into SQL statement.
