@@ -183,7 +183,7 @@ impl UpdateStatement {
         self
     }
 
-    /// Update column values.. A convenience method if you have multiple column-value pairs to set at once.
+    /// Update column values. To set multiple column-value pairs at once.
     ///
     /// # Examples
     ///
@@ -300,7 +300,7 @@ impl UpdateStatement {
         self
     }
 
-    /// RETURNING a column after update. Postgres only. This is equivalent to MySQL's LAST_INSERT_ID.
+    /// RETURNING a column after update. Postgres only.
     /// Wrapper over [`UpdateStatement::returning()`].
     ///
     /// ```
