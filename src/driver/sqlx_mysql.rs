@@ -23,6 +23,8 @@ macro_rules! bind_params_sqlx_mysql {
                         query.bind(value.as_ref_json())
                     } else if value.is_date_time() {
                         query.bind(value.as_ref_date_time())
+                    } else if value.is_decimal() {
+                        query.bind(value.as_ref_decimal())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
                     } else {

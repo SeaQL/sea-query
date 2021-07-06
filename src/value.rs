@@ -9,6 +9,13 @@ use std::str::from_utf8;
 #[cfg(feature = "with-chrono")]
 use chrono::NaiveDateTime;
 
+#[cfg(feature = "with-rust_decimal")]
+use ::rust_decimal::Decimal;
+#[cfg(feature = "with-rust_decimal")]
+pub mod rust_decimal {
+    pub use rust_decimal::prelude::ToPrimitive;
+}
+
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
@@ -40,6 +47,9 @@ pub enum Value {
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Box<Uuid>),
+    #[cfg(feature = "with-rust_decimal")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+    Decimal(Box<Decimal>),
 }
 
 pub trait ValueType {
@@ -219,6 +229,14 @@ mod with_chrono {
     }
 }
 
+#[cfg(feature = "with-rust_decimal")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+mod with_rust_decimal {
+    use super::*;
+
+    type_to_box_value!(Decimal, Decimal);
+}
+
 #[cfg(feature = "with-uuid")]
 mod with_uuid {
     use super::*;
@@ -268,6 +286,26 @@ impl Value {
     #[cfg(not(feature = "with-chrono"))]
     pub fn as_ref_date_time(&self) -> &bool {
         panic!("not Value::DateTime")
+    }
+}
+
+impl Value {
+    pub fn is_decimal(&self) -> bool {
+        #[cfg(feature = "with-rust_decimal")]
+        return matches!(self, Self::Decimal(_));
+        #[cfg(not(feature = "with-rust_decimal"))]
+        return false;
+    }
+    #[cfg(feature = "with-rust_decimal")]
+    pub fn as_ref_decimal(&self) -> &Decimal {
+        match self {
+            Self::Decimal(v) => v.as_ref(),
+            _ => panic!("not Value::Decimal"),
+        }
+    }
+    #[cfg(not(feature = "with-rust_decimal"))]
+    pub fn as_ref_decimal(&self) -> &bool {
+        panic!("not Value::Decimal")
     }
 }
 
@@ -426,6 +464,11 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::Json(v) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
         Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
+        #[cfg(feature = "with-rust_decimal")]
+        Value::Decimal(v) => {
+            use self::rust_decimal::ToPrimitive;
+            v.as_ref().to_f64().unwrap().into()
+        },
         #[cfg(feature = "with-uuid")]
         Value::Uuid(v) => Json::String(v.to_string()),
     }
@@ -570,5 +613,17 @@ mod tests {
             Value::String(Box::new("b".to_owned()))
         );
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    #[cfg(feature = "with-rust_decimal")]
+    fn test_decimal_value() {
+        use std::str::FromStr;
+
+        let num = "2.02";
+        let val = Decimal::from_str(num).unwrap();
+        let v: Value = val.into();
+        let out: Decimal = v.unwrap();
+        assert_eq!(out.to_string(), num);
     }
 }

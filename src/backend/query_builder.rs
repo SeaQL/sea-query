@@ -623,6 +623,8 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::DateTime(v) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
             }
+            #[cfg(feature = "with-rust_decimal")]
+            Value::Decimal(v) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => write!(s, "\'{}\'", v.to_string()).unwrap(),
         };
