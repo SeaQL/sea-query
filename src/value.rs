@@ -10,11 +10,7 @@ use std::str::from_utf8;
 use chrono::NaiveDateTime;
 
 #[cfg(feature = "with-rust_decimal")]
-use ::rust_decimal::Decimal;
-#[cfg(feature = "with-rust_decimal")]
-pub mod rust_decimal {
-    pub use rust_decimal::prelude::ToPrimitive;
-}
+use rust_decimal::Decimal;
 
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
@@ -291,9 +287,18 @@ impl Value {
             _ => panic!("not Value::Decimal"),
         }
     }
+    #[cfg(feature = "with-rust_decimal")]
+    pub fn decimal_to_f64(&self) -> f64 {
+        use rust_decimal::prelude::ToPrimitive;
+        self.as_ref_decimal().to_f64().unwrap()
+    }
     #[cfg(not(feature = "with-rust_decimal"))]
     pub fn as_ref_decimal(&self) -> &bool {
         panic!("not Value::Decimal")
+    }
+    #[cfg(not(feature = "with-rust_decimal"))]
+    pub fn decimal_to_f64(&self) -> f64 {
+        0.0
     }
 }
 
@@ -454,7 +459,7 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(v) => {
-            use self::rust_decimal::ToPrimitive;
+            use rust_decimal::prelude::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         },
         #[cfg(feature = "with-uuid")]

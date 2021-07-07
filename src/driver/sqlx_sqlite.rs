@@ -24,8 +24,7 @@ macro_rules! bind_params_sqlx_sqlite {
                     } else if value.is_date_time() {
                         query.bind(value.as_ref_date_time())
                     } else if value.is_decimal() {
-                        use sea_query::rust_decimal::ToPrimitive;
-                        query.bind(value.as_ref_decimal().to_f64().unwrap())
+                        query.bind(value.decimal_to_f64())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
                     } else {
