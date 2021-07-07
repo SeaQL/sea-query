@@ -206,27 +206,19 @@ type_to_box_value!(Vec<u8>, Bytes);
 type_to_box_value!(String, String);
 
 #[cfg(feature = "with-json")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
     use super::*;
 
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    impl From<Json> for Value {
-        fn from(x: Json) -> Value {
-            Value::Json(Box::new(x))
-        }
-    }
+    type_to_box_value!(Json, Json);
 }
 
 #[cfg(feature = "with-chrono")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
     use super::*;
 
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    impl From<NaiveDateTime> for Value {
-        fn from(x: NaiveDateTime) -> Value {
-            Value::DateTime(Box::new(x))
-        }
-    }
+    type_to_box_value!(NaiveDateTime, DateTime);
 }
 
 #[cfg(feature = "with-rust_decimal")]
@@ -238,15 +230,11 @@ mod with_rust_decimal {
 }
 
 #[cfg(feature = "with-uuid")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
 mod with_uuid {
     use super::*;
 
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
-    impl From<Uuid> for Value {
-        fn from(x: Uuid) -> Value {
-            Value::Uuid(Box::new(x))
-        }
-    }
+    type_to_box_value!(Uuid, Uuid);
 }
 
 impl Value {
@@ -613,6 +601,36 @@ mod tests {
             Value::String(Box::new("b".to_owned()))
         );
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    #[cfg(feature = "with-json")]
+    fn test_json_value() {
+        let json = serde_json::json! {{
+            "a": 25.0,
+            "b": "hello",
+        }};
+        let value: Value = json.clone().into();
+        let out: Json = value.unwrap();
+        assert_eq!(out, json);
+    }
+
+    #[test]
+    #[cfg(feature = "with-chrono")]
+    fn test_chrono_value() {
+        let timestamp = chrono::NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2);
+        let value: Value = timestamp.into();
+        let out: NaiveDateTime = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-uuid")]
+    fn test_uuid_value() {
+        let uuid = uuid::Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
+        let value: Value = uuid.into();
+        let out: uuid::Uuid = value.unwrap();
+        assert_eq!(out, uuid);
     }
 
     #[test]
