@@ -48,10 +48,14 @@ pub enum Value {
     Decimal(Box<Decimal>),
 }
 
-pub trait ValueType {
+pub trait ValueType: ValueTypeDefault {
     fn unwrap(v: Value) -> Self;
 
     fn type_name() -> &'static str;
+}
+
+pub trait ValueTypeDefault {
+    fn default() -> Self;
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -113,6 +117,12 @@ macro_rules! type_to_value {
             }
         }
 
+        impl ValueTypeDefault for $type {
+            fn default() -> Self {
+                Default::default()
+            }
+        }
+
         impl ValueType for Option<$type> {
             fn unwrap(v: Value) -> Self {
                 match v {
@@ -123,6 +133,12 @@ macro_rules! type_to_value {
 
             fn type_name() -> &'static str {
                 concat!("Option<", stringify!($type), ">")
+            }
+        }
+
+        impl ValueTypeDefault for Option<$type> {
+            fn default() -> Self {
+                Default::default()
             }
         }
     };
@@ -170,6 +186,23 @@ macro_rules! type_to_box_value {
                 concat!("Option<", stringify!($type), ">")
             }
         }
+
+        impl ValueTypeDefault for Option<$type> {
+            fn default() -> Self {
+                Default::default()
+            }
+        }
+    };
+}
+
+
+macro_rules! impl_value_type_default {
+    ( $type: ty ) => {
+        impl ValueTypeDefault for $type {
+            fn default() -> Self {
+                Default::default()
+            }
+        }
     };
 }
 
@@ -199,7 +232,9 @@ impl<'a> From<&'a str> for Value {
 }
 
 type_to_box_value!(Vec<u8>, Bytes);
+impl_value_type_default!(Vec<u8>);
 type_to_box_value!(String, String);
+impl_value_type_default!(String);
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -207,6 +242,7 @@ mod with_json {
     use super::*;
 
     type_to_box_value!(Json, Json);
+    impl_value_type_default!(Json);
 }
 
 #[cfg(feature = "with-chrono")]
@@ -215,6 +251,12 @@ mod with_chrono {
     use super::*;
 
     type_to_box_value!(NaiveDateTime, DateTime);
+
+    impl ValueTypeDefault for NaiveDateTime {
+        fn default() -> Self {
+            NaiveDateTime::from_timestamp(0, 0)
+        }
+    }
 }
 
 #[cfg(feature = "with-rust_decimal")]
@@ -223,6 +265,7 @@ mod with_rust_decimal {
     use super::*;
 
     type_to_box_value!(Decimal, Decimal);
+    impl_value_type_default!(Decimal);
 }
 
 #[cfg(feature = "with-uuid")]
@@ -231,6 +274,7 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid);
+    impl_value_type_default!(Uuid);
 }
 
 impl Value {
