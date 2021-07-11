@@ -195,7 +195,6 @@ macro_rules! type_to_box_value {
     };
 }
 
-
 macro_rules! impl_value_type_default {
     ( $type: ty ) => {
         impl ValueTypeDefault for $type {
@@ -505,7 +504,7 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::Decimal(v) => {
             use rust_decimal::prelude::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
-        },
+        }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(v) => Json::String(v.to_string()),
     }
