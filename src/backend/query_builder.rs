@@ -284,12 +284,25 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, "{}", s).unwrap();
             }
             SimpleExpr::CustomWithValues(expr, values) => {
-                let tokenizer = Tokenizer::new(expr);
+                let mut tokenizer = Tokenizer::new(expr).iter().peekable();
                 let mut count = 0;
-                for tok in tokenizer.iter() {
+                while let Some(tok) = tokenizer.next() {
                     match tok {
                         Token::Punctuation(mark) => {
                             if mark == "?" {
+                                if let Some(nxt) = tokenizer.peek() {
+                                    match nxt {
+                                        Token::Punctuation(mark) => {
+                                            // escape '??'
+                                            if mark == "?" {
+                                                write!(sql, "{}", mark).unwrap();
+                                                tokenizer.next();
+                                                continue;
+                                            }
+                                        }
+                                        _ => {}
+                                    }
+                                }
                                 self.prepare_value(&values[count], sql, collector);
                                 count += 1;
                             } else {

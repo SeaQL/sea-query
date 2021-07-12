@@ -298,6 +298,39 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_values("6 = ? * ?", vec![2, 3]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT 6 = 2 * 3"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT 6 = 2 * 3"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT 6 = 2 * 3"#
+    /// );
+    /// ```
+    /// Postgres only: use `??` to escape `?`
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_values("? ?? ?", vec!["a", "b"]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT 'a' ? 'b'"#
+    /// );
+    /// ```
     pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
     where
         V: Into<Value>,

@@ -23,12 +23,12 @@ where
         let token = &tokens[i];
         match token {
             Token::Punctuation(mark) => {
-                if mark == "?" {
+                if (mark.as_ref(), false) == query_builder.placeholder() {
                     output.push(query_builder.value_to_string(&params[counter]));
                     counter += 1;
                     i += 1;
                     continue;
-                } else if mark == "$" && i + 1 < tokens.len() {
+                } else if (mark.as_ref(), true) == query_builder.placeholder() && i + 1 < tokens.len() {
                     if let Token::Unquoted(next) = &tokens[i + 1] {
                         if let Ok(num) = next.parse::<usize>() {
                             output.push(query_builder.value_to_string(&params[num - 1]));
