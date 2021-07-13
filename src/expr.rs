@@ -331,6 +331,18 @@ impl Expr {
     ///     r#"SELECT 'a' ? 'b'"#
     /// );
     /// ```
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_values("data @?? (?::JSONPATH)", vec!["hello"]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
+    /// );
+    /// ```
     pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
     where
         V: Into<Value>,
