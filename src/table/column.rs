@@ -32,6 +32,7 @@ pub enum ColumnType {
     Json,
     JsonBinary,
     Custom(DynIden),
+    Uuid,
 }
 
 /// All column specification keywords
@@ -320,5 +321,11 @@ impl ColumnDef {
 
     pub fn get_column_spec(&self) -> &Vec<ColumnSpec> {
         self.spec.as_ref()
+    }
+
+    /// Set column type as uuid
+    pub fn uuid(mut self) -> Self {
+        self.types = Some(ColumnType::Uuid);
+        self
     }
 }
