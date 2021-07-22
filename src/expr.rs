@@ -1292,6 +1292,87 @@ impl Expr {
         self.into()
     }
 
+    /// Express an postgres fulltext search matches (`@@`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::val("a & b").matches(Expr::val("a b")))
+    ///     .and_where(Expr::col(Font::Name).matches(Expr::val("a b")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @@ 'a b' AND "name" @@ 'a b'"#
+    /// );
+    /// ```
+    #[cfg(feature = "postgres-fulltext-search")]
+    pub fn matches<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(BinOper::Matches, expr.into())
+    }
+
+    /// Express an postgres fulltext search contains (`@>`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::val("a & b").contains(Expr::val("a b")))
+    ///     .and_where(Expr::col(Font::Name).contains(Expr::val("a b")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @> 'a b' AND "name" @> 'a b'"#
+    /// );
+    /// ```
+    #[cfg(feature = "postgres-fulltext-search")]
+    pub fn contains<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(BinOper::Contains, expr.into())
+    }
+
+    /// Express an postgres fulltext search contained (`<@`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::val("a & b").contained(Expr::val("a b")))
+    ///     .and_where(Expr::col(Font::Name).contained(Expr::val("a b")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' <@ 'a b' AND "name" <@ 'a b'"#
+    /// );
+    /// ```
+    #[cfg(feature = "postgres-fulltext-search")]
+    pub fn contained<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(BinOper::Contained, expr.into())
+    }
+
     pub(crate) fn func(func: Function) -> Self {
         let mut expr = Expr::new();
         expr.func = Some(func);
