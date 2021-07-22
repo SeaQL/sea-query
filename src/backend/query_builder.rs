@@ -457,6 +457,12 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Sub => "-",
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
+                #[cfg(feature = "postgres-fulltext-search")]
+                BinOper::Matches => "@@",
+                #[cfg(feature = "postgres-fulltext-search")]
+                BinOper::Contains => "@>",
+                #[cfg(feature = "postgres-fulltext-search")]
+                BinOper::Contained => "<@",
             }
         )
         .unwrap();

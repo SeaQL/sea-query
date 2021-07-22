@@ -99,6 +99,12 @@ pub enum BinOper {
     Sub,
     Mul,
     Div,
+    #[cfg(feature = "postgres-fulltext-search")]
+    Matches,
+    #[cfg(feature = "postgres-fulltext-search")]
+    Contains,
+    #[cfg(feature = "postgres-fulltext-search")]
+    Contained,
 }
 
 /// Logical chain operator
