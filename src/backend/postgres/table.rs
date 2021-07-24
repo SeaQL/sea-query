@@ -81,8 +81,8 @@ impl TableBuilder for PostgresQueryBuilder {
                 },
                 ColumnType::Json => "json".into(),
                 ColumnType::JsonBinary => "jsonb".into(),
-                ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Uuid => "uuid".into(),
+                ColumnType::Custom(iden) => iden.to_string(),
             }
         )
         .unwrap()

@@ -81,8 +81,8 @@ impl TableBuilder for MysqlQueryBuilder {
                 },
                 ColumnType::Json => "json".into(),
                 ColumnType::JsonBinary => "json".into(),
+                ColumnType::Uuid => "binary(16)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
-                ColumnType::Uuid => format!("binary(16)"),
             }
         )
         .unwrap()

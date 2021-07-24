@@ -31,8 +31,8 @@ pub enum ColumnType {
     Money(Option<(u32, u32)>),
     Json,
     JsonBinary,
-    Custom(DynIden),
     Uuid,
+    Custom(DynIden),
 }
 
 /// All column specification keywords
@@ -281,18 +281,24 @@ impl ColumnDef {
     }
 
     /// Set column type as json.
-    /// On MySQL, this is equivalent to json_binary. On MariaDB, this is equivalent to text.
-    /// On PgSQL, this is equivalent to json.
+    /// On MySQL, this is equivalent to `json_binary`. On MariaDB, this is equivalent to `text`.
+    /// On PgSQL, this is equivalent to `json`.
     pub fn json(mut self) -> Self {
         self.types = Some(ColumnType::Json);
         self
     }
 
     /// Set column type as json binary.
-    /// On MySQL, this is equivalent to json. On MariaDB, this is equivalent to text.
-    /// On PgSQL, this is equivalent to jsonb.
+    /// On MySQL, this is equivalent to `json`. On MariaDB, this is equivalent to `text`.
+    /// On PgSQL, this is equivalent to `jsonb`.
     pub fn json_binary(mut self) -> Self {
         self.types = Some(ColumnType::JsonBinary);
+        self
+    }
+
+    /// Set column type as uuid
+    pub fn uuid(mut self) -> Self {
+        self.types = Some(ColumnType::Uuid);
         self
     }
 
@@ -321,11 +327,5 @@ impl ColumnDef {
 
     pub fn get_column_spec(&self) -> &Vec<ColumnSpec> {
         self.spec.as_ref()
-    }
-
-    /// Set column type as uuid
-    pub fn uuid(mut self) -> Self {
-        self.types = Some(ColumnType::Uuid);
-        self
     }
 }
