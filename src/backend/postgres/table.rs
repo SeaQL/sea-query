@@ -71,8 +71,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 },
                 ColumnType::Date => "date".into(),
                 ColumnType::Binary(length) => match length {
-                    Some(length) => format!("binary({})", length),
-                    None => "binary".into(),
+                    Some(_) | None => "bytea".into(),
                 },
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
