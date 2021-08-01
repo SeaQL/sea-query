@@ -7,7 +7,7 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::NaiveDateTime;
+use chrono::{DateTime, FixedOffset, NaiveDateTime};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -40,6 +40,9 @@ pub enum Value {
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTime(Box<NaiveDateTime>),
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    DateTimeWithTimeZone(Box<DateTime<FixedOffset>>),
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Box<Uuid>),
@@ -247,6 +250,7 @@ mod with_json {
 #[cfg(feature = "with-chrono")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
+    use chrono::{TimeZone, Offset};
     use super::*;
 
     type_to_box_value!(NaiveDateTime, DateTime);
@@ -254,6 +258,66 @@ mod with_chrono {
     impl ValueTypeDefault for NaiveDateTime {
         fn default() -> Self {
             NaiveDateTime::from_timestamp(0, 0)
+        }
+    }
+
+    impl ValueTypeDefault for DateTime<FixedOffset> {
+        fn default() -> Self {
+            DateTime::from_utc(
+                NaiveDateTime::from_timestamp(0, 0), FixedOffset::east(0)
+            )
+        }
+    }
+
+    impl ValueTypeDefault for Option<DateTime<FixedOffset>> {
+        fn default() -> Self {
+            Default::default()
+        }
+    }
+
+    impl<Tz> From<DateTime<Tz>> for Value
+    where
+        Tz: TimeZone {
+        fn from(x: DateTime<Tz>) -> Value {
+            let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
+            Value::DateTimeWithTimeZone(Box::new(v))
+        }
+    }
+
+    impl<Tz> From<Option<DateTime<Tz>>> for Value
+    where
+        Tz: TimeZone {
+        fn from(x: Option<DateTime<Tz>>) -> Value {
+            match x {
+                Some(v) => From::<DateTime<Tz>>::from(v),
+                None => Value::Null,
+            }
+        }
+    }
+
+    impl ValueType for DateTime<FixedOffset> {
+        fn unwrap(v: Value) -> Self {
+            match v {
+                Value::DateTimeWithTimeZone(x) => *x,
+                _ => panic!("type error"),
+            }
+        }
+
+        fn type_name() -> &'static str {
+            stringify!(DateTime<FixedOffset>)
+        }
+    }
+
+    impl ValueType for Option<DateTime<FixedOffset>> {
+        fn unwrap(v: Value) -> Self {
+            match v {
+                Value::DateTimeWithTimeZone(x) => Some(*x),
+                _ => panic!("type error"),
+            }
+        }
+
+        fn type_name() -> &'static str {
+            stringify!(Option<DateTime<FixedOffset>>)
         }
     }
 }
@@ -481,8 +545,10 @@ pub fn json_value_to_sea_value(v: &Json) -> Value {
 #[allow(clippy::many_single_char_names)]
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-pub fn sea_value_to_json_value(v: &Value) -> Json {
-    match v {
+pub fn sea_value_to_json_value(value: &Value) -> Json {
+    use crate::{PostgresQueryBuilder, QueryBuilder};
+
+    match value {
         Value::Null => Json::Null,
         Value::Bool(b) => Json::Bool(*b),
         Value::TinyInt(v) => (*v).into(),
@@ -499,7 +565,9 @@ pub fn sea_value_to_json_value(v: &Value) -> Json {
         Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(v) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTime(v) => v.format("%Y-%m-%d %H:%M:%S").to_string().into(),
+        Value::DateTime(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
+        Value::DateTimeWithTimeZone(_) => PostgresQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(v) => {
             use rust_decimal::prelude::ToPrimitive;
@@ -670,6 +738,43 @@ mod tests {
         let value: Value = timestamp.into();
         let out: NaiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-chrono")]
+    fn test_chrono_timezone_value() {
+        let timestamp = DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00").unwrap();
+        let value: Value = timestamp.into();
+        let out: DateTime<FixedOffset> = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-chrono")]
+    fn test_chrono_query() {
+        use crate::*;
+
+        let string = "2020-01-01T02:02:02+08:00";
+        let timestamp = DateTime::parse_from_rfc3339(string).unwrap();
+
+        let query = Query::select()
+            .expr(Expr::val(timestamp))
+            .to_owned();
+
+        let formatted = "2020-01-01 02:02:02 +08:00";
+
+        assert_eq!(
+            query.to_string(MysqlQueryBuilder),
+            format!("SELECT '{}'", formatted)
+        );
+        assert_eq!(
+            query.to_string(PostgresQueryBuilder),
+            format!("SELECT '{}'", formatted)
+        );
+        assert_eq!(
+            query.to_string(SqliteQueryBuilder),
+            format!("SELECT '{}'", formatted)
+        );
     }
 
     #[test]
