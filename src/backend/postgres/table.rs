@@ -65,6 +65,10 @@ impl TableBuilder for PostgresQueryBuilder {
                     Some(precision) => format!("timestamp({})", precision),
                     None => "timestamp".into(),
                 },
+                ColumnType::TimestampWithTimeZone(precision) => match precision {
+                    Some(precision) => format!("timestamp with time zone({})", precision),
+                    None => "timestamp with time zone".into(),
+                },
                 ColumnType::Time(precision) => match precision {
                     Some(precision) => format!("time({})", precision),
                     None => "time".into(),

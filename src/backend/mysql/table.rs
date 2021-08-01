@@ -65,6 +65,10 @@ impl TableBuilder for MysqlQueryBuilder {
                     Some(precision) => format!("timestamp({})", precision),
                     None => "timestamp".into(),
                 },
+                ColumnType::TimestampWithTimeZone(precision) => match precision {
+                    Some(precision) => format!("timestamp({})", precision),
+                    None => "timestamp".into(),
+                },
                 ColumnType::Time(precision) => match precision {
                     Some(precision) => format!("time({})", precision),
                     None => "time".into(),

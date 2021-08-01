@@ -24,6 +24,7 @@ pub enum ColumnType {
     Decimal(Option<(u32, u32)>),
     DateTime(Option<u32>),
     Timestamp(Option<u32>),
+    TimestampWithTimeZone(Option<u32>),
     Time(Option<u32>),
     Date,
     Binary(Option<u32>),
@@ -229,6 +230,18 @@ impl ColumnDef {
     /// Set column type as timestamp
     pub fn timestamp(mut self) -> Self {
         self.types = Some(ColumnType::Timestamp(None));
+        self
+    }
+
+    /// Set column type as timestamp with time zone. Postgres only
+    pub fn timestamp_with_time_zone(mut self) -> Self {
+        self.types = Some(ColumnType::TimestampWithTimeZone(None));
+        self
+    }
+
+    /// Set column type as timestamp with time zone plus custom precision
+    pub fn timestamp_with_time_zone_len(mut self, precision: u32) -> Self {
+        self.types = Some(ColumnType::TimestampWithTimeZone(Some(precision)));
         self
     }
 
