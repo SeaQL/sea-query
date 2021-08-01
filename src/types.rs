@@ -7,9 +7,13 @@ pub use std::rc::Rc as SeaRc; // in case we some day we want to use Arc instead 
 /// Identifier in query
 pub trait Iden {
     fn prepare(&self, s: &mut dyn fmt::Write, q: char) {
-        write!(s, "{}", q).unwrap();
-        self.unquoted(s);
-        write!(s, "{}", q).unwrap();
+        write!(s, "{}{}{}", q, self.quoted(q), q).unwrap();
+    }
+
+    fn quoted(&self, q: char) -> String {
+        let mut b = [0; 4];
+        let qq: &str = q.encode_utf8(&mut b);
+        self.to_string().replace(qq, qq.repeat(2).as_str())
     }
 
     fn to_string(&self) -> String {
@@ -265,5 +269,57 @@ impl Alias {
 impl Iden for Alias {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(s, "{}", self.0).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn test_identifier() {
+        let query = Query::select()
+            .column(Alias::new("hello-World_"))
+            .to_owned();
+
+        assert_eq!(
+            query.to_string(MysqlQueryBuilder),
+            r#"SELECT `hello-World_`"#
+        );
+        assert_eq!(
+            query.to_string(PostgresQueryBuilder),
+            r#"SELECT "hello-World_""#
+        );
+        assert_eq!(
+            query.to_string(SqliteQueryBuilder),
+            r#"SELECT `hello-World_`"#
+        );
+    }
+
+    #[test]
+    fn test_quoted_identifier_1() {
+        let query = Query::select().column(Alias::new("hel`lo")).to_owned();
+
+        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel``lo`"#);
+
+        let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
+
+        assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT "hel""lo""#);
+    }
+
+    #[test]
+    fn test_quoted_identifier_2() {
+        let query = Query::select().column(Alias::new("hel``lo")).to_owned();
+
+        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel````lo`"#);
+
+        let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
+
+        assert_eq!(
+            query.to_string(PostgresQueryBuilder),
+            r#"SELECT "hel""""lo""#
+        );
     }
 }
