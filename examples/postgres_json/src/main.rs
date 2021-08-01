@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{NaiveDate, NaiveDateTime, DateTime, FixedOffset};
 use postgres::{Client, NoTls, Row};
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
 
@@ -24,6 +24,7 @@ fn main() {
             )
             .col(ColumnDef::new(Document::JsonField).json_binary())
             .col(ColumnDef::new(Document::Timestamp).timestamp())
+            .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
@@ -44,13 +45,15 @@ fn main() {
             }
         }},
         timestamp: NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2),
+        timestamp_with_time_zone: DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00").unwrap(),
     };
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
-        .columns(vec![Document::JsonField, Document::Timestamp])
+        .columns(vec![Document::JsonField, Document::Timestamp, Document::TimestampWithTimeZone])
         .values_panic(vec![
             serde_json::to_value(document.json_field).unwrap().into(),
             document.timestamp.into(),
+            document.timestamp_with_time_zone.into(),
         ])
         .build(PostgresQueryBuilder);
 
@@ -60,7 +63,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![Document::Id, Document::JsonField, Document::Timestamp])
+        .columns(vec![Document::Id, Document::JsonField, Document::Timestamp, Document::TimestampWithTimeZone])
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
         .limit(1)
@@ -81,6 +84,7 @@ enum Document {
     Id,
     JsonField,
     Timestamp,
+    TimestampWithTimeZone,
 }
 
 #[derive(Debug)]
@@ -88,6 +92,7 @@ struct DocumentStruct {
     id: i32,
     json_field: serde_json::Value,
     timestamp: NaiveDateTime,
+    timestamp_with_time_zone: DateTime<FixedOffset>,
 }
 
 impl From<Row> for DocumentStruct {
@@ -96,6 +101,7 @@ impl From<Row> for DocumentStruct {
             id: row.get("id"),
             json_field: row.get("json_field"),
             timestamp: row.get("timestamp"),
+            timestamp_with_time_zone: row.get("timestamp_with_time_zone"),
         }
     }
 }

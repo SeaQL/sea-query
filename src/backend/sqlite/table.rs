@@ -85,6 +85,10 @@ impl TableBuilder for SqliteQueryBuilder {
                     Some(precision) => format!("text({})", precision),
                     None => "text".into(),
                 },
+                ColumnType::TimestampWithTimeZone(precision) => match precision {
+                    Some(precision) => format!("text({})", precision),
+                    None => "text".into(),
+                },
                 ColumnType::Time(precision) => match precision {
                     Some(precision) => format!("text({})", precision),
                     None => "text".into(),
