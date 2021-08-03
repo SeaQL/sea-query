@@ -4,7 +4,7 @@ use sea_query::{
 };
 
 fn main() {
-    let mut client = Client::connect("postgresql://sea:sea@localhost/query", NoTls).unwrap();
+    let mut client = Client::connect("postgresql://root:@localhost/query", NoTls).unwrap();
 
     // Schema
 

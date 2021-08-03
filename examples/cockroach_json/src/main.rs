@@ -3,7 +3,7 @@ use postgres::{Client, NoTls, Row};
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
 
 fn main() {
-    let mut client = Client::connect("postgresql://sea:sea@localhost/query", NoTls).unwrap();
+    let mut client = Client::connect("postgresql://root:@localhost/query", NoTls).unwrap();
 
     // Schema
 
