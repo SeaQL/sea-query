@@ -1,0 +1,10 @@
+[package]
+name = "sea-query-cockroach-example"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+postgres = "^0.19"
+sea-query = { path = "../../", features = ["postgres"] }
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0.9", features = ["postgres"] }

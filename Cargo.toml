@@ -4,6 +4,8 @@ members = [
     "sea-query-derive",
     "examples/postgres",
     "examples/postgres_json",
+    "examples/cockroach",
+    "examples/cockroach_json",
     "examples/rusqlite",
     "examples/sqlx_mysql",
     "examples/sqlx_postgres",
