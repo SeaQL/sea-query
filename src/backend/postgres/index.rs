@@ -2,9 +2,13 @@ use super::*;
 
 impl IndexBuilder for PostgresQueryBuilder {
     fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
-        self.prepare_index_prefix(create, sql);
+        if create.index.name.is_some() {
+            write!(sql, "CONSTRAINT ").unwrap();
+            self.prepare_index_name(&create.index.name, sql);
+            write!(sql, " ").unwrap();
+        }
 
-        self.prepare_index_name(&create.index.name, sql);
+        self.prepare_index_prefix(create, sql);
 
         self.prepare_index_columns(&create.index.columns, sql);
     }
