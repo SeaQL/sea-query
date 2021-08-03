@@ -3,11 +3,8 @@ use super::*;
 impl IndexBuilder for PostgresQueryBuilder {
     fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         self.prepare_index_prefix(create, sql);
-        write!(sql, "KEY ").unwrap();
 
         self.prepare_index_name(&create.index.name, sql);
-
-        // self.prepare_index_type(&create.index_type, sql);
 
         self.prepare_index_columns(&create.index.columns, sql);
     }
@@ -51,9 +48,10 @@ impl IndexBuilder for PostgresQueryBuilder {
             .unwrap();
         }
     }
+
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         if create.primary {
-            write!(sql, "PRIMARY ").unwrap();
+            write!(sql, "PRIMARY KEY ").unwrap();
         }
         if create.unique {
             write!(sql, "UNIQUE ").unwrap();

@@ -31,8 +31,8 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             write!(sql, " ADD ").unwrap();
         }
 
-        write!(sql, "CONSTRAINT ").unwrap();
         if let Some(name) = &create.foreign_key.name {
+            write!(sql, "CONSTRAINT ").unwrap();
             write!(sql, "\"{}\" ", name).unwrap();
         }
 
