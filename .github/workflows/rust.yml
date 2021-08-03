@@ -1,22 +1,236 @@
-name: Rust
+name: sea-query
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  test:
+    name: Unit Test
     runs-on: ubuntu-20.04
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --all-features --verbose
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+  sqlite:
+    name: SQLite
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        example: [rusqlite, sqlx_sqlite]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  mysql:
+    name: MySQL
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        version: [8.0, 5.7, 5.6]
+        example: [sqlx_mysql]
+    services:
+      mysql:
+        image: mysql:${{ matrix.version }}
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DATABASE: query
+          MYSQL_USER: sea
+          MYSQL_PASSWORD: sea
+          MYSQL_ROOT_PASSWORD: sea
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  mariadb:
+    name: MariaDB
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        version: [10.6, 10.5, 10.4, 10.3, 10.2]
+        example: [sqlx_mysql]
+    services:
+      mariadb:
+        image: mariadb:${{ matrix.version }}
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DATABASE: query
+          MYSQL_USER: sea
+          MYSQL_PASSWORD: sea
+          MYSQL_ROOT_PASSWORD: sea
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  postgres:
+    name: PostgreSQL
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        version: [13.3, 12.7, 11.12, 10.17, 9.6.22]
+        example: [postgres, postgres_json, sqlx_postgres]
+    services:
+      postgres:
+        image: postgres:${{ matrix.version }}
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_DB: query
+          POSTGRES_USER: sea
+          POSTGRES_PASSWORD: sea
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  cockroach:
+    name: CockroachDB
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        # version: [v21.1.6, v20.2.13]
+        example: [cockroach, cockroach_json]
+    # services:
+    #   cockroach:
+    #     image: cockroachdb/cockroach:${{ matrix.version }}
+    #     env:
+    #       COCKROACH_HOSTNAME: 127.0.0.1
+    #       COCKROACH_PORT: 5432
+    #       COCKROACH_DB: query
+    #       COCKROACH_USER: sea
+    #       COCKROACH_PASSWORD: sea
+    #       COCKROACH_INSECURE: true
+    #     ports:
+    #       - "5432:5432"
+    #       - "8080:8080"
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+      # - uses: actions-rs/cargo@v1
+      #   with:
+      #     command: run
+      #     args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
