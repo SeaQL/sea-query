@@ -18,3 +18,8 @@ syn = { version = "1", default-features = false, features = [ "derive", "parsing
 quote = "1"
 heck = "0.3"
 proc-macro2 = "1"
+
+[dev-dependencies]
+trybuild = "^1.0"
+sea-query = { path = "../" }
+strum = { version = "^0.21", features = ["derive"] }

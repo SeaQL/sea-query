@@ -24,7 +24,7 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
 
     let table_name = match find_attr(&attrs) {
         Some(att) => match att.try_into() {
-            Ok(IdenAttr::Rename(lit)) => lit.value(),
+            Ok(IdenAttr::Rename(lit)) => lit,
             Ok(_) => {
                 return syn::Error::new_spanned(
                     att,
