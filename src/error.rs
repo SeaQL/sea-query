@@ -1,7 +1,7 @@
 //! Error types used in sea-query.
 
 /// Result type for sea-query
-pub type Result<T> = anyhow::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum Error {
