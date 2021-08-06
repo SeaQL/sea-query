@@ -20,17 +20,14 @@ fn get_iden_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
     None
 }
 
-fn get_method_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
-    for attr in attrs {
-        let name_value = match attr.parse_meta() {
-            Ok(Meta::NameValue(nv)) => nv,
-            _ => continue,
-        };
-        if name_value.path.is_ident("method") {
-            return Some(name_value.lit);
-        }
+fn get_method_attr(attr: &Attribute) -> syn::Result<syn::Lit> {
+    match attr.parse_meta()? {
+        Meta::NameValue(nv) => Ok(nv.lit),
+        a => Err(syn::Error::new_spanned(
+            a,
+            r#"The method attribute only supports the `#[method = "name"]` format"#,
+        )),
     }
-    None
 }
 
 #[proc_macro_derive(Iden, attributes(iden, method))]
@@ -86,7 +83,9 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
         if let Some(lit) = get_iden_attr(&v.attrs) {
             // If the user supplied a name, just use it
             quote! { #lit }
-        } else if let Some(lit) = get_method_attr(&v.attrs) {
+        } else if let Some(lit) =
+            find_attr(&v.attrs, "method").and_then(|att| get_method_attr(att).ok())
+        {
             // If the user supplied a method, call it
             let name: String = match lit {
                 Lit::Str(name) => name.value(),
