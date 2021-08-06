@@ -4,7 +4,7 @@ use syn::{Attribute, Error, Ident, Lit, Meta};
 
 #[derive(PartialEq)]
 pub enum IdenAttr {
-    Rename(syn::LitStr),
+    Rename(String),
     Method(Ident),
     Flatten,
 }
@@ -26,7 +26,7 @@ impl IdenAttr {
     fn extract_iden(meta: Meta) -> syn::Result<Self> {
         match meta {
             Meta::NameValue(nv) => match nv.lit {
-                Lit::Str(lit) => Ok(IdenAttr::Rename(lit)),
+                Lit::Str(lit) => Ok(IdenAttr::Rename(lit.value())),
                 _ => Err(Error::new_spanned(
                     nv.lit,
                     "Only string literals are permitted in this position",
