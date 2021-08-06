@@ -1,6 +1,6 @@
 use std::convert::{TryFrom, TryInto};
 
-use syn::{Attribute, Error, Ident, Lit, Meta};
+use syn::{Attribute, Error, Ident, Lit, Meta, NestedMeta};
 
 #[derive(PartialEq)]
 pub enum IdenAttr {
@@ -24,12 +24,21 @@ impl IdenAttr {
     }
 
     fn extract_iden(meta: Meta) -> syn::Result<Self> {
-        match meta {
-            Meta::NameValue(nv) => match nv.lit {
+        match &meta {
+            Meta::NameValue(nv) => match &nv.lit {
                 Lit::Str(lit) => Ok(IdenAttr::Rename(lit.value())),
                 _ => Err(Error::new_spanned(
-                    nv.lit,
+                    &nv.lit,
                     "Only string literals are permitted in this position",
+                )),
+            },
+            Meta::List(list) => match list.nested.first() {
+                Some(NestedMeta::Meta(Meta::Path(p))) if p.is_ident("flatten") => {
+                    Ok(IdenAttr::Flatten)
+                }
+                _ => Err(Error::new_spanned(
+                    meta,
+                    "must be of the form `#[iden(flatten)]`",
                 )),
             },
             a => Err(Error::new_spanned(
