@@ -25,7 +25,7 @@
 //! You can construct expressions, queries and schema as abstract syntax trees using an ergonomic API.
 //! We support MySQL, Postgres and SQLite behind a common interface that aligns their behaviour where appropriate.
 //!
-//! This library is the foundation of SeaORM.
+//! This library is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm).
 //!
 //! ## Install
 //!
