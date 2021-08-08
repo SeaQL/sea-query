@@ -521,6 +521,20 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
+                    #[cfg(feature = "postgres-fulltext-search")]
+                    Function::ToTsquery => "TO_TSQUERY",
+                    #[cfg(feature = "postgres-fulltext-search")]
+                    Function::ToTsvector => "TO_TSVECTOR",
+                    #[cfg(feature = "postgres-fulltext-search")]
+                    Function::PhrasetoTsquery => "PHRASETO_TSQUERY",
+                    #[cfg(feature = "postgres-fulltext-search")]
+                    Function::PlaintoTsquery => "PLAINTO_TSQUERY",
+                    #[cfg(feature = "postgres-fulltext-search")]
+                    Function::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
+                    #[cfg(feature = "postgres-fulltext-search")]
+                    Function::TsRank => "TS_RANK",
+                    #[cfg(feature = "postgres-fulltext-search")]
+                    Function::TsRankCd => "TS_RANK_CD",
                     Function::Custom(_) => "",
                 }
             )
