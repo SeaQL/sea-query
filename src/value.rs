@@ -381,6 +381,26 @@ impl Value {
 }
 
 impl Value {
+    pub fn is_date_time_with_time_zone(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::DateTimeWithTimeZone(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date_time_with_time_zone(&self) -> &DateTime<FixedOffset> {
+        match self {
+            Self::DateTimeWithTimeZone(v) => v.as_ref(),
+            _ => panic!("not Value::DateTimeWithTimeZone"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date_time_with_time_zone(&self) -> &bool {
+        panic!("not Value::DateTimeWithTimeZone")
+    }
+}
+
+impl Value {
     pub fn is_decimal(&self) -> bool {
         #[cfg(feature = "with-rust_decimal")]
         return matches!(self, Self::Decimal(_));
