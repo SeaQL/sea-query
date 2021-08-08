@@ -1,4 +1,4 @@
-name: sea-query
+name: tests
 
 on:
   push:
