@@ -6,7 +6,7 @@ edition = "2018"
 [dependencies]
 sea-query = { path = "../../", features = ["rusqlite"] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "^0.9", features = ["rusqlite"] }
+# sea-query = { version = "^0.12", features = ["rusqlite"] }
 
 [dependencies.rusqlite]
 version = "^0.25"
