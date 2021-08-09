@@ -5,11 +5,12 @@ use proc_macro::{self, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields};
 
+mod error;
 mod iden_attr;
 mod iden_path;
 mod iden_variant;
 
-use self::{iden_attr::IdenAttr, iden_path::IdenPath, iden_variant::IdenVariant};
+use self::{error::ErrorMsg, iden_attr::IdenAttr, iden_path::IdenPath, iden_variant::IdenVariant};
 
 fn find_attr(attrs: &[Attribute]) -> Option<&Attribute> {
     attrs
@@ -27,12 +28,9 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
         Some(att) => match att.try_into() {
             Ok(IdenAttr::Rename(lit)) => lit,
             Ok(_) => {
-                return syn::Error::new_spanned(
-                    att,
-                    r#"Only the `#[iden = "name"]` attribute is supported in this position"#,
-                )
-                .into_compile_error()
-                .into()
+                return syn::Error::new_spanned(att, ErrorMsg::ContainerAttr)
+                    .into_compile_error()
+                    .into()
             }
             Err(e) => return e.into_compile_error().into(),
         },

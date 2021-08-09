@@ -2,7 +2,7 @@ use std::convert::{TryFrom, TryInto};
 
 use syn::{Attribute, Error, Ident, Lit, Meta, MetaNameValue, NestedMeta};
 
-use crate::iden_path::IdenPath;
+use crate::{error::ErrorMsg, iden_path::IdenPath};
 
 #[derive(PartialEq)]
 pub enum IdenAttr {
@@ -16,11 +16,11 @@ impl IdenAttr {
         match meta {
             Meta::NameValue(nv) => match nv.lit {
                 Lit::Str(name) => Ok(Self::Method(Ident::new(name.value().as_str(), name.span()))),
-                _ => Err(Error::new_spanned(nv, "Must be a string literal")),
+                _ => Err(Error::new_spanned(nv, ErrorMsg::WrongLiteral)),
             },
             a => Err(Error::new_spanned(
                 a,
-                r#"The method attribute only supports the `#[method = "name"]` format"#,
+                ErrorMsg::WrongNamedValueFormat(IdenPath::Method, IdenPath::Method),
             )),
         }
     }
@@ -29,25 +29,16 @@ impl IdenAttr {
         match &meta {
             Meta::NameValue(nv) => match &nv.lit {
                 Lit::Str(lit) => Ok(IdenAttr::Rename(lit.value())),
-                _ => Err(Error::new_spanned(
-                    &nv.lit,
-                    "Only string literals are permitted in this position",
-                )),
+                _ => Err(Error::new_spanned(&nv.lit, ErrorMsg::WrongLiteral)),
             },
             Meta::List(list) => match list.nested.first() {
                 Some(NestedMeta::Meta(Meta::Path(p))) if p.is_ident(&IdenPath::Flatten) => {
                     Ok(IdenAttr::Flatten)
                 }
                 Some(NestedMeta::Meta(Meta::NameValue(nv))) => Self::extract_named_value_iden(nv),
-                _ => Err(Error::new_spanned(
-                    meta,
-                    "must be of the form `#[iden(flatten)]`",
-                )),
+                _ => Err(Error::new_spanned(meta, ErrorMsg::WrongListFormat)),
             },
-            a => Err(Error::new_spanned(
-                a,
-                r#"The iden attribute supports only the formats `#[iden = "name"]` and #[iden(flatten)]"#,
-            )),
+            a => Err(Error::new_spanned(a, ErrorMsg::WrongAttributeFormat)),
         }
     }
 
@@ -62,14 +53,11 @@ impl IdenAttr {
                 } else {
                     Err(Error::new_spanned(
                         nv,
-                        format! {"{} is not a supported keyword", nv.path.get_ident().unwrap()},
+                        ErrorMsg::UnsupportedKeyword(nv.path.get_ident().unwrap().clone()),
                     ))
                 }
             }
-            _ => Err(Error::new_spanned(
-                &nv.lit,
-                "Only string literals are permitted in this position",
-            )),
+            _ => Err(Error::new_spanned(&nv.lit, ErrorMsg::WrongLiteral)),
         }
     }
 }
