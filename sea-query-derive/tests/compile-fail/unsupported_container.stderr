@@ -1,0 +1,5 @@
+error: you can only derive Iden on enums or unit structs
+ --> $DIR/unsupported_container.rs:4:8
+  |
+4 | struct User {
+  |        ^^^^

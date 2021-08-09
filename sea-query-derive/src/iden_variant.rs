@@ -5,7 +5,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
-use crate::{find_attr, iden_attr::IdenAttr};
+use crate::{error::ErrorMsg, find_attr, iden_attr::IdenAttr};
 
 pub struct IdenVariant<'a> {
     ident: &'a Ident,
@@ -47,26 +47,24 @@ impl<'a> IdenVariant<'a> {
         table_name: &'a str,
         attr: Option<IdenAttr>,
     ) -> syn::Result<Self> {
+        let unsupported_error = Err(Error::new_spanned(
+            fields,
+            ErrorMsg::UnsupportedFlattenTarget,
+        ));
         // sanity check to not have flatten on a unit variant, or variants with more than 1 field
-        static FLATTEN_ERR: &str = "Only a single field is supported for flattenning";
         if attr == Some(IdenAttr::Flatten) {
             match fields {
                 Fields::Named(n) => {
                     if n.named.len() != 1 {
-                        return Err(Error::new_spanned(fields, FLATTEN_ERR));
+                        return unsupported_error;
                     }
                 }
                 Fields::Unnamed(u) => {
                     if u.unnamed.len() != 1 {
-                        return Err(Error::new_spanned(fields, FLATTEN_ERR));
+                        return unsupported_error;
                     }
                 }
-                Fields::Unit => {
-                    return Err(Error::new_spanned(
-                        fields,
-                        "Must have a field in order to be flattened",
-                    ))
-                }
+                Fields::Unit => return unsupported_error,
             }
         }
 
