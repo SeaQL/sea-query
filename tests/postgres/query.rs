@@ -988,6 +988,18 @@ fn select_57() {
 }
 
 #[test]
+fn select_58() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like("A").escape('\\'))
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A' ESCAPE '\'"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(

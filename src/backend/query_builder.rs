@@ -603,6 +603,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
+                BinOper::Escape => "ESCAPE",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }
@@ -1403,7 +1404,7 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
+        let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual | BinOper::Escape);
         let left_paren = left.need_parentheses()
             && left.is_binary()
             && *op != left.get_bin_oper().unwrap()
