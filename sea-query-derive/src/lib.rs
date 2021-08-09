@@ -6,14 +6,15 @@ use quote::{quote, quote_spanned};
 use syn::{parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields};
 
 mod iden_attr;
+mod iden_path;
 mod iden_variant;
 
-use self::{iden_attr::IdenAttr, iden_variant::IdenVariant};
+use self::{iden_attr::IdenAttr, iden_path::IdenPath, iden_variant::IdenVariant};
 
 fn find_attr(attrs: &[Attribute]) -> Option<&Attribute> {
     attrs
         .iter()
-        .find(|attr| attr.path.is_ident("iden") || attr.path.is_ident("method"))
+        .find(|attr| attr.path.is_ident(&IdenPath::Iden) || attr.path.is_ident(&IdenPath::Method))
 }
 
 #[proc_macro_derive(Iden, attributes(iden, method))]

@@ -2,6 +2,8 @@ use std::convert::{TryFrom, TryInto};
 
 use syn::{Attribute, Error, Ident, Lit, Meta, MetaNameValue, NestedMeta};
 
+use crate::iden_path::IdenPath;
+
 #[derive(PartialEq)]
 pub enum IdenAttr {
     Rename(String),
@@ -33,7 +35,7 @@ impl IdenAttr {
                 )),
             },
             Meta::List(list) => match list.nested.first() {
-                Some(NestedMeta::Meta(Meta::Path(p))) if p.is_ident("flatten") => {
+                Some(NestedMeta::Meta(Meta::Path(p))) if p.is_ident(&IdenPath::Flatten) => {
                     Ok(IdenAttr::Flatten)
                 }
                 Some(NestedMeta::Meta(Meta::NameValue(nv))) => Self::extract_named_value_iden(nv),
@@ -53,9 +55,9 @@ impl IdenAttr {
         match &nv.lit {
             Lit::Str(name) => {
                 // Don't match "iden" since that would mean `#[iden(iden = "name")]` would be accepted
-                if nv.path.is_ident("rename") {
+                if nv.path.is_ident(&IdenPath::Rename) {
                     Ok(Self::Rename(name.value()))
-                } else if nv.path.is_ident("method") {
+                } else if nv.path.is_ident(&IdenPath::Method) {
                     Ok(Self::Method(Ident::new(name.value().as_str(), name.span())))
                 } else {
                     Err(Error::new_spanned(
@@ -85,9 +87,9 @@ impl TryFrom<Meta> for IdenAttr {
 
     fn try_from(value: Meta) -> Result<Self, Self::Error> {
         let path = value.path();
-        if path.is_ident("method") {
+        if path.is_ident(&IdenPath::Method) {
             Self::extract_method(value)
-        } else if path.is_ident("iden") {
+        } else if path.is_ident(&IdenPath::Iden) {
             Self::extract_iden(value)
         } else {
             todo!()
