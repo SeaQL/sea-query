@@ -36,6 +36,32 @@ jobs:
           command: test
           args: --all-features
 
+  derive-test:
+    name: Derive Tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+        working-directory: sea-query-derive
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+        working-directory: sea-query-derive
+
   sqlite:
     name: SQLite
     runs-on: ubuntu-20.04
