@@ -53,14 +53,12 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features
-        working-directory: sea-query-derive
+          args: --package sea-query-derive --all-features
 
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features
-        working-directory: sea-query-derive
+          args: --package sea-query-derive --all-features
 
   sqlite:
     name: SQLite
