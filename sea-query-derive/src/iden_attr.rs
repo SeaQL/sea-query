@@ -1,6 +1,6 @@
 use std::convert::{TryFrom, TryInto};
 
-use syn::{Attribute, Error, Ident, Lit, Meta, NestedMeta};
+use syn::{Attribute, Error, Ident, Lit, Meta, MetaNameValue, NestedMeta};
 
 #[derive(PartialEq)]
 pub enum IdenAttr {
@@ -36,6 +36,7 @@ impl IdenAttr {
                 Some(NestedMeta::Meta(Meta::Path(p))) if p.is_ident("flatten") => {
                     Ok(IdenAttr::Flatten)
                 }
+                Some(NestedMeta::Meta(Meta::NameValue(nv))) => Self::extract_named_value_iden(nv),
                 _ => Err(Error::new_spanned(
                     meta,
                     "must be of the form `#[iden(flatten)]`",
@@ -44,6 +45,28 @@ impl IdenAttr {
             a => Err(Error::new_spanned(
                 a,
                 r#"The iden attribute supports only the formats `#[iden = "name"]` and #[iden(flatten)]"#,
+            )),
+        }
+    }
+
+    fn extract_named_value_iden(nv: &MetaNameValue) -> syn::Result<Self> {
+        match &nv.lit {
+            Lit::Str(name) => {
+                // Don't match "iden" since that would mean `#[iden(iden = "name")]` would be accepted
+                if nv.path.is_ident("rename") {
+                    Ok(Self::Rename(name.value()))
+                } else if nv.path.is_ident("method") {
+                    Ok(Self::Method(Ident::new(name.value().as_str(), name.span())))
+                } else {
+                    Err(Error::new_spanned(
+                        nv,
+                        format! {"{} is not a supported keyword", nv.path.get_ident().unwrap()},
+                    ))
+                }
+            }
+            _ => Err(Error::new_spanned(
+                &nv.lit,
+                "Only string literals are permitted in this position",
             )),
         }
     }
