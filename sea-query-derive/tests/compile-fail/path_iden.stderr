@@ -1,0 +1,5 @@
+error: The iden attribute supports only the formats `#[iden = "name"]` or `#[iden(<ATTRIBUTE>)]` where ATTRIBUTE is either `flatten`, `rename` or `method`
+ --> $DIR/path_iden.rs:8:7
+  |
+8 |     #[iden]
+  |       ^^^^

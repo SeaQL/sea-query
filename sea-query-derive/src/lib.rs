@@ -1,36 +1,21 @@
+use std::convert::{TryFrom, TryInto};
+
 use heck::SnakeCase;
 use proc_macro::{self, TokenStream};
-use proc_macro2::Span;
 use quote::{quote, quote_spanned};
-use syn::{
-    parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields, Ident, Lit, Meta,
-    Variant,
-};
+use syn::{parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields};
 
-fn get_iden_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
-    for attr in attrs {
-        let name_value = match attr.parse_meta() {
-            Ok(Meta::NameValue(nv)) => nv,
-            _ => continue,
-        };
-        if name_value.path.is_ident("iden") {
-            return Some(name_value.lit);
-        }
-    }
-    None
-}
+mod error;
+mod iden_attr;
+mod iden_path;
+mod iden_variant;
 
-fn get_method_attr(attrs: &[Attribute]) -> Option<syn::Lit> {
-    for attr in attrs {
-        let name_value = match attr.parse_meta() {
-            Ok(Meta::NameValue(nv)) => nv,
-            _ => continue,
-        };
-        if name_value.path.is_ident("method") {
-            return Some(name_value.lit);
-        }
-    }
-    None
+use self::{error::ErrorMsg, iden_attr::IdenAttr, iden_path::IdenPath, iden_variant::IdenVariant};
+
+fn find_attr(attrs: &[Attribute]) -> Option<&Attribute> {
+    attrs
+        .iter()
+        .find(|attr| attr.path.is_ident(&IdenPath::Iden) || attr.path.is_ident(&IdenPath::Method))
 }
 
 #[proc_macro_derive(Iden, attributes(iden, method))]
@@ -39,12 +24,17 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
         ident, data, attrs, ..
     } = parse_macro_input!(input);
 
-    let table_name = match get_iden_attr(&attrs) {
-        Some(lit) => quote! { #lit },
-        None => {
-            let normalized = ident.to_string().to_snake_case();
-            quote! { #normalized }
-        }
+    let table_name = match find_attr(&attrs) {
+        Some(att) => match att.try_into() {
+            Ok(IdenAttr::Rename(lit)) => lit,
+            Ok(_) => {
+                return syn::Error::new_spanned(att, ErrorMsg::ContainerAttr)
+                    .into_compile_error()
+                    .into()
+            }
+            Err(e) => return e.into_compile_error().into(),
+        },
+        None => ident.to_string().to_snake_case(),
     };
 
     // Currently we only support enums and unit structs
@@ -74,39 +64,21 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
         return TokenStream::new();
     }
 
-    let variant = variants
+    let match_arms = match variants
         .iter()
-        .map(|Variant { ident, fields, .. }| match fields {
-            Fields::Named(_) => quote! { #ident{..} },
-            Fields::Unnamed(_) => quote! { #ident(..) },
-            Fields::Unit => quote! { #ident },
-        });
-
-    let name = variants.iter().map(|v| {
-        if let Some(lit) = get_iden_attr(&v.attrs) {
-            // If the user supplied a name, just use it
-            quote! { #lit }
-        } else if let Some(lit) = get_method_attr(&v.attrs) {
-            // If the user supplied a method, call it
-            let name: String = match lit {
-                Lit::Str(name) => name.value(),
-                _ => panic!("expected string for `method`"),
-            };
-            let ident = Ident::new(name.as_str(), Span::call_site());
-            quote! { self.#ident() }
-        } else if v.ident == "Table" {
-            table_name.clone()
-        } else {
-            let ident = v.ident.to_string().to_snake_case();
-            quote! { #ident }
-        }
-    });
+        .map(|v| (table_name.as_str(), v))
+        .map(IdenVariant::try_from)
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(v) => v,
+        Err(e) => return e.to_compile_error().into(),
+    };
 
     let output = quote! {
         impl sea_query::Iden for #ident {
             fn unquoted(&self, s: &mut dyn sea_query::Write) {
                 match self {
-                    #(Self::#variant => write!(s, "{}", #name).unwrap()),*
+                    #(#match_arms),*
                 };
             }
         }

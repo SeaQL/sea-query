@@ -1,0 +1,5 @@
+error: Must have a single field is supported for flattenning
+ --> $DIR/mutli_field_flatten.rs:9:13
+  |
+9 |     Creation(CreationInfo, CreationInfo),
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

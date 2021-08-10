@@ -1,0 +1,5 @@
+error: Must one of the following attributes: `flatten`, `rename` or `method`
+ --> $DIR/empty_list_iden.rs:8:7
+  |
+8 |     #[iden()]
+  |       ^^^^^^

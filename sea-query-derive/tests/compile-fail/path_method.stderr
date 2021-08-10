@@ -1,0 +1,5 @@
+error: The method attribute only supports the `#[method = "name"]` or `#[iden(method = "name")]` formats
+ --> $DIR/path_method.rs:8:7
+  |
+8 |     #[method]
+  |       ^^^^^^
