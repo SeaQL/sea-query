@@ -32,6 +32,11 @@ jobs:
           command: test
           args: --all-features
 
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --example derive
+
   derive-test:
     name: Derive Tests
     runs-on: ubuntu-20.04
