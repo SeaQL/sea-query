@@ -221,6 +221,12 @@ where
     }
 }
 
+impl IntoTableRef for TableRef {
+    fn into_table_ref(self) -> TableRef {
+        self
+    }
+}
+
 impl<T: 'static> IntoTableRef for T
 where
     T: IntoIden,
