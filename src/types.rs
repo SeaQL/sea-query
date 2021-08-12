@@ -202,6 +202,12 @@ where
     }
 }
 
+impl IntoColumnRef for ColumnRef {
+    fn into_column_ref(self) -> ColumnRef {
+        self
+    }
+}
+
 impl<T: 'static> IntoColumnRef for T
 where
     T: IntoIden,
