@@ -30,6 +30,12 @@ impl Default for TableIndex {
     }
 }
 
+impl IntoIndexColumn for IndexColumn {
+    fn into_index_column(self) -> IndexColumn {
+        self
+    }
+}
+
 impl<I> IntoIndexColumn for I
 where
     I: IntoIden,
