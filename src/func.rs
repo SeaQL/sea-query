@@ -12,26 +12,26 @@ pub enum Function {
     Count,
     IfNull,
     CharLength,
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     ToTsquery,
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     ToTsvector,
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     PhrasetoTsquery,
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     PlaintoTsquery,
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     WebsearchToTsquery,
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     TsRank,
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     TsRankCd,
     Custom(DynIden),
 }
@@ -324,8 +324,8 @@ impl Func {
     ///     r#"SELECT TO_TSQUERY('a & b')"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     pub fn to_tsquery<T>(expr: T, regconfig: Option<u32>) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -358,8 +358,8 @@ impl Func {
     ///     r#"SELECT TO_TSVECTOR('a b')"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     pub fn to_tsvector<T>(expr: T, regconfig: Option<u32>) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -392,8 +392,8 @@ impl Func {
     ///     r#"SELECT PHRASETO_TSQUERY('a b')"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     pub fn phraseto_tsquery<T>(expr: T, regconfig: Option<u32>) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -426,8 +426,8 @@ impl Func {
     ///     r#"SELECT PLAINTO_TSQUERY('a b')"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     pub fn plainto_tsquery<T>(expr: T, regconfig: Option<u32>) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -460,8 +460,8 @@ impl Func {
     ///     r#"SELECT WEBSEARCH_TO_TSQUERY('a b')"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     pub fn websearch_to_tsquery<T>(expr: T, regconfig: Option<u32>) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -491,8 +491,8 @@ impl Func {
     ///     r#"SELECT TS_RANK('a b', 'a&b')"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     pub fn ts_rank<T>(vector: T, query: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -516,8 +516,8 @@ impl Func {
     ///     r#"SELECT TS_RANK_CD('a b', 'a&b')"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-fulltext-search")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     pub fn ts_rank_cd<T>(vector: T, query: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,

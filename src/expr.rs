@@ -1311,7 +1311,7 @@ impl Expr {
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @@ 'a b' AND "name" @@ 'a b'"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
+    #[cfg(feature = "backend-postgres")]
     pub fn matches<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -1338,7 +1338,7 @@ impl Expr {
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @> 'a b' AND "name" @> 'a b'"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
+    #[cfg(feature = "backend-postgres")]
     pub fn contains<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -1365,7 +1365,7 @@ impl Expr {
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' <@ 'a b' AND "name" <@ 'a b'"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-fulltext-search")]
+    #[cfg(feature = "backend-postgres")]
     pub fn contained<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,

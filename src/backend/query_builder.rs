@@ -457,11 +457,11 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Sub => "-",
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
-                #[cfg(feature = "postgres-fulltext-search")]
+                #[cfg(feature = "backend-postgres")]
                 BinOper::Matches => "@@",
-                #[cfg(feature = "postgres-fulltext-search")]
+                #[cfg(feature = "backend-postgres")]
                 BinOper::Contains => "@>",
-                #[cfg(feature = "postgres-fulltext-search")]
+                #[cfg(feature = "backend-postgres")]
                 BinOper::Contained => "<@",
             }
         )
@@ -521,19 +521,19 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
-                    #[cfg(feature = "postgres-fulltext-search")]
+                    #[cfg(feature = "backend-postgres")]
                     Function::ToTsquery => "TO_TSQUERY",
-                    #[cfg(feature = "postgres-fulltext-search")]
+                    #[cfg(feature = "backend-postgres")]
                     Function::ToTsvector => "TO_TSVECTOR",
-                    #[cfg(feature = "postgres-fulltext-search")]
+                    #[cfg(feature = "backend-postgres")]
                     Function::PhrasetoTsquery => "PHRASETO_TSQUERY",
-                    #[cfg(feature = "postgres-fulltext-search")]
+                    #[cfg(feature = "backend-postgres")]
                     Function::PlaintoTsquery => "PLAINTO_TSQUERY",
-                    #[cfg(feature = "postgres-fulltext-search")]
+                    #[cfg(feature = "backend-postgres")]
                     Function::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
-                    #[cfg(feature = "postgres-fulltext-search")]
+                    #[cfg(feature = "backend-postgres")]
                     Function::TsRank => "TS_RANK",
-                    #[cfg(feature = "postgres-fulltext-search")]
+                    #[cfg(feature = "backend-postgres")]
                     Function::TsRankCd => "TS_RANK_CD",
                     Function::Custom(_) => "",
                 }
