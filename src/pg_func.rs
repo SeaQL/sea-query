@@ -2,6 +2,18 @@
 
 use crate::{expr::*, func::Function};
 
+/// Functions
+#[derive(Debug, Clone)]
+pub enum PgFunction {
+    ToTsquery,
+    ToTsvector,
+    PhrasetoTsquery,
+    PlaintoTsquery,
+    WebsearchToTsquery,
+    TsRank,
+    TsRankCd,
+}
+
 /// Function call helper.
 #[derive(Debug, Clone)]
 pub struct PgFunc;
@@ -33,9 +45,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::ToTsquery).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::ToTsquery)).args(vec![config, expr.into()])
             }
-            None => Expr::func(Function::ToTsquery).arg(expr),
+            None => Expr::func(Function::PgFunction(PgFunction::ToTsquery)).arg(expr),
         }
     }
 
@@ -65,9 +77,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::ToTsvector).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::ToTsvector)).args(vec![config, expr.into()])
             }
-            None => Expr::func(Function::ToTsvector).arg(expr),
+            None => Expr::func(Function::PgFunction(PgFunction::ToTsvector)).arg(expr),
         }
     }
 
@@ -97,9 +109,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PhrasetoTsquery).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::PhrasetoTsquery)).args(vec![config, expr.into()])
             }
-            None => Expr::func(Function::PhrasetoTsquery).arg(expr),
+            None => Expr::func(Function::PgFunction(PgFunction::PhrasetoTsquery)).arg(expr),
         }
     }
 
@@ -129,9 +141,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PlaintoTsquery).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::PlaintoTsquery)).args(vec![config, expr.into()])
             }
-            None => Expr::func(Function::PlaintoTsquery).arg(expr),
+            None => Expr::func(Function::PgFunction(PgFunction::PlaintoTsquery)).arg(expr),
         }
     }
 
@@ -161,9 +173,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::WebsearchToTsquery).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::WebsearchToTsquery)).args(vec![config, expr.into()])
             }
-            None => Expr::func(Function::WebsearchToTsquery).arg(expr),
+            None => Expr::func(Function::PgFunction(PgFunction::WebsearchToTsquery)).arg(expr),
         }
     }
 
@@ -187,7 +199,7 @@ impl PgFunc {
     where
         T: Into<SimpleExpr>,
     {
-        Expr::func(Function::TsRank).args(vec![vector, query])
+        Expr::func(Function::PgFunction(PgFunction::TsRank)).args(vec![vector, query])
     }
 
     /// Call `TS_RANK_CD` function. Postgres only.
@@ -210,6 +222,6 @@ impl PgFunc {
     where
         T: Into<SimpleExpr>,
     {
-        Expr::func(Function::TsRankCd).args(vec![vector, query])
+        Expr::func(Function::PgFunction(PgFunction::TsRankCd)).args(vec![vector, query])
     }
 }

@@ -2,6 +2,9 @@
 
 use crate::{expr::*, types::*};
 
+#[cfg(feature = "backend-postgres")]
+use crate::pg_func::PgFunction;
+
 /// Functions
 #[derive(Debug, Clone)]
 pub enum Function {
@@ -12,27 +15,7 @@ pub enum Function {
     Count,
     IfNull,
     CharLength,
-    #[cfg(feature = "backend-postgres")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
-    ToTsquery,
-    #[cfg(feature = "backend-postgres")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
-    ToTsvector,
-    #[cfg(feature = "backend-postgres")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
-    PhrasetoTsquery,
-    #[cfg(feature = "backend-postgres")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
-    PlaintoTsquery,
-    #[cfg(feature = "backend-postgres")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
-    WebsearchToTsquery,
-    #[cfg(feature = "backend-postgres")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
-    TsRank,
-    #[cfg(feature = "backend-postgres")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
-    TsRankCd,
+    PgFunction(PgFunction),
     Custom(DynIden),
 }
 

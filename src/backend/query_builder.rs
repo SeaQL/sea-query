@@ -522,19 +522,17 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
                     #[cfg(feature = "backend-postgres")]
-                    Function::ToTsquery => "TO_TSQUERY",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::ToTsvector => "TO_TSVECTOR",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::PhrasetoTsquery => "PHRASETO_TSQUERY",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::PlaintoTsquery => "PLAINTO_TSQUERY",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::TsRank => "TS_RANK",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::TsRankCd => "TS_RANK_CD",
+                    Function::PgFunction(function) => {
+                        match function {
+                            PgFunction::ToTsquery => "TO_TSQUERY",
+                            PgFunction::ToTsvector => "TO_TSVECTOR",
+                            PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
+                            PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
+                            PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
+                            PgFunction::TsRank => "TS_RANK",
+                            PgFunction::TsRankCd => "TS_RANK_CD",
+                        }
+                    }
                     Function::Custom(_) => "",
                 }
             )
