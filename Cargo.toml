@@ -65,10 +65,6 @@ with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
 with-uuid = ["uuid"]
 
-[[example]]
-name = "derive"
-required-features = ["derive"]
-
 [[test]]
 name = "test-derive"
 path = "tests/derive/mod.rs"

@@ -149,7 +149,7 @@
 //! If you're okay with running another procedural macro, you can activate
 //! the `derive` feature on the crate to save you some boilerplate.
 //! For more usage information, look at
-//! [the derive example](https://github.com/SeaQL/sea-query/blob/master/examples/derive.rs).
+//! [the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
 //!
 //! ```rust
 //! # #[cfg(feature = "derive")]
