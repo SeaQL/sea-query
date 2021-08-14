@@ -27,6 +27,31 @@ jobs:
           command: build
           args: --no-default-features
 
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --features=with-chrono
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --features=with-json
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --features=with-rust_decimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --features=with-uuid
+
   test:
     name: Unit Test
     runs-on: ubuntu-20.04
@@ -38,11 +63,6 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features
 
       - uses: actions-rs/cargo@v1
         with:
