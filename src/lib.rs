@@ -680,8 +680,6 @@ pub mod extension;
 pub mod foreign_key;
 pub mod func;
 pub mod index;
-#[cfg(feature = "backend-postgres")]
-pub mod pg_func;
 pub mod prepare;
 pub mod query;
 pub mod schema;
@@ -703,8 +701,6 @@ pub use table::*;
 pub use expr::*;
 pub use func::*;
 pub use prepare::*;
-#[cfg(feature = "backend-postgres")]
-pub use pg_func::*;
 pub use schema::*;
 //pub use shim::*;
 //pub use tests_cfg::*;

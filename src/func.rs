@@ -3,7 +3,7 @@
 use crate::{expr::*, types::*};
 
 #[cfg(feature = "backend-postgres")]
-use crate::pg_func::PgFunction;
+pub use crate::extension::postgres::{PgFunc, PgFunction};
 
 /// Functions
 #[derive(Debug, Clone)]
@@ -15,6 +15,7 @@ pub enum Function {
     Count,
     IfNull,
     CharLength,
+    #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
     Custom(DynIden),
 }

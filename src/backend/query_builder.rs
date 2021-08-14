@@ -501,7 +501,7 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Function`] into SQL statement.
-    fn prepare_function(
+    fn prepare_function_common(
         &self,
         function: &Function,
         sql: &mut SqlWriter,
@@ -521,23 +521,22 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
-                    #[cfg(feature = "backend-postgres")]
-                    Function::PgFunction(function) => {
-                        match function {
-                            PgFunction::ToTsquery => "TO_TSQUERY",
-                            PgFunction::ToTsvector => "TO_TSVECTOR",
-                            PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
-                            PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
-                            PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
-                            PgFunction::TsRank => "TS_RANK",
-                            PgFunction::TsRankCd => "TS_RANK_CD",
-                        }
-                    }
                     Function::Custom(_) => "",
+                    #[cfg(feature = "backend-postgres")]
+                    Function::PgFunction(_) => unimplemented!(),
                 }
             )
             .unwrap();
         }
+    }
+
+    fn prepare_function(
+        &self,
+        function: &Function,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_function_common(function, sql, collector)
     }
 
     /// Translate [`JoinType`] into SQL statement.

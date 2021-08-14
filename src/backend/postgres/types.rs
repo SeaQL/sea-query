@@ -1,5 +1,5 @@
 use super::*;
-use crate::extension::postgres::types::*;
+use crate::extension::postgres::*;
 
 impl TypeBuilder for PostgresQueryBuilder {
     fn prepare_type_create_statement(
