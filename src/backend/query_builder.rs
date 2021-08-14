@@ -457,6 +457,12 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Sub => "-",
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
+                #[cfg(feature = "backend-postgres")]
+                BinOper::Matches => "@@",
+                #[cfg(feature = "backend-postgres")]
+                BinOper::Contains => "@>",
+                #[cfg(feature = "backend-postgres")]
+                BinOper::Contained => "<@",
             }
         )
         .unwrap();
@@ -515,6 +521,18 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
+                    #[cfg(feature = "backend-postgres")]
+                    Function::PgFunction(function) => {
+                        match function {
+                            PgFunction::ToTsquery => "TO_TSQUERY",
+                            PgFunction::ToTsvector => "TO_TSVECTOR",
+                            PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
+                            PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
+                            PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
+                            PgFunction::TsRank => "TS_RANK",
+                            PgFunction::TsRankCd => "TS_RANK_CD",
+                        }
+                    }
                     Function::Custom(_) => "",
                 }
             )

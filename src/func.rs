@@ -2,6 +2,9 @@
 
 use crate::{expr::*, types::*};
 
+#[cfg(feature = "backend-postgres")]
+use crate::pg_func::PgFunction;
+
 /// Functions
 #[derive(Debug, Clone)]
 pub enum Function {
@@ -12,6 +15,7 @@ pub enum Function {
     Count,
     IfNull,
     CharLength,
+    PgFunction(PgFunction),
     Custom(DynIden),
 }
 
