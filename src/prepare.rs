@@ -91,6 +91,7 @@ impl std::fmt::Write for SqlWriter {
 }
 
 #[cfg(test)]
+#[cfg(feature = "backend-mysql")]
 mod tests {
     use super::*;
 

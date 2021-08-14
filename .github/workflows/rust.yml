@@ -11,6 +11,23 @@ env:
 
 jobs:
   test:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --no-default-features
+
+  test:
     name: Unit Test
     runs-on: ubuntu-20.04
     steps:

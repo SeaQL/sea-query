@@ -82,14 +82,14 @@ required-features = []
 [[test]]
 name = "test-mysql"
 path = "tests/mysql/mod.rs"
-required-features = []
+required-features = ["backend-mysql"]
 
 [[test]]
 name = "test-postgres"
 path = "tests/postgres/mod.rs"
-required-features = []
+required-features = ["backend-postgres"]
 
 [[test]]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
-required-features = []
+required-features = ["backend-sqlite"]

@@ -300,14 +300,17 @@ mod tests {
             .column(Alias::new("hello-World_"))
             .to_owned();
 
+        #[cfg(feature = "backend-mysql")]
         assert_eq!(
             query.to_string(MysqlQueryBuilder),
             r#"SELECT `hello-World_`"#
         );
+        #[cfg(feature = "backend-postgres")]
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
             r#"SELECT "hello-World_""#
         );
+        #[cfg(feature = "backend-sqlite")]
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
             r#"SELECT `hello-World_`"#
@@ -318,11 +321,14 @@ mod tests {
     fn test_quoted_identifier_1() {
         let query = Query::select().column(Alias::new("hel`lo")).to_owned();
 
+        #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
+        #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel``lo`"#);
 
         let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
 
+        #[cfg(feature = "backend-postgres")]
         assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT "hel""lo""#);
     }
 
@@ -330,11 +336,14 @@ mod tests {
     fn test_quoted_identifier_2() {
         let query = Query::select().column(Alias::new("hel``lo")).to_owned();
 
+        #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
+        #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel````lo`"#);
 
         let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
 
+        #[cfg(feature = "backend-postgres")]
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
             r#"SELECT "hel""""lo""#
