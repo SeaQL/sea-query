@@ -45,7 +45,8 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PgFunction(PgFunction::ToTsquery)).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::ToTsquery))
+                    .args(vec![config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::ToTsquery)).arg(expr),
         }
@@ -77,7 +78,8 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PgFunction(PgFunction::ToTsvector)).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::ToTsvector))
+                    .args(vec![config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::ToTsvector)).arg(expr),
         }
@@ -109,7 +111,8 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PgFunction(PgFunction::PhrasetoTsquery)).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::PhrasetoTsquery))
+                    .args(vec![config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::PhrasetoTsquery)).arg(expr),
         }
@@ -141,7 +144,8 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PgFunction(PgFunction::PlaintoTsquery)).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::PlaintoTsquery))
+                    .args(vec![config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::PlaintoTsquery)).arg(expr),
         }
@@ -173,7 +177,8 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PgFunction(PgFunction::WebsearchToTsquery)).args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::WebsearchToTsquery))
+                    .args(vec![config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::WebsearchToTsquery)).arg(expr),
         }

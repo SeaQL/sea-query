@@ -45,22 +45,20 @@ impl QueryBuilder for PostgresQueryBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         match function {
-            Function::PgFunction(function) => {
-                write!(
-                    sql,
-                    "{}",
-                    match function {
-                        PgFunction::ToTsquery => "TO_TSQUERY",
-                        PgFunction::ToTsvector => "TO_TSVECTOR",
-                        PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
-                        PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
-                        PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
-                        PgFunction::TsRank => "TS_RANK",
-                        PgFunction::TsRankCd => "TS_RANK_CD",
-                    }
-                )
-                .unwrap()
-            }
+            Function::PgFunction(function) => write!(
+                sql,
+                "{}",
+                match function {
+                    PgFunction::ToTsquery => "TO_TSQUERY",
+                    PgFunction::ToTsvector => "TO_TSVECTOR",
+                    PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
+                    PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
+                    PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
+                    PgFunction::TsRank => "TS_RANK",
+                    PgFunction::TsRankCd => "TS_RANK_CD",
+                }
+            )
+            .unwrap(),
             _ => self.prepare_function_common(function, sql, collector),
         }
     }

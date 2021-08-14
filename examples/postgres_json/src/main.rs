@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, NaiveDateTime, DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
 
@@ -45,11 +45,16 @@ fn main() {
             }
         }},
         timestamp: NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2),
-        timestamp_with_time_zone: DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00").unwrap(),
+        timestamp_with_time_zone: DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00")
+            .unwrap(),
     };
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
-        .columns(vec![Document::JsonField, Document::Timestamp, Document::TimestampWithTimeZone])
+        .columns(vec![
+            Document::JsonField,
+            Document::Timestamp,
+            Document::TimestampWithTimeZone,
+        ])
         .values_panic(vec![
             serde_json::to_value(document.json_field).unwrap().into(),
             document.timestamp.into(),
@@ -63,7 +68,12 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![Document::Id, Document::JsonField, Document::Timestamp, Document::TimestampWithTimeZone])
+        .columns(vec![
+            Document::Id,
+            Document::JsonField,
+            Document::Timestamp,
+            Document::TimestampWithTimeZone,
+        ])
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
         .limit(1)

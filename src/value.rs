@@ -250,8 +250,8 @@ mod with_json {
 #[cfg(feature = "with-chrono")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
-    use chrono::{TimeZone, Offset};
     use super::*;
+    use chrono::{Offset, TimeZone};
 
     type_to_box_value!(NaiveDateTime, DateTime);
 
@@ -263,9 +263,7 @@ mod with_chrono {
 
     impl ValueTypeDefault for DateTime<FixedOffset> {
         fn default() -> Self {
-            DateTime::from_utc(
-                NaiveDateTime::from_timestamp(0, 0), FixedOffset::east(0)
-            )
+            DateTime::from_utc(NaiveDateTime::from_timestamp(0, 0), FixedOffset::east(0))
         }
     }
 
@@ -277,7 +275,8 @@ mod with_chrono {
 
     impl<Tz> From<DateTime<Tz>> for Value
     where
-        Tz: TimeZone {
+        Tz: TimeZone,
+    {
         fn from(x: DateTime<Tz>) -> Value {
             let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
             Value::DateTimeWithTimeZone(Box::new(v))
@@ -286,7 +285,8 @@ mod with_chrono {
 
     impl<Tz> From<Option<DateTime<Tz>>> for Value
     where
-        Tz: TimeZone {
+        Tz: TimeZone,
+    {
         fn from(x: Option<DateTime<Tz>>) -> Value {
             match x {
                 Some(v) => From::<DateTime<Tz>>::from(v),
@@ -777,9 +777,7 @@ mod tests {
         let string = "2020-01-01T02:02:02+08:00";
         let timestamp = DateTime::parse_from_rfc3339(string).unwrap();
 
-        let query = Query::select()
-            .expr(Expr::val(timestamp))
-            .to_owned();
+        let query = Query::select().expr(Expr::val(timestamp)).to_owned();
 
         let formatted = "2020-01-01 02:02:02 +08:00";
 
