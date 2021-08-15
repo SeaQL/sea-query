@@ -2,7 +2,11 @@
 
 use crate::{expr::*, query::*};
 use std::fmt;
-pub use std::rc::Rc as SeaRc; // in case we some day we want to use Arc instead of Rc
+
+#[cfg(feature = "thread-safe")]
+pub use std::sync::Arc as SeaRc;
+#[cfg(not(feature = "thread-safe"))]
+pub use std::rc::Rc as SeaRc;
 
 /// Identifier in query
 pub trait Iden {
