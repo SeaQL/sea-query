@@ -89,8 +89,8 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 100"#,
     /// );
     /// ```
-    pub fn add_column(self, column_def: ColumnDef) -> Self {
-        self.alter_option(TableAlterOption::AddColumn(column_def))
+    pub fn add_column(self, column_def: &mut ColumnDef) -> Self {
+        self.alter_option(TableAlterOption::AddColumn(column_def.take()))
     }
 
     /// Modify a column in an existing table
@@ -119,8 +119,8 @@ impl TableAlterStatement {
     /// );
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn modify_column(self, column_def: ColumnDef) -> Self {
-        self.alter_option(TableAlterOption::ModifyColumn(column_def))
+    pub fn modify_column(self, column_def: &mut ColumnDef) -> Self {
+        self.alter_option(TableAlterOption::ModifyColumn(column_def.take()))
     }
 
     /// Rename a column in an existing table

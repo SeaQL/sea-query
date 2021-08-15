@@ -148,6 +148,10 @@ pub enum Order {
 #[derive(Debug, Clone)]
 pub struct Alias(String);
 
+/// Null Alias
+#[derive(Debug, Copy, Clone)]
+pub struct NullAlias;
+
 /// Common SQL Keywords
 #[derive(Debug, Clone)]
 pub enum Keyword {
@@ -288,6 +292,16 @@ impl Iden for Alias {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(s, "{}", self.0).unwrap();
     }
+}
+
+impl NullAlias {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Iden for NullAlias {
+    fn unquoted(&self, _s: &mut dyn fmt::Write) {}
 }
 
 #[cfg(test)]
