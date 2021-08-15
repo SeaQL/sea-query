@@ -38,6 +38,15 @@ impl QueryBuilder for PostgresQueryBuilder {
         write!(buffer, "{}", string).unwrap()
     }
 
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        match bin_oper {
+            BinOper::Matches => write!(sql, "{}", "@@").unwrap(),
+            BinOper::Contains => write!(sql, "{}", "@>").unwrap(),
+            BinOper::Contained => write!(sql, "{}", "<@").unwrap(),
+            _ => self.prepare_bin_oper_common(bin_oper, sql, collector),
+        }
+    }
+
     fn prepare_function(
         &self,
         function: &Function,

@@ -426,8 +426,7 @@ pub trait QueryBuilder: QuotedBuilder {
         .unwrap();
     }
 
-    /// Translate [`BinOper`] into SQL statement.
-    fn prepare_bin_oper(
+    fn prepare_bin_oper_common(
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
@@ -457,15 +456,20 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Sub => "-",
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
-                #[cfg(feature = "backend-postgres")]
-                BinOper::Matches => "@@",
-                #[cfg(feature = "backend-postgres")]
-                BinOper::Contains => "@>",
-                #[cfg(feature = "backend-postgres")]
-                BinOper::Contained => "<@",
+                _ => unimplemented!(),
             }
         )
         .unwrap();
+    }
+
+    /// Translate [`BinOper`] into SQL statement.
+    fn prepare_bin_oper(
+        &self,
+        bin_oper: &BinOper,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_bin_oper_common(bin_oper, sql, collector);
     }
 
     /// Translate [`LogicalChainOper`] into SQL statement.
