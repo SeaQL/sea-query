@@ -133,13 +133,13 @@ impl IndexCreateStatement {
     }
 
     /// Set index name
-    pub fn name(mut self, name: &str) -> Self {
+    pub fn name(&mut self, name: &str) -> &mut Self {
         self.index.name(name);
         self
     }
 
     /// Set target table
-    pub fn table<T: 'static>(mut self, table: T) -> Self
+    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
         T: Iden,
     {
@@ -148,7 +148,7 @@ impl IndexCreateStatement {
     }
 
     /// Add index column
-    pub fn col<C: 'static>(mut self, col: C) -> Self
+    pub fn col<C: 'static>(&mut self, col: C) -> &mut Self
     where
         C: IntoIndexColumn,
     {
@@ -157,13 +157,13 @@ impl IndexCreateStatement {
     }
 
     /// Set index as primary
-    pub fn primary(mut self) -> Self {
+    pub fn primary(&mut self) -> &mut Self {
         self.primary = true;
         self
     }
 
     /// Set index as unique
-    pub fn unique(mut self) -> Self {
+    pub fn unique(&mut self) -> &mut Self {
         self.unique = true;
         self
     }
@@ -171,12 +171,12 @@ impl IndexCreateStatement {
     /// Set index as full text.
     /// On MySQL, this is `FULLTEXT`.
     /// On PgSQL, this is `GIN`.
-    pub fn full_text(self) -> Self {
+    pub fn full_text(&mut self) -> &mut Self {
         self.index_type(IndexType::FullText)
     }
 
     /// Set index type. Not available on Sqlite.
-    pub fn index_type(mut self, index_type: IndexType) -> Self {
+    pub fn index_type(&mut self, index_type: IndexType) -> &mut Self {
         self.index_type = Some(index_type);
         self
     }
@@ -187,6 +187,16 @@ impl IndexCreateStatement {
 
     pub fn get_index_spec(&self) -> &TableIndex {
         &self.index
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            index: self.index.take(),
+            primary: self.primary,
+            unique: self.unique,
+            index_type: self.index_type.take(),
+        }
     }
 }
 

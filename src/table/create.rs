@@ -177,8 +177,8 @@ impl TableCreateStatement {
     ///     ].join(" ")
     /// );
     /// ```
-    pub fn index(&mut self, index: IndexCreateStatement) -> &mut Self {
-        self.indexes.push(index);
+    pub fn index(&mut self, index: &mut IndexCreateStatement) -> &mut Self {
+        self.indexes.push(index.take());
         self
     }
 
@@ -227,8 +227,8 @@ impl TableCreateStatement {
     ///     ].join(" ")
     /// );
     /// ```
-    pub fn primary_key(&mut self, index: IndexCreateStatement) -> &mut Self {
-        let mut index = index;
+    pub fn primary_key(&mut self, index: &mut IndexCreateStatement) -> &mut Self {
+        let mut index = index.take();
         index.primary = true;
         self.indexes.push(index);
         self

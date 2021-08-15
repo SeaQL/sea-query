@@ -47,13 +47,13 @@ impl IndexDropStatement {
     }
 
     /// Set index name
-    pub fn name(mut self, name: &str) -> Self {
+    pub fn name(&mut self, name: &str) -> &mut Self {
         self.index.name(name);
         self
     }
 
     /// Set target table
-    pub fn table<T: 'static>(mut self, table: T) -> Self
+    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
         T: Iden,
     {

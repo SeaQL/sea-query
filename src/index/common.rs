@@ -115,4 +115,11 @@ impl TableIndex {
             .map(|col| col.name.to_string())
             .collect()
     }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            name: self.name.take(),
+            columns: std::mem::replace(&mut self.columns, Vec::new()),
+        }
+    }
 }
