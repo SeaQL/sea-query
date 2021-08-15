@@ -35,6 +35,11 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
+          args: --features=thread-safe
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
           args: --features=with-chrono
 
       - uses: actions-rs/cargo@v1

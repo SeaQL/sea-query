@@ -8,26 +8,35 @@ pub use std::sync::Arc as SeaRc;
 #[cfg(not(feature = "thread-safe"))]
 pub use std::rc::Rc as SeaRc;
 
-/// Identifier in query
-pub trait Iden {
-    fn prepare(&self, s: &mut dyn fmt::Write, q: char) {
-        write!(s, "{}{}{}", q, self.quoted(q), q).unwrap();
-    }
+macro_rules! iden_trait {
+    ($($bounds:ident),*) => {
+        /// Identifier
+        pub trait Iden where $(Self: $bounds),* {
+            fn prepare(&self, s: &mut dyn fmt::Write, q: char) {
+                write!(s, "{}{}{}", q, self.quoted(q), q).unwrap();
+            }
 
-    fn quoted(&self, q: char) -> String {
-        let mut b = [0; 4];
-        let qq: &str = q.encode_utf8(&mut b);
-        self.to_string().replace(qq, qq.repeat(2).as_str())
-    }
+            fn quoted(&self, q: char) -> String {
+                let mut b = [0; 4];
+                let qq: &str = q.encode_utf8(&mut b);
+                self.to_string().replace(qq, qq.repeat(2).as_str())
+            }
 
-    fn to_string(&self) -> String {
-        let s = &mut String::new();
-        self.unquoted(s);
-        s.to_owned()
-    }
+            fn to_string(&self) -> String {
+                let s = &mut String::new();
+                self.unquoted(s);
+                s.to_owned()
+            }
 
-    fn unquoted(&self, s: &mut dyn fmt::Write);
+            fn unquoted(&self, s: &mut dyn fmt::Write);
+        }
+    };
 }
+
+#[cfg(feature = "thread-safe")]
+iden_trait!(Send, Sync);
+#[cfg(not(feature = "thread-safe"))]
+iden_trait!();
 
 pub type DynIden = SeaRc<dyn Iden>;
 
