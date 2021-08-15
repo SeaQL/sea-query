@@ -235,8 +235,8 @@ impl TableCreateStatement {
     }
 
     /// Add a foreign key
-    pub fn foreign_key(&mut self, foreign_key: ForeignKeyCreateStatement) -> &mut Self {
-        self.foreign_keys.push(foreign_key);
+    pub fn foreign_key(&mut self, foreign_key: &mut ForeignKeyCreateStatement) -> &mut Self {
+        self.foreign_keys.push(foreign_key.take());
         self
     }
 

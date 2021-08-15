@@ -99,13 +99,27 @@ impl TableForeignKey {
     pub fn get_ref_table(&self) -> Option<String> {
         self.ref_table.as_ref().map(|ref_tbl| ref_tbl.to_string())
     }
+
     pub fn get_columns(&self) -> Vec<String> {
         self.columns.iter().map(|col| col.to_string()).collect()
     }
+
     pub fn get_ref_columns(&self) -> Vec<String> {
         self.ref_columns
             .iter()
             .map(|ref_col| ref_col.to_string())
             .collect()
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            name: self.name.take(),
+            table: self.table.take(),
+            ref_table: self.ref_table.take(),
+            columns: std::mem::replace(&mut self.columns, Vec::new()),
+            ref_columns: std::mem::replace(&mut self.ref_columns, Vec::new()),
+            on_delete: self.on_delete.take(),
+            on_update: self.on_update.take(),
+        }
     }
 }

@@ -46,13 +46,13 @@ impl ForeignKeyDropStatement {
     }
 
     /// Set foreign key name
-    pub fn name(mut self, name: &str) -> Self {
+    pub fn name(&mut self, name: &str) -> &mut Self {
         self.foreign_key.name(name);
         self
     }
 
     /// Set key table and referencing table
-    pub fn table<T: 'static>(mut self, table: T) -> Self
+    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
         T: Iden,
     {

@@ -87,7 +87,7 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set foreign key name
-    pub fn name(mut self, name: &str) -> Self {
+    pub fn name(&mut self, name: &str) -> &mut Self {
         self.foreign_key.name(name);
         self
     }
@@ -97,7 +97,7 @@ impl ForeignKeyCreateStatement {
         since = "0.10.2",
         note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
     )]
-    pub fn table<T: 'static, R: 'static>(mut self, table: T, ref_table: R) -> Self
+    pub fn table<T: 'static, R: 'static>(&mut self, table: T, ref_table: R) -> &mut Self
     where
         T: Iden,
         R: Iden,
@@ -112,7 +112,7 @@ impl ForeignKeyCreateStatement {
         since = "0.10.2",
         note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
     )]
-    pub fn col<T: 'static, R: 'static>(mut self, column: T, ref_column: R) -> Self
+    pub fn col<T: 'static, R: 'static>(&mut self, column: T, ref_column: R) -> &mut Self
     where
         T: Iden,
         R: Iden,
@@ -123,7 +123,7 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set key table and columns
-    pub fn from<T, C>(mut self, table: T, columns: C) -> Self
+    pub fn from<T, C>(&mut self, table: T, columns: C) -> &mut Self
     where
         T: IntoIden,
         C: IdenList,
@@ -136,7 +136,7 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set referencing table and columns
-    pub fn to<T, C>(mut self, table: T, columns: C) -> Self
+    pub fn to<T, C>(&mut self, table: T, columns: C) -> &mut Self
     where
         T: IntoIden,
         C: IdenList,
@@ -149,7 +149,7 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set key table
-    pub fn from_tbl<T>(mut self, table: T) -> Self
+    pub fn from_tbl<T>(&mut self, table: T) -> &mut Self
     where
         T: IntoIden,
     {
@@ -158,7 +158,7 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set referencing table
-    pub fn to_tbl<R>(mut self, ref_table: R) -> Self
+    pub fn to_tbl<R>(&mut self, ref_table: R) -> &mut Self
     where
         R: IntoIden,
     {
@@ -167,7 +167,7 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Add key column
-    pub fn from_col<T>(mut self, column: T) -> Self
+    pub fn from_col<T>(&mut self, column: T) -> &mut Self
     where
         T: IntoIden,
     {
@@ -176,7 +176,7 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Add referencing column
-    pub fn to_col<R>(mut self, ref_column: R) -> Self
+    pub fn to_col<R>(&mut self, ref_column: R) -> &mut Self
     where
         R: IntoIden,
     {
@@ -185,19 +185,25 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set on delete action
-    pub fn on_delete(mut self, action: ForeignKeyAction) -> Self {
+    pub fn on_delete(&mut self, action: ForeignKeyAction) -> &mut Self {
         self.foreign_key.on_delete(action);
         self
     }
 
     /// Set on update action
-    pub fn on_update(mut self, action: ForeignKeyAction) -> Self {
+    pub fn on_update(&mut self, action: ForeignKeyAction) -> &mut Self {
         self.foreign_key.on_update(action);
         self
     }
 
     pub fn get_foreign_key(&self) -> &TableForeignKey {
         &self.foreign_key
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            foreign_key: self.foreign_key.take(),
+        }
     }
 }
 
