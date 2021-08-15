@@ -56,7 +56,7 @@ impl TableDropStatement {
     }
 
     /// Set table name
-    pub fn table<T: 'static>(mut self, table: T) -> Self
+    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
         T: Iden,
     {
@@ -65,21 +65,29 @@ impl TableDropStatement {
     }
 
     /// Drop table if exists
-    pub fn if_exists(mut self) -> Self {
+    pub fn if_exists(&mut self) -> &mut Self {
         self.if_exists = true;
         self
     }
 
     /// Drop option restrict
-    pub fn restrict(mut self) -> Self {
+    pub fn restrict(&mut self) -> &mut Self {
         self.options.push(TableDropOpt::Restrict);
         self
     }
 
     /// Drop option cacade
-    pub fn cascade(mut self) -> Self {
+    pub fn cascade(&mut self) -> &mut Self {
         self.options.push(TableDropOpt::Cascade);
         self
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            tables: std::mem::replace(&mut self.tables, Vec::new()),
+            options: std::mem::replace(&mut self.options, Vec::new()),
+            if_exists: self.if_exists,
+        }
     }
 }
 

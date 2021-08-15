@@ -46,7 +46,7 @@ impl TableRenameStatement {
     }
 
     /// Set old and new table name
-    pub fn table<T: 'static, R: 'static>(mut self, from_name: T, to_name: R) -> Self
+    pub fn table<T: 'static, R: 'static>(&mut self, from_name: T, to_name: R) -> &mut Self
     where
         T: Iden,
         R: Iden,
@@ -54,6 +54,13 @@ impl TableRenameStatement {
         self.from_name = Some(SeaRc::new(from_name));
         self.to_name = Some(SeaRc::new(to_name));
         self
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            from_name: self.from_name.take(),
+            to_name: self.to_name.take(),
+        }
     }
 }
 

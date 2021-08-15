@@ -56,7 +56,7 @@ impl TableAlterStatement {
     }
 
     /// Set table name
-    pub fn table<T: 'static>(mut self, table: T) -> Self
+    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
         T: Iden,
     {
@@ -89,7 +89,7 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 100"#,
     /// );
     /// ```
-    pub fn add_column(self, column_def: &mut ColumnDef) -> Self {
+    pub fn add_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
         self.alter_option(TableAlterOption::AddColumn(column_def.take()))
     }
 
@@ -119,7 +119,7 @@ impl TableAlterStatement {
     /// );
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn modify_column(self, column_def: &mut ColumnDef) -> Self {
+    pub fn modify_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
         self.alter_option(TableAlterOption::ModifyColumn(column_def.take()))
     }
 
@@ -148,7 +148,7 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"#
     /// );
     /// ```
-    pub fn rename_column<T: 'static, R: 'static>(self, from_name: T, to_name: R) -> Self
+    pub fn rename_column<T: 'static, R: 'static>(&mut self, from_name: T, to_name: R) -> &mut Self
     where
         T: Iden,
         R: Iden,
@@ -181,16 +181,23 @@ impl TableAlterStatement {
     /// );
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn drop_column<T: 'static>(self, col_name: T) -> Self
+    pub fn drop_column<T: 'static>(&mut self, col_name: T) -> &mut Self
     where
         T: Iden,
     {
         self.alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
     }
 
-    fn alter_option(mut self, alter_option: TableAlterOption) -> Self {
+    fn alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
         self.alter_option = Some(alter_option);
         self
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            alter_option: self.alter_option.take(),
+        }
     }
 }
 

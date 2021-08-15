@@ -42,12 +42,18 @@ impl TableTruncateStatement {
     }
 
     /// Set table name
-    pub fn table<T: 'static>(mut self, table: T) -> Self
+    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
         T: Iden,
     {
         self.table = Some(SeaRc::new(table));
         self
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+        }
     }
 }
 

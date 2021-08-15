@@ -284,6 +284,18 @@ impl TableCreateStatement {
     pub fn get_indexes(&self) -> &Vec<IndexCreateStatement> {
         self.indexes.as_ref()
     }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            columns: std::mem::replace(&mut self.columns, Vec::new()),
+            options: std::mem::replace(&mut self.options, Vec::new()),
+            partitions: std::mem::replace(&mut self.partitions, Vec::new()),
+            indexes: std::mem::replace(&mut self.indexes, Vec::new()),
+            foreign_keys: std::mem::replace(&mut self.foreign_keys, Vec::new()),
+            if_not_exists: self.if_not_exists,
+        }
+    }
 }
 
 impl SchemaStatementBuilder for TableCreateStatement {
