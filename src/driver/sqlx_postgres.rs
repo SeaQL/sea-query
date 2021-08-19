@@ -4,7 +4,7 @@ macro_rules! bind_params_sqlx_postgres {
         let mut query = $query;
         for value in $params.iter() {
             query = match value {
-                Value::Null => query.bind(None::<bool>),
+                Value::Null => query.bind(None::<&[u8]>),
                 Value::Bool(v) => query.bind(v),
                 Value::TinyInt(v) => query.bind(v),
                 Value::SmallInt(v) => query.bind(v),
