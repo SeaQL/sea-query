@@ -40,6 +40,8 @@ macro_rules! bind_params_sqlx_sqlite {
                         query.bind(value.as_ref_date_time())
                     } else if value.is_decimal() {
                         query.bind(value.decimal_to_f64())
+                    } else if value.is_big_decimal() {
+                        query.bind(value.big_decimal_to_f64())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
                     } else {

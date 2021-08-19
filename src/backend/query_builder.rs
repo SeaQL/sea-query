@@ -648,11 +648,17 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
+            Value::Date(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Time(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
             Value::DateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -676,6 +682,10 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
+            Value::Date(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Time(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap(),
+            #[cfg(feature = "with-chrono")]
             Value::DateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
             }
@@ -685,6 +695,8 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
         };

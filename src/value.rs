@@ -7,15 +7,20 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, NaiveDateTime};
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
+
+#[cfg(feature = "with-bigdecimal")]
+use bigdecimal::BigDecimal;
 
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
 /// Value variants
+///
+/// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Bool(Option<bool>),
@@ -29,25 +34,42 @@ pub enum Value {
     BigUnsigned(Option<u64>),
     Float(Option<f32>),
     Double(Option<f64>),
-    // we want Value to be exactly 1 pointer sized, so anything larger should be boxed
     String(Option<Box<String>>),
+
     #[allow(clippy::box_vec)]
     Bytes(Option<Box<Vec<u8>>>),
+
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     Json(Option<Box<Json>>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    Date(Option<Box<NaiveDate>>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    Time(Option<Box<NaiveTime>>),
+
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTime(Option<Box<NaiveDateTime>>),
+
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Option<Box<Uuid>>),
+
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
     Decimal(Option<Box<Decimal>>),
+
+    #[cfg(feature = "with-bigdecimal")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+    BigDecimal(Option<Box<BigDecimal>>),
 }
 
 pub trait ValueType: ValueTypeDefault {
@@ -325,6 +347,15 @@ mod with_rust_decimal {
     impl_value_type_default!(Decimal);
 }
 
+#[cfg(feature = "with-bigdecimal")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+mod with_bigdecimal {
+    use super::*;
+
+    type_to_box_value!(BigDecimal, BigDecimal);
+    impl_value_type_default!(BigDecimal);
+}
+
 #[cfg(feature = "with-uuid")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
 mod with_uuid {
@@ -351,6 +382,46 @@ impl Value {
     #[cfg(not(feature = "with-json"))]
     pub fn as_ref_json(&self) -> &bool {
         panic!("not Value::Json")
+    }
+}
+
+impl Value {
+    pub fn is_date(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::Date(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date(&self) -> &NaiveDate {
+        match self {
+            Self::Date(Some(v)) => v.as_ref(),
+            _ => panic!("not Value::Date"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date(&self) -> &bool {
+        panic!("not Value::Date")
+    }
+}
+
+impl Value {
+    pub fn is_time(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::Time(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_time(&self) -> &NaiveTime {
+        match self {
+            Self::Time(Some(v)) => v.as_ref(),
+            _ => panic!("not Value::Time"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_time(&self) -> &bool {
+        panic!("not Value::Time")
     }
 }
 
@@ -419,6 +490,35 @@ impl Value {
     }
     #[cfg(not(feature = "with-rust_decimal"))]
     pub fn decimal_to_f64(&self) -> f64 {
+        0.0
+    }
+}
+
+impl Value {
+    pub fn is_big_decimal(&self) -> bool {
+        #[cfg(feature = "with-bigdecimal")]
+        return matches!(self, Self::BigDecimal(_));
+        #[cfg(not(feature = "with-bigdecimal"))]
+        return false;
+    }
+    #[cfg(feature = "with-bigdecimal")]
+    pub fn as_ref_big_decimal(&self) -> &BigDecimal {
+        match self {
+            Self::BigDecimal(Some(v)) => v.as_ref(),
+            _ => panic!("not Value::BigDecimal"),
+        }
+    }
+    #[cfg(feature = "with-bigdecimal")]
+    pub fn big_decimal_to_f64(&self) -> f64 {
+        use bigdecimal::ToPrimitive;
+        self.as_ref_big_decimal().to_f64().unwrap()
+    }
+    #[cfg(not(feature = "with-bigdecimal"))]
+    pub fn as_ref_big_decimal(&self) -> &bool {
+        panic!("not Value::BigDecimal")
+    }
+    #[cfg(not(feature = "with-bigdecimal"))]
+    pub fn big_decimal_to_f64(&self) -> f64 {
         0.0
     }
 }
@@ -554,6 +654,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Json(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
+        #[cfg(feature = "with-bigdecimal")]
+        Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
@@ -571,12 +673,21 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
+        Value::Date(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
+        Value::Time(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
         Value::DateTime(_) => PostgresQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::DateTimeWithTimeZone(_) => PostgresQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
+            v.as_ref().to_f64().unwrap().into()
+        }
+        #[cfg(feature = "with-bigdecimal")]
+        Value::BigDecimal(Some(v)) => {
+            use bigdecimal::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
         #[cfg(feature = "with-uuid")]

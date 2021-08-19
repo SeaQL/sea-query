@@ -42,6 +42,8 @@ macro_rules! bind_params_sqlx_postgres {
                         query.bind(value.as_ref_date_time_with_time_zone())
                     } else if value.is_decimal() {
                         query.bind(value.as_ref_decimal())
+                    } else if value.is_big_decimal() {
+                        query.bind(value.as_ref_big_decimal())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
                     } else {

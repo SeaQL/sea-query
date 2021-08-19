@@ -46,11 +46,17 @@ impl ToSql for Value {
             #[cfg(feature = "postgres-json")]
             Value::Json(v) => box_to_sql!(v, serde_json::Value),
             #[cfg(feature = "postgres-chrono")]
+            Value::Date(v) => box_to_sql!(v, chrono::NaiveDate),
+            #[cfg(feature = "postgres-chrono")]
+            Value::Time(v) => box_to_sql!(v, chrono::NaiveTime),
+            #[cfg(feature = "postgres-chrono")]
             Value::DateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
             #[cfg(feature = "postgres-chrono")]
             Value::DateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
             #[cfg(feature = "postgres-rust_decimal")]
             Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
+            #[cfg(feature = "postgres-bigdecimal")]
+            Value::BigDecimal(v) => unimplemented!("Not supported"),
             #[cfg(feature = "postgres-uuid")]
             Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
         }
