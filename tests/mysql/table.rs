@@ -80,7 +80,7 @@ fn create_3() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer_len(11)
-                    .default(Value::Null)
+                    .default(Value::Int(None))
             )
             .foreign_key(
                 ForeignKey::create()

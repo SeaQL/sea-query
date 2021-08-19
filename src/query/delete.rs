@@ -94,7 +94,7 @@ impl DeleteStatement {
 
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::BigUnsigned(limit));
+        self.limit = Some(Value::BigUnsigned(Some(limit)));
         self
     }
 }
@@ -127,7 +127,7 @@ impl QueryStatementBuilder for DeleteStatement {
     /// assert_eq!(
     ///     params,
     ///     vec![
-    ///         Value::Int(1),
+    ///         Value::Int(Some(1)),
     ///     ]
     /// );
     /// ```

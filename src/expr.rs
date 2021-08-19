@@ -834,14 +834,14 @@ impl Expr {
     pub fn like(self, v: &str) -> SimpleExpr {
         self.bin_oper(
             BinOper::Like,
-            SimpleExpr::Value(Value::String(Box::new(v.to_owned()))),
+            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
         )
     }
 
     pub fn not_like(self, v: &str) -> SimpleExpr {
         self.bin_oper(
             BinOper::NotLike,
-            SimpleExpr::Value(Value::String(Box::new(v.to_owned()))),
+            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
         )
     }
 

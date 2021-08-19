@@ -7,8 +7,6 @@ use crate::{
     value::*,
     Query, QueryStatementBuilder, SelectExpr, SelectStatement,
 };
-#[cfg(feature = "with-json")]
-use serde_json::Value as JsonValue;
 
 /// Update existing rows in the table
 ///
@@ -139,50 +137,6 @@ impl UpdateStatement {
         self.col_expr(col, expr)
     }
 
-    /// Update multiple columns, taking a JSON Object as input.
-    /// Will panic if `values` is not serde_json::Value::Object.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .json(json!({
-    ///         "aspect": 2.1345,
-    ///         "image": "235m",
-    ///     }))
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
-    /// );
-    /// ```
-    #[cfg(feature = "with-json")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    pub fn json(&mut self, values: JsonValue) -> &mut Self {
-        match values {
-            JsonValue::Object(_) => (),
-            _ => panic!("must be JsonValue::Object"),
-        }
-        for (k, v) in values.as_object().unwrap() {
-            let v = json_value_to_sea_value(v);
-            self.push_boxed_value(k.into(), SimpleExpr::Value(v));
-        }
-        self
-    }
-
     /// Update column values. To set multiple column-value pairs at once.
     ///
     /// # Examples
@@ -265,7 +219,7 @@ impl UpdateStatement {
 
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::BigUnsigned(limit));
+        self.limit = Some(Value::BigUnsigned(Some(limit)));
         self
     }
 
@@ -368,9 +322,9 @@ impl QueryStatementBuilder for UpdateStatement {
     /// assert_eq!(
     ///     params,
     ///     vec![
-    ///         Value::Double(2.1345),
-    ///         Value::String(Box::new(String::from("235m"))),
-    ///         Value::Int(1),
+    ///         Value::Double(Some(2.1345)),
+    ///         Value::String(Some(Box::new(String::from("235m")))),
+    ///         Value::Int(Some(1)),
     ///     ]
     /// );
     /// ```

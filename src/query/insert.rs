@@ -2,8 +2,6 @@ use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Query, QueryStatementBuilder,
     SelectExpr, SelectStatement,
 };
-#[cfg(feature = "with-json")]
-use serde_json::Value as JsonValue;
 
 /// Insert any new rows into an existing table
 ///
@@ -213,69 +211,6 @@ impl InsertStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
-
-    /// Specify a row of values to be inserted, taking a JSON Object as input.
-    /// Will panic if `object` is not serde_json::Value::Object.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns(vec![
-    ///         Glyph::Aspect,
-    ///         Glyph::Image,
-    ///     ])
-    ///     .json(json!({
-    ///         "aspect": 2.1345,
-    ///         "image": "24B",
-    ///     }))
-    ///     .json(json!({
-    ///         "aspect": 4.21,
-    ///         "image": "123",
-    ///     }))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (4.21, '123')"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (4.21, '123')"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (4.21, '123')"#
-    /// );
-    /// ```
-    #[cfg(feature = "with-json")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    pub fn json(&mut self, object: JsonValue) -> &mut Self {
-        match object {
-            JsonValue::Object(_) => (),
-            _ => panic!("must be JsonValue::Object"),
-        }
-        let mut values = Vec::new();
-        if self.columns.is_empty() {
-            let map = object.as_object().unwrap();
-            let mut keys: Vec<String> = map.keys().cloned().collect();
-            keys.sort();
-            for k in keys.iter() {
-                self.columns.push(SeaRc::new(Alias::new(k)));
-            }
-        }
-        for col in self.columns.iter() {
-            values.push(match object.get(col.to_string()) {
-                Some(value) => json_value_to_sea_value(value),
-                None => Value::Null,
-            });
-        }
-        self.values.push(values);
-        self
-    }
 }
 
 impl QueryStatementBuilder for InsertStatement {
@@ -313,8 +248,8 @@ impl QueryStatementBuilder for InsertStatement {
     /// assert_eq!(
     ///     params,
     ///     vec![
-    ///         Value::Double(3.1415),
-    ///         Value::String(Box::new(String::from("041080"))),
+    ///         Value::Double(Some(3.1415)),
+    ///         Value::String(Some(Box::new(String::from("041080")))),
     ///     ]
     /// );
     /// ```

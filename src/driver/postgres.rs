@@ -13,31 +13,46 @@ impl ToSql for Value {
         ty: &Type,
         out: &mut BytesMut,
     ) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
+        macro_rules! to_sql {
+            ( $v: expr, $ty: ty ) => {
+                match $v {
+                    Some(v) => (*v as $ty).to_sql(ty, out),
+                    None => None::<$ty>.to_sql(ty, out),
+                }
+            };
+        }
+        macro_rules! box_to_sql {
+            ( $v: expr, $ty: ty ) => {
+                match $v {
+                    Some(v) => v.as_ref().to_sql(ty, out),
+                    None => None::<$ty>.to_sql(ty, out),
+                }
+            };
+        }
         match self {
-            Value::Null => None::<bool>.to_sql(ty, out),
-            Value::Bool(v) => v.to_sql(ty, out),
-            Value::TinyInt(v) => v.to_sql(ty, out),
-            Value::SmallInt(v) => v.to_sql(ty, out),
-            Value::Int(v) => v.to_sql(ty, out),
-            Value::BigInt(v) => v.to_sql(ty, out),
-            Value::TinyUnsigned(v) => (*v as u32).to_sql(ty, out),
-            Value::SmallUnsigned(v) => (*v as u32).to_sql(ty, out),
-            Value::Unsigned(v) => v.to_sql(ty, out),
-            Value::BigUnsigned(v) => (*v as i64).to_sql(ty, out),
-            Value::Float(v) => v.to_sql(ty, out),
-            Value::Double(v) => v.to_sql(ty, out),
-            Value::String(v) => v.as_str().to_sql(ty, out),
-            Value::Bytes(v) => v.as_ref().to_sql(ty, out),
+            Value::Bool(v) => to_sql!(v, bool),
+            Value::TinyInt(v) => to_sql!(v, i8),
+            Value::SmallInt(v) => to_sql!(v, i16),
+            Value::Int(v) => to_sql!(v, i32),
+            Value::BigInt(v) => to_sql!(v, i64),
+            Value::TinyUnsigned(v) => to_sql!(v, u32),
+            Value::SmallUnsigned(v) => to_sql!(v, u32),
+            Value::Unsigned(v) => to_sql!(v, u32),
+            Value::BigUnsigned(v) => to_sql!(v, i64),
+            Value::Float(v) => to_sql!(v, f32),
+            Value::Double(v) => to_sql!(v, f64),
+            Value::String(v) => box_to_sql!(v, String),
+            Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
             #[cfg(feature = "postgres-json")]
-            Value::Json(v) => v.as_ref().to_sql(ty, out),
+            Value::Json(v) => box_to_sql!(v, serde_json::Value),
             #[cfg(feature = "postgres-chrono")]
-            Value::DateTime(v) => v.as_ref().to_sql(ty, out),
+            Value::DateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
             #[cfg(feature = "postgres-chrono")]
-            Value::DateTimeWithTimeZone(v) => v.as_ref().to_sql(ty, out),
+            Value::DateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
             #[cfg(feature = "postgres-rust_decimal")]
-            Value::Decimal(v) => v.as_ref().to_sql(ty, out),
+            Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
             #[cfg(feature = "postgres-uuid")]
-            Value::Uuid(v) => v.as_ref().to_sql(ty, out),
+            Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
         }
     }
 

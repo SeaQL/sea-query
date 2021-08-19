@@ -1221,7 +1221,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::BigUnsigned(limit));
+        self.limit = Some(Value::BigUnsigned(Some(limit)));
         self
     }
 
@@ -1259,7 +1259,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn offset(&mut self, offset: u64) -> &mut Self {
-        self.offset = Some(Value::BigUnsigned(offset));
+        self.offset = Some(Value::BigUnsigned(Some(offset)));
         self
     }
 
@@ -1300,7 +1300,7 @@ impl QueryStatementBuilder for SelectStatement {
     /// );
     /// assert_eq!(
     ///     params,
-    ///     vec![Value::Int(0), Value::Int(2)]
+    ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
     /// );
     /// ```
     fn build_collect<T: QueryBuilder>(

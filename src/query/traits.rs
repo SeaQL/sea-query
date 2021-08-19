@@ -51,7 +51,7 @@ pub trait QueryStatementBuilder {
     /// );
     /// assert_eq!(
     ///     params,
-    ///     Values(vec![Value::Int(0), Value::Int(2)])
+    ///     Values(vec![Value::Int(Some(0)), Value::Int(Some(2))])
     /// );
     /// ```
     fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
@@ -98,7 +98,7 @@ pub trait QueryStatementBuilder {
     /// );
     /// assert_eq!(
     ///     params,
-    ///     vec![Value::Int(0), Value::Int(2)]
+    ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
     /// );
     /// ```
     fn build_collect<T: QueryBuilder>(
