@@ -54,6 +54,7 @@ fn main() {
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
         .columns(vec![
+            Document::Uuid,
             Document::JsonField,
             Document::Timestamp,
             Document::TimestampWithTimeZone,
