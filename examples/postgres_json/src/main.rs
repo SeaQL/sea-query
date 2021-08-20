@@ -67,6 +67,7 @@ fn main() {
             serde_json::to_value(document.json_field).unwrap().into(),
             document.timestamp.into(),
             document.timestamp_with_time_zone.into(),
+            document.decimal.into(),
         ])
         .build(PostgresQueryBuilder);
 
