@@ -1,8 +1,11 @@
+use chrono::{NaiveDate, NaiveDateTime};
 use rusqlite::{Connection, Result, Row};
 use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
 
 sea_query::sea_query_driver_rusqlite!();
 use sea_query_driver_rusqlite::RusqliteValues;
+use uuid::Uuid;
+use serde_json::{Value as Json, json};
 
 fn main() -> Result<()> {
     let conn = Connection::open_in_memory()?;
@@ -24,8 +27,11 @@ fn main() -> Result<()> {
                     .auto_increment()
                     .primary_key(),
             )
+            .col(ColumnDef::new(Character::Uuid).uuid())
             .col(ColumnDef::new(Character::FontSize).integer())
             .col(ColumnDef::new(Character::Character).string())
+            .col(ColumnDef::new(Character::Meta).json())
+            .col(ColumnDef::new(Character::Created).date_time())
             .build(SqliteQueryBuilder),
     ]
     .join("; ");
@@ -38,8 +44,22 @@ fn main() -> Result<()> {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![Character::Character, Character::FontSize])
-        .values_panic(vec!["A".into(), 12.into()])
+        .columns(vec![
+            Character::Uuid,
+            Character::FontSize,
+            Character::Character,
+            Character::Meta,
+            Character::Created,
+        ])
+        .values_panic(vec![
+            Uuid::new_v4().into(),
+            12.into(),
+            "A".into(),
+            json!({
+                "notes": "some notes here",
+            }).into(),
+            NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+        ])
         .build(SqliteQueryBuilder);
 
     let result = conn.execute(
@@ -54,8 +74,11 @@ fn main() -> Result<()> {
     let (sql, values) = Query::select()
         .columns(vec![
             Character::Id,
-            Character::Character,
+            Character::Uuid,
             Character::FontSize,
+            Character::Character,
+            Character::Meta,
+            Character::Created,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -90,8 +113,11 @@ fn main() -> Result<()> {
     let (sql, values) = Query::select()
         .columns(vec![
             Character::Id,
-            Character::Character,
+            Character::Uuid,
             Character::FontSize,
+            Character::Character,
+            Character::Meta,
+            Character::Created,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -145,23 +171,32 @@ fn main() -> Result<()> {
 enum Character {
     Table,
     Id,
+    Uuid,
     Character,
     FontSize,
+    Meta,
+    Created,
 }
 
 #[derive(Debug)]
 struct CharacterStruct {
     id: i32,
+    uuid: Uuid,
     character: String,
     font_size: i32,
+    meta: Json,
+    created: NaiveDateTime,
 }
 
 impl From<&Row<'_>> for CharacterStruct {
     fn from(row: &Row) -> Self {
         Self {
             id: row.get_unwrap("id"),
+            uuid: row.get_unwrap("uuid"),
             character: row.get_unwrap("character"),
             font_size: row.get_unwrap("font_size"),
+            meta: row.get_unwrap("meta"),
+            created: row.get_unwrap("created"),
         }
     }
 }

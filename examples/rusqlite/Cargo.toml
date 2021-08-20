@@ -4,10 +4,28 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-sea-query = { path = "../../", features = ["rusqlite"] }
+chrono = { version = "^0" }
+serde_json = { version = "^1" }
+uuid = { version = "^0", features = ["serde", "v4"] }
+sea-query = { path = "../../", features = [
+    "rusqlite",
+    "with-chrono",
+    "with-json",
+    "with-uuid",
+] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "^0", features = ["rusqlite"] }
+# sea-query = { version = "^0", features = [
+#     "rusqlite",
+#     "with-chrono",
+#     "with-json",
+#     "with-uuid",
+# ] }
 
 [dependencies.rusqlite]
 version = "^0.25"
-features = ["bundled"]
+features = [
+    "bundled",
+    "chrono",
+    "serde_json",
+    "uuid",
+]

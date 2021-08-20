@@ -269,7 +269,21 @@ mod with_chrono {
     use super::*;
     use chrono::{Offset, TimeZone};
 
+    type_to_box_value!(NaiveDate, Date);
+    type_to_box_value!(NaiveTime, Time);
     type_to_box_value!(NaiveDateTime, DateTime);
+
+    impl ValueTypeDefault for NaiveDate {
+        fn default() -> Self {
+            NaiveDate::from_num_days_from_ce(0)
+        }
+    }
+
+    impl ValueTypeDefault for NaiveTime {
+        fn default() -> Self {
+            NaiveTime::from_hms(0, 0, 0)
+        }
+    }
 
     impl ValueTypeDefault for NaiveDateTime {
         fn default() -> Self {
