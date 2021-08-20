@@ -1,0 +1,217 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+ 
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## 0.14.1 - 2021-08-15
+
++ #87 Fix inconsistent Ownership of self in Builder APIs
++ #105 Use Arc for SeaRc with feature flag thread-safe
+
+## 0.12.12 - 2021-08-14
+
++ Support Postgres full text search
+
+## 0.12.11 - 2021-08-13
+
++ Support SeaORM
+
+## 0.12.10 - 2021-08-11
+
++ #89 flattening iden enums in derive macro
+
+## 0.12.9 - 2021-08-08
+
++ #77 Postgres `binary` type
++ #81 example for CockroachDB
++ #84 Fix Postgres constraint keywords
++ #75 `DateTimeWithTimeZone` value type and `TimestampWithTimeZone` column type
+
+## 0.12.8 - 2021-07-24
+
++ Fix Postgres `datetime` column type mapping
++ `Uuid` in schema builder
+
+## 0.12.7 - 2021-07-13
+
++ `cust_with_values` allow escape `?` using `??`
+
+## 0.12.6 - 2021-07-07
+
++ Fixed build error for `sqlx-sqlite`
+
+## 0.12.5 - 2021-07-07
+
++ Support `Decimal` from rust_decimal
+
+## 0.12.4 - 2021-06-23
+
++ Added `returning` for update statement
+
+## 0.12.3 - 2021-06-19
+
++ Added `type_name` for ValueType
++ `Values` derive `Clone`
++ Added `Update::col_expr`
++ Type def Rc as `SeaRc`
++ getters for schema statements
+
+## 0.12.2 - 2021-06-04
+
++ Fixed `and_where_option`
++ Added `Condition::add_option`
+
+## 0.12.1 - 2021-06-03
+
++ Added `not_in_subquery`
+
+## 0.12.0 - 2021-05-31
+
++ Unify `cond_where` and `and_where`. Note: will panic if calling `or_where` after `and_where`.
+
+## 0.11.1 - 2021-05-22
+
++ Updated Readme
+
+## 0.11.0 - 2021-05-19
+
++ Added APIs to support ORM
++ Backend and internal refactoring
++ Introduced `QueryStatementBuilder` and `SchemaStatementBuilder` traits
++ Introduced `ConditionalStatement` and `OrderedStatement` traits
++ Introduced any/all style conditions for `cond_where` and `cond_having`
+
+## 0.10.6 - 2021-05-04
+
++ Postgres `ALTER TYPE` statements for `ENUM`
+
+## 0.10.5 - 2021-05-02
+
++ Updated documentation
+
+## 0.10.4 - 2021-05-02
+
++ `returning()` expression for Postgres insert statements
++ Remove redundant index name in foreign key expression of MySQL
+
+## 0.10.3 - 2021-04-30
+
++ custom `Error` type
++ Empty value list for IN
++ Index prefix and `IndexOrder`
+
+## 0.10.2 - 2021-04-27
+
++ Foreign key API `from` and `to`
++ Fix foreign key bug in `ON UPDATE`
+
+## 0.10.1 - 2021-04-25
+
++ Added `index_type()` (`FullText` and `Hash`)
++ Added `unique()` to `Index`
++ Support composite primary key
+
+## 0.10.0 - 2021-04-23
+
++ Use `IntoIterator` trait instead of `Vec` on most APIs
++ UUID support in `Value`
++ Rusqlite support
+
+## 0.9.6 - 2021-04-18
+
++ Rename `create_if_not_exists` to `if_not_exists`
++ Remove `partition_option` from `TableAlterStatement`
++ Added `ColumnDef::extra()`
+
+## 0.9.5 - 2021-04-17
+
++ Added `SchemaStatement`
+
+## 0.9.4 - 2021-04-13
+
++ Fixed `DateTime` quoting bugs
+
+## 0.9.3 - 2021-04-08
+
++ Update sea-query-derive to 0.1.2
+
+## 0.9.2 - 2021-04-05
+
++ derive supporting enum tuple variant and custom method
+
+## 0.9.1 - 2021-03-30
+
++ updated docs
+
+## 0.9.0 - 2021-03-29
+
++ Introduced `IntoColumnRef` trait to consolidate `column` and `table.column`
++ Introduced `IntoTableRef` trait to consolidate `table` and `schema.table`
++ Introduced `IntoIden` trait to remove `*_dyn` methods
+
+## 0.8.5 - 2021-03-29
+
++ added `into_simple_expr()`
+
+## 0.8.4 - 2021-03-24
+
++ Fixing `IS NULL`
+
+## 0.8.3 - 2021-03-23
+
++ derive `Debug` on most structs
+
+## 0.8.2 - 2021-03-23
+
++ Added `unescape_string`
+
+## 0.8.1 - 2021-03-23
+
++ Improve documentation
+
+## 0.8.0 - 2021-03-14
+
++ `json` support behind features
++ backend as features (`backend-mysql`, `backend-postgres`, `backend-sqlite`)
++ added `from_schema()`, `from_schema_as()`
+
+## 0.7.0 - 2021-03-06
+
++ Revamp `Value`
++ `build()` API change
++ `postgres` driver support
++ `json` and `chrono` support
+
+## 0.6.1 - 2021-03-05
+
++ Added `join_as`
++ Deprecated `expr_alias`, `from_alias`
+
+## 0.6.0 - 2021-02-20
+
++ Custom expression with parameters `Expr::cust_with_values()`
++ Custom function call `Func::cust()`
++ Postgres enum `Type::create().as_enum()`
+
+## 0.5.0 - 2021-02-09
+
++ derive macro `#[derive(Iden)]`
+
+## 0.4.0 - 2021-02-02
+
++ Added JSON binary column type `ColumnDef::json_binary()`
++ Custom column type `ColumnDef::custom()`
+
+## 0.3.0 - 2020-12-29
+
+
+
+## 0.2.0 - 2020-12-26
+
+
+
+## 0.1.0 - 2020-12-16
+
+Publish to crate.io
