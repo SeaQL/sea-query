@@ -1,8 +1,13 @@
+use bigdecimal::{BigDecimal, FromPrimitive};
+use chrono::{NaiveDate, NaiveDateTime};
+use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table};
 use sqlx::{PgPool, Row};
 
 sea_query::sea_query_driver_postgres!();
 use sea_query_driver_postgres::{bind_query, bind_query_as};
+use uuid::Uuid;
+use serde_json::{Value as Json, json};
 
 #[async_std::main]
 async fn main() {
@@ -23,8 +28,13 @@ async fn main() {
                 .auto_increment()
                 .primary_key(),
         )
+        .col(ColumnDef::new(Character::Uuid).uuid())
         .col(ColumnDef::new(Character::FontSize).integer())
         .col(ColumnDef::new(Character::Character).string())
+        .col(ColumnDef::new(Character::Meta).json())
+        .col(ColumnDef::new(Character::Decimal).decimal())
+        .col(ColumnDef::new(Character::BigDecimal).decimal())
+        .col(ColumnDef::new(Character::Created).date_time())
         .build(PostgresQueryBuilder);
 
     let result = sqlx::query(&sql).execute(&mut pool).await;
@@ -34,8 +44,26 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![Character::Character, Character::FontSize])
-        .values_panic(vec!["A".into(), 12.into()])
+        .columns(vec![
+            Character::Uuid,
+            Character::FontSize,
+            Character::Character,
+            Character::Meta,
+            Character::Decimal,
+            Character::BigDecimal,
+            Character::Created,
+        ])
+        .values_panic(vec![
+            Uuid::new_v4().into(),
+            12.into(),
+            "A".into(),
+            json!({
+                "notes": "some notes here",
+            }).into(),
+            Decimal::from_i128_with_scale(3141i128, 3).into(),
+            BigDecimal::from_i128(3141i128).unwrap().with_scale(3).into(),
+            NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+        ])
         .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
 
@@ -51,8 +79,13 @@ async fn main() {
     let (sql, values) = Query::select()
         .columns(vec![
             Character::Id,
+            Character::Uuid,
             Character::Character,
             Character::FontSize,
+            Character::Meta,
+            Character::Decimal,
+            Character::BigDecimal,
+            Character::Created,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -87,8 +120,13 @@ async fn main() {
     let (sql, values) = Query::select()
         .columns(vec![
             Character::Id,
+            Character::Uuid,
             Character::Character,
             Character::FontSize,
+            Character::Meta,
+            Character::Decimal,
+            Character::BigDecimal,
+            Character::Created,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -138,13 +176,23 @@ async fn main() {
 enum Character {
     Table,
     Id,
+    Uuid,
     Character,
     FontSize,
+    Meta,
+    Decimal,
+    BigDecimal,
+    Created,
 }
 
 #[derive(sqlx::FromRow, Debug)]
 struct CharacterStruct {
     id: i32,
+    uuid: Uuid,
     character: String,
     font_size: i32,
+    meta: Json,
+    decimal: Decimal,
+    big_decimal: BigDecimal,
+    created: NaiveDateTime,
 }

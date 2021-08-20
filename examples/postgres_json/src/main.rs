@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
+use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
 use uuid::Uuid;
 
@@ -50,6 +51,7 @@ fn main() {
         timestamp: NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2),
         timestamp_with_time_zone: DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00")
             .unwrap(),
+        decimal: Decimal::from_i128_with_scale(3141i128, 3),
     };
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
@@ -58,6 +60,7 @@ fn main() {
             Document::JsonField,
             Document::Timestamp,
             Document::TimestampWithTimeZone,
+            Document::Decimal,
         ])
         .values_panic(vec![
             document.uuid.into(),
@@ -79,6 +82,7 @@ fn main() {
             Document::JsonField,
             Document::Timestamp,
             Document::TimestampWithTimeZone,
+            Document::Decimal,
         ])
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
@@ -102,6 +106,7 @@ enum Document {
     JsonField,
     Timestamp,
     TimestampWithTimeZone,
+    Decimal,
 }
 
 #[derive(Debug)]
@@ -111,6 +116,7 @@ struct DocumentStruct {
     json_field: serde_json::Value,
     timestamp: NaiveDateTime,
     timestamp_with_time_zone: DateTime<FixedOffset>,
+    decimal: Decimal,
 }
 
 impl From<Row> for DocumentStruct {
@@ -121,6 +127,7 @@ impl From<Row> for DocumentStruct {
             json_field: row.get("json_field"),
             timestamp: row.get("timestamp"),
             timestamp_with_time_zone: row.get("timestamp_with_time_zone"),
+            decimal: row.get("decimal"),
         }
     }
 }

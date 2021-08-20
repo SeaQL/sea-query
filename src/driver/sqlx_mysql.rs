@@ -36,6 +36,10 @@ macro_rules! bind_params_sqlx_mysql {
                 _ => {
                     if value.is_json() {
                         query.bind(value.as_ref_json())
+                    } else if value.is_date() {
+                        query.bind(value.as_ref_date())
+                    } else if value.is_time() {
+                        query.bind(value.as_ref_time())
                     } else if value.is_date_time() {
                         query.bind(value.as_ref_date_time())
                     } else if value.is_decimal() {

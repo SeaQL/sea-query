@@ -4,13 +4,14 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+chrono = "^0"
+uuid = { version = "^0", features = ["serde", "v4"] }
+serde_json = "^1"
 async-std = { version = "1.8", features = [ "attributes" ] }
 sea-query = { path = "../../", features = [
     "sqlx-sqlite",
     "with-chrono",
     "with-json",
-    "with-rust_decimal",
-    "with-bigdecimal",
     "with-uuid",
 ] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
@@ -18,8 +19,6 @@ sea-query = { path = "../../", features = [
 #     "sqlx-sqlite",
 #     "with-chrono",
 #     "with-json",
-#     "with-rust_decimal",
-#     "with-bigdecimal",
 #     "with-uuid",
 # ] }
 
@@ -30,4 +29,7 @@ features = [
     "runtime-async-std-native-tls",
     "macros",
     "sqlite",
+    "chrono",
+    "json",
+    "uuid",
 ]
