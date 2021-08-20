@@ -1,6 +1,7 @@
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
+use uuid::Uuid;
 
 fn main() {
     let mut client = Client::connect("postgresql://sea:sea@localhost/query", NoTls).unwrap();
@@ -22,6 +23,7 @@ fn main() {
                     .auto_increment()
                     .primary_key(),
             )
+            .col(ColumnDef::new(Document::Uuid).uuid())
             .col(ColumnDef::new(Document::JsonField).json_binary())
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
@@ -36,6 +38,7 @@ fn main() {
     // Create
     let document = DocumentStruct {
         id: 1,
+        uuid: Uuid::new_v4(),
         json_field: serde_json::json! {{
             "a": 25.0,
             "b": "whatever",
@@ -56,6 +59,7 @@ fn main() {
             Document::TimestampWithTimeZone,
         ])
         .values_panic(vec![
+            document.uuid.into(),
             serde_json::to_value(document.json_field).unwrap().into(),
             document.timestamp.into(),
             document.timestamp_with_time_zone.into(),
@@ -70,6 +74,7 @@ fn main() {
     let (sql, values) = Query::select()
         .columns(vec![
             Document::Id,
+            Document::Uuid,
             Document::JsonField,
             Document::Timestamp,
             Document::TimestampWithTimeZone,
@@ -92,6 +97,7 @@ fn main() {
 enum Document {
     Table,
     Id,
+    Uuid,
     JsonField,
     Timestamp,
     TimestampWithTimeZone,
@@ -100,6 +106,7 @@ enum Document {
 #[derive(Debug)]
 struct DocumentStruct {
     id: i32,
+    uuid: Uuid,
     json_field: serde_json::Value,
     timestamp: NaiveDateTime,
     timestamp_with_time_zone: DateTime<FixedOffset>,
@@ -109,6 +116,7 @@ impl From<Row> for DocumentStruct {
     fn from(row: Row) -> Self {
         Self {
             id: row.get("id"),
+            uuid: row.get("uuid"),
             json_field: row.get("json_field"),
             timestamp: row.get("timestamp"),
             timestamp_with_time_zone: row.get("timestamp_with_time_zone"),
