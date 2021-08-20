@@ -4,8 +4,8 @@ use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, T
 
 sea_query::sea_query_driver_rusqlite!();
 use sea_query_driver_rusqlite::RusqliteValues;
+use serde_json::{json, Value as Json};
 use uuid::Uuid;
-use serde_json::{Value as Json, json};
 
 fn main() -> Result<()> {
     let conn = Connection::open_in_memory()?;
@@ -57,7 +57,8 @@ fn main() -> Result<()> {
             "A".into(),
             json!({
                 "notes": "some notes here",
-            }).into(),
+            })
+            .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
         ])
         .build(SqliteQueryBuilder);

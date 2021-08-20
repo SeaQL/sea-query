@@ -2,12 +2,12 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table};
-use sqlx::{MySqlPool, Row, types::chrono::NaiveDateTime};
+use sqlx::{types::chrono::NaiveDateTime, MySqlPool, Row};
 
 sea_query::sea_query_driver_mysql!();
 use sea_query_driver_mysql::{bind_query, bind_query_as};
+use serde_json::{json, Value as Json};
 use uuid::Uuid;
-use serde_json::{Value as Json, json};
 
 #[async_std::main]
 async fn main() {
@@ -59,9 +59,13 @@ async fn main() {
             "A".into(),
             json!({
                 "notes": "some notes here",
-            }).into(),
+            })
+            .into(),
             Decimal::from_i128_with_scale(3141i128, 3).into(),
-            BigDecimal::from_i128(3141i128).unwrap().with_scale(3).into(),
+            BigDecimal::from_i128(3141i128)
+                .unwrap()
+                .with_scale(3)
+                .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
         ])
         .build(MysqlQueryBuilder);
