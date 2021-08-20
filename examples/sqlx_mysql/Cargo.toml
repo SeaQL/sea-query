@@ -5,9 +5,23 @@ edition = "2018"
 
 [dependencies]
 async-std = { version = "1.8", features = [ "attributes" ] }
-sea-query = { path = "../../", features = ["sqlx-mysql"] }
+sea-query = { path = "../../", features = [
+    "sqlx-mysql",
+    "with-chrono",
+    "with-json",
+    "with-rust_decimal",
+    "with-bigdecimal",
+    "with-uuid",
+] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "^0.12", features = ["sqlx-mysql"] }
+# sea-query = { version = "^0", features = [
+#     "sqlx-mysql",
+#     "with-chrono",
+#     "with-json",
+#     "with-rust_decimal",
+#     "with-bigdecimal",
+#     "with-uuid",
+# ] }
 
 # To fix sqlx on unstable Rust:
 # lexical-core = { version = "0.7.5" }
