@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.14.1 - 2021-08-15
 
-+ #87 Fix inconsistent Ownership of self in Builder APIs
-+ #105 Use Arc for SeaRc with feature flag thread-safe
++ [[#87]] Fix inconsistent Ownership of self in Builder APIs
++ [[#105]] Use Arc for SeaRc with feature flag thread-safe
+
+[#87]: https://github.com/SeaQL/sea-query/pull/87
+[#105]: https://github.com/SeaQL/sea-query/pull/105
 
 ## 0.12.12 - 2021-08-14
 
@@ -20,14 +23,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.12.10 - 2021-08-11
 
-+ #89 flattening iden enums in derive macro
++ [[#89]] flattening iden enums in derive macro
+
+[#89]: https://github.com/SeaQL/sea-query/pull/87
 
 ## 0.12.9 - 2021-08-08
 
-+ #77 Postgres `binary` type
-+ #81 example for CockroachDB
-+ #84 Fix Postgres constraint keywords
-+ #75 `DateTimeWithTimeZone` value type and `TimestampWithTimeZone` column type
++ [[#77]] Postgres `binary` type
++ [[#81]] example for CockroachDB
++ [[#84]] Fix Postgres constraint keywords
++ [[#75]] `DateTimeWithTimeZone` value type and `TimestampWithTimeZone` column type
+
+[#77]: https://github.com/SeaQL/sea-query/pull/77
+[#81]: https://github.com/SeaQL/sea-query/pull/81
+[#84]: https://github.com/SeaQL/sea-query/pull/84
+[#75]: https://github.com/SeaQL/sea-query/pull/75
 
 ## 0.12.8 - 2021-07-24
 
