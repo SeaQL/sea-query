@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.15.0 - 2021-08-21
+
++ [[#107]] Revamp `Value` to typed null value
+
+The `Value::Null` variant is removed. You have to use a specific variant with a `None`.
+
+Before:
+
+```rust
+Query::insert()
+    .values_panic(vec![
+        Value::Null,
+        2.1345.into(),
+    ])
+```
+
+After:
+
+```rust
+Query::insert()
+    .values_panic(vec![
+        Value::String(None),
+        2.1345.into(),
+    ])
+```
+
+Since we cannot handle the generic `Null` value on JSON, we removed the `json` method on `InsertStatement` and `UpdateStatement`. The following NO LONGER WORKS:
+
+```rust
+let query = Query::insert()
+    .into_table(Glyph::Table)
+    .json(json!({
+        "aspect": 2.1345,
+        "image": "24B",
+    }));
+```
+
+```rust
+let query = Query::update()
+    .table(Glyph::Table)
+    .json(json!({
+        "aspect": 2.1345,
+        "image": "235m",
+    }));
+```
+
+In addition, if you constructed `Value` manually before (instead of using `into()` which is unaffected), you have to wrap them in an `Option`:
+
+Before:
+
+```rust
+let (sql, values) = query.build(PostgresQueryBuilder);
+assert_eq!(
+	values,
+	Values(vec![Value::String(Box::new("A".to_owned())), Value::Int(1), Value::Int(2), Value::Int(3)]))
+);
+```
+
+After:
+
+```rust
+let (sql, values) = query.build(PostgresQueryBuilder);
+assert_eq!(
+	values,
+	Values(vec![Value::String(Some(Box::new("A".to_owned()))), Value::Int(Some(1)), Value::Int(Some(2)), Value::Int(Some(3))]))
+);
+```
+
+[#107]: https://github.com/SeaQL/sea-query/pull/107
+
 ## 0.14.1 - 2021-08-15
 
 + [[#87]] Fix inconsistent Ownership of self in Builder APIs
@@ -15,7 +85,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.12.12 - 2021-08-14
 
-+ Support Postgres full text search
++ [[#98]] Support Postgres full text search
+
+[#98]: https://github.com/SeaQL/sea-query/pull/98
 
 ## 0.12.11 - 2021-08-13
 
