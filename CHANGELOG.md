@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.15.0 - 2021-08-21
 
 + [[#107]] Revamp `Value` to typed null value
++ Added `BigDecimal` support
 
 The `Value::Null` variant is removed. You have to use a specific variant with a `None`.
 
