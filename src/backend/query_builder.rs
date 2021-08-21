@@ -842,3 +842,13 @@ pub trait QueryBuilder: QuotedBuilder {
         "CHAR_LENGTH"
     }
 }
+
+pub(crate) struct CommonSqlQueryBuilder;
+
+impl QueryBuilder for CommonSqlQueryBuilder {}
+
+impl QuotedBuilder for CommonSqlQueryBuilder {
+    fn quote(&self) -> char {
+        '"'
+    }
+}

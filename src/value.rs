@@ -649,7 +649,7 @@ pub fn unescape_string(input: &str) -> String {
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn sea_value_to_json_value(value: &Value) -> Json {
-    use crate::{PostgresQueryBuilder, QueryBuilder};
+    use crate::{CommonSqlQueryBuilder, QueryBuilder};
 
     match value {
         Value::Bool(None)
@@ -687,13 +687,13 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
-        Value::Date(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        Value::Date(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::Time(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        Value::Time(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTime(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        Value::DateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTimeWithTimeZone(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        Value::DateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
