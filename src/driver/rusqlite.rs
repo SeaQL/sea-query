@@ -29,28 +29,47 @@ macro_rules! sea_query_driver_rusqlite {
 
             impl ToSql for RusqliteValue {
                 fn to_sql(&self) -> Result<ToSqlOutput<'_>> {
+                    macro_rules! to_sql {
+                        ( $v: expr, $ty: ty ) => {
+                            match $v {
+                                Some(v) => v.to_sql(),
+                                None => None::<$ty>.to_sql(),
+                            }
+                        };
+                    }
+                    macro_rules! box_to_sql {
+                        ( $v: expr, $ty: ty ) => {
+                            match $v {
+                                Some(v) => v.as_ref().to_sql(),
+                                None => None::<$ty>.to_sql(),
+                            }
+                        };
+                    }
                     match &self.0 {
-                        Value::Null => None::<bool>.to_sql(),
-                        Value::Bool(v) => v.to_sql(),
-                        Value::TinyInt(v) => v.to_sql(),
-                        Value::SmallInt(v) => v.to_sql(),
-                        Value::Int(v) => v.to_sql(),
-                        Value::BigInt(v) => v.to_sql(),
-                        Value::TinyUnsigned(v) => v.to_sql(),
-                        Value::SmallUnsigned(v) => v.to_sql(),
-                        Value::Unsigned(v) => v.to_sql(),
-                        Value::BigUnsigned(v) => v.to_sql(),
-                        Value::Float(v) => v.to_sql(),
-                        Value::Double(v) => v.to_sql(),
-                        Value::String(v) => v.as_str().to_sql(),
-                        Value::Bytes(v) => v.as_ref().to_sql(),
+                        Value::Bool(v) => to_sql!(v, bool),
+                        Value::TinyInt(v) => to_sql!(v, i8),
+                        Value::SmallInt(v) => to_sql!(v, i16),
+                        Value::Int(v) => to_sql!(v, i32),
+                        Value::BigInt(v) => to_sql!(v, i64),
+                        Value::TinyUnsigned(v) => to_sql!(v, u32),
+                        Value::SmallUnsigned(v) => to_sql!(v, u32),
+                        Value::Unsigned(v) => to_sql!(v, u32),
+                        Value::BigUnsigned(v) => to_sql!(v, i64),
+                        Value::Float(v) => to_sql!(v, f32),
+                        Value::Double(v) => to_sql!(v, f64),
+                        Value::String(v) => box_to_sql!(v, String),
+                        Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
                         _ => {
                             if self.0.is_json() {
                                 (*self.0.as_ref_json()).to_sql()
+                            } else if self.0.is_date() {
+                                (*self.0.as_ref_date()).to_sql()
+                            } else if self.0.is_time() {
+                                (*self.0.as_ref_time()).to_sql()
                             } else if self.0.is_date_time() {
                                 (*self.0.as_ref_date_time()).to_sql()
-                            } else if self.0.is_decimal() {
-                                unimplemented!("Not supported");
+                            } else if self.0.is_date_time_with_time_zone() {
+                                (*self.0.as_ref_date_time_with_time_zone()).to_sql()
                             } else if self.0.is_uuid() {
                                 (*self.0.as_ref_uuid()).to_sql()
                             } else {

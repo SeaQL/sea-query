@@ -5,8 +5,22 @@ edition = "2018"
 
 [dependencies]
 chrono = "^0"
-postgres = "^0.19"
-sea-query = { path = "../../", features = ["postgres", "postgres-chrono", "postgres-json", "postgres-uuid"] }
-# NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "^0.12", features = ["postgres", "postgres-chrono", "postgres-json"] }
+uuid = { version = "^0", features = ["serde", "v4"] }
 serde_json = "^1"
+rust_decimal = { version = "^1" }
+postgres = "^0.19"
+sea-query = { path = "../../", features = [
+    "postgres",
+    "postgres-chrono",
+    "postgres-json",
+    "postgres-rust_decimal",
+    "postgres-uuid",
+] }
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0", features = [
+#     "postgres",
+#     "postgres-chrono",
+#     "postgres-json",
+#     "postgres-rust_decimal",
+#     "postgres-uuid",
+# ] }

@@ -3,10 +3,10 @@
 use crate::{expr::*, query::*};
 use std::fmt;
 
-#[cfg(feature = "thread-safe")]
-pub use std::sync::Arc as SeaRc;
 #[cfg(not(feature = "thread-safe"))]
 pub use std::rc::Rc as SeaRc;
+#[cfg(feature = "thread-safe")]
+pub use std::sync::Arc as SeaRc;
 
 macro_rules! iden_trait {
     ($($bounds:ident),*) => {

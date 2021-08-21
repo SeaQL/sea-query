@@ -3,28 +3,49 @@ macro_rules! bind_params_sqlx_sqlite {
     ( $query:expr, $params:expr ) => {{
         let mut query = $query;
         for value in $params.iter() {
+            macro_rules! bind {
+                ( $v: expr, $ty: ty ) => {
+                    match $v {
+                        Some(v) => query.bind((*v as $ty)),
+                        None => query.bind(None::<$ty>),
+                    }
+                };
+            }
+            macro_rules! bind_box {
+                ( $v: expr, $ty: ty ) => {
+                    match $v {
+                        Some(v) => query.bind(v.as_ref()),
+                        None => query.bind(None::<$ty>),
+                    }
+                };
+            }
             query = match value {
-                Value::Null => query.bind(None::<bool>),
-                Value::Bool(v) => query.bind(v),
-                Value::TinyInt(v) => query.bind(v),
-                Value::SmallInt(v) => query.bind(v),
-                Value::Int(v) => query.bind(v),
-                Value::BigInt(v) => query.bind(v),
-                Value::TinyUnsigned(v) => query.bind(v),
-                Value::SmallUnsigned(v) => query.bind(v),
-                Value::Unsigned(v) => query.bind(v),
-                Value::BigUnsigned(v) => query.bind(*v as i64),
-                Value::Float(v) => query.bind(v),
-                Value::Double(v) => query.bind(v),
-                Value::String(v) => query.bind(v.as_str()),
-                Value::Bytes(v) => query.bind(v.as_ref()),
+                Value::Bool(v) => bind!(v, bool),
+                Value::TinyInt(v) => bind!(v, i8),
+                Value::SmallInt(v) => bind!(v, i16),
+                Value::Int(v) => bind!(v, i32),
+                Value::BigInt(v) => bind!(v, i64),
+                Value::TinyUnsigned(v) => bind!(v, u32),
+                Value::SmallUnsigned(v) => bind!(v, u32),
+                Value::Unsigned(v) => bind!(v, u32),
+                Value::BigUnsigned(v) => bind!(v, i64),
+                Value::Float(v) => bind!(v, f32),
+                Value::Double(v) => bind!(v, f64),
+                Value::String(v) => bind_box!(v, String),
+                Value::Bytes(v) => bind_box!(v, Vec<u8>),
                 _ => {
                     if value.is_json() {
                         query.bind(value.as_ref_json())
+                    } else if value.is_date() {
+                        query.bind(value.as_ref_date())
+                    } else if value.is_time() {
+                        query.bind(value.as_ref_time())
                     } else if value.is_date_time() {
                         query.bind(value.as_ref_date_time())
                     } else if value.is_decimal() {
                         query.bind(value.decimal_to_f64())
+                    } else if value.is_big_decimal() {
+                        query.bind(value.big_decimal_to_f64())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
                     } else {

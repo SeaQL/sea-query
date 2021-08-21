@@ -632,39 +632,73 @@ pub trait QueryBuilder: QuotedBuilder {
     fn value_to_string(&self, v: &Value) -> String {
         let mut s = String::new();
         match v {
-            Value::Null => write!(s, "NULL").unwrap(),
-            Value::Bool(b) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(v) => write!(s, "{}", v).unwrap(),
-            Value::SmallInt(v) => write!(s, "{}", v).unwrap(),
-            Value::Int(v) => write!(s, "{}", v).unwrap(),
-            Value::BigInt(v) => write!(s, "{}", v).unwrap(),
-            Value::TinyUnsigned(v) => write!(s, "{}", v).unwrap(),
-            Value::SmallUnsigned(v) => write!(s, "{}", v).unwrap(),
-            Value::Unsigned(v) => write!(s, "{}", v).unwrap(),
-            Value::BigUnsigned(v) => write!(s, "{}", v).unwrap(),
-            Value::Float(v) => write!(s, "{}", v).unwrap(),
-            Value::Double(v) => write!(s, "{}", v).unwrap(),
-            Value::String(v) => self.write_string_quoted(v, &mut s),
-            Value::Bytes(v) => write!(
+            Value::Bool(None)
+            | Value::TinyInt(None)
+            | Value::SmallInt(None)
+            | Value::Int(None)
+            | Value::BigInt(None)
+            | Value::TinyUnsigned(None)
+            | Value::SmallUnsigned(None)
+            | Value::Unsigned(None)
+            | Value::BigUnsigned(None)
+            | Value::Float(None)
+            | Value::Double(None)
+            | Value::String(None)
+            | Value::Bytes(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-json")]
+            Value::Json(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Date(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Time(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::DateTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-rust_decimal")]
+            Value::Decimal(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-uuid")]
+            Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
+            Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Int(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
+            Value::Bytes(Some(v)) => write!(
                 s,
                 "x\'{}\'",
                 v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
             )
             .unwrap(),
             #[cfg(feature = "with-json")]
-            Value::Json(v) => self.write_string_quoted(&v.to_string(), &mut s),
+            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
-            Value::DateTime(v) => {
+            Value::Date(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Time(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::DateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeWithTimeZone(v) => {
+            Value::DateTimeWithTimeZone(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(v) => write!(s, "{}", v).unwrap(),
+            Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(v) => write!(s, "\'{}\'", v.to_string()).unwrap(),
+            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
         };
         s
     }

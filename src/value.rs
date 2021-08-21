@@ -7,48 +7,69 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, NaiveDateTime};
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
+
+#[cfg(feature = "with-bigdecimal")]
+use bigdecimal::BigDecimal;
 
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
 /// Value variants
+///
+/// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    Null,
-    Bool(bool),
-    TinyInt(i8),
-    SmallInt(i16),
-    Int(i32),
-    BigInt(i64),
-    TinyUnsigned(u8),
-    SmallUnsigned(u16),
-    Unsigned(u32),
-    BigUnsigned(u64),
-    Float(f32),
-    Double(f64),
-    // we want Value to be exactly 1 pointer sized, so anything larger should be boxed
-    String(Box<String>),
+    Bool(Option<bool>),
+    TinyInt(Option<i8>),
+    SmallInt(Option<i16>),
+    Int(Option<i32>),
+    BigInt(Option<i64>),
+    TinyUnsigned(Option<u8>),
+    SmallUnsigned(Option<u16>),
+    Unsigned(Option<u32>),
+    BigUnsigned(Option<u64>),
+    Float(Option<f32>),
+    Double(Option<f64>),
+    String(Option<Box<String>>),
+
     #[allow(clippy::box_vec)]
-    Bytes(Box<Vec<u8>>),
+    Bytes(Option<Box<Vec<u8>>>),
+
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    Json(Box<Json>),
+    Json(Option<Box<Json>>),
+
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTime(Box<NaiveDateTime>),
+    Date(Option<Box<NaiveDate>>),
+
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTimeWithTimeZone(Box<DateTime<FixedOffset>>),
+    Time(Option<Box<NaiveTime>>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    DateTime(Option<Box<NaiveDateTime>>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
-    Uuid(Box<Uuid>),
+    Uuid(Option<Box<Uuid>>),
+
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
-    Decimal(Box<Decimal>),
+    Decimal(Option<Box<Decimal>>),
+
+    #[cfg(feature = "with-bigdecimal")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+    BigDecimal(Option<Box<BigDecimal>>),
 }
 
 pub trait ValueType: ValueTypeDefault {
@@ -84,33 +105,24 @@ impl Value {
     }
 }
 
-impl Default for Value {
-    fn default() -> Self {
-        Self::Null
-    }
-}
-
 macro_rules! type_to_value {
     ( $type: ty, $name: ident ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
-                Value::$name(x)
+                Value::$name(Some(x))
             }
         }
 
         impl From<Option<$type>> for Value {
             fn from(x: Option<$type>) -> Value {
-                match x {
-                    Some(v) => Value::$name(v),
-                    None => Value::Null,
-                }
+                Value::$name(x)
             }
         }
 
         impl ValueType for $type {
             fn unwrap(v: Value) -> Self {
                 match v {
-                    Value::$name(x) => x,
+                    Value::$name(Some(x)) => x,
                     _ => panic!("type error"),
                 }
             }
@@ -120,7 +132,10 @@ macro_rules! type_to_value {
             }
         }
 
-        impl ValueTypeDefault for $type {
+        impl ValueTypeDefault for $type
+        where
+            $type: Default,
+        {
             fn default() -> Self {
                 Default::default()
             }
@@ -129,7 +144,7 @@ macro_rules! type_to_value {
         impl ValueType for Option<$type> {
             fn unwrap(v: Value) -> Self {
                 match v {
-                    Value::$name(x) => Some(x),
+                    Value::$name(x) => x,
                     _ => panic!("type error"),
                 }
             }
@@ -151,15 +166,15 @@ macro_rules! type_to_box_value {
     ( $type: ty, $name: ident ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
-                Value::$name(Box::new(x))
+                Value::$name(Some(Box::new(x)))
             }
         }
 
         impl From<Option<$type>> for Value {
             fn from(x: Option<$type>) -> Value {
                 match x {
-                    Some(v) => Value::$name(Box::new(v)),
-                    None => Value::Null,
+                    Some(v) => Value::$name(Some(Box::new(v))),
+                    None => Value::$name(None),
                 }
             }
         }
@@ -167,7 +182,7 @@ macro_rules! type_to_box_value {
         impl ValueType for $type {
             fn unwrap(v: Value) -> Self {
                 match v {
-                    Value::$name(x) => *x,
+                    Value::$name(Some(x)) => *x,
                     _ => panic!("type error"),
                 }
             }
@@ -180,7 +195,8 @@ macro_rules! type_to_box_value {
         impl ValueType for Option<$type> {
             fn unwrap(v: Value) -> Self {
                 match v {
-                    Value::$name(x) => Some(*x),
+                    Value::$name(Some(x)) => Some(*x),
+                    Value::$name(None) => None,
                     _ => panic!("type error"),
                 }
             }
@@ -222,14 +238,14 @@ type_to_value!(f64, Double);
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
-        Value::Bytes(Box::<Vec<u8>>::new(x.into()))
+        Value::Bytes(Some(Box::<Vec<u8>>::new(x.into())))
     }
 }
 
 impl<'a> From<&'a str> for Value {
     fn from(x: &'a str) -> Value {
         let string: String = x.into();
-        Value::String(Box::new(string))
+        Value::String(Some(Box::new(string)))
     }
 }
 
@@ -253,7 +269,21 @@ mod with_chrono {
     use super::*;
     use chrono::{Offset, TimeZone};
 
+    type_to_box_value!(NaiveDate, Date);
+    type_to_box_value!(NaiveTime, Time);
     type_to_box_value!(NaiveDateTime, DateTime);
+
+    impl ValueTypeDefault for NaiveDate {
+        fn default() -> Self {
+            NaiveDate::from_num_days_from_ce(0)
+        }
+    }
+
+    impl ValueTypeDefault for NaiveTime {
+        fn default() -> Self {
+            NaiveTime::from_hms(0, 0, 0)
+        }
+    }
 
     impl ValueTypeDefault for NaiveDateTime {
         fn default() -> Self {
@@ -279,7 +309,7 @@ mod with_chrono {
     {
         fn from(x: DateTime<Tz>) -> Value {
             let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
-            Value::DateTimeWithTimeZone(Box::new(v))
+            Value::DateTimeWithTimeZone(Some(Box::new(v)))
         }
     }
 
@@ -290,7 +320,7 @@ mod with_chrono {
         fn from(x: Option<DateTime<Tz>>) -> Value {
             match x {
                 Some(v) => From::<DateTime<Tz>>::from(v),
-                None => Value::Null,
+                None => Value::DateTimeWithTimeZone(None),
             }
         }
     }
@@ -298,7 +328,7 @@ mod with_chrono {
     impl ValueType for DateTime<FixedOffset> {
         fn unwrap(v: Value) -> Self {
             match v {
-                Value::DateTimeWithTimeZone(x) => *x,
+                Value::DateTimeWithTimeZone(Some(x)) => *x,
                 _ => panic!("type error"),
             }
         }
@@ -311,7 +341,7 @@ mod with_chrono {
     impl ValueType for Option<DateTime<FixedOffset>> {
         fn unwrap(v: Value) -> Self {
             match v {
-                Value::DateTimeWithTimeZone(x) => Some(*x),
+                Value::DateTimeWithTimeZone(Some(x)) => Some(*x),
                 _ => panic!("type error"),
             }
         }
@@ -329,6 +359,15 @@ mod with_rust_decimal {
 
     type_to_box_value!(Decimal, Decimal);
     impl_value_type_default!(Decimal);
+}
+
+#[cfg(feature = "with-bigdecimal")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+mod with_bigdecimal {
+    use super::*;
+
+    type_to_box_value!(BigDecimal, BigDecimal);
+    impl_value_type_default!(BigDecimal);
 }
 
 #[cfg(feature = "with-uuid")]
@@ -350,13 +389,53 @@ impl Value {
     #[cfg(feature = "with-json")]
     pub fn as_ref_json(&self) -> &Json {
         match self {
-            Self::Json(v) => v.as_ref(),
+            Self::Json(Some(v)) => v.as_ref(),
             _ => panic!("not Value::Json"),
         }
     }
     #[cfg(not(feature = "with-json"))]
     pub fn as_ref_json(&self) -> &bool {
         panic!("not Value::Json")
+    }
+}
+
+impl Value {
+    pub fn is_date(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::Date(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date(&self) -> &NaiveDate {
+        match self {
+            Self::Date(Some(v)) => v.as_ref(),
+            _ => panic!("not Value::Date"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date(&self) -> &bool {
+        panic!("not Value::Date")
+    }
+}
+
+impl Value {
+    pub fn is_time(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::Time(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_time(&self) -> &NaiveTime {
+        match self {
+            Self::Time(Some(v)) => v.as_ref(),
+            _ => panic!("not Value::Time"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_time(&self) -> &bool {
+        panic!("not Value::Time")
     }
 }
 
@@ -370,7 +449,7 @@ impl Value {
     #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time(&self) -> &NaiveDateTime {
         match self {
-            Self::DateTime(v) => v.as_ref(),
+            Self::DateTime(Some(v)) => v.as_ref(),
             _ => panic!("not Value::DateTime"),
         }
     }
@@ -390,7 +469,7 @@ impl Value {
     #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time_with_time_zone(&self) -> &DateTime<FixedOffset> {
         match self {
-            Self::DateTimeWithTimeZone(v) => v.as_ref(),
+            Self::DateTimeWithTimeZone(Some(v)) => v.as_ref(),
             _ => panic!("not Value::DateTimeWithTimeZone"),
         }
     }
@@ -410,7 +489,7 @@ impl Value {
     #[cfg(feature = "with-rust_decimal")]
     pub fn as_ref_decimal(&self) -> &Decimal {
         match self {
-            Self::Decimal(v) => v.as_ref(),
+            Self::Decimal(Some(v)) => v.as_ref(),
             _ => panic!("not Value::Decimal"),
         }
     }
@@ -430,6 +509,35 @@ impl Value {
 }
 
 impl Value {
+    pub fn is_big_decimal(&self) -> bool {
+        #[cfg(feature = "with-bigdecimal")]
+        return matches!(self, Self::BigDecimal(_));
+        #[cfg(not(feature = "with-bigdecimal"))]
+        return false;
+    }
+    #[cfg(feature = "with-bigdecimal")]
+    pub fn as_ref_big_decimal(&self) -> &BigDecimal {
+        match self {
+            Self::BigDecimal(Some(v)) => v.as_ref(),
+            _ => panic!("not Value::BigDecimal"),
+        }
+    }
+    #[cfg(feature = "with-bigdecimal")]
+    pub fn big_decimal_to_f64(&self) -> f64 {
+        use bigdecimal::ToPrimitive;
+        self.as_ref_big_decimal().to_f64().unwrap()
+    }
+    #[cfg(not(feature = "with-bigdecimal"))]
+    pub fn as_ref_big_decimal(&self) -> &bool {
+        panic!("not Value::BigDecimal")
+    }
+    #[cfg(not(feature = "with-bigdecimal"))]
+    pub fn big_decimal_to_f64(&self) -> f64 {
+        0.0
+    }
+}
+
+impl Value {
     pub fn is_uuid(&self) -> bool {
         #[cfg(feature = "with-uuid")]
         return matches!(self, Self::Uuid(_));
@@ -439,7 +547,7 @@ impl Value {
     #[cfg(feature = "with-uuid")]
     pub fn as_ref_uuid(&self) -> &Uuid {
         match self {
-            Self::Uuid(v) => v.as_ref(),
+            Self::Uuid(Some(v)) => v.as_ref(),
             _ => panic!("not Value::Uuid"),
         }
     }
@@ -536,31 +644,6 @@ pub fn unescape_string(input: &str) -> String {
     output
 }
 
-/// Convert JSON value to Sea Value.
-/// `Json::Array` is not supported and will panic.
-#[cfg(feature = "with-json")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-pub fn json_value_to_sea_value(v: &Json) -> Value {
-    match v {
-        Json::Null => Value::Null,
-        Json::Bool(v) => Value::Int(v.to_owned().into()),
-        Json::Number(v) => {
-            if v.is_f64() {
-                Value::Double(v.as_f64().unwrap())
-            } else if v.is_i64() {
-                Value::BigInt(v.as_i64().unwrap())
-            } else if v.is_u64() {
-                Value::BigUnsigned(v.as_u64().unwrap())
-            } else {
-                unreachable!()
-            }
-        }
-        Json::String(v) => Value::String(Box::new(v.clone())),
-        Json::Array(_) => panic!("Json::Array is not supported"),
-        Json::Object(v) => Value::Json(Box::new(Json::Object(v.clone()))),
-    }
-}
-
 /// Convert value to json value
 #[allow(clippy::many_single_char_names)]
 #[cfg(feature = "with-json")]
@@ -569,32 +652,60 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
     use crate::{PostgresQueryBuilder, QueryBuilder};
 
     match value {
-        Value::Null => Json::Null,
-        Value::Bool(b) => Json::Bool(*b),
-        Value::TinyInt(v) => (*v).into(),
-        Value::SmallInt(v) => (*v).into(),
-        Value::Int(v) => (*v).into(),
-        Value::BigInt(v) => (*v).into(),
-        Value::TinyUnsigned(v) => (*v).into(),
-        Value::SmallUnsigned(v) => (*v).into(),
-        Value::Unsigned(v) => (*v).into(),
-        Value::BigUnsigned(v) => (*v).into(),
-        Value::Float(v) => (*v).into(),
-        Value::Double(v) => (*v).into(),
-        Value::String(s) => Json::String(s.as_ref().clone()),
-        Value::Bytes(s) => Json::String(from_utf8(s).unwrap().to_string()),
-        Value::Json(v) => v.as_ref().clone(),
+        Value::Bool(None)
+        | Value::TinyInt(None)
+        | Value::SmallInt(None)
+        | Value::Int(None)
+        | Value::BigInt(None)
+        | Value::TinyUnsigned(None)
+        | Value::SmallUnsigned(None)
+        | Value::Unsigned(None)
+        | Value::BigUnsigned(None)
+        | Value::Float(None)
+        | Value::Double(None)
+        | Value::String(None)
+        | Value::Bytes(None)
+        | Value::Json(None) => Json::Null,
+        #[cfg(feature = "with-rust_decimal")]
+        Value::Decimal(None) => Json::Null,
+        #[cfg(feature = "with-bigdecimal")]
+        Value::BigDecimal(None) => Json::Null,
+        #[cfg(feature = "with-uuid")]
+        Value::Uuid(None) => Json::Null,
+        Value::Bool(Some(b)) => Json::Bool(*b),
+        Value::TinyInt(Some(v)) => (*v).into(),
+        Value::SmallInt(Some(v)) => (*v).into(),
+        Value::Int(Some(v)) => (*v).into(),
+        Value::BigInt(Some(v)) => (*v).into(),
+        Value::TinyUnsigned(Some(v)) => (*v).into(),
+        Value::SmallUnsigned(Some(v)) => (*v).into(),
+        Value::Unsigned(Some(v)) => (*v).into(),
+        Value::BigUnsigned(Some(v)) => (*v).into(),
+        Value::Float(Some(v)) => (*v).into(),
+        Value::Double(Some(v)) => (*v).into(),
+        Value::String(Some(s)) => Json::String(s.as_ref().clone()),
+        Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
+        Value::Json(Some(v)) => v.as_ref().clone(),
+        #[cfg(feature = "with-chrono")]
+        Value::Date(_) => PostgresQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
+        Value::Time(_) => PostgresQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::DateTime(_) => PostgresQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::DateTimeWithTimeZone(_) => PostgresQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
-        Value::Decimal(v) => {
+        Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
+        #[cfg(feature = "with-bigdecimal")]
+        Value::BigDecimal(Some(v)) => {
+            use bigdecimal::ToPrimitive;
+            v.as_ref().to_f64().unwrap().into()
+        }
         #[cfg(feature = "with-uuid")]
-        Value::Uuid(v) => Json::String(v.to_string()),
+        Value::Uuid(Some(v)) => Json::String(v.to_string()),
     }
 }
 
@@ -667,10 +778,10 @@ mod tests {
         }
 
         macro_rules! test_none {
-            ( $type: ty ) => {
+            ( $type: ty, $name: ident ) => {
                 let val: Option<$type> = None;
                 let v: Value = val.into();
-                assert_eq!(v, Value::Null);
+                assert_eq!(v, Value::$name(None));
             };
         }
 
@@ -681,12 +792,12 @@ mod tests {
         test_some_value!(i32, 1073741824);
         test_some_value!(i64, 8589934592);
 
-        test_none!(u8);
-        test_none!(u16);
-        test_none!(i8);
-        test_none!(i16);
-        test_none!(i32);
-        test_none!(i64);
+        test_none!(u8, TinyUnsigned);
+        test_none!(u16, SmallUnsigned);
+        test_none!(i8, TinyInt);
+        test_none!(i16, SmallInt);
+        test_none!(i32, Int);
+        test_none!(i64, BigInt);
     }
 
     #[test]
@@ -699,21 +810,27 @@ mod tests {
 
     #[test]
     fn test_value_tuple() {
-        assert_eq!(1i32.into_value_tuple(), ValueTuple::One(Value::Int(1)));
+        assert_eq!(
+            1i32.into_value_tuple(),
+            ValueTuple::One(Value::Int(Some(1)))
+        );
         assert_eq!(
             "b".into_value_tuple(),
-            ValueTuple::One(Value::String(Box::new("b".to_owned())))
+            ValueTuple::One(Value::String(Some(Box::new("b".to_owned()))))
         );
         assert_eq!(
             (1i32, "b").into_value_tuple(),
-            ValueTuple::Two(Value::Int(1), Value::String(Box::new("b".to_owned())))
+            ValueTuple::Two(
+                Value::Int(Some(1)),
+                Value::String(Some(Box::new("b".to_owned())))
+            )
         );
         assert_eq!(
             (1i32, 2.4f64, "b").into_value_tuple(),
             ValueTuple::Three(
-                Value::Int(1),
-                Value::Double(2.4),
-                Value::String(Box::new("b".to_owned()))
+                Value::Int(Some(1)),
+                Value::Double(Some(2.4)),
+                Value::String(Some(Box::new("b".to_owned())))
             )
         );
     }
@@ -721,20 +838,20 @@ mod tests {
     #[test]
     fn test_value_tuple_iter() {
         let mut iter = (1i32).into_value_tuple().into_iter();
-        assert_eq!(iter.next().unwrap(), Value::Int(1));
+        assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
         assert_eq!(iter.next(), None);
 
         let mut iter = (1i32, 2.4f64).into_value_tuple().into_iter();
-        assert_eq!(iter.next().unwrap(), Value::Int(1));
-        assert_eq!(iter.next().unwrap(), Value::Double(2.4));
+        assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
+        assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
         assert_eq!(iter.next(), None);
 
         let mut iter = (1i32, 2.4f64, "b").into_value_tuple().into_iter();
-        assert_eq!(iter.next().unwrap(), Value::Int(1));
-        assert_eq!(iter.next().unwrap(), Value::Double(2.4));
+        assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
+        assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
         assert_eq!(
             iter.next().unwrap(),
-            Value::String(Box::new("b".to_owned()))
+            Value::String(Some(Box::new("b".to_owned())))
         );
         assert_eq!(iter.next(), None);
     }

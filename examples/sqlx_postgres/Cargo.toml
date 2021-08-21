@@ -4,10 +4,29 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+chrono = "^0"
+uuid = { version = "^0", features = ["serde", "v4"] }
+serde_json = "^1"
+rust_decimal = { version = "^1" }
+bigdecimal = { version = "^0" }
 async-std = { version = "1.8", features = [ "attributes" ] }
-sea-query = { path = "../../", features = ["sqlx-postgres"] }
+sea-query = { path = "../../", features = [
+    "sqlx-postgres",
+    "with-chrono",
+    "with-json",
+    "with-rust_decimal",
+    "with-bigdecimal",
+    "with-uuid",
+] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "^0.12", features = ["sqlx-postgres"] }
+# sea-query = { version = "^0", features = [
+#     "sqlx-postgres",
+#     "with-chrono",
+#     "with-json",
+#     "with-rust_decimal",
+#     "with-bigdecimal",
+#     "with-uuid",
+# ] }
 
 [dependencies.sqlx]
 version = "^0.5"
@@ -17,4 +36,9 @@ features = [
     "macros",
     "postgres",
     "tls",
+    "chrono",
+    "json",
+    "decimal",
+    "bigdecimal",
+    "uuid",
 ]
