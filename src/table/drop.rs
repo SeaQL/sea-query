@@ -84,8 +84,8 @@ impl TableDropStatement {
 
     pub fn take(&mut self) -> Self {
         Self {
-            tables: std::mem::replace(&mut self.tables, Vec::new()),
-            options: std::mem::replace(&mut self.options, Vec::new()),
+            tables: std::mem::take(&mut self.tables),
+            options: std::mem::take(&mut self.options),
             if_exists: self.if_exists,
         }
     }

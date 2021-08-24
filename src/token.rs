@@ -274,10 +274,10 @@ impl Token {
 
     pub fn as_str(&self) -> &str {
         match self {
-            Self::Quoted(string) => &string,
-            Self::Unquoted(string) => &string,
-            Self::Space(string) => &string,
-            Self::Punctuation(string) => &string,
+            Self::Quoted(string) => string,
+            Self::Unquoted(string) => string,
+            Self::Space(string) => string,
+            Self::Punctuation(string) => string,
         }
     }
 

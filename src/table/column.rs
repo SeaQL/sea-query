@@ -347,7 +347,7 @@ impl ColumnDef {
             table: self.table.take(),
             name: std::mem::replace(&mut self.name, SeaRc::new(NullAlias::new())),
             types: self.types.take(),
-            spec: std::mem::replace(&mut self.spec, Vec::new()),
+            spec: std::mem::take(&mut self.spec),
         }
     }
 }

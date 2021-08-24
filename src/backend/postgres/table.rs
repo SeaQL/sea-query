@@ -182,7 +182,7 @@ impl PostgresQueryBuilder {
                     _ => unimplemented!(),
                 }
             } else {
-                self.prepare_column_type(&column_type, sql);
+                self.prepare_column_type(column_type, sql);
             }
         }
     }

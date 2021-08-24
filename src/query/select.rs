@@ -111,13 +111,13 @@ impl SelectStatement {
     pub fn take(&mut self) -> Self {
         Self {
             distinct: self.distinct.take(),
-            selects: std::mem::replace(&mut self.selects, Vec::new()),
+            selects: std::mem::take(&mut self.selects),
             from: self.from.take(),
-            join: std::mem::replace(&mut self.join, Vec::new()),
+            join: std::mem::take(&mut self.join),
             wherei: std::mem::replace(&mut self.wherei, ConditionHolder::new()),
-            groups: std::mem::replace(&mut self.groups, Vec::new()),
+            groups: std::mem::take(&mut self.groups),
             having: std::mem::replace(&mut self.having, ConditionHolder::new()),
-            orders: std::mem::replace(&mut self.orders, Vec::new()),
+            orders: std::mem::take(&mut self.orders),
             limit: self.limit.take(),
             offset: self.offset.take(),
         }
