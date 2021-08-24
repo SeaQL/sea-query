@@ -6,7 +6,7 @@ impl TableBuilder for MysqlQueryBuilder {
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
-            self.prepare_column_type(&column_type, sql);
+            self.prepare_column_type(column_type, sql);
         }
 
         for column_spec in column_def.spec.iter() {

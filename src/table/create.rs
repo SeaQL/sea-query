@@ -288,11 +288,11 @@ impl TableCreateStatement {
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
-            columns: std::mem::replace(&mut self.columns, Vec::new()),
-            options: std::mem::replace(&mut self.options, Vec::new()),
-            partitions: std::mem::replace(&mut self.partitions, Vec::new()),
-            indexes: std::mem::replace(&mut self.indexes, Vec::new()),
-            foreign_keys: std::mem::replace(&mut self.foreign_keys, Vec::new()),
+            columns: std::mem::take(&mut self.columns),
+            options: std::mem::take(&mut self.options),
+            partitions: std::mem::take(&mut self.partitions),
+            indexes: std::mem::take(&mut self.indexes),
+            foreign_keys: std::mem::take(&mut self.foreign_keys),
             if_not_exists: self.if_not_exists,
         }
     }

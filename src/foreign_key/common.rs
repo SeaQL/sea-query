@@ -116,8 +116,8 @@ impl TableForeignKey {
             name: self.name.take(),
             table: self.table.take(),
             ref_table: self.ref_table.take(),
-            columns: std::mem::replace(&mut self.columns, Vec::new()),
-            ref_columns: std::mem::replace(&mut self.ref_columns, Vec::new()),
+            columns: std::mem::take(&mut self.columns),
+            ref_columns: std::mem::take(&mut self.ref_columns),
             on_delete: self.on_delete.take(),
             on_update: self.on_update.take(),
         }

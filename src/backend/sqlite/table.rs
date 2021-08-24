@@ -6,7 +6,7 @@ impl TableBuilder for SqliteQueryBuilder {
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
-            self.prepare_column_type(&column_type, sql);
+            self.prepare_column_type(column_type, sql);
         }
 
         let mut is_primary_key = false;

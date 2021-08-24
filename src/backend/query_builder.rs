@@ -739,7 +739,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 }
             }
             ConditionHolderContents::Condition(c) => {
-                self.prepare_condition_where(&c, sql, collector);
+                self.prepare_condition_where(c, sql, collector);
             }
         }
     }
@@ -767,7 +767,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     if condition.conditions.len() > 1 {
                         write!(sql, "(").unwrap();
                     }
-                    self.prepare_condition_where(&c, sql, collector);
+                    self.prepare_condition_where(c, sql, collector);
                     if condition.conditions.len() > 1 {
                         write!(sql, ")").unwrap();
                     }
@@ -776,7 +776,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     if condition.conditions.len() > 1 && (e.is_logical() || e.is_between()) {
                         write!(sql, "(").unwrap();
                     }
-                    self.prepare_simple_expr(&e, sql, collector);
+                    self.prepare_simple_expr(e, sql, collector);
                     if condition.conditions.len() > 1 && (e.is_logical() || e.is_between()) {
                         write!(sql, ")").unwrap();
                     }

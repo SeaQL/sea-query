@@ -119,7 +119,7 @@ impl TableIndex {
     pub fn take(&mut self) -> Self {
         Self {
             name: self.name.take(),
-            columns: std::mem::replace(&mut self.columns, Vec::new()),
+            columns: std::mem::take(&mut self.columns),
         }
     }
 }

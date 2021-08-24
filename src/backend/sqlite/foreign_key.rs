@@ -57,12 +57,12 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
 
         if let Some(foreign_key_action) = &create.foreign_key.on_delete {
             write!(sql, " ON DELETE ").unwrap();
-            self.prepare_foreign_key_action(&foreign_key_action, sql);
+            self.prepare_foreign_key_action(foreign_key_action, sql);
         }
 
         if let Some(foreign_key_action) = &create.foreign_key.on_update {
             write!(sql, " ON UPDATE ").unwrap();
-            self.prepare_foreign_key_action(&foreign_key_action, sql);
+            self.prepare_foreign_key_action(foreign_key_action, sql);
         }
     }
 }
