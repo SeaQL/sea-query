@@ -96,6 +96,10 @@ pub trait IntoValueTuple {
     fn into_value_tuple(self) -> ValueTuple;
 }
 
+pub trait Nullable {
+    fn null() -> Value;
+}
+
 impl Value {
     pub fn unwrap<T>(self) -> T
     where
@@ -113,9 +117,9 @@ macro_rules! type_to_value {
             }
         }
 
-        impl From<Option<$type>> for Value {
-            fn from(x: Option<$type>) -> Value {
-                Value::$name(x)
+        impl Nullable for $type {
+            fn null() -> Value {
+                Value::$name(None)
             }
         }
 
@@ -170,12 +174,9 @@ macro_rules! type_to_box_value {
             }
         }
 
-        impl From<Option<$type>> for Value {
-            fn from(x: Option<$type>) -> Value {
-                match x {
-                    Some(v) => Value::$name(Some(Box::new(v))),
-                    None => Value::$name(None),
-                }
+        impl Nullable for $type {
+            fn null() -> Value {
+                Value::$name(None)
             }
         }
 
@@ -249,6 +250,15 @@ impl<'a> From<&'a str> for Value {
     }
 }
 
+impl<T: Into<Value> + Nullable> From<Option<T>> for Value {
+    fn from(x: Option<T>) -> Value {
+        match x {
+            Some(v) => v.into(),
+            None => T::null(),
+        }
+    }
+}
+
 type_to_box_value!(Vec<u8>, Bytes);
 impl_value_type_default!(Vec<u8>);
 type_to_box_value!(String, String);
@@ -313,15 +323,9 @@ mod with_chrono {
         }
     }
 
-    impl<Tz> From<Option<DateTime<Tz>>> for Value
-    where
-        Tz: TimeZone,
-    {
-        fn from(x: Option<DateTime<Tz>>) -> Value {
-            match x {
-                Some(v) => From::<DateTime<Tz>>::from(v),
-                None => Value::DateTimeWithTimeZone(None),
-            }
+    impl Nullable for DateTime<FixedOffset> {
+        fn null() -> Value {
+            Value::DateTimeWithTimeZone(None)
         }
     }
 
