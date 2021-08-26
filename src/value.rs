@@ -144,25 +144,6 @@ macro_rules! type_to_value {
                 Default::default()
             }
         }
-
-        impl ValueType for Option<$type> {
-            fn unwrap(v: Value) -> Self {
-                match v {
-                    Value::$name(x) => x,
-                    _ => panic!("type error"),
-                }
-            }
-
-            fn type_name() -> &'static str {
-                concat!("Option<", stringify!($type), ">")
-            }
-        }
-
-        impl ValueTypeDefault for Option<$type> {
-            fn default() -> Self {
-                Default::default()
-            }
-        }
     };
 }
 
@@ -190,26 +171,6 @@ macro_rules! type_to_box_value {
 
             fn type_name() -> &'static str {
                 stringify!($type)
-            }
-        }
-
-        impl ValueType for Option<$type> {
-            fn unwrap(v: Value) -> Self {
-                match v {
-                    Value::$name(Some(x)) => Some(*x),
-                    Value::$name(None) => None,
-                    _ => panic!("type error"),
-                }
-            }
-
-            fn type_name() -> &'static str {
-                concat!("Option<", stringify!($type), ">")
-            }
-        }
-
-        impl ValueTypeDefault for Option<$type> {
-            fn default() -> Self {
-                Default::default()
             }
         }
     };
@@ -265,6 +226,28 @@ impl<T: Into<Value> + Nullable> From<Option<T>> for Value {
     }
 }
 
+impl<T: ValueType + Nullable> ValueType for Option<T> {
+    fn unwrap(v: Value) -> Self {
+        if v == T::null() {
+            None
+        }
+        else {
+            Some(v.unwrap())
+        }
+    }
+
+    fn type_name() -> &'static str {
+        //concat!("Option<", T::type_name(), ">")
+        T::type_name()
+    }
+}
+
+impl<T: ValueType + Nullable> ValueTypeDefault for Option<T> {
+    fn default() -> Self {
+        Default::default()
+    }
+}
+
 type_to_box_value!(Vec<u8>, Bytes);
 impl_value_type_default!(Vec<u8>);
 type_to_box_value!(String, String);
@@ -313,12 +296,6 @@ mod with_chrono {
         }
     }
 
-    impl ValueTypeDefault for Option<DateTime<FixedOffset>> {
-        fn default() -> Self {
-            Default::default()
-        }
-    }
-
     impl<Tz> From<DateTime<Tz>> for Value
     where
         Tz: TimeZone,
@@ -345,19 +322,6 @@ mod with_chrono {
 
         fn type_name() -> &'static str {
             stringify!(DateTime<FixedOffset>)
-        }
-    }
-
-    impl ValueType for Option<DateTime<FixedOffset>> {
-        fn unwrap(v: Value) -> Self {
-            match v {
-                Value::DateTimeWithTimeZone(Some(x)) => Some(*x),
-                _ => panic!("type error"),
-            }
-        }
-
-        fn type_name() -> &'static str {
-            stringify!(Option<DateTime<FixedOffset>>)
         }
     }
 }
