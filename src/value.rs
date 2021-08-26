@@ -217,7 +217,8 @@ impl<'a> Nullable for &'a str {
     }
 }
 
-impl<T: Into<Value> + Nullable> From<Option<T>> for Value {
+impl<T> From<Option<T>> for Value
+where T: Into<Value> + Nullable {
     fn from(x: Option<T>) -> Value {
         match x {
             Some(v) => v.into(),
@@ -226,7 +227,8 @@ impl<T: Into<Value> + Nullable> From<Option<T>> for Value {
     }
 }
 
-impl<T: ValueType + Nullable> ValueType for Option<T> {
+impl<T> ValueType for Option<T>
+where T: ValueType + Nullable {
     fn unwrap(v: Value) -> Self {
         if v == T::null() {
             None
@@ -242,7 +244,8 @@ impl<T: ValueType + Nullable> ValueType for Option<T> {
     }
 }
 
-impl<T: ValueType + Nullable> ValueTypeDefault for Option<T> {
+impl<T> ValueTypeDefault for Option<T>
+where T: ValueType + Nullable {
     fn default() -> Self {
         Default::default()
     }
