@@ -250,6 +250,12 @@ impl<'a> From<&'a str> for Value {
     }
 }
 
+impl<'a> Nullable for &'a str {
+    fn null() -> Value {
+        Value::String(None)
+    }
+}
+
 impl<T: Into<Value> + Nullable> From<Option<T>> for Value {
     fn from(x: Option<T>) -> Value {
         match x {
