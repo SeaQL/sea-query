@@ -72,14 +72,10 @@ pub enum Value {
     BigDecimal(Option<Box<BigDecimal>>),
 }
 
-pub trait ValueType: ValueTypeDefault {
+pub trait ValueType {
     fn unwrap(v: Value) -> Self;
 
     fn type_name() -> &'static str;
-}
-
-pub trait ValueTypeDefault {
-    fn default() -> Self;
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -135,15 +131,6 @@ macro_rules! type_to_value {
                 stringify!($type)
             }
         }
-
-        impl ValueTypeDefault for $type
-        where
-            $type: Default,
-        {
-            fn default() -> Self {
-                Default::default()
-            }
-        }
     };
 }
 
@@ -171,16 +158,6 @@ macro_rules! type_to_box_value {
 
             fn type_name() -> &'static str {
                 stringify!($type)
-            }
-        }
-    };
-}
-
-macro_rules! impl_value_type_default {
-    ( $type: ty ) => {
-        impl ValueTypeDefault for $type {
-            fn default() -> Self {
-                Default::default()
             }
         }
     };
@@ -244,17 +221,8 @@ where T: ValueType + Nullable {
     }
 }
 
-impl<T> ValueTypeDefault for Option<T>
-where T: ValueType + Nullable {
-    fn default() -> Self {
-        Default::default()
-    }
-}
-
 type_to_box_value!(Vec<u8>, Bytes);
-impl_value_type_default!(Vec<u8>);
 type_to_box_value!(String, String);
-impl_value_type_default!(String);
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -262,7 +230,6 @@ mod with_json {
     use super::*;
 
     type_to_box_value!(Json, Json);
-    impl_value_type_default!(Json);
 }
 
 #[cfg(feature = "with-chrono")]
@@ -274,30 +241,6 @@ mod with_chrono {
     type_to_box_value!(NaiveDate, Date);
     type_to_box_value!(NaiveTime, Time);
     type_to_box_value!(NaiveDateTime, DateTime);
-
-    impl ValueTypeDefault for NaiveDate {
-        fn default() -> Self {
-            NaiveDate::from_num_days_from_ce(0)
-        }
-    }
-
-    impl ValueTypeDefault for NaiveTime {
-        fn default() -> Self {
-            NaiveTime::from_hms(0, 0, 0)
-        }
-    }
-
-    impl ValueTypeDefault for NaiveDateTime {
-        fn default() -> Self {
-            NaiveDateTime::from_timestamp(0, 0)
-        }
-    }
-
-    impl ValueTypeDefault for DateTime<FixedOffset> {
-        fn default() -> Self {
-            DateTime::from_utc(NaiveDateTime::from_timestamp(0, 0), FixedOffset::east(0))
-        }
-    }
 
     impl<Tz> From<DateTime<Tz>> for Value
     where
@@ -335,7 +278,6 @@ mod with_rust_decimal {
     use super::*;
 
     type_to_box_value!(Decimal, Decimal);
-    impl_value_type_default!(Decimal);
 }
 
 #[cfg(feature = "with-bigdecimal")]
@@ -344,7 +286,6 @@ mod with_bigdecimal {
     use super::*;
 
     type_to_box_value!(BigDecimal, BigDecimal);
-    impl_value_type_default!(BigDecimal);
 }
 
 #[cfg(feature = "with-uuid")]
@@ -353,7 +294,6 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid);
-    impl_value_type_default!(Uuid);
 }
 
 impl Value {
