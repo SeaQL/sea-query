@@ -48,6 +48,7 @@ impl QueryBuilder for PostgresQueryBuilder {
             BinOper::Matches => write!(sql, "@@").unwrap(),
             BinOper::Contains => write!(sql, "@>").unwrap(),
             BinOper::Contained => write!(sql, "<@").unwrap(),
+            BinOper::Concatenate => write!(sql, "||").unwrap(),
             _ => self.prepare_bin_oper_common(bin_oper, sql, collector),
         }
     }
