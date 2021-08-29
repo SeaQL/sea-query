@@ -72,10 +72,25 @@ pub enum Value {
     BigDecimal(Option<Box<BigDecimal>>),
 }
 
-pub trait ValueType {
-    fn unwrap(v: Value) -> Self;
+pub trait ValueType: Sized {
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr>;
+
+    fn unwrap(v: Value) -> Self {
+        Self::try_from(v).unwrap()
+    }
 
     fn type_name() -> String;
+}
+
+#[derive(Debug)]
+pub struct ValueTypeErr;
+
+impl std::error::Error for ValueTypeErr {}
+
+impl std::fmt::Display for ValueTypeErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Value type mismatch")
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -120,10 +135,10 @@ macro_rules! type_to_value {
         }
 
         impl ValueType for $type {
-            fn unwrap(v: Value) -> Self {
+            fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
                 match v {
-                    Value::$name(Some(x)) => x,
-                    _ => panic!("type error"),
+                    Value::$name(Some(x)) => Ok(x),
+                    _ => Err(ValueTypeErr),
                 }
             }
 
@@ -149,10 +164,10 @@ macro_rules! type_to_box_value {
         }
 
         impl ValueType for $type {
-            fn unwrap(v: Value) -> Self {
+            fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
                 match v {
-                    Value::$name(Some(x)) => *x,
-                    _ => panic!("type error"),
+                    Value::$name(Some(x)) => Ok(*x),
+                    _ => Err(ValueTypeErr),
                 }
             }
 
@@ -195,7 +210,9 @@ impl<'a> Nullable for &'a str {
 }
 
 impl<T> From<Option<T>> for Value
-where T: Into<Value> + Nullable {
+where
+    T: Into<Value> + Nullable,
+{
     fn from(x: Option<T>) -> Value {
         match x {
             Some(v) => v.into(),
@@ -205,13 +222,14 @@ where T: Into<Value> + Nullable {
 }
 
 impl<T> ValueType for Option<T>
-where T: ValueType + Nullable {
-    fn unwrap(v: Value) -> Self {
+where
+    T: ValueType + Nullable,
+{
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         if v == T::null() {
-            None
-        }
-        else {
-            Some(v.unwrap())
+            Ok(None)
+        } else {
+            Ok(Some(T::try_from(v)?))
         }
     }
 
@@ -258,10 +276,10 @@ mod with_chrono {
     }
 
     impl ValueType for DateTime<FixedOffset> {
-        fn unwrap(v: Value) -> Self {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::DateTimeWithTimeZone(Some(x)) => *x,
-                _ => panic!("type error"),
+                Value::DateTimeWithTimeZone(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
             }
         }
 
