@@ -75,7 +75,7 @@ pub enum Value {
 pub trait ValueType {
     fn unwrap(v: Value) -> Self;
 
-    fn type_name() -> &'static str;
+    fn type_name() -> String;
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -127,8 +127,8 @@ macro_rules! type_to_value {
                 }
             }
 
-            fn type_name() -> &'static str {
-                stringify!($type)
+            fn type_name() -> String {
+                stringify!($type).to_owned()
             }
         }
     };
@@ -156,8 +156,8 @@ macro_rules! type_to_box_value {
                 }
             }
 
-            fn type_name() -> &'static str {
-                stringify!($type)
+            fn type_name() -> String {
+                stringify!($type).to_owned()
             }
         }
     };
@@ -215,9 +215,8 @@ where T: ValueType + Nullable {
         }
     }
 
-    fn type_name() -> &'static str {
-        //concat!("Option<", T::type_name(), ">")
-        T::type_name()
+    fn type_name() -> String {
+        format!("Option<{}>", T::type_name())
     }
 }
 
@@ -266,8 +265,8 @@ mod with_chrono {
             }
         }
 
-        fn type_name() -> &'static str {
-            stringify!(DateTime<FixedOffset>)
+        fn type_name() -> String {
+            stringify!(DateTime<FixedOffset>).to_owned()
         }
     }
 }
