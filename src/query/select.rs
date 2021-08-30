@@ -50,6 +50,7 @@ pub struct SelectStatement {
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
+    pub(crate) lock: Option<LockType>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -104,6 +105,7 @@ impl SelectStatement {
             orders: Vec::new(),
             limit: None,
             offset: None,
+            lock: None,
         }
     }
 
@@ -120,6 +122,7 @@ impl SelectStatement {
             orders: std::mem::take(&mut self.orders),
             limit: self.limit.take(),
             offset: self.offset.take(),
+            lock: self.lock.take(),
         }
     }
 
@@ -1268,6 +1271,24 @@ impl SelectStatement {
         self.offset = None;
         self
     }
+
+    /// Select lock
+    pub fn lock(&mut self, lock_type: LockType) -> &mut Self {
+        self.lock = Some(lock_type);
+        self
+    }
+
+    /// Select lock shared
+    pub fn lock_shared(&mut self) -> &mut Self {
+        self.lock = Some(LockType::Shared);
+        self
+    }
+
+    /// Select lock exclusive
+    pub fn lock_exclusive(&mut self) -> &mut Self {
+        self.lock = Some(LockType::Exclusive);
+        self
+    }
 }
 
 impl QueryStatementBuilder for SelectStatement {
@@ -1344,4 +1365,11 @@ impl ConditionalStatement for SelectStatement {
         self.wherei.add_condition(condition.into_condition());
         self
     }
+}
+
+/// List of lock types
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LockType {
+    Shared,
+    Exclusive,
 }
