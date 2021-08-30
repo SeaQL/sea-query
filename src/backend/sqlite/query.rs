@@ -5,7 +5,6 @@ impl QueryBuilder for SqliteQueryBuilder {
         "LENGTH"
     }
 
-    /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(
         &self,
         _select_lock: &LockType,

@@ -1272,19 +1272,97 @@ impl SelectStatement {
         self
     }
 
-    /// Select lock
+    /// Row locking (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock(LockType::Exclusive)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    /// );
+    /// ```
     pub fn lock(&mut self, lock_type: LockType) -> &mut Self {
         self.lock = Some(lock_type);
         self
     }
 
-    /// Select lock shared
+    /// Shared row locking (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_shared()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR SHARE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR SHARE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    /// );
+    /// ```
     pub fn lock_shared(&mut self) -> &mut Self {
         self.lock = Some(LockType::Shared);
         self
     }
 
-    /// Select lock exclusive
+    /// Exclusive row locking (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_exclusive()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    /// );
+    /// ```
     pub fn lock_exclusive(&mut self) -> &mut Self {
         self.lock = Some(LockType::Exclusive);
         self
