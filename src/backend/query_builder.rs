@@ -343,7 +343,7 @@ pub trait QueryBuilder: QuotedBuilder {
         .unwrap();
     }
 
-    /// Translate [`SelectDistinct`] into SQL statement.
+    /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(
         &self,
         select_lock: &LockType,

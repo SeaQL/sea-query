@@ -1367,7 +1367,7 @@ impl ConditionalStatement for SelectStatement {
     }
 }
 
-/// List of lock types
+/// List of lock types that can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LockType {
     Shared,
