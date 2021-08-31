@@ -50,6 +50,7 @@ pub struct SelectStatement {
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
+    pub(crate) lock: Option<LockType>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -104,6 +105,7 @@ impl SelectStatement {
             orders: Vec::new(),
             limit: None,
             offset: None,
+            lock: None,
         }
     }
 
@@ -120,6 +122,7 @@ impl SelectStatement {
             orders: std::mem::take(&mut self.orders),
             limit: self.limit.take(),
             offset: self.offset.take(),
+            lock: self.lock.take(),
         }
     }
 
@@ -1268,6 +1271,102 @@ impl SelectStatement {
         self.offset = None;
         self
     }
+
+    /// Row locking (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock(LockType::Exclusive)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    /// );
+    /// ```
+    pub fn lock(&mut self, lock_type: LockType) -> &mut Self {
+        self.lock = Some(lock_type);
+        self
+    }
+
+    /// Shared row locking (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_shared()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR SHARE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR SHARE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    /// );
+    /// ```
+    pub fn lock_shared(&mut self) -> &mut Self {
+        self.lock = Some(LockType::Shared);
+        self
+    }
+
+    /// Exclusive row locking (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_exclusive()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    /// );
+    /// ```
+    pub fn lock_exclusive(&mut self) -> &mut Self {
+        self.lock = Some(LockType::Exclusive);
+        self
+    }
 }
 
 impl QueryStatementBuilder for SelectStatement {
@@ -1344,4 +1443,11 @@ impl ConditionalStatement for SelectStatement {
         self.wherei.add_condition(condition.into_condition());
         self
     }
+}
+
+/// List of lock types that can be used in select statement
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LockType {
+    Shared,
+    Exclusive,
 }

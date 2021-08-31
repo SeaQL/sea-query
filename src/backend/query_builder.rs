@@ -121,6 +121,11 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " OFFSET ").unwrap();
             self.prepare_value(offset, sql, collector);
         }
+
+        if let Some(lock) = &select.lock {
+            write!(sql, " ").unwrap();
+            self.prepare_select_lock(lock, sql, collector);
+        }
     }
 
     /// Translate [`UpdateStatement`] into SQL statement.
@@ -333,6 +338,24 @@ pub trait QueryBuilder: QuotedBuilder {
                 SelectDistinct::All => "ALL",
                 SelectDistinct::Distinct => "DISTINCT",
                 SelectDistinct::DistinctRow => "DISTINCTROW",
+            }
+        )
+        .unwrap();
+    }
+
+    /// Translate [`LockType`] into SQL statement.
+    fn prepare_select_lock(
+        &self,
+        select_lock: &LockType,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
+        write!(
+            sql,
+            "{}",
+            match select_lock {
+                LockType::Shared => "FOR SHARE",
+                LockType::Exclusive => "FOR UPDATE",
             }
         )
         .unwrap();
