@@ -76,6 +76,13 @@ pub struct JoinExpr {
     pub on: Option<JoinOn>,
 }
 
+/// List of lock types that can be used in select statement
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LockType {
+    Shared,
+    Exclusive,
+}
+
 impl Into<SelectExpr> for SimpleExpr {
     fn into(self) -> SelectExpr {
         SelectExpr {
@@ -1443,11 +1450,4 @@ impl ConditionalStatement for SelectStatement {
         self.wherei.add_condition(condition.into_condition());
         self
     }
-}
-
-/// List of lock types that can be used in select statement
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LockType {
-    Shared,
-    Exclusive,
 }
