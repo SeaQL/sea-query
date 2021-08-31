@@ -62,6 +62,19 @@ impl ColumnDef {
         }
     }
 
+    /// Construct a table column with column type
+    pub fn new_with_type<T: 'static>(name: T, types: ColumnType) -> Self
+    where
+        T: Iden,
+    {
+        Self {
+            table: None,
+            name: SeaRc::new(name),
+            types: Some(types),
+            spec: Vec::new(),
+        }
+    }
+
     /// Set column not null
     pub fn not_null(&mut self) -> &mut Self {
         self.spec.push(ColumnSpec::NotNull);
