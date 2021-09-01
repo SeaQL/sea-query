@@ -11,6 +11,6 @@ impl QueryBuilder for SqliteQueryBuilder {
         _sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-         // SQLite doesn't supports row locking
+        // SQLite doesn't supports row locking
     }
 }

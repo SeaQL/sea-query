@@ -8,7 +8,7 @@ fn insert_values_1() {
         .columns(vec![Glyph::Image, Glyph::Aspect])
         .values(vec![String::from("").into()]);
 
-    assert_eq!(result.is_err(), true);
+    assert!(result.is_err());
     assert_eq!(
         result.unwrap_err(),
         Error::ColValNumMismatch {

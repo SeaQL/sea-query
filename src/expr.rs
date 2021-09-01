@@ -1446,6 +1446,7 @@ impl Expr {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<SimpleExpr> for Expr {
     /// Convert into SimpleExpr. Will panic if this Expr is missing an operand
     fn into(self) -> SimpleExpr {
@@ -1467,6 +1468,7 @@ impl Into<SimpleExpr> for Expr {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<SelectExpr> for Expr {
     fn into(self) -> SelectExpr {
         self.into_simple_expr().into()

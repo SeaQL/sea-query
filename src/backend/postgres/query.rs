@@ -8,7 +8,7 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_returning(
         &self,
-        returning: &Vec<SelectExpr>,
+        returning: &[SelectExpr],
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
