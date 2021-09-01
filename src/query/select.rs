@@ -7,7 +7,6 @@ use crate::{
     value::*,
     QueryStatementBuilder,
 };
-use std::iter::FromIterator;
 
 /// Select rows from an existing table
 ///
@@ -83,6 +82,7 @@ pub enum LockType {
     Exclusive,
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<SelectExpr> for SimpleExpr {
     fn into(self) -> SelectExpr {
         SelectExpr {
@@ -1086,7 +1086,7 @@ impl SelectStatement {
     where
         I: IntoIterator<Item = SimpleExpr>,
     {
-        self.groups.append(&mut Vec::from_iter(expr.into_iter()));
+        self.groups.append(&mut expr.into_iter().collect());
         self
     }
 

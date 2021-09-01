@@ -241,35 +241,19 @@ impl Iterator for Tokenizer {
 
 impl Token {
     pub fn is_quoted(&self) -> bool {
-        if let Self::Quoted(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::Quoted(_))
     }
 
     pub fn is_unquoted(&self) -> bool {
-        if let Self::Unquoted(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::Unquoted(_))
     }
 
     pub fn is_space(&self) -> bool {
-        if let Self::Space(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::Space(_))
     }
 
     pub fn is_punctuation(&self) -> bool {
-        if let Self::Punctuation(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::Punctuation(_))
     }
 
     pub fn as_str(&self) -> &str {

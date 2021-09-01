@@ -311,6 +311,12 @@ impl Iden for Alias {
 
 impl NullAlias {
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for NullAlias {
+    fn default() -> Self {
         Self
     }
 }

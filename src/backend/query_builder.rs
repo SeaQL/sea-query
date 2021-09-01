@@ -295,17 +295,12 @@ pub trait QueryBuilder: QuotedBuilder {
                     match tok {
                         Token::Punctuation(mark) => {
                             if mark == "?" {
-                                if let Some(nxt) = tokenizer.peek() {
-                                    match nxt {
-                                        Token::Punctuation(mark) => {
-                                            // escape '??'
-                                            if mark == "?" {
-                                                write!(sql, "{}", mark).unwrap();
-                                                tokenizer.next();
-                                                continue;
-                                            }
-                                        }
-                                        _ => {}
+                                if let Some(Token::Punctuation(mark)) = tokenizer.peek() {
+                                    // escape '??'
+                                    if mark == "?" {
+                                        write!(sql, "{}", mark).unwrap();
+                                        tokenizer.next();
+                                        continue;
                                     }
                                 }
                                 self.prepare_value(&values[count], sql, collector);
@@ -730,7 +725,7 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(
         &self,
-        _returning: &Vec<SelectExpr>,
+        _returning: &[SelectExpr],
         _sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
