@@ -1733,4 +1733,35 @@ impl SimpleExpr {
             _ => None,
         }
     }
+
+    /// Express an postgres concatenate (`||`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .from(Font::Table)
+    ///     .and_where(
+    ///         Expr::val("a")
+    ///             .concatenate(Expr::val("b"))
+    ///             .concatenate(Expr::val("c"))
+    ///             .concatenate(Expr::val("d")),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
+    /// );
+    /// ```
+    #[cfg(feature = "backend-postgres")]
+    pub fn concatenate<T>(self, right: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::Concatenate, right.into())
+    }
 }
