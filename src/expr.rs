@@ -1384,11 +1384,12 @@ impl Expr {
     ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
     ///     .and_where(Expr::val("a").concatenate(Expr::val("b")))
+    ///     .and_where(Expr::val("c").concat(Expr::val("d")))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b'"#
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' AND 'c' || 'd'"#
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]
@@ -1397,6 +1398,15 @@ impl Expr {
         T: Into<SimpleExpr>,
     {
         self.bin_oper(BinOper::Concatenate, expr.into())
+    }
+
+    /// Alias of [`Expr::concatenate`]
+    #[cfg(feature = "backend-postgres")]
+    pub fn concat<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.concatenate(expr)
     }
 
     pub(crate) fn func(func: Function) -> Self {
@@ -1734,5 +1744,45 @@ impl SimpleExpr {
             Self::Binary(_, oper, _) => Some(*oper),
             _ => None,
         }
+    }
+
+    /// Express an postgres concatenate (`||`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .from(Font::Table)
+    ///     .and_where(
+    ///         Expr::val("a")
+    ///             .concatenate(Expr::val("b"))
+    ///             .concat(Expr::val("c"))
+    ///             .concat(Expr::val("d")),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
+    /// );
+    /// ```
+    #[cfg(feature = "backend-postgres")]
+    pub fn concatenate<T>(self, right: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::Concatenate, right.into())
+    }
+
+    /// Alias of [`SimpleExpr::concatenate`]
+    #[cfg(feature = "backend-postgres")]
+    pub fn concat<T>(self, right: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.concatenate(right)
     }
 }
