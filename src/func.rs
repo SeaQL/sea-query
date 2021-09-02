@@ -30,7 +30,7 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// struct MyFunction;
     ///
@@ -69,7 +69,7 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::max(Expr::tbl(Char::Table, Char::SizeW)))
@@ -101,7 +101,7 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::min(Expr::tbl(Char::Table, Char::SizeH)))
@@ -133,7 +133,7 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
@@ -165,7 +165,7 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::avg(Expr::tbl(Char::Table, Char::SizeH)))
@@ -197,7 +197,7 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::count(Expr::tbl(Char::Table, Char::Id)))
@@ -229,7 +229,7 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::char_length(Expr::tbl(Char::Table, Char::Character)))
@@ -261,10 +261,13 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::if_null(Expr::col(Char::SizeW), Expr::col(Char::SizeH)))
+    ///     .expr(Func::if_null(
+    ///         Expr::col(Char::SizeW),
+    ///         Expr::col(Char::SizeH),
+    ///     ))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///

@@ -5,11 +5,9 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
-/// let table = Table::truncate()
-///     .table(Font::Table)
-///     .to_owned();
+/// let table = Table::truncate().table(Font::Table).to_owned();
 ///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),

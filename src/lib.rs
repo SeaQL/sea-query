@@ -82,8 +82,16 @@
 //!         .and_where(Expr::col(Glyph::Image).like("A"))
 //!         .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
 //!         .build(PostgresQueryBuilder),
-//!     (r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#.to_owned(),
-//!      Values(vec![Value::String(Some(Box::new("A".to_owned()))), Value::Int(Some(1)), Value::Int(Some(2)), Value::Int(Some(3))]))
+//!     (
+//!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
+//!             .to_owned(),
+//!         Values(vec![
+//!             Value::String(Some(Box::new("A".to_owned()))),
+//!             Value::Int(Some(1)),
+//!             Value::Int(Some(2)),
+//!             Value::Int(Some(3))
+//!         ])
+//!     )
 //! );
 //! ```
 //!
@@ -100,9 +108,11 @@
 //!         // some runtime condition
 //!         true,
 //!         // if condition is true then add the following condition
-//!         |q| { q.and_where(Expr::col(Char::Id).eq(1)); },
+//!         |q| {
+//!             q.and_where(Expr::col(Char::Id).eq(1));
+//!         },
 //!         // otherwise leave it as is
-//!         |q| { }
+//!         |q| {},
 //!     );
 //! ```
 //!
@@ -123,7 +133,7 @@
 //! corresponding string value.
 //!
 //! ```rust
-//! use sea_query::{*};
+//! use sea_query::*;
 //!
 //! // For example Character table with column id, character, font_size...
 //! pub enum Character {
@@ -136,12 +146,17 @@
 //! // Mapping between Enum variant and its corresponding string value
 //! impl Iden for Character {
 //!     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-//!         write!(s, "{}", match self {
-//!             Self::Table => "character",
-//!             Self::Id => "id",
-//!             Self::FontId => "font_id",
-//!             Self::FontSize => "font_size",
-//!         }).unwrap();
+//!         write!(
+//!             s,
+//!             "{}",
+//!             match self {
+//!                 Self::Table => "character",
+//!                 Self::Id => "id",
+//!                 Self::FontId => "font_id",
+//!                 Self::FontSize => "font_size",
+//!             }
+//!         )
+//!         .unwrap();
 //!     }
 //! }
 //! ```
@@ -157,7 +172,9 @@
 //!
 //! // This will implement Iden exactly as shown above
 //! #[derive(Iden)]
-//! enum Character { Table }
+//! enum Character {
+//!     Table,
+//! }
 //! assert_eq!(Character::Table.to_string(), "character");
 //!
 //! // You can also derive a unit struct
@@ -177,22 +194,30 @@
 //!         .column(Char::Character)
 //!         .from(Char::Table)
 //!         .and_where(
-//!             Expr::expr(Expr::col(Char::SizeW).add(1)).mul(2)
+//!             Expr::expr(Expr::col(Char::SizeW).add(1))
+//!                 .mul(2)
 //!                 .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
 //!         )
-//!         .and_where(Expr::col(Char::SizeW).in_subquery(
-//!             Query::select()
-//!                 .expr(Expr::cust_with_values("ln(? ^ ?)", vec![2.4, 1.2]))
-//!                 .take()
-//!         ))
-//!         .and_where(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
+//!         .and_where(
+//!             Expr::col(Char::SizeW).in_subquery(
+//!                 Query::select()
+//!                     .expr(Expr::cust_with_values("ln(? ^ ?)", vec![2.4, 1.2]))
+//!                     .take()
+//!             )
+//!         )
+//!         .and_where(
+//!             Expr::col(Char::Character)
+//!                 .like("D")
+//!                 .and(Expr::col(Char::Character).like("E"))
+//!         )
 //!         .to_string(PostgresQueryBuilder),
 //!     [
 //!         r#"SELECT "character" FROM "character""#,
 //!         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
 //!         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
 //!         r#"AND (("character" LIKE 'D') AND ("character" LIKE 'E'))"#,
-//!     ].join(" ")
+//!     ]
+//!     .join(" ")
 //! );
 //! ```
 //!
@@ -209,16 +234,16 @@
 //!         .from(Glyph::Table)
 //!         .cond_where(
 //!             Cond::any()
-//!             .add(
-//!                 Cond::all()
-//!                 .add(Expr::col(Glyph::Aspect).is_null())
-//!                 .add(Expr::col(Glyph::Image).is_null())
-//!             )
-//!             .add(
-//!                 Cond::all()
-//!                 .add(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
-//!                 .add(Expr::col(Glyph::Image).like("A%"))
-//!             )
+//!                 .add(
+//!                     Cond::all()
+//!                         .add(Expr::col(Glyph::Aspect).is_null())
+//!                         .add(Expr::col(Glyph::Image).is_null())
+//!                 )
+//!                 .add(
+//!                     Cond::all()
+//!                         .add(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
+//!                         .add(Expr::col(Glyph::Image).like("A%"))
+//!                 )
 //!         )
 //!         .to_string(PostgresQueryBuilder),
 //!     [
@@ -227,7 +252,8 @@
 //!         r#"("aspect" IS NULL AND "image" IS NULL)"#,
 //!         r#"OR"#,
 //!         r#"("aspect" IN (3, 4) AND "image" LIKE 'A%')"#,
-//!     ].join(" ")
+//!     ]
+//!     .join(" ")
 //! );
 //! ```
 //!
@@ -235,16 +261,13 @@
 //!
 //! ```
 //! # use sea_query::{*, tests_cfg::*};
-//! Query::select()
-//!     .cond_where(
-//!         any![
-//!             Expr::col(Glyph::Aspect).is_in(vec![3, 4]),
-//!             all![
-//!                 Expr::col(Glyph::Aspect).is_null(),
-//!                 Expr::col(Glyph::Image).like("A%")
-//!             ]
-//!         ]
-//!     );
+//! Query::select().cond_where(any![
+//!     Expr::col(Glyph::Aspect).is_in(vec![3, 4]),
+//!     all![
+//!         Expr::col(Glyph::Aspect).is_null(),
+//!         Expr::col(Glyph::Image).like("A%")
+//!     ]
+//! ]);
 //! ```
 //!
 //! ### Statement Builders
@@ -311,18 +334,9 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::insert()
 //!     .into_table(Glyph::Table)
-//!     .columns(vec![
-//!         Glyph::Aspect,
-//!         Glyph::Image,
-//!     ])
-//!     .values_panic(vec![
-//!         5.15.into(),
-//!         "12A".into(),
-//!     ])
-//!     .values_panic(vec![
-//!         4.21.into(),
-//!         "123".into(),
-//!     ])
+//!     .columns(vec![Glyph::Aspect, Glyph::Image])
+//!     .values_panic(vec![5.15.into(), "12A".into()])
+//!     .values_panic(vec![4.21.into(), "123".into()])
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -375,7 +389,7 @@
 //!     .cond_where(
 //!         Cond::any()
 //!             .add(Expr::col(Glyph::Id).lt(1))
-//!             .add(Expr::col(Glyph::Id).gt(10))
+//!             .add(Expr::col(Glyph::Id).gt(10)),
 //!     )
 //!     .to_owned();
 //!
@@ -470,7 +484,12 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::alter()
 //!     .table(Font::Table)
-//!     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
+//!     .add_column(
+//!         ColumnDef::new(Alias::new("new_col"))
+//!             .integer()
+//!             .not_null()
+//!             .default(100),
+//!     )
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -536,9 +555,7 @@
 //!
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
-//! let table = Table::truncate()
-//!     .table(Font::Table)
-//!     .to_owned();
+//! let table = Table::truncate().table(Font::Table).to_owned();
 //!
 //! assert_eq!(
 //!     table.to_string(MysqlQueryBuilder),
@@ -573,7 +590,8 @@
 //!         r#"ADD CONSTRAINT `FK_character_font`"#,
 //!         r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 //!         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-//!     ].join(" ")
+//!     ]
+//!     .join(" ")
 //! );
 //! assert_eq!(
 //!     foreign_key.to_string(PostgresQueryBuilder),
@@ -581,7 +599,8 @@
 //!         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
 //!         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
 //!         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-//!     ].join(" ")
+//!     ]
+//!     .join(" ")
 //! );
 //! // Sqlite does not support modification of foreign key constraints to existing tables
 //! ```

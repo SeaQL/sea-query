@@ -12,7 +12,7 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let query = Query::delete()
 ///     .from_table(Glyph::Table)
@@ -63,7 +63,7 @@ impl DeleteStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
@@ -105,7 +105,7 @@ impl QueryStatementBuilder for DeleteStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
@@ -124,12 +124,7 @@ impl QueryStatementBuilder for DeleteStatement {
     ///     query.build_collect(MysqlQueryBuilder, &mut collector),
     ///     r#"DELETE FROM `glyph` WHERE `id` = ?"#
     /// );
-    /// assert_eq!(
-    ///     params,
-    ///     vec![
-    ///         Value::Int(Some(1)),
-    ///     ]
-    /// );
+    /// assert_eq!(params, vec![Value::Int(Some(1)),]);
     /// ```
     fn build_collect<T: QueryBuilder>(
         &self,

@@ -156,25 +156,21 @@ impl TableCreateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
     ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
-    ///         .index(
-    ///             Index::create()
-    ///                 .unique()
-    ///                 .name("idx-glyph-id")
-    ///                 .col(Glyph::Id)
-    ///         )
+    ///         .index(Index::create().unique().name("idx-glyph-id").col(Glyph::Id))
     ///         .to_string(MysqlQueryBuilder),
     ///     vec![
     ///         "CREATE TABLE `glyph` (",
-    ///             "`id` int NOT NULL,",
-    ///             "UNIQUE KEY `idx-glyph-id` (`id`)",
+    ///         "`id` int NOT NULL,",
+    ///         "UNIQUE KEY `idx-glyph-id` (`id`)",
     ///         ")",
-    ///     ].join(" ")
+    ///     ]
+    ///     .join(" ")
     /// );
     /// ```
     pub fn index(&mut self, index: &mut IndexCreateStatement) -> &mut Self {
@@ -187,44 +183,46 @@ impl TableCreateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let mut statement = Table::create();
     /// statement
     ///     .table(Glyph::Table)
     ///     .col(ColumnDef::new(Glyph::Id).integer().not_null())
     ///     .col(ColumnDef::new(Glyph::Image).string().not_null())
-    ///     .primary_key(
-    ///         Index::create()
-    ///             .col(Glyph::Id)
-    ///             .col(Glyph::Image)
-    ///     );
-    /// assert_eq!(statement.to_string(MysqlQueryBuilder),
+    ///     .primary_key(Index::create().col(Glyph::Id).col(Glyph::Image));
+    /// assert_eq!(
+    ///     statement.to_string(MysqlQueryBuilder),
     ///     vec![
     ///         "CREATE TABLE `glyph` (",
-    ///             "`id` int NOT NULL,",
-    ///             "`image` varchar(255) NOT NULL,",
-    ///             "PRIMARY KEY (`id`, `image`)",
+    ///         "`id` int NOT NULL,",
+    ///         "`image` varchar(255) NOT NULL,",
+    ///         "PRIMARY KEY (`id`, `image`)",
     ///         ")",
-    ///     ].join(" ")
+    ///     ]
+    ///     .join(" ")
     /// );
-    /// assert_eq!(statement.to_string(PostgresQueryBuilder),
+    /// assert_eq!(
+    ///     statement.to_string(PostgresQueryBuilder),
     ///     vec![
     ///         "CREATE TABLE \"glyph\" (",
-    ///             "\"id\" integer NOT NULL,",
-    ///             "\"image\" varchar NOT NULL,",
-    ///             "PRIMARY KEY (\"id\", \"image\")",
+    ///         "\"id\" integer NOT NULL,",
+    ///         "\"image\" varchar NOT NULL,",
+    ///         "PRIMARY KEY (\"id\", \"image\")",
     ///         ")",
-    ///     ].join(" ")
+    ///     ]
+    ///     .join(" ")
     /// );
-    /// assert_eq!(statement.to_string(SqliteQueryBuilder),
+    /// assert_eq!(
+    ///     statement.to_string(SqliteQueryBuilder),
     ///     vec![
     ///         "CREATE TABLE `glyph` (",
-    ///             "`id` integer NOT NULL,",
-    ///             "`image` text NOT NULL,",
-    ///             "PRIMARY KEY (`id`, `image`)",
+    ///         "`id` integer NOT NULL,",
+    ///         "`image` text NOT NULL,",
+    ///         "PRIMARY KEY (`id`, `image`)",
     ///         ")",
-    ///     ].join(" ")
+    ///     ]
+    ///     .join(" ")
     /// );
     /// ```
     pub fn primary_key(&mut self, index: &mut IndexCreateStatement) -> &mut Self {

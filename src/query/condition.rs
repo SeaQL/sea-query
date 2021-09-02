@@ -250,7 +250,7 @@ pub trait ConditionalStatement {
     /// Optional and where, short hand for `if c.is_some() q.and_where(c)`.
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Image)
@@ -336,11 +336,10 @@ pub trait ConditionalStatement {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
     /// );
-    ///
     /// ```
     /// Calling multiple times
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// assert_eq!(
     ///     Query::select()
@@ -354,11 +353,10 @@ pub trait ConditionalStatement {
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
     /// );
-    ///
     /// ```
     /// Calling multiple times
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// assert_eq!(
     ///     Query::select()

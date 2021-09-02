@@ -7,7 +7,7 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let foreign_key = ForeignKey::drop()
 ///     .name("FK_character_font")

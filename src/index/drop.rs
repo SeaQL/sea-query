@@ -5,7 +5,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let index = Index::drop()
 ///     .name("idx-glyph-aspect")

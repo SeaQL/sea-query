@@ -27,7 +27,7 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::to_tsquery(Expr::val("a & b"), None))
@@ -60,7 +60,7 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::to_tsvector(Expr::val("a b"), None))
@@ -93,7 +93,7 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::phraseto_tsquery(Expr::val("a b"), None))
@@ -126,7 +126,7 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::plainto_tsquery(Expr::val("a b"), None))
@@ -159,7 +159,7 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::websearch_to_tsquery(Expr::val("a b"), None))
@@ -189,7 +189,7 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::ts_rank(Expr::val("a b"), Expr::val("a&b")))
@@ -212,7 +212,7 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::ts_rank_cd(Expr::val("a b"), Expr::val("a&b")))

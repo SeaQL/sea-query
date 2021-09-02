@@ -6,7 +6,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
@@ -29,7 +29,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// ```
 /// Index with prefix
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
@@ -52,7 +52,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// ```
 /// Index with order
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")
@@ -75,7 +75,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// ```
 /// Index with prefix and order
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let index = Index::create()
 ///     .name("idx-glyph-aspect")

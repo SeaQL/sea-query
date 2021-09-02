@@ -5,11 +5,16 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaState
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let table = Table::alter()
 ///     .table(Font::Table)
-///     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
+///     .add_column(
+///         ColumnDef::new(Alias::new("new_col"))
+///             .integer()
+///             .not_null()
+///             .default(100),
+///     )
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -69,11 +74,16 @@ impl TableAlterStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .add_column(ColumnDef::new(Alias::new("new_col")).integer().not_null().default(100))
+    ///     .add_column(
+    ///         ColumnDef::new(Alias::new("new_col"))
+    ///             .integer()
+    ///             .not_null()
+    ///             .default(100),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -98,11 +108,15 @@ impl TableAlterStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .modify_column(ColumnDef::new(Alias::new("new_col")).big_integer().default(999))
+    ///     .modify_column(
+    ///         ColumnDef::new(Alias::new("new_col"))
+    ///             .big_integer()
+    ///             .default(999),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -113,9 +127,10 @@ impl TableAlterStatement {
     ///     table.to_string(PostgresQueryBuilder),
     ///     vec![
     ///         r#"ALTER TABLE "font""#,
-    ///             r#"ALTER COLUMN "new_col" TYPE bigint,"#,
-    ///             r#"ALTER COLUMN "new_col" SET DEFAULT 999"#,
-    ///     ].join(" ")
+    ///         r#"ALTER COLUMN "new_col" TYPE bigint,"#,
+    ///         r#"ALTER COLUMN "new_col" SET DEFAULT 999"#,
+    ///     ]
+    ///     .join(" ")
     /// );
     /// // Sqlite not support modifying table column
     /// ```
@@ -128,7 +143,7 @@ impl TableAlterStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
@@ -164,7 +179,7 @@ impl TableAlterStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)

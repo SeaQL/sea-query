@@ -5,7 +5,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let table = Table::rename()
 ///     .table(Font::Table, Alias::new("font_new"))

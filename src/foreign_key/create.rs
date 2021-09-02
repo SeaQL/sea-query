@@ -8,7 +8,7 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let foreign_key = ForeignKey::create()
 ///     .name("FK_character_font")
@@ -25,7 +25,8 @@ use crate::{
 ///         r#"ADD CONSTRAINT `FK_character_font`"#,
 ///         r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///     ].join(" ")
+///     ]
+///     .join(" ")
 /// );
 /// assert_eq!(
 ///     foreign_key.to_string(PostgresQueryBuilder),
@@ -33,13 +34,14 @@ use crate::{
 ///         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
 ///         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
 ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///     ].join(" ")
+///     ]
+///     .join(" ")
 /// );
 /// ```
 ///
 /// Composite key
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let foreign_key = ForeignKey::create()
 ///     .name("FK_character_glyph")
@@ -56,7 +58,8 @@ use crate::{
 ///         r#"ADD CONSTRAINT `FK_character_glyph`"#,
 ///         r#"FOREIGN KEY (`font_id`, `id`) REFERENCES `glyph` (`font_id`, `id`)"#,
 ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///     ].join(" ")
+///     ]
+///     .join(" ")
 /// );
 /// assert_eq!(
 ///     foreign_key.to_string(PostgresQueryBuilder),
@@ -64,7 +67,8 @@ use crate::{
 ///         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_glyph""#,
 ///         r#"FOREIGN KEY ("font_id", "id") REFERENCES "glyph" ("font_id", "id")"#,
 ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///     ].join(" ")
+///     ]
+///     .join(" ")
 /// );
 /// ```
 #[derive(Debug, Clone)]

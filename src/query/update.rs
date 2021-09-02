@@ -13,7 +13,7 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let query = Query::update()
 ///     .table(Glyph::Table)
@@ -142,7 +142,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -182,7 +182,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -226,7 +226,7 @@ impl UpdateStatement {
     /// RETURNING expressions. Postgres only.
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -258,7 +258,7 @@ impl UpdateStatement {
     /// Wrapper over [`UpdateStatement::returning()`].
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -296,7 +296,7 @@ impl QueryStatementBuilder for UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)

@@ -8,22 +8,13 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*};
+/// use sea_query::{tests_cfg::*, *};
 ///
 /// let query = Query::insert()
 ///     .into_table(Glyph::Table)
-///     .columns(vec![
-///         Glyph::Aspect,
-///         Glyph::Image,
-///     ])
-///     .values_panic(vec![
-///         5.15.into(),
-///         "12A".into(),
-///     ])
-///     .values_panic(vec![
-///         4.21.into(),
-///         "123".into(),
-///     ])
+///     .columns(vec![Glyph::Aspect, Glyph::Image])
+///     .values_panic(vec![5.15.into(), "12A".into()])
+///     .values_panic(vec![4.21.into(), "123".into()])
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -86,23 +77,14 @@ impl InsertStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![
-    ///         Glyph::Aspect,
-    ///         Glyph::Image,
-    ///     ])
-    ///     .values(vec![
-    ///         2.1345.into(),
-    ///         "24B".into(),
-    ///     ])
+    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .values(vec![2.1345.into(), "24B".into()])
     ///     .unwrap()
-    ///     .values_panic(vec![
-    ///         5.15.into(),
-    ///         "12A".into(),
-    ///     ])
+    ///     .values_panic(vec![5.15.into(), "12A".into()])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -144,16 +126,12 @@ impl InsertStatement {
     /// RETURNING expressions. Postgres only.
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![
-    ///         Glyph::Image,
-    ///     ])
-    ///     .values_panic(vec![
-    ///         "12A".into(),
-    ///     ])
+    ///     .columns(vec![Glyph::Image])
+    ///     .values_panic(vec!["12A".into()])
     ///     .returning(Query::select().column(Glyph::Id).take())
     ///     .to_owned();
     ///
@@ -179,16 +157,12 @@ impl InsertStatement {
     /// Wrapper over [`InsertStatement::returning()`].
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![
-    ///         Glyph::Image,
-    ///     ])
-    ///     .values_panic(vec![
-    ///         "12A".into(),
-    ///     ])
+    ///     .columns(vec![Glyph::Image])
+    ///     .values_panic(vec!["12A".into()])
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
     ///
@@ -219,18 +193,12 @@ impl QueryStatementBuilder for InsertStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![
-    ///         Glyph::Aspect,
-    ///         Glyph::Image,
-    ///     ])
-    ///     .values_panic(vec![
-    ///         3.1415.into(),
-    ///         "041080".into(),
-    ///     ])
+    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .values_panic(vec![3.1415.into(), "041080".into()])
     ///     .to_owned();
     ///
     /// assert_eq!(

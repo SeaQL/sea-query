@@ -15,9 +15,9 @@ pub struct TypeCreateStatement {
 pub enum TypeAs {
     // Composite,
     Enum,
-    // Range,
-    // Base,
-    // Array,
+    /* Range,
+     * Base,
+     * Array, */
 }
 
 #[derive(Debug, Clone, Default)]
@@ -103,7 +103,7 @@ impl TypeCreateStatement {
     /// Create enum as custom type
     ///
     /// ```
-    /// use sea_query::{*, extension::postgres::Type};
+    /// use sea_query::{extension::postgres::Type, *};
     ///
     /// enum FontFamily {
     ///     Type,
@@ -114,19 +114,28 @@ impl TypeCreateStatement {
     ///
     /// impl Iden for FontFamily {
     ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-    ///         write!(s, "{}", match self {
-    ///             Self::Type => "font_family",
-    ///             Self::Serif => "serif",
-    ///             Self::Sans => "sans",
-    ///             Self::Monospace => "monospace",
-    ///         }).unwrap();
+    ///         write!(
+    ///             s,
+    ///             "{}",
+    ///             match self {
+    ///                 Self::Type => "font_family",
+    ///                 Self::Serif => "serif",
+    ///                 Self::Sans => "sans",
+    ///                 Self::Monospace => "monospace",
+    ///             }
+    ///         )
+    ///         .unwrap();
     ///     }
     /// }
     ///
     /// assert_eq!(
     ///     Type::create()
     ///         .as_enum(FontFamily::Type)
-    ///         .values(vec![FontFamily::Serif, FontFamily::Sans, FontFamily::Monospace])
+    ///         .values(vec![
+    ///             FontFamily::Serif,
+    ///             FontFamily::Sans,
+    ///             FontFamily::Monospace
+    ///         ])
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"CREATE TYPE "font_family" AS ENUM ('serif', 'sans', 'monospace')"#
     /// );
@@ -200,7 +209,7 @@ impl TypeDropStatement {
     /// Drop a type
     ///
     /// ```
-    /// use sea_query::{*, extension::postgres::Type};
+    /// use sea_query::{extension::postgres::Type, *};
     ///
     /// struct FontFamily;
     ///
@@ -305,7 +314,7 @@ impl TypeAlterStatement {
     /// Change the definition of a type
     ///
     /// ```
-    /// use sea_query::{*, extension::postgres::Type};
+    /// use sea_query::{extension::postgres::Type, *};
     ///
     /// enum FontFamily {
     ///     Type,
@@ -316,12 +325,17 @@ impl TypeAlterStatement {
     ///
     /// impl Iden for FontFamily {
     ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-    ///         write!(s, "{}", match self {
-    ///             Self::Type => "font_family",
-    ///             Self::Serif => "serif",
-    ///             Self::Sans => "sans",
-    ///             Self::Monospace => "monospace",
-    ///         }).unwrap();
+    ///         write!(
+    ///             s,
+    ///             "{}",
+    ///             match self {
+    ///                 Self::Type => "font_family",
+    ///                 Self::Serif => "serif",
+    ///                 Self::Sans => "sans",
+    ///                 Self::Monospace => "monospace",
+    ///             }
+    ///         )
+    ///         .unwrap();
     ///     }
     /// }
     ///
@@ -351,7 +365,7 @@ impl TypeAlterStatement {
     /// Add a enum value before an existing value
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::Type};
+    /// use sea_query::{extension::postgres::Type, tests_cfg::*, *};
     ///
     /// assert_eq!(
     ///     Type::alter()
@@ -392,14 +406,14 @@ impl TypeAlterStatement {
     /// Rename a enum value
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::Type};
+    /// use sea_query::{extension::postgres::Type, tests_cfg::*, *};
     ///
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(Font::Table)
     ///         .rename_value(Alias::new("variant"), Alias::new("language"))
     ///         .to_string(PostgresQueryBuilder),
-    ///         r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
+    ///     r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )
     /// ```
     pub fn rename_value<T, V>(self, existing: T, new_name: V) -> Self

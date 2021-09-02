@@ -138,15 +138,19 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
     ///     .conditions(
     ///         true,
-    ///         |x| { x.and_where(Expr::col(Char::FontId).eq(5)); },
-    ///         |x| { x.and_where(Expr::col(Char::FontId).eq(10)); }
+    ///         |x| {
+    ///             x.and_where(Expr::col(Char::FontId).eq(5));
+    ///         },
+    ///         |x| {
+    ///             x.and_where(Expr::col(Char::FontId).eq(10));
+    ///         },
     ///     )
     ///     .to_owned();
     ///
@@ -187,15 +191,13 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr(Expr::val(42))
     ///     .expr(Expr::col(Char::Id).max())
-    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| {
-    ///         expr.add(Expr::value(i))
-    ///     }))
+    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -224,15 +226,13 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .exprs(vec![
     ///         Expr::col(Char::Id).max(),
-    ///         (1..10_i32).fold(Expr::value(0), |expr, i| {
-    ///             expr.add(Expr::value(i))
-    ///         }),
+    ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))),
     ///     ])
     ///     .to_owned();
     ///
@@ -277,7 +277,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
@@ -301,7 +301,7 @@ impl SelectStatement {
     /// ```
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
@@ -345,15 +345,11 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .columns(vec![
-    ///         Char::Character,
-    ///         Char::SizeW,
-    ///         Char::SizeH,
-    ///     ])
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -428,7 +424,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
@@ -477,7 +473,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::FontSize)
@@ -499,7 +495,7 @@ impl SelectStatement {
     /// ```
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::FontSize)
@@ -535,7 +531,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::FontSize)
@@ -568,7 +564,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let table_as: DynIden = SeaRc::new(Alias::new("char"));
     ///
@@ -592,7 +588,7 @@ impl SelectStatement {
     /// ```
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let table_as = Alias::new("alias");
     ///
@@ -657,20 +653,16 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![
-    ///         Glyph::Image
-    ///     ])
+    ///     .columns(vec![Glyph::Image])
     ///     .from_subquery(
     ///         Query::select()
-    ///             .columns(vec![
-    ///                 Glyph::Image, Glyph::Aspect
-    ///             ])
+    ///             .columns(vec![Glyph::Image, Glyph::Aspect])
     ///             .from(Glyph::Table)
     ///             .take(),
-    ///         Alias::new("subglyph")
+    ///         Alias::new("subglyph"),
     ///     )
     ///     .to_owned();
     ///
@@ -998,7 +990,6 @@ impl SelectStatement {
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// ```
-    ///
     pub fn join_subquery<T, C>(
         &mut self,
         join: JoinType,
@@ -1151,7 +1142,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
@@ -1302,7 +1293,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
@@ -1339,7 +1330,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
@@ -1377,7 +1368,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
@@ -1409,7 +1400,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
@@ -1441,7 +1432,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
