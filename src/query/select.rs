@@ -713,6 +713,17 @@ impl SelectStatement {
     ///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
     ///
+    /// // Using Condition to construct the same statement
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .table_column(Font::Table, Font::Name)
+    ///         .from(Char::Table)
+    ///         .left_join(Font::Table, Condition::all().add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)))
+    ///         .to_string(MysqlQueryBuilder)
+    /// );
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
@@ -748,6 +759,17 @@ impl SelectStatement {
     ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
     ///
+    /// // Using Condition to construct the same statement
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .table_column(Font::Table, Font::Name)
+    ///         .from(Char::Table)
+    ///         .inner_join(Font::Table, Condition::all().add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)))
+    ///         .to_string(MysqlQueryBuilder)
+    /// );
+    ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
@@ -782,6 +804,17 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
+    ///
+    /// // Using Condition to construct the same statement
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .table_column(Font::Table, Font::Name)
+    ///         .from(Char::Table)
+    ///         .join(JoinType::RightJoin, Font::Table, Condition::all().add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)))
+    ///         .to_string(MysqlQueryBuilder)
+    /// );
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -828,6 +861,22 @@ impl SelectStatement {
     ///         Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
     ///     )
     ///     .to_owned();
+    ///
+    /// // Using Condition to construct the same statement
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .table_column(Font::Table, Font::Name)
+    ///         .from(Char::Table)
+    ///         .join_as(
+    ///             JoinType::RightJoin,
+    ///             Font::Table,
+    ///             Alias::new("f"),
+    ///             Condition::all().add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder)
+    /// );
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -903,6 +952,24 @@ impl SelectStatement {
     ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
     ///     )
     ///     .to_owned();
+    ///
+    /// // Using Condition to construct the same statement
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     Query::select()
+    ///         .column(Font::Name)
+    ///         .from(Font::Table)
+    ///         .join_subquery(
+    ///             JoinType::LeftJoin,
+    ///             Query::select()
+    ///                 .column(Glyph::Id)
+    ///                 .from(Glyph::Table)
+    ///                 .take(),
+    ///             sub_glyph.clone(),
+    ///             Condition::all().add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder)
+    /// );
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
