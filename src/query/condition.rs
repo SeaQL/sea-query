@@ -410,6 +410,12 @@ impl ConditionHolder {
         }
     }
 
+    pub fn new_with_condition(condition: Condition) -> Self {
+        let mut slf = Self::new();
+        slf.add_condition(condition);
+        slf
+    }
+
     pub fn is_empty(&self) -> bool {
         match &self.contents {
             ConditionHolderContents::Empty => true,

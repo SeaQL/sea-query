@@ -148,7 +148,7 @@ pub struct OrderExpr {
 /// Join on types
 #[derive(Debug, Clone)]
 pub enum JoinOn {
-    Condition(Box<SimpleExpr>),
+    Condition(Box<ConditionHolder>),
     Columns(Vec<SimpleExpr>),
 }
 

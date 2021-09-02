@@ -726,9 +726,10 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn left_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
+    pub fn left_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
     where
         R: IntoTableRef,
+        C: IntoCondition,
     {
         self.join(JoinType::LeftJoin, tbl_ref, condition)
     }
@@ -760,9 +761,10 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn inner_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
+    pub fn inner_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
     where
         R: IntoTableRef,
+        C: IntoCondition,
     {
         self.join(JoinType::InnerJoin, tbl_ref, condition)
     }
@@ -794,14 +796,17 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join<R>(&mut self, join: JoinType, tbl_ref: R, condition: SimpleExpr) -> &mut Self
+    pub fn join<R, C>(&mut self, join: JoinType, tbl_ref: R, condition: C) -> &mut Self
     where
         R: IntoTableRef,
+        C: IntoCondition,
     {
         self.join_join(
             join,
             tbl_ref.into_table_ref(),
-            JoinOn::Condition(Box::new(condition)),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
         )
     }
 
@@ -837,21 +842,24 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn join_as<R, A>(
+    pub fn join_as<R, A, C>(
         &mut self,
         join: JoinType,
         tbl_ref: R,
         alias: A,
-        condition: SimpleExpr,
+        condition: C,
     ) -> &mut Self
     where
         R: IntoTableRef,
         A: IntoIden,
+        C: IntoCondition,
     {
         self.join_join(
             join,
             tbl_ref.into_table_ref().alias(alias.into_iden()),
-            JoinOn::Condition(Box::new(condition)),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
         )
     }
 
@@ -859,16 +867,17 @@ impl SelectStatement {
         since = "0.6.1",
         note = "Please use the [`SelectStatement::join_as`] instead"
     )]
-    pub fn join_alias<R, A>(
+    pub fn join_alias<R, A, C>(
         &mut self,
         join: JoinType,
         tbl_ref: R,
         alias: A,
-        condition: SimpleExpr,
+        condition: C,
     ) -> &mut Self
     where
         R: IntoTableRef,
         A: IntoIden,
+        C: IntoCondition,
     {
         self.join_as(join, tbl_ref, alias, condition)
     }
@@ -909,20 +918,23 @@ impl SelectStatement {
     /// );
     /// ```
     ///
-    pub fn join_subquery<T>(
+    pub fn join_subquery<T, C>(
         &mut self,
         join: JoinType,
         query: SelectStatement,
         alias: T,
-        condition: SimpleExpr,
+        condition: C,
     ) -> &mut Self
     where
         T: IntoIden,
+        C: IntoCondition,
     {
         self.join_join(
             join,
             TableRef::SubQuery(query, alias.into_iden()),
-            JoinOn::Condition(Box::new(condition)),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
         )
     }
 
