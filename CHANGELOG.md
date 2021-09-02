@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.16.0
+
++ [[#112]] Introduce `Nullable` trait to permit custom `Option<T>`
++ [[#113]] `ValueType` trait should have a non-panic-ing method
++ [[#114]] `ValueType` revamp
+
+    1. Remove `ValueTypeDefault`
+    1. Change `type_name` to return `String`
+
++ [[#115]] Postgres concatenate operator (`||`)
++ [[#117]] Lock support (`FOR SHARE`, `FOR UPDATE`)for SELECT statement
+
+[#112]: https://github.com/SeaQL/sea-query/pull/112
+[#113]: https://github.com/SeaQL/sea-query/pull/113
+[#114]: https://github.com/SeaQL/sea-query/pull/114
+[#115]: https://github.com/SeaQL/sea-query/pull/115
+[#117]: https://github.com/SeaQL/sea-query/pull/117
+
 ## 0.15.0 - 2021-08-21
 
 + [[#107]] Revamp `Value` to typed null value
