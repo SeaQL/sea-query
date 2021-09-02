@@ -17,7 +17,7 @@ use crate::{
 ///
 /// let query = Query::select()
 ///     .column(Char::Character)
-///     .table_column(Font::Table, Font::Name)
+///     .column((Font::Table, Font::Name))
 ///     .from(Char::Table)
 ///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
 ///     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
@@ -574,7 +574,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from_as(Char::Table, table_as.clone())
-    ///     .table_column(table_as.clone(), Char::Character)
+    ///     .column((table_as.clone(), Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -598,7 +598,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from_as((Font::Table, Char::Table), table_as.clone())
-    ///     .table_column(table_as, Char::Character)
+    ///     .column((table_as, Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -708,7 +708,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .table_column(Font::Table, Font::Name)
+    ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
@@ -725,10 +725,27 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
+    ///
+    /// // Constructing chained join conditions
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .column((Font::Table, Font::Name))
+    ///         .from(Char::Table)
+    ///         .left_join(
+    ///             Font::Table,
+    ///             Condition::all()
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    /// );
     /// ```
-    pub fn left_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
+    pub fn left_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
     where
         R: IntoTableRef,
+        C: IntoCondition,
     {
         self.join(JoinType::LeftJoin, tbl_ref, condition)
     }
@@ -742,7 +759,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .table_column(Font::Table, Font::Name)
+    ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
@@ -759,10 +776,27 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
+    ///
+    /// // Constructing chained join conditions
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .column((Font::Table, Font::Name))
+    ///         .from(Char::Table)
+    ///         .inner_join(
+    ///             Font::Table,
+    ///             Condition::all()
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    /// );
     /// ```
-    pub fn inner_join<R>(&mut self, tbl_ref: R, condition: SimpleExpr) -> &mut Self
+    pub fn inner_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
     where
         R: IntoTableRef,
+        C: IntoCondition,
     {
         self.join(JoinType::InnerJoin, tbl_ref, condition)
     }
@@ -776,7 +810,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .table_column(Font::Table, Font::Name)
+    ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
@@ -793,15 +827,35 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
+    ///
+    /// // Constructing chained join conditions
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .column((Font::Table, Font::Name))
+    ///         .from(Char::Table)
+    ///         .join(
+    ///             JoinType::RightJoin,
+    ///             Font::Table,
+    ///             Condition::all()
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    /// );
     /// ```
-    pub fn join<R>(&mut self, join: JoinType, tbl_ref: R, condition: SimpleExpr) -> &mut Self
+    pub fn join<R, C>(&mut self, join: JoinType, tbl_ref: R, condition: C) -> &mut Self
     where
         R: IntoTableRef,
+        C: IntoCondition,
     {
         self.join_join(
             join,
             tbl_ref.into_table_ref(),
-            JoinOn::Condition(Box::new(condition)),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
         )
     }
 
@@ -814,7 +868,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .table_column(Font::Table, Font::Name)
+    ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .join_as(
     ///         JoinType::RightJoin,
@@ -836,22 +890,43 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
+    ///
+    /// // Constructing chained join conditions
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .column(Char::Character)
+    ///         .column((Font::Table, Font::Name))
+    ///         .from(Char::Table)
+    ///         .join_as(
+    ///             JoinType::RightJoin,
+    ///             Font::Table,
+    ///             Alias::new("f"),
+    ///             Condition::all()
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    /// );
     /// ```
-    pub fn join_as<R, A>(
+    pub fn join_as<R, A, C>(
         &mut self,
         join: JoinType,
         tbl_ref: R,
         alias: A,
-        condition: SimpleExpr,
+        condition: C,
     ) -> &mut Self
     where
         R: IntoTableRef,
         A: IntoIden,
+        C: IntoCondition,
     {
         self.join_join(
             join,
             tbl_ref.into_table_ref().alias(alias.into_iden()),
-            JoinOn::Condition(Box::new(condition)),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
         )
     }
 
@@ -859,16 +934,17 @@ impl SelectStatement {
         since = "0.6.1",
         note = "Please use the [`SelectStatement::join_as`] instead"
     )]
-    pub fn join_alias<R, A>(
+    pub fn join_alias<R, A, C>(
         &mut self,
         join: JoinType,
         tbl_ref: R,
         alias: A,
-        condition: SimpleExpr,
+        condition: C,
     ) -> &mut Self
     where
         R: IntoTableRef,
         A: IntoIden,
+        C: IntoCondition,
     {
         self.join_as(join, tbl_ref, alias, condition)
     }
@@ -886,10 +962,7 @@ impl SelectStatement {
     ///     .from(Font::Table)
     ///     .join_subquery(
     ///         JoinType::LeftJoin,
-    ///         Query::select()
-    ///             .column(Glyph::Id)
-    ///             .from(Glyph::Table)
-    ///             .take(),
+    ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
     ///         sub_glyph.clone(),
     ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
     ///     )
@@ -907,22 +980,42 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
     /// );
+    ///
+    /// // Constructing chained join conditions
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .column(Font::Name)
+    ///         .from(Font::Table)
+    ///         .join_subquery(
+    ///             JoinType::LeftJoin,
+    ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
+    ///             sub_glyph.clone(),
+    ///             Condition::all()
+    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
+    /// );
     /// ```
     ///
-    pub fn join_subquery<T>(
+    pub fn join_subquery<T, C>(
         &mut self,
         join: JoinType,
         query: SelectStatement,
         alias: T,
-        condition: SimpleExpr,
+        condition: C,
     ) -> &mut Self
     where
         T: IntoIden,
+        C: IntoCondition,
     {
         self.join_join(
             join,
             TableRef::SubQuery(query, alias.into_iden()),
-            JoinOn::Condition(Box::new(condition)),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
         )
     }
 
@@ -944,7 +1037,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .table_column(Font::Table, Font::Name)
+    ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .group_by_columns(vec![
@@ -971,7 +1064,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .table_column(Font::Table, Font::Name)
+    ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .group_by_columns(vec![
@@ -1011,7 +1104,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .table_column(Font::Table, Font::Name)
+    ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .group_by_col((Char::Table, Char::Character))

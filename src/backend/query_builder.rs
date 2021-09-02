@@ -601,10 +601,7 @@ pub trait QueryBuilder: QuotedBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         match join_on {
-            JoinOn::Condition(c) => {
-                write!(sql, "ON ").unwrap();
-                self.prepare_simple_expr(c, sql, collector);
-            }
+            JoinOn::Condition(c) => self.prepare_condition(c, "ON", sql, collector),
             JoinOn::Columns(_c) => unimplemented!(),
         }
     }
