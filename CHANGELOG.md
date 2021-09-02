@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     1. Change `type_name` to return `String`
 
 + [[#115]] Postgres concatenate operator (`||`)
-+ [[#117]] Lock support (`FOR SHARE`, `FOR UPDATE`)for SELECT statement
++ [[#117]] Lock support (`FOR SHARE`, `FOR UPDATE`) for SELECT statement
 
 [#112]: https://github.com/SeaQL/sea-query/pull/112
 [#113]: https://github.com/SeaQL/sea-query/pull/113
