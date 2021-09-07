@@ -1494,7 +1494,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -1537,7 +1537,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 3"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
