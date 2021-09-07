@@ -101,6 +101,16 @@ pub trait QueryBuilder: QuotedBuilder {
 
         self.prepare_condition(&select.having, "HAVING", sql, collector);
 
+        if !select.unions.is_empty() {
+            select.unions.iter().for_each(|(union_type, query)| {
+                match union_type {
+                    UnionType::Distinct => write!(sql, " UNION ").unwrap(),
+                    UnionType::All => write!(sql, " UNION ALL ").unwrap(),
+                }
+                self.prepare_select_statement(query, sql, collector);
+            });
+        }
+
         if !select.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
             select.orders.iter().fold(true, |first, expr| {

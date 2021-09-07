@@ -46,6 +46,7 @@ pub struct SelectStatement {
     pub(crate) wherei: ConditionHolder,
     pub(crate) groups: Vec<SimpleExpr>,
     pub(crate) having: ConditionHolder,
+    pub(crate) unions: Vec<(UnionType, SelectStatement)>,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
@@ -82,6 +83,13 @@ pub enum LockType {
     Exclusive,
 }
 
+/// List of lock types that can be used in select statement
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UnionType {
+    Distinct,
+    All,
+}
+
 #[allow(clippy::from_over_into)]
 impl Into<SelectExpr> for SimpleExpr {
     fn into(self) -> SelectExpr {
@@ -109,6 +117,7 @@ impl SelectStatement {
             wherei: ConditionHolder::new(),
             groups: Vec::new(),
             having: ConditionHolder::new(),
+            unions: Vec::new(),
             orders: Vec::new(),
             limit: None,
             offset: None,
@@ -126,6 +135,7 @@ impl SelectStatement {
             wherei: std::mem::replace(&mut self.wherei, ConditionHolder::new()),
             groups: std::mem::take(&mut self.groups),
             having: std::mem::replace(&mut self.having, ConditionHolder::new()),
+            unions: std::mem::take(&mut self.unions),
             orders: std::mem::take(&mut self.orders),
             limit: self.limit.take(),
             offset: self.offset.take(),
@@ -1456,6 +1466,86 @@ impl SelectStatement {
     /// ```
     pub fn lock_exclusive(&mut self) -> &mut Self {
         self.lock = Some(LockType::Exclusive);
+        self
+    }
+
+    /// Union with another SelectStatement that must have the same selected fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .union(UnionType::All, Query::select()
+    ///         .column(Char::Character)
+    ///         .from(Char::Table)
+    ///         .and_where(Expr::col(Char::FontId).eq(4))
+    ///         .to_owned()
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
+    /// );
+    /// ```
+    pub fn union(&mut self, union_type: UnionType, query: SelectStatement) -> &mut Self {
+        self.unions.push((union_type, query));
+        self
+    }
+
+    /// Union with multiple SelectStatement that must have the same selected fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .unions(vec![
+    ///         (UnionType::All, Query::select()
+    ///             .column(Char::Character)
+    ///             .from(Char::Table)
+    ///             .and_where(Expr::col(Char::FontId).eq(4))
+    ///             .to_owned()),
+    ///         (UnionType::All, Query::select()
+    ///             .column(Char::Character)
+    ///             .from(Char::Table)
+    ///             .and_where(Expr::col(Char::FontId).eq(3))
+    ///             .to_owned()),
+    ///     ])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 3"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 3"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 3"#
+    /// );
+    /// ```
+    pub fn unions<T: IntoIterator<Item=(UnionType, SelectStatement)>>(&mut self, unions: T) -> &mut Self {
+        self.unions.extend(unions);
         self
     }
 }
