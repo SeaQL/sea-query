@@ -76,7 +76,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Date => "date".into(),
                 ColumnType::Binary(length) => match length {
                     Some(length) => format!("binary({})", length),
-                    None => "binary".into(),
+                    None => "blob".into(),
                 },
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
