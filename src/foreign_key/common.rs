@@ -111,6 +111,15 @@ impl TableForeignKey {
             .collect()
     }
 
+    pub fn get_on_delete(&self) -> Option<ForeignKeyAction> {
+        self.on_delete.clone()
+    }
+
+    pub fn get_on_update(&self) -> Option<ForeignKeyAction> {
+        self.on_update.clone()
+    }
+
+
     pub fn take(&mut self) -> Self {
         Self {
             name: self.name.take(),
