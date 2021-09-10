@@ -83,7 +83,7 @@ pub enum LockType {
     Exclusive,
 }
 
-/// List of lock types that can be used in select statement
+/// List of union types that can be used in union clause
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnionType {
     Distinct,
@@ -1523,7 +1523,7 @@ impl SelectStatement {
     ///             .from(Char::Table)
     ///             .and_where(Expr::col(Char::FontId).eq(4))
     ///             .to_owned()),
-    ///         (UnionType::All, Query::select()
+    ///         (UnionType::Distinct, Query::select()
     ///             .column(Char::Character)
     ///             .from(Char::Table)
     ///             .and_where(Expr::col(Char::FontId).eq(3))
@@ -1533,15 +1533,15 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 3"#
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION SELECT `character` FROM `character` WHERE `font_id` = 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 3"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "character" FROM "character" WHERE "font_id" = 3"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 3"#
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION SELECT `character` FROM `character` WHERE `font_id` = 3"#
     /// );
     /// ```
     pub fn unions<T: IntoIterator<Item=(UnionType, SelectStatement)>>(&mut self, unions: T) -> &mut Self {
