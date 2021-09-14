@@ -13,7 +13,7 @@ pub struct TableForeignKey {
 }
 
 /// Foreign key on update & on delete actions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ForeignKeyAction {
     Restrict,
     Cascade,
@@ -110,6 +110,15 @@ impl TableForeignKey {
             .map(|ref_col| ref_col.to_string())
             .collect()
     }
+
+    pub fn get_on_delete(&self) -> Option<ForeignKeyAction> {
+        self.on_delete
+    }
+
+    pub fn get_on_update(&self) -> Option<ForeignKeyAction> {
+        self.on_update
+    }
+
 
     pub fn take(&mut self) -> Self {
         Self {

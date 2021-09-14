@@ -202,6 +202,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`size_w`, 0) > 2"#
     /// );
     /// ```
+    #[allow(clippy::self_named_constructors)]
     pub fn expr(expr: SimpleExpr) -> Self {
         Self::new_with_left(expr)
     }
