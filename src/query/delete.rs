@@ -4,7 +4,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder,
+    Query, QueryStatementBuilder, SelectExpr, SelectStatement,
 };
 
 /// Delete existing rows from the table
@@ -39,6 +39,7 @@ pub struct DeleteStatement {
     pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
+    pub(crate) returning: Vec<SelectExpr>,
 }
 
 impl Default for DeleteStatement {
@@ -55,6 +56,7 @@ impl DeleteStatement {
             wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
+            returning: Vec::new(),
         }
     }
 
@@ -96,6 +98,67 @@ impl DeleteStatement {
     pub fn limit(&mut self, limit: u64) -> &mut Self {
         self.limit = Some(Value::BigUnsigned(Some(limit)));
         self
+    }
+
+    /// RETURNING expressions. Postgres only.
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::delete()
+    ///     .from_table(Glyph::Table)
+    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    /// );
+    /// ```
+    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
+        self.returning = select.selects;
+        self
+    }
+
+    /// RETURNING a column after delete. Postgres only.
+    /// Wrapper over [`DeleteStatement::returning()`].
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::delete()
+    ///     .from_table(Glyph::Table)
+    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .returning_col(Glyph::Id)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    /// );
+    /// ```
+    pub fn returning_col<C>(&mut self, col: C) -> &mut Self
+    where
+        C: IntoIden,
+    {
+        self.returning(Query::select().column(col.into_iden()).take())
     }
 }
 
