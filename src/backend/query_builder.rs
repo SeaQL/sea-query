@@ -215,6 +215,8 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " LIMIT ").unwrap();
             self.prepare_value(limit, sql, collector);
         }
+
+        self.prepare_returning(&delete.returning, sql, collector);
     }
 
     /// Translate [`SimpleExpr`] into SQL statement.
