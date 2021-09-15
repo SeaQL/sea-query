@@ -171,7 +171,7 @@ impl InsertStatement {
         self.values(values).unwrap()
     }
 
-    /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
+    /// Specify a row of values to be inserted, variation of [`InsertStatement::exprs`].
     pub fn exprs_panic<I>(&mut self, values: I) -> &mut Self
     where
         I: IntoIterator<Item = SimpleExpr>,
