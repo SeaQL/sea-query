@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.16.2
+
++ [[#120]] Support `RETURNING` for `DeleteStatement`
++ [[#128]] Support `UNION` clause for `SelectStatement`
+
+[#120]: https://github.com/SeaQL/sea-query/issues/120
+[#128]: https://github.com/SeaQL/sea-query/pull/128
+
 ## 0.16.1
 
 + [[#129]] MySql `ColumnType::Binary(None)` maps to "blob"
