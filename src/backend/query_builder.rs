@@ -41,7 +41,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 if !first {
                     write!(sql, ", ").unwrap()
                 }
-                self.prepare_value(col, sql, collector);
+                self.prepare_simple_expr(col, sql, collector);
                 false
             });
             write!(sql, ")").unwrap();

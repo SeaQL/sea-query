@@ -1,6 +1,6 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Query, QueryStatementBuilder,
-    SelectExpr, SelectStatement,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
+    QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
 };
 
 /// Insert any new rows into an existing table
@@ -34,7 +34,7 @@ use crate::{
 pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
-    pub(crate) values: Vec<Vec<Value>>,
+    pub(crate) values: Vec<Vec<SimpleExpr>>,
     pub(crate) returning: Vec<SelectExpr>,
 }
 
@@ -104,7 +104,55 @@ impl InsertStatement {
     where
         I: IntoIterator<Item = Value>,
     {
-        let values = values.into_iter().collect::<Vec<_>>();
+        let values = values
+            .into_iter()
+            .map(|v| Expr::val(v).into())
+            .collect::<Vec<SimpleExpr>>();
+        if self.columns.len() != values.len() {
+            return Err(Error::ColValNumMismatch {
+                col_len: self.columns.len(),
+                val_len: values.len(),
+            });
+        }
+        self.values.push(values);
+        Ok(self)
+    }
+
+    /// Specify a row of values to be inserted.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .exprs(vec![
+    ///         Expr::val(2).into(),
+    ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")),
+    ///     ])
+    ///     .unwrap()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
+    /// );
+    /// ```
+    pub fn exprs<I>(&mut self, values: I) -> Result<&mut Self>
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        let values = values.into_iter().collect::<Vec<SimpleExpr>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),
@@ -121,6 +169,14 @@ impl InsertStatement {
         I: IntoIterator<Item = Value>,
     {
         self.values(values).unwrap()
+    }
+
+    /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
+    pub fn exprs_panic<I>(&mut self, values: I) -> &mut Self
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        self.exprs(values).unwrap()
     }
 
     /// RETURNING expressions. Postgres only.
