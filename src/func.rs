@@ -1,6 +1,6 @@
 //! For calling built-in SQL functions.
 
-use crate::{expr::*, types::*};
+use crate::{expr::*, types::*, Value};
 
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::{PgFunc, PgFunction};
@@ -15,9 +15,10 @@ pub enum Function {
     Count,
     IfNull,
     CharLength,
+    Cast,
+    Custom(DynIden),
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
-    Custom(DynIden),
 }
 
 /// Function call helper.
@@ -290,5 +291,40 @@ impl Func {
         B: Into<SimpleExpr>,
     {
         Expr::func(Function::IfNull).args(vec![a.into(), b.into()])
+    }
+
+    /// Call `CAST` function with a custom type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::cast_as("hello", Alias::new("MyType")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS MyType)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS MyType)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS MyType)"#
+    /// );
+    /// ```
+    pub fn cast_as<V, I>(value: V, iden: I) -> SimpleExpr
+    where
+        V: Into<Value>,
+        I: IntoIden,
+    {
+        Expr::func(Function::Cast).arg(Expr::val(value.into()).bin_oper(
+            BinOper::As,
+            Expr::cust(iden.into_iden().to_string().as_str()),
+        ))
     }
 }

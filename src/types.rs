@@ -112,6 +112,7 @@ pub enum BinOper {
     Sub,
     Mul,
     Div,
+    As,
     #[cfg(feature = "backend-postgres")]
     Matches,
     #[cfg(feature = "backend-postgres")]

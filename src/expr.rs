@@ -1436,7 +1436,7 @@ impl Expr {
         self.into()
     }
 
-    fn bin_oper(mut self, o: BinOper, e: SimpleExpr) -> SimpleExpr {
+    pub(crate) fn bin_oper(mut self, o: BinOper, e: SimpleExpr) -> SimpleExpr {
         self.bopr = Some(o);
         self.right = Some(e);
         self.into()
