@@ -1544,7 +1544,10 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION SELECT `character` FROM `character` WHERE `font_id` = 3"#
     /// );
     /// ```
-    pub fn unions<T: IntoIterator<Item=(UnionType, SelectStatement)>>(&mut self, unions: T) -> &mut Self {
+    pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement)>>(
+        &mut self,
+        unions: T,
+    ) -> &mut Self {
         self.unions.extend(unions);
         self
     }
