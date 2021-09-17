@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.16.2
+## 0.16.3 - 2021-09-17
+
++ [[#131]] `CAST AS` expression
++ [[#131]] `InsertStatement` accepts `SimpleExpr`
++ [[#137]] Postgres driver bind `DateTime<FixedOffset>`
+
+[#131]: https://github.com/SeaQL/sea-query/issues/131
+[#137]: https://github.com/SeaQL/sea-query/pull/137
+
+## 0.16.2 - 2021-09-15
 
 + [[#120]] Support `RETURNING` for `DeleteStatement`
 + [[#128]] Support `UNION` clause for `SelectStatement`
@@ -13,13 +22,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 [#120]: https://github.com/SeaQL/sea-query/issues/120
 [#128]: https://github.com/SeaQL/sea-query/pull/128
 
-## 0.16.1
+## 0.16.1 - 2021-09-10
 
 + [[#129]] MySql `ColumnType::Binary(None)` maps to "blob"
 
 [#129]: https://github.com/SeaQL/sea-query/pull/129
 
-## 0.16.0
+## 0.16.0 - 2021-09-02
 
 + [[#112]] Introduce `Nullable` trait to permit custom `Option<T>`
 + [[#113]] `ValueType` trait should have a non-panic-ing method
