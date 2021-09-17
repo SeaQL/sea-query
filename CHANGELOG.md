@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 + [[#131]] `CAST AS` expression
 + [[#131]] `InsertStatement` accepts `SimpleExpr`
-+ [[#137]] Postgres driver bind `DateTime<FixedOffset>`
++ [[#137]] SQLx Postgres driver bind `DateTime<FixedOffset>`
 
 [#131]: https://github.com/SeaQL/sea-query/issues/131
 [#137]: https://github.com/SeaQL/sea-query/pull/137
