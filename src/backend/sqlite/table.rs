@@ -125,7 +125,9 @@ impl TableBuilder for SqliteQueryBuilder {
         .unwrap()
     }
 
-    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut SqlWriter) {}
+    fn prepare_table_drop_opt(&self, _drop_opt: &TableDropOpt, _sql: &mut dyn std::fmt::Write) {
+        // SQLite does not support table drop options
+    }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {
         let alter_option = match &alter.alter_option {

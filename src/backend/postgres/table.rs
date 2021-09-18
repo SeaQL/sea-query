@@ -104,8 +104,6 @@ impl TableBuilder for PostgresQueryBuilder {
         .unwrap()
     }
 
-    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut SqlWriter) {}
-
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {
         let alter_option = match &alter.alter_option {
             Some(alter_option) => alter_option,

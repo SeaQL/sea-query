@@ -107,7 +107,7 @@ fn drop_1() {
             .table(Char::Table)
             .cascade()
             .to_string(SqliteQueryBuilder),
-        "DROP TABLE `glyph`, `character` CASCADE"
+        "DROP TABLE `glyph`, `character`"
     );
 }
 

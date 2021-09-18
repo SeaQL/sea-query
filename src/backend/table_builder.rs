@@ -72,7 +72,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
     }
 
     /// Translate [`TablePartition`] into SQL statement.
-    fn prepare_table_partition(&self, table_partition: &TablePartition, sql: &mut SqlWriter);
+    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut SqlWriter) {}
 
     /// Translate [`TableDropStatement`] into SQL statement.
     fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut SqlWriter) {
@@ -90,14 +90,16 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             false
         });
 
+        let mut table_drop_opt = String::new();
         for drop_opt in drop.options.iter() {
-            write!(sql, " ").unwrap();
-            self.prepare_table_drop_opt(drop_opt, sql);
+            write!(&mut table_drop_opt, " ").unwrap();
+            self.prepare_table_drop_opt(drop_opt, &mut table_drop_opt);
         }
+        write!(sql, "{}", table_drop_opt.trim_end()).unwrap();
     }
 
     /// Translate [`TableDropOpt`] into SQL statement.
-    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut SqlWriter) {
+    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut dyn std::fmt::Write) {
         write!(
             sql,
             "{}",
