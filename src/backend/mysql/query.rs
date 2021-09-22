@@ -1,3 +1,3 @@
 use super::*;
 
-impl QueryBuilder for MysqlQueryBuilder {}
+impl QueryBuilder<MysqlQueryBuilder> for MysqlQueryBuilder {}

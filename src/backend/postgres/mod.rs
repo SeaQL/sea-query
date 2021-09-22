@@ -7,16 +7,10 @@ pub(crate) mod types;
 use super::*;
 
 /// Postgres query builder.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct PostgresQueryBuilder;
 
-impl Default for PostgresQueryBuilder {
-    fn default() -> Self {
-        Self
-    }
-}
-
-impl GenericBuilder for PostgresQueryBuilder {}
+impl GenericBuilder<PostgresQueryBuilder> for PostgresQueryBuilder {}
 
 impl SchemaBuilder for PostgresQueryBuilder {}
 

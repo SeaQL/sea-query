@@ -1,15 +1,15 @@
 use super::*;
 
-impl QueryBuilder for SqliteQueryBuilder {
-    fn char_length_function(&self) -> &str {
+impl QueryBuilder<SqliteQueryBuilder> for SqliteQueryBuilder {
+    fn char_length_function() -> &'static str {
         "LENGTH"
     }
 
-    fn prepare_select_lock(
+    fn prepare_select_lock<'a>(
         &self,
         _select_lock: &LockType,
         _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<SqliteQueryBuilder>),
     ) {
         // SQLite doesn't supports row locking
     }

@@ -19,7 +19,7 @@ use crate::{
 ///     r#"ALTER TABLE `character` DROP FOREIGN KEY `FK_character_font`"#
 /// );
 /// assert_eq!(
-///     foreign_key.to_string(PostgresQueryBuilder),
+///     foreign_key.to_string(),
 ///     r#"ALTER TABLE "character" DROP CONSTRAINT "FK_character_font""#
 /// );
 /// // Sqlite does not support modification of foreign key constraints to existing tables
@@ -62,13 +62,8 @@ impl ForeignKeyDropStatement {
 }
 
 impl SchemaStatementBuilder for ForeignKeyDropStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
-        schema_builder.prepare_foreign_key_drop_statement(self, &mut sql);
-        sql.result()
-    }
-
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    fn build<T: SchemaBuilder>(&self) -> String {
+        let schema_builder = T::default();
         let mut sql = SqlWriter::new();
         schema_builder.prepare_foreign_key_drop_statement(self, &mut sql);
         sql.result()

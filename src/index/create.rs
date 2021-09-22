@@ -19,7 +19,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// assert_eq!(
@@ -42,7 +42,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (128))"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" (128))"#
 /// );
 /// assert_eq!(
@@ -65,7 +65,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` DESC)"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC)"#
 /// );
 /// assert_eq!(
@@ -88,7 +88,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (64) ASC)"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" (64) ASC)"#
 /// );
 /// assert_eq!(
@@ -201,13 +201,8 @@ impl IndexCreateStatement {
 }
 
 impl SchemaStatementBuilder for IndexCreateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
-        schema_builder.prepare_index_create_statement(self, &mut sql);
-        sql.result()
-    }
-
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    fn build<T: SchemaBuilder>(&self) -> String {
+        let schema_builder = T::default();
         let mut sql = SqlWriter::new();
         schema_builder.prepare_index_create_statement(self, &mut sql);
         sql.result()

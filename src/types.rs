@@ -1,5 +1,6 @@
 //! Base types used throughout sea-query.
 
+use crate::backend::query_builder::QueryBuilder;
 use crate::{expr::*, query::*};
 use std::fmt;
 
@@ -57,6 +58,97 @@ impl fmt::Debug for dyn Iden {
     }
 }
 
+/// Indicates that a SQL type is supported for use in queries.
+/// Convert a value to a String for use in queries.
+pub trait QueryValue<DB> {
+    /// Returns the value as an escaped string safe for use in queries.
+    fn query_value(&self) -> String;
+}
+
+impl<'a, DB> fmt::Debug for &'a dyn QueryValue<DB> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.query_value())
+    }
+}
+
+macro_rules! query_value_all {
+    ( $ty: ty, |$self: ident| $query_value: block ) => {
+        impl<DB> QueryValue<DB> for $ty
+        where
+            DB: QueryBuilder<DB>,
+        {
+            fn query_value(& $self) -> String {
+                $query_value
+            }
+        }
+    };
+
+    ( $ty: ty, |$self: ident| $query_value: block, quoted ) => {
+        impl<DB> QueryValue<DB> for $ty
+        where
+            DB: QueryBuilder<DB>,
+        {
+            fn query_value(& $self) -> String {
+                let mut buf = String::new();
+                let string = { $query_value };
+                DB::write_string_quoted(string, &mut buf);
+                buf
+            }
+        }
+    };
+
+    ( $ty: ty, |$self: ident| $query_value: block, wrapped ) => {
+        impl<DB> QueryValue<DB> for $ty
+        where
+            DB: QueryBuilder<DB>,
+        {
+            fn query_value(& $self) -> String {
+                QueryValue::<DB>::query_value({ $query_value })
+            }
+        }
+    };
+}
+
+query_value_all!(String, |self| { self }, quoted);
+query_value_all!(&str, |self| { self }, quoted);
+query_value_all!(str, |self| { self.to_string() });
+query_value_all!(bool, |self| { self.to_string() });
+query_value_all!(f32, |self| { self.to_string() });
+query_value_all!(f64, |self| { self.to_string() });
+query_value_all!(i16, |self| { self.to_string() });
+query_value_all!(i32, |self| { self.to_string() });
+query_value_all!(i64, |self| { self.to_string() });
+query_value_all!(i8, |self| { self.to_string() });
+query_value_all!(u16, |self| { self.to_string() });
+query_value_all!(u32, |self| { self.to_string() });
+query_value_all!(u64, |self| { self.to_string() });
+query_value_all!(u8, |self| { self.to_string() });
+query_value_all!([u8], |self| {
+    format!(
+        "x\'{}\'",
+        self.iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<String>(),
+    )
+});
+query_value_all!(Vec<u8>, |self| { self.as_slice() }, wrapped);
+query_value_all!(dyn Iden, |self| { &self.to_string() }, wrapped);
+query_value_all!(DynIden, |self| { &self.to_string() }, wrapped);
+#[cfg(feature = "with-uuid")]
+query_value_all!(uuid::Uuid, |self| { &self.to_string() }, quoted);
+#[cfg(feature = "with-chrono")]
+query_value_all!(
+    chrono::DateTime<chrono::FixedOffset>,
+    |self| { &self.format("%Y-%m-%d %H:%M:%S").to_string() },
+    wrapped
+);
+#[cfg(feature = "with-chrono")]
+query_value_all!(
+    chrono::NaiveDateTime,
+    |self| { &self.format("%Y-%m-%d %H:%M:%S").to_string() },
+    wrapped
+);
+
 /// Column references
 #[derive(Debug, Clone)]
 pub enum ColumnRef {
@@ -71,16 +163,16 @@ pub trait IntoColumnRef {
 /// Table references
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
-pub enum TableRef {
+pub enum TableRef<'a, DB> {
     Table(DynIden),
     SchemaTable(DynIden, DynIden),
     TableAlias(DynIden, DynIden),
     SchemaTableAlias(DynIden, DynIden, DynIden),
-    SubQuery(SelectStatement, DynIden),
+    SubQuery(SelectStatement<'a, DB>, DynIden),
 }
 
-pub trait IntoTableRef {
-    fn into_table_ref(self) -> TableRef;
+pub trait IntoTableRef<'a, DB> {
+    fn into_table_ref(self) -> TableRef<'a, DB>;
 }
 
 /// Unary operator
@@ -125,9 +217,9 @@ pub enum BinOper {
 
 /// Logical chain operator
 #[derive(Debug, Clone)]
-pub enum LogicalChainOper {
-    And(SimpleExpr),
-    Or(SimpleExpr),
+pub enum LogicalChainOper<'a, DB> {
+    And(SimpleExpr<'a, DB>),
+    Or(SimpleExpr<'a, DB>),
 }
 
 /// Join types
@@ -141,16 +233,16 @@ pub enum JoinType {
 
 /// Order expression
 #[derive(Debug, Clone)]
-pub struct OrderExpr {
-    pub(crate) expr: SimpleExpr,
+pub struct OrderExpr<'a, DB> {
+    pub(crate) expr: SimpleExpr<'a, DB>,
     pub(crate) order: Order,
 }
 
 /// Join on types
 #[derive(Debug, Clone)]
-pub enum JoinOn {
-    Condition(Box<ConditionHolder>),
-    Columns(Vec<SimpleExpr>),
+pub enum JoinOn<'a, DB> {
+    Condition(Box<ConditionHolder<'a, DB>>),
+    Columns(Vec<SimpleExpr<'a, DB>>),
 }
 
 /// Ordering options
@@ -253,32 +345,32 @@ where
     }
 }
 
-impl IntoTableRef for TableRef {
-    fn into_table_ref(self) -> TableRef {
+impl<'a, DB> IntoTableRef<'a, DB> for TableRef<'a, DB> {
+    fn into_table_ref(self) -> TableRef<'a, DB> {
         self
     }
 }
 
-impl<T: 'static> IntoTableRef for T
+impl<'a, DB, T: 'static> IntoTableRef<'a, DB> for T
 where
     T: IntoIden,
 {
-    fn into_table_ref(self) -> TableRef {
+    fn into_table_ref(self) -> TableRef<'a, DB> {
         TableRef::Table(self.into_iden())
     }
 }
 
-impl<S: 'static, T: 'static> IntoTableRef for (S, T)
+impl<'a, DB, S: 'static, T: 'static> IntoTableRef<'a, DB> for (S, T)
 where
     S: IntoIden,
     T: IntoIden,
 {
-    fn into_table_ref(self) -> TableRef {
+    fn into_table_ref(self) -> TableRef<'a, DB> {
         TableRef::SchemaTable(self.0.into_iden(), self.1.into_iden())
     }
 }
 
-impl TableRef {
+impl<'a, DB> TableRef<'a, DB> {
     /// Add or replace the current alias
     pub fn alias<A: 'static>(self, alias: A) -> Self
     where
@@ -332,57 +424,70 @@ mod tests {
 
     #[test]
     fn test_identifier() {
-        let query = Query::select()
+        #[cfg(feature = "backend-mysql")]
+        let query_mysql = MySqlQuery::select()
+            .column(Alias::new("hello-World_"))
+            .to_owned();
+
+        #[cfg(feature = "backend-postgres")]
+        let query_postgres = PgQuery::select()
+            .column(Alias::new("hello-World_"))
+            .to_owned();
+
+        #[cfg(feature = "backend-sqlite")]
+        let query_sqlite = SqliteQuery::select()
             .column(Alias::new("hello-World_"))
             .to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(
-            query.to_string(MysqlQueryBuilder),
-            r#"SELECT `hello-World_`"#
-        );
+        assert_eq!(query_mysql.to_string(), r#"SELECT `hello-World_`"#);
         #[cfg(feature = "backend-postgres")]
-        assert_eq!(
-            query.to_string(PostgresQueryBuilder),
-            r#"SELECT "hello-World_""#
-        );
+        assert_eq!(query_postgres.to_string(), r#"SELECT "hello-World_""#);
         #[cfg(feature = "backend-sqlite")]
-        assert_eq!(
-            query.to_string(SqliteQueryBuilder),
-            r#"SELECT `hello-World_`"#
-        );
+        assert_eq!(query_sqlite.to_string(), r#"SELECT `hello-World_`"#);
     }
 
     #[test]
     fn test_quoted_identifier_1() {
-        let query = Query::select().column(Alias::new("hel`lo")).to_owned();
-
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
-        #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel``lo`"#);
-
-        let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
+        let query_mysql = MySqlQuery::select().column(Alias::new("hel`lo")).to_owned();
 
         #[cfg(feature = "backend-postgres")]
-        assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT "hel""lo""#);
+        let query_postgres = PgQuery::select().column(Alias::new("hel`lo")).to_owned();
+
+        #[cfg(feature = "backend-sqlite")]
+        let query_sqlite = SqliteQuery::select()
+            .column(Alias::new("hel`lo"))
+            .to_owned();
+
+        #[cfg(feature = "backend-mysql")]
+        assert_eq!(query_mysql.to_string(), r#"SELECT `hel``lo`"#);
+        #[cfg(feature = "backend-sqlite")]
+        assert_eq!(query_postgres.to_string(), r#"SELECT "hel`lo""#);
+        #[cfg(feature = "backend-sqlite")]
+        assert_eq!(query_sqlite.to_string(), r#"SELECT `hel``lo`"#);
     }
 
     #[test]
     fn test_quoted_identifier_2() {
-        let query = Query::select().column(Alias::new("hel``lo")).to_owned();
-
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
-        #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel````lo`"#);
-
-        let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
+        let query_mysql = MySqlQuery::select()
+            .column(Alias::new("hel``lo"))
+            .to_owned();
 
         #[cfg(feature = "backend-postgres")]
-        assert_eq!(
-            query.to_string(PostgresQueryBuilder),
-            r#"SELECT "hel""""lo""#
-        );
+        let query_postgres = PgQuery::select().column(Alias::new("hel``lo")).to_owned();
+
+        #[cfg(feature = "backend-sqlite")]
+        let query_sqlite = SqliteQuery::select()
+            .column(Alias::new("hel``lo"))
+            .to_owned();
+
+        #[cfg(feature = "backend-mysql")]
+        assert_eq!(query_mysql.to_string(), r#"SELECT `hel````lo`"#);
+        #[cfg(feature = "backend-postgres")]
+        assert_eq!(query_postgres.to_string(), r#"SELECT "hel``lo""#);
+        #[cfg(feature = "backend-sqlite")]
+        assert_eq!(query_sqlite.to_string(), r#"SELECT `hel````lo`"#);
     }
 }

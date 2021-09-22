@@ -29,7 +29,7 @@ use crate::{
 ///     .join(" ")
 /// );
 /// assert_eq!(
-///     foreign_key.to_string(PostgresQueryBuilder),
+///     foreign_key.to_string(),
 ///     vec![
 ///         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
 ///         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
@@ -62,7 +62,7 @@ use crate::{
 ///     .join(" ")
 /// );
 /// assert_eq!(
-///     foreign_key.to_string(PostgresQueryBuilder),
+///     foreign_key.to_string(),
 ///     vec![
 ///         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_glyph""#,
 ///         r#"FOREIGN KEY ("font_id", "id") REFERENCES "glyph" ("font_id", "id")"#,
@@ -212,13 +212,8 @@ impl ForeignKeyCreateStatement {
 }
 
 impl SchemaStatementBuilder for ForeignKeyCreateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
-        schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql.result()
-    }
-
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    fn build<T: SchemaBuilder>(&self) -> String {
+        let schema_builder = T::default();
         let mut sql = SqlWriter::new();
         schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
         sql.result()

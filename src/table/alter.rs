@@ -22,7 +22,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaState
 ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
 /// );
 /// assert_eq!(
-///     table.to_string(PostgresQueryBuilder),
+///     table.to_string(),
 ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
 /// );
 /// assert_eq!(
@@ -91,7 +91,7 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(),
     ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
     /// );
     /// assert_eq!(
@@ -124,7 +124,7 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE `font` MODIFY COLUMN `new_col` bigint DEFAULT 999"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(),
     ///     vec![
     ///         r#"ALTER TABLE "font""#,
     ///         r#"ALTER COLUMN "new_col" TYPE bigint,"#,
@@ -155,7 +155,7 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(),
     ///     r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     /// );
     /// assert_eq!(
@@ -191,7 +191,7 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE `font` DROP COLUMN `new_column`"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(),
     ///     r#"ALTER TABLE "font" DROP COLUMN "new_column""#
     /// );
     /// // Sqlite not support modifying table column
@@ -217,13 +217,8 @@ impl TableAlterStatement {
 }
 
 impl SchemaStatementBuilder for TableAlterStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
-        schema_builder.prepare_table_alter_statement(self, &mut sql);
-        sql.result()
-    }
-
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    fn build<T: SchemaBuilder>(&self) -> String {
+        let schema_builder = T::default();
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_alter_statement(self, &mut sql);
         sql.result()

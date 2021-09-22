@@ -24,37 +24,64 @@ pub use select::*;
 pub use traits::*;
 pub use update::*;
 
+use crate::{MySqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
+
+pub trait Queryable<DB: QueryBuilder<DB> + Default> {
+    /// Construct table [`SelectStatement`]
+    fn select<'a>() -> SelectStatement<'a, DB> {
+        SelectStatement::<'a, DB>::new()
+    }
+
+    /// Construct table [`InsertStatement`]
+    fn insert<'a>() -> InsertStatement<'a, DB> {
+        InsertStatement::<'a, DB>::new()
+    }
+
+    /// Construct table [`UpdateStatement`]
+    fn update<'a>() -> UpdateStatement<'a, DB> {
+        UpdateStatement::<'a, DB>::new()
+    }
+
+    /// Construct table [`DeleteStatement`]
+    fn delete<'a>() -> DeleteStatement<'a, DB> {
+        DeleteStatement::<'a, DB>::new()
+    }
+}
+
+/// All available types of table query
+#[derive(Debug, Clone)]
+pub enum QueryStatement<'a, DB> {
+    Select(SelectStatement<'a, DB>),
+    Insert(InsertStatement<'a, DB>),
+    Update(UpdateStatement<'a, DB>),
+    Delete(DeleteStatement<'a, DB>),
+}
+
 /// Shorthand for constructing any table query
 #[derive(Debug, Clone)]
 pub struct Query;
 
-/// All available types of table query
+impl Queryable<MySqlQueryBuilder> for Query {}
+impl Queryable<PostgresQueryBuilder> for Query {}
+impl Queryable<SqliteQueryBuilder> for Query {}
+
 #[derive(Debug, Clone)]
-pub enum QueryStatement {
-    Select(SelectStatement),
-    Insert(InsertStatement),
-    Update(UpdateStatement),
-    Delete(DeleteStatement),
-}
+#[cfg(feature = "backend-mysql")]
+pub struct MySqlQuery;
 
-impl Query {
-    /// Construct table [`SelectStatement`]
-    pub fn select() -> SelectStatement {
-        SelectStatement::new()
-    }
+#[cfg(feature = "backend-mysql")]
+impl Queryable<MySqlQueryBuilder> for MySqlQuery {}
 
-    /// Construct table [`InsertStatement`]
-    pub fn insert() -> InsertStatement {
-        InsertStatement::new()
-    }
+#[derive(Debug, Clone)]
+#[cfg(feature = "backend-postgres")]
+pub struct PgQuery;
 
-    /// Construct table [`UpdateStatement`]
-    pub fn update() -> UpdateStatement {
-        UpdateStatement::new()
-    }
+#[cfg(feature = "backend-postgres")]
+impl Queryable<PostgresQueryBuilder> for PgQuery {}
 
-    /// Construct table [`DeleteStatement`]
-    pub fn delete() -> DeleteStatement {
-        DeleteStatement::new()
-    }
-}
+#[derive(Debug, Clone)]
+#[cfg(feature = "backend-sqlite")]
+pub struct SqliteQuery;
+
+#[cfg(feature = "backend-sqlite")]
+impl Queryable<SqliteQueryBuilder> for SqliteQuery {}

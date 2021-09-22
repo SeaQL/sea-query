@@ -1,9 +1,12 @@
 use crate::{expr::*, types::*};
 
-pub trait OrderedStatement {
+pub trait OrderedStatement<'a, DB>
+where
+    DB: 'a,
+{
     #[doc(hidden)]
     // Implementation for the trait.
-    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self;
+    fn add_order_by(&mut self, order: OrderExpr<'a, DB>) -> &mut Self;
 
     /// Order by column.
     ///
@@ -15,13 +18,13 @@ pub trait OrderedStatement {
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(&0)).gt(&2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```
@@ -48,7 +51,7 @@ pub trait OrderedStatement {
     }
 
     /// Order by [`SimpleExpr`].
-    fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
+    fn order_by_expr(&mut self, expr: SimpleExpr<'a, DB>, order: Order) -> &mut Self {
         self.add_order_by(OrderExpr { expr, order })
     }
 

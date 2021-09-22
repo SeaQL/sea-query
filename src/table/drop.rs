@@ -17,7 +17,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"DROP TABLE `glyph`, `character`"#
 /// );
 /// assert_eq!(
-///     table.to_string(PostgresQueryBuilder),
+///     table.to_string(),
 ///     r#"DROP TABLE "glyph", "character""#
 /// );
 /// assert_eq!(
@@ -92,13 +92,8 @@ impl TableDropStatement {
 }
 
 impl SchemaStatementBuilder for TableDropStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
-        schema_builder.prepare_table_drop_statement(self, &mut sql);
-        sql.result()
-    }
-
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    fn build<T: SchemaBuilder>(&self) -> String {
+        let schema_builder = T::default();
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_drop_statement(self, &mut sql);
         sql.result()

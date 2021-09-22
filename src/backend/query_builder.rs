@@ -1,17 +1,17 @@
 use crate::*;
 
-pub trait QueryBuilder: QuotedBuilder {
+pub trait QueryBuilder<DB: QueryBuilder<DB>>: QuotedBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
         ("?", false)
     }
 
     /// Translate [`InsertStatement`] into SQL statement.
-    fn prepare_insert_statement(
+    fn prepare_insert_statement<'a>(
         &self,
-        insert: &InsertStatement,
+        insert: &'a InsertStatement<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(sql, "INSERT").unwrap();
 
@@ -52,11 +52,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`SelectStatement`] into SQL statement.
-    fn prepare_select_statement(
+    fn prepare_select_statement<'a>(
         &self,
-        select: &SelectStatement,
+        select: &'a SelectStatement<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(sql, "SELECT ").unwrap();
 
@@ -139,11 +139,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`UpdateStatement`] into SQL statement.
-    fn prepare_update_statement(
+    fn prepare_update_statement<'a>(
         &self,
-        update: &UpdateStatement,
+        update: &'a UpdateStatement<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(sql, "UPDATE ").unwrap();
 
@@ -185,11 +185,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`DeleteStatement`] into SQL statement.
-    fn prepare_delete_statement(
+    fn prepare_delete_statement<'a>(
         &self,
-        delete: &DeleteStatement,
+        delete: &'a DeleteStatement<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(sql, "DELETE ").unwrap();
 
@@ -220,11 +220,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`SimpleExpr`] into SQL statement.
-    fn prepare_simple_expr(
+    fn prepare_simple_expr<'a>(
         &self,
-        simple_expr: &SimpleExpr,
+        simple_expr: &'a SimpleExpr<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
@@ -257,9 +257,9 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(&1),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(2.into()),
+                        &SimpleExpr::Value(&2),
                         sql,
                         collector,
                     );
@@ -268,9 +268,9 @@ pub trait QueryBuilder: QuotedBuilder {
                     && right.get_values().is_empty()
                 {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(&1),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(&1),
                         sql,
                         collector,
                     );
@@ -284,7 +284,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, ")").unwrap();
             }
             SimpleExpr::Value(val) => {
-                self.prepare_value(val, sql, collector);
+                self.prepare_value(*val, sql, collector);
             }
             SimpleExpr::Values(list) => {
                 write!(sql, "(").unwrap();
@@ -292,7 +292,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     if !first {
                         write!(sql, ", ").unwrap();
                     }
-                    self.prepare_value(val, sql, collector);
+                    self.prepare_value(*val, sql, collector);
                     false
                 });
                 write!(sql, ")").unwrap();
@@ -301,7 +301,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, "{}", s).unwrap();
             }
             SimpleExpr::CustomWithValues(expr, values) => {
-                let mut tokenizer = Tokenizer::new(expr).iter().peekable();
+                let mut tokenizer = Tokenizer::new(expr).into_iter().peekable();
                 let mut count = 0;
                 while let Some(tok) = tokenizer.next() {
                     match tok {
@@ -315,7 +315,7 @@ pub trait QueryBuilder: QuotedBuilder {
                                         continue;
                                     }
                                 }
-                                self.prepare_value(&values[count], sql, collector);
+                                self.prepare_value(values[count], sql, collector);
                                 count += 1;
                             } else {
                                 write!(sql, "{}", mark).unwrap();
@@ -332,11 +332,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
-    fn prepare_select_distinct(
+    fn prepare_select_distinct<'a>(
         &self,
         select_distinct: &SelectDistinct,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(
             sql,
@@ -351,11 +351,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`LockType`] into SQL statement.
-    fn prepare_select_lock(
+    fn prepare_select_lock<'a>(
         &self,
         select_lock: &LockType,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(
             sql,
@@ -369,11 +369,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`SelectExpr`] into SQL statement.
-    fn prepare_select_expr(
+    fn prepare_select_expr<'a>(
         &self,
-        select_expr: &SelectExpr,
+        select_expr: &'a SelectExpr<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         self.prepare_simple_expr(&select_expr.expr, sql, collector);
         match &select_expr.alias {
@@ -386,11 +386,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`JoinExpr`] into SQL statement.
-    fn prepare_join_expr(
+    fn prepare_join_expr<'a>(
         &self,
-        join_expr: &JoinExpr,
+        join_expr: &'a JoinExpr<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         self.prepare_join_type(&join_expr.join, sql, collector);
         write!(sql, " ").unwrap();
@@ -402,11 +402,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_table_ref(
+    fn prepare_table_ref<'a>(
         &self,
-        table_ref: &TableRef,
+        table_ref: &'a TableRef<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         match table_ref {
             TableRef::Table(iden) => {
@@ -440,11 +440,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`UnOper`] into SQL statement.
-    fn prepare_un_oper(
+    fn prepare_un_oper<'a>(
         &self,
         un_oper: &UnOper,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(
             sql,
@@ -456,11 +456,11 @@ pub trait QueryBuilder: QuotedBuilder {
         .unwrap();
     }
 
-    fn prepare_bin_oper_common(
+    fn prepare_bin_oper_common<'a>(
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(
             sql,
@@ -494,23 +494,23 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`BinOper`] into SQL statement.
-    fn prepare_bin_oper(
+    fn prepare_bin_oper<'a>(
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         self.prepare_bin_oper_common(bin_oper, sql, collector);
     }
 
     /// Translate [`LogicalChainOper`] into SQL statement.
-    fn prepare_logical_chain_oper(
+    fn prepare_logical_chain_oper<'a>(
         &self,
-        log_chain_oper: &LogicalChainOper,
+        log_chain_oper: &'a LogicalChainOper<'a, DB>,
         i: usize,
         length: usize,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         let (simple_expr, oper) = match log_chain_oper {
             LogicalChainOper::And(simple_expr) => (simple_expr, "AND"),
@@ -536,11 +536,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Function`] into SQL statement.
-    fn prepare_function_common(
+    fn prepare_function_common<'a>(
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         if let Function::Custom(iden) = function {
             iden.unquoted(sql);
@@ -554,8 +554,8 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Sum => "SUM",
                     Function::Avg => "AVG",
                     Function::Count => "COUNT",
-                    Function::IfNull => self.if_null_function(),
-                    Function::CharLength => self.char_length_function(),
+                    Function::IfNull => Self::if_null_function(),
+                    Function::CharLength => Self::char_length_function(),
                     Function::Cast => "CAST",
                     Function::Custom(_) => "",
                     #[cfg(feature = "backend-postgres")]
@@ -566,21 +566,21 @@ pub trait QueryBuilder: QuotedBuilder {
         }
     }
 
-    fn prepare_function(
+    fn prepare_function<'a>(
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         self.prepare_function_common(function, sql, collector)
     }
 
     /// Translate [`JoinType`] into SQL statement.
-    fn prepare_join_type(
+    fn prepare_join_type<'a>(
         &self,
         join_type: &JoinType,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         write!(
             sql,
@@ -596,11 +596,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`OrderExpr`] into SQL statement.
-    fn prepare_order_expr(
+    fn prepare_order_expr<'a>(
         &self,
-        order_expr: &OrderExpr,
+        order_expr: &'a OrderExpr<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
         write!(sql, " ").unwrap();
@@ -608,11 +608,11 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`JoinOn`] into SQL statement.
-    fn prepare_join_on(
+    fn prepare_join_on<'a>(
         &self,
-        join_on: &JoinOn,
+        join_on: &'a JoinOn<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         match join_on {
             JoinOn::Condition(c) => self.prepare_condition(c, "ON", sql, collector),
@@ -621,7 +621,12 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Order`] into SQL statement.
-    fn prepare_order(&self, order: &Order, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_order<'a>(
+        &self,
+        order: &Order,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
+    ) {
         match order {
             Order::Asc => write!(sql, "ASC").unwrap(),
             Order::Desc => write!(sql, "DESC").unwrap(),
@@ -629,18 +634,23 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Value`] into SQL statement.
-    fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn prepare_value<'a>(
+        &self,
+        value: &'a dyn QueryValue<DB>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
+    ) {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
-        collector(value.clone());
+        collector(value);
     }
 
     /// Translate [`Keyword`] into SQL statement.
-    fn prepare_keyword(
+    fn prepare_keyword<'a>(
         &self,
         keyword: &Keyword,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         if let Keyword::Custom(iden) = keyword {
             iden.unquoted(sql);
@@ -657,99 +667,24 @@ pub trait QueryBuilder: QuotedBuilder {
         }
     }
 
-    /// Convert a SQL value into syntax-specific string
-    fn value_to_string(&self, v: &Value) -> String {
-        let mut s = String::new();
-        match v {
-            Value::Bool(None)
-            | Value::TinyInt(None)
-            | Value::SmallInt(None)
-            | Value::Int(None)
-            | Value::BigInt(None)
-            | Value::TinyUnsigned(None)
-            | Value::SmallUnsigned(None)
-            | Value::Unsigned(None)
-            | Value::BigUnsigned(None)
-            | Value::Float(None)
-            | Value::Double(None)
-            | Value::String(None)
-            | Value::Bytes(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-json")]
-            Value::Json(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::Date(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::Time(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::DateTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => write!(s, "NULL").unwrap(),
-            Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Int(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
-            Value::Bytes(Some(v)) => write!(
-                s,
-                "x\'{}\'",
-                v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
-            )
-            .unwrap(),
-            #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
-            #[cfg(feature = "with-chrono")]
-            Value::Date(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::Time(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::DateTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
-            }
-            #[cfg(feature = "with-chrono")]
-            Value::DateTimeWithTimeZone(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
-            }
-            #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
-            #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
-            #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
-        };
-        s
-    }
-
     #[doc(hidden)]
     /// Hook to insert "RETURNING" statements.
-    fn prepare_returning(
+    fn prepare_returning<'a>(
         &self,
-        _returning: &[SelectExpr],
+        _returning: &'a [SelectExpr<'a, DB>],
         _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
     }
 
     #[doc(hidden)]
     /// Translate a condition to a "WHERE" clause.
-    fn prepare_condition(
+    fn prepare_condition<'a>(
         &self,
-        condition: &ConditionHolder,
+        condition: &'a ConditionHolder<'a, DB>,
         keyword: &str,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         if !condition.is_empty() {
             write!(sql, " {} ", keyword).unwrap();
@@ -775,11 +710,11 @@ pub trait QueryBuilder: QuotedBuilder {
 
     #[doc(hidden)]
     /// Translate part of a condition to part of a "WHERE" clause.
-    fn prepare_condition_where(
+    fn prepare_condition_where<'a>(
         &self,
-        condition: &Condition,
+        condition: &'a Condition<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         let mut is_first = true;
         for cond in &condition.conditions {
@@ -816,13 +751,13 @@ pub trait QueryBuilder: QuotedBuilder {
 
     #[doc(hidden)]
     /// Translate a binary expr to SQL.
-    fn binary_expr(
+    fn binary_expr<'a>(
         &self,
-        left: &SimpleExpr,
+        left: &'a SimpleExpr<'a, DB>,
         op: &BinOper,
-        right: &SimpleExpr,
+        right: &'a SimpleExpr<'a, DB>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<DB>),
     ) {
         let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
         let left_paren = left.need_parentheses()
@@ -855,26 +790,26 @@ pub trait QueryBuilder: QuotedBuilder {
 
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
-    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
+    fn write_string_quoted(string: &str, buffer: &mut String) {
         write!(buffer, "\'{}\'", escape_string(string)).unwrap()
     }
 
     #[doc(hidden)]
     /// The name of the function that represents the "if null" condition.
-    fn if_null_function(&self) -> &str {
+    fn if_null_function() -> &'static str {
         "IFNULL"
     }
 
     #[doc(hidden)]
     /// The name of the function that returns the char length.
-    fn char_length_function(&self) -> &str {
+    fn char_length_function() -> &'static str {
         "CHAR_LENGTH"
     }
 }
 
 pub(crate) struct CommonSqlQueryBuilder;
 
-impl QueryBuilder for CommonSqlQueryBuilder {}
+impl QueryBuilder<CommonSqlQueryBuilder> for CommonSqlQueryBuilder {}
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
     fn quote(&self) -> char {

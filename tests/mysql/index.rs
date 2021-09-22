@@ -7,7 +7,7 @@ fn create_1() {
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
             .col(Glyph::Aspect)
-            .to_string(MysqlQueryBuilder),
+            .to_string::<MysqlQueryBuilder>(),
         "CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"
     );
 }
@@ -21,7 +21,7 @@ fn create_2() {
             .table(Glyph::Table)
             .col(Glyph::Aspect)
             .col(Glyph::Image)
-            .to_string(MysqlQueryBuilder),
+            .to_string::<MysqlQueryBuilder>(),
         "CREATE UNIQUE INDEX `idx-glyph-aspect-image` ON `glyph` (`aspect`, `image`)"
     );
 }
@@ -34,7 +34,7 @@ fn create_3() {
             .name("idx-glyph-image")
             .table(Glyph::Table)
             .col(Glyph::Image)
-            .to_string(MysqlQueryBuilder),
+            .to_string::<MysqlQueryBuilder>(),
         "CREATE FULLTEXT INDEX `idx-glyph-image` ON `glyph` (`image`)"
     );
 }
@@ -47,7 +47,7 @@ fn create_4() {
             .name("idx-glyph-image")
             .table(Glyph::Table)
             .col(Glyph::Image)
-            .to_string(MysqlQueryBuilder),
+            .to_string::<MysqlQueryBuilder>(),
         "CREATE INDEX `idx-glyph-image` ON `glyph` USING HASH (`image`)"
     );
 }
@@ -58,7 +58,7 @@ fn drop_1() {
         Index::drop()
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
-            .to_string(MysqlQueryBuilder),
+            .to_string::<MysqlQueryBuilder>(),
         "DROP INDEX `idx-glyph-aspect` ON `glyph`"
     );
 }

@@ -1,6 +1,6 @@
 //! For calling built-in SQL functions.
 
-use crate::{expr::*, types::*, Value};
+use crate::{expr::*, types::*, QueryBuilder};
 
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::{PgFunc, PgFunction};
@@ -50,7 +50,7 @@ impl Func {
     ///     r#"SELECT MY_FUNCTION('hello')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MY_FUNCTION('hello')"#
     /// );
     /// assert_eq!(
@@ -58,8 +58,9 @@ impl Func {
     ///     r#"SELECT MY_FUNCTION('hello')"#
     /// );
     /// ```
-    pub fn cust<T>(func: T) -> Expr
+    pub fn cust<'a, DB, T>(func: T) -> Expr<'a, DB>
     where
+        DB: QueryBuilder<DB> + Default,
         T: IntoIden,
     {
         Expr::func(Function::Custom(func.into_iden()))
@@ -82,7 +83,7 @@ impl Func {
     ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
@@ -90,9 +91,10 @@ impl Func {
     ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
-    pub fn max<T>(expr: T) -> SimpleExpr
+    pub fn max<'a, DB, T>(expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        DB: QueryBuilder<DB> + Default,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         Expr::func(Function::Max).arg(expr)
     }
@@ -114,7 +116,7 @@ impl Func {
     ///     r#"SELECT MIN(`character`.`size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MIN("character"."size_h") FROM "character""#
     /// );
     /// assert_eq!(
@@ -122,9 +124,10 @@ impl Func {
     ///     r#"SELECT MIN(`character`.`size_h`) FROM `character`"#
     /// );
     /// ```
-    pub fn min<T>(expr: T) -> SimpleExpr
+    pub fn min<'a, DB, T>(expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        DB: QueryBuilder<DB> + Default,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         Expr::func(Function::Min).arg(expr)
     }
@@ -146,7 +149,7 @@ impl Func {
     ///     r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT SUM("character"."size_h") FROM "character""#
     /// );
     /// assert_eq!(
@@ -154,9 +157,10 @@ impl Func {
     ///     r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
     /// );
     /// ```
-    pub fn sum<T>(expr: T) -> SimpleExpr
+    pub fn sum<'a, DB, T>(expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        DB: QueryBuilder<DB> + Default,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         Expr::func(Function::Sum).arg(expr)
     }
@@ -178,7 +182,7 @@ impl Func {
     ///     r#"SELECT AVG(`character`.`size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT AVG("character"."size_h") FROM "character""#
     /// );
     /// assert_eq!(
@@ -186,9 +190,10 @@ impl Func {
     ///     r#"SELECT AVG(`character`.`size_h`) FROM `character`"#
     /// );
     /// ```
-    pub fn avg<T>(expr: T) -> SimpleExpr
+    pub fn avg<'a, DB, T>(expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        DB: QueryBuilder<DB> + Default,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         Expr::func(Function::Avg).arg(expr)
     }
@@ -210,7 +215,7 @@ impl Func {
     ///     r#"SELECT COUNT(`character`.`id`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT COUNT("character"."id") FROM "character""#
     /// );
     /// assert_eq!(
@@ -218,9 +223,10 @@ impl Func {
     ///     r#"SELECT COUNT(`character`.`id`) FROM `character`"#
     /// );
     /// ```
-    pub fn count<T>(expr: T) -> SimpleExpr
+    pub fn count<'a, DB, T>(expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        DB: QueryBuilder<DB> + Default,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         Expr::func(Function::Count).arg(expr)
     }
@@ -242,7 +248,7 @@ impl Func {
     ///     r#"SELECT CHAR_LENGTH(`character`.`character`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT CHAR_LENGTH("character"."character") FROM "character""#
     /// );
     /// assert_eq!(
@@ -250,9 +256,10 @@ impl Func {
     ///     r#"SELECT LENGTH(`character`.`character`) FROM `character`"#
     /// );
     /// ```
-    pub fn char_length<T>(expr: T) -> SimpleExpr
+    pub fn char_length<'a, DB, T>(expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        DB: QueryBuilder<DB> + Default,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         Expr::func(Function::CharLength).arg(expr)
     }
@@ -277,7 +284,7 @@ impl Func {
     ///     r#"SELECT IFNULL(`size_w`, `size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT COALESCE("size_w", "size_h") FROM "character""#
     /// );
     /// assert_eq!(
@@ -285,10 +292,11 @@ impl Func {
     ///     r#"SELECT IFNULL(`size_w`, `size_h`) FROM `character`"#
     /// );
     /// ```
-    pub fn if_null<A, B>(a: A, b: B) -> SimpleExpr
+    pub fn if_null<'a, DB, A, B>(a: A, b: B) -> SimpleExpr<'a, DB>
     where
-        A: Into<SimpleExpr>,
-        B: Into<SimpleExpr>,
+        DB: QueryBuilder<DB> + Default,
+        A: Into<SimpleExpr<'a, DB>>,
+        B: Into<SimpleExpr<'a, DB>>,
     {
         Expr::func(Function::IfNull).args(vec![a.into(), b.into()])
     }
@@ -309,7 +317,7 @@ impl Func {
     ///     r#"SELECT CAST('hello' AS MyType)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT CAST('hello' AS MyType)"#
     /// );
     /// assert_eq!(
@@ -317,12 +325,13 @@ impl Func {
     ///     r#"SELECT CAST('hello' AS MyType)"#
     /// );
     /// ```
-    pub fn cast_as<V, I>(value: V, iden: I) -> SimpleExpr
+    pub fn cast_as<'a, DB, V, I>(value: &'a V, iden: I) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        DB: QueryBuilder<DB> + Default,
+        V: QueryValue<DB>,
         I: IntoIden,
     {
-        Expr::func(Function::Cast).arg(Expr::val(value.into()).bin_oper(
+        Expr::func(Function::Cast).arg(Expr::val(value).bin_oper(
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
         ))

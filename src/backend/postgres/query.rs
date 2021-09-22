@@ -1,16 +1,16 @@
 use super::*;
 use crate::extension::postgres::*;
 
-impl QueryBuilder for PostgresQueryBuilder {
+impl QueryBuilder<PostgresQueryBuilder> for PostgresQueryBuilder {
     fn placeholder(&self) -> (&str, bool) {
         ("$", true)
     }
 
-    fn prepare_returning(
+    fn prepare_returning<'a>(
         &self,
-        returning: &[SelectExpr],
+        returning: &'a [SelectExpr<'a, Self>],
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) {
         if !returning.is_empty() {
             write!(sql, " RETURNING ").unwrap();
@@ -24,11 +24,11 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn if_null_function(&self) -> &str {
+    fn if_null_function() -> &'static str {
         "COALESCE"
     }
 
-    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
+    fn write_string_quoted(string: &str, buffer: &mut String) {
         let escaped = escape_string(string);
         let string = if escaped.find('\\').is_some() {
             "E'".to_owned() + &escaped + "'"
@@ -38,11 +38,11 @@ impl QueryBuilder for PostgresQueryBuilder {
         write!(buffer, "{}", string).unwrap()
     }
 
-    fn prepare_bin_oper(
+    fn prepare_bin_oper<'a>(
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) {
         match bin_oper {
             BinOper::Matches => write!(sql, "@@").unwrap(),
@@ -53,11 +53,11 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_function(
+    fn prepare_function<'a>(
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) {
         match function {
             Function::PgFunction(function) => write!(

@@ -1,4 +1,4 @@
-use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
+use crate::{prepare::*, types::*, PostgresQueryBuilder};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
@@ -54,27 +54,27 @@ pub enum TypeAlterAddOpt {
 
 pub trait TypeBuilder {
     /// Translate [`TypeCreateStatement`] into database specific SQL statement.
-    fn prepare_type_create_statement(
-        &self,
-        create: &TypeCreateStatement,
+    fn prepare_type_create_statement<'a>(
+        &'a self,
+        create: &'a TypeCreateStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     );
 
     /// Translate [`TypeDropStatement`] into database specific SQL statement.
-    fn prepare_type_drop_statement(
+    fn prepare_type_drop_statement<'a>(
         &self,
-        drop: &TypeDropStatement,
+        drop: &'a TypeDropStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     );
 
     /// Translate [`TypeAlterStatement`] into database specific SQL statement.
-    fn prepare_type_alter_statement(
+    fn prepare_type_alter_statement<'a>(
         &self,
-        alter: &TypeAlterStatement,
+        alter: &'a TypeAlterStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     );
 }
 
@@ -136,7 +136,7 @@ impl TypeCreateStatement {
     ///             FontFamily::Sans,
     ///             FontFamily::Monospace
     ///         ])
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(),
     ///     r#"CREATE TYPE "font_family" AS ENUM ('serif', 'sans', 'monospace')"#
     /// );
     /// ```
@@ -162,29 +162,17 @@ impl TypeCreateStatement {
 
     // below are boiler plates
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
-    }
-
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build(&self) -> (String, Vec<&dyn QueryValue<PostgresQueryBuilder>>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
-        let sql = self.build_collect_ref(type_builder, &mut collector);
+        let sql = self.build_collect(&PostgresQueryBuilder, &mut collector);
         (sql, params)
     }
 
-    pub fn build_collect<T: TypeBuilder>(
-        &self,
-        type_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        self.build_collect_ref(&type_builder, collector)
-    }
-
-    pub fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        collector: &mut dyn FnMut(Value),
+    pub fn build_collect<'a>(
+        &'a self,
+        type_builder: &'a PostgresQueryBuilder,
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) -> String {
         let mut sql = SqlWriter::new();
         type_builder.prepare_type_create_statement(self, &mut sql, collector);
@@ -192,12 +180,10 @@ impl TypeCreateStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        let (sql, values) = self.build();
+        inject_parameters(&sql, &values, PostgresQueryBuilder)
     }
 }
 
@@ -224,7 +210,7 @@ impl TypeDropStatement {
     ///         .if_exists()
     ///         .name(FontFamily)
     ///         .restrict()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(),
     ///     r#"DROP TYPE IF EXISTS "font_family" RESTRICT"#
     /// );
     /// ```
@@ -267,29 +253,17 @@ impl TypeDropStatement {
 
     // below are boiler plates
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
-    }
-
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build(&self) -> (String, Vec<&dyn QueryValue<PostgresQueryBuilder>>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
-        let sql = self.build_collect_ref(type_builder, &mut collector);
+        let sql = self.build_collect(PostgresQueryBuilder, &mut collector);
         (sql, params)
     }
 
-    pub fn build_collect<T: TypeBuilder>(
-        &self,
-        type_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        self.build_collect_ref(&type_builder, collector)
-    }
-
-    pub fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        collector: &mut dyn FnMut(Value),
+    pub fn build_collect<'a>(
+        &'a self,
+        type_builder: PostgresQueryBuilder,
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) -> String {
         let mut sql = SqlWriter::new();
         type_builder.prepare_type_drop_statement(self, &mut sql, collector);
@@ -297,12 +271,10 @@ impl TypeDropStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        let (sql, values) = self.build();
+        inject_parameters(&sql, &values, PostgresQueryBuilder)
     }
 }
 
@@ -343,7 +315,7 @@ impl TypeAlterStatement {
     ///     Type::alter()
     ///         .name(FontFamily::Type)
     ///         .add_value(Alias::new("cursive"))
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(),
     ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive'"#
     /// );
     /// ```
@@ -372,7 +344,7 @@ impl TypeAlterStatement {
     ///         .name(Font::Table)
     ///         .add_value(Alias::new("weight"))
     ///         .before(Font::Variant)
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(),
     ///     r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
     /// )
     /// ```
@@ -412,7 +384,7 @@ impl TypeAlterStatement {
     ///     Type::alter()
     ///         .name(Font::Table)
     ///         .rename_value(Alias::new("variant"), Alias::new("language"))
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(),
     ///     r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )
     /// ```
@@ -434,42 +406,28 @@ impl TypeAlterStatement {
 
     // below are boilerplate
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
-    }
-
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build(&self) -> (String, Vec<&dyn QueryValue<PostgresQueryBuilder>>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
-        let sql = self.build_collect_ref(type_builder, &mut collector);
+        let sql = self.build_collect(&mut collector);
         (sql, params)
     }
 
-    pub fn build_collect<T: TypeBuilder>(
-        &self,
-        type_builder: T,
-        collector: &mut dyn FnMut(Value),
+    pub fn build_collect<'a>(
+        &'a self,
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) -> String {
-        self.build_collect_ref(&type_builder, collector)
-    }
-
-    pub fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
+        let type_builder = PostgresQueryBuilder::default();
         let mut sql = SqlWriter::new();
         type_builder.prepare_type_alter_statement(self, &mut sql, collector);
         sql.result()
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        let (sql, values) = self.build();
+        inject_parameters(&sql, &values, PostgresQueryBuilder)
     }
 }
 

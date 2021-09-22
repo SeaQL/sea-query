@@ -25,10 +25,6 @@ impl Tokenizer {
         }
     }
 
-    pub fn iter(self) -> impl Iterator<Item = Token> {
-        self
-    }
-
     fn get(&self) -> char {
         self.chars[self.p]
     }
@@ -297,7 +293,7 @@ mod tests {
     #[test]
     fn test_0() {
         let tokenizer = Tokenizer::new("");
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(tokens, vec![]);
     }
 
@@ -305,7 +301,7 @@ mod tests {
     fn test_1() {
         let string = "SELECT * FROM `character`";
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -328,7 +324,7 @@ mod tests {
     fn test_2() {
         let string = "SELECT * FROM `character` WHERE id = ?";
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -359,7 +355,7 @@ mod tests {
     fn test_3() {
         let string = r#"? = "?" "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -381,7 +377,7 @@ mod tests {
     fn test_4() {
         let string = r#""a\"bc""#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"".to_string()),]);
         assert_eq!(
             string,
@@ -393,7 +389,7 @@ mod tests {
     fn test_5() {
         let string = "abc123";
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(tokens, vec![Token::Unquoted(string.to_string()),]);
         assert_eq!(
             string,
@@ -405,7 +401,7 @@ mod tests {
     fn test_6() {
         let string = "2.3*4";
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -426,7 +422,7 @@ mod tests {
     fn test_7() {
         let string = r#""a\\" B"#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -445,7 +441,7 @@ mod tests {
     fn test_8() {
         let string = r#"`a"b` "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -463,7 +459,7 @@ mod tests {
     fn test_9() {
         let string = r#"[ab] "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -481,7 +477,7 @@ mod tests {
     fn test_10() {
         let string = r#" 'a"b' "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -500,7 +496,7 @@ mod tests {
     fn test_11() {
         let string = r#" `a``b` "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -519,7 +515,7 @@ mod tests {
     fn test_12() {
         let string = r#" 'a''b' "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -538,7 +534,7 @@ mod tests {
     fn test_13() {
         let string = r#"(?)"#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -557,7 +553,7 @@ mod tests {
     fn test_14() {
         let string = r#"($1 = $2)"#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -582,7 +578,7 @@ mod tests {
     fn test_15() {
         let string = r#" "Hello World" "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -601,7 +597,7 @@ mod tests {
     fn test_16() {
         let string = "abc_$123";
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(tokens, vec![Token::Unquoted(string.to_string()),]);
         assert_eq!(
             string,
@@ -613,7 +609,7 @@ mod tests {
     fn test_17() {
         let string = "$abc$123";
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -631,7 +627,7 @@ mod tests {
     fn test_18() {
         let string = "_$abc_123$";
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![
@@ -672,7 +668,7 @@ mod tests {
     fn test_22() {
         let string = r#" "Hello\nWorld" "#;
         let tokenizer = Tokenizer::new(string);
-        let tokens: Vec<Token> = tokenizer.iter().collect();
+        let tokens: Vec<Token> = tokenizer.into_iter().collect();
         assert_eq!(
             tokens,
             vec![

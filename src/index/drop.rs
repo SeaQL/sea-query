@@ -17,7 +17,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(),
 ///     r#"DROP INDEX "idx-glyph-aspect""#
 /// );
 /// assert_eq!(
@@ -63,13 +63,8 @@ impl IndexDropStatement {
 }
 
 impl SchemaStatementBuilder for IndexDropStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
-        schema_builder.prepare_index_drop_statement(self, &mut sql);
-        sql.result()
-    }
-
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    fn build<T: SchemaBuilder>(&self) -> String {
+        let schema_builder = T::default();
         let mut sql = SqlWriter::new();
         schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql.result()

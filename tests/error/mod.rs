@@ -2,11 +2,11 @@ use sea_query::{error::*, tests_cfg::*, *};
 
 #[test]
 fn insert_values_1() {
-    let mut insert = Query::insert();
+    let mut insert = MySqlQuery::insert();
     let result = insert
         .into_table(Glyph::Table)
         .columns(vec![Glyph::Image, Glyph::Aspect])
-        .values(vec![String::from("").into()]);
+        .values(&[&""]);
 
     assert!(result.is_err());
     assert_eq!(

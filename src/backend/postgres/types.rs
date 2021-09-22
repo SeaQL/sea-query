@@ -2,11 +2,11 @@ use super::*;
 use crate::extension::postgres::*;
 
 impl TypeBuilder for PostgresQueryBuilder {
-    fn prepare_type_create_statement(
-        &self,
-        create: &TypeCreateStatement,
+    fn prepare_type_create_statement<'a>(
+        &'a self,
+        create: &'a TypeCreateStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) {
         write!(sql, "CREATE TYPE ").unwrap();
 
@@ -26,18 +26,18 @@ impl TypeBuilder for PostgresQueryBuilder {
                 if count > 0 {
                     write!(sql, ", ").unwrap();
                 }
-                self.prepare_value(&val.to_string().into(), sql, collector);
+                self.prepare_value(val, sql, collector);
             }
 
             write!(sql, ")").unwrap();
         }
     }
 
-    fn prepare_type_drop_statement(
+    fn prepare_type_drop_statement<'a>(
         &self,
-        drop: &TypeDropStatement,
+        drop: &'a TypeDropStatement,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) {
         write!(sql, "DROP TYPE ").unwrap();
 
@@ -55,11 +55,11 @@ impl TypeBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_type_alter_statement(
+    fn prepare_type_alter_statement<'a>(
         &self,
-        alter: &TypeAlterStatement,
+        alter: &'a TypeAlterStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) {
         write!(sql, "ALTER TYPE ").unwrap();
 
@@ -97,11 +97,11 @@ impl PostgresQueryBuilder {
         .unwrap()
     }
 
-    fn prepare_alter_type_opt(
+    fn prepare_alter_type_opt<'a>(
         &self,
-        opt: &TypeAlterOpt,
+        opt: &'a TypeAlterOpt,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(&'a dyn QueryValue<PostgresQueryBuilder>),
     ) {
         match opt {
             TypeAlterOpt::Add(value, placement) => {
@@ -109,28 +109,28 @@ impl PostgresQueryBuilder {
                 match placement {
                     Some(add_option) => match add_option {
                         TypeAlterAddOpt::Before(before_value) => {
-                            self.prepare_value(&value.to_string().into(), sql, collector);
+                            self.prepare_value(value, sql, collector);
                             write!(sql, " BEFORE ").unwrap();
-                            self.prepare_value(&before_value.to_string().into(), sql, collector);
+                            self.prepare_value(before_value, sql, collector);
                         }
                         TypeAlterAddOpt::After(after_value) => {
-                            self.prepare_value(&value.to_string().into(), sql, collector);
+                            self.prepare_value(value, sql, collector);
                             write!(sql, " AFTER ").unwrap();
-                            self.prepare_value(&after_value.to_string().into(), sql, collector);
+                            self.prepare_value(after_value, sql, collector);
                         }
                     },
-                    None => self.prepare_value(&value.to_string().into(), sql, collector),
+                    None => self.prepare_value(value, sql, collector),
                 }
             }
             TypeAlterOpt::Rename(new_name) => {
                 write!(sql, " RENAME TO ").unwrap();
-                self.prepare_value(&new_name.to_string().into(), sql, collector);
+                self.prepare_value(new_name, sql, collector);
             }
             TypeAlterOpt::RenameValue(existing, new_name) => {
                 write!(sql, " RENAME VALUE ").unwrap();
-                self.prepare_value(&existing.to_string().into(), sql, collector);
+                self.prepare_value(existing, sql, collector);
                 write!(sql, " TO ").unwrap();
-                self.prepare_value(&new_name.to_string().into(), sql, collector);
+                self.prepare_value(new_name, sql, collector);
             }
         }
     }

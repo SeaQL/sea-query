@@ -68,35 +68,24 @@ impl Table {
 
 impl TableStatement {
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: SchemaBuilder>(&self, table_builder: T) -> String {
+    pub fn build<T: SchemaBuilder>(&self) -> String {
         match self {
-            Self::Create(stat) => stat.build(table_builder),
-            Self::Alter(stat) => stat.build(table_builder),
-            Self::Drop(stat) => stat.build(table_builder),
-            Self::Rename(stat) => stat.build(table_builder),
-            Self::Truncate(stat) => stat.build(table_builder),
+            Self::Create(stat) => stat.build::<T>(),
+            Self::Alter(stat) => stat.build::<T>(),
+            Self::Drop(stat) => stat.build::<T>(),
+            Self::Rename(stat) => stat.build::<T>(),
+            Self::Truncate(stat) => stat.build::<T>(),
         }
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &dyn SchemaBuilder) -> String {
+    pub fn to_string<T: SchemaBuilder>(&self) -> String {
         match self {
-            Self::Create(stat) => stat.build_any(table_builder),
-            Self::Alter(stat) => stat.build_any(table_builder),
-            Self::Drop(stat) => stat.build_any(table_builder),
-            Self::Rename(stat) => stat.build_any(table_builder),
-            Self::Truncate(stat) => stat.build_any(table_builder),
-        }
-    }
-
-    /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: SchemaBuilder>(&self, table_builder: T) -> String {
-        match self {
-            Self::Create(stat) => stat.to_string(table_builder),
-            Self::Alter(stat) => stat.to_string(table_builder),
-            Self::Drop(stat) => stat.to_string(table_builder),
-            Self::Rename(stat) => stat.to_string(table_builder),
-            Self::Truncate(stat) => stat.to_string(table_builder),
+            Self::Create(stat) => stat.to_string::<T>(),
+            Self::Alter(stat) => stat.to_string::<T>(),
+            Self::Drop(stat) => stat.to_string::<T>(),
+            Self::Rename(stat) => stat.to_string::<T>(),
+            Self::Truncate(stat) => stat.to_string::<T>(),
         }
     }
 }

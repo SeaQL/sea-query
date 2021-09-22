@@ -55,7 +55,7 @@ impl ToSql for Value {
             Value::DateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
             #[cfg(feature = "postgres-rust_decimal")]
             Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
-            #[cfg(feature = "postgres-bigdecimal")]
+            #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(_) => unimplemented!("Not supported"),
             #[cfg(feature = "postgres-uuid")]
             Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),

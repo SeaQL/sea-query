@@ -18,6 +18,8 @@ use bigdecimal::BigDecimal;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
+use crate::{QueryBuilder, QueryValue};
+
 /// Value variants
 ///
 /// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
@@ -70,6 +72,85 @@ pub enum Value {
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
+}
+
+impl<DB> QueryValue<DB> for Value
+where
+    DB: QueryBuilder<DB>,
+{
+    fn query_value(&self) -> String {
+        let mut s = String::new();
+        match self {
+            Value::Bool(None)
+            | Value::TinyInt(None)
+            | Value::SmallInt(None)
+            | Value::Int(None)
+            | Value::BigInt(None)
+            | Value::TinyUnsigned(None)
+            | Value::SmallUnsigned(None)
+            | Value::Unsigned(None)
+            | Value::BigUnsigned(None)
+            | Value::Float(None)
+            | Value::Double(None)
+            | Value::String(None)
+            | Value::Bytes(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-json")]
+            Value::Json(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Date(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Time(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::DateTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-rust_decimal")]
+            Value::Decimal(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-uuid")]
+            Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
+            Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Int(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::String(Some(v)) => DB::write_string_quoted(v, &mut s),
+            Value::Bytes(Some(v)) => write!(
+                s,
+                "x\'{}\'",
+                v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
+            )
+            .unwrap(),
+            #[cfg(feature = "with-json")]
+            Value::Json(Some(v)) => DB::write_string_quoted(&v.to_string(), &mut s),
+            #[cfg(feature = "with-chrono")]
+            Value::Date(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::Time(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap(),
+            #[cfg(feature = "with-chrono")]
+            Value::DateTime(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
+            }
+            #[cfg(feature = "with-chrono")]
+            Value::DateTimeWithTimeZone(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+            }
+            #[cfg(feature = "with-rust_decimal")]
+            Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-uuid")]
+            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
+        };
+        s
+    }
 }
 
 pub trait ValueType: Sized {
@@ -583,7 +664,7 @@ pub fn unescape_string(input: &str) -> String {
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn sea_value_to_json_value(value: &Value) -> Json {
-    use crate::{CommonSqlQueryBuilder, QueryBuilder};
+    use crate::CommonSqlQueryBuilder;
 
     match value {
         Value::Bool(None)
@@ -621,13 +702,15 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
-        Value::Date(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::Date(_) => QueryValue::<CommonSqlQueryBuilder>::query_value(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::Time(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::Time(_) => QueryValue::<CommonSqlQueryBuilder>::query_value(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::DateTime(_) => QueryValue::<CommonSqlQueryBuilder>::query_value(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::DateTimeWithTimeZone(_) => {
+            QueryValue::<CommonSqlQueryBuilder>::query_value(value).into()
+        }
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
@@ -828,22 +911,18 @@ mod tests {
         let string = "2020-01-01T02:02:02+08:00";
         let timestamp = DateTime::parse_from_rfc3339(string).unwrap();
 
-        let query = Query::select().expr(Expr::val(timestamp)).to_owned();
+        let query_mysql = MySqlQuery::select().expr(Expr::val(&timestamp)).to_owned();
+        let query_postgres = PgQuery::select().expr(Expr::val(&timestamp)).to_owned();
+        let query_sqlite = SqliteQuery::select().expr(Expr::val(&timestamp)).to_owned();
 
         let formatted = "2020-01-01 02:02:02 +08:00";
 
+        assert_eq!(query_mysql.to_string(), format!("SELECT '{}'", formatted));
         assert_eq!(
-            query.to_string(MysqlQueryBuilder),
+            query_postgres.to_string(),
             format!("SELECT '{}'", formatted)
         );
-        assert_eq!(
-            query.to_string(PostgresQueryBuilder),
-            format!("SELECT '{}'", formatted)
-        );
-        assert_eq!(
-            query.to_string(SqliteQueryBuilder),
-            format!("SELECT '{}'", formatted)
-        );
+        assert_eq!(query_sqlite.to_string(), format!("SELECT '{}'", formatted));
     }
 
     #[test]

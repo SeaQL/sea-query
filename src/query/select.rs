@@ -4,7 +4,6 @@ use crate::{
     prepare::*,
     query::{condition::*, OrderedStatement},
     types::*,
-    value::*,
     QueryStatementBuilder,
 };
 
@@ -21,7 +20,7 @@ use crate::{
 ///     .from(Char::Table)
 ///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
 ///     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
-///     .and_where(Expr::col(Char::Character).like("A%"))
+///     .and_where(Expr::col(Char::Character).like(&"A%"))
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -29,7 +28,7 @@ use crate::{
 ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
 /// );
 /// assert_eq!(
-///     query.to_string(PostgresQueryBuilder),
+///     query.to_string(),
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// assert_eq!(
@@ -38,18 +37,18 @@ use crate::{
 /// );
 /// ```
 #[derive(Debug, Clone)]
-pub struct SelectStatement {
+pub struct SelectStatement<'a, DB> {
     pub(crate) distinct: Option<SelectDistinct>,
-    pub(crate) selects: Vec<SelectExpr>,
-    pub(crate) from: Option<Box<TableRef>>,
-    pub(crate) join: Vec<JoinExpr>,
-    pub(crate) wherei: ConditionHolder,
-    pub(crate) groups: Vec<SimpleExpr>,
-    pub(crate) having: ConditionHolder,
-    pub(crate) unions: Vec<(UnionType, SelectStatement)>,
-    pub(crate) orders: Vec<OrderExpr>,
-    pub(crate) limit: Option<Value>,
-    pub(crate) offset: Option<Value>,
+    pub(crate) selects: Vec<SelectExpr<'a, DB>>,
+    pub(crate) from: Option<Box<TableRef<'a, DB>>>,
+    pub(crate) join: Vec<JoinExpr<'a, DB>>,
+    pub(crate) wherei: ConditionHolder<'a, DB>,
+    pub(crate) groups: Vec<SimpleExpr<'a, DB>>,
+    pub(crate) having: ConditionHolder<'a, DB>,
+    pub(crate) unions: Vec<(UnionType, SelectStatement<'a, DB>)>,
+    pub(crate) orders: Vec<OrderExpr<'a, DB>>,
+    pub(crate) limit: Option<u64>,
+    pub(crate) offset: Option<u64>,
     pub(crate) lock: Option<LockType>,
 }
 
@@ -63,17 +62,17 @@ pub enum SelectDistinct {
 
 /// Select expression used in select statement
 #[derive(Debug, Clone)]
-pub struct SelectExpr {
-    pub expr: SimpleExpr,
+pub struct SelectExpr<'a, DB> {
+    pub expr: SimpleExpr<'a, DB>,
     pub alias: Option<DynIden>,
 }
 
 /// Join expression used in select statement
 #[derive(Debug, Clone)]
-pub struct JoinExpr {
+pub struct JoinExpr<'a, DB> {
     pub join: JoinType,
-    pub table: Box<TableRef>,
-    pub on: Option<JoinOn>,
+    pub table: Box<TableRef<'a, DB>>,
+    pub on: Option<JoinOn<'a, DB>>,
 }
 
 /// List of lock types that can be used in select statement
@@ -91,8 +90,8 @@ pub enum UnionType {
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<SelectExpr> for SimpleExpr {
-    fn into(self) -> SelectExpr {
+impl<'a, DB> Into<SelectExpr<'a, DB>> for SimpleExpr<'a, DB> {
+    fn into(self) -> SelectExpr<'a, DB> {
         SelectExpr {
             expr: self,
             alias: None,
@@ -100,13 +99,19 @@ impl Into<SelectExpr> for SimpleExpr {
     }
 }
 
-impl Default for SelectStatement {
+impl<'a, DB> Default for SelectStatement<'a, DB>
+where
+    DB: QueryBuilder<DB>,
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl SelectStatement {
+impl<'a, DB> SelectStatement<'a, DB>
+where
+    DB: QueryBuilder<DB>,
+{
     /// Construct a new [`SelectStatement`]
     pub fn new() -> Self {
         Self {
@@ -156,7 +161,7 @@ impl SelectStatement {
     ///     .conditions(
     ///         true,
     ///         |x| {
-    ///             x.and_where(Expr::col(Char::FontId).eq(5));
+    ///             x.and_where(Expr::col(Char::FontId).eq(&5));
     ///         },
     ///         |x| {
     ///             x.and_where(Expr::col(Char::FontId).eq(10));
@@ -169,7 +174,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
     /// );
     /// assert_eq!(
@@ -207,7 +212,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .expr(Expr::val(42))
     ///     .expr(Expr::col(Char::Id).max())
-    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))))
+    ///     .expr((1..10_i32).fold(Expr::value(&0), |expr, i| expr.add(Expr::value(&i))))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -215,7 +220,7 @@ impl SelectStatement {
     ///     r#"SELECT 42, MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT 42, MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// assert_eq!(
@@ -225,7 +230,7 @@ impl SelectStatement {
     /// ```
     pub fn expr<T>(&mut self, expr: T) -> &mut Self
     where
-        T: Into<SelectExpr>,
+        T: Into<SelectExpr<'a, DB>>,
     {
         self.selects.push(expr.into());
         self
@@ -242,7 +247,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .exprs(vec![
     ///         Expr::col(Char::Id).max(),
-    ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))),
+    ///         (1..10_i32).fold(Expr::value(&0), |expr, i| expr.add(Expr::value(&i))),
     ///     ])
     ///     .to_owned();
     ///
@@ -251,7 +256,7 @@ impl SelectStatement {
     ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// assert_eq!(
@@ -261,7 +266,7 @@ impl SelectStatement {
     /// ```
     pub fn exprs<T, I>(&mut self, exprs: I) -> &mut Self
     where
-        T: Into<SelectExpr>,
+        T: Into<SelectExpr<'a, DB>>,
         I: IntoIterator<Item = T>,
     {
         self.selects
@@ -271,7 +276,7 @@ impl SelectStatement {
 
     pub fn exprs_mut_for_each<F>(&mut self, func: F)
     where
-        F: FnMut(&mut SelectExpr),
+        F: FnMut(&mut SelectExpr<'a, DB>),
     {
         self.selects.iter_mut().for_each(func);
     }
@@ -301,7 +306,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// assert_eq!(
@@ -323,7 +328,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character"."character" FROM "character""#
     /// );
     /// assert_eq!(
@@ -367,7 +372,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// assert_eq!(
@@ -393,7 +398,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character"."character", "character"."size_w", "character"."size_h" FROM "character""#
     /// );
     /// assert_eq!(
@@ -409,7 +414,7 @@ impl SelectStatement {
         self.exprs(
             cols.into_iter()
                 .map(|c| SimpleExpr::Column(c.into_column_ref()))
-                .collect::<Vec<SimpleExpr>>(),
+                .collect::<Vec<SimpleExpr<'a, DB>>>(),
         )
     }
 
@@ -446,7 +451,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` AS `C` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" AS "C" FROM "character""#
     /// );
     /// assert_eq!(
@@ -456,7 +461,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_as<T, A>(&mut self, expr: T, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
         A: IntoIden,
     {
         self.expr(SelectExpr {
@@ -472,7 +477,7 @@ impl SelectStatement {
     )]
     pub fn expr_alias<T, A>(&mut self, expr: T, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
         A: IntoIden,
     {
         self.expr_as(expr, alias)
@@ -495,7 +500,7 @@ impl SelectStatement {
     ///     r#"SELECT `font_size` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     /// assert_eq!(
@@ -517,7 +522,7 @@ impl SelectStatement {
     ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// assert_eq!(
@@ -527,7 +532,7 @@ impl SelectStatement {
     /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
     where
-        R: IntoTableRef,
+        R: IntoTableRef<'a, DB>,
     {
         self.from_from(tbl_ref.into_table_ref())
     }
@@ -553,7 +558,7 @@ impl SelectStatement {
     ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// assert_eq!(
@@ -588,7 +593,7 @@ impl SelectStatement {
     ///     r#"SELECT `char`.`character` FROM `character` AS `char`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "char"."character" FROM "character" AS "char""#
     /// );
     /// assert_eq!(
@@ -612,7 +617,7 @@ impl SelectStatement {
     ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "alias"."character" FROM "font"."character" AS "alias""#
     /// );
     /// assert_eq!(
@@ -622,7 +627,7 @@ impl SelectStatement {
     /// ```
     pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
     where
-        R: IntoTableRef,
+        R: IntoTableRef<'a, DB>,
         A: IntoIden,
     {
         self.from_from(tbl_ref.into_table_ref().alias(alias.into_iden()))
@@ -634,7 +639,7 @@ impl SelectStatement {
     )]
     pub fn from_alias<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
     where
-        R: IntoTableRef,
+        R: IntoTableRef<'a, DB>,
         A: IntoIden,
     {
         self.from_as(tbl_ref, alias)
@@ -681,7 +686,7 @@ impl SelectStatement {
     ///     r#"SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     /// );
     /// assert_eq!(
@@ -689,14 +694,14 @@ impl SelectStatement {
     ///     r#"SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"#
     /// );
     /// ```
-    pub fn from_subquery<T>(&mut self, query: SelectStatement, alias: T) -> &mut Self
+    pub fn from_subquery<T>(&mut self, query: SelectStatement<'a, DB>, alias: T) -> &mut Self
     where
         T: IntoIden,
     {
         self.from_from(TableRef::SubQuery(query, alias.into_iden()))
     }
 
-    fn from_from(&mut self, select: TableRef) -> &mut Self {
+    fn from_from(&mut self, select: TableRef<'a, DB>) -> &mut Self {
         self.from = Some(Box::new(select));
         self
     }
@@ -720,7 +725,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
@@ -746,8 +751,8 @@ impl SelectStatement {
     /// ```
     pub fn left_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
     where
-        R: IntoTableRef,
-        C: IntoCondition,
+        R: IntoTableRef<'a, DB>,
+        C: IntoCondition<'a, DB>,
     {
         self.join(JoinType::LeftJoin, tbl_ref, condition)
     }
@@ -771,7 +776,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
@@ -797,8 +802,8 @@ impl SelectStatement {
     /// ```
     pub fn inner_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
     where
-        R: IntoTableRef,
-        C: IntoCondition,
+        R: IntoTableRef<'a, DB>,
+        C: IntoCondition<'a, DB>,
     {
         self.join(JoinType::InnerJoin, tbl_ref, condition)
     }
@@ -822,7 +827,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
@@ -849,8 +854,8 @@ impl SelectStatement {
     /// ```
     pub fn join<R, C>(&mut self, join: JoinType, tbl_ref: R, condition: C) -> &mut Self
     where
-        R: IntoTableRef,
-        C: IntoCondition,
+        R: IntoTableRef<'a, DB>,
+        C: IntoCondition<'a, DB>,
     {
         self.join_join(
             join,
@@ -885,7 +890,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
@@ -919,9 +924,9 @@ impl SelectStatement {
         condition: C,
     ) -> &mut Self
     where
-        R: IntoTableRef,
+        R: IntoTableRef<'a, DB>,
         A: IntoIden,
-        C: IntoCondition,
+        C: IntoCondition<'a, DB>,
     {
         self.join_join(
             join,
@@ -944,9 +949,9 @@ impl SelectStatement {
         condition: C,
     ) -> &mut Self
     where
-        R: IntoTableRef,
+        R: IntoTableRef<'a, DB>,
         A: IntoIden,
-        C: IntoCondition,
+        C: IntoCondition<'a, DB>,
     {
         self.join_as(join, tbl_ref, alias, condition)
     }
@@ -975,7 +980,7 @@ impl SelectStatement {
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "name" FROM "font" LEFT JOIN (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
     /// assert_eq!(
@@ -1003,13 +1008,13 @@ impl SelectStatement {
     pub fn join_subquery<T, C>(
         &mut self,
         join: JoinType,
-        query: SelectStatement,
+        query: SelectStatement<'a, DB>,
         alias: T,
         condition: C,
     ) -> &mut Self
     where
         T: IntoIden,
-        C: IntoCondition,
+        C: IntoCondition<'a, DB>,
     {
         self.join_join(
             join,
@@ -1020,7 +1025,12 @@ impl SelectStatement {
         )
     }
 
-    fn join_join(&mut self, join: JoinType, table: TableRef, on: JoinOn) -> &mut Self {
+    fn join_join(
+        &mut self,
+        join: JoinType,
+        table: TableRef<'a, DB>,
+        on: JoinOn<'a, DB>,
+    ) -> &mut Self {
         self.join.push(JoinExpr {
             join,
             table: Box::new(table),
@@ -1051,7 +1061,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character""#
     /// );
     /// assert_eq!(
@@ -1078,7 +1088,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// assert_eq!(
@@ -1116,7 +1126,7 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// assert_eq!(
@@ -1168,7 +1178,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` GROUP BY `size_w`, `size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" GROUP BY "size_w", "size_h""#
     /// );
     /// assert_eq!(
@@ -1178,7 +1188,7 @@ impl SelectStatement {
     /// ```
     pub fn add_group_by<I>(&mut self, expr: I) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = SimpleExpr<'a, DB>>,
     {
         self.groups.append(&mut expr.into_iter().collect());
         self
@@ -1202,8 +1212,8 @@ impl SelectStatement {
     ///         all![
     ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
     ///             any![
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%"),
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like(&"B%")
     ///             ]
     ///         ]
     ///     )
@@ -1216,7 +1226,7 @@ impl SelectStatement {
     /// ```
     pub fn cond_having<C>(&mut self, condition: C) -> &mut Self
     where
-        C: IntoCondition,
+        C: IntoCondition<'a, DB>,
     {
         self.having.add_condition(condition.into_condition());
         self
@@ -1236,8 +1246,8 @@ impl SelectStatement {
     ///     .group_by_columns(vec![
     ///         Glyph::Aspect,
     ///     ])
-    ///     .and_having(Expr::col(Glyph::Aspect).gt(2))
-    ///     .cond_having(Expr::col(Glyph::Aspect).lt(8))
+    ///     .and_having(Expr::col(Glyph::Aspect).gt(&2))
+    ///     .cond_having(Expr::col(Glyph::Aspect).lt(&8))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1245,7 +1255,7 @@ impl SelectStatement {
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 AND `aspect` < 8"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 AND "aspect" < 8"#
     /// );
     /// assert_eq!(
@@ -1253,7 +1263,7 @@ impl SelectStatement {
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 AND `aspect` < 8"#
     /// );
     /// ```
-    pub fn and_having(&mut self, other: SimpleExpr) -> &mut Self {
+    pub fn and_having(&mut self, other: SimpleExpr<'a, DB>) -> &mut Self {
         self.cond_having(other)
     }
 
@@ -1269,31 +1279,55 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let query = Query::select()
+    /// let query = MySqlQuery::select()
     ///     .column(Glyph::Aspect)
     ///     .expr(Expr::col(Glyph::Image).max())
     ///     .from(Glyph::Table)
     ///     .group_by_columns(vec![
     ///         Glyph::Aspect,
     ///     ])
-    ///     .or_having(Expr::col(Glyph::Aspect).gt(2))
-    ///     .or_having(Expr::col(Glyph::Aspect).lt(8))
+    ///     .or_having(Expr::col(Glyph::Aspect).gt(&2))
+    ///     .or_having(Expr::col(Glyph::Aspect).lt(&8))
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 OR `aspect` < 8"#
     /// );
+    ///
+    /// let query = PgQuery::select()
+    ///     .column(Glyph::Aspect)
+    ///     .expr(Expr::col(Glyph::Image).max())
+    ///     .from(Glyph::Table)
+    ///     .group_by_columns(vec![
+    ///         Glyph::Aspect,
+    ///     ])
+    ///     .or_having(Expr::col(Glyph::Aspect).gt(&2))
+    ///     .or_having(Expr::col(Glyph::Aspect).lt(&8))
+    ///     .to_owned();
+    ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 OR "aspect" < 8"#
     /// );
+    ///
+    /// let query = SqliteQuery::select()
+    ///     .column(Glyph::Aspect)
+    ///     .expr(Expr::col(Glyph::Image).max())
+    ///     .from(Glyph::Table)
+    ///     .group_by_columns(vec![
+    ///         Glyph::Aspect,
+    ///     ])
+    ///     .or_having(Expr::col(Glyph::Aspect).gt(&2))
+    ///     .or_having(Expr::col(Glyph::Aspect).lt(&8))
+    ///     .to_owned();
+    ///
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 OR `aspect` < 8"#
     /// );
     /// ```
-    pub fn or_having(&mut self, other: SimpleExpr) -> &mut Self {
+    pub fn or_having(&mut self, other: SimpleExpr<'a, DB>) -> &mut Self {
         self.having.add_and_or(LogicalChainOper::Or(other));
         self
     }
@@ -1316,7 +1350,7 @@ impl SelectStatement {
     ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
     /// );
     /// assert_eq!(
@@ -1325,7 +1359,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::BigUnsigned(Some(limit)));
+        self.limit = Some(limit);
         self
     }
 
@@ -1354,7 +1388,7 @@ impl SelectStatement {
     ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10 OFFSET 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10 OFFSET 10"#
     /// );
     /// assert_eq!(
@@ -1363,7 +1397,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn offset(&mut self, offset: u64) -> &mut Self {
-        self.offset = Some(Value::BigUnsigned(Some(offset)));
+        self.offset = Some(offset);
         self
     }
 
@@ -1383,7 +1417,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .and_where(Expr::col(Char::FontId).eq(&5))
     ///     .lock(LockType::Exclusive)
     ///     .to_owned();
     ///
@@ -1392,7 +1426,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
@@ -1415,7 +1449,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .and_where(Expr::col(Char::FontId).eq(&5))
     ///     .lock_shared()
     ///     .to_owned();
     ///
@@ -1424,7 +1458,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR SHARE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR SHARE"#
     /// );
     /// assert_eq!(
@@ -1447,7 +1481,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .and_where(Expr::col(Char::FontId).eq(&5))
     ///     .lock_exclusive()
     ///     .to_owned();
     ///
@@ -1456,7 +1490,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
@@ -1479,11 +1513,11 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .and_where(Expr::col(Char::FontId).eq(&5))
     ///     .union(UnionType::All, Query::select()
     ///         .column(Char::Character)
     ///         .from(Char::Table)
-    ///         .and_where(Expr::col(Char::FontId).eq(4))
+    ///         .and_where(Expr::col(Char::FontId).eq(&4))
     ///         .to_owned()
     ///     )
     ///     .to_owned();
@@ -1493,7 +1527,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
     /// assert_eq!(
@@ -1501,7 +1535,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
     /// );
     /// ```
-    pub fn union(&mut self, union_type: UnionType, query: SelectStatement) -> &mut Self {
+    pub fn union(&mut self, union_type: UnionType, query: SelectStatement<'a, DB>) -> &mut Self {
         self.unions.push((union_type, query));
         self
     }
@@ -1516,17 +1550,17 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .and_where(Expr::col(Char::FontId).eq(&5))
     ///     .unions(vec![
     ///         (UnionType::All, Query::select()
     ///             .column(Char::Character)
     ///             .from(Char::Table)
-    ///             .and_where(Expr::col(Char::FontId).eq(4))
+    ///             .and_where(Expr::col(Char::FontId).eq(&4))
     ///             .to_owned()),
     ///         (UnionType::Distinct, Query::select()
     ///             .column(Char::Character)
     ///             .from(Char::Table)
-    ///             .and_where(Expr::col(Char::FontId).eq(3))
+    ///             .and_where(Expr::col(Char::FontId).eq(&3))
     ///             .to_owned()),
     ///     ])
     ///     .to_owned();
@@ -1536,7 +1570,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION SELECT `character` FROM `character` WHERE `font_id` = 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "character" FROM "character" WHERE "font_id" = 3"#
     /// );
     /// assert_eq!(
@@ -1544,7 +1578,7 @@ impl SelectStatement {
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION SELECT `character` FROM `character` WHERE `font_id` = 3"#
     /// );
     /// ```
-    pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement)>>(
+    pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement<'a, DB>)>>(
         &mut self,
         unions: T,
     ) -> &mut Self {
@@ -1553,7 +1587,10 @@ impl SelectStatement {
     }
 }
 
-impl QueryStatementBuilder for SelectStatement {
+impl<'a, DB> QueryStatementBuilder<'a, DB> for SelectStatement<'a, DB>
+where
+    DB: QueryBuilder<DB> + Default + 'a,
+{
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -1564,7 +1601,7 @@ impl QueryStatementBuilder for SelectStatement {
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(&0)).gt(&2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
     ///     .to_owned();
@@ -1586,43 +1623,29 @@ impl QueryStatementBuilder for SelectStatement {
     ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(
-        &self,
-        query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
+    fn build_collect(&'a self, collector: &mut dyn FnMut(&'a dyn QueryValue<DB>)) -> String {
         let mut sql = SqlWriter::new();
-        query_builder.prepare_select_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_select_statement(self, &mut sql, collector);
+        DB::default().prepare_select_statement(self, &mut sql, collector);
         sql.result()
     }
 }
 
-impl OrderedStatement for SelectStatement {
-    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+impl<'a, DB> OrderedStatement<'a, DB> for SelectStatement<'a, DB> {
+    fn add_order_by(&mut self, order: OrderExpr<'a, DB>) -> &mut Self {
         self.orders.push(order);
         self
     }
 }
 
-impl ConditionalStatement for SelectStatement {
-    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+impl<'a, DB> ConditionalStatement<'a, DB> for SelectStatement<'a, DB> {
+    fn and_or_where(&mut self, condition: LogicalChainOper<'a, DB>) -> &mut Self {
         self.wherei.add_and_or(condition);
         self
     }
 
     fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
-        C: IntoCondition,
+        C: IntoCondition<'a, DB>,
     {
         self.wherei.add_condition(condition.into_condition());
         self

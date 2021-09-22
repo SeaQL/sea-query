@@ -1,6 +1,6 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
-    QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
+    backend::QueryBuilder, error::*, prepare::*, types::*, Expr, Query, QueryStatementBuilder,
+    Queryable, SelectExpr, SelectStatement, SimpleExpr,
 };
 
 /// Insert any new rows into an existing table
@@ -22,7 +22,7 @@ use crate::{
 ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// assert_eq!(
-///     query.to_string(PostgresQueryBuilder),
+///     query.to_string(),
 ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// assert_eq!(
@@ -31,14 +31,18 @@ use crate::{
 /// );
 /// ```
 #[derive(Debug, Default, Clone)]
-pub struct InsertStatement {
-    pub(crate) table: Option<Box<TableRef>>,
+pub struct InsertStatement<'a, DB> {
+    pub(crate) table: Option<Box<TableRef<'a, DB>>>,
     pub(crate) columns: Vec<DynIden>,
-    pub(crate) values: Vec<Vec<SimpleExpr>>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) values: Vec<Vec<SimpleExpr<'a, DB>>>,
+    pub(crate) returning: Vec<SelectExpr<'a, DB>>,
 }
 
-impl InsertStatement {
+impl<'a, DB> InsertStatement<'a, DB>
+where
+    Self: Default,
+    DB: QueryBuilder<DB>,
+{
     /// Construct a new [`InsertStatement`]
     pub fn new() -> Self {
         Self::default()
@@ -52,7 +56,7 @@ impl InsertStatement {
     #[allow(clippy::wrong_self_convention)]
     pub fn into_table<T>(&mut self, tbl_ref: T) -> &mut Self
     where
-        T: IntoTableRef,
+        T: IntoTableRef<'a, DB>,
     {
         self.table = Some(Box::new(tbl_ref.into_table_ref()));
         self
@@ -92,7 +96,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// assert_eq!(
@@ -100,14 +104,14 @@ impl InsertStatement {
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// ```
-    pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
+    pub fn values(&mut self, values: &[&'a dyn QueryValue<DB>]) -> Result<&mut Self>
     where
-        I: IntoIterator<Item = Value>,
+        DB: Default,
     {
         let values = values
-            .into_iter()
-            .map(|v| Expr::val(v).into())
-            .collect::<Vec<SimpleExpr>>();
+            .iter()
+            .map(|v| Expr::val(&**v).into())
+            .collect::<Vec<SimpleExpr<'a, DB>>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),
@@ -140,7 +144,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
     /// );
     /// assert_eq!(
@@ -150,9 +154,9 @@ impl InsertStatement {
     /// ```
     pub fn exprs<I>(&mut self, values: I) -> Result<&mut Self>
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = SimpleExpr<'a, DB>>,
     {
-        let values = values.into_iter().collect::<Vec<SimpleExpr>>();
+        let values = values.into_iter().collect::<Vec<SimpleExpr<'a, DB>>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),
@@ -164,9 +168,9 @@ impl InsertStatement {
     }
 
     /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
-    pub fn values_panic<I>(&mut self, values: I) -> &mut Self
+    pub fn values_panic(&mut self, values: &[&'a dyn QueryValue<DB>]) -> &mut Self
     where
-        I: IntoIterator<Item = Value>,
+        DB: Default,
     {
         self.values(values).unwrap()
     }
@@ -174,7 +178,7 @@ impl InsertStatement {
     /// Specify a row of values to be inserted, variation of [`InsertStatement::exprs`].
     pub fn exprs_panic<I>(&mut self, values: I) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = SimpleExpr<'a, DB>>,
     {
         self.exprs(values).unwrap()
     }
@@ -196,7 +200,7 @@ impl InsertStatement {
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// assert_eq!(
@@ -204,7 +208,7 @@ impl InsertStatement {
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
+    pub fn returning(&mut self, select: SelectStatement<'a, DB>) -> &mut Self {
         self.returning = select.selects;
         self
     }
@@ -227,7 +231,7 @@ impl InsertStatement {
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// assert_eq!(
@@ -237,13 +241,18 @@ impl InsertStatement {
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
+        DB: Default,
+        Query: Queryable<DB>,
         C: IntoIden,
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
 }
 
-impl QueryStatementBuilder for InsertStatement {
+impl<'a, DB> QueryStatementBuilder<'a, DB> for InsertStatement<'a, DB>
+where
+    DB: QueryBuilder<DB> + Default + 'a,
+{
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -277,23 +286,9 @@ impl QueryStatementBuilder for InsertStatement {
     ///     ]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(
-        &self,
-        query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
+    fn build_collect(&'a self, collector: &mut dyn FnMut(&'a dyn QueryValue<DB>)) -> String {
         let mut sql = SqlWriter::new();
-        query_builder.prepare_insert_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_insert_statement(self, &mut sql, collector);
+        DB::default().prepare_insert_statement(self, &mut sql, collector);
         sql.result()
     }
 }

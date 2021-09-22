@@ -46,7 +46,7 @@ use crate::{
 ///     ].join(" ")
 /// );
 /// assert_eq!(
-///     table.to_string(PostgresQueryBuilder),
+///     table.to_string(),
 ///     vec![
 ///         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -203,7 +203,7 @@ impl TableCreateStatement {
     ///     .join(" ")
     /// );
     /// assert_eq!(
-    ///     statement.to_string(PostgresQueryBuilder),
+    ///     statement.to_string(),
     ///     vec![
     ///         "CREATE TABLE \"glyph\" (",
     ///         "\"id\" integer NOT NULL,",
@@ -297,13 +297,8 @@ impl TableCreateStatement {
 }
 
 impl SchemaStatementBuilder for TableCreateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
-        schema_builder.prepare_table_create_statement(self, &mut sql);
-        sql.result()
-    }
-
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    fn build<T: SchemaBuilder>(&self) -> String {
+        let schema_builder = T::default();
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_create_statement(self, &mut sql);
         sql.result()

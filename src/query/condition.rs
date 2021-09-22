@@ -8,39 +8,39 @@ pub enum ConditionType {
 
 /// Represents the value of an [`Condition::any`] or [`Condition::all`]: a set of disjunctive or conjunctive conditions.
 #[derive(Debug, Clone)]
-pub struct Condition {
+pub struct Condition<'a, DB> {
     pub(crate) condition_type: ConditionType,
-    pub(crate) conditions: Vec<ConditionExpression>,
+    pub(crate) conditions: Vec<ConditionExpression<'a, DB>>,
 }
 
-pub trait IntoCondition {
-    fn into_condition(self) -> Condition;
+pub trait IntoCondition<'a, DB> {
+    fn into_condition(self) -> Condition<'a, DB>;
 }
 
-pub type Cond = Condition;
+pub type Cond<'a, DB> = Condition<'a, DB>;
 
 /// Represents anything that can be passed to an [`Condition::any`] or [`Condition::all`]'s [`Condition::add`] method.
 ///
 /// The arguments are automatically converted to the right enum.
 #[derive(Debug, Clone)]
-pub enum ConditionExpression {
-    Condition(Condition),
-    SimpleExpr(SimpleExpr),
+pub enum ConditionExpression<'a, DB> {
+    Condition(Condition<'a, DB>),
+    SimpleExpr(SimpleExpr<'a, DB>),
 }
 
 #[derive(Debug, Clone)]
-pub enum ConditionHolderContents {
+pub enum ConditionHolderContents<'a, DB> {
     Empty,
-    Chain(Vec<LogicalChainOper>),
-    Condition(Condition),
+    Chain(Vec<LogicalChainOper<'a, DB>>),
+    Condition(Condition<'a, DB>),
 }
 
 #[derive(Debug, Clone)]
-pub struct ConditionHolder {
-    pub contents: ConditionHolderContents,
+pub struct ConditionHolder<'a, DB> {
+    pub contents: ConditionHolderContents<'a, DB>,
 }
 
-impl Condition {
+impl<'a, DB> Condition<'a, DB> {
     /// Add a condition to the set.
     ///
     /// If it's an [`Condition::any`], it will be separated from the others by an `" OR "` in the query. If it's
@@ -48,9 +48,9 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add<C>(mut self, condition: C) -> Self
     where
-        C: Into<ConditionExpression>,
+        C: Into<ConditionExpression<'a, DB>>,
     {
-        let mut expr: ConditionExpression = condition.into();
+        let mut expr: ConditionExpression<'a, DB> = condition.into();
         if let ConditionExpression::Condition(ref mut c) = expr {
             // Don't add empty `Condition::any` and `Condition::all`.
             if c.conditions.is_empty() {
@@ -71,7 +71,7 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add_option<C>(self, other: Option<C>) -> Self
     where
-        C: Into<ConditionExpression>,
+        C: Into<ConditionExpression<'a, DB>>,
     {
         if let Some(other) = other {
             self.add(other)
@@ -93,7 +93,7 @@ impl Condition {
     ///     .cond_where(
     ///         Cond::any()
     ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%"))
     ///     )
     ///     .to_owned();
     ///
@@ -102,7 +102,7 @@ impl Condition {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
-    pub fn any() -> Condition {
+    pub fn any() -> Condition<'a, DB> {
         Condition {
             condition_type: ConditionType::Any,
             conditions: Vec::new(),
@@ -122,7 +122,7 @@ impl Condition {
     ///     .cond_where(
     ///         Cond::all()
     ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%"))
     ///     )
     ///     .to_owned();
     ///
@@ -131,7 +131,7 @@ impl Condition {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
-    pub fn all() -> Condition {
+    pub fn all() -> Condition<'a, DB> {
         Condition {
             condition_type: ConditionType::All,
             conditions: Vec::new(),
@@ -139,14 +139,14 @@ impl Condition {
     }
 }
 
-impl std::convert::From<Condition> for ConditionExpression {
-    fn from(condition: Condition) -> Self {
+impl<'a, DB> std::convert::From<Condition<'a, DB>> for ConditionExpression<'a, DB> {
+    fn from(condition: Condition<'a, DB>) -> Self {
         ConditionExpression::Condition(condition)
     }
 }
 
-impl std::convert::From<SimpleExpr> for ConditionExpression {
-    fn from(condition: SimpleExpr) -> Self {
+impl<'a, DB> std::convert::From<SimpleExpr<'a, DB>> for ConditionExpression<'a, DB> {
+    fn from(condition: SimpleExpr<'a, DB>) -> Self {
         ConditionExpression::SimpleExpr(condition)
     }
 }
@@ -164,7 +164,7 @@ impl std::convert::From<SimpleExpr> for ConditionExpression {
 ///     .cond_where(
 ///         any![
 ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-///             Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///             Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%")
 ///         ]
 ///     )
 ///     .to_owned();
@@ -200,7 +200,7 @@ macro_rules! any {
 ///     .cond_where(
 ///         all![
 ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
-///             Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///             Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%")
 ///         ]
 ///     )
 ///     .to_owned();
@@ -222,7 +222,7 @@ macro_rules! all {
     };
 }
 
-pub trait ConditionalStatement {
+pub trait ConditionalStatement<'a, DB> {
     /// And where condition. This cannot be mixed with [`ConditionalStatement::or_where`].
     /// Calling `or_where` after `and_where` will panic.
     ///
@@ -235,7 +235,7 @@ pub trait ConditionalStatement {
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
-    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -243,7 +243,7 @@ pub trait ConditionalStatement {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
-    fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
+    fn and_where(&mut self, other: SimpleExpr<'a, DB>) -> &mut Self {
         self.cond_where(other)
     }
 
@@ -256,7 +256,7 @@ pub trait ConditionalStatement {
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
-    ///     .and_where_option(Some(Expr::col(Glyph::Image).like("A%")))
+    ///     .and_where_option(Some(Expr::col(Glyph::Image).like(&"A%")))
     ///     .and_where_option(None)
     ///     .to_owned();
     ///
@@ -265,7 +265,7 @@ pub trait ConditionalStatement {
     ///     r#"SELECT `image` FROM `glyph` WHERE `aspect` IN (3, 4) AND `image` LIKE 'A%'"#
     /// );
     /// ```
-    fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
+    fn and_where_option(&mut self, other: Option<SimpleExpr<'a, DB>>) -> &mut Self {
         if let Some(other) = other {
             self.and_where(other);
         }
@@ -278,13 +278,13 @@ pub trait ConditionalStatement {
     )]
     /// Or where condition. This cannot be mixed with [`ConditionalStatement::and_where`].
     /// Calling `or_where` after `and_where` will panic.
-    fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
+    fn or_where(&mut self, other: SimpleExpr<'a, DB>) -> &mut Self {
         self.and_or_where(LogicalChainOper::Or(other))
     }
 
     #[doc(hidden)]
     // Trait implementation.
-    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self;
+    fn and_or_where(&mut self, condition: LogicalChainOper<'a, DB>) -> &mut Self;
 
     /// Where condition, expressed with `any` and `all`.
     /// Calling `cond_where` multiple times will conjoin them.
@@ -302,14 +302,14 @@ pub trait ConditionalStatement {
     ///         Cond::all()
     ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
     ///             .add(Cond::any()
-    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
-    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like("B%"))
+    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%"))
+    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like(&"B%"))
     ///             )
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
     /// );
     /// ```
@@ -326,14 +326,14 @@ pub trait ConditionalStatement {
     ///         all![
     ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
     ///             any![
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like(&"A%"),
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like(&"B%")
     ///             ]
     ///         ])
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
     /// );
     /// ```
@@ -343,14 +343,14 @@ pub trait ConditionalStatement {
     ///
     /// assert_eq!(
     ///     Query::select()
-    ///         .cond_where(Cond::all().add(Expr::col(Glyph::Id).eq(1)))
+    ///         .cond_where(Cond::all().add(Expr::col(Glyph::Id).eq(&1)))
     ///         .cond_where(
     ///             Cond::any()
-    ///                 .add(Expr::col(Glyph::Id).eq(2))
-    ///                 .add(Expr::col(Glyph::Id).eq(3)),
+    ///                 .add(Expr::col(Glyph::Id).eq(&2))
+    ///                 .add(Expr::col(Glyph::Id).eq(&3)),
     ///         )
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(),
     ///     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
     /// );
     /// ```
@@ -362,53 +362,53 @@ pub trait ConditionalStatement {
     ///     Query::select()
     ///         .cond_where(
     ///             Cond::any()
-    ///                 .add(Expr::col(Glyph::Id).eq(1))
-    ///                 .add(Expr::col(Glyph::Id).eq(2)),
+    ///                 .add(Expr::col(Glyph::Id).eq(&1))
+    ///                 .add(Expr::col(Glyph::Id).eq(&2)),
     ///         )
-    ///         .cond_where(Expr::col(Glyph::Id).eq(3))
-    ///         .cond_where(Expr::col(Glyph::Id).eq(4))
+    ///         .cond_where(Expr::col(Glyph::Id).eq(&3))
+    ///         .cond_where(Expr::col(Glyph::Id).eq(&4))
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(),
     ///     r#"SELECT WHERE "id" = 1 OR "id" = 2 OR "id" = 3 OR "id" = 4"#
     /// );
     /// ```
     fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
-        C: IntoCondition;
+        C: IntoCondition<'a, DB>;
 }
 
-impl IntoCondition for SimpleExpr {
-    fn into_condition(self) -> Condition {
+impl<'a, DB> IntoCondition<'a, DB> for SimpleExpr<'a, DB> {
+    fn into_condition(self) -> Condition<'a, DB> {
         Condition::all().add(self)
     }
 }
 
-impl IntoCondition for Condition {
-    fn into_condition(self) -> Condition {
+impl<'a, DB> IntoCondition<'a, DB> for Condition<'a, DB> {
+    fn into_condition(self) -> Condition<'a, DB> {
         self
     }
 }
 
-impl Default for ConditionHolderContents {
+impl<'a, DB> Default for ConditionHolderContents<'a, DB> {
     fn default() -> Self {
         Self::Empty
     }
 }
 
-impl Default for ConditionHolder {
+impl<'a, DB> Default for ConditionHolder<'a, DB> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl ConditionHolder {
+impl<'a, DB> ConditionHolder<'a, DB> {
     pub fn new() -> Self {
         Self {
             contents: ConditionHolderContents::Empty,
         }
     }
 
-    pub fn new_with_condition(condition: Condition) -> Self {
+    pub fn new_with_condition(condition: Condition<'a, DB>) -> Self {
         let mut slf = Self::new();
         slf.add_condition(condition);
         slf
@@ -430,7 +430,7 @@ impl ConditionHolder {
         }
     }
 
-    pub fn add_and_or(&mut self, condition: LogicalChainOper) {
+    pub fn add_and_or(&mut self, condition: LogicalChainOper<'a, DB>) {
         match &mut self.contents {
             ConditionHolderContents::Empty => {
                 self.contents = ConditionHolderContents::Chain(vec![condition])
@@ -442,7 +442,7 @@ impl ConditionHolder {
         }
     }
 
-    pub fn add_condition(&mut self, condition: Condition) {
+    pub fn add_condition(&mut self, condition: Condition<'a, DB>) {
         match std::mem::take(&mut self.contents) {
             ConditionHolderContents::Empty => {
                 self.contents = ConditionHolderContents::Condition(condition);

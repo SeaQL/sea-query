@@ -14,7 +14,7 @@ fn create_1() {
             )
             .col(ColumnDef::new(Glyph::Aspect).double().not_null())
             .col(ColumnDef::new(Glyph::Image).text())
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         vec![
             r#"CREATE TABLE "glyph" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -41,7 +41,7 @@ fn create_2() {
             .col(ColumnDef::new(Font::Name).string().not_null())
             .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
             .col(ColumnDef::new(Font::Language).string_len(255).not_null())
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         vec![
             r#"CREATE TABLE "font" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -84,7 +84,7 @@ fn create_3() {
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade)
             )
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         vec![
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -108,7 +108,7 @@ fn create_4() {
         Table::create()
             .table(Glyph::Table)
             .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         vec![r#"CREATE TABLE "glyph" ("#, r#""image" aspect"#, r#")"#,].join(" ")
     );
 }
@@ -120,7 +120,7 @@ fn create_5() {
             .table(Glyph::Table)
             .col(ColumnDef::new(Glyph::Image).json())
             .col(ColumnDef::new(Glyph::Aspect).json_binary())
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         vec![
             r#"CREATE TABLE "glyph" ("#,
             r#""image" json,"#,
@@ -142,7 +142,7 @@ fn create_6() {
                     .not_null()
                     .extra("ANYTHING I WANT TO SAY".to_owned())
             )
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         vec![
             r#"CREATE TABLE "glyph" ("#,
             r#""id" integer NOT NULL ANYTHING I WANT TO SAY"#,
@@ -159,7 +159,7 @@ fn drop_1() {
             .table(Glyph::Table)
             .table(Char::Table)
             .cascade()
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         r#"DROP TABLE "glyph", "character" CASCADE"#
     );
 }
@@ -169,7 +169,7 @@ fn truncate_1() {
     assert_eq!(
         Table::truncate()
             .table(Font::Table)
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         r#"TRUNCATE TABLE "font""#
     );
 }
@@ -185,7 +185,7 @@ fn alter_1() {
                     .not_null()
                     .default(100)
             )
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
     );
 }
@@ -200,7 +200,7 @@ fn alter_2() {
                     .big_integer()
                     .default(999)
             )
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         vec![
             r#"ALTER TABLE "font""#,
             r#"ALTER COLUMN "new_col" TYPE bigint,"#,
@@ -216,7 +216,7 @@ fn alter_3() {
         Table::alter()
             .table(Font::Table)
             .rename_column(Alias::new("new_col"), Alias::new("new_column"))
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     );
 }
@@ -227,7 +227,7 @@ fn alter_4() {
         Table::alter()
             .table(Font::Table)
             .drop_column(Alias::new("new_column"))
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         r#"ALTER TABLE "font" DROP COLUMN "new_column""#
     );
 }
@@ -237,7 +237,7 @@ fn alter_5() {
     assert_eq!(
         Table::rename()
             .table(Font::Table, Alias::new("font_new"))
-            .to_string(PostgresQueryBuilder),
+            .to_string::<PostgresQueryBuilder>(),
         r#"ALTER TABLE "font" RENAME TO "font_new""#
     );
 }
@@ -245,5 +245,5 @@ fn alter_5() {
 #[test]
 #[should_panic(expected = "No alter option found")]
 fn alter_6() {
-    Table::alter().to_string(PostgresQueryBuilder);
+    Table::alter().to_string::<PostgresQueryBuilder>();
 }

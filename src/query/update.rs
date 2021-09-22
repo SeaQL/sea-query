@@ -4,8 +4,7 @@ use crate::{
     prepare::*,
     query::{condition::*, OrderedStatement},
     types::*,
-    value::*,
-    Query, QueryStatementBuilder, SelectExpr, SelectStatement,
+    Query, QueryStatementBuilder, Queryable, SelectExpr, SelectStatement,
 };
 
 /// Update existing rows in the table
@@ -18,10 +17,10 @@ use crate::{
 /// let query = Query::update()
 ///     .table(Glyph::Table)
 ///     .values(vec![
-///         (Glyph::Aspect, 1.23.into()),
-///         (Glyph::Image, "123".into()),
+///         (Glyph::Aspect, 1.23),
+///         (Glyph::Image, "123"),
 ///     ])
-///     .and_where(Expr::col(Glyph::Id).eq(1))
+///     .and_where(Expr::col(Glyph::Id).eq(&1))
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -29,7 +28,7 @@ use crate::{
 ///     r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
 /// );
 /// assert_eq!(
-///     query.to_string(PostgresQueryBuilder),
+///     query.to_string(),
 ///     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 /// );
 /// assert_eq!(
@@ -38,22 +37,28 @@ use crate::{
 /// );
 /// ```
 #[derive(Debug, Clone)]
-pub struct UpdateStatement {
-    pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) values: Vec<(String, Box<SimpleExpr>)>,
-    pub(crate) wherei: ConditionHolder,
-    pub(crate) orders: Vec<OrderExpr>,
-    pub(crate) limit: Option<Value>,
-    pub(crate) returning: Vec<SelectExpr>,
+pub struct UpdateStatement<'a, DB> {
+    pub(crate) table: Option<Box<TableRef<'a, DB>>>,
+    pub(crate) values: Vec<(String, Box<SimpleExpr<'a, DB>>)>,
+    pub(crate) wherei: ConditionHolder<'a, DB>,
+    pub(crate) orders: Vec<OrderExpr<'a, DB>>,
+    pub(crate) limit: Option<u64>,
+    pub(crate) returning: Vec<SelectExpr<'a, DB>>,
 }
 
-impl Default for UpdateStatement {
+impl<'a, DB> Default for UpdateStatement<'a, DB>
+where
+    DB: QueryBuilder<DB>,
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl UpdateStatement {
+impl<'a, DB> UpdateStatement<'a, DB>
+where
+    DB: QueryBuilder<DB>,
+{
     /// Construct a new [`UpdateStatement`]
     pub fn new() -> Self {
         Self {
@@ -74,7 +79,7 @@ impl UpdateStatement {
     #[allow(clippy::wrong_self_convention)]
     pub fn table<T>(&mut self, tbl_ref: T) -> &mut Self
     where
-        T: IntoTableRef,
+        T: IntoTableRef<'a, DB>,
     {
         self.table = Some(Box::new(tbl_ref.into_table_ref()));
         self
@@ -87,7 +92,7 @@ impl UpdateStatement {
     #[allow(clippy::wrong_self_convention)]
     pub fn into_table<T>(&mut self, table: T) -> &mut Self
     where
-        T: IntoTableRef,
+        T: IntoTableRef<'a, DB>,
     {
         self.table(table)
     }
@@ -105,7 +110,7 @@ impl UpdateStatement {
     ///     .values(vec![
     ///         (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
     ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .and_where(Expr::col(Glyph::Id).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -113,7 +118,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#
     /// );
     /// assert_eq!(
@@ -121,7 +126,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn col_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
+    pub fn col_expr<T>(&mut self, col: T, expr: SimpleExpr<'a, DB>) -> &mut Self
     where
         T: IntoIden,
     {
@@ -130,7 +135,7 @@ impl UpdateStatement {
     }
 
     /// Alias of [`UpdateStatement::col_expr`]
-    pub fn value_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
+    pub fn value_expr<T>(&mut self, col: T, expr: SimpleExpr<'a, DB>) -> &mut Self
     where
         T: IntoIden,
     {
@@ -150,7 +155,7 @@ impl UpdateStatement {
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
     ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .and_where(Expr::col(Glyph::Id).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -158,7 +163,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
     /// );
     /// assert_eq!(
@@ -169,7 +174,7 @@ impl UpdateStatement {
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
         T: IntoIden,
-        I: IntoIterator<Item = (T, Value)>,
+        I: IntoIterator<Item = (T, &'a dyn QueryValue<DB>)>,
     {
         for (k, v) in values.into_iter() {
             self.push_boxed_value(k.into_iden().to_string(), SimpleExpr::Value(v));
@@ -188,7 +193,7 @@ impl UpdateStatement {
     ///     .table(Glyph::Table)
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .and_where(Expr::col(Glyph::Id).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -196,7 +201,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
     /// );
     /// assert_eq!(
@@ -204,7 +209,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn value<T>(&mut self, col: T, value: Value) -> &mut Self
+    pub fn value<T>(&mut self, col: T, value: &'a dyn QueryValue<DB>) -> &mut Self
     where
         T: IntoIden,
     {
@@ -212,14 +217,14 @@ impl UpdateStatement {
         self
     }
 
-    fn push_boxed_value(&mut self, k: String, v: SimpleExpr) -> &mut Self {
+    fn push_boxed_value(&mut self, k: String, v: SimpleExpr<'a, DB>) -> &mut Self {
         self.values.push((k, Box::new(v)));
         self
     }
 
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::BigUnsigned(Some(limit)));
+        self.limit = Some(limit);
         self
     }
 
@@ -232,7 +237,7 @@ impl UpdateStatement {
     ///     .table(Glyph::Table)
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .and_where(Expr::col(Glyph::Id).eq(&1))
     ///     .returning(Query::select().column(Glyph::Id).take())
     ///     .to_owned();
     ///
@@ -241,7 +246,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
     /// );
     /// assert_eq!(
@@ -249,7 +254,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
+    pub fn returning(&mut self, select: SelectStatement<'a, DB>) -> &mut Self {
         self.returning = select.selects;
         self
     }
@@ -265,7 +270,7 @@ impl UpdateStatement {
     ///     .table(Glyph::Table)
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .and_where(Expr::col(Glyph::Id).eq(&1))
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
     ///
@@ -274,7 +279,7 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
     /// );
     /// assert_eq!(
@@ -284,13 +289,18 @@ impl UpdateStatement {
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
+        DB: Default,
+        Query: Queryable<DB>,
         C: IntoIden,
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
 }
 
-impl QueryStatementBuilder for UpdateStatement {
+impl<'a, DB> QueryStatementBuilder<'a, DB> for UpdateStatement<'a, DB>
+where
+    DB: QueryBuilder<DB> + Default + 'a,
+{
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -304,7 +314,7 @@ impl QueryStatementBuilder for UpdateStatement {
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
     ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .and_where(Expr::col(Glyph::Id).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -328,43 +338,29 @@ impl QueryStatementBuilder for UpdateStatement {
     ///     ]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(
-        &self,
-        query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
+    fn build_collect(&'a self, collector: &mut dyn FnMut(&'a dyn QueryValue<DB>)) -> String {
         let mut sql = SqlWriter::new();
-        query_builder.prepare_update_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_update_statement(self, &mut sql, collector);
+        DB::default().prepare_update_statement(self, &mut sql, collector);
         sql.result()
     }
 }
 
-impl OrderedStatement for UpdateStatement {
-    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+impl<'a, DB> OrderedStatement<'a, DB> for UpdateStatement<'a, DB> {
+    fn add_order_by(&mut self, order: OrderExpr<'a, DB>) -> &mut Self {
         self.orders.push(order);
         self
     }
 }
 
-impl ConditionalStatement for UpdateStatement {
-    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+impl<'a, DB> ConditionalStatement<'a, DB> for UpdateStatement<'a, DB> {
+    fn and_or_where(&mut self, condition: LogicalChainOper<'a, DB>) -> &mut Self {
         self.wherei.add_and_or(condition);
         self
     }
 
     fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
-        C: IntoCondition,
+        C: IntoCondition<'a, DB>,
     {
         self.wherei.add_condition(condition.into_condition());
         self

@@ -8,11 +8,11 @@
     <strong>🌊 A dynamic query builder for MySQL, Postgres and SQLite</strong>
   </p>
 
-  [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
-  [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
-  [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
+[![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
+[![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
+[![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
 
-  <sub>Built with 🔥 by 🌊🦀🐚</sub>
+<sub>Built with 🔥 by 🌊🦀🐚</sub>
 
 </div>
 
@@ -42,29 +42,29 @@ Table of Content
 
 1. Basics
 
-    1. [Iden](#iden)
-    1. [Expression](#expression)
-    1. [Condition](#condition)
-    1. [Statement Builders](#statement-builders)
+   1. [Iden](#iden)
+   1. [Expression](#expression)
+   1. [Condition](#condition)
+   1. [Statement Builders](#statement-builders)
 
 1. Query Statement
 
-    1. [Query Select](#query-select)
-    1. [Query Insert](#query-insert)
-    1. [Query Update](#query-update)
-    1. [Query Delete](#query-delete)
+   1. [Query Select](#query-select)
+   1. [Query Insert](#query-insert)
+   1. [Query Update](#query-update)
+   1. [Query Delete](#query-delete)
 
 1. Schema Statement
 
-    1. [Table Create](#table-create)
-    1. [Table Alter](#table-alter)
-    1. [Table Drop](#table-drop)
-    1. [Table Rename](#table-rename)
-    1. [Table Truncate](#table-truncate)
-    1. [Foreign Key Create](#foreign-key-create)
-    1. [Foreign Key Drop](#foreign-key-drop)
-    1. [Index Create](#index-create)
-    1. [Index Drop](#index-drop)
+   1. [Table Create](#table-create)
+   1. [Table Alter](#table-alter)
+   1. [Table Drop](#table-drop)
+   1. [Table Rename](#table-rename)
+   1. [Table Truncate](#table-truncate)
+   1. [Foreign Key Create](#foreign-key-create)
+   1. [Foreign Key Drop](#foreign-key-drop)
+   1. [Index Create](#index-create)
+   1. [Index Drop](#index-drop)
 
 ### Motivation
 
@@ -79,8 +79,8 @@ assert_eq!(
     Query::select()
         .column(Glyph::Image)
         .from(Glyph::Table)
-        .and_where(Expr::col(Glyph::Image).like("A"))
-        .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
+        .and_where(Expr::col(Glyph::Image).like(&"A"))
+        .and_where(Expr::col(Glyph::Id).is_in(vec![&1, &2, &3]))
         .build(PostgresQueryBuilder),
     (
         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
@@ -108,7 +108,7 @@ Query::select()
         true,
         // if condition is true then add the following condition
         |q| {
-            q.and_where(Expr::col(Char::Id).eq(1));
+            q.and_where(Expr::col(Char::Id).eq(&1));
         },
         // otherwise leave it as is
         |q| {},
@@ -185,9 +185,9 @@ assert_eq!(
         .column(Char::Character)
         .from(Char::Table)
         .and_where(
-            Expr::expr(Expr::col(Char::SizeW).add(1))
-                .mul(2)
-                .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+            Expr::expr(Expr::col(Char::SizeW).add(&1))
+                .mul(&2)
+                .equals(Expr::expr(Expr::col(Char::SizeH).div(&2)).sub(&1))
         )
         .and_where(
             Expr::col(Char::SizeW).in_subquery(
@@ -198,10 +198,10 @@ assert_eq!(
         )
         .and_where(
             Expr::col(Char::Character)
-                .like("D")
-                .and(Expr::col(Char::Character).like("E"))
+                .like(&"D")
+                .and(Expr::col(Char::Character).like(&"E"))
         )
-        .to_string(PostgresQueryBuilder),
+        .to_string(),
     [
         r#"SELECT "character" FROM "character""#,
         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
@@ -232,10 +232,10 @@ assert_eq!(
                 .add(
                     Cond::all()
                         .add(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
-                        .add(Expr::col(Glyph::Image).like("A%"))
+                        .add(Expr::col(Glyph::Image).like(&"A%"))
                 )
         )
-        .to_string(PostgresQueryBuilder),
+        .to_string(),
     [
         r#"SELECT "id" FROM "glyph""#,
         r#"WHERE"#,
@@ -254,7 +254,7 @@ Query::select().cond_where(any![
     Expr::col(Glyph::Aspect).is_in(vec![3, 4]),
     all![
         Expr::col(Glyph::Aspect).is_null(),
-        Expr::col(Glyph::Image).like("A%")
+        Expr::col(Glyph::Image).like(&"A%")
     ]
 ]);
 ```
@@ -293,7 +293,7 @@ let query = Query::select()
     .from(Char::Table)
     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
-    .and_where(Expr::col(Char::Character).like("A%"))
+    .and_where(Expr::col(Char::Character).like(&"A%"))
     .to_owned();
 
 assert_eq!(
@@ -301,7 +301,7 @@ assert_eq!(
     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(),
     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 );
 assert_eq!(
@@ -325,7 +325,7 @@ assert_eq!(
     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(),
     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 );
 assert_eq!(
@@ -343,7 +343,7 @@ let query = Query::update()
         (Glyph::Aspect, 1.23.into()),
         (Glyph::Image, "123".into()),
     ])
-    .and_where(Expr::col(Glyph::Id).eq(1))
+    .and_where(Expr::col(Glyph::Id).eq(&1))
     .to_owned();
 
 assert_eq!(
@@ -351,7 +351,7 @@ assert_eq!(
     r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(),
     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 );
 assert_eq!(
@@ -367,8 +367,8 @@ let query = Query::delete()
     .from_table(Glyph::Table)
     .cond_where(
         Cond::any()
-            .add(Expr::col(Glyph::Id).lt(1))
-            .add(Expr::col(Glyph::Id).gt(10)),
+            .add(Expr::col(Glyph::Id).lt(&1))
+            .add(Expr::col(Glyph::Id).gt(&10)),
     )
     .to_owned();
 
@@ -377,7 +377,7 @@ assert_eq!(
     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(),
     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 );
 assert_eq!(
@@ -425,7 +425,7 @@ assert_eq!(
     ].join(" ")
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(),
     vec![
         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -474,7 +474,7 @@ assert_eq!(
     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(),
     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
 );
 assert_eq!(
@@ -496,7 +496,7 @@ assert_eq!(
     r#"DROP TABLE `glyph`, `character`"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(),
     r#"DROP TABLE "glyph", "character""#
 );
 assert_eq!(
@@ -517,7 +517,7 @@ assert_eq!(
     r#"RENAME TABLE `font` TO `font_new`"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(),
     r#"ALTER TABLE "font" RENAME TO "font_new""#
 );
 assert_eq!(
@@ -536,7 +536,7 @@ assert_eq!(
     r#"TRUNCATE TABLE `font`"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(),
     r#"TRUNCATE TABLE "font""#
 );
 assert_eq!(
@@ -567,7 +567,7 @@ assert_eq!(
     .join(" ")
 );
 assert_eq!(
-    foreign_key.to_string(PostgresQueryBuilder),
+    foreign_key.to_string(),
     vec![
         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
@@ -591,7 +591,7 @@ assert_eq!(
     r#"ALTER TABLE `character` DROP FOREIGN KEY `FK_character_font`"#
 );
 assert_eq!(
-    foreign_key.to_string(PostgresQueryBuilder),
+    foreign_key.to_string(),
     r#"ALTER TABLE "character" DROP CONSTRAINT "FK_character_font""#
 );
 // Sqlite does not support modification of foreign key constraints to existing tables
@@ -611,7 +611,7 @@ assert_eq!(
     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
 );
 assert_eq!(
-    index.to_string(PostgresQueryBuilder),
+    index.to_string(),
     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 );
 assert_eq!(
@@ -633,7 +633,7 @@ assert_eq!(
     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 );
 assert_eq!(
-    index.to_string(PostgresQueryBuilder),
+    index.to_string(),
     r#"DROP INDEX "idx-glyph-aspect""#
 );
 assert_eq!(
@@ -646,10 +646,10 @@ assert_eq!(
 
 Licensed under either of
 
--   Apache License, Version 2.0
-    ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
--   MIT license
-    ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0
+  ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license
+  ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 

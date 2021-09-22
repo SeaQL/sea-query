@@ -21,7 +21,7 @@ pub use sqlite::*;
 
 mod foreign_key_builder;
 mod index_builder;
-mod query_builder;
+pub(crate) mod query_builder;
 mod table_builder;
 
 pub use self::foreign_key_builder::*;
@@ -29,9 +29,13 @@ pub use self::index_builder::*;
 pub use self::query_builder::*;
 pub use self::table_builder::*;
 
-pub trait GenericBuilder: QueryBuilder + SchemaBuilder {}
+pub trait GenericBuilder<DB>: QueryBuilder<DB> + SchemaBuilder
+where
+    DB: QueryBuilder<DB>,
+{
+}
 
-pub trait SchemaBuilder: TableBuilder + IndexBuilder + ForeignKeyBuilder {}
+pub trait SchemaBuilder: TableBuilder + IndexBuilder + ForeignKeyBuilder + Default {}
 
 pub trait QuotedBuilder {
     /// The type of quote the builder uses.

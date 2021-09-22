@@ -83,7 +83,7 @@
 //!     Query::select()
 //!         .column(Glyph::Image)
 //!         .from(Glyph::Table)
-//!         .and_where(Expr::col(Glyph::Image).like("A"))
+//!         .and_where(Expr::col(Glyph::Image).like(&"A"))
 //!         .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
 //!         .build(PostgresQueryBuilder),
 //!     (
@@ -113,7 +113,7 @@
 //!         true,
 //!         // if condition is true then add the following condition
 //!         |q| {
-//!             q.and_where(Expr::col(Char::Id).eq(1));
+//!             q.and_where(Expr::col(Char::Id).eq(&1));
 //!         },
 //!         // otherwise leave it as is
 //!         |q| {},
@@ -192,9 +192,9 @@
 //!         .column(Char::Character)
 //!         .from(Char::Table)
 //!         .and_where(
-//!             Expr::expr(Expr::col(Char::SizeW).add(1))
-//!                 .mul(2)
-//!                 .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+//!             Expr::expr(Expr::col(Char::SizeW).add(&1))
+//!                 .mul(&2)
+//!                 .equals(Expr::expr(Expr::col(Char::SizeH).div(&2)).sub(&1))
 //!         )
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(
@@ -205,10 +205,10 @@
 //!         )
 //!         .and_where(
 //!             Expr::col(Char::Character)
-//!                 .like("D")
-//!                 .and(Expr::col(Char::Character).like("E"))
+//!                 .like(&"D")
+//!                 .and(Expr::col(Char::Character).like(&"E"))
 //!         )
-//!         .to_string(PostgresQueryBuilder),
+//!         .to_string(),
 //!     [
 //!         r#"SELECT "character" FROM "character""#,
 //!         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
@@ -240,10 +240,10 @@
 //!                 .add(
 //!                     Cond::all()
 //!                         .add(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
-//!                         .add(Expr::col(Glyph::Image).like("A%"))
+//!                         .add(Expr::col(Glyph::Image).like(&"A%"))
 //!                 )
 //!         )
-//!         .to_string(PostgresQueryBuilder),
+//!         .to_string(),
 //!     [
 //!         r#"SELECT "id" FROM "glyph""#,
 //!         r#"WHERE"#,
@@ -263,7 +263,7 @@
 //!     Expr::col(Glyph::Aspect).is_in(vec![3, 4]),
 //!     all![
 //!         Expr::col(Glyph::Aspect).is_null(),
-//!         Expr::col(Glyph::Image).like("A%")
+//!         Expr::col(Glyph::Image).like(&"A%")
 //!     ]
 //! ]);
 //! ```
@@ -309,7 +309,7 @@
 //!     .from(Char::Table)
 //!     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
 //!     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
-//!     .and_where(Expr::col(Char::Character).like("A%"))
+//!     .and_where(Expr::col(Char::Character).like(&"A%"))
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -317,7 +317,7 @@
 //!     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
 //! );
 //! assert_eq!(
-//!     query.to_string(PostgresQueryBuilder),
+//!     query.to_string(),
 //!     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 //! );
 //! assert_eq!(
@@ -342,7 +342,7 @@
 //!     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
 //! );
 //! assert_eq!(
-//!     query.to_string(PostgresQueryBuilder),
+//!     query.to_string(),
 //!     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 //! );
 //! assert_eq!(
@@ -361,7 +361,7 @@
 //!         (Glyph::Aspect, 1.23.into()),
 //!         (Glyph::Image, "123".into()),
 //!     ])
-//!     .and_where(Expr::col(Glyph::Id).eq(1))
+//!     .and_where(Expr::col(Glyph::Id).eq(&1))
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -369,7 +369,7 @@
 //!     r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
 //! );
 //! assert_eq!(
-//!     query.to_string(PostgresQueryBuilder),
+//!     query.to_string(),
 //!     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 //! );
 //! assert_eq!(
@@ -386,8 +386,8 @@
 //!     .from_table(Glyph::Table)
 //!     .cond_where(
 //!         Cond::any()
-//!             .add(Expr::col(Glyph::Id).lt(1))
-//!             .add(Expr::col(Glyph::Id).gt(10)),
+//!             .add(Expr::col(Glyph::Id).lt(&1))
+//!             .add(Expr::col(Glyph::Id).gt(&10)),
 //!     )
 //!     .to_owned();
 //!
@@ -396,7 +396,7 @@
 //!     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 //! );
 //! assert_eq!(
-//!     query.to_string(PostgresQueryBuilder),
+//!     query.to_string(),
 //!     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 //! );
 //! assert_eq!(
@@ -445,7 +445,7 @@
 //!     ].join(" ")
 //! );
 //! assert_eq!(
-//!     table.to_string(PostgresQueryBuilder),
+//!     table.to_string(),
 //!     vec![
 //!         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 //!             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -495,7 +495,7 @@
 //!     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
 //! );
 //! assert_eq!(
-//!     table.to_string(PostgresQueryBuilder),
+//!     table.to_string(),
 //!     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
 //! );
 //! assert_eq!(
@@ -518,7 +518,7 @@
 //!     r#"DROP TABLE `glyph`, `character`"#
 //! );
 //! assert_eq!(
-//!     table.to_string(PostgresQueryBuilder),
+//!     table.to_string(),
 //!     r#"DROP TABLE "glyph", "character""#
 //! );
 //! assert_eq!(
@@ -540,7 +540,7 @@
 //!     r#"RENAME TABLE `font` TO `font_new`"#
 //! );
 //! assert_eq!(
-//!     table.to_string(PostgresQueryBuilder),
+//!     table.to_string(),
 //!     r#"ALTER TABLE "font" RENAME TO "font_new""#
 //! );
 //! assert_eq!(
@@ -560,7 +560,7 @@
 //!     r#"TRUNCATE TABLE `font`"#
 //! );
 //! assert_eq!(
-//!     table.to_string(PostgresQueryBuilder),
+//!     table.to_string(),
 //!     r#"TRUNCATE TABLE "font""#
 //! );
 //! assert_eq!(
@@ -592,7 +592,7 @@
 //!     .join(" ")
 //! );
 //! assert_eq!(
-//!     foreign_key.to_string(PostgresQueryBuilder),
+//!     foreign_key.to_string(),
 //!     vec![
 //!         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
 //!         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
@@ -617,7 +617,7 @@
 //!     r#"ALTER TABLE `character` DROP FOREIGN KEY `FK_character_font`"#
 //! );
 //! assert_eq!(
-//!     foreign_key.to_string(PostgresQueryBuilder),
+//!     foreign_key.to_string(),
 //!     r#"ALTER TABLE "character" DROP CONSTRAINT "FK_character_font""#
 //! );
 //! // Sqlite does not support modification of foreign key constraints to existing tables
@@ -638,7 +638,7 @@
 //!     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
 //! );
 //! assert_eq!(
-//!     index.to_string(PostgresQueryBuilder),
+//!     index.to_string(),
 //!     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 //! );
 //! assert_eq!(
@@ -661,7 +661,7 @@
 //!     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 //! );
 //! assert_eq!(
-//!     index.to_string(PostgresQueryBuilder),
+//!     index.to_string(),
 //!     r#"DROP INDEX "idx-glyph-aspect""#
 //! );
 //! assert_eq!(

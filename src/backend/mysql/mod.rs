@@ -6,18 +6,12 @@ pub(crate) mod table;
 use super::*;
 
 /// Mysql query builder.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct MysqlQueryBuilder;
 
 pub type MySqlQueryBuilder = MysqlQueryBuilder;
 
-impl Default for MysqlQueryBuilder {
-    fn default() -> Self {
-        Self
-    }
-}
-
-impl GenericBuilder for MysqlQueryBuilder {}
+impl GenericBuilder<MysqlQueryBuilder> for MysqlQueryBuilder {}
 
 impl SchemaBuilder for MysqlQueryBuilder {}
 

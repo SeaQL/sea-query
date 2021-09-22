@@ -4,17 +4,17 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
-use crate::{func::*, query::*, types::*, value::*};
+use crate::{func::*, query::*, types::*, QueryBuilder};
 
 /// Helper to build a [`SimpleExpr`].
 #[derive(Debug, Clone, Default)]
-pub struct Expr {
-    pub(crate) left: Option<SimpleExpr>,
-    pub(crate) right: Option<SimpleExpr>,
+pub struct Expr<'a, DB> {
+    pub(crate) left: Option<SimpleExpr<'a, DB>>,
+    pub(crate) right: Option<SimpleExpr<'a, DB>>,
     pub(crate) uopr: Option<UnOper>,
     pub(crate) bopr: Option<BinOper>,
     pub(crate) func: Option<Function>,
-    pub(crate) args: Vec<SimpleExpr>,
+    pub(crate) args: Vec<SimpleExpr<'a, DB>>,
 }
 
 /// Represents a Simple Expression in SQL.
@@ -22,25 +22,28 @@ pub struct Expr {
 /// [`SimpleExpr`] is a node in the expression tree and can represent identifiers, function calls,
 /// various operators and sub-queries.
 #[derive(Debug, Clone)]
-pub enum SimpleExpr {
+pub enum SimpleExpr<'a, DB> {
     Column(ColumnRef),
-    Unary(UnOper, Box<SimpleExpr>),
-    FunctionCall(Function, Vec<SimpleExpr>),
-    Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
-    SubQuery(Box<SelectStatement>),
-    Value(Value),
-    Values(Vec<Value>),
+    Unary(UnOper, Box<SimpleExpr<'a, DB>>),
+    FunctionCall(Function, Vec<SimpleExpr<'a, DB>>),
+    Binary(Box<SimpleExpr<'a, DB>>, BinOper, Box<SimpleExpr<'a, DB>>),
+    SubQuery(Box<SelectStatement<'a, DB>>),
+    Value(&'a dyn QueryValue<DB>),
+    Values(Vec<&'a dyn QueryValue<DB>>),
     Custom(String),
-    CustomWithValues(String, Vec<Value>),
+    CustomWithValues(String, Vec<&'a dyn QueryValue<DB>>),
     Keyword(Keyword),
 }
 
-impl Expr {
+impl<'a, DB> Expr<'a, DB>
+where
+    DB: QueryBuilder<DB> + Default,
+{
     pub(crate) fn new() -> Self {
         Self::default()
     }
 
-    fn new_with_left(left: SimpleExpr) -> Self {
+    fn new_with_left(left: SimpleExpr<'a, DB>) -> Self {
         Self {
             left: Some(left),
             right: None,
@@ -61,7 +64,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).eq(1))
+    ///     .and_where(Expr::col(Char::SizeW).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -69,7 +72,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
     /// );
     /// assert_eq!(
@@ -84,7 +87,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(1))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -92,7 +95,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// assert_eq!(
@@ -117,7 +120,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).eq(1))
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -125,7 +128,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// assert_eq!(
@@ -161,7 +164,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
@@ -169,11 +172,8 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// ```
-    pub fn val<V>(v: V) -> Self
-    where
-        V: Into<Value>,
-    {
-        Self::new_with_left(SimpleExpr::Value(v.into()))
+    pub fn val(v: &'a dyn QueryValue<DB>) -> Self {
+        Self::new_with_left(SimpleExpr::Value(v))
     }
 
     /// Wrap a [`SimpleExpr`] and perform some operation on it.
@@ -186,7 +186,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::expr(Expr::col(Char::SizeW).if_null(0)).gt(2))
+    ///     .and_where(Expr::expr(Expr::col(Char::SizeW).if_null(&0)).gt(&2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -194,7 +194,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`size_w`, 0) > 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE COALESCE("size_w", 0) > 2"#
     /// );
     /// assert_eq!(
@@ -203,7 +203,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::self_named_constructors)]
-    pub fn expr(expr: SimpleExpr) -> Self {
+    pub fn expr(expr: SimpleExpr<'a, DB>) -> Self {
         Self::new_with_left(expr)
     }
 
@@ -217,7 +217,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::value(1).into())
+    ///     .and_where(Expr::value(&1).into())
     ///     .and_where(Expr::value(2.5).into())
     ///     .and_where(Expr::value("3").into())
     ///     .to_owned();
@@ -227,7 +227,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
@@ -235,11 +235,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// ```
-    pub fn value<V>(v: V) -> SimpleExpr
+    pub fn value<V>(v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        SimpleExpr::Value(v.into())
+        SimpleExpr::Value(v)
     }
 
     /// Express any custom expression in [`&str`].
@@ -260,7 +260,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// assert_eq!(
@@ -268,7 +268,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 = 1"#
     /// );
     /// ```
-    pub fn cust(s: &str) -> SimpleExpr {
+    pub fn cust(s: &str) -> SimpleExpr<'a, DB> {
         SimpleExpr::Custom(s.to_owned())
     }
 
@@ -282,7 +282,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::Id).eq(1))
+    ///     .and_where(Expr::col(Char::Id).eq(&1))
     ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]).into())
     ///     .to_owned();
     ///
@@ -291,7 +291,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
     /// );
     /// assert_eq!(
@@ -307,7 +307,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 6 = 2 * 3"#);
+    /// assert_eq!(query.to_string(), r#"SELECT 6 = 2 * 3"#);
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT 6 = 2 * 3"#);
     /// ```
     /// Postgres only: use `??` to escape `?`
@@ -318,7 +318,7 @@ impl Expr {
     ///     .expr(Expr::cust_with_values("? ?? ?", vec!["a", "b"]))
     ///     .to_owned();
     ///
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' ? 'b'"#);
+    /// assert_eq!(query.to_string(), r#"SELECT 'a' ? 'b'"#);
     /// ```
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -331,16 +331,12 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT data @? ('hello'::JSONPATH)"#
     /// );
     /// ```
-    pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
-    where
-        V: Into<Value>,
-        I: IntoIterator<Item = V>,
-    {
-        SimpleExpr::CustomWithValues(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
+    pub fn cust_with_values(s: &str, v: Vec<&'a dyn QueryValue<DB>>) -> SimpleExpr<'a, DB> {
+        SimpleExpr::CustomWithValues(s.to_owned(), v)
     }
 
     /// Express an equal (`=`) expression.
@@ -353,8 +349,8 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val("What!").eq("Nothing"))
-    ///     .and_where(Expr::col(Char::Id).eq(1))
+    ///     .and_where(Expr::val("What!").eq(&"Nothing"))
+    ///     .and_where(Expr::col(Char::Id).eq(&1))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -362,7 +358,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'What!' = 'Nothing' AND `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
     /// );
     /// assert_eq!(
@@ -370,11 +366,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'What!' = 'Nothing' AND `id` = 1"#
     /// );
     /// ```
-    pub fn eq<V>(self, v: V) -> SimpleExpr
+    pub fn eq<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::Equal, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Equal, SimpleExpr::Value(v))
     }
 
     /// Express a not equal (`<>`) expression.
@@ -396,7 +392,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
     /// );
     /// assert_eq!(
@@ -404,11 +400,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
     /// );
     /// ```
-    pub fn ne<V>(self, v: V) -> SimpleExpr
+    pub fn ne<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::NotEqual, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::NotEqual, SimpleExpr::Value(v))
     }
 
     /// Express a equal expression between two table columns,
@@ -430,7 +426,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
@@ -438,7 +434,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn equals<T, C>(self, t: T, c: C) -> SimpleExpr
+    pub fn equals<T, C>(self, t: T, c: C) -> SimpleExpr<'a, DB>
     where
         T: IntoIden,
         C: IntoIden,
@@ -459,7 +455,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).gt(2))
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).gt(&2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -467,7 +463,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
     /// );
     /// assert_eq!(
@@ -475,11 +471,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > 2"#
     /// );
     /// ```
-    pub fn gt<V>(self, v: V) -> SimpleExpr
+    pub fn gt<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::GreaterThan, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::GreaterThan, SimpleExpr::Value(v))
     }
 
     /// Express a greater than or equal (`>=`) expression.
@@ -500,7 +496,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
     /// );
     /// assert_eq!(
@@ -508,11 +504,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= 2"#
     /// );
     /// ```
-    pub fn gte<V>(self, v: V) -> SimpleExpr
+    pub fn gte<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::GreaterThanOrEqual, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::GreaterThanOrEqual, SimpleExpr::Value(v))
     }
 
     /// Express a less than (`<`) expression.
@@ -525,7 +521,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).lt(2))
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).lt(&2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -533,7 +529,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
     /// );
     /// assert_eq!(
@@ -541,11 +537,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < 2"#
     /// );
     /// ```
-    pub fn lt<V>(self, v: V) -> SimpleExpr
+    pub fn lt<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::SmallerThan, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::SmallerThan, SimpleExpr::Value(v))
     }
 
     /// Express a less than or equal (`<=`) expression.
@@ -566,7 +562,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
     /// );
     /// assert_eq!(
@@ -574,11 +570,11 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= 2"#
     /// );
     /// ```
-    pub fn lte<V>(self, v: V) -> SimpleExpr
+    pub fn lte<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::SmallerThanOrEqual, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::SmallerThanOrEqual, SimpleExpr::Value(v))
     }
 
     /// Express an arithmetic addition operation.
@@ -591,7 +587,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).add(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).add(&1).equals(Expr::value(&2)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -599,7 +595,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 + 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
     /// );
     /// assert_eq!(
@@ -608,11 +604,11 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn add<V>(self, v: V) -> SimpleExpr
+    pub fn add<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::Add, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Add, SimpleExpr::Value(v))
     }
 
     /// Express an arithmetic subtraction operation.
@@ -625,7 +621,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).sub(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).sub(&1).equals(Expr::value(&2)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -633,7 +629,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 - 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
     /// );
     /// assert_eq!(
@@ -642,11 +638,11 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn sub<V>(self, v: V) -> SimpleExpr
+    pub fn sub<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::Sub, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Sub, SimpleExpr::Value(v))
     }
 
     /// Express an arithmetic multiplication operation.
@@ -659,7 +655,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).mul(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).mul(&1).equals(Expr::value(&2)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -667,7 +663,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 * 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
     /// );
     /// assert_eq!(
@@ -676,11 +672,11 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn mul<V>(self, v: V) -> SimpleExpr
+    pub fn mul<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::Mul, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Mul, SimpleExpr::Value(v))
     }
 
     /// Express an arithmetic division operation.
@@ -693,7 +689,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).div(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).div(&1).equals(Expr::value(&2)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -701,7 +697,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 / 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
     /// );
     /// assert_eq!(
@@ -710,11 +706,11 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn div<V>(self, v: V) -> SimpleExpr
+    pub fn div<V>(self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
-        self.bin_oper(BinOper::Div, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Div, SimpleExpr::Value(v))
     }
 
     /// Express a `BETWEEN` expression.
@@ -727,7 +723,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).between(1, 10))
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).between(&1, &10))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -735,7 +731,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
@@ -743,9 +739,9 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` BETWEEN 1 AND 10"#
     /// );
     /// ```
-    pub fn between<V>(self, a: V, b: V) -> SimpleExpr
+    pub fn between<V>(self, a: &'a V, b: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
         self.between_or_not_between(BinOper::Between, a, b)
     }
@@ -760,7 +756,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).not_between(1, 10))
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).not_between(&1, &10))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -768,7 +764,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` NOT BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
@@ -776,23 +772,23 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` NOT BETWEEN 1 AND 10"#
     /// );
     /// ```
-    pub fn not_between<V>(self, a: V, b: V) -> SimpleExpr
+    pub fn not_between<V>(self, a: &'a V, b: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
         self.between_or_not_between(BinOper::NotBetween, a, b)
     }
 
-    fn between_or_not_between<V>(self, op: BinOper, a: V, b: V) -> SimpleExpr
+    fn between_or_not_between<V>(self, op: BinOper, a: &'a V, b: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
         self.bin_oper(
             op,
             SimpleExpr::Binary(
-                Box::new(SimpleExpr::Value(a.into())),
+                Box::new(SimpleExpr::Value(a)),
                 BinOper::And,
-                Box::new(SimpleExpr::Value(b.into())),
+                Box::new(SimpleExpr::Value(b)),
             ),
         )
     }
@@ -807,7 +803,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like("Ours'%"))
+    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like(&"Ours'%"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -815,7 +811,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE E'Ours\'%'"#
     /// );
     /// assert_eq!(
@@ -823,18 +819,12 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
     /// );
     /// ```
-    pub fn like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::Like,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+    pub fn like(self, v: &'a dyn QueryValue<DB>) -> SimpleExpr<'a, DB> {
+        self.bin_oper(BinOper::Like, SimpleExpr::Value(v))
     }
 
-    pub fn not_like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::NotLike,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+    pub fn not_like(self, v: &'a dyn QueryValue<DB>) -> SimpleExpr<'a, DB> {
+        self.bin_oper(BinOper::NotLike, SimpleExpr::Value(v))
     }
 
     /// Express a `IS NULL` expression.
@@ -855,7 +845,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NULL"#
     /// );
     /// assert_eq!(
@@ -864,7 +854,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_null(self) -> SimpleExpr {
+    pub fn is_null(self) -> SimpleExpr<'a, DB> {
         self.bin_oper(BinOper::Is, SimpleExpr::Keyword(Keyword::Null))
     }
 
@@ -886,7 +876,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NOT NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NOT NULL"#
     /// );
     /// assert_eq!(
@@ -895,7 +885,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_not_null(self) -> SimpleExpr {
+    pub fn is_not_null(self) -> SimpleExpr<'a, DB> {
         self.bin_oper(BinOper::IsNot, SimpleExpr::Keyword(Keyword::Null))
     }
 
@@ -917,7 +907,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
     /// );
     /// assert_eq!(
@@ -926,7 +916,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn not(self) -> SimpleExpr {
+    pub fn not(self) -> SimpleExpr<'a, DB> {
         self.un_oper(UnOper::Not)
     }
 
@@ -947,7 +937,7 @@ impl Expr {
     ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
@@ -955,7 +945,7 @@ impl Expr {
     ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
-    pub fn max(mut self) -> SimpleExpr {
+    pub fn max(mut self) -> SimpleExpr<'a, DB> {
         let left = self.left.take();
         Self::func_with_args(Function::Max, vec![left.unwrap()])
     }
@@ -977,7 +967,7 @@ impl Expr {
     ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
@@ -985,7 +975,7 @@ impl Expr {
     ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
-    pub fn min(mut self) -> SimpleExpr {
+    pub fn min(mut self) -> SimpleExpr<'a, DB> {
         let left = self.left.take();
         Self::func_with_args(Function::Min, vec![left.unwrap()])
     }
@@ -1007,7 +997,7 @@ impl Expr {
     ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
@@ -1015,7 +1005,7 @@ impl Expr {
     ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
-    pub fn sum(mut self) -> SimpleExpr {
+    pub fn sum(mut self) -> SimpleExpr<'a, DB> {
         let left = self.left.take();
         Self::func_with_args(Function::Sum, vec![left.unwrap()])
     }
@@ -1037,7 +1027,7 @@ impl Expr {
     ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
@@ -1045,7 +1035,7 @@ impl Expr {
     ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
     /// );
     /// ```
-    pub fn count(mut self) -> SimpleExpr {
+    pub fn count(mut self) -> SimpleExpr<'a, DB> {
         let left = self.left.take();
         Self::func_with_args(Function::Count, vec![left.unwrap()])
     }
@@ -1058,7 +1048,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).if_null(0))
+    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).if_null(&0))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -1067,7 +1057,7 @@ impl Expr {
     ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT COALESCE("character"."size_w", 0) FROM "character""#
     /// );
     /// assert_eq!(
@@ -1075,15 +1065,12 @@ impl Expr {
     ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
     /// );
     /// ```
-    pub fn if_null<V>(mut self, v: V) -> SimpleExpr
+    pub fn if_null<V>(mut self, v: &'a V) -> SimpleExpr<'a, DB>
     where
-        V: Into<Value>,
+        V: QueryValue<DB>,
     {
         let left = self.left.take();
-        Self::func_with_args(
-            Function::IfNull,
-            vec![left.unwrap(), SimpleExpr::Value(v.into())],
-        )
+        Self::func_with_args(Function::IfNull, vec![left.unwrap(), SimpleExpr::Value(v)])
     }
 
     /// Express a `IN` expression.
@@ -1104,7 +1091,7 @@ impl Expr {
     ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
@@ -1127,7 +1114,7 @@ impl Expr {
     ///     r#"SELECT `id` FROM `character` WHERE 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "id" FROM "character" WHERE 1 = 2"#
     /// );
     /// assert_eq!(
@@ -1136,15 +1123,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_in<V, I>(mut self, v: I) -> SimpleExpr
-    where
-        V: Into<Value>,
-        I: IntoIterator<Item = V>,
-    {
+    pub fn is_in(mut self, v: Vec<&'a dyn QueryValue<DB>>) -> SimpleExpr<'a, DB> {
         self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::Values(
-            v.into_iter().map(|v| v.into()).collect(),
-        ));
+        self.right = Some(SimpleExpr::Values(v));
         self.into()
     }
 
@@ -1166,7 +1147,7 @@ impl Expr {
     ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
@@ -1189,7 +1170,7 @@ impl Expr {
     ///     r#"SELECT `id` FROM `character` WHERE 1 = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "id" FROM "character" WHERE 1 = 1"#
     /// );
     /// assert_eq!(
@@ -1198,15 +1179,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_not_in<V, I>(mut self, v: I) -> SimpleExpr
-    where
-        V: Into<Value>,
-        I: IntoIterator<Item = V>,
-    {
+    pub fn is_not_in(mut self, v: Vec<&'a dyn QueryValue<DB>>) -> SimpleExpr<'a, DB> {
         self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::Values(
-            v.into_iter().map(|v| v.into()).collect(),
-        ));
+        self.right = Some(SimpleExpr::Values(v));
         self.into()
     }
 
@@ -1232,7 +1207,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
@@ -1241,7 +1216,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
+    pub fn in_subquery(mut self, sel: SelectStatement<'a, DB>) -> SimpleExpr<'a, DB> {
         self.bopr = Some(BinOper::In);
         self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
         self.into()
@@ -1269,7 +1244,7 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` NOT IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
@@ -1278,7 +1253,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn not_in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
+    pub fn not_in_subquery(mut self, sel: SelectStatement<'a, DB>) -> SimpleExpr<'a, DB> {
         self.bopr = Some(BinOper::NotIn);
         self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
         self.into()
@@ -1299,14 +1274,14 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @@ 'a b' AND "name" @@ 'a b'"#
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]
-    pub fn matches<T>(self, expr: T) -> SimpleExpr
+    pub fn matches<T>(self, expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.bin_oper(BinOper::Matches, expr.into())
     }
@@ -1326,14 +1301,14 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @> 'a b' AND "name" @> 'a b'"#
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]
-    pub fn contains<T>(self, expr: T) -> SimpleExpr
+    pub fn contains<T>(self, expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.bin_oper(BinOper::Contains, expr.into())
     }
@@ -1353,14 +1328,14 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' <@ 'a b' AND "name" <@ 'a b'"#
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]
-    pub fn contained<T>(self, expr: T) -> SimpleExpr
+    pub fn contained<T>(self, expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.bin_oper(BinOper::Contained, expr.into())
     }
@@ -1380,23 +1355,23 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' AND 'c' || 'd'"#
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]
-    pub fn concatenate<T>(self, expr: T) -> SimpleExpr
+    pub fn concatenate<T>(self, expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.bin_oper(BinOper::Concatenate, expr.into())
     }
 
     /// Alias of [`Expr::concatenate`]
     #[cfg(feature = "backend-postgres")]
-    pub fn concat<T>(self, expr: T) -> SimpleExpr
+    pub fn concat<T>(self, expr: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.concatenate(expr)
     }
@@ -1407,51 +1382,51 @@ impl Expr {
         expr
     }
 
-    pub fn arg<T>(mut self, arg: T) -> SimpleExpr
+    pub fn arg<T>(mut self, arg: T) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.args = vec![arg.into()];
         self.into()
     }
 
-    pub fn args<T, I>(mut self, args: I) -> SimpleExpr
+    pub fn args<T, I>(mut self, args: I) -> SimpleExpr<'a, DB>
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
         I: IntoIterator<Item = T>,
     {
         self.args = args.into_iter().map(|v| v.into()).collect();
         self.into()
     }
 
-    fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
+    fn func_with_args(func: Function, args: Vec<SimpleExpr<'a, DB>>) -> SimpleExpr<'a, DB> {
         let mut expr = Expr::new();
         expr.func = Some(func);
         expr.args = args;
         expr.into()
     }
 
-    fn un_oper(mut self, o: UnOper) -> SimpleExpr {
+    fn un_oper(mut self, o: UnOper) -> SimpleExpr<'a, DB> {
         self.uopr = Some(o);
         self.into()
     }
 
-    pub(crate) fn bin_oper(mut self, o: BinOper, e: SimpleExpr) -> SimpleExpr {
+    pub(crate) fn bin_oper(mut self, o: BinOper, e: SimpleExpr<'a, DB>) -> SimpleExpr<'a, DB> {
         self.bopr = Some(o);
         self.right = Some(e);
         self.into()
     }
 
     /// `Into::<SimpleExpr>::into()` when type inference is impossible
-    pub fn into_simple_expr(self) -> SimpleExpr {
+    pub fn into_simple_expr(self) -> SimpleExpr<'a, DB> {
         self.into()
     }
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<SimpleExpr> for Expr {
+impl<'a, DB> Into<SimpleExpr<'a, DB>> for Expr<'a, DB> {
     /// Convert into SimpleExpr. Will panic if this Expr is missing an operand
-    fn into(self) -> SimpleExpr {
+    fn into(self) -> SimpleExpr<'a, DB> {
         if let Some(uopr) = self.uopr {
             SimpleExpr::Unary(uopr, Box::new(self.left.unwrap()))
         } else if let Some(bopr) = self.bopr {
@@ -1471,13 +1446,16 @@ impl Into<SimpleExpr> for Expr {
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<SelectExpr> for Expr {
-    fn into(self) -> SelectExpr {
+impl<'a, DB> Into<SelectExpr<'a, DB>> for Expr<'a, DB>
+where
+    DB: QueryBuilder<DB> + Default,
+{
+    fn into(self) -> SelectExpr<'a, DB> {
         self.into_simple_expr().into()
     }
 }
 
-impl SimpleExpr {
+impl<'a, DB> SimpleExpr<'a, DB> {
     /// Express a logical `AND` operation.
     ///
     /// # Examples
@@ -1488,8 +1466,8 @@ impl SimpleExpr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .or_where(Expr::col(Char::SizeW).eq(1).and(Expr::col(Char::SizeH).eq(2)))
-    ///     .or_where(Expr::col(Char::SizeW).eq(3).and(Expr::col(Char::SizeH).eq(4)))
+    ///     .or_where(Expr::col(Char::SizeW).eq(&1).and(Expr::col(Char::SizeH).eq(&2)))
+    ///     .or_where(Expr::col(Char::SizeW).eq(&3).and(Expr::col(Char::SizeH).eq(&4)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1497,7 +1475,7 @@ impl SimpleExpr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) AND (`size_h` = 2)) OR ((`size_w` = 3) AND (`size_h` = 4))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) AND ("size_h" = 2)) OR (("size_w" = 3) AND ("size_h" = 4))"#
     /// );
     /// assert_eq!(
@@ -1505,7 +1483,7 @@ impl SimpleExpr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) AND (`size_h` = 2)) OR ((`size_w` = 3) AND (`size_h` = 4))"#
     /// );
     /// ```
-    pub fn and(self, right: SimpleExpr) -> Self {
+    pub fn and(self, right: SimpleExpr<'a, DB>) -> Self {
         self.binary(BinOper::And, right)
     }
 
@@ -1519,8 +1497,8 @@ impl SimpleExpr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::SizeW).eq(1).or(Expr::col(Char::SizeH).eq(2)))
-    ///     .and_where(Expr::col(Char::SizeW).eq(3).or(Expr::col(Char::SizeH).eq(4)))
+    ///     .and_where(Expr::col(Char::SizeW).eq(&1).or(Expr::col(Char::SizeH).eq(&2)))
+    ///     .and_where(Expr::col(Char::SizeW).eq(&3).or(Expr::col(Char::SizeH).eq(&4)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1528,7 +1506,7 @@ impl SimpleExpr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) OR (`size_h` = 2)) AND ((`size_w` = 3) OR (`size_h` = 4))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) OR ("size_h" = 2)) AND (("size_w" = 3) OR ("size_h" = 4))"#
     /// );
     /// assert_eq!(
@@ -1536,7 +1514,7 @@ impl SimpleExpr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) OR (`size_h` = 2)) AND ((`size_w` = 3) OR (`size_h` = 4))"#
     /// );
     /// ```
-    pub fn or(self, right: SimpleExpr) -> Self {
+    pub fn or(self, right: SimpleExpr<'a, DB>) -> Self {
         self.binary(BinOper::Or, right)
     }
 
@@ -1552,8 +1530,8 @@ impl SimpleExpr {
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::col(Char::SizeW)
-    ///             .mul(2)
-    ///             .equals(Expr::col(Char::SizeH).mul(3)),
+    ///             .mul(&2)
+    ///             .equals(Expr::col(Char::SizeH).mul(&3)),
     ///     )
     ///     .to_owned();
     ///
@@ -1562,7 +1540,7 @@ impl SimpleExpr {
     ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` * 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" * 3"#
     /// );
     /// assert_eq!(
@@ -1572,7 +1550,7 @@ impl SimpleExpr {
     /// ```
     pub fn equals<T>(self, right: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.binary(BinOper::Equal, right.into())
     }
@@ -1589,7 +1567,7 @@ impl SimpleExpr {
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::col(Char::SizeW)
-    ///             .mul(2)
+    ///             .mul(&2)
     ///             .not_equals(Expr::col(Char::SizeH)),
     ///     )
     ///     .to_owned();
@@ -1599,7 +1577,7 @@ impl SimpleExpr {
     ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 <> `size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 <> "size_h""#
     /// );
     /// assert_eq!(
@@ -1609,7 +1587,7 @@ impl SimpleExpr {
     /// ```
     pub fn not_equals<T>(self, right: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.binary(BinOper::NotEqual, right.into())
     }
@@ -1635,7 +1613,7 @@ impl SimpleExpr {
     ///     r#"SELECT MAX(`size_w`) + MAX(`size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MAX("size_w") + MAX("size_h") FROM "character""#
     /// );
     /// assert_eq!(
@@ -1646,7 +1624,7 @@ impl SimpleExpr {
     #[allow(clippy::should_implement_trait)]
     pub fn add<T>(self, right: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.binary(BinOper::Add, right.into())
     }
@@ -1672,7 +1650,7 @@ impl SimpleExpr {
     ///     r#"SELECT MAX(`size_w`) - MIN(`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT MAX("size_w") - MIN("size_w") FROM "character""#
     /// );
     /// assert_eq!(
@@ -1683,12 +1661,12 @@ impl SimpleExpr {
     #[allow(clippy::should_implement_trait)]
     pub fn sub<T>(self, right: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.binary(BinOper::Sub, right.into())
     }
 
-    pub(crate) fn binary(self, op: BinOper, right: SimpleExpr) -> Self {
+    pub(crate) fn binary(self, op: BinOper, right: SimpleExpr<'a, DB>) -> Self {
         SimpleExpr::Binary(Box::new(self), op, Box::new(right))
     }
 
@@ -1740,7 +1718,7 @@ impl SimpleExpr {
         matches!(self, Self::Values(_))
     }
 
-    pub(crate) fn get_values(&self) -> &Vec<Value> {
+    pub(crate) fn get_values(&self) -> &Vec<&dyn QueryValue<DB>> {
         match self {
             Self::Values(vec) => vec,
             _ => panic!("not Values"),
@@ -1773,14 +1751,14 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]
     pub fn concatenate<T>(self, right: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.binary(BinOper::Concatenate, right.into())
     }
@@ -1789,7 +1767,7 @@ impl SimpleExpr {
     #[cfg(feature = "backend-postgres")]
     pub fn concat<T>(self, right: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<SimpleExpr<'a, DB>>,
     {
         self.concatenate(right)
     }
