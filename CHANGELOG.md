@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.16.4 - 2021-09-26
+
++ Fix table drop options for SQLite
++ Add `IndexCreateStatement::is_unique_key()`
+
 ## 0.16.3 - 2021-09-17
 
 + [[#131]] `CAST AS` expression
