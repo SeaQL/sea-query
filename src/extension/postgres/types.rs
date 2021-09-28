@@ -1,4 +1,4 @@
-use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
+use crate::{backend::QueryBuilder, prepare::*, types::*};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
@@ -58,7 +58,7 @@ pub trait TypeBuilder {
         &self,
         create: &TypeCreateStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     );
 
     /// Translate [`TypeDropStatement`] into database specific SQL statement.
@@ -66,7 +66,7 @@ pub trait TypeBuilder {
         &self,
         drop: &TypeDropStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     );
 
     /// Translate [`TypeAlterStatement`] into database specific SQL statement.
@@ -74,7 +74,7 @@ pub trait TypeBuilder {
         &self,
         alter: &TypeAlterStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     );
 }
 
@@ -162,11 +162,14 @@ impl TypeCreateStatement {
 
     // below are boiler plates
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
+    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Box<dyn QueryValue>>) {
         self.build_ref(&type_builder)
     }
 
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build_ref<T: TypeBuilder>(
+        &self,
+        type_builder: &T,
+    ) -> (String, Vec<Box<dyn QueryValue>>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
         let sql = self.build_collect_ref(type_builder, &mut collector);
@@ -176,7 +179,7 @@ impl TypeCreateStatement {
     pub fn build_collect<T: TypeBuilder>(
         &self,
         type_builder: T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         self.build_collect_ref(&type_builder, collector)
     }
@@ -184,7 +187,7 @@ impl TypeCreateStatement {
     pub fn build_collect_ref<T: TypeBuilder>(
         &self,
         type_builder: &T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         let mut sql = SqlWriter::new();
         type_builder.prepare_type_create_statement(self, &mut sql, collector);
@@ -197,7 +200,11 @@ impl TypeCreateStatement {
         T: TypeBuilder + QueryBuilder,
     {
         let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+        inject_parameters(
+            &sql,
+            &values.iter().map(Box::as_ref).collect::<Vec<_>>(),
+            &type_builder,
+        )
     }
 }
 
@@ -267,11 +274,14 @@ impl TypeDropStatement {
 
     // below are boiler plates
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
+    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Box<dyn QueryValue>>) {
         self.build_ref(&type_builder)
     }
 
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build_ref<T: TypeBuilder>(
+        &self,
+        type_builder: &T,
+    ) -> (String, Vec<Box<dyn QueryValue>>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
         let sql = self.build_collect_ref(type_builder, &mut collector);
@@ -281,7 +291,7 @@ impl TypeDropStatement {
     pub fn build_collect<T: TypeBuilder>(
         &self,
         type_builder: T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         self.build_collect_ref(&type_builder, collector)
     }
@@ -289,7 +299,7 @@ impl TypeDropStatement {
     pub fn build_collect_ref<T: TypeBuilder>(
         &self,
         type_builder: &T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         let mut sql = SqlWriter::new();
         type_builder.prepare_type_drop_statement(self, &mut sql, collector);
@@ -302,7 +312,11 @@ impl TypeDropStatement {
         T: TypeBuilder + QueryBuilder,
     {
         let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+        inject_parameters(
+            &sql,
+            &values.iter().map(Box::as_ref).collect::<Vec<_>>(),
+            &type_builder,
+        )
     }
 }
 
@@ -434,11 +448,14 @@ impl TypeAlterStatement {
 
     // below are boilerplate
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
+    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Box<dyn QueryValue>>) {
         self.build_ref(&type_builder)
     }
 
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build_ref<T: TypeBuilder>(
+        &self,
+        type_builder: &T,
+    ) -> (String, Vec<Box<dyn QueryValue>>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
         let sql = self.build_collect_ref(type_builder, &mut collector);
@@ -448,7 +465,7 @@ impl TypeAlterStatement {
     pub fn build_collect<T: TypeBuilder>(
         &self,
         type_builder: T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         self.build_collect_ref(&type_builder, collector)
     }
@@ -456,7 +473,7 @@ impl TypeAlterStatement {
     pub fn build_collect_ref<T: TypeBuilder>(
         &self,
         type_builder: &T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         let mut sql = SqlWriter::new();
         type_builder.prepare_type_alter_statement(self, &mut sql, collector);
@@ -469,7 +486,11 @@ impl TypeAlterStatement {
         T: TypeBuilder + QueryBuilder,
     {
         let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+        inject_parameters(
+            &sql,
+            &values.iter().map(Box::as_ref).collect::<Vec<_>>(),
+            &type_builder,
+        )
     }
 }
 

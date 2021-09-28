@@ -1,6 +1,6 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
-    QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
+    backend::QueryBuilder, error::*, prepare::*, types::*, Expr, Query, QueryStatementBuilder,
+    SelectExpr, SelectStatement, SimpleExpr,
 };
 
 /// Insert any new rows into an existing table
@@ -100,9 +100,10 @@ impl InsertStatement {
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// ```
-    pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
+    pub fn values<V, I>(&mut self, values: I) -> Result<&mut Self>
     where
-        I: IntoIterator<Item = Value>,
+        V: Into<Box<dyn QueryValue>>,
+        I: IntoIterator<Item = V>,
     {
         let values = values
             .into_iter()
@@ -166,7 +167,7 @@ impl InsertStatement {
     /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
-        I: IntoIterator<Item = Value>,
+        I: IntoIterator<Item = Box<dyn QueryValue>>,
     {
         self.values(values).unwrap()
     }
@@ -280,7 +281,7 @@ impl QueryStatementBuilder for InsertStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
@@ -290,7 +291,7 @@ impl QueryStatementBuilder for InsertStatement {
     fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);

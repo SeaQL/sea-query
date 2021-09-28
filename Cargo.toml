@@ -40,6 +40,7 @@ sea-query-derive = { version = "0.2.0", path = "sea-query-derive", optional = tr
 serde_json = { version = "^1", optional = true }
 bytes = { version = "^1", optional = true }
 chrono = { version = "^0", optional = true }
+dyn-clonable = "0.9"
 postgres-types = { version = "^0", optional = true }
 rust_decimal = { version = "^1", optional = true }
 bigdecimal = { version = "^0.2", optional = true }

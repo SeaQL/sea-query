@@ -1,6 +1,6 @@
 //! For calling built-in SQL functions.
 
-use crate::{expr::*, types::*, Value};
+use crate::{expr::*, types::*};
 
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::{PgFunc, PgFunction};
@@ -319,7 +319,7 @@ impl Func {
     /// ```
     pub fn cast_as<V, I>(value: V, iden: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
         I: IntoIden,
     {
         Expr::func(Function::Cast).arg(Expr::val(value.into()).bin_oper(

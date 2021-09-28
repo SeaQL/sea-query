@@ -11,7 +11,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         insert: &InsertStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(sql, "INSERT").unwrap();
 
@@ -56,7 +56,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select: &SelectStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(sql, "SELECT ").unwrap();
 
@@ -124,12 +124,12 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if let Some(limit) = &select.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql, collector);
+            self.prepare_value(Box::new(*limit), sql, collector);
         }
 
         if let Some(offset) = &select.offset {
             write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(offset, sql, collector);
+            self.prepare_value(Box::new(*offset), sql, collector);
         }
 
         if let Some(lock) = &select.lock {
@@ -143,7 +143,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         update: &UpdateStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(sql, "UPDATE ").unwrap();
 
@@ -178,7 +178,7 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if let Some(limit) = &update.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql, collector);
+            self.prepare_value(Box::new(*limit), sql, collector);
         }
 
         self.prepare_returning(&update.returning, sql, collector);
@@ -189,7 +189,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         delete: &DeleteStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(sql, "DELETE ").unwrap();
 
@@ -213,7 +213,7 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if let Some(limit) = &delete.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql, collector);
+            self.prepare_value(Box::new(*limit), sql, collector);
         }
 
         self.prepare_returning(&delete.returning, sql, collector);
@@ -224,7 +224,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         simple_expr: &SimpleExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
@@ -284,7 +284,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, ")").unwrap();
             }
             SimpleExpr::Value(val) => {
-                self.prepare_value(val, sql, collector);
+                self.prepare_value(val.clone(), sql, collector);
             }
             SimpleExpr::Values(list) => {
                 write!(sql, "(").unwrap();
@@ -292,7 +292,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     if !first {
                         write!(sql, ", ").unwrap();
                     }
-                    self.prepare_value(val, sql, collector);
+                    self.prepare_value(val.clone(), sql, collector);
                     false
                 });
                 write!(sql, ")").unwrap();
@@ -315,7 +315,7 @@ pub trait QueryBuilder: QuotedBuilder {
                                         continue;
                                     }
                                 }
-                                self.prepare_value(&values[count], sql, collector);
+                                self.prepare_value(values[count].clone(), sql, collector);
                                 count += 1;
                             } else {
                                 write!(sql, "{}", mark).unwrap();
@@ -336,7 +336,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select_distinct: &SelectDistinct,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(
             sql,
@@ -355,7 +355,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select_lock: &LockType,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(
             sql,
@@ -373,7 +373,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select_expr: &SelectExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         self.prepare_simple_expr(&select_expr.expr, sql, collector);
         match &select_expr.alias {
@@ -390,7 +390,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         join_expr: &JoinExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         self.prepare_join_type(&join_expr.join, sql, collector);
         write!(sql, " ").unwrap();
@@ -406,7 +406,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         table_ref: &TableRef,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         match table_ref {
             TableRef::Table(iden) => {
@@ -444,7 +444,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         un_oper: &UnOper,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(
             sql,
@@ -460,7 +460,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(
             sql,
@@ -498,7 +498,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         self.prepare_bin_oper_common(bin_oper, sql, collector);
     }
@@ -510,7 +510,7 @@ pub trait QueryBuilder: QuotedBuilder {
         i: usize,
         length: usize,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         let (simple_expr, oper) = match log_chain_oper {
             LogicalChainOper::And(simple_expr) => (simple_expr, "AND"),
@@ -540,7 +540,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         if let Function::Custom(iden) = function {
             iden.unquoted(sql);
@@ -570,7 +570,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         self.prepare_function_common(function, sql, collector)
     }
@@ -580,7 +580,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         join_type: &JoinType,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(
             sql,
@@ -600,7 +600,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         order_expr: &OrderExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
         write!(sql, " ").unwrap();
@@ -612,7 +612,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         join_on: &JoinOn,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         match join_on {
             JoinOn::Condition(c) => self.prepare_condition(c, "ON", sql, collector),
@@ -621,7 +621,12 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Order`] into SQL statement.
-    fn prepare_order(&self, order: &Order, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
+    fn prepare_order(
+        &self,
+        order: &Order,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+    ) {
         match order {
             Order::Asc => write!(sql, "ASC").unwrap(),
             Order::Desc => write!(sql, "DESC").unwrap(),
@@ -629,10 +634,15 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Value`] into SQL statement.
-    fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn prepare_value(
+        &self,
+        value: Box<dyn QueryValue>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+    ) {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
-        collector(value.clone());
+        collector(value.into());
     }
 
     /// Translate [`Keyword`] into SQL statement.
@@ -640,7 +650,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         keyword: &Keyword,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         if let Keyword::Custom(iden) = keyword {
             iden.unquoted(sql);
@@ -738,7 +748,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         _returning: &[SelectExpr],
         _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
     }
 
@@ -749,7 +759,7 @@ pub trait QueryBuilder: QuotedBuilder {
         condition: &ConditionHolder,
         keyword: &str,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         if !condition.is_empty() {
             write!(sql, " {} ", keyword).unwrap();
@@ -779,7 +789,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         condition: &Condition,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         let mut is_first = true;
         for cond in &condition.conditions {
@@ -822,7 +832,7 @@ pub trait QueryBuilder: QuotedBuilder {
         op: &BinOper,
         right: &SimpleExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
         let left_paren = left.need_parentheses()

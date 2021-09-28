@@ -6,7 +6,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         &self,
         create: &TypeCreateStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(sql, "CREATE TYPE ").unwrap();
 
@@ -26,7 +26,7 @@ impl TypeBuilder for PostgresQueryBuilder {
                 if count > 0 {
                     write!(sql, ", ").unwrap();
                 }
-                self.prepare_value(&val.to_string().into(), sql, collector);
+                self.prepare_value(val.to_string().into(), sql, collector);
             }
 
             write!(sql, ")").unwrap();
@@ -37,7 +37,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         &self,
         drop: &TypeDropStatement,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(sql, "DROP TYPE ").unwrap();
 
@@ -59,7 +59,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         &self,
         alter: &TypeAlterStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         write!(sql, "ALTER TYPE ").unwrap();
 
@@ -101,7 +101,7 @@ impl PostgresQueryBuilder {
         &self,
         opt: &TypeAlterOpt,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) {
         match opt {
             TypeAlterOpt::Add(value, placement) => {
@@ -109,28 +109,28 @@ impl PostgresQueryBuilder {
                 match placement {
                     Some(add_option) => match add_option {
                         TypeAlterAddOpt::Before(before_value) => {
-                            self.prepare_value(&value.to_string().into(), sql, collector);
+                            self.prepare_value(value.to_string().into(), sql, collector);
                             write!(sql, " BEFORE ").unwrap();
-                            self.prepare_value(&before_value.to_string().into(), sql, collector);
+                            self.prepare_value(before_value.to_string().into(), sql, collector);
                         }
                         TypeAlterAddOpt::After(after_value) => {
-                            self.prepare_value(&value.to_string().into(), sql, collector);
+                            self.prepare_value(value.to_string().into(), sql, collector);
                             write!(sql, " AFTER ").unwrap();
-                            self.prepare_value(&after_value.to_string().into(), sql, collector);
+                            self.prepare_value(after_value.to_string().into(), sql, collector);
                         }
                     },
-                    None => self.prepare_value(&value.to_string().into(), sql, collector),
+                    None => self.prepare_value(value.to_string().into(), sql, collector),
                 }
             }
             TypeAlterOpt::Rename(new_name) => {
                 write!(sql, " RENAME TO ").unwrap();
-                self.prepare_value(&new_name.to_string().into(), sql, collector);
+                self.prepare_value(new_name.to_string().into(), sql, collector);
             }
             TypeAlterOpt::RenameValue(existing, new_name) => {
                 write!(sql, " RENAME VALUE ").unwrap();
-                self.prepare_value(&existing.to_string().into(), sql, collector);
+                self.prepare_value(existing.to_string().into(), sql, collector);
                 write!(sql, " TO ").unwrap();
-                self.prepare_value(&new_name.to_string().into(), sql, collector);
+                self.prepare_value(new_name.to_string().into(), sql, collector);
             }
         }
     }

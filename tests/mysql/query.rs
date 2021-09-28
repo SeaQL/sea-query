@@ -563,7 +563,7 @@ fn select_35() {
         statement,
         r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"#
     );
-    assert_eq!(values.0, vec![]);
+    assert!(values.is_empty());
 }
 
 #[test]
@@ -578,7 +578,7 @@ fn select_36() {
         statement,
         r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"#
     );
-    assert_eq!(values.0, vec![]);
+    assert!(values.is_empty());
 }
 
 #[test]
@@ -590,7 +590,7 @@ fn select_37() {
         .build(sea_query::MysqlQueryBuilder);
 
     assert_eq!(statement, r#"SELECT `id` FROM `glyph`"#);
-    assert_eq!(values.0, vec![]);
+    assert!(values.is_empty());
 }
 
 #[test]
@@ -609,7 +609,7 @@ fn select_38() {
         statement,
         r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR `aspect` IS NOT NULL"#
     );
-    assert_eq!(values.0, vec![]);
+    assert!(values.is_empty());
 }
 
 #[test]
@@ -628,7 +628,7 @@ fn select_39() {
         statement,
         r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL AND `aspect` IS NOT NULL"#
     );
-    assert_eq!(values.0, vec![]);
+    assert!(values.is_empty());
 }
 
 #[test]
@@ -728,7 +728,7 @@ fn insert_3() {
                 3.1415.into(),
             ])
             .values_panic(vec![
-                Value::String(None),
+                ().into(),
                 2.1345.into(),
             ])
             .to_string(MysqlQueryBuilder),

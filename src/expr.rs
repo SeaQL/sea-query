@@ -4,7 +4,7 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
-use crate::{func::*, query::*, types::*, value::*};
+use crate::{func::*, query::*, types::*};
 
 /// Helper to build a [`SimpleExpr`].
 #[derive(Debug, Clone, Default)]
@@ -28,10 +28,10 @@ pub enum SimpleExpr {
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
     SubQuery(Box<SelectStatement>),
-    Value(Value),
-    Values(Vec<Value>),
+    Value(Box<dyn QueryValue>),
+    Values(Vec<Box<dyn QueryValue>>),
     Custom(String),
-    CustomWithValues(String, Vec<Value>),
+    CustomWithValues(String, Vec<Box<dyn QueryValue>>),
     Keyword(Keyword),
 }
 
@@ -171,7 +171,7 @@ impl Expr {
     /// ```
     pub fn val<V>(v: V) -> Self
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         Self::new_with_left(SimpleExpr::Value(v.into()))
     }
@@ -237,7 +237,7 @@ impl Expr {
     /// ```
     pub fn value<V>(v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         SimpleExpr::Value(v.into())
     }
@@ -337,7 +337,7 @@ impl Expr {
     /// ```
     pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
         I: IntoIterator<Item = V>,
     {
         SimpleExpr::CustomWithValues(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
@@ -372,7 +372,7 @@ impl Expr {
     /// ```
     pub fn eq<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::Equal, SimpleExpr::Value(v.into()))
     }
@@ -406,7 +406,7 @@ impl Expr {
     /// ```
     pub fn ne<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::NotEqual, SimpleExpr::Value(v.into()))
     }
@@ -477,7 +477,7 @@ impl Expr {
     /// ```
     pub fn gt<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::GreaterThan, SimpleExpr::Value(v.into()))
     }
@@ -510,7 +510,7 @@ impl Expr {
     /// ```
     pub fn gte<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::GreaterThanOrEqual, SimpleExpr::Value(v.into()))
     }
@@ -543,7 +543,7 @@ impl Expr {
     /// ```
     pub fn lt<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::SmallerThan, SimpleExpr::Value(v.into()))
     }
@@ -576,7 +576,7 @@ impl Expr {
     /// ```
     pub fn lte<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::SmallerThanOrEqual, SimpleExpr::Value(v.into()))
     }
@@ -610,7 +610,7 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn add<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::Add, SimpleExpr::Value(v.into()))
     }
@@ -644,7 +644,7 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn sub<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::Sub, SimpleExpr::Value(v.into()))
     }
@@ -678,7 +678,7 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn mul<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::Mul, SimpleExpr::Value(v.into()))
     }
@@ -712,7 +712,7 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn div<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(BinOper::Div, SimpleExpr::Value(v.into()))
     }
@@ -745,7 +745,7 @@ impl Expr {
     /// ```
     pub fn between<V>(self, a: V, b: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.between_or_not_between(BinOper::Between, a, b)
     }
@@ -778,14 +778,14 @@ impl Expr {
     /// ```
     pub fn not_between<V>(self, a: V, b: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.between_or_not_between(BinOper::NotBetween, a, b)
     }
 
     fn between_or_not_between<V>(self, op: BinOper, a: V, b: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         self.bin_oper(
             op,
@@ -824,17 +824,11 @@ impl Expr {
     /// );
     /// ```
     pub fn like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::Like,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+        self.bin_oper(BinOper::Like, SimpleExpr::Value(Box::new(v.to_owned())))
     }
 
     pub fn not_like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::NotLike,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+        self.bin_oper(BinOper::NotLike, SimpleExpr::Value(Box::new(v.to_owned())))
     }
 
     /// Express a `IS NULL` expression.
@@ -1077,7 +1071,7 @@ impl Expr {
     /// ```
     pub fn if_null<V>(mut self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
     {
         let left = self.left.take();
         Self::func_with_args(
@@ -1138,7 +1132,7 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_in<V, I>(mut self, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::In);
@@ -1200,7 +1194,7 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_in<V, I>(mut self, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<Box<dyn QueryValue>>,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::NotIn);
@@ -1740,7 +1734,7 @@ impl SimpleExpr {
         matches!(self, Self::Values(_))
     }
 
-    pub(crate) fn get_values(&self) -> &Vec<Value> {
+    pub(crate) fn get_values(&self) -> &Vec<Box<dyn QueryValue>> {
         match self {
             Self::Values(vec) => vec,
             _ => panic!("not Values"),

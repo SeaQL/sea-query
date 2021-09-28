@@ -4,7 +4,6 @@ use crate::{
     prepare::*,
     query::{condition::*, OrderedStatement},
     types::*,
-    value::*,
     QueryStatementBuilder,
 };
 
@@ -48,8 +47,8 @@ pub struct SelectStatement {
     pub(crate) having: ConditionHolder,
     pub(crate) unions: Vec<(UnionType, SelectStatement)>,
     pub(crate) orders: Vec<OrderExpr>,
-    pub(crate) limit: Option<Value>,
-    pub(crate) offset: Option<Value>,
+    pub(crate) limit: Option<u64>,
+    pub(crate) offset: Option<u64>,
     pub(crate) lock: Option<LockType>,
 }
 
@@ -1325,7 +1324,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::BigUnsigned(Some(limit)));
+        self.limit = Some(limit);
         self
     }
 
@@ -1363,7 +1362,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn offset(&mut self, offset: u64) -> &mut Self {
-        self.offset = Some(Value::BigUnsigned(Some(offset)));
+        self.offset = Some(offset);
         self
     }
 
@@ -1589,7 +1588,7 @@ impl QueryStatementBuilder for SelectStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
@@ -1599,7 +1598,7 @@ impl QueryStatementBuilder for SelectStatement {
     fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Box<dyn QueryValue>),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
