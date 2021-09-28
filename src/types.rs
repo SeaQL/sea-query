@@ -86,12 +86,12 @@ macro_rules! query_value_all {
     ( $ty: ty, |$self: ident| $query_value: block, quoted ) => {
         impl<DB> QueryValue<DB> for $ty
         where
-            DB: QueryBuilder<DB>,
+            DB: QueryBuilder<DB> + Default,
         {
             fn query_value(& $self) -> String {
                 let mut buf = String::new();
                 let string = { $query_value };
-                DB::write_string_quoted(string, &mut buf);
+                DB::default().write_string_quoted(string, &mut buf);
                 buf
             }
         }
@@ -100,7 +100,7 @@ macro_rules! query_value_all {
     ( $ty: ty, |$self: ident| $query_value: block, wrapped ) => {
         impl<DB> QueryValue<DB> for $ty
         where
-            DB: QueryBuilder<DB>,
+            DB: QueryBuilder<DB> + Default,
         {
             fn query_value(& $self) -> String {
                 QueryValue::<DB>::query_value({ $query_value })

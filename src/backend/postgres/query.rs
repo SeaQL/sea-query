@@ -24,11 +24,11 @@ impl QueryBuilder<PostgresQueryBuilder> for PostgresQueryBuilder {
         }
     }
 
-    fn if_null_function() -> &'static str {
+    fn if_null_function(&self) -> &'static str {
         "COALESCE"
     }
 
-    fn write_string_quoted(string: &str, buffer: &mut String) {
+    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
         let escaped = escape_string(string);
         let string = if escaped.find('\\').is_some() {
             "E'".to_owned() + &escaped + "'"

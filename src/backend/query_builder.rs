@@ -554,8 +554,8 @@ pub trait QueryBuilder<DB: QueryBuilder<DB>>: QuotedBuilder {
                     Function::Sum => "SUM",
                     Function::Avg => "AVG",
                     Function::Count => "COUNT",
-                    Function::IfNull => Self::if_null_function(),
-                    Function::CharLength => Self::char_length_function(),
+                    Function::IfNull => self.if_null_function(),
+                    Function::CharLength => self.char_length_function(),
                     Function::Cast => "CAST",
                     Function::Custom(_) => "",
                     #[cfg(feature = "backend-postgres")]
@@ -790,23 +790,24 @@ pub trait QueryBuilder<DB: QueryBuilder<DB>>: QuotedBuilder {
 
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
-    fn write_string_quoted(string: &str, buffer: &mut String) {
+    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
         write!(buffer, "\'{}\'", escape_string(string)).unwrap()
     }
 
     #[doc(hidden)]
     /// The name of the function that represents the "if null" condition.
-    fn if_null_function() -> &'static str {
+    fn if_null_function(&self) -> &'static str {
         "IFNULL"
     }
 
     #[doc(hidden)]
     /// The name of the function that returns the char length.
-    fn char_length_function() -> &'static str {
+    fn char_length_function(&self) -> &'static str {
         "CHAR_LENGTH"
     }
 }
 
+#[derive(Default)]
 pub(crate) struct CommonSqlQueryBuilder;
 
 impl QueryBuilder<CommonSqlQueryBuilder> for CommonSqlQueryBuilder {}

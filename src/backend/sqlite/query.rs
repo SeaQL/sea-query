@@ -1,7 +1,7 @@
 use super::*;
 
 impl QueryBuilder<SqliteQueryBuilder> for SqliteQueryBuilder {
-    fn char_length_function() -> &'static str {
+    fn char_length_function(&self) -> &'static str {
         "LENGTH"
     }
 

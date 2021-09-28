@@ -76,7 +76,7 @@ pub enum Value {
 
 impl<DB> QueryValue<DB> for Value
 where
-    DB: QueryBuilder<DB>,
+    DB: QueryBuilder<DB> + Default,
 {
     fn query_value(&self) -> String {
         let mut s = String::new();
@@ -121,7 +121,7 @@ where
             Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::String(Some(v)) => DB::write_string_quoted(v, &mut s),
+            Value::String(Some(v)) => DB::default().write_string_quoted(v, &mut s),
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x\'{}\'",
@@ -129,7 +129,7 @@ where
             )
             .unwrap(),
             #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => DB::write_string_quoted(&v.to_string(), &mut s),
+            Value::Json(Some(v)) => DB::default().write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
             Value::Date(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
             #[cfg(feature = "with-chrono")]
