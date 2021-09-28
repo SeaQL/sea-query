@@ -9,6 +9,7 @@ pub enum ConditionType {
 /// Represents the value of an [`Condition::any`] or [`Condition::all`]: a set of disjunctive or conjunctive conditions.
 #[derive(Debug, Clone)]
 pub struct Condition {
+    pub(crate) negate: bool,
     pub(crate) condition_type: ConditionType,
     pub(crate) conditions: Vec<ConditionExpression>,
 }
@@ -104,6 +105,7 @@ impl Condition {
     /// ```
     pub fn any() -> Condition {
         Condition {
+            negate: false,
             condition_type: ConditionType::Any,
             conditions: Vec::new(),
         }
@@ -133,9 +135,38 @@ impl Condition {
     /// ```
     pub fn all() -> Condition {
         Condition {
+            negate: false,
             condition_type: ConditionType::All,
             conditions: Vec::new(),
         }
+    }
+
+    /// Negates a condition.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Image)
+    ///     .from(Glyph::Table)
+    ///     .cond_where(
+    ///         Cond::all()
+    ///             .not()
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `image` FROM `glyph` WHERE NOT ( `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%' )"#
+    /// );
+    /// ```
+    pub fn not(mut self) -> Self {
+        self.negate = !self.negate;
+        self
     }
 }
 
