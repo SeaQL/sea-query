@@ -781,6 +781,9 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        if condition.negate {
+            write!(sql, " NOT ( ").unwrap();
+        }
         let mut is_first = true;
         for cond in &condition.conditions {
             if is_first {
@@ -811,6 +814,9 @@ pub trait QueryBuilder: QuotedBuilder {
                     }
                 }
             }
+        }
+        if condition.negate {
+            write!(sql, " )").unwrap();
         }
     }
 

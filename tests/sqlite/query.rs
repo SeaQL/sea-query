@@ -695,6 +695,80 @@ fn select_43() {
 }
 
 #[test]
+fn select_44() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::any()
+                .not()
+                .add_option(Some(Expr::col(Glyph::Aspect).lt(8))),
+        )
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE NOT ( `aspect` < 8 )"#
+    );
+}
+
+#[test]
+fn select_45() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::any()
+                .not()
+                .add_option(Some(Expr::col(Glyph::Aspect).lt(8)))
+                .add(Expr::col(Glyph::Aspect).is_not_null()),
+        )
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE NOT ( `aspect` < 8 OR `aspect` IS NOT NULL )"#
+    );
+}
+
+#[test]
+fn select_46() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .not()
+                .add_option(Some(Expr::col(Glyph::Aspect).lt(8))),
+        )
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE NOT ( `aspect` < 8 )"#
+    );
+}
+
+#[test]
+fn select_47() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .not()
+                .add_option(Some(Expr::col(Glyph::Aspect).lt(8)))
+                .add(Expr::col(Glyph::Aspect).is_not_null()),
+        )
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE NOT ( `aspect` < 8 AND `aspect` IS NOT NULL )"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
