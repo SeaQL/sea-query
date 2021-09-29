@@ -182,9 +182,39 @@ impl Condition {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `image` FROM `glyph` WHERE NOT ( `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%' )"#
+    ///     r#"SELECT `image` FROM `glyph` WHERE NOT (`glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%')"#
     /// );
     /// ```
+    ///
+    /// # More Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Id)
+    ///     .cond_where(
+    ///         Cond::all()
+    ///             .add(
+    ///                 Cond::all()
+    ///                     .not()
+    ///                     .add(Expr::val(1).eq(1))
+    ///                     .add(Expr::val(2).eq(2))
+    ///             )
+    ///             .add(
+    ///                 Cond::all()
+    ///                     .add(Expr::val(3).eq(3))
+    ///                     .add(Expr::val(4).eq(4))
+    ///             )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` WHERE (NOT (1 = 1 AND 2 = 2)) AND (3 = 3 AND 4 = 4)"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
     pub fn not(mut self) -> Self {
         self.negate = !self.negate;
         self

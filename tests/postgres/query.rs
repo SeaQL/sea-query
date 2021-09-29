@@ -692,7 +692,7 @@ fn select_44() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ( "aspect" < 8 )"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
     );
 }
 
@@ -711,7 +711,7 @@ fn select_45() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ( "aspect" < 8 OR "aspect" IS NOT NULL )"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8 OR "aspect" IS NOT NULL)"#
     );
 }
 
@@ -729,7 +729,7 @@ fn select_46() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ( "aspect" < 8 )"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
     );
 }
 
@@ -748,7 +748,7 @@ fn select_47() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ( "aspect" < 8 AND "aspect" IS NOT NULL )"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8 AND "aspect" IS NOT NULL)"#
     );
 }
 
