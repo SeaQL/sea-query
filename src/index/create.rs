@@ -185,6 +185,10 @@ impl IndexCreateStatement {
         self.primary
     }
 
+    pub fn is_unique_key(&self) -> bool {
+        self.unique
+    }
+
     pub fn get_index_spec(&self) -> &TableIndex {
         &self.index
     }
