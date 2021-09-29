@@ -202,7 +202,7 @@ impl Condition {
     ///                     .add(Expr::val(2).eq(2))
     ///             )
     ///             .add(
-    ///                 Cond::all()
+    ///                 Cond::any()
     ///                     .add(Expr::val(3).eq(3))
     ///                     .add(Expr::val(4).eq(4))
     ///             )
@@ -211,7 +211,7 @@ impl Condition {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `id` WHERE (NOT (1 = 1 AND 2 = 2)) AND (3 = 3 AND 4 = 4)"#
+    ///     r#"SELECT `id` WHERE (NOT (1 = 1 AND 2 = 2)) AND (3 = 3 OR 4 = 4)"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
