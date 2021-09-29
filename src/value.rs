@@ -1,6 +1,6 @@
 use crate::*;
 use dyn_clonable::*;
-use std::{any, fmt, ops};
+use std::{any, borrow, fmt, ops};
 
 /// A value which is safe for use in queries.
 #[derive(Clone, Debug)]
@@ -14,10 +14,11 @@ impl Value {
 
 impl<T> From<T> for Value
 where
-    T: 'static + QueryValue,
+    T: QueryValue + borrow::ToOwned,
+    <T as std::borrow::ToOwned>::Owned: 'static + QueryValue,
 {
     fn from(value: T) -> Self {
-        Value(Box::new(value))
+        Value(Box::new(value.to_owned()))
     }
 }
 
@@ -41,11 +42,10 @@ impl PartialEq for Value {
     }
 }
 
-/// Indicates that a SQL type is supported for use in queries.
-/// Convert a value to a String for use in queries.
+/// Indicates that a type is supported for use in SQL queries.
 #[clonable]
 pub trait QueryValue: QueryValuePartialEq + Clone {
-    /// Returns the value as an escaped string safe for use in queries.
+    /// Returns the value as an escaped string safe for use in SQL queries.
     fn query_value(&self, query_builder: &dyn QueryBuilder) -> String;
 }
 
@@ -97,38 +97,6 @@ where
     }
 }
 
-macro_rules! into_box_query_value {
-    ($ty: ty) => {
-        impl From<$ty> for Box<dyn QueryValue> {
-            fn from(value: $ty) -> Self {
-                Box::new(value)
-            }
-        }
-
-        impl From<Option<$ty>> for Box<dyn QueryValue> {
-            fn from(value: Option<$ty>) -> Self {
-                Box::new(value)
-            }
-        }
-    };
-}
-
-macro_rules! into_box_query_value_owned {
-    ($ty: ty) => {
-        impl From<$ty> for Box<dyn QueryValue> {
-            fn from(value: $ty) -> Self {
-                Box::new(value.to_owned())
-            }
-        }
-
-        impl From<Option<$ty>> for Box<dyn QueryValue> {
-            fn from(value: Option<$ty>) -> Self {
-                Box::new(value.map(ToOwned::to_owned))
-            }
-        }
-    };
-}
-
 macro_rules! impl_query_value {
     ($ty: ty) => {
         impl QueryValue for $ty {
@@ -144,38 +112,35 @@ macro_rules! impl_query_value_quoted {
         impl QueryValue for $ty {
             fn query_value(&self, query_builder: &dyn QueryBuilder) -> String {
                 let mut buf = String::new();
-                query_builder.write_string_quoted(self.as_ref(), &mut buf);
+                query_builder.write_string_quoted(self.to_string().as_ref(), &mut buf);
                 buf
             }
         }
     };
 }
 
-into_box_query_value!(());
-into_box_query_value_owned!(&str);
-into_box_query_value!(String);
-into_box_query_value!(i32);
-into_box_query_value!(i64);
-into_box_query_value!(u32);
-into_box_query_value!(u64);
-into_box_query_value!(f32);
-into_box_query_value!(f64);
-into_box_query_value!(u8);
-into_box_query_value!(Vec<u8>);
-#[cfg(feature = "with-chrono")]
-into_box_query_value!(chrono::DateTime<chrono::FixedOffset>);
-#[cfg(feature = "with-chrono")]
-into_box_query_value!(chrono::NaiveDateTime);
-
 impl_query_value_quoted!(&'static str);
 impl_query_value_quoted!(String);
+impl_query_value!(i8);
+impl_query_value!(i16);
 impl_query_value!(i32);
 impl_query_value!(i64);
+impl_query_value!(u8);
+impl_query_value!(u16);
 impl_query_value!(u32);
 impl_query_value!(u64);
 impl_query_value!(f32);
 impl_query_value!(f64);
-impl_query_value!(u8);
+
+impl QueryValue for bool {
+    fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
+        if *self {
+            "TRUE".to_string()
+        } else {
+            "FALSE".to_string()
+        }
+    }
+}
 
 impl QueryValue for () {
     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
@@ -194,19 +159,53 @@ impl QueryValue for Vec<u8> {
     }
 }
 
+#[cfg(feature = "with-json")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+impl_query_value_quoted!(serde_json::Value);
+
 #[cfg(feature = "with-chrono")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+impl QueryValue for chrono::NaiveDate {
+    fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
+        format!("\'{}\'", self.format("%Y-%m-%d").to_string())
+    }
+}
+
+#[cfg(feature = "with-chrono")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+impl QueryValue for chrono::NaiveTime {
+    fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
+        format!("\'{}\'", self.format("%H:%M:%S").to_string())
+    }
+}
+
+#[cfg(feature = "with-chrono")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+impl QueryValue for chrono::NaiveDateTime {
+    fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
+        format!("\'{}\'", self.format("%Y-%m-%d %H:%M:%S").to_string())
+    }
+}
+
+#[cfg(feature = "with-chrono")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 impl QueryValue for chrono::DateTime<chrono::FixedOffset> {
     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
         format!("\'{}\'", self.format("%Y-%m-%d %H:%M:%S %:z").to_string())
     }
 }
 
-#[cfg(feature = "with-chrono")]
-impl QueryValue for chrono::NaiveDateTime {
-    fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
-        format!("\'{}\'", self.format("%Y-%m-%d %H:%M:%S").to_string())
-    }
-}
+#[cfg(feature = "with-uuid")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+impl_query_value_quoted!(uuid::Uuid);
+
+#[cfg(feature = "with-rust_decimal")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+impl_query_value!(rust_decimal::Decimal);
+
+#[cfg(feature = "with-bigdecimal")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+impl_query_value!(bigdecimal::BigDecimal);
 
 /// Escape a SQL string literal
 pub fn escape_string(string: &str) -> String {
