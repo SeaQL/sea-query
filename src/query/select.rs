@@ -4,6 +4,7 @@ use crate::{
     prepare::*,
     query::{condition::*, OrderedStatement},
     types::*,
+    value::*,
     QueryStatementBuilder,
 };
 
@@ -1582,13 +1583,13 @@ impl QueryStatementBuilder for SelectStatement {
     /// );
     /// assert_eq!(
     ///     params,
-    ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
+    ///     vec![0.into(), 2.into()]
     /// );
     /// ```
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);
@@ -1598,7 +1599,7 @@ impl QueryStatementBuilder for SelectStatement {
     fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_select_statement(self, &mut sql, collector);

@@ -27,24 +27,18 @@ macro_rules! impl_query_statement_builder {
     ( $mod_name: ident, $struct_name: ident ) => {
         mod $mod_name {
 
-            use crate::{$struct_name, QueryBuilder, QueryStatementBuilder, QueryValue};
+            use crate::{$struct_name, QueryBuilder, QueryStatementBuilder, Value};
 
             impl $struct_name {
                 pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
                     <Self as QueryStatementBuilder>::to_string(self, query_builder)
                 }
 
-                pub fn build<T: QueryBuilder>(
-                    &self,
-                    query_builder: T,
-                ) -> (String, Vec<Box<dyn QueryValue>>) {
+                pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Vec<Value>) {
                     <Self as QueryStatementBuilder>::build(self, query_builder)
                 }
 
-                pub fn build_any(
-                    &self,
-                    query_builder: &dyn QueryBuilder,
-                ) -> (String, Vec<Box<dyn QueryValue>>) {
+                pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Vec<Value>) {
                     <Self as QueryStatementBuilder>::build_any(self, query_builder)
                 }
             }

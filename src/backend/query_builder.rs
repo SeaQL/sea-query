@@ -1,3 +1,5 @@
+#[allow(deprecated)]
+use crate::primitive_value::PrimitiveValue;
 use crate::*;
 
 pub trait QueryBuilder: QuotedBuilder {
@@ -11,7 +13,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         insert: &InsertStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "INSERT").unwrap();
 
@@ -56,7 +58,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select: &SelectStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "SELECT ").unwrap();
 
@@ -124,12 +126,12 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if let Some(limit) = &select.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(Box::new(*limit), sql, collector);
+            self.prepare_value((*limit).into(), sql, collector);
         }
 
         if let Some(offset) = &select.offset {
             write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(Box::new(*offset), sql, collector);
+            self.prepare_value((*offset).into(), sql, collector);
         }
 
         if let Some(lock) = &select.lock {
@@ -143,7 +145,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         update: &UpdateStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "UPDATE ").unwrap();
 
@@ -178,7 +180,7 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if let Some(limit) = &update.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(Box::new(*limit), sql, collector);
+            self.prepare_value((*limit).into(), sql, collector);
         }
 
         self.prepare_returning(&update.returning, sql, collector);
@@ -189,7 +191,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         delete: &DeleteStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "DELETE ").unwrap();
 
@@ -213,7 +215,7 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if let Some(limit) = &delete.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(Box::new(*limit), sql, collector);
+            self.prepare_value((*limit).into(), sql, collector);
         }
 
         self.prepare_returning(&delete.returning, sql, collector);
@@ -224,7 +226,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         simple_expr: &SimpleExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
@@ -336,7 +338,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select_distinct: &SelectDistinct,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         write!(
             sql,
@@ -355,7 +357,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select_lock: &LockType,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         write!(
             sql,
@@ -373,7 +375,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         select_expr: &SelectExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         self.prepare_simple_expr(&select_expr.expr, sql, collector);
         match &select_expr.alias {
@@ -390,7 +392,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         join_expr: &JoinExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         self.prepare_join_type(&join_expr.join, sql, collector);
         write!(sql, " ").unwrap();
@@ -406,7 +408,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         table_ref: &TableRef,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         match table_ref {
             TableRef::Table(iden) => {
@@ -444,7 +446,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         un_oper: &UnOper,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         write!(
             sql,
@@ -460,7 +462,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         write!(
             sql,
@@ -498,7 +500,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         self.prepare_bin_oper_common(bin_oper, sql, collector);
     }
@@ -510,7 +512,7 @@ pub trait QueryBuilder: QuotedBuilder {
         i: usize,
         length: usize,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         let (simple_expr, oper) = match log_chain_oper {
             LogicalChainOper::And(simple_expr) => (simple_expr, "AND"),
@@ -540,7 +542,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         if let Function::Custom(iden) = function {
             iden.unquoted(sql);
@@ -570,7 +572,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         self.prepare_function_common(function, sql, collector)
     }
@@ -580,7 +582,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         join_type: &JoinType,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         write!(
             sql,
@@ -600,7 +602,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         order_expr: &OrderExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
         write!(sql, " ").unwrap();
@@ -612,7 +614,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         join_on: &JoinOn,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         match join_on {
             JoinOn::Condition(c) => self.prepare_condition(c, "ON", sql, collector),
@@ -621,12 +623,7 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Order`] into SQL statement.
-    fn prepare_order(
-        &self,
-        order: &Order,
-        sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
-    ) {
+    fn prepare_order(&self, order: &Order, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
         match order {
             Order::Asc => write!(sql, "ASC").unwrap(),
             Order::Desc => write!(sql, "DESC").unwrap(),
@@ -634,12 +631,7 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Value`] into SQL statement.
-    fn prepare_value(
-        &self,
-        value: Box<dyn QueryValue>,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
-    ) {
+    fn prepare_value(&self, value: Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
         collector(value.into());
@@ -650,7 +642,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         keyword: &Keyword,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         if let Keyword::Custom(iden) = keyword {
             iden.unquoted(sql);
@@ -668,76 +660,84 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Convert a SQL value into syntax-specific string
-    fn value_to_string(&self, v: &Value) -> String {
+    #[deprecated(since = "0.17.0", note = "Replaced with QueryValue trait")]
+    #[allow(deprecated)]
+    fn value_to_string(&self, v: &PrimitiveValue) -> String {
         let mut s = String::new();
         match v {
-            Value::Bool(None)
-            | Value::TinyInt(None)
-            | Value::SmallInt(None)
-            | Value::Int(None)
-            | Value::BigInt(None)
-            | Value::TinyUnsigned(None)
-            | Value::SmallUnsigned(None)
-            | Value::Unsigned(None)
-            | Value::BigUnsigned(None)
-            | Value::Float(None)
-            | Value::Double(None)
-            | Value::String(None)
-            | Value::Bytes(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::Bool(None)
+            | PrimitiveValue::TinyInt(None)
+            | PrimitiveValue::SmallInt(None)
+            | PrimitiveValue::Int(None)
+            | PrimitiveValue::BigInt(None)
+            | PrimitiveValue::TinyUnsigned(None)
+            | PrimitiveValue::SmallUnsigned(None)
+            | PrimitiveValue::Unsigned(None)
+            | PrimitiveValue::BigUnsigned(None)
+            | PrimitiveValue::Float(None)
+            | PrimitiveValue::Double(None)
+            | PrimitiveValue::String(None)
+            | PrimitiveValue::Bytes(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
-            Value::Json(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::Json(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::Date(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::Date(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::Time(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::Time(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::DateTime(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::DateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::Decimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => write!(s, "NULL").unwrap(),
-            Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Int(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
-            Value::Bytes(Some(v)) => write!(
+            PrimitiveValue::Uuid(None) => write!(s, "NULL").unwrap(),
+            PrimitiveValue::Bool(Some(b)) => {
+                write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap()
+            }
+            PrimitiveValue::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::Int(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::Float(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::Double(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::String(Some(v)) => self.write_string_quoted(v, &mut s),
+            PrimitiveValue::Bytes(Some(v)) => write!(
                 s,
                 "x\'{}\'",
                 v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
             )
             .unwrap(),
             #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
+            PrimitiveValue::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
-            Value::Date(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
+            PrimitiveValue::Date(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap()
+            }
             #[cfg(feature = "with-chrono")]
-            Value::Time(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap(),
+            PrimitiveValue::Time(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap()
+            }
             #[cfg(feature = "with-chrono")]
-            Value::DateTime(Some(v)) => {
+            PrimitiveValue::DateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeWithTimeZone(Some(v)) => {
+            PrimitiveValue::DateTimeWithTimeZone(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            PrimitiveValue::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
+            PrimitiveValue::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
         };
         s
     }
@@ -748,7 +748,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         _returning: &[SelectExpr],
         _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
     }
 
@@ -759,7 +759,7 @@ pub trait QueryBuilder: QuotedBuilder {
         condition: &ConditionHolder,
         keyword: &str,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         if !condition.is_empty() {
             write!(sql, " {} ", keyword).unwrap();
@@ -789,7 +789,7 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         condition: &Condition,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         let mut is_first = true;
         for cond in &condition.conditions {
@@ -832,7 +832,7 @@ pub trait QueryBuilder: QuotedBuilder {
         op: &BinOper,
         right: &SimpleExpr,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
         let left_paren = left.need_parentheses()

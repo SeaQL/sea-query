@@ -9,7 +9,7 @@ impl QueryBuilder for SqliteQueryBuilder {
         &self,
         _select_lock: &LockType,
         _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         // SQLite doesn't supports row locking
     }

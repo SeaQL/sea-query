@@ -71,11 +71,7 @@ fn create_3() {
             .col(ColumnDef::new(Char::Character).string().not_null())
             .col(ColumnDef::new(Char::SizeW).integer().not_null())
             .col(ColumnDef::new(Char::SizeH).integer().not_null())
-            .col(
-                ColumnDef::new(Char::FontId)
-                    .integer()
-                    .default(Value::Int(None))
-            )
+            .col(ColumnDef::new(Char::FontId).integer().default(()))
             .foreign_key(
                 ForeignKey::create()
                     .from(Char::Table, Char::FontId)

@@ -1,4 +1,5 @@
-use crate::{Value, Values};
+#[allow(deprecated)]
+use crate::primitive_value::{PrimitiveValue, Values};
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
 use std::error::Error;
@@ -7,7 +8,8 @@ pub trait PostgresDriver<'a> {
     fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)>;
 }
 
-impl ToSql for Value {
+#[allow(deprecated)]
+impl ToSql for PrimitiveValue {
     fn to_sql(
         &self,
         ty: &Type,
@@ -30,35 +32,37 @@ impl ToSql for Value {
             };
         }
         match self {
-            Value::Bool(v) => to_sql!(v, bool),
-            Value::TinyInt(v) => to_sql!(v, i8),
-            Value::SmallInt(v) => to_sql!(v, i16),
-            Value::Int(v) => to_sql!(v, i32),
-            Value::BigInt(v) => to_sql!(v, i64),
-            Value::TinyUnsigned(v) => to_sql!(v, u32),
-            Value::SmallUnsigned(v) => to_sql!(v, u32),
-            Value::Unsigned(v) => to_sql!(v, u32),
-            Value::BigUnsigned(v) => to_sql!(v, i64),
-            Value::Float(v) => to_sql!(v, f32),
-            Value::Double(v) => to_sql!(v, f64),
-            Value::String(v) => box_to_sql!(v, String),
-            Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
+            PrimitiveValue::Bool(v) => to_sql!(v, bool),
+            PrimitiveValue::TinyInt(v) => to_sql!(v, i8),
+            PrimitiveValue::SmallInt(v) => to_sql!(v, i16),
+            PrimitiveValue::Int(v) => to_sql!(v, i32),
+            PrimitiveValue::BigInt(v) => to_sql!(v, i64),
+            PrimitiveValue::TinyUnsigned(v) => to_sql!(v, u32),
+            PrimitiveValue::SmallUnsigned(v) => to_sql!(v, u32),
+            PrimitiveValue::Unsigned(v) => to_sql!(v, u32),
+            PrimitiveValue::BigUnsigned(v) => to_sql!(v, i64),
+            PrimitiveValue::Float(v) => to_sql!(v, f32),
+            PrimitiveValue::Double(v) => to_sql!(v, f64),
+            PrimitiveValue::String(v) => box_to_sql!(v, String),
+            PrimitiveValue::Bytes(v) => box_to_sql!(v, Vec<u8>),
             #[cfg(feature = "postgres-json")]
-            Value::Json(v) => box_to_sql!(v, serde_json::Value),
+            PrimitiveValue::Json(v) => box_to_sql!(v, serde_json::Value),
             #[cfg(feature = "postgres-chrono")]
-            Value::Date(v) => box_to_sql!(v, chrono::NaiveDate),
+            PrimitiveValue::Date(v) => box_to_sql!(v, chrono::NaiveDate),
             #[cfg(feature = "postgres-chrono")]
-            Value::Time(v) => box_to_sql!(v, chrono::NaiveTime),
+            PrimitiveValue::Time(v) => box_to_sql!(v, chrono::NaiveTime),
             #[cfg(feature = "postgres-chrono")]
-            Value::DateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
+            PrimitiveValue::DateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
             #[cfg(feature = "postgres-chrono")]
-            Value::DateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
+            PrimitiveValue::DateTimeWithTimeZone(v) => {
+                box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>)
+            }
             #[cfg(feature = "postgres-rust_decimal")]
-            Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
+            PrimitiveValue::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
             #[cfg(feature = "postgres-bigdecimal")]
-            Value::BigDecimal(_) => unimplemented!("Not supported"),
+            PrimitiveValue::BigDecimal(_) => unimplemented!("Not supported"),
             #[cfg(feature = "postgres-uuid")]
-            Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
+            PrimitiveValue::Uuid(v) => box_to_sql!(v, uuid::Uuid),
         }
     }
 
@@ -69,12 +73,14 @@ impl ToSql for Value {
     to_sql_checked!();
 }
 
-impl From<Vec<Value>> for Values {
-    fn from(v: Vec<Value>) -> Values {
+#[allow(deprecated)]
+impl From<Vec<PrimitiveValue>> for Values {
+    fn from(v: Vec<PrimitiveValue>) -> Values {
         Values(v)
     }
 }
 
+#[allow(deprecated)]
 impl<'a> PostgresDriver<'a> for Values {
     fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)> {
         self.0

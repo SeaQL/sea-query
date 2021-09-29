@@ -4,6 +4,7 @@ use crate::{
     prepare::*,
     query::{condition::*, OrderedStatement},
     types::*,
+    value::*,
     Query, QueryStatementBuilder, SelectExpr, SelectStatement,
 };
 
@@ -168,7 +169,7 @@ impl UpdateStatement {
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
         T: IntoIden,
-        I: IntoIterator<Item = (T, Box<dyn QueryValue>)>,
+        I: IntoIterator<Item = (T, Value)>,
     {
         for (k, v) in values.into_iter() {
             self.push_boxed_value(k.into_iden().to_string(), SimpleExpr::Value(v.into()));
@@ -185,8 +186,8 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .value(Glyph::Aspect, 2.1345.into())
-    ///     .value(Glyph::Image, "235m".into())
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
     ///
@@ -206,7 +207,7 @@ impl UpdateStatement {
     pub fn value<T, V>(&mut self, col: T, value: V) -> &mut Self
     where
         T: IntoIden,
-        V: Into<Box<dyn QueryValue>>,
+        V: Into<Value>,
     {
         self.push_boxed_value(col.into_iden().to_string(), SimpleExpr::Value(value.into()));
         self
@@ -230,8 +231,8 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .value(Glyph::Aspect, 2.1345.into())
-    ///     .value(Glyph::Image, "235m".into())
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .returning(Query::select().column(Glyph::Id).take())
     ///     .to_owned();
@@ -263,8 +264,8 @@ impl UpdateStatement {
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .table(Glyph::Table)
-    ///     .value(Glyph::Aspect, 2.1345.into())
-    ///     .value(Glyph::Image, "235m".into())
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
@@ -322,16 +323,16 @@ impl QueryStatementBuilder for UpdateStatement {
     /// assert_eq!(
     ///     params,
     ///     vec![
-    ///         Value::Double(Some(2.1345)),
-    ///         Value::String(Some(Box::new(String::from("235m")))),
-    ///         Value::Int(Some(1)),
+    ///         2.1345.into(),
+    ///         "235m".into(),
+    ///         1.into(),
     ///     ]
     /// );
     /// ```
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);
@@ -341,7 +342,7 @@ impl QueryStatementBuilder for UpdateStatement {
     fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();
         query_builder.prepare_update_statement(self, &mut sql, collector);

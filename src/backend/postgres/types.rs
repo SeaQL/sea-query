@@ -6,7 +6,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         &self,
         create: &TypeCreateStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "CREATE TYPE ").unwrap();
 
@@ -37,7 +37,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         &self,
         drop: &TypeDropStatement,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        _collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "DROP TYPE ").unwrap();
 
@@ -59,7 +59,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         &self,
         alter: &TypeAlterStatement,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "ALTER TYPE ").unwrap();
 
@@ -101,7 +101,7 @@ impl PostgresQueryBuilder {
         &self,
         opt: &TypeAlterOpt,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         match opt {
             TypeAlterOpt::Add(value, placement) => {

@@ -10,7 +10,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         &self,
         returning: &[SelectExpr],
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         if !returning.is_empty() {
             write!(sql, " RETURNING ").unwrap();
@@ -42,7 +42,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         &self,
         bin_oper: &BinOper,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         match bin_oper {
             BinOper::Matches => write!(sql, "@@").unwrap(),
@@ -57,7 +57,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         &self,
         function: &Function,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Box<dyn QueryValue>),
+        collector: &mut dyn FnMut(Value),
     ) {
         match function {
             Function::PgFunction(function) => write!(

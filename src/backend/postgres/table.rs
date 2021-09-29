@@ -95,7 +95,9 @@ impl TableBuilder for PostgresQueryBuilder {
         match column_spec {
             ColumnSpec::Null => write!(sql, "NULL"),
             ColumnSpec::NotNull => write!(sql, "NOT NULL"),
-            ColumnSpec::Default(value) => write!(sql, "DEFAULT {}", self.value_to_string(value)),
+            ColumnSpec::Default(value) => {
+                write!(sql, "DEFAULT {}", value.query_value(&PostgresQueryBuilder))
+            }
             ColumnSpec::AutoIncrement => write!(sql, ""),
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),

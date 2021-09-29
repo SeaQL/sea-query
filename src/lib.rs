@@ -79,24 +79,14 @@
 //!
 //! ```
 //! # use sea_query::{*, tests_cfg::*};
-//! assert_eq!(
-//!     Query::select()
-//!         .column(Glyph::Image)
-//!         .from(Glyph::Table)
-//!         .and_where(Expr::col(Glyph::Image).like("A"))
-//!         .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
-//!         .build(PostgresQueryBuilder),
-//!     (
-//!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
-//!             .to_owned(),
-//!         Values(vec![
-//!             Value::String(Some(Box::new("A".to_owned()))),
-//!             Value::Int(Some(1)),
-//!             Value::Int(Some(2)),
-//!             Value::Int(Some(3))
-//!         ])
-//!     )
-//! );
+//! let (query, values) = Query::select()
+//!     .column(Glyph::Image)
+//!     .from(Glyph::Table)
+//!     .and_where(Expr::col(Glyph::Image).like("A"))
+//!     .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
+//!     .build(PostgresQueryBuilder);
+//! assert_eq!(query, r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#.to_owned());
+//! assert_eq!(values.len(), 4);
 //! ```
 //!
 //! 2. Dynamic query
@@ -287,7 +277,7 @@
 //! ```rust
 //! # use sea_query::{*};
 //! # trait ExampleQueryBuilder {
-//! fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
+//! fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Vec<Value>);
 //!
 //! fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 //! # }
@@ -417,7 +407,7 @@
 //!     .col(ColumnDef::new(Char::Character).string().not_null())
 //!     .col(ColumnDef::new(Char::SizeW).integer().not_null())
 //!     .col(ColumnDef::new(Char::SizeH).integer().not_null())
-//!     .col(ColumnDef::new(Char::FontId).integer().default(Value::Int(None)))
+//!     .col(ColumnDef::new(Char::FontId).integer().default(()))
 //!     .foreign_key(
 //!         ForeignKey::create()
 //!             .name("FK_2e303c3a712662f1fc2a4d0aad6")
@@ -698,6 +688,11 @@ pub mod foreign_key;
 pub mod func;
 pub mod index;
 pub mod prepare;
+#[deprecated(
+    since = "0.17.0",
+    note = "Replaced with Value struct and QueryValue trait"
+)]
+pub mod primitive_value;
 pub mod query;
 pub mod schema;
 mod shim;
@@ -723,6 +718,7 @@ pub use schema::*;
 //pub use tests_cfg::*;
 pub use token::*;
 pub use types::*;
+#[allow(deprecated)]
 pub use value::*;
 
 #[cfg(feature = "derive")]

@@ -13,10 +13,7 @@ pub fn inject_parameters(
     sql: &str,
     params: &[&dyn QueryValue],
     query_builder: &dyn QueryBuilder,
-) -> String
-// where
-    // I: IntoIterator<Item = &'a dyn QueryValue>,
-{
+) -> String {
     let params: Vec<_> = params.into_iter().collect();
     let tokenizer = Tokenizer::new(sql);
     let tokens: Vec<Token> = tokenizer.iter().collect();
