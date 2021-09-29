@@ -68,6 +68,27 @@ impl Condition {
     /// Add an optional condition to the set.
     ///
     /// Shorthand for `if o.is_some() { self.add(o) }`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Image)
+    ///     .from(Glyph::Table)
+    ///     .cond_where(
+    ///         Cond::all()
+    ///             .add_option(Some(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
+    ///             .add_option(None::<SimpleExpr>)
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`image` LIKE 'A%'"#
+    /// );
+    /// ```
     #[allow(clippy::should_implement_trait)]
     pub fn add_option<C>(self, other: Option<C>) -> Self
     where
