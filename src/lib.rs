@@ -29,7 +29,7 @@
 //! [postgres](https://crates.io/crates/postgres) and [rusqlite](https://crates.io/crates/rusqlite).
 //! See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
 //!
-//! This library is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
+//! SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 //!
 //! ## Install
 //!
@@ -38,6 +38,19 @@
 //! [dependencies]
 //! sea-query = "^0"
 //! ```
+//!
+//! SeaQuery is very lightweight, all dependencies are optional.
+//!
+//! ### Feature flags
+//!
+//! SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
+//!
+//! Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`
+//!
+//! Async support: `thread-safe` (use `Arc` inplace of `Rc`)
+//!
+//! Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
+//! `postgres`, `postgres-*`, `rusqlite`
 //!
 //! ## Usage
 //!
