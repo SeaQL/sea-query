@@ -688,10 +688,6 @@ pub mod foreign_key;
 pub mod func;
 pub mod index;
 pub mod prepare;
-#[deprecated(
-    since = "0.17.0",
-    note = "Replaced with Value struct and QueryValue trait"
-)]
 pub mod primitive_value;
 pub mod query;
 pub mod schema;
@@ -716,9 +712,9 @@ pub use prepare::*;
 pub use schema::*;
 //pub use shim::*;
 //pub use tests_cfg::*;
+pub use primitive_value::*;
 pub use token::*;
 pub use types::*;
-#[allow(deprecated)]
 pub use value::*;
 
 #[cfg(feature = "derive")]

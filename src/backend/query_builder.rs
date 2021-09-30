@@ -660,8 +660,6 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Convert a SQL value into syntax-specific string
-    #[deprecated(since = "0.17.0", note = "Replaced with QueryValue trait")]
-    #[allow(deprecated)]
     fn value_to_string(&self, v: &PrimitiveValue) -> String {
         let mut s = String::new();
         match v {
