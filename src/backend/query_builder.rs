@@ -633,8 +633,8 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Translate [`Value`] into SQL statement.
     fn prepare_value(&self, value: Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         let (placeholder, numbered) = self.placeholder();
-        sql.push_param(placeholder, numbered);
-        collector(value.into());
+        sql.push_param(placeholder, numbered, value.cast_as());
+        collector(value);
     }
 
     /// Translate [`Keyword`] into SQL statement.

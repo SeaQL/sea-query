@@ -3,14 +3,14 @@ macro_rules! sea_query_driver_rusqlite {
     () => {
         mod sea_query_driver_rusqlite {
             use rusqlite::{types::ToSqlOutput, Result, ToSql};
-            use sea_query::{Value, Values};
+            use sea_query::{PrimitiveValue, Value};
 
             pub struct RusqliteValue(pub Value);
 
             pub struct RusqliteValues(pub Vec<RusqliteValue>);
 
-            impl From<Values> for RusqliteValues {
-                fn from(values: Values) -> RusqliteValues {
+            impl From<Vec<Value>> for RusqliteValues {
+                fn from(values: Vec<Value>) -> RusqliteValues {
                     RusqliteValues(values.0.into_iter().map(|v| RusqliteValue(v)).collect())
                 }
             }
@@ -45,33 +45,33 @@ macro_rules! sea_query_driver_rusqlite {
                             }
                         };
                     }
-                    match &self.0 {
-                        Value::Bool(v) => to_sql!(v, bool),
-                        Value::TinyInt(v) => to_sql!(v, i8),
-                        Value::SmallInt(v) => to_sql!(v, i16),
-                        Value::Int(v) => to_sql!(v, i32),
-                        Value::BigInt(v) => to_sql!(v, i64),
-                        Value::TinyUnsigned(v) => to_sql!(v, u32),
-                        Value::SmallUnsigned(v) => to_sql!(v, u32),
-                        Value::Unsigned(v) => to_sql!(v, u32),
-                        Value::BigUnsigned(v) => to_sql!(v, i64),
-                        Value::Float(v) => to_sql!(v, f32),
-                        Value::Double(v) => to_sql!(v, f64),
-                        Value::String(v) => box_to_sql!(v, String),
-                        Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
-                        _ => {
-                            if self.0.is_json() {
-                                (*self.0.as_ref_json()).to_sql()
-                            } else if self.0.is_date() {
-                                (*self.0.as_ref_date()).to_sql()
-                            } else if self.0.is_time() {
-                                (*self.0.as_ref_time()).to_sql()
-                            } else if self.0.is_date_time() {
-                                (*self.0.as_ref_date_time()).to_sql()
-                            } else if self.0.is_date_time_with_time_zone() {
-                                (*self.0.as_ref_date_time_with_time_zone()).to_sql()
-                            } else if self.0.is_uuid() {
-                                (*self.0.as_ref_uuid()).to_sql()
+                    match &self.0.primitive_value() {
+                        PrimitiveValue::Bool(v) => to_sql!(v, bool),
+                        PrimitiveValue::TinyInt(v) => to_sql!(v, i8),
+                        PrimitiveValue::SmallInt(v) => to_sql!(v, i16),
+                        PrimitiveValue::Int(v) => to_sql!(v, i32),
+                        PrimitiveValue::BigInt(v) => to_sql!(v, i64),
+                        PrimitiveValue::TinyUnsigned(v) => to_sql!(v, u32),
+                        PrimitiveValue::SmallUnsigned(v) => to_sql!(v, u32),
+                        PrimitiveValue::Unsigned(v) => to_sql!(v, u32),
+                        PrimitiveValue::BigUnsigned(v) => to_sql!(v, i64),
+                        PrimitiveValue::Float(v) => to_sql!(v, f32),
+                        PrimitiveValue::Double(v) => to_sql!(v, f64),
+                        PrimitiveValue::String(v) => box_to_sql!(v, String),
+                        PrimitiveValue::Bytes(v) => box_to_sql!(v, Vec<u8>),
+                        value => {
+                            if value.is_json() {
+                                (*value.as_ref_json()).to_sql()
+                            } else if value.is_date() {
+                                (*value.as_ref_date()).to_sql()
+                            } else if value.is_time() {
+                                (*value.as_ref_time()).to_sql()
+                            } else if value.is_date_time() {
+                                (*value.as_ref_date_time()).to_sql()
+                            } else if value.is_date_time_with_time_zone() {
+                                (*value.as_ref_date_time_with_time_zone()).to_sql()
+                            } else if value.is_uuid() {
+                                (*value.as_ref_uuid()).to_sql()
                             } else {
                                 unimplemented!();
                             }

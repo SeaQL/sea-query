@@ -2,6 +2,7 @@
 
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
+
 #[cfg(feature = "with-json")]
 use std::str::from_utf8;
 
@@ -16,6 +17,8 @@ use bigdecimal::BigDecimal;
 
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
+
+use crate::{QueryBuilder, QueryValue};
 
 /// Value variants
 ///
@@ -69,6 +72,58 @@ pub enum PrimitiveValue {
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
+}
+
+impl QueryValue for PrimitiveValue {
+    fn query_value(&self, query_builder: &dyn QueryBuilder) -> String {
+        match self {
+            PrimitiveValue::Bool(value) => value.query_value(query_builder),
+            PrimitiveValue::TinyInt(value) => value.query_value(query_builder),
+            PrimitiveValue::SmallInt(value) => value.query_value(query_builder),
+            PrimitiveValue::Int(value) => value.query_value(query_builder),
+            PrimitiveValue::BigInt(value) => value.query_value(query_builder),
+            PrimitiveValue::TinyUnsigned(value) => value.query_value(query_builder),
+            PrimitiveValue::SmallUnsigned(value) => value.query_value(query_builder),
+            PrimitiveValue::Unsigned(value) => value.query_value(query_builder),
+            PrimitiveValue::BigUnsigned(value) => value.query_value(query_builder),
+            PrimitiveValue::Float(value) => value.query_value(query_builder),
+            PrimitiveValue::Double(value) => value.query_value(query_builder),
+            PrimitiveValue::String(value) => value.as_deref().cloned().query_value(query_builder),
+            PrimitiveValue::Bytes(value) => value.as_deref().cloned().query_value(query_builder),
+            #[cfg(feature = "with-json")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+            PrimitiveValue::Json(value) => value.as_deref().cloned().query_value(query_builder),
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            PrimitiveValue::Date(value) => value.as_deref().cloned().query_value(query_builder),
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            PrimitiveValue::Time(value) => value.as_deref().cloned().query_value(query_builder),
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            PrimitiveValue::DateTime(value) => value.as_deref().cloned().query_value(query_builder),
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            PrimitiveValue::DateTimeWithTimeZone(value) => {
+                value.as_deref().cloned().query_value(query_builder)
+            }
+            #[cfg(feature = "with-uuid")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+            PrimitiveValue::Uuid(value) => value.as_deref().cloned().query_value(query_builder),
+            #[cfg(feature = "with-rust_decimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+            PrimitiveValue::Decimal(value) => value.as_deref().cloned().query_value(query_builder),
+            #[cfg(feature = "with-bigdecimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+            PrimitiveValue::BigDecimal(value) => {
+                value.as_deref().cloned().query_value(query_builder)
+            }
+        }
+    }
+
+    fn primitive_value(&self) -> PrimitiveValue {
+        self.clone()
+    }
 }
 
 pub trait ValueType: Sized {
@@ -539,7 +594,7 @@ where
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 #[allow(deprecated)]
 pub fn sea_value_to_json_value(value: &PrimitiveValue) -> Json {
-    use crate::{CommonSqlQueryBuilder, QueryBuilder};
+    use crate::CommonSqlQueryBuilder;
 
     match value {
         PrimitiveValue::Bool(None)

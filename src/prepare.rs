@@ -54,13 +54,19 @@ impl SqlWriter {
         Self::default()
     }
 
-    pub fn push_param(&mut self, sign: &str, numbered: bool) {
+    pub fn push_param(&mut self, sign: &str, numbered: bool, cast_as: Option<&str>) {
         self.counter += 1;
+        if cast_as.is_some() {
+            write!(self, "CAST(");
+        }
         if numbered {
             let counter = self.counter;
             write!(self, "{}{}", sign, counter).unwrap();
         } else {
             write!(self, "{}", sign).unwrap();
+        }
+        if let Some(cast_as) = cast_as {
+            write!(self, " as {})", cast_as);
         }
     }
 

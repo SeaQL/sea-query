@@ -1,3 +1,4 @@
+use crate::primitive_value::PrimitiveValue;
 use crate::*;
 use dyn_clonable::*;
 use std::{any, borrow, fmt, ops};
@@ -44,9 +45,17 @@ impl PartialEq for Value {
 
 /// Indicates that a type is supported for use in SQL queries.
 #[clonable]
-pub trait QueryValue: QueryValuePartialEq + Clone {
+pub trait QueryValue: QueryValuePartialEq + Clone + Send + Sync {
     /// Returns the value as an escaped string safe for use in SQL queries.
     fn query_value(&self, query_builder: &dyn QueryBuilder) -> String;
+
+    /// Primitive value for use in Database.
+    fn primitive_value(&self) -> PrimitiveValue;
+
+    /// Cast type in queries.
+    fn cast_as(&self) -> Option<&'static str> {
+        None
+    }
 }
 
 impl std::fmt::Debug for dyn QueryValue {
@@ -88,11 +97,23 @@ impl PartialEq for dyn QueryValue {
 impl<T> QueryValue for Option<T>
 where
     T: 'static + QueryValue + QueryValuePartialEq + Clone + PartialEq,
+    Option<T>: Into<PrimitiveValue>,
 {
     fn query_value(&self, query_builder: &dyn QueryBuilder) -> String {
         match self {
             Some(value) => value.query_value(query_builder),
             None => "NULL".to_string(),
+        }
+    }
+
+    fn primitive_value(&self) -> PrimitiveValue {
+        self.to_owned().into()
+    }
+
+    fn cast_as(&self) -> Option<&'static str> {
+        match self {
+            Some(value) => value.cast_as(),
+            None => None,
         }
     }
 }
@@ -102,6 +123,10 @@ macro_rules! impl_query_value {
         impl QueryValue for $ty {
             fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
                 format!("{}", self)
+            }
+
+            fn primitive_value(&self) -> PrimitiveValue {
+                self.clone().into()
             }
         }
     };
@@ -114,6 +139,10 @@ macro_rules! impl_query_value_quoted {
                 let mut buf = String::new();
                 query_builder.write_string_quoted(self.to_string().as_ref(), &mut buf);
                 buf
+            }
+
+            fn primitive_value(&self) -> PrimitiveValue {
+                self.clone().into()
             }
         }
     };
@@ -140,13 +169,17 @@ impl QueryValue for bool {
             "FALSE".to_string()
         }
     }
-}
 
-impl QueryValue for () {
-    fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
-        "NULL".to_string()
+    fn primitive_value(&self) -> PrimitiveValue {
+        (*self).into()
     }
 }
+
+// impl QueryValue for () {
+//     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
+//         "NULL".to_string()
+//     }
+// }
 
 impl QueryValue for Vec<u8> {
     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
@@ -156,6 +189,10 @@ impl QueryValue for Vec<u8> {
                 .map(|b| format!("{:02X}", b))
                 .collect::<String>()
         )
+    }
+
+    fn primitive_value(&self) -> PrimitiveValue {
+        self.clone().into()
     }
 }
 
@@ -169,6 +206,10 @@ impl QueryValue for chrono::NaiveDate {
     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
         format!("\'{}\'", self.format("%Y-%m-%d").to_string())
     }
+
+    fn primitive_value(&self) -> PrimitiveValue {
+        self.clone().into()
+    }
 }
 
 #[cfg(feature = "with-chrono")]
@@ -176,6 +217,10 @@ impl QueryValue for chrono::NaiveDate {
 impl QueryValue for chrono::NaiveTime {
     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
         format!("\'{}\'", self.format("%H:%M:%S").to_string())
+    }
+
+    fn primitive_value(&self) -> PrimitiveValue {
+        self.clone().into()
     }
 }
 
@@ -185,6 +230,10 @@ impl QueryValue for chrono::NaiveDateTime {
     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
         format!("\'{}\'", self.format("%Y-%m-%d %H:%M:%S").to_string())
     }
+
+    fn primitive_value(&self) -> PrimitiveValue {
+        self.clone().into()
+    }
 }
 
 #[cfg(feature = "with-chrono")]
@@ -192,6 +241,10 @@ impl QueryValue for chrono::NaiveDateTime {
 impl QueryValue for chrono::DateTime<chrono::FixedOffset> {
     fn query_value(&self, _query_builder: &dyn QueryBuilder) -> String {
         format!("\'{}\'", self.format("%Y-%m-%d %H:%M:%S %:z").to_string())
+    }
+
+    fn primitive_value(&self) -> PrimitiveValue {
+        self.clone().into()
     }
 }
 
