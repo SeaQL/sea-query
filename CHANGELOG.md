@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.16.5 - 2021-09-30
+
++ [[#145]] Add Condition::not
++ [[#149]] Fix SQLite `chrono::NaiveTime` binding
+
+[#145]: https://github.com/SeaQL/sea-query/pull/145
+[#149]: https://github.com/SeaQL/sea-query/pull/149
+
 ## 0.16.4 - 2021-09-26
 
 + Fix table drop options for SQLite
