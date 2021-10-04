@@ -5,7 +5,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, SelectExpr, SelectStatement,
+    QueryStatementBuilder, Returning,
 };
 
 /// Update existing rows in the table
@@ -44,7 +44,7 @@ pub struct UpdateStatement {
     pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Returning,
 }
 
 impl Default for UpdateStatement {
@@ -62,7 +62,7 @@ impl UpdateStatement {
             wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
-            returning: Vec::new(),
+            returning: Returning::default(),
         }
     }
 
@@ -233,7 +233,7 @@ impl UpdateStatement {
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Returning::Collumns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -249,8 +249,8 @@ impl UpdateStatement {
     ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning_cols: Returning) -> &mut Self {
+        self.returning = returning_cols;
         self
     }
 
@@ -286,7 +286,9 @@ impl UpdateStatement {
     where
         C: IntoIden,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(Returning::Collumns(vec![ColumnRef::Column(
+            col.into_iden(),
+        )]))
     }
 }
 

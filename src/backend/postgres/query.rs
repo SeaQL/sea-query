@@ -8,19 +8,31 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_returning(
         &self,
-        returning: &[SelectExpr],
+        returning: &Returning,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        if !returning.is_empty() {
-            write!(sql, " RETURNING ").unwrap();
-            returning.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
-                self.prepare_select_expr(expr, sql, collector);
-                false
-            });
+        match returning {
+            Returning::All => write!(sql, " RETURNING *").unwrap(),
+            Returning::Collumns(cols) => {
+                write!(sql, " RETURNING ").unwrap();
+                cols.into_iter().fold(true, |first, column_ref| {
+                    if !first {
+                        write!(sql, ", ").unwrap()
+                    }
+                    match column_ref {
+                        ColumnRef::Column(column) => column.prepare(sql, self.quote()),
+                        ColumnRef::TableColumn(table, column) => {
+                            table.prepare(sql, self.quote());
+                            write!(sql, ".").unwrap();
+                            column.prepare(sql, self.quote());
+                        }
+                    };
+                    false
+                });
+            }
+            Returning::PrimaryKey => write!(sql, " RETURNING *").unwrap(),
+            Returning::Nothing => return,
         }
     }
 

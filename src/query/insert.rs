@@ -1,6 +1,6 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
-    QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, QueryStatementBuilder,
+    Returning, SimpleExpr,
 };
 
 /// Insert any new rows into an existing table
@@ -35,7 +35,7 @@ pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) values: Vec<Vec<SimpleExpr>>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Returning,
 }
 
 impl InsertStatement {
@@ -188,7 +188,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns(vec![Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Returning::Collumns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -204,8 +204,8 @@ impl InsertStatement {
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning: Returning) -> &mut Self {
+        self.returning = returning;
         self
     }
 
@@ -239,7 +239,9 @@ impl InsertStatement {
     where
         C: IntoIden,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(Returning::Collumns(vec![ColumnRef::Column(
+            col.into_iden(),
+        )]))
     }
 }
 

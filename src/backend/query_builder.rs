@@ -736,7 +736,7 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(
         &self,
-        _returning: &[SelectExpr],
+        returning: &Returning,
         _sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
