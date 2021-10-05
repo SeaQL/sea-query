@@ -100,7 +100,7 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING expressions. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
+    /// RETURNING expressions. Supported fully by postgres, version deppendant on other databases
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -129,7 +129,7 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING a column after delete. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
+    /// RETURNING a column after delete. Supported fully by postgres, version deppendant on other databases
     /// Wrapper over [`DeleteStatement::returning()`].
     ///
     /// ```

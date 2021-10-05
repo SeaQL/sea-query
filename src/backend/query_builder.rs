@@ -734,16 +734,6 @@ pub trait QueryBuilder: QuotedBuilder {
 
     #[doc(hidden)]
     /// Hook to insert "RETURNING" statements.
-    #[cfg(not(feature = "with-returning"))]
-    fn prepare_returning(
-        &self,
-        returning: &Returning,
-        _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
-    ) {
-    }
-
-    #[cfg(feature = "with-returning")]
     fn prepare_returning(
         &self,
         returning: &Returning,

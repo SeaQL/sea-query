@@ -179,7 +179,7 @@ impl InsertStatement {
         self.exprs(values).unwrap()
     }
 
-    /// RETURNING expressions. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
+    /// RETURNING expressions. Supported fully by postgres, version deppendant on other databases
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -209,7 +209,7 @@ impl InsertStatement {
         self
     }
 
-    /// RETURNING a column after insertion. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
+    /// RETURNING a column after insertion. Supported fully by postgres, version deppendant on other databases
     /// Wrapper over [`InsertStatement::returning()`].
     ///
     /// ```
