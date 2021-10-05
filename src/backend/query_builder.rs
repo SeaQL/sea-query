@@ -734,12 +734,43 @@ pub trait QueryBuilder: QuotedBuilder {
 
     #[doc(hidden)]
     /// Hook to insert "RETURNING" statements.
+    #[cfg(not(feature = "with-returning"))]
     fn prepare_returning(
         &self,
         returning: &Returning,
         _sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
+    }
+
+    #[cfg(feature = "with-returning")]
+    fn prepare_returning(
+        &self,
+        returning: &Returning,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
+        match returning {
+            Returning::All => write!(sql, " RETURNING *").unwrap(),
+            Returning::Columns(cols) => {
+                write!(sql, " RETURNING ").unwrap();
+                cols.into_iter().fold(true, |first, column_ref| {
+                    if !first {
+                        write!(sql, ", ").unwrap()
+                    }
+                    match column_ref {
+                        ColumnRef::Column(column) => column.prepare(sql, self.quote()),
+                        ColumnRef::TableColumn(table, column) => {
+                            table.prepare(sql, self.quote());
+                            write!(sql, ".").unwrap();
+                            column.prepare(sql, self.quote());
+                        }
+                    };
+                    false
+                });
+            }
+            Returning::Nothing => return,
+        }
     }
 
     #[doc(hidden)]

@@ -100,7 +100,7 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -108,12 +108,12 @@ impl DeleteStatement {
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Returning::Collumns(vec![Glyph::Id.into_column_ref()]))
+    ///     .returning(Returning::Columns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -121,7 +121,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning(&mut self, returning_cols: Returning) -> &mut Self {
@@ -129,7 +129,7 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING a column after delete. Postgres only.
+    /// RETURNING a column after delete. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
     /// Wrapper over [`DeleteStatement::returning()`].
     ///
     /// ```
@@ -143,7 +143,7 @@ impl DeleteStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -151,16 +151,14 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
         C: IntoIden,
     {
-        self.returning(Returning::Collumns(vec![ColumnRef::Column(
-            col.into_iden(),
-        )]))
+        self.returning(Returning::Columns(vec![ColumnRef::Column(col.into_iden())]))
     }
 }
 

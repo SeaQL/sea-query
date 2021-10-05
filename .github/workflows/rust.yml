@@ -22,7 +22,7 @@ jobs:
           toolchain: stable
           components: clippy
           override: true
-          
+
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -91,6 +91,16 @@ jobs:
         with:
           command: test
           args: --all-features
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features --features="backend-mysql" --test test-mysql
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features --features="backend-sqlite" --test test-sqlite
 
   derive-test:
     name: Derive Tests

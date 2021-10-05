@@ -837,6 +837,78 @@ fn insert_5() {
 }
 
 #[test]
+#[cfg(feature = "with-returning")]
+#[allow(clippy::approx_constant)]
+fn insert_returning_all_columns() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .returning(Returning::All)
+            .to_string(MysqlQueryBuilder),
+        r#"INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415) RETURNING *"#
+    );
+}
+
+#[test]
+#[cfg(feature = "with-returning")]
+#[allow(clippy::approx_constant)]
+fn insert_returning_specific_columns() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image,]))
+            .to_string(MysqlQueryBuilder),
+        r#"INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415) RETURNING `id`, `image`"#
+    );
+}
+
+#[test]
+#[cfg(not(feature = "with-returning"))]
+#[allow(clippy::approx_constant)]
+fn insert_returning_all_columns_with_returning_disabled() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .returning(Returning::All)
+            .to_string(MysqlQueryBuilder),
+        r#"INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#
+    );
+}
+
+#[test]
+#[cfg(not(feature = "with-returning"))]
+#[allow(clippy::approx_constant)]
+fn insert_returning_specific_columns_with_returning_disabled() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image,]))
+            .to_string(MysqlQueryBuilder),
+        r#"INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#
+    );
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
@@ -871,6 +943,78 @@ fn update_3() {
 }
 
 #[test]
+#[cfg(feature = "with-returning")]
+fn update_returning_all_columns() {
+    assert_eq!(
+        Query::update()
+            .table(Glyph::Table)
+            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::All)
+            .to_string(MysqlQueryBuilder),
+        r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1 RETURNING *"#
+    );
+}
+
+#[test]
+#[cfg(feature = "with-returning")]
+fn update_returning_specified_columns() {
+    assert_eq!(
+        Query::update()
+            .table(Glyph::Table)
+            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image]))
+            .to_string(MysqlQueryBuilder),
+        r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1 RETURNING `id`, `image`"#
+    );
+}
+
+#[test]
+#[cfg(not(feature = "with-returning"))]
+fn update_returning_all_columns_with_returning_disabled() {
+    assert_eq!(
+        Query::update()
+            .table(Glyph::Table)
+            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::All)
+            .to_string(MysqlQueryBuilder),
+        r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
+    );
+}
+
+#[test]
+#[cfg(not(feature = "with-returning"))]
+fn update_returning_specified_columns_with_returning_disabled() {
+    assert_eq!(
+        Query::update()
+            .table(Glyph::Table)
+            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image]))
+            .to_string(MysqlQueryBuilder),
+        r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
+    );
+}
+
+#[test]
 fn delete_1() {
     assert_eq!(
         Query::delete()
@@ -880,5 +1024,57 @@ fn delete_1() {
             .limit(1)
             .to_string(MysqlQueryBuilder),
         "DELETE FROM `glyph` WHERE `id` = 1 ORDER BY `id` ASC LIMIT 1"
+    );
+}
+
+#[test]
+#[cfg(feature = "with-returning")]
+fn delete_returning_all_columns() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::All)
+            .to_string(MysqlQueryBuilder),
+        r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING *"#
+    );
+}
+
+#[test]
+#[cfg(feature = "with-returning")]
+fn delete_returning_specific_columns() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image,]))
+            .to_string(MysqlQueryBuilder),
+        r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`, `image`"#
+    );
+}
+
+#[test]
+#[cfg(not(feature = "with-returning"))]
+fn delete_returning_all_columns_with_returning_disabled() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::All)
+            .to_string(MysqlQueryBuilder),
+        r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    );
+}
+
+#[test]
+#[cfg(not(feature = "with-returning"))]
+fn delete_returning_specific_columns_with_returning_disabled() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image,]))
+            .to_string(MysqlQueryBuilder),
+        r#"DELETE FROM `glyph` WHERE `id` = 1"#
     );
 }

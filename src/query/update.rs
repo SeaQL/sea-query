@@ -223,7 +223,7 @@ impl UpdateStatement {
         self
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -233,12 +233,12 @@ impl UpdateStatement {
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Returning::Collumns(vec![Glyph::Id.into_column_ref()]))
+    ///     .returning(Returning::Columns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -246,7 +246,7 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning(&mut self, returning_cols: Returning) -> &mut Self {
@@ -254,7 +254,7 @@ impl UpdateStatement {
         self
     }
 
-    /// RETURNING a column after update. Postgres only.
+    /// RETURNING a column after update. Enabled by default for postgres and under the feature with-returning for the remaining back ends.
     /// Wrapper over [`UpdateStatement::returning()`].
     ///
     /// ```
@@ -271,7 +271,7 @@ impl UpdateStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -279,16 +279,14 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
         C: IntoIden,
     {
-        self.returning(Returning::Collumns(vec![ColumnRef::Column(
-            col.into_iden(),
-        )]))
+        self.returning(Returning::Columns(vec![ColumnRef::Column(col.into_iden())]))
     }
 }
 

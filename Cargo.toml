@@ -47,7 +47,7 @@ uuid = { version = "^0", optional = true }
 
 [features]
 backend-mysql = []
-backend-postgres = []
+backend-postgres = ["with-returning"]
 backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
@@ -67,6 +67,7 @@ with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
 with-bigdecimal = ["bigdecimal"]
 with-uuid = ["uuid"]
+with-returning = []
 
 [[test]]
 name = "test-derive"
