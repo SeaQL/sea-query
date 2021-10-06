@@ -61,17 +61,17 @@ macro_rules! sea_query_driver_rusqlite {
                         Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
                         _ => {
                             if self.0.is_json() {
-                                (*self.0.as_ref_json()).to_sql()
+                                to_sql!(self.0.as_ref_json(), serde_json::Value)
                             } else if self.0.is_date() {
-                                (*self.0.as_ref_date()).to_sql()
+                                to_sql!(self.0.as_ref_date(), chrono::NaiveDate)
                             } else if self.0.is_time() {
-                                (*self.0.as_ref_time()).to_sql()
+                                to_sql!(self.0.as_ref_time(), chrono::NaiveTime)
                             } else if self.0.is_date_time() {
-                                (*self.0.as_ref_date_time()).to_sql()
+                                to_sql!(self.0.as_ref_date_time(), chrono::NaiveDateTime)
                             } else if self.0.is_date_time_with_time_zone() {
-                                (*self.0.as_ref_date_time_with_time_zone()).to_sql()
+                                to_sql!(self.0.as_ref_date_time_with_time_zone(), chrono::DateTime<chrono::FixedOffset>)
                             } else if self.0.is_uuid() {
-                                (*self.0.as_ref_uuid()).to_sql()
+                                to_sql!(self.0.as_ref_uuid(), uuid::Uuid)
                             } else {
                                 unimplemented!();
                             }
