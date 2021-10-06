@@ -45,6 +45,14 @@ macro_rules! sea_query_driver_rusqlite {
                             }
                         };
                     }
+                    macro_rules! ty_to_sql {
+                        ( $v: expr ) => {
+                            match $v {
+                                Some(v) => v.to_sql(),
+                                None => None::<bool>.to_sql(),
+                            }
+                        };
+                    }
                     match &self.0 {
                         Value::Bool(v) => to_sql!(v, bool),
                         Value::TinyInt(v) => to_sql!(v, i8),
@@ -61,17 +69,17 @@ macro_rules! sea_query_driver_rusqlite {
                         Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
                         _ => {
                             if self.0.is_json() {
-                                to_sql!(self.0.as_ref_json(), serde_json::Value)
+                                ty_to_sql!(self.0.as_ref_json())
                             } else if self.0.is_date() {
-                                to_sql!(self.0.as_ref_date(), chrono::NaiveDate)
+                                ty_to_sql!(self.0.as_ref_date())
                             } else if self.0.is_time() {
-                                to_sql!(self.0.as_ref_time(), chrono::NaiveTime)
+                                ty_to_sql!(self.0.as_ref_time())
                             } else if self.0.is_date_time() {
-                                to_sql!(self.0.as_ref_date_time(), chrono::NaiveDateTime)
+                                ty_to_sql!(self.0.as_ref_date_time())
                             } else if self.0.is_date_time_with_time_zone() {
-                                to_sql!(self.0.as_ref_date_time_with_time_zone(), chrono::DateTime<chrono::FixedOffset>)
+                                ty_to_sql!(self.0.as_ref_date_time_with_time_zone())
                             } else if self.0.is_uuid() {
-                                to_sql!(self.0.as_ref_uuid(), uuid::Uuid)
+                                ty_to_sql!(self.0.as_ref_uuid())
                             } else {
                                 unimplemented!();
                             }
