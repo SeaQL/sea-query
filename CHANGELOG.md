@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.17.0 - 2021-10-06
+
++ [[#157]] Fix binding nullable custom types on db drivers
+
+The `as_ref_*` methods on `Value` are changed:
+
+```rust
+pub fn as_ref_json(&self) -> &Json;
+```
+
+Is now
+
+```rust
+pub fn as_ref_json(&self) -> Option<&Json>;
+```
+
+[#157]: https://github.com/SeaQL/sea-query/pull/157
+
 ## 0.16.5 - 2021-09-30
 
 + [[#145]] Add Condition::not
