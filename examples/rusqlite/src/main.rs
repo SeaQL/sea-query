@@ -59,7 +59,7 @@ fn main() -> Result<()> {
                 "notes": "some notes here",
             })
             .into(),
-            NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+            None::<NaiveDate>.into(),
         ])
         .build(SqliteQueryBuilder);
 
@@ -186,7 +186,7 @@ struct CharacterStruct {
     character: String,
     font_size: i32,
     meta: Json,
-    created: NaiveDateTime,
+    created: Option<NaiveDateTime>,
 }
 
 impl From<&Row<'_>> for CharacterStruct {

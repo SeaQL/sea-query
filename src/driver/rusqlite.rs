@@ -45,6 +45,14 @@ macro_rules! sea_query_driver_rusqlite {
                             }
                         };
                     }
+                    macro_rules! ty_to_sql {
+                        ( $v: expr ) => {
+                            match $v {
+                                Some(v) => v.to_sql(),
+                                None => None::<bool>.to_sql(),
+                            }
+                        };
+                    }
                     match &self.0 {
                         Value::Bool(v) => to_sql!(v, bool),
                         Value::TinyInt(v) => to_sql!(v, i8),
@@ -61,17 +69,17 @@ macro_rules! sea_query_driver_rusqlite {
                         Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
                         _ => {
                             if self.0.is_json() {
-                                (*self.0.as_ref_json()).to_sql()
+                                ty_to_sql!(self.0.as_ref_json())
                             } else if self.0.is_date() {
-                                (*self.0.as_ref_date()).to_sql()
+                                ty_to_sql!(self.0.as_ref_date())
                             } else if self.0.is_time() {
-                                (*self.0.as_ref_time()).to_sql()
+                                ty_to_sql!(self.0.as_ref_time())
                             } else if self.0.is_date_time() {
-                                (*self.0.as_ref_date_time()).to_sql()
+                                ty_to_sql!(self.0.as_ref_date_time())
                             } else if self.0.is_date_time_with_time_zone() {
-                                (*self.0.as_ref_date_time_with_time_zone()).to_sql()
+                                ty_to_sql!(self.0.as_ref_date_time_with_time_zone())
                             } else if self.0.is_uuid() {
-                                (*self.0.as_ref_uuid()).to_sql()
+                                ty_to_sql!(self.0.as_ref_uuid())
                             } else {
                                 unimplemented!();
                             }
