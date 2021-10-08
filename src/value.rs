@@ -107,6 +107,12 @@ pub trait IntoValueTuple {
     fn into_value_tuple(self) -> ValueTuple;
 }
 
+pub trait FromValueTuple: Sized {
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple;
+}
+
 pub trait Nullable {
     fn null() -> Value;
 }
@@ -514,6 +520,12 @@ impl IntoIterator for ValueTuple {
     }
 }
 
+impl IntoValueTuple for ValueTuple {
+    fn into_value_tuple(self) -> ValueTuple {
+        self
+    }
+}
+
 impl<V> IntoValueTuple for V
 where
     V: Into<Value>,
@@ -541,6 +553,54 @@ where
 {
     fn into_value_tuple(self) -> ValueTuple {
         ValueTuple::Three(self.0.into(), self.1.into(), self.2.into())
+    }
+}
+
+impl<V> FromValueTuple for V
+where
+    V: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::One(u) => u.unwrap(),
+            _ => panic!("not ValueTuple::One"),
+        }
+    }
+}
+
+impl<V, W> FromValueTuple for (V, W)
+where
+    V: Into<Value> + ValueType,
+    W: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::Two(v, w) => (v.unwrap(), w.unwrap()),
+            _ => panic!("not ValueTuple::Two"),
+        }
+    }
+}
+
+impl<U, V, W> FromValueTuple for (U, V, W)
+where
+    U: Into<Value> + ValueType,
+    V: Into<Value> + ValueType,
+    W: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::Three(u, v, w) => (u.unwrap(), v.unwrap(), w.unwrap()),
+            _ => panic!("not ValueTuple::Three"),
+        }
     }
 }
 
@@ -777,6 +837,30 @@ mod tests {
                 Value::String(Some(Box::new("b".to_owned())))
             )
         );
+    }
+
+    #[test]
+    #[allow(clippy::clone_on_copy)]
+    fn test_from_value_tuple() {
+        let mut val = 1i32;
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = "b".to_owned();
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = (1i32, "b".to_owned());
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = (1i32, 2.4f64, "b".to_owned());
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
     }
 
     #[test]
