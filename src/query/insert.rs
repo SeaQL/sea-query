@@ -35,6 +35,8 @@ pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) values: Vec<Vec<SimpleExpr>>,
+    pub(crate) on_conflict: Vec<DynIden>,
+    pub(crate) do_set: Vec<Vec<SimpleExpr>>,
     pub(crate) returning: Vec<SelectExpr>,
 }
 
@@ -179,6 +181,15 @@ impl InsertStatement {
         self.exprs(values).unwrap()
     }
 
+    pub fn on_conflict<C, I>(&mut self, columns: I) -> &mut Self
+    where
+        C: IntoIden,
+        I: IntoIterator<Item = C>,
+    {
+        self.on_conflict = columns.into_iter().map(|c| c.into_iden()).collect();
+        self
+    }
+
     /// RETURNING expressions. Postgres only.
     ///
     /// ```
@@ -295,5 +306,38 @@ impl QueryStatementBuilder for InsertStatement {
         let mut sql = SqlWriter::new();
         query_builder.prepare_insert_statement(self, &mut sql, collector);
         sql.result()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_on_conflict() {
+        use crate::{tests_cfg::*, *};
+
+        let query = Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .on_conflict(vec![Glyph::Image])
+            .values_panic(vec!["12A".into()])
+            .returning(Query::select().column(Glyph::Id).take())
+            .to_owned();
+
+        assert_eq!(
+            query.to_string(PostgresQueryBuilder),
+            r#"INSERT INTO "glyph" ("image") VALUES ('12A') ON CONFLICT ("image") RETURNING "id""#
+        );
+
+        // assert_eq!(
+        //     query.to_string(MysqlQueryBuilder),
+        //     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+        // );
+
+        // assert_eq!(
+        //     query.to_string(SqliteQueryBuilder),
+        //     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+        // );
     }
 }

@@ -48,7 +48,30 @@ pub trait QueryBuilder: QuotedBuilder {
             false
         });
 
+        self.on_conflict(insert, sql);
+
         self.prepare_returning(&insert.returning, sql, collector);
+    }
+
+    fn on_conflict(&self, insert: &InsertStatement, sql: &mut SqlWriter) {
+        insert
+            .on_conflict
+            .iter()
+            .enumerate()
+            .fold(
+                (insert.on_conflict.len(), true, false),
+                |(size, first, _), (index, col)| {
+                    if first {
+                        write!(sql, " ON CONFLICT (").unwrap()
+                    } else {
+                        write!(sql, ", ").unwrap()
+                    }
+                    col.prepare(sql, self.quote());
+                    (size, false, matches!(index + 1, size))
+                },
+            )
+            .2
+            .then(|| write!(sql, ") ").unwrap());
     }
 
     /// Translate [`SelectStatement`] into SQL statement.
