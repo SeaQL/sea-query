@@ -18,6 +18,8 @@ use bigdecimal::BigDecimal;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
+use crate::ColumnType;
+
 /// Value variants
 ///
 /// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
@@ -80,6 +82,8 @@ pub trait ValueType: Sized {
     }
 
     fn type_name() -> String;
+
+    fn column_type() -> ColumnType;
 }
 
 #[derive(Debug)]
@@ -107,6 +111,12 @@ pub trait IntoValueTuple {
     fn into_value_tuple(self) -> ValueTuple;
 }
 
+pub trait FromValueTuple: Sized {
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple;
+}
+
 pub trait Nullable {
     fn null() -> Value;
 }
@@ -121,7 +131,7 @@ impl Value {
 }
 
 macro_rules! type_to_value {
-    ( $type: ty, $name: ident ) => {
+    ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
                 Value::$name(Some(x))
@@ -145,12 +155,17 @@ macro_rules! type_to_value {
             fn type_name() -> String {
                 stringify!($type).to_owned()
             }
+
+            fn column_type() -> ColumnType {
+                use ColumnType::*;
+                $col_type
+            }
         }
     };
 }
 
 macro_rules! type_to_box_value {
-    ( $type: ty, $name: ident ) => {
+    ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
                 Value::$name(Some(Box::new(x)))
@@ -174,21 +189,28 @@ macro_rules! type_to_box_value {
             fn type_name() -> String {
                 stringify!($type).to_owned()
             }
+
+            fn column_type() -> ColumnType {
+                use ColumnType::*;
+                $col_type
+            }
         }
     };
 }
 
-type_to_value!(bool, Bool);
-type_to_value!(i8, TinyInt);
-type_to_value!(i16, SmallInt);
-type_to_value!(i32, Int);
-type_to_value!(i64, BigInt);
-type_to_value!(u8, TinyUnsigned);
-type_to_value!(u16, SmallUnsigned);
-type_to_value!(u32, Unsigned);
-type_to_value!(u64, BigUnsigned);
-type_to_value!(f32, Float);
-type_to_value!(f64, Double);
+type_to_value!(bool, Bool, Boolean);
+type_to_value!(i8, TinyInt, TinyInteger(None));
+type_to_value!(i16, SmallInt, SmallInteger(None));
+type_to_value!(i32, Int, Integer(None));
+type_to_value!(i64, BigInt, BigInteger(None));
+
+// FIXME: edit this mapping after we added unsigned column types
+type_to_value!(u8, TinyUnsigned, TinyInteger(None));
+type_to_value!(u16, SmallUnsigned, SmallInteger(None));
+type_to_value!(u32, Unsigned, Integer(None));
+type_to_value!(u64, BigUnsigned, BigInteger(None));
+type_to_value!(f32, Float, Float(None));
+type_to_value!(f64, Double, Double(None));
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
@@ -236,17 +258,21 @@ where
     fn type_name() -> String {
         format!("Option<{}>", T::type_name())
     }
+
+    fn column_type() -> ColumnType {
+        T::column_type()
+    }
 }
 
-type_to_box_value!(Vec<u8>, Bytes);
-type_to_box_value!(String, String);
+type_to_box_value!(Vec<u8>, Bytes, Binary(None));
+type_to_box_value!(String, String, String(None));
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
     use super::*;
 
-    type_to_box_value!(Json, Json);
+    type_to_box_value!(Json, Json, Json);
 }
 
 #[cfg(feature = "with-chrono")]
@@ -255,9 +281,9 @@ mod with_chrono {
     use super::*;
     use chrono::{Offset, TimeZone};
 
-    type_to_box_value!(NaiveDate, Date);
-    type_to_box_value!(NaiveTime, Time);
-    type_to_box_value!(NaiveDateTime, DateTime);
+    type_to_box_value!(NaiveDate, Date, Date);
+    type_to_box_value!(NaiveTime, Time, Time(None));
+    type_to_box_value!(NaiveDateTime, DateTime, DateTime(None));
 
     impl<Tz> From<DateTime<Tz>> for Value
     where
@@ -286,6 +312,10 @@ mod with_chrono {
         fn type_name() -> String {
             stringify!(DateTime<FixedOffset>).to_owned()
         }
+
+        fn column_type() -> ColumnType {
+            ColumnType::TimestampWithTimeZone(None)
+        }
     }
 }
 
@@ -294,7 +324,7 @@ mod with_chrono {
 mod with_rust_decimal {
     use super::*;
 
-    type_to_box_value!(Decimal, Decimal);
+    type_to_box_value!(Decimal, Decimal, Decimal(None));
 }
 
 #[cfg(feature = "with-bigdecimal")]
@@ -302,7 +332,7 @@ mod with_rust_decimal {
 mod with_bigdecimal {
     use super::*;
 
-    type_to_box_value!(BigDecimal, BigDecimal);
+    type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 }
 
 #[cfg(feature = "with-uuid")]
@@ -310,7 +340,7 @@ mod with_bigdecimal {
 mod with_uuid {
     use super::*;
 
-    type_to_box_value!(Uuid, Uuid);
+    type_to_box_value!(Uuid, Uuid, Uuid);
 }
 
 #[allow(unused_macros)]
@@ -514,6 +544,12 @@ impl IntoIterator for ValueTuple {
     }
 }
 
+impl IntoValueTuple for ValueTuple {
+    fn into_value_tuple(self) -> ValueTuple {
+        self
+    }
+}
+
 impl<V> IntoValueTuple for V
 where
     V: Into<Value>,
@@ -541,6 +577,54 @@ where
 {
     fn into_value_tuple(self) -> ValueTuple {
         ValueTuple::Three(self.0.into(), self.1.into(), self.2.into())
+    }
+}
+
+impl<V> FromValueTuple for V
+where
+    V: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::One(u) => u.unwrap(),
+            _ => panic!("not ValueTuple::One"),
+        }
+    }
+}
+
+impl<V, W> FromValueTuple for (V, W)
+where
+    V: Into<Value> + ValueType,
+    W: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::Two(v, w) => (v.unwrap(), w.unwrap()),
+            _ => panic!("not ValueTuple::Two"),
+        }
+    }
+}
+
+impl<U, V, W> FromValueTuple for (U, V, W)
+where
+    U: Into<Value> + ValueType,
+    V: Into<Value> + ValueType,
+    W: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::Three(u, v, w) => (u.unwrap(), v.unwrap(), w.unwrap()),
+            _ => panic!("not ValueTuple::Three"),
+        }
     }
 }
 
@@ -777,6 +861,30 @@ mod tests {
                 Value::String(Some(Box::new("b".to_owned())))
             )
         );
+    }
+
+    #[test]
+    #[allow(clippy::clone_on_copy)]
+    fn test_from_value_tuple() {
+        let mut val = 1i32;
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = "b".to_owned();
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = (1i32, "b".to_owned());
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = (1i32, 2.4f64, "b".to_owned());
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
     }
 
     #[test]
