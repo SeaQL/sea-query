@@ -203,8 +203,8 @@ type_to_value!(i8, TinyInt, TinyInteger(None));
 type_to_value!(i16, SmallInt, SmallInteger(None));
 type_to_value!(i32, Int, Integer(None));
 type_to_value!(i64, BigInt, BigInteger(None));
-// FIXME: I don't know where to map unsigned types so I mapped them to signed
-// types for now.
+
+// FIXME: edit this mapping after we added unsigned column types
 type_to_value!(u8, TinyUnsigned, TinyInteger(None));
 type_to_value!(u16, SmallUnsigned, SmallInteger(None));
 type_to_value!(u32, Unsigned, Integer(None));
@@ -264,9 +264,7 @@ where
     }
 }
 
-// FIXME: I'm not sure if Bytes map to Binary
 type_to_box_value!(Vec<u8>, Bytes, Binary(None));
-// FIXME: I'm not sure if should use Text or String here
 type_to_box_value!(String, String, String(None));
 
 #[cfg(feature = "with-json")]
@@ -334,7 +332,6 @@ mod with_rust_decimal {
 mod with_bigdecimal {
     use super::*;
 
-    // FIXME: not sure if BigDecimal map to Decimal
     type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 }
 
