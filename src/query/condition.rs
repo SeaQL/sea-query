@@ -73,7 +73,7 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Image)
@@ -81,7 +81,7 @@ impl Condition {
     ///     .cond_where(
     ///         Cond::all()
     ///             .add_option(Some(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
-    ///             .add_option(None::<SimpleExpr>)
+    ///             .add_option(None::<SimpleExpr>),
     ///     )
     ///     .to_owned();
     ///
@@ -189,7 +189,7 @@ impl Condition {
     /// # More Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Id)
@@ -199,13 +199,9 @@ impl Condition {
     ///                 Cond::all()
     ///                     .not()
     ///                     .add(Expr::val(1).eq(1))
-    ///                     .add(Expr::val(2).eq(2))
+    ///                     .add(Expr::val(2).eq(2)),
     ///             )
-    ///             .add(
-    ///                 Cond::any()
-    ///                     .add(Expr::val(3).eq(3))
-    ///                     .add(Expr::val(4).eq(4))
-    ///             )
+    ///             .add(Cond::any().add(Expr::val(3).eq(3)).add(Expr::val(4).eq(4))),
     ///     )
     ///     .to_owned();
     ///
