@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## 0.17.2 - 2021-10-15
+
++ [[#164]] Revert "Fix SQLite `chrono::NaiveTime` binding"
+
+[#164]: https://github.com/SeaQL/sea-query/pull/164
+
+## 0.17.1 - 2021-10-12 (yanked)
+
 ## 0.17.0 - 2021-10-06
 
 + [[#157]] Fix binding nullable custom types on db drivers
