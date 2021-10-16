@@ -1,7 +1,7 @@
 use crate::{DynIden, IntoIden, SimpleExpr, Value};
 use std::fmt;
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum ConflictExpr {
     None,
     Sql(String),
@@ -15,12 +15,12 @@ pub enum ConflictExpr {
     },
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum ActionExpr {
     None,
-    Column {
-        set: Vec<String>,
-        exclude: Vec<String>,
+    Set {
+        column: Vec<SimpleExpr>,
+        excluded: Vec<DynIden>,
     },
 }
 
@@ -56,6 +56,15 @@ impl UpsertExpr {
         }
     }
 
+    pub fn do_conflict_sql<S:>(sql: S) -> Self
+        where S: Into<String>
+    {
+        Self {
+            conflict: ConflictExpr::Sql(sql.into()),
+            action: ActionExpr::None,
+        }
+    }
+
     pub fn do_conflict_on_constraint<S, F>(key: S, filter: F) -> Self
         where
             S: Into<String>,
@@ -70,34 +79,73 @@ impl UpsertExpr {
         }
     }
 
-    // pub fn do_nothing(&mut self) -> UpsertExpr {
-    //     todo!()
-    // }
+    pub fn do_nothing(&mut self) -> &mut Self {
+        self.action = ActionExpr::None;
+        self
+    }
 
-    // pub fn do_update_set(self, sets: Set) -> UpsertExpr {
-    //     todo!()
+    // pub fn do_update_set(&mut self, column: Set) -> &mut self {
+    //
     // }
 }
 
-#[ignore]
-#[test]
-fn test_on_conflict() {
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
     use crate::{tests_cfg::*, *};
 
-    // let query = Query::insert()
-    //     .into_table(Glyph::Table)
-    //     .columns(vec![Glyph::Image])
-    //     .upsert(Upsert::do_conflict_nothing())
-    //     .upsert(Upsert::do_conflict("").do_nothing())
-    //     .upsert(Upsert::do_conflict_on_constraint("").do_action())
-    //     .upsert(Upsert::do_conflict("").do_action())
-    //     .values_panic(vec!["12A".into()])
-    //     .returning(Query::select().column(Glyph::Id).take())
-    //     .to_owned();
-    //
-    // assert_eq!(
-    //     query.to_string(PostgresQueryBuilder),
-    //     r#"INSERT INTO "glyph" ("image") VALUES ('12A') ON CONFLICT ("image") RETURNING "id""#
-    // );
+    #[test]
+    fn test_do_conflict_nothing() {
+        let query = Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .upsert(UpsertExpr::do_conflict_nothing())
+            .returning(Query::select().column(Glyph::Id).take())
+            .to_owned().to_string(PostgresQueryBuilder);
+
+        println!("{}", query);
+    }
+
+    #[test]
+    fn test_on_conflict() {
+        let query = Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .upsert(UpsertExpr::do_conflict(
+                vec![Glyph::Image, Glyph::Id],
+                vec![Expr::col(Glyph::Image).eq(5)],
+            ))
+            .returning(Query::select().column(Glyph::Id).take())
+            .to_owned().to_string(PostgresQueryBuilder);
+        println!("{}", query);
+    }
+
+    #[test]
+    fn test_on_conflict_sql() {
+        let query = Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .upsert(UpsertExpr::do_conflict_sql("(id) WHERE id > 0"))
+            .returning(Query::select().column(Glyph::Id).take())
+            .to_owned().to_string(PostgresQueryBuilder);
+        println!("{}", query);
+    }
+
+    #[test]
+    fn test_on_conflict_on_constraint() {
+        let query = Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .upsert(UpsertExpr::do_conflict_on_constraint(
+                "image",
+                vec![Expr::col(Glyph::Image).eq(5)],
+            ))
+            .returning(Query::select().column(Glyph::Id).take())
+            .to_owned().to_string(PostgresQueryBuilder);
+        println!("{}", query);
+    }
 }
+
 

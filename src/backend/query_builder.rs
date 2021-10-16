@@ -1,4 +1,5 @@
 use crate::*;
+use crate::query::upsert::ActionExpr;
 use crate::upsert::{ConflictExpr, UpsertExpr};
 
 pub trait QueryBuilder: QuotedBuilder {
@@ -75,7 +76,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     .fold(
                         (filter.len(), true, false),
                         |(size, first, _), (index, col)| {
-                            if first {
+                            if !first {
                                 write!(sql, ", ").unwrap();
                             } else {
                                 write!(sql, "(").unwrap();
@@ -103,7 +104,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             ConflictExpr::Constraint { key, filter } => {
                 write!(sql, "ON CONSTRAINT ").unwrap();
-                write!(sql, "{}{}{}", self.quote(), key, self.quote()).unwrap();
+                write!(sql, "{}{}{} ", self.quote(), key, self.quote()).unwrap();
 
                 filter.iter()
                     .enumerate()
@@ -121,6 +122,32 @@ pub trait QueryBuilder: QuotedBuilder {
                         },
                     ).2.then(|| write!(sql, ") ").unwrap());
             }
+        }
+        match &upsert.action{
+            ActionExpr::None => {
+                write!(sql, "DO NOTHING ").unwrap();
+            }
+
+            // ActionExpr::Set {column,exclude } => {
+            //     write!(sql, "DO UPDATE SET ").unwrap();
+            //     column.iter().fold(true, |first, col| {
+            //         if !first {
+            //             write!(sql, ", ").unwrap()
+            //         }
+            //         self.prepare_simple_expr(col, sql, collector);
+            //         false
+            //     });
+            //
+            //     exclude.iter().fold(true, |first, col| {
+            //         if !first {
+            //             write!(sql, ", ").unwrap()
+            //         }
+            //         self.prepare_simple_expr(col, sql, collector);
+            //         false
+            //     });
+            //
+            // }
+            ActionExpr::Set { .. } => {}
         }
     }
 
