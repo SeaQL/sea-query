@@ -2,13 +2,25 @@ use crate::Value;
 use std::fmt;
 
 #[derive(Debug, Clone)]
-pub struct UpsertExpr {
-    // on_conflict: T,
-// do_action: A,
+pub struct UpsertExpr<Target,Action> {
+    target: Target,
+    action: Action,
 }
 
-impl UpsertExpr {
-    pub fn prepare_upsert(&self, s: &mut dyn fmt::Write, collector: &mut dyn FnMut(Value)) {}
+impl<Target,Action> UpsertExpr<Target,Action> {
+    pub fn prepare_upsert(&self, sql: &mut dyn fmt::Write, collector: &mut dyn FnMut(Value)) {
+        write!(sql, " ON CONFLICT").unwrap();
+        self.prepare_target(sql,collector);
+        self.prepare_action(sql,collector);
+    }
+
+    fn prepare_target(&self, s: &mut dyn fmt::Write, collector: &mut dyn FnMut(Value)){
+
+    }
+
+    fn prepare_action(&self, s: &mut dyn fmt::Write, collector: &mut dyn FnMut(Value)){
+
+    }
 }
 
 pub struct Upsert<T, A> {
@@ -33,7 +45,7 @@ impl<T, A> Upsert<T, A> {
         todo!()
     }
 
-    pub fn do_action(self) -> UpsertExpr {
+    pub fn do_update_set(self,sets:Set) -> UpsertExpr {
         todo!()
     }
 }
