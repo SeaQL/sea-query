@@ -10,7 +10,7 @@ pub enum ConflictExpr {
         filter: Vec<SimpleExpr>,
     },
     Column {
-        conflict: Vec<DynIden>,
+        target: Vec<DynIden>,
         filter: Vec<SimpleExpr>,
     },
 }
@@ -38,26 +38,30 @@ impl Default for UpsertExpr {
 
 impl UpsertExpr {
     pub fn do_conflict_nothing() -> Self {
-        Self { conflict: ConflictExpr::None, action: ActionExpr::None }
+        Self {
+            conflict: ConflictExpr::None,
+            action: ActionExpr::None,
+        }
     }
 
-    pub fn do_conflict<C, I, F>(conflict: I, filter: F) -> Self
-        where
-            C: IntoIden,
-            I: IntoIterator<Item=C>,
-            F: IntoIterator<Item=SimpleExpr>,
+    pub fn do_conflict<C, I, F>(target: I, filter: F) -> Self
+    where
+        C: IntoIden,
+        I: IntoIterator<Item = C>,
+        F: IntoIterator<Item = SimpleExpr>,
     {
         Self {
             conflict: ConflictExpr::Column {
-                conflict: conflict.into_iter().map(|c| c.into_iden()).collect(),
+                target: target.into_iter().map(|c| c.into_iden()).collect(),
                 filter: filter.into_iter().collect(),
             },
             action: ActionExpr::None,
         }
     }
 
-    pub fn do_conflict_sql<S:>(sql: S) -> Self
-        where S: Into<String>
+    pub fn do_conflict_sql<S>(sql: S) -> Self
+    where
+        S: Into<String>,
     {
         Self {
             conflict: ConflictExpr::Sql(sql.into()),
@@ -66,9 +70,9 @@ impl UpsertExpr {
     }
 
     pub fn do_conflict_on_constraint<S, F>(key: S, filter: F) -> Self
-        where
-            S: Into<String>,
-            F: IntoIterator<Item=SimpleExpr>,
+    where
+        S: Into<String>,
+        F: IntoIterator<Item = SimpleExpr>,
     {
         Self {
             conflict: ConflictExpr::Constraint {
@@ -79,16 +83,24 @@ impl UpsertExpr {
         }
     }
 
-    pub fn do_nothing(&mut self) -> &mut Self {
+    pub fn do_nothing(mut self) -> Self {
         self.action = ActionExpr::None;
         self
     }
 
-    // pub fn do_update_set(&mut self, column: Set) -> &mut self {
-    //
-    // }
+    pub fn do_update_set<C, E, I>(mut self, column: C, excluded: E) -> Self
+    where
+        C: IntoIterator<Item = SimpleExpr>,
+        I: IntoIden,
+        E: IntoIterator<Item = I>,
+    {
+        self.action = ActionExpr::Set {
+            column: column.into_iter().collect(),
+            excluded: vec![],
+        };
+        self
+    }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -103,7 +115,8 @@ mod tests {
             .columns(vec![Glyph::Image])
             .upsert(UpsertExpr::do_conflict_nothing())
             .returning(Query::select().column(Glyph::Id).take())
-            .to_owned().to_string(PostgresQueryBuilder);
+            .to_owned()
+            .to_string(PostgresQueryBuilder);
 
         println!("{}", query);
     }
@@ -118,7 +131,8 @@ mod tests {
                 vec![Expr::col(Glyph::Image).eq(5)],
             ))
             .returning(Query::select().column(Glyph::Id).take())
-            .to_owned().to_string(PostgresQueryBuilder);
+            .to_owned()
+            .to_string(PostgresQueryBuilder);
         println!("{}", query);
     }
 
@@ -129,7 +143,8 @@ mod tests {
             .columns(vec![Glyph::Image])
             .upsert(UpsertExpr::do_conflict_sql("(id) WHERE id > 0"))
             .returning(Query::select().column(Glyph::Id).take())
-            .to_owned().to_string(PostgresQueryBuilder);
+            .to_owned()
+            .to_string(PostgresQueryBuilder);
         println!("{}", query);
     }
 
@@ -143,9 +158,23 @@ mod tests {
                 vec![Expr::col(Glyph::Image).eq(5)],
             ))
             .returning(Query::select().column(Glyph::Id).take())
-            .to_owned().to_string(PostgresQueryBuilder);
+            .to_owned()
+            .to_string(PostgresQueryBuilder);
+        println!("{}", query);
+    }
+
+    #[test]
+    fn test_on_conflict_do_update_set() {
+        let query = Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .upsert(
+                UpsertExpr::do_conflict_on_constraint("image", vec![Expr::col(Glyph::Image).eq(5)])
+                    .do_update_set(vec![Expr::col(Glyph::Image).eq(5)], vec![]),
+            )
+            .returning(Query::select().column(Glyph::Id).take())
+            .to_owned()
+            .to_string(PostgresQueryBuilder);
         println!("{}", query);
     }
 }
-
-
