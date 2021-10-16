@@ -1,53 +1,82 @@
-use crate::Value;
+use crate::{DynIden, IntoIden, SimpleExpr, Value};
 use std::fmt;
 
+#[derive(Debug,Clone)]
+pub enum ConflictExpr {
+    None,
+    Sql(String),
+    Constraint {
+        key: String,
+        filter: Vec<SimpleExpr>,
+    },
+    Column {
+        conflict: Vec<DynIden>,
+        filter: Vec<SimpleExpr>,
+    },
+}
+
+#[derive(Debug,Clone)]
+pub enum ActionExpr {
+    None,
+    Column {
+        set: Vec<String>,
+        exclude: Vec<String>,
+    },
+}
+
 #[derive(Debug, Clone)]
-pub struct UpsertExpr<Target,Action> {
-    target: Target,
-    action: Action,
+pub struct UpsertExpr {
+    pub conflict: ConflictExpr,
+    pub action: ActionExpr,
 }
 
-impl<Target,Action> UpsertExpr<Target,Action> {
-    pub fn prepare_upsert(&self, sql: &mut dyn fmt::Write, collector: &mut dyn FnMut(Value)) {
-        write!(sql, " ON CONFLICT").unwrap();
-        self.prepare_target(sql,collector);
-        self.prepare_action(sql,collector);
-    }
-
-    fn prepare_target(&self, s: &mut dyn fmt::Write, collector: &mut dyn FnMut(Value)){
-
-    }
-
-    fn prepare_action(&self, s: &mut dyn fmt::Write, collector: &mut dyn FnMut(Value)){
-
+impl Default for UpsertExpr {
+    fn default() -> Self {
+        Self::do_conflict_nothing()
     }
 }
 
-pub struct Upsert<T, A> {
-    on_conflict: T,
-    do_action: A,
-}
-
-impl<T, A> Upsert<T, A> {
-    pub fn do_conflict_nothing() -> UpsertExpr {
-        UpsertExpr {}
+impl UpsertExpr {
+    pub fn do_conflict_nothing() -> Self {
+        Self { conflict: ConflictExpr::None, action: ActionExpr::None }
     }
 
-    pub fn do_conflict<Target>(target: Target) -> Self {
-        todo!()
+    pub fn do_conflict<C, I, F>(conflict: I, filter: F) -> Self
+        where
+            C: IntoIden,
+            I: IntoIterator<Item=C>,
+            F: IntoIterator<Item=SimpleExpr>,
+    {
+        Self {
+            conflict: ConflictExpr::Column {
+                conflict: conflict.into_iter().map(|c| c.into_iden()).collect(),
+                filter: filter.into_iter().collect(),
+            },
+            action: ActionExpr::None,
+        }
     }
 
-    pub fn do_conflict_on_constraint<Target>(target: Target) -> Self {
-        todo!()
+    pub fn do_conflict_on_constraint<S, F>(key: S, filter: F) -> Self
+        where
+            S: Into<String>,
+            F: IntoIterator<Item=SimpleExpr>,
+    {
+        Self {
+            conflict: ConflictExpr::Constraint {
+                key: key.into(),
+                filter: filter.into_iter().collect(),
+            },
+            action: ActionExpr::None,
+        }
     }
 
-    pub fn do_nothing(&mut self) -> UpsertExpr {
-        todo!()
-    }
+    // pub fn do_nothing(&mut self) -> UpsertExpr {
+    //     todo!()
+    // }
 
-    pub fn do_update_set(self,sets:Set) -> UpsertExpr {
-        todo!()
-    }
+    // pub fn do_update_set(self, sets: Set) -> UpsertExpr {
+    //     todo!()
+    // }
 }
 
 #[ignore]

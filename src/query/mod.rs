@@ -15,7 +15,7 @@ mod select;
 mod shim;
 mod traits;
 mod update;
-mod upsert;
+pub(crate) mod upsert;
 
 pub use condition::*;
 pub use delete::*;

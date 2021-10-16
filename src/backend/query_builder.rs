@@ -1,4 +1,5 @@
 use crate::*;
+use crate::upsert::{ConflictExpr, UpsertExpr};
 
 pub trait QueryBuilder: QuotedBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
@@ -48,7 +49,9 @@ pub trait QueryBuilder: QuotedBuilder {
             false
         });
 
-        self.prepare_upsert(insert, sql, collector);
+        if let Some(upsert) = &insert.upsert {
+            self.prepare_upsert(upsert, sql, collector);
+        }
 
         self.prepare_returning(&insert.returning, sql, collector);
     }
@@ -56,12 +59,68 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Upsert Statement
     fn prepare_upsert(
         &self,
-        insert: &InsertStatement,
+        upsert: &UpsertExpr,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        if let Some(upsert) = &insert.upsert {
-            upsert.prepare_upsert(sql, collector)
+        write!(sql, " ON CONFLICT ").unwrap();
+        match &upsert.conflict {
+            ConflictExpr::None => {}
+            ConflictExpr::Sql(raw_sql) => {
+                write!(sql, "{} ", raw_sql).unwrap();
+            }
+            ConflictExpr::Column { conflict, filter } => {
+                conflict.iter()
+                    .enumerate()
+                    .fold(
+                        (filter.len(), true, false),
+                        |(size, first, _), (index, col)| {
+                            if first {
+                                write!(sql, ", ").unwrap();
+                            } else {
+                                write!(sql, "(").unwrap();
+                            }
+                            col.prepare(sql, self.quote());
+                            (size, false, matches!(index + 1, size))
+                        },
+                    ).2.then(|| write!(sql, ") ").unwrap());
+
+                filter.iter()
+                    .enumerate()
+                    .fold(
+                        (filter.len(), true, false),
+                        |(size, first, _), (index, col)| {
+                            if !first {
+                                write!(sql, ", ").unwrap()
+                            } else {
+                                write!(sql, "WHERE ").unwrap();
+                                write!(sql, "(").unwrap()
+                            }
+                            self.prepare_simple_expr(col, sql, collector);
+                            (size, false, matches!(index + 1, size))
+                        },
+                    ).2.then(|| write!(sql, ") ").unwrap());
+            }
+            ConflictExpr::Constraint { key, filter } => {
+                write!(sql, "ON CONSTRAINT ").unwrap();
+                write!(sql, "{}{}{}", self.quote(), key, self.quote()).unwrap();
+
+                filter.iter()
+                    .enumerate()
+                    .fold(
+                        (filter.len(), true, false),
+                        |(size, first, _), (index, col)| {
+                            if !first {
+                                write!(sql, ", ").unwrap()
+                            } else {
+                                write!(sql, "WHERE ").unwrap();
+                                write!(sql, "(").unwrap()
+                            }
+                            self.prepare_simple_expr(col, sql, collector);
+                            (size, false, matches!(index + 1, size))
+                        },
+                    ).2.then(|| write!(sql, ") ").unwrap());
+            }
         }
     }
 
@@ -361,7 +420,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 SelectDistinct::DistinctRow => "DISTINCTROW",
             }
         )
-        .unwrap();
+            .unwrap();
     }
 
     /// Translate [`LockType`] into SQL statement.
@@ -379,7 +438,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 LockType::Exclusive => "FOR UPDATE",
             }
         )
-        .unwrap();
+            .unwrap();
     }
 
     /// Translate [`SelectExpr`] into SQL statement.
@@ -467,7 +526,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 UnOper::Not => "NOT",
             }
         )
-        .unwrap();
+            .unwrap();
     }
 
     fn prepare_bin_oper_common(
@@ -504,7 +563,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 _ => unimplemented!(),
             }
         )
-        .unwrap();
+            .unwrap();
     }
 
     /// Translate [`BinOper`] into SQL statement.
@@ -576,7 +635,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::PgFunction(_) => unimplemented!(),
                 }
             )
-            .unwrap();
+                .unwrap();
         }
     }
 
@@ -606,7 +665,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 JoinType::RightJoin => "RIGHT JOIN",
             }
         )
-        .unwrap()
+            .unwrap()
     }
 
     /// Translate [`OrderExpr`] into SQL statement.
@@ -667,7 +726,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     Keyword::Custom(_) => "",
                 }
             )
-            .unwrap();
+                .unwrap();
         }
     }
 
@@ -721,7 +780,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 "x\'{}\'",
                 v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
             )
-            .unwrap(),
+                .unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
@@ -753,8 +812,7 @@ pub trait QueryBuilder: QuotedBuilder {
         _returning: &[SelectExpr],
         _sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
-    ) {
-    }
+    ) {}
 
     #[doc(hidden)]
     /// Translate a condition to a "WHERE" clause.
