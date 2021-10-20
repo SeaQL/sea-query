@@ -294,7 +294,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as money with custom precision ans scale
+    /// Set column type as money with custom precision and scale
     pub fn money_len(&mut self, precision: u32, scale: u32) -> &mut Self {
         self.types = Some(ColumnType::Money(Some((precision, scale))));
         self
