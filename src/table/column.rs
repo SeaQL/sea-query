@@ -29,7 +29,6 @@ pub enum ColumnType {
     TimestampWithTimeZone(Option<u32>),
     Time(Option<u32>),
     Date,
-    #[cfg(feature = "backend-postgres")]
     Interval(Option<IntervalField>, Option<u32>),
     Binary(Option<u32>),
     Boolean,
