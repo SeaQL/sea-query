@@ -74,6 +74,8 @@ impl TableBuilder for MysqlQueryBuilder {
                     None => "time".into(),
                 },
                 ColumnType::Date => "date".into(),
+                ColumnType::Interval(_, _) =>
+                    panic!("MySQL does not support the interval column type"),
                 ColumnType::Binary(length) => match length {
                     Some(length) => format!("binary({})", length),
                     None => "blob".into(),

@@ -153,6 +153,70 @@ fn create_6() {
 }
 
 #[test]
+fn create_7() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Aspect).interval(None, None).not_null())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "glyph" ("#,
+            r#""aspect" interval NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_8() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Aspect).interval(Some(IntervalField::YearToMonth), None).not_null())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "glyph" ("#,
+            r#""aspect" interval YEAR TO MONTH NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_9() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Aspect).interval(None, Some(42)).not_null())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "glyph" ("#,
+            r#""aspect" interval(42) NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_10() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Aspect).interval(Some(IntervalField::Hour), Some(43)).not_null())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "glyph" ("#,
+            r#""aspect" interval HOUR(43) NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
