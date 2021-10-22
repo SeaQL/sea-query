@@ -94,8 +94,7 @@ impl TableBuilder for SqliteQueryBuilder {
                     None => "text".into(),
                 },
                 ColumnType::Date => "text".into(),
-                ColumnType::Interval(_, _) =>
-                    panic!("SQLite does not support the interval column type"),
+                ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(length) => match length {
                     Some(length) => format!("binary({})", length),
                     None => "binary".into(),
