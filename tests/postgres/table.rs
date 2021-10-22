@@ -157,7 +157,11 @@ fn create_7() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Aspect).interval(None, None).not_null())
+            .col(
+                ColumnDef::new(Glyph::Aspect)
+                    .interval(None, None)
+                    .not_null()
+            )
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
@@ -173,7 +177,11 @@ fn create_8() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Aspect).interval(Some(IntervalField::YearToMonth), None).not_null())
+            .col(
+                ColumnDef::new(Glyph::Aspect)
+                    .interval(Some(IntervalField::YearToMonth), None)
+                    .not_null()
+            )
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
@@ -189,7 +197,11 @@ fn create_9() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Aspect).interval(None, Some(42)).not_null())
+            .col(
+                ColumnDef::new(Glyph::Aspect)
+                    .interval(None, Some(42))
+                    .not_null()
+            )
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
@@ -205,7 +217,11 @@ fn create_10() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Aspect).interval(Some(IntervalField::Hour), Some(43)).not_null())
+            .col(
+                ColumnDef::new(Glyph::Aspect)
+                    .interval(Some(IntervalField::Hour), Some(43))
+                    .not_null()
+            )
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
