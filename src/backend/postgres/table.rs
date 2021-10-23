@@ -74,6 +74,16 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "time".into(),
                 },
                 ColumnType::Date => "date".into(),
+                ColumnType::Interval(fields, precision) => {
+                    let mut typ = "interval".to_string();
+                    if let Some(fields) = fields {
+                        typ.push_str(&format!(" {}", fields));
+                    }
+                    if let Some(precision) = precision {
+                        typ.push_str(&format!("({})", precision));
+                    }
+                    typ
+                }
                 ColumnType::Binary(length) => match length {
                     Some(_) | None => "bytea".into(),
                 },
