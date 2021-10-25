@@ -256,40 +256,40 @@ impl ColumnDef {
     /// Set column type as interval type with optional fields and precision. Postgres only
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     /// assert_eq!(
-    ///    Table::create()
-    ///        .table(Glyph::Table)
-    ///        .col(
-    ///            ColumnDef::new(Alias::new("I1"))
-    ///                .interval(None, None)
-    ///                .not_null()
-    ///        )
-    ///        .col(
-    ///            ColumnDef::new(Alias::new("I2"))
-    ///                .interval(Some(IntervalField::YearToMonth), None)
-    ///                .not_null()
-    ///        )
-    ///        .col(
-    ///            ColumnDef::new(Alias::new("I3"))
-    ///                .interval(None, Some(42))
-    ///                .not_null()
-    ///        )
-    ///        .col(
-    ///            ColumnDef::new(Alias::new("I4"))
-    ///                .interval(Some(IntervalField::Hour), Some(43))
-    ///                .not_null()
-    ///        )
-    ///        .to_string(PostgresQueryBuilder),
-    ///    vec![
-    ///        r#"CREATE TABLE "glyph" ("#,
-    ///        r#""I1" interval NOT NULL,"#,
-    ///        r#""I2" interval YEAR TO MONTH NOT NULL,"#,
-    ///        r#""I3" interval(42) NOT NULL,"#,
-    ///        r#""I4" interval HOUR(43) NOT NULL"#,
-    ///        r#")"#,
-    ///    ]
-    ///    .join(" ")
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I1"))
+    ///                 .interval(None, None)
+    ///                 .not_null()
+    ///         )
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I2"))
+    ///                 .interval(Some(IntervalField::YearToMonth), None)
+    ///                 .not_null()
+    ///         )
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I3"))
+    ///                 .interval(None, Some(42))
+    ///                 .not_null()
+    ///         )
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I4"))
+    ///                 .interval(Some(IntervalField::Hour), Some(43))
+    ///                 .not_null()
+    ///         )
+    ///         .to_string(PostgresQueryBuilder),
+    ///     vec![
+    ///         r#"CREATE TABLE "glyph" ("#,
+    ///         r#""I1" interval NOT NULL,"#,
+    ///         r#""I2" interval YEAR TO MONTH NOT NULL,"#,
+    ///         r#""I3" interval(42) NOT NULL,"#,
+    ///         r#""I4" interval HOUR(43) NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]

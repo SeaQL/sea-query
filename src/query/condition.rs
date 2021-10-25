@@ -46,6 +46,24 @@ impl Condition {
     ///
     /// If it's an [`Condition::any`], it will be separated from the others by an `" OR "` in the query. If it's
     /// an [`Condition::all`], it will be separated by an `" AND "`.
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let statement = sea_query::Query::select()
+    ///     .column(Glyph::Id)
+    ///     .from(Glyph::Table)
+    ///     .cond_where(
+    ///         Cond::all()
+    ///             .add(Expr::col(Glyph::Aspect).eq(0).into_condition().not())
+    ///             .add(Expr::col(Glyph::Id).eq(0).into_condition().not()),
+    ///     )
+    ///     .to_string(PostgresQueryBuilder);
+    /// assert_eq!(
+    ///     statement,
+    ///     r#"SELECT "id" FROM "glyph" WHERE (NOT ("aspect" = 0)) AND (NOT ("id" = 0))"#
+    /// );
+    /// ```
     #[allow(clippy::should_implement_trait)]
     pub fn add<C>(mut self, condition: C) -> Self
     where
@@ -58,7 +76,7 @@ impl Condition {
                 return self;
             }
             // Skip the junction if there is only one.
-            if c.conditions.len() == 1 {
+            if c.conditions.len() == 1 && !c.negate {
                 expr = c.conditions.pop().unwrap();
             }
         }
@@ -73,7 +91,7 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Image)
@@ -81,7 +99,7 @@ impl Condition {
     ///     .cond_where(
     ///         Cond::all()
     ///             .add_option(Some(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
-    ///             .add_option(None::<SimpleExpr>)
+    ///             .add_option(None::<SimpleExpr>),
     ///     )
     ///     .to_owned();
     ///
@@ -189,7 +207,7 @@ impl Condition {
     /// # More Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Id)
@@ -199,13 +217,9 @@ impl Condition {
     ///                 Cond::all()
     ///                     .not()
     ///                     .add(Expr::val(1).eq(1))
-    ///                     .add(Expr::val(2).eq(2))
+    ///                     .add(Expr::val(2).eq(2)),
     ///             )
-    ///             .add(
-    ///                 Cond::any()
-    ///                     .add(Expr::val(3).eq(3))
-    ///                     .add(Expr::val(4).eq(4))
-    ///             )
+    ///             .add(Cond::any().add(Expr::val(3).eq(3)).add(Expr::val(4).eq(4))),
     ///     )
     ///     .to_owned();
     ///
