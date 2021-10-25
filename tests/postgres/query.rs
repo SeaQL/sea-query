@@ -753,6 +753,24 @@ fn select_47() {
 }
 
 #[test]
+fn select_48() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .add(Expr::col(Glyph::Aspect).eq(0).into_condition().not())
+                .add(Expr::col(Glyph::Id).eq(0).into_condition().not()),
+        )
+        .to_string(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE (NOT ("aspect" = 0)) AND (NOT ("id" = 0))"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(

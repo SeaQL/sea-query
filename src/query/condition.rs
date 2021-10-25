@@ -58,7 +58,7 @@ impl Condition {
                 return self;
             }
             // Skip the junction if there is only one.
-            if c.conditions.len() == 1 {
+            if c.conditions.len() == 1 && !c.negate {
                 expr = c.conditions.pop().unwrap();
             }
         }
