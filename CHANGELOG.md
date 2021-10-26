@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.18.1 - 2021-10-26
+
++ [[#169]] Add support for Postgres interval type
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
+
+[#169]: https://github.com/SeaQL/sea-query/pull/169
+[#171]: https://github.com/SeaQL/sea-query/pull/171
+
 ## 0.18.0 - 2021-10-15
 
 + [[#159]] Add `ValueType::column_type`
@@ -12,6 +20,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 [#159]: https://github.com/SeaQL/sea-query/pull/159
 [#160]: https://github.com/SeaQL/sea-query/pull/160
+
+## 0.17.3 - 2021-10-26
+
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
+
+[#171]: https://github.com/SeaQL/sea-query/pull/171
 
 ## 0.17.2 - 2021-10-15
 
@@ -38,6 +52,12 @@ pub fn as_ref_json(&self) -> Option<&Json>;
 ```
 
 [#157]: https://github.com/SeaQL/sea-query/pull/157
+
+## 0.16.6 - 2021-10-26
+
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
+
+[#171]: https://github.com/SeaQL/sea-query/pull/171
 
 ## 0.16.5 - 2021-09-30
 
