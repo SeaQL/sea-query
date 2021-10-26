@@ -10,6 +10,7 @@ pub struct ColumnDef {
 }
 
 /// All column types
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum ColumnType {
     Char(Option<u32>),
