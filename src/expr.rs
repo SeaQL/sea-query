@@ -1425,6 +1425,17 @@ impl Expr {
         self.into()
     }
 
+    pub fn enum_value<T, I>(type_name: T, expr: I) -> SimpleExpr
+    where
+        T: ToString,
+        I: Into<SimpleExpr>,
+    {
+        SimpleExpr::EnumValue(
+            type_name.to_string(),
+            Box::new(expr.into())
+        )
+    }
+
     fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
         let mut expr = Expr::new();
         expr.func = Some(func);
@@ -1793,5 +1804,15 @@ impl SimpleExpr {
         T: Into<SimpleExpr>,
     {
         self.concatenate(right)
+    }
+
+    pub fn cast_expr_as<T>(self, type_name: T) -> Self
+    where
+        T: ToString,
+    {
+        Self::FunctionCall(
+            Function::Cast,
+            vec![self]
+        ).binary(BinOper::As, Expr::cust(type_name.to_string().as_str()))
     }
 }

@@ -322,41 +322,7 @@ impl Func {
         V: Into<Value>,
         I: IntoIden,
     {
-        Self::cast_expr_as(Expr::val(value), iden)
-    }
-
-    /// Call `CAST` function to cast expression into a custom type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Func::cast_expr_as(
-    ///         Expr::tbl(Font::Table, Font::Name),
-    ///         Alias::new("MyType"),
-    ///     ))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST(`font`.`name` AS MyType)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST("font"."name" AS MyType)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CAST(`font`.`name` AS MyType)"#
-    /// );
-    /// ```
-    pub fn cast_expr_as<I>(expr: Expr, iden: I) -> SimpleExpr
-    where
-        I: IntoIden,
-    {
-        Expr::func(Function::Cast).arg(expr.bin_oper(
+        Expr::func(Function::Cast).arg(Expr::val(value.into()).bin_oper(
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
         ))
