@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.18.1 - 2021-10-26
 
-+ [[#171]] fix bug in `Condition::add` where Condition negation is ignored
++ [[#169]] Add support for Postgres interval type
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
 
+[#169]: https://github.com/SeaQL/sea-query/pull/169
 [#171]: https://github.com/SeaQL/sea-query/pull/171
 
 ## 0.18.0 - 2021-10-15
@@ -21,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.17.3 - 2021-10-26
 
-+ [[#171]] fix bug in `Condition::add` where Condition negation is ignored
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
 
 [#171]: https://github.com/SeaQL/sea-query/pull/171
 
@@ -53,7 +55,7 @@ pub fn as_ref_json(&self) -> Option<&Json>;
 
 ## 0.16.6 - 2021-10-26
 
-+ [[#171]] fix bug in `Condition::add` where Condition negation is ignored
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
 
 [#171]: https://github.com/SeaQL/sea-query/pull/171
 
