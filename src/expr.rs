@@ -33,7 +33,7 @@ pub enum SimpleExpr {
     Custom(String),
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
-    EnumValue(String, Box<SimpleExpr>),
+    AsEnum(DynIden, Box<SimpleExpr>),
 }
 
 impl Expr {
@@ -1425,12 +1425,11 @@ impl Expr {
         self.into()
     }
 
-    pub fn enum_value<T, I>(type_name: T, expr: I) -> SimpleExpr
+    pub fn as_enum<T>(self, type_name: T) -> SimpleExpr
     where
-        T: ToString,
-        I: Into<SimpleExpr>,
+        T: IntoIden,
     {
-        SimpleExpr::EnumValue(type_name.to_string(), Box::new(expr.into()))
+        SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
     }
 
     fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
@@ -1803,11 +1802,16 @@ impl SimpleExpr {
         self.concatenate(right)
     }
 
-    pub fn cast_expr_as<T>(self, type_name: T) -> Self
+    pub fn cast_as<T>(self, type_name: T) -> Self
     where
-        T: ToString,
+        T: IntoIden,
     {
-        Self::FunctionCall(Function::Cast, vec![self])
-            .binary(BinOper::As, Expr::cust(type_name.to_string().as_str()))
+        Self::FunctionCall(
+            Function::Cast,
+            vec![self.binary(
+                BinOper::As,
+                Expr::cust(type_name.into_iden().to_string().as_str()),
+            )],
+        )
     }
 }

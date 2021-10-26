@@ -337,7 +337,7 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql, collector);
             }
-            SimpleExpr::EnumValue(_, expr) => {
+            SimpleExpr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql, collector);
             }
         }

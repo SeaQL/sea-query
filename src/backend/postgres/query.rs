@@ -85,8 +85,8 @@ impl QueryBuilder for PostgresQueryBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         match simple_expr {
-            SimpleExpr::EnumValue(type_name, expr) => {
-                let simple_expr = expr.clone().cast_expr_as(type_name);
+            SimpleExpr::AsEnum(type_name, expr) => {
+                let simple_expr = expr.clone().cast_as(SeaRc::clone(type_name));
                 self.prepare_simple_expr_common(&simple_expr, sql, collector);
             }
             _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql, collector),
