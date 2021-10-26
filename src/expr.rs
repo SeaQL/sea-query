@@ -33,6 +33,7 @@ pub enum SimpleExpr {
     Custom(String),
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
+    EnumValue(String, Box<SimpleExpr>),
 }
 
 impl Expr {
