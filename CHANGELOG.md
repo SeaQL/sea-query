@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.16.6 - 2021-10-26
+
++ [[#171]] fix bug in `Condition::add` where Condition negation is ignored
+
+[#171]: https://github.com/SeaQL/sea-query/pull/171
+
 ## 0.16.5 - 2021-09-30
 
 + [[#145]] Add Condition::not
