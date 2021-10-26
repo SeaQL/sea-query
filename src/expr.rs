@@ -1430,10 +1430,7 @@ impl Expr {
         T: ToString,
         I: Into<SimpleExpr>,
     {
-        SimpleExpr::EnumValue(
-            type_name.to_string(),
-            Box::new(expr.into())
-        )
+        SimpleExpr::EnumValue(type_name.to_string(), Box::new(expr.into()))
     }
 
     fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
@@ -1810,9 +1807,7 @@ impl SimpleExpr {
     where
         T: ToString,
     {
-        Self::FunctionCall(
-            Function::Cast,
-            vec![self]
-        ).binary(BinOper::As, Expr::cust(type_name.to_string().as_str()))
+        Self::FunctionCall(Function::Cast, vec![self])
+            .binary(BinOper::As, Expr::cust(type_name.to_string().as_str()))
     }
 }
