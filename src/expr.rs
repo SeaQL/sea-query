@@ -1425,6 +1425,31 @@ impl Expr {
         self.into()
     }
 
+    /// Express a `AS enum` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col(Char::Character).as_enum(Alias::new("Enum")))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST("character" AS Enum) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character` FROM `character`"#
+    /// );
+    /// ```
     pub fn as_enum<T>(self, type_name: T) -> SimpleExpr
     where
         T: IntoIden,
@@ -1802,6 +1827,30 @@ impl SimpleExpr {
         self.concatenate(right)
     }
 
+    /// Express a `CAST AS` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::value("1").cast_as(Alias::new("integer")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// ```
     pub fn cast_as<T>(self, type_name: T) -> Self
     where
         T: IntoIden,
