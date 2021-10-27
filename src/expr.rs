@@ -899,6 +899,40 @@ impl Expr {
         self.bin_oper(BinOper::IsNot, SimpleExpr::Keyword(Keyword::Null))
     }
 
+    /// Create any binary operation
+    ///
+    /// # Examples
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .cond_where(all![
+    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, Value::from(10)),
+    ///         Expr::col(Char::SizeW).binary(BinOper::GreaterThan, Char::SizeH)
+    ///     ])
+    ///     .to_owned();
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` < 10 AND `size_w` > `size_h`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` < 10 AND `size_w` > `size_h`"#
+    /// );
+    /// ```
+    pub fn binary<T>(self, operation: BinOper, right: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(operation, right.into())
+    }
+
     /// Negates an expression with `NOT`.
     ///
     /// # Examples
@@ -1448,21 +1482,20 @@ impl Expr {
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<SimpleExpr> for Expr {
+impl From<Expr> for SimpleExpr {
     /// Convert into SimpleExpr. Will panic if this Expr is missing an operand
-    fn into(self) -> SimpleExpr {
-        if let Some(uopr) = self.uopr {
-            SimpleExpr::Unary(uopr, Box::new(self.left.unwrap()))
-        } else if let Some(bopr) = self.bopr {
+    fn from(src: Expr) -> Self {
+        if let Some(uopr) = src.uopr {
+            SimpleExpr::Unary(uopr, Box::new(src.left.unwrap()))
+        } else if let Some(bopr) = src.bopr {
             SimpleExpr::Binary(
-                Box::new(self.left.unwrap()),
+                Box::new(src.left.unwrap()),
                 bopr,
-                Box::new(self.right.unwrap()),
+                Box::new(src.right.unwrap()),
             )
-        } else if let Some(func) = self.func {
-            SimpleExpr::FunctionCall(func, self.args)
-        } else if let Some(left) = self.left {
+        } else if let Some(func) = src.func {
+            SimpleExpr::FunctionCall(func, src.args)
+        } else if let Some(left) = src.left {
             left
         } else {
             panic!("incomplete expression")
@@ -1470,10 +1503,24 @@ impl Into<SimpleExpr> for Expr {
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<SelectExpr> for Expr {
-    fn into(self) -> SelectExpr {
-        self.into_simple_expr().into()
+impl From<Expr> for SelectExpr {
+    fn from(src: Expr) -> Self {
+        src.into_simple_expr().into()
+    }
+}
+
+impl<T> From<T> for SimpleExpr
+where
+    T: IntoColumnRef,
+{
+    fn from(src: T) -> Self {
+        Self::Column(src.into_column_ref())
+    }
+}
+
+impl From<Value> for SimpleExpr {
+    fn from(src: Value) -> Self {
+        Self::Value(src)
     }
 }
 
