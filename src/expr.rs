@@ -1430,24 +1430,43 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::col(Char::Character).as_enum(Alias::new("Enum")))
+    ///     .expr(Expr::col(Char::FontSize).as_enum(Alias::new("text")))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` FROM `character`"#
+    ///     r#"SELECT `font_size` FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST("character" AS Enum) FROM "character""#
+    ///     r#"SELECT CAST("font_size" AS text) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character`"#
+    ///     r#"SELECT `font_size` FROM `character`"#
+    /// );
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Char::Table)
+    ///     .columns(vec![Char::FontSize])
+    ///     .exprs_panic(vec![Expr::val("large").as_enum(Alias::new("FontSizeEnum"))])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `character` (`font_size`) VALUES ('large')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO `character` (`font_size`) VALUES ('large')"#
     /// );
     /// ```
     pub fn as_enum<T>(self, type_name: T) -> SimpleExpr
@@ -1832,7 +1851,7 @@ impl SimpleExpr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Expr::value("1").cast_as(Alias::new("integer")))
