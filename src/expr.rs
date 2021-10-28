@@ -482,6 +482,41 @@ impl Expr {
         self.bin_oper(BinOper::GreaterThan, SimpleExpr::Value(v.into()))
     }
 
+    /// Express a greater than (`>`) expression to another expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::tbl(Char::Table, Char::SizeW)
+    ///         .greater_than(Expr::tbl(Char::Table, Char::SizeH))
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > `character`.`size_h`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > "character"."size_h""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > `character`.`size_h`"#
+    /// );
+    /// ```
+    pub fn greater_than<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::GreaterThan, expr)
+    }
     /// Express a greater than or equal (`>=`) expression.
     ///
     /// # Examples
@@ -513,6 +548,42 @@ impl Expr {
         V: Into<Value>,
     {
         self.bin_oper(BinOper::GreaterThanOrEqual, SimpleExpr::Value(v.into()))
+    }
+
+    /// Express a greater than or equal (`>=`) expression to another expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::tbl(Char::Table, Char::SizeW)
+    ///         .greater_or_equal(Expr::tbl(Char::Table, Char::SizeH))
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= `character`.`size_h`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= "character"."size_h""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= `character`.`size_h`"#
+    /// );
+    /// ```
+    pub fn greater_or_equal<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::GreaterThanOrEqual, expr)
     }
 
     /// Express a less than (`<`) expression.
@@ -548,6 +619,42 @@ impl Expr {
         self.bin_oper(BinOper::SmallerThan, SimpleExpr::Value(v.into()))
     }
 
+    /// Express a less than (`<`) expression to another expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::tbl(Char::Table, Char::SizeW)
+    ///         .less_than(Expr::tbl(Char::Table, Char::SizeH))
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < `character`.`size_h`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < "character"."size_h""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < `character`.`size_h`"#
+    /// );
+    /// ```
+    pub fn less_than<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::SmallerThan, expr)
+    }
+
     /// Express a less than or equal (`<=`) expression.
     ///
     /// # Examples
@@ -579,6 +686,42 @@ impl Expr {
         V: Into<Value>,
     {
         self.bin_oper(BinOper::SmallerThanOrEqual, SimpleExpr::Value(v.into()))
+    }
+
+    /// Express a less than or equal (`<=`) expression to another expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::tbl(Char::Table, Char::SizeW)
+    ///         .less_or_equal(Expr::tbl(Char::Table, Char::SizeH))
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= `character`.`size_h`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= "character"."size_h""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= `character`.`size_h`"#
+    /// );
+    /// ```
+    pub fn less_or_equal<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::SmallerThanOrEqual, expr)
     }
 
     /// Express an arithmetic addition operation.
@@ -909,8 +1052,8 @@ impl Expr {
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .cond_where(all![
-    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, Value::from(10)),
-    ///         Expr::col(Char::SizeW).binary(BinOper::GreaterThan, Char::SizeH)
+    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, Expr::value(10)),
+    ///         Expr::col(Char::SizeW).binary(BinOper::GreaterThan, Expr::col(Char::SizeH))
     ///     ])
     ///     .to_owned();
     /// assert_eq!(
@@ -1506,21 +1649,6 @@ impl From<Expr> for SimpleExpr {
 impl From<Expr> for SelectExpr {
     fn from(src: Expr) -> Self {
         src.into_simple_expr().into()
-    }
-}
-
-impl<T> From<T> for SimpleExpr
-where
-    T: IntoColumnRef,
-{
-    fn from(src: T) -> Self {
-        Self::Column(src.into_column_ref())
-    }
-}
-
-impl From<Value> for SimpleExpr {
-    fn from(src: Value) -> Self {
-        Self::Value(src)
     }
 }
 
