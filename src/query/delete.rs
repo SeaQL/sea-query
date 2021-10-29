@@ -160,6 +160,10 @@ impl DeleteStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
+
+    pub fn take_conditions(&mut self) -> ConditionHolder {
+        std::mem::take(&mut self.wherei)
+    }
 }
 
 impl QueryStatementBuilder for DeleteStatement {
