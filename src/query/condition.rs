@@ -471,6 +471,24 @@ pub trait ConditionalStatement {
     fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
         C: IntoCondition;
+
+    /// Append vector of conditions to the statement.
+    fn append_conditions<C, I>(&mut self, conditions: I) -> &mut Self
+    where
+        C: IntoCondition,
+        I: IntoIterator<Item = C>,
+    {
+        for condition in conditions.into_iter() {
+            self.cond_where(condition);
+        }
+        self
+    }
+
+    /// Clear conditions from the statement.
+    fn clear_conditions(&mut self) -> &mut Self;
+
+    /// Take conditions from the statement using [std::mem::take].
+    fn take_conditions(&mut self) -> ConditionHolder;
 }
 
 impl IntoCondition for SimpleExpr {

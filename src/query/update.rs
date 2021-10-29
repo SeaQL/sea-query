@@ -288,12 +288,6 @@ impl UpdateStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
-
-    pub fn set_conditions(&mut self, conditions: ConditionHolder) -> &mut Self {
-        let mut conditions = conditions;
-        self.wherei = std::mem::take(&mut conditions);
-        self
-    }
 }
 
 impl QueryStatementBuilder for UpdateStatement {
@@ -374,5 +368,14 @@ impl ConditionalStatement for UpdateStatement {
     {
         self.wherei.add_condition(condition.into_condition());
         self
+    }
+
+    fn clear_conditions(&mut self) -> &mut Self {
+        self.wherei = Default::default();
+        self
+    }
+
+    fn take_conditions(&mut self) -> ConditionHolder {
+        std::mem::take(&mut self.wherei)
     }
 }

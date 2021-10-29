@@ -1627,4 +1627,13 @@ impl ConditionalStatement for SelectStatement {
         self.r#where.add_condition(condition.into_condition());
         self
     }
+
+    fn clear_conditions(&mut self) -> &mut Self {
+        self.r#where = Default::default();
+        self
+    }
+
+    fn take_conditions(&mut self) -> ConditionHolder {
+        std::mem::take(&mut self.r#where)
+    }
 }
