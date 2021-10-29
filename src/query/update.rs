@@ -288,6 +288,13 @@ impl UpdateStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
+
+    // FIXME: Should be removed
+    pub fn set_conditions(&mut self, conditions: ConditionHolder) -> &mut Self {
+        let mut conditions = conditions;
+        self.wherei = std::mem::take(&mut conditions);
+        self
+    }
 }
 
 impl QueryStatementBuilder for UpdateStatement {
