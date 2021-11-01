@@ -1628,6 +1628,11 @@ impl ConditionalStatement for SelectStatement {
         self
     }
 
+    fn extend_conditions(&mut self, condition_holder: ConditionHolder) -> &mut Self {
+        self.r#where.extend(condition_holder);
+        self
+    }
+
     fn clear_conditions(&mut self) -> &mut Self {
         self.r#where = Default::default();
         self

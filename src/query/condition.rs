@@ -484,6 +484,9 @@ pub trait ConditionalStatement {
         self
     }
 
+    /// Extend a [ConditionHolder] with the content of a [ConditionHolder]
+    fn extend_conditions(&mut self, condition_holder: ConditionHolder) -> &mut Self;
+
     /// Clear conditions from the statement.
     fn clear_conditions(&mut self) -> &mut Self;
 
@@ -567,6 +570,19 @@ impl ConditionHolder {
             ConditionHolderContents::Chain(_) => {
                 panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
             }
+        }
+    }
+
+    pub fn extend(&mut self, condition_holder: ConditionHolder) {
+        let mut condition_holder = condition_holder;
+        match std::mem::take(&mut condition_holder.contents) {
+            ConditionHolderContents::Empty => {},
+            ConditionHolderContents::Chain(conditions) => {
+                for condition in conditions {
+                    self.add_and_or(condition);
+                }
+            }
+            ConditionHolderContents::Condition(condition) => self.add_condition(condition),
         }
     }
 }

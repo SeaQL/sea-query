@@ -231,6 +231,11 @@ impl ConditionalStatement for DeleteStatement {
         self
     }
 
+    fn extend_conditions(&mut self, condition_holder: ConditionHolder) -> &mut Self {
+        self.wherei.extend(condition_holder);
+        self
+    }
+
     fn clear_conditions(&mut self) -> &mut Self {
         self.wherei = Default::default();
         self
