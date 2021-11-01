@@ -226,6 +226,15 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        self.prepare_simple_expr_common(simple_expr, sql, collector);
+    }
+
+    fn prepare_simple_expr_common(
+        &self,
+        simple_expr: &SimpleExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
                 match column_ref {
@@ -327,6 +336,9 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql, collector);
+            }
+            SimpleExpr::AsEnum(_, expr) => {
+                self.prepare_simple_expr(expr, sql, collector);
             }
         }
     }
