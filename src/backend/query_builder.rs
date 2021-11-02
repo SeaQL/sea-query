@@ -246,6 +246,9 @@ pub trait QueryBuilder: QuotedBuilder {
                     }
                 };
             }
+            SimpleExpr::Tuple(exprs) => {
+                self.prepare_tuple(exprs, sql, collector);
+            }
             SimpleExpr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql, collector);
                 write!(sql, " ").unwrap();
@@ -253,15 +256,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::FunctionCall(func, exprs) => {
                 self.prepare_function(func, sql, collector);
-                write!(sql, "(").unwrap();
-                exprs.iter().fold(true, |first, expr| {
-                    if !first {
-                        write!(sql, ", ").unwrap();
-                    }
-                    self.prepare_simple_expr(expr, sql, collector);
-                    false
-                });
-                write!(sql, ")").unwrap();
+                self.prepare_tuple(exprs, sql, collector);
             }
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
@@ -645,6 +640,19 @@ pub trait QueryBuilder: QuotedBuilder {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
         collector(value.clone());
+    }
+
+    /// Translate [`Tuple`] into SQL statement.
+    fn prepare_tuple(&self, exprs: &Vec<SimpleExpr>,  sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        write!(sql, "(").unwrap();
+        exprs.iter().fold(true, |first, expr| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_simple_expr(expr, sql, collector);
+            false
+        });
+        write!(sql, ")").unwrap();
     }
 
     /// Translate [`Keyword`] into SQL statement.

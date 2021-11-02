@@ -24,6 +24,7 @@ pub struct Expr {
 #[derive(Debug, Clone)]
 pub enum SimpleExpr {
     Column(ColumnRef),
+    Tuple(Vec<SimpleExpr>),
     Unary(UnOper, Box<SimpleExpr>),
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
@@ -106,6 +107,15 @@ impl Expr {
         T: IntoColumnRef,
     {
         Self::new_with_left(SimpleExpr::Column(n.into_column_ref()))
+    }
+
+    pub fn tuple<I>(n: I) -> Self
+        where
+            I: IntoIterator<Item = SimpleExpr>,
+    {
+        Expr::expr(SimpleExpr::Tuple(
+            n.into_iter().collect::<Vec<SimpleExpr>>()
+        ))
     }
 
     /// Express the target column with table prefix.
