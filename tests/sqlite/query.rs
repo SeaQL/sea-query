@@ -776,7 +776,7 @@ fn select_48() {
         .cond_where(
             Cond::all()
                 .add_option(Some(ConditionExpression::SimpleExpr(Expr::tuple([
-                    SimpleExpr::Column(Glyph::Aspect.into_column_ref()),
+                    Expr::col(Glyph::Aspect).into_simple_expr(),
                     Expr::value(100),
                 ]).less_than(
                     Expr::tuple([
