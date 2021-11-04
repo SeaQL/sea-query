@@ -24,6 +24,7 @@ pub struct Expr {
 #[derive(Debug, Clone)]
 pub enum SimpleExpr {
     Column(ColumnRef),
+    Tuple(Vec<SimpleExpr>),
     Unary(UnOper, Box<SimpleExpr>),
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
@@ -106,6 +107,43 @@ impl Expr {
         T: IntoColumnRef,
     {
         Self::new_with_left(SimpleExpr::Column(n.into_column_ref()))
+    }
+
+    /// Wraps tuple of `SimpleExpr`, can be used for tuple comparison
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::tuple([Expr::col(Char::SizeW).into_simple_expr(), Expr::value(100)])
+    ///             .less_than(Expr::tuple([Expr::value(500), Expr::value(100)])))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w`, 100) < (500, 100)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w", 100) < (500, 100)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w`, 100) < (500, 100)"#
+    /// );
+    /// ```
+    pub fn tuple<I>(n: I) -> Self
+        where
+            I: IntoIterator<Item = SimpleExpr>,
+    {
+        Expr::expr(SimpleExpr::Tuple(
+            n.into_iter().collect::<Vec<SimpleExpr>>()
+        ))
     }
 
     /// Express the target column with table prefix.
