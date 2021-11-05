@@ -769,6 +769,31 @@ fn select_47() {
 }
 
 #[test]
+fn select_48() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .add_option(Some(ConditionExpression::SimpleExpr(Expr::tuple([
+                    Expr::col(Glyph::Aspect).into_simple_expr(),
+                    Expr::value(100),
+                ]).less_than(
+                    Expr::tuple([
+                        Expr::value(8),
+                        Expr::value(100),
+                    ])
+                ))))
+        )
+        .to_string(MysqlQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE (`aspect`, 100) < (8, 100)"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(

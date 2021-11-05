@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.18.2 - 2021-11-04
+
+### Merged PRs
+* Rename "where" keywords in `SelectStatement` to suppress IDEA warnings by @baoyachi in https://github.com/SeaQL/sea-query/pull/166
+* Add binary method to expr by @Progdrasil in https://github.com/SeaQL/sea-query/pull/173
+* Cast expression as custom type by @billy1624 in https://github.com/SeaQL/sea-query/pull/170
+* Support tuple expression by @shuoli84 in https://github.com/SeaQL/sea-query/pull/178
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.18.1...0.18.2
+
+## 0.18.1 - 2021-10-26
+
++ [[#169]] Add support for Postgres interval type
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
+
+[#169]: https://github.com/SeaQL/sea-query/pull/169
+[#171]: https://github.com/SeaQL/sea-query/pull/171
+
+## 0.18.0 - 2021-10-15
+
++ [[#159]] Add `ValueType::column_type`
++ [[#160]] Add `FromValueTuple` trait
+
+[#159]: https://github.com/SeaQL/sea-query/pull/159
+[#160]: https://github.com/SeaQL/sea-query/pull/160
+
+## 0.17.3 - 2021-10-26
+
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
+
+[#171]: https://github.com/SeaQL/sea-query/pull/171
+
+## 0.17.2 - 2021-10-15
+
++ [[#164]] Revert "Fix SQLite `chrono::NaiveTime` binding"
+
+[#164]: https://github.com/SeaQL/sea-query/pull/164
+
+## 0.17.1 - 2021-10-12 (yanked)
+
+## 0.17.0 - 2021-10-06
+
++ [[#157]] Fix binding nullable custom types on db drivers
+
+The `as_ref_*` methods on `Value` are changed:
+
+```rust
+pub fn as_ref_json(&self) -> &Json;
+```
+
+Is now
+
+```rust
+pub fn as_ref_json(&self) -> Option<&Json>;
+```
+
+[#157]: https://github.com/SeaQL/sea-query/pull/157
+
+## 0.16.6 - 2021-10-26
+
++ [[#171]] Fix bug in `Condition::add` where Condition negation is ignored
+
+[#171]: https://github.com/SeaQL/sea-query/pull/171
+
 ## 0.16.5 - 2021-09-30
 
 + [[#145]] Add Condition::not

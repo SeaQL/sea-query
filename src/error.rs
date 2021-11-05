@@ -14,7 +14,11 @@ impl std::error::Error for Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Self::ColValNumMismatch { col_len, val_len } => write!(f, "Columns and values length mismatch: {} != {}", col_len, val_len),
+            Self::ColValNumMismatch { col_len, val_len } => write!(
+                f,
+                "Columns and values length mismatch: {} != {}",
+                col_len, val_len
+            ),
         }
     }
 }
