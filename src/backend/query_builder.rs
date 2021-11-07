@@ -195,7 +195,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
         }
 
-        self.prepare_condition(&select.wherei, "WHERE", sql, collector);
+        self.prepare_condition(&select.r#where, "WHERE", sql, collector);
 
         if !select.groups.is_empty() {
             write!(sql, " GROUP BY ").unwrap();
