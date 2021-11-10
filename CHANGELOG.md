@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.18.2 - 2021-11-04
+
+### Merged PRs
+* Rename "where" keywords in `SelectStatement` to suppress IDEA warnings by @baoyachi in https://github.com/SeaQL/sea-query/pull/166
+* Add binary method to expr by @Progdrasil in https://github.com/SeaQL/sea-query/pull/173
+* Cast expression as custom type by @billy1624 in https://github.com/SeaQL/sea-query/pull/170
+* Support tuple expression by @shuoli84 in https://github.com/SeaQL/sea-query/pull/178
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.18.1...0.18.2
+
 ## 0.18.1 - 2021-10-26
 
 + [[#169]] Add support for Postgres interval type
