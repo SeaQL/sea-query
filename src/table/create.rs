@@ -135,7 +135,7 @@ impl TableCreateStatement {
     }
 
     /// Set table name
-    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
+    pub fn table<T: IntoTableRef>(&mut self, table: T) -> &mut Self
     where
         T: Iden,
     {
