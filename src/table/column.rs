@@ -3,7 +3,7 @@ use crate::{types::*, value::*};
 /// Specification of a table column
 #[derive(Debug, Clone)]
 pub struct ColumnDef {
-    pub(crate) table: Option<DynIden>,
+    pub(crate) table: Option<TableRef>,
     pub(crate) name: DynIden,
     pub(crate) types: Option<ColumnType>,
     pub(crate) spec: Vec<ColumnSpec>,

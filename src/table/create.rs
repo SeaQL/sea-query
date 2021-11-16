@@ -78,7 +78,7 @@ use crate::{
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableCreateStatement {
-    pub(crate) table: Option<DynIden>,
+    pub(crate) table: Option<TableRef>,
     pub(crate) columns: Vec<ColumnDef>,
     pub(crate) options: Vec<TableOpt>,
     pub(crate) partitions: Vec<TablePartition>,
@@ -135,11 +135,11 @@ impl TableCreateStatement {
     }
 
     /// Set table name
-    pub fn table<T: IntoTableRef>(&mut self, table: T) -> &mut Self
+    pub fn table<T>(&mut self, table: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoTableRef,
     {
-        self.table = Some(SeaRc::new(table));
+        self.table = Some(table.into_table_ref());
         self
     }
 
@@ -268,7 +268,13 @@ impl TableCreateStatement {
     }
 
     pub fn get_table_name(&self) -> Option<String> {
-        self.table.as_ref().map(|table| table.to_string())
+        self.table.as_ref().map(|table| match table {
+            TableRef::Table(table) => table.to_string(),
+            TableRef::SchemaTable(schema, table) => {
+                format!("{}.{}", schema.to_string(), table.to_string())
+            }
+            _ => unimplemented!(),
+        })
     }
 
     pub fn get_columns(&self) -> &Vec<ColumnDef> {
