@@ -267,14 +267,8 @@ impl TableCreateStatement {
         self
     }
 
-    pub fn get_table_name(&self) -> Option<String> {
-        self.table.as_ref().map(|table| match table {
-            TableRef::Table(table) => table.to_string(),
-            TableRef::SchemaTable(schema, table) => {
-                format!("{}.{}", schema.to_string(), table.to_string())
-            }
-            _ => unimplemented!(),
-        })
+    pub fn get_table_name(&self) -> Option<&TableRef> {
+        self.table.as_ref()
     }
 
     pub fn get_columns(&self) -> &Vec<ColumnDef> {
