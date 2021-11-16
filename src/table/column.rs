@@ -36,6 +36,7 @@ pub enum ColumnType {
     JsonBinary,
     Uuid,
     Custom(DynIden),
+    Enum(String, Vec<String>),
 }
 
 /// All column specification keywords
