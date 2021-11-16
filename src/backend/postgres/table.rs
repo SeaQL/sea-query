@@ -8,7 +8,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
             }
-            _ => self.prepare_table_ref_common(table_ref, sql),
+            _ => TableBuilder::prepare_table_ref_common(self, table_ref, sql),
         }
     }
 

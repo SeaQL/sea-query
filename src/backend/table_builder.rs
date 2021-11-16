@@ -103,7 +103,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref(table, sql);
             false
         });
 
