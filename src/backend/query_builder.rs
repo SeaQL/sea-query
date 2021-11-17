@@ -415,13 +415,20 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        QueryBuilder::prepare_table_ref_common(self, table_ref, sql, collector);
+    }
+
+    fn prepare_table_ref_common(
+        &self,
+        table_ref: &TableRef,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         match table_ref {
             TableRef::Table(iden) => {
                 iden.prepare(sql, self.quote());
             }
-            TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
+            TableRef::SchemaTable(_, table) => {
                 table.prepare(sql, self.quote());
             }
             TableRef::TableAlias(iden, alias) => {
@@ -429,9 +436,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
-            TableRef::SchemaTableAlias(schema, table, alias) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
+            TableRef::SchemaTableAlias(_, table, alias) => {
                 table.prepare(sql, self.quote());
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());

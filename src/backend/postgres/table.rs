@@ -1,6 +1,17 @@
 use super::*;
 
 impl TableBuilder for PostgresQueryBuilder {
+    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            _ => TableBuilder::prepare_table_ref_common(self, table_ref, sql),
+        }
+    }
+
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
         column_def.name.prepare(sql, '"');
 
