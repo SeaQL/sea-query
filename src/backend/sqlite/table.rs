@@ -108,6 +108,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::JsonBinary => "text".into(),
                 ColumnType::Uuid => "text(36)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
+                ColumnType::Enum(_, _) => "text".into(),
             }
         )
         .unwrap()
