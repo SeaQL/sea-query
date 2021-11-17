@@ -176,7 +176,7 @@ async fn main() {
     println!("Delete character: {:?}", result);
 }
 
-#[derive(Iden)]
+#[derive(Clone, Copy, Iden)]
 enum Character {
     Table,
     Id,

@@ -1,6 +1,6 @@
 use sea_query::Iden;
 
-#[derive(Iden)]
+#[derive(Clone, Iden)]
 pub struct SomeType;
 
 fn main() {

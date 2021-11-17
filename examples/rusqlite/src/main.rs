@@ -168,7 +168,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-#[derive(Iden)]
+#[derive(Clone, Copy, Iden)]
 enum Character {
     Table,
     Id,

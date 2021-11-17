@@ -1,7 +1,7 @@
 use sea_query::Iden;
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Iden, EnumIter)]
+#[derive(Clone, Iden, EnumIter)]
 // Outer iden attributes overrides what's used for "Table"...
 #[iden = "user"]
 enum Custom {

@@ -1,7 +1,7 @@
 use sea_query::Iden;
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Iden, EnumIter)]
+#[derive(Clone, Iden, EnumIter)]
 enum Asset {
     Table,
     Id,
@@ -10,7 +10,7 @@ enum Asset {
     Creation(CreationInfo),
 }
 
-#[derive(Iden)]
+#[derive(Clone, Iden)]
 enum CreationInfo {
     UserId,
     #[iden = "creation_date"]

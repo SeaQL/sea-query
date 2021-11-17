@@ -1,6 +1,6 @@
 use sea_query::Iden;
 
-#[derive(Iden)]
+#[derive(Clone, Iden)]
 struct User {
     id: usize,
 }

@@ -1,7 +1,7 @@
 use sea_query::Iden;
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Iden, EnumIter)]
+#[derive(Clone, Iden, EnumIter)]
 enum Asset {
     Table,
     Id,
@@ -12,14 +12,14 @@ enum Asset {
     },
 }
 
-#[derive(Iden)]
+#[derive(Clone, Iden)]
 enum FirstLevel {
     LevelOne,
     #[iden(flatten)]
     Second(SecondLevel),
 }
 
-#[derive(Iden, EnumIter)]
+#[derive(Clone, Iden, EnumIter)]
 enum SecondLevel {
     LevelTwo,
     #[iden(flatten)]
@@ -27,7 +27,7 @@ enum SecondLevel {
     UserId,
 }
 
-#[derive(Iden, Default)]
+#[derive(Clone, Iden, Default)]
 struct LevelThree;
 
 impl Default for FirstLevel {

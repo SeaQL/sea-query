@@ -1,6 +1,6 @@
 use sea_query::Iden;
 
-#[derive(Iden)]
+#[derive(Clone, Iden)]
 enum Asset {
     Table,
     Id,
@@ -9,7 +9,7 @@ enum Asset {
     Creation(CreationInfo, CreationInfo),
 }
 
-#[derive(Iden)]
+#[derive(Clone, Iden)]
 enum CreationInfo {
     UserId,
     #[iden = "creation_date"]

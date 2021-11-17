@@ -100,7 +100,7 @@ fn main() {
     println!();
 }
 
-#[derive(Iden)]
+#[derive(Clone, Copy, Iden)]
 enum Document {
     Table,
     Id,

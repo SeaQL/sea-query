@@ -1,6 +1,6 @@
 use sea_query::Iden;
 
-#[derive(Iden)]
+#[derive(Clone, Iden)]
 enum User {
     Table,
     #[iden = 123]

@@ -1,7 +1,7 @@
 use sea_query::Iden;
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Iden, EnumIter)]
+#[derive(Clone, Iden, EnumIter)]
 enum Something {
     // ...the Table can also be overwritten like this
     #[iden = "something_else"]
