@@ -403,6 +403,20 @@ impl ColumnDef {
         self
     }
 
+    /// Set column type as enum.
+    pub fn enumeration<N, S, V>(&mut self, name: N, variants: V) -> &mut Self
+    where
+        N: ToString,
+        S: ToString,
+        V: IntoIterator<Item = S>,
+    {
+        self.types = Some(ColumnType::Enum(
+            name.to_string(),
+            variants.into_iter().map(|v| v.to_string()).collect(),
+        ));
+        self
+    }
+
     /// Some extra options in custom string
     pub fn extra(&mut self, string: String) -> &mut Self {
         self.spec.push(ColumnSpec::Extra(string));
