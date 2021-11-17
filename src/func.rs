@@ -33,6 +33,7 @@ impl Func {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
+    /// #[derive(Clone, Copy)]
     /// struct MyFunction;
     ///
     /// impl Iden for MyFunction {

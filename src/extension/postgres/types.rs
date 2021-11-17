@@ -105,6 +105,7 @@ impl TypeCreateStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Clone, Copy)]
     /// enum FontFamily {
     ///     Type,
     ///     Serif,
@@ -211,6 +212,7 @@ impl TypeDropStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Clone, Copy)]
     /// struct FontFamily;
     ///
     /// impl Iden for FontFamily {
@@ -316,6 +318,7 @@ impl TypeAlterStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Clone, Copy)]
     /// enum FontFamily {
     ///     Type,
     ///     Serif,

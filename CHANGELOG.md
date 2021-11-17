@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.19.0 - Unreleased
+
+We now use `Box` in place of `Rc` / `Arc` for storing `dyn Iden`. To migrate, you should also derive `Clone` (`Copy` is optional) for your `Iden` struct or enums.
+
+```rust
+#[derive(Clone, Copy, Iden)]
+enum Character {
+    Table,
+}
+```
+
+If that does not work for you, you can still fallback to the old behavior by enabling the `ref-iden` cargo feature.
+
 ## 0.18.2 - 2021-11-04
 
 ### Merged PRs

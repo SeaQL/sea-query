@@ -149,7 +149,8 @@
 //! use sea_query::*;
 //!
 //! // For example Character table with column id, character, font_size...
-//! pub enum Character {
+//! #[derive(Clone, Copy)]
+//! enum Character {
 //!     Table,
 //!     Id,
 //!     FontId,
@@ -184,14 +185,14 @@
 //! use sea_query::Iden;
 //!
 //! // This will implement Iden exactly as shown above
-//! #[derive(Iden)]
+//! #[derive(Clone, Copy, Iden)]
 //! enum Character {
 //!     Table,
 //! }
 //! assert_eq!(Character::Table.to_string(), "character");
 //!
 //! // You can also derive a unit struct
-//! #[derive(Iden)]
+//! #[derive(Clone, Copy, Iden)]
 //! struct Glyph;
 //! assert_eq!(Glyph.to_string(), "glyph");
 //! ```

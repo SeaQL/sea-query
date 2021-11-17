@@ -3,9 +3,39 @@
 use crate::{expr::*, query::*};
 use std::fmt;
 
-#[cfg(not(feature = "thread-safe"))]
+#[cfg(not(feature = "ref-iden"))]
+pub use std::boxed::Box as SeaRc;
+
+#[cfg(not(feature = "ref-iden"))]
+mod iden {
+    use super::Iden;
+
+    pub trait IdenClone {
+        fn clone_iden(&self) -> Box<dyn Iden>;
+    }
+
+    impl<T> IdenClone for T
+    where
+        T: 'static + Iden + Clone,
+    {
+        fn clone_iden(&self) -> Box<dyn Iden> {
+            Box::new(self.clone())
+        }
+    }
+
+    impl Clone for Box<dyn Iden> {
+        fn clone(&self) -> Box<dyn Iden> {
+            self.clone_iden()
+        }
+    }
+}
+
+#[cfg(not(feature = "ref-iden"))]
+pub use iden::IdenClone;
+
+#[cfg(all(feature = "ref-iden", not(feature = "thread-safe")))]
 pub use std::rc::Rc as SeaRc;
-#[cfg(feature = "thread-safe")]
+#[cfg(all(feature = "ref-iden", feature = "thread-safe"))]
 pub use std::sync::Arc as SeaRc;
 
 macro_rules! iden_trait {
@@ -33,9 +63,11 @@ macro_rules! iden_trait {
     };
 }
 
-#[cfg(feature = "thread-safe")]
+#[cfg(not(feature = "ref-iden"))]
+iden_trait!(IdenClone);
+#[cfg(all(feature = "ref-iden", not(feature = "thread-safe")))]
 iden_trait!(Send, Sync);
-#[cfg(not(feature = "thread-safe"))]
+#[cfg(all(feature = "ref-iden", feature = "thread-safe"))]
 iden_trait!();
 
 pub type DynIden = SeaRc<dyn Iden>;

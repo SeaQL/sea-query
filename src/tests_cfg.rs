@@ -12,7 +12,7 @@ use crate::Iden;
 /// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
 ///
 /// [`Iden`]: crate::types::Iden
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Character {
     Table,
     Id,
@@ -50,7 +50,7 @@ impl Iden for Character {
 /// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
 ///
 /// [`Iden`]: crate::types::Iden
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Font {
     Table,
     Id,
@@ -81,7 +81,7 @@ impl Iden for Font {
 /// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
 ///
 /// [`Iden`]: crate::types::Iden
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Glyph {
     Table,
     Id,
