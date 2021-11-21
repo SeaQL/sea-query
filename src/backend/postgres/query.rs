@@ -77,4 +77,42 @@ impl QueryBuilder for PostgresQueryBuilder {
             _ => self.prepare_function_common(function, sql, collector),
         }
     }
+
+    fn prepare_simple_expr(
+        &self,
+        simple_expr: &SimpleExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        match simple_expr {
+            SimpleExpr::AsEnum(type_name, expr) => {
+                let simple_expr = expr.clone().cast_as(SeaRc::clone(type_name));
+                self.prepare_simple_expr_common(&simple_expr, sql, collector);
+            }
+            _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql, collector),
+        }
+    }
+
+    fn prepare_table_ref(
+        &self,
+        table_ref: &TableRef,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        match table_ref {
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            TableRef::SchemaTableAlias(schema, table, alias) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+            _ => QueryBuilder::prepare_table_ref_common(self, table_ref, sql, collector)
+        }
+    }
 }

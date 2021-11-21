@@ -335,6 +335,15 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        self.prepare_simple_expr_common(simple_expr, sql, collector);
+    }
+
+    fn prepare_simple_expr_common(
+        &self,
+        simple_expr: &SimpleExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
                 match column_ref {
@@ -346,6 +355,9 @@ pub trait QueryBuilder: QuotedBuilder {
                     }
                 };
             }
+            SimpleExpr::Tuple(exprs) => {
+                self.prepare_tuple(exprs, sql, collector);
+            }
             SimpleExpr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql, collector);
                 write!(sql, " ").unwrap();
@@ -353,15 +365,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::FunctionCall(func, exprs) => {
                 self.prepare_function(func, sql, collector);
-                write!(sql, "(").unwrap();
-                exprs.iter().fold(true, |first, expr| {
-                    if !first {
-                        write!(sql, ", ").unwrap();
-                    }
-                    self.prepare_simple_expr(expr, sql, collector);
-                    false
-                });
-                write!(sql, ")").unwrap();
+                self.prepare_tuple(exprs, sql, collector);
             }
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
@@ -436,6 +440,9 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql, collector);
+            }
+            SimpleExpr::AsEnum(_, expr) => {
+                self.prepare_simple_expr(expr, sql, collector);
             }
         }
     }
@@ -517,13 +524,20 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        QueryBuilder::prepare_table_ref_common(self, table_ref, sql, collector);
+    }
+
+    fn prepare_table_ref_common(
+        &self,
+        table_ref: &TableRef,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         match table_ref {
             TableRef::Table(iden) => {
                 iden.prepare(sql, self.quote());
             }
-            TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
+            TableRef::SchemaTable(_, table) => {
                 table.prepare(sql, self.quote());
             }
             TableRef::TableAlias(iden, alias) => {
@@ -531,9 +545,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
-            TableRef::SchemaTableAlias(schema, table, alias) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
+            TableRef::SchemaTableAlias(_, table, alias) => {
                 table.prepare(sql, self.quote());
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
@@ -742,6 +754,19 @@ pub trait QueryBuilder: QuotedBuilder {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
         collector(value.clone());
+    }
+
+    /// Translate [`Tuple`] into SQL statement.
+    fn prepare_tuple(&self, exprs: &Vec<SimpleExpr>,  sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        write!(sql, "(").unwrap();
+        exprs.iter().fold(true, |first, expr| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_simple_expr(expr, sql, collector);
+            false
+        });
+        write!(sql, ")").unwrap();
     }
 
     /// Translate [`Keyword`] into SQL statement.
