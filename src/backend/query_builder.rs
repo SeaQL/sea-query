@@ -1,3 +1,5 @@
+use crate::query::upsert::ActionExpr;
+use crate::upsert::{ConflictExpr, UpsertExpr};
 use crate::*;
 
 pub trait QueryBuilder: QuotedBuilder {
@@ -48,7 +50,114 @@ pub trait QueryBuilder: QuotedBuilder {
             false
         });
 
+        if let Some(upsert) = &insert.upsert {
+            self.prepare_upsert(upsert, sql, collector);
+        }
+
         self.prepare_returning(&insert.returning, sql, collector);
+    }
+
+    /// Upsert Statement
+    fn prepare_upsert(
+        &self,
+        upsert: &UpsertExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, " ON CONFLICT ").unwrap();
+        match &upsert.conflict {
+            ConflictExpr::None => {}
+            ConflictExpr::Sql(raw_sql) => {
+                write!(sql, "{} ", raw_sql).unwrap();
+            }
+            ConflictExpr::Column { target, filter } => {
+                target
+                    .iter()
+                    .enumerate()
+                    .fold(
+                        (filter.len(), true, false),
+                        |(size, first, _), (index, col)| {
+                            if !first {
+                                write!(sql, ", ").unwrap();
+                            } else {
+                                write!(sql, "(").unwrap();
+                            }
+                            col.prepare(sql, self.quote());
+                            (size, false, matches!(index + 1, size))
+                        },
+                    )
+                    .2
+                    .then(|| write!(sql, ") ").unwrap());
+
+                filter
+                    .iter()
+                    .enumerate()
+                    .fold(
+                        (filter.len(), true, false),
+                        |(size, first, _), (index, col)| {
+                            if !first {
+                                write!(sql, ", ").unwrap()
+                            } else {
+                                write!(sql, "WHERE ").unwrap();
+                                write!(sql, "(").unwrap()
+                            }
+                            self.prepare_simple_expr(col, sql, collector);
+                            (size, false, matches!(index + 1, size))
+                        },
+                    )
+                    .2
+                    .then(|| write!(sql, ") ").unwrap());
+            }
+            ConflictExpr::Constraint { key, filter } => {
+                write!(sql, "ON CONSTRAINT ").unwrap();
+                write!(sql, "{}{}{} ", self.quote(), key, self.quote()).unwrap();
+
+                filter
+                    .iter()
+                    .enumerate()
+                    .fold(
+                        (filter.len(), true, false),
+                        |(size, first, _), (index, col)| {
+                            if !first {
+                                write!(sql, ", ").unwrap()
+                            } else {
+                                write!(sql, "WHERE ").unwrap();
+                                write!(sql, "(").unwrap()
+                            }
+                            self.prepare_simple_expr(col, sql, collector);
+                            (size, false, matches!(index + 1, size))
+                        },
+                    )
+                    .2
+                    .then(|| write!(sql, ") ").unwrap());
+            }
+        }
+        match &upsert.action {
+            ActionExpr::None => {
+                write!(sql, "DO NOTHING ").unwrap();
+            }
+
+            // ActionExpr::Set {column,exclude } => {
+            //     write!(sql, "DO UPDATE SET ").unwrap();
+            //     column.iter().fold(true, |first, col| {
+            //         if !first {
+            //             write!(sql, ", ").unwrap()
+            //         }
+            //         self.prepare_simple_expr(col, sql, collector);
+            //         false
+            //     });
+            //
+            //     exclude.iter().fold(true, |first, col| {
+            //         if !first {
+            //             write!(sql, ", ").unwrap()
+            //         }
+            //         self.prepare_simple_expr(col, sql, collector);
+            //         false
+            //     });
+            //
+            // }
+            ActionExpr::Set { .. } => {}
+        }
     }
 
     /// Translate [`SelectStatement`] into SQL statement.
@@ -415,13 +524,20 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        QueryBuilder::prepare_table_ref_common(self, table_ref, sql, collector);
+    }
+
+    fn prepare_table_ref_common(
+        &self,
+        table_ref: &TableRef,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         match table_ref {
             TableRef::Table(iden) => {
                 iden.prepare(sql, self.quote());
             }
-            TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
+            TableRef::SchemaTable(_, table) => {
                 table.prepare(sql, self.quote());
             }
             TableRef::TableAlias(iden, alias) => {
@@ -429,9 +545,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
-            TableRef::SchemaTableAlias(schema, table, alias) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
+            TableRef::SchemaTableAlias(_, table, alias) => {
                 table.prepare(sql, self.quote());
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());

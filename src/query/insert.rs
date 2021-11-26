@@ -1,3 +1,4 @@
+use crate::query::upsert::UpsertExpr;
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
     QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
@@ -35,6 +36,7 @@ pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) values: Vec<Vec<SimpleExpr>>,
+    pub(crate) upsert: Option<UpsertExpr>,
     pub(crate) returning: Vec<SelectExpr>,
 }
 
@@ -177,6 +179,11 @@ impl InsertStatement {
         I: IntoIterator<Item = SimpleExpr>,
     {
         self.exprs(values).unwrap()
+    }
+
+    pub fn upsert(&mut self, upsert: UpsertExpr) -> &mut Self {
+        self.upsert = Some(upsert);
+        self
     }
 
     /// RETURNING expressions. Postgres only.

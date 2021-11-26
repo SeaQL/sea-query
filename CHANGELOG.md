@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## 0.19.0 - 2021-11-19
+
+### Merged PRs
+* `TableCreateStatement` and `TableDropStatement` takes any `IntoTableRef` table name. by @josh-codes in https://github.com/SeaQL/sea-query/pull/186
+* Add `ColumnType::Enum` by @billy1624 in https://github.com/SeaQL/sea-query/pull/188
+* Update to Rust Edition 2021 by @billy1624 in https://github.com/SeaQL/sea-query/pull/189
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.18.2...0.19.0
+
 ## 0.18.2 - 2021-11-04
 
 ### Merged PRs
