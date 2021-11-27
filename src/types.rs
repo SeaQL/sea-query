@@ -65,9 +65,9 @@ macro_rules! iden_trait {
 
 #[cfg(not(feature = "ref-iden"))]
 iden_trait!(IdenClone);
-#[cfg(all(feature = "ref-iden", not(feature = "thread-safe")))]
-iden_trait!(Send, Sync);
 #[cfg(all(feature = "ref-iden", feature = "thread-safe"))]
+iden_trait!(Send, Sync);
+#[cfg(all(feature = "ref-iden", not(feature = "thread-safe")))]
 iden_trait!();
 
 pub type DynIden = SeaRc<dyn Iden>;
