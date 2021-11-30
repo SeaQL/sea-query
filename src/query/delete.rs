@@ -100,7 +100,12 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions.
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite (but not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531))
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -121,7 +126,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -129,8 +134,13 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING a column after delete. Postgres only.
+    /// RETURNING a column after delete.
     /// Wrapper over [`DeleteStatement::returning()`].
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite (but not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531))
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -151,7 +161,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
