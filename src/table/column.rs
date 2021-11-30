@@ -1,4 +1,6 @@
 use crate::{types::*, value::*};
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens, TokenStreamExt};
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -67,6 +69,26 @@ pub enum IntervalField {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
+}
+
+impl ToTokens for IntervalField {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.append_all(match self {
+            IntervalField::Year => quote! { IntervalField::Year },
+            IntervalField::Month => quote! { IntervalField::Month },
+            IntervalField::Day => quote! { IntervalField::Day },
+            IntervalField::Hour => quote! { IntervalField::Hour },
+            IntervalField::Minute => quote! { IntervalField::Minute },
+            IntervalField::Second => quote! { IntervalField::Second },
+            IntervalField::YearToMonth => quote! { IntervalField::YearToMonth },
+            IntervalField::DayToHour => quote! { IntervalField::DayToHour },
+            IntervalField::DayToMinute => quote! { IntervalField::DayToMinute },
+            IntervalField::DayToSecond => quote! { IntervalField::DayToSecond },
+            IntervalField::HourToMinute => quote! { IntervalField::HourToMinute },
+            IntervalField::HourToSecond => quote! { IntervalField::HourToSecond },
+            IntervalField::MinuteToSecond => quote! { IntervalField::MinuteToSecond },
+        });
+    }
 }
 
 impl ColumnDef {
