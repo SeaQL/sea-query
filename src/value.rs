@@ -105,6 +105,9 @@ pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
     Three(Value, Value, Value),
+    Four(Value, Value, Value, Value),
+    Five(Value, Value, Value, Value, Value),
+    Six(Value, Value, Value, Value, Value, Value),
 }
 
 pub trait IntoValueTuple {
@@ -540,6 +543,9 @@ impl IntoIterator for ValueTuple {
             ValueTuple::One(v) => vec![v].into_iter(),
             ValueTuple::Two(v, w) => vec![v, w].into_iter(),
             ValueTuple::Three(u, v, w) => vec![u, v, w].into_iter(),
+            ValueTuple::Four(u, v, w, x) => vec![u, v, w, x].into_iter(),
+            ValueTuple::Five(u, v, w, x, y) => vec![u, v, w, x, y].into_iter(),
+            ValueTuple::Six(u, v, w, x, y, z) => vec![u, v, w, x, y, z].into_iter(),
         }
     }
 }
@@ -577,6 +583,58 @@ where
 {
     fn into_value_tuple(self) -> ValueTuple {
         ValueTuple::Three(self.0.into(), self.1.into(), self.2.into())
+    }
+}
+
+impl<U, V, W, X> IntoValueTuple for (U, V, W, X)
+where
+    U: Into<Value>,
+    V: Into<Value>,
+    W: Into<Value>,
+    X: Into<Value>,
+{
+    fn into_value_tuple(self) -> ValueTuple {
+        ValueTuple::Four(self.0.into(), self.1.into(), self.2.into(), self.3.into())
+    }
+}
+
+impl<U, V, W, X, Y> IntoValueTuple for (U, V, W, X, Y)
+where
+    U: Into<Value>,
+    V: Into<Value>,
+    W: Into<Value>,
+    X: Into<Value>,
+    Y: Into<Value>,
+{
+    fn into_value_tuple(self) -> ValueTuple {
+        ValueTuple::Five(
+            self.0.into(),
+            self.1.into(),
+            self.2.into(),
+            self.3.into(),
+            self.4.into(),
+        )
+    }
+}
+
+impl<U, V, W, X, Y, Z> IntoValueTuple for (U, V, W, X, Y, Z)
+where
+    U: Into<Value>,
+    V: Into<Value>,
+    W: Into<Value>,
+    X: Into<Value>,
+    Y: Into<Value>,
+    Z: Into<Value>,
+{
+    fn into_value_tuple(self) -> ValueTuple {
+        ValueTuple::Six(
+            self.0.into(),
+            self.1.into(),
+            self.2.into(),
+            self.3.into(),
+            self.4.into(),
+            self.5.into(),
+        )
     }
 }
 
@@ -624,6 +682,72 @@ where
         match i.into_value_tuple() {
             ValueTuple::Three(u, v, w) => (u.unwrap(), v.unwrap(), w.unwrap()),
             _ => panic!("not ValueTuple::Three"),
+        }
+    }
+}
+
+impl<U, V, W, X> FromValueTuple for (U, V, W, X)
+where
+    U: Into<Value> + ValueType,
+    V: Into<Value> + ValueType,
+    W: Into<Value> + ValueType,
+    X: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::Four(u, v, w, x) => (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap()),
+            _ => panic!("not ValueTuple::Four"),
+        }
+    }
+}
+
+impl<U, V, W, X, Y> FromValueTuple for (U, V, W, X, Y)
+where
+    U: Into<Value> + ValueType,
+    V: Into<Value> + ValueType,
+    W: Into<Value> + ValueType,
+    X: Into<Value> + ValueType,
+    Y: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::Five(u, v, w, x, y) => {
+                (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap(), y.unwrap())
+            }
+            _ => panic!("not ValueTuple::Five"),
+        }
+    }
+}
+
+impl<U, V, W, X, Y, Z> FromValueTuple for (U, V, W, X, Y, Z)
+where
+    U: Into<Value> + ValueType,
+    V: Into<Value> + ValueType,
+    W: Into<Value> + ValueType,
+    X: Into<Value> + ValueType,
+    Y: Into<Value> + ValueType,
+    Z: Into<Value> + ValueType,
+{
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple,
+    {
+        match i.into_value_tuple() {
+            ValueTuple::Six(u, v, w, x, y, z) => (
+                u.unwrap(),
+                v.unwrap(),
+                w.unwrap(),
+                x.unwrap(),
+                y.unwrap(),
+                z.unwrap(),
+            ),
+            _ => panic!("not ValueTuple::Six"),
         }
     }
 }
@@ -861,6 +985,36 @@ mod tests {
                 Value::String(Some(Box::new("b".to_owned())))
             )
         );
+        assert_eq!(
+            (1i32, 2.4f64, "b", 123u8).into_value_tuple(),
+            ValueTuple::Four(
+                Value::Int(Some(1)),
+                Value::Double(Some(2.4)),
+                Value::String(Some(Box::new("b".to_owned()))),
+                Value::TinyUnsigned(Some(123))
+            )
+        );
+        assert_eq!(
+            (1i32, 2.4f64, "b", 123u8, 456u16).into_value_tuple(),
+            ValueTuple::Five(
+                Value::Int(Some(1)),
+                Value::Double(Some(2.4)),
+                Value::String(Some(Box::new("b".to_owned()))),
+                Value::TinyUnsigned(Some(123)),
+                Value::SmallUnsigned(Some(456))
+            )
+        );
+        assert_eq!(
+            (1i32, 2.4f64, "b", 123u8, 456u16, 789u32).into_value_tuple(),
+            ValueTuple::Six(
+                Value::Int(Some(1)),
+                Value::Double(Some(2.4)),
+                Value::String(Some(Box::new("b".to_owned()))),
+                Value::TinyUnsigned(Some(123)),
+                Value::SmallUnsigned(Some(456)),
+                Value::Unsigned(Some(789))
+            )
+        );
     }
 
     #[test]
@@ -885,6 +1039,21 @@ mod tests {
         let original = val.clone();
         val = FromValueTuple::from_value_tuple(val);
         assert_eq!(val, original);
+
+        let mut val = (1i32, 2.4f64, "b".to_owned(), 123u8);
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = (1i32, 2.4f64, "b".to_owned(), 123u8, 456u16);
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
+
+        let mut val = (1i32, 2.4f64, "b".to_owned(), 123u8, 456u16, 789u32);
+        let original = val.clone();
+        val = FromValueTuple::from_value_tuple(val);
+        assert_eq!(val, original);
     }
 
     #[test]
@@ -905,6 +1074,43 @@ mod tests {
             iter.next().unwrap(),
             Value::String(Some(Box::new("b".to_owned())))
         );
+        assert_eq!(iter.next(), None);
+
+        let mut iter = (1i32, 2.4f64, "b", 123u8).into_value_tuple().into_iter();
+        assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
+        assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
+        assert_eq!(
+            iter.next().unwrap(),
+            Value::String(Some(Box::new("b".to_owned())))
+        );
+        assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
+        assert_eq!(iter.next(), None);
+
+        let mut iter = (1i32, 2.4f64, "b", 123u8, 456u16)
+            .into_value_tuple()
+            .into_iter();
+        assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
+        assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
+        assert_eq!(
+            iter.next().unwrap(),
+            Value::String(Some(Box::new("b".to_owned())))
+        );
+        assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
+        assert_eq!(iter.next().unwrap(), Value::SmallUnsigned(Some(456)));
+        assert_eq!(iter.next(), None);
+
+        let mut iter = (1i32, 2.4f64, "b", 123u8, 456u16, 789u32)
+            .into_value_tuple()
+            .into_iter();
+        assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
+        assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
+        assert_eq!(
+            iter.next().unwrap(),
+            Value::String(Some(Box::new("b".to_owned())))
+        );
+        assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
+        assert_eq!(iter.next().unwrap(), Value::SmallUnsigned(Some(456)));
+        assert_eq!(iter.next().unwrap(), Value::Unsigned(Some(789)));
         assert_eq!(iter.next(), None);
     }
 
