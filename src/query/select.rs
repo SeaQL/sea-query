@@ -525,6 +525,28 @@ impl SelectStatement {
     ///     r#"SELECT `font_size` FROM `glyph`"#
     /// );
     /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::FontSize)
+    ///     .from((Alias::new("database"), Char::Table, Glyph::Table))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `database`.`glyph`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "font_size" FROM "database"."character"."glyph""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `database`.`glyph`"#
+    /// );
+    /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
     where
         R: IntoTableRef,

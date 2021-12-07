@@ -72,10 +72,19 @@ pub trait IntoColumnRef {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum TableRef {
+    /// Table identifier without any schema / database prefix
     Table(DynIden),
+    /// Table identifier with schema (Postgres only) prefix
     SchemaTable(DynIden, DynIden),
+    /// Table identifier with database and schema (Postgres only) prefix
+    DatabaseSchemaTable(DynIden, DynIden, DynIden),
+    /// Table identifier with alias
     TableAlias(DynIden, DynIden),
+    /// Table identifier with schema (Postgres only) prefix and alias
     SchemaTableAlias(DynIden, DynIden, DynIden),
+    /// Table identifier with database and schema (Postgres only) prefix and alias
+    DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
+    /// Subquery with alias
     SubQuery(SelectStatement, DynIden),
 }
 
@@ -278,6 +287,17 @@ where
     }
 }
 
+impl<S: 'static, T: 'static, U: 'static> IntoTableRef for (S, T, U)
+where
+    S: IntoIden,
+    T: IntoIden,
+    U: IntoIden,
+{
+    fn into_table_ref(self) -> TableRef {
+        TableRef::DatabaseSchemaTable(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
+    }
+}
+
 impl TableRef {
     /// Add or replace the current alias
     pub fn alias<A: 'static>(self, alias: A) -> Self
@@ -290,8 +310,14 @@ impl TableRef {
             Self::SchemaTable(schema, table) => {
                 Self::SchemaTableAlias(schema, table, alias.into_iden())
             }
+            Self::DatabaseSchemaTable(database, schema, table) => {
+                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden())
+            }
             Self::SchemaTableAlias(schema, table, _) => {
                 Self::SchemaTableAlias(schema, table, alias.into_iden())
+            }
+            Self::DatabaseSchemaTableAlias(database, schema, table, _) => {
+                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden())
             }
             Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
         }
