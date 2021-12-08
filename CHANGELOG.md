@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.19.2 - 2021-12-04
+
+### Merged PRs
+
+* Impl `ValueTuple` Up to Six by @billy1624 in https://github.com/SeaQL/sea-query/pull/200
+* Basic Benchmark by @tyt2y3 in https://github.com/SeaQL/sea-query/pull/192
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.19.1...0.19.2
+
 ## 0.19.1 - 2021-11-25
 
 ### Merged PRs

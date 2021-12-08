@@ -105,6 +105,13 @@ impl QueryBuilder for PostgresQueryBuilder {
                 write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
             }
+            TableRef::DatabaseSchemaTable(database, schema, table) => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
             TableRef::SchemaTableAlias(schema, table, alias) => {
                 schema.prepare(sql, self.quote());
                 write!(sql, ".").unwrap();
@@ -112,7 +119,16 @@ impl QueryBuilder for PostgresQueryBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
-            _ => QueryBuilder::prepare_table_ref_common(self, table_ref, sql, collector)
+            TableRef::DatabaseSchemaTableAlias(database, schema, table, alias) => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+            _ => QueryBuilder::prepare_table_ref_common(self, table_ref, sql, collector),
         }
     }
 }

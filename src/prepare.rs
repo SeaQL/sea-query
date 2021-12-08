@@ -50,7 +50,10 @@ where
 
 impl SqlWriter {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            counter: 0,
+            string: String::with_capacity(256),
+        }
     }
 
     pub fn push_param(&mut self, sign: &str, numbered: bool) {
