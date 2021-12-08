@@ -44,8 +44,8 @@ postgres-types = { version = "^0", optional = true }
 rust_decimal = { version = "^1", optional = true }
 bigdecimal = { version = "^0.2", optional = true }
 uuid = { version = "^0", optional = true }
-proc-macro2 = "1"
-quote = "^1"
+proc-macro2 = { version = "1", optional = true }
+quote = { version = "^1", optional = true }
 
 [features]
 backend-mysql = []
@@ -69,6 +69,7 @@ with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
 with-bigdecimal = ["bigdecimal"]
 with-uuid = ["uuid"]
+with-quote = ["proc-macro2", "quote"]
 
 [[test]]
 name = "test-derive"
@@ -94,3 +95,8 @@ required-features = ["backend-postgres"]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
 required-features = ["backend-sqlite"]
+
+[[test]]
+name = "test-with-quote"
+path = "tests/with-quote/mod.rs"
+required-features = ["with-quote"]

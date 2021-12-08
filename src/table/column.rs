@@ -1,6 +1,4 @@
 use crate::{types::*, value::*};
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -71,8 +69,10 @@ pub enum IntervalField {
     MinuteToSecond,
 }
 
-impl ToTokens for IntervalField {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
+#[cfg(feature = "with-quote")]
+impl quote::ToTokens for IntervalField {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        use quote::{quote, TokenStreamExt};
         tokens.append_all(match self {
             IntervalField::Year => quote! { IntervalField::Year },
             IntervalField::Month => quote! { IntervalField::Month },
