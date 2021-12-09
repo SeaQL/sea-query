@@ -514,7 +514,7 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `glyph`"#
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -522,7 +522,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `glyph`"#
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// ```
     ///
@@ -536,7 +536,7 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `database`.`glyph`"#
+    ///     r#"SELECT `font_size` FROM `database`.`character`.`glyph`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -544,7 +544,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `database`.`glyph`"#
+    ///     r#"SELECT `font_size` FROM `database`.`character`.`glyph`"#
     /// );
     /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
@@ -572,7 +572,7 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `glyph`"#
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -580,7 +580,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `glyph`"#
+    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// ```
     pub fn from_schema<S: 'static, T: 'static>(&mut self, schema: S, table: T) -> &mut Self
@@ -631,7 +631,7 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `alias`.`character` FROM `character` AS `alias`"#
+    ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -639,7 +639,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `alias`.`character` FROM `character` AS `alias`"#
+    ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
     /// );
     /// ```
     pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self

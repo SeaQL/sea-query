@@ -428,11 +428,15 @@ pub trait QueryBuilder: QuotedBuilder {
             TableRef::Table(iden) => {
                 iden.prepare(sql, self.quote());
             }
-            TableRef::SchemaTable(_, table) => {
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
             }
-            TableRef::DatabaseSchemaTable(database, _, table) => {
+            TableRef::DatabaseSchemaTable(database, schema, table) => {
                 database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
                 write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
             }
@@ -441,13 +445,17 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
-            TableRef::SchemaTableAlias(_, table, alias) => {
+            TableRef::SchemaTableAlias(schema, table, alias) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
-            TableRef::DatabaseSchemaTableAlias(database, _, table, alias) => {
+            TableRef::DatabaseSchemaTableAlias(database, schema, table, alias) => {
                 database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
                 write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
                 write!(sql, " AS ").unwrap();
