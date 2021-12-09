@@ -74,15 +74,15 @@ pub trait IntoColumnRef {
 pub enum TableRef {
     /// Table identifier without any schema / database prefix
     Table(DynIden),
-    /// Table identifier with schema (Postgres only) prefix
+    /// Table identifier with schema prefix
     SchemaTable(DynIden, DynIden),
-    /// Table identifier with database and schema (Postgres only) prefix
+    /// Table identifier with database and schema prefix
     DatabaseSchemaTable(DynIden, DynIden, DynIden),
     /// Table identifier with alias
     TableAlias(DynIden, DynIden),
-    /// Table identifier with schema (Postgres only) prefix and alias
+    /// Table identifier with schema prefix and alias
     SchemaTableAlias(DynIden, DynIden, DynIden),
-    /// Table identifier with database and schema (Postgres only) prefix and alias
+    /// Table identifier with database and schema prefix and alias
     DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
     /// Subquery with alias
     SubQuery(SelectStatement, DynIden),

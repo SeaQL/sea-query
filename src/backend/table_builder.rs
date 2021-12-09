@@ -58,7 +58,16 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             TableRef::Table(table) => {
                 table.prepare(sql, self.quote());
             }
-            TableRef::SchemaTable(_, table) => {
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            TableRef::DatabaseSchemaTable(database, schema, table) => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
             }
             _ => panic!("Not supported"),
