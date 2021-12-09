@@ -138,11 +138,11 @@ impl Expr {
     /// );
     /// ```
     pub fn tuple<I>(n: I) -> Self
-        where
-            I: IntoIterator<Item = SimpleExpr>,
+    where
+        I: IntoIterator<Item = SimpleExpr>,
     {
         Expr::expr(SimpleExpr::Tuple(
-            n.into_iter().collect::<Vec<SimpleExpr>>()
+            n.into_iter().collect::<Vec<SimpleExpr>>(),
         ))
     }
 

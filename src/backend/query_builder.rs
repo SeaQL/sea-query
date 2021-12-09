@@ -660,7 +660,12 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Tuple`] into SQL statement.
-    fn prepare_tuple(&self, exprs: &Vec<SimpleExpr>,  sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn prepare_tuple(
+        &self,
+        exprs: &Vec<SimpleExpr>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         write!(sql, "(").unwrap();
         exprs.iter().fold(true, |first, expr| {
             if !first {
