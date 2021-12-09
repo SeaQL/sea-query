@@ -38,7 +38,7 @@ pub enum Value {
     Double(Option<f64>),
     String(Option<Box<String>>),
 
-    #[allow(clippy::box_vec)]
+    #[allow(clippy::box_collection)]
     Bytes(Option<Box<Vec<u8>>>),
 
     #[cfg(feature = "with-json")]

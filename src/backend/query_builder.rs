@@ -662,7 +662,7 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Translate [`Tuple`] into SQL statement.
     fn prepare_tuple(
         &self,
-        exprs: &Vec<SimpleExpr>,
+        exprs: &[SimpleExpr],
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {

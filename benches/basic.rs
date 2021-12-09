@@ -27,12 +27,10 @@ fn select_and_to_string() {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("vanilla", |b| b.iter(|| vanilla()));
-    c.bench_function("select", |b| b.iter(|| select()));
-    c.bench_function("select_and_build", |b| b.iter(|| select_and_build()));
-    c.bench_function("select_and_to_string", |b| {
-        b.iter(|| select_and_to_string())
-    });
+    c.bench_function("vanilla", |b| b.iter(vanilla));
+    c.bench_function("select", |b| b.iter(select));
+    c.bench_function("select_and_build", |b| b.iter(select_and_build));
+    c.bench_function("select_and_to_string", |b| b.iter(select_and_to_string));
 }
 
 criterion_group!(benches, criterion_benchmark);
