@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.19.3 - 2021-12-11
+### Merged PRs
+
+* Add `TableRef::DatabaseSchemaTable` by @billy1624 in https://github.com/SeaQL/sea-query/pull/193
+* Binding `DateTime<FixedOffset>` for SQLx MySQL & SQLite by @billy1624 in https://github.com/SeaQL/sea-query/pull/197
+* Write database & schema prefix in `TableRef` for all databases by @billy1624 in https://github.com/SeaQL/sea-query/pull/202
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.19.2...0.19.3
+
 ## 0.19.2 - 2021-12-04
 
 ### Merged PRs
