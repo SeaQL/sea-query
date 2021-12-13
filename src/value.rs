@@ -1323,7 +1323,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "with-rust_decimal")]
+    #[cfg(feature = "with-array")]
     fn test_array_value() {
         let array = vec![1, 2, 3, 4, 5];
         let v: Value = array.into();
