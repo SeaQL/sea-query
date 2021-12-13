@@ -72,6 +72,10 @@ pub enum Value {
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
+
+    #[cfg(feature = "with-array")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
+    Array(Option<Box<Vec<Value>>>),
 }
 
 pub trait ValueType: Sized {
@@ -346,6 +350,92 @@ mod with_uuid {
     type_to_box_value!(Uuid, Uuid, Uuid);
 }
 
+#[cfg(feature = "with-array")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
+mod with_array {
+    use super::*;
+
+    // We only imlement conversion from Vec<T> to Array when T is not u8.
+    // This is because for u8's case, there is already conversion to Byte defined above.
+    // TODO When negative trait becomes a stable feature, following code can be much shorter.
+    pub trait NotU8 {}
+
+    impl NotU8 for bool {}
+    impl NotU8 for i8 {}
+    impl NotU8 for i16 {}
+    impl NotU8 for i32 {}
+    impl NotU8 for i64 {}
+    impl NotU8 for u16 {}
+    impl NotU8 for u32 {}
+    impl NotU8 for u64 {}
+    impl NotU8 for f32 {}
+    impl NotU8 for f64 {}
+    impl NotU8 for String {}
+
+    #[cfg(feature = "with-json")]
+    impl NotU8 for Json {}
+
+    #[cfg(feature = "with-chrono")]
+    impl NotU8 for NaiveDate {}
+
+    #[cfg(feature = "with-chrono")]
+    impl NotU8 for NaiveTime {}
+
+    #[cfg(feature = "with-chrono")]
+    impl NotU8 for NaiveDateTime {}
+
+    #[cfg(feature = "with-chrono")]
+    impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
+
+    #[cfg(feature = "with-rust_decimal")]
+    impl NotU8 for Decimal {}
+
+    #[cfg(feature = "with-bigdecimal")]
+    impl NotU8 for BigDecimal {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for Uuid {}
+
+    impl<T> From<Vec<T>> for Value
+    where
+        T: Into<Value> + NotU8,
+    {
+        fn from(x: Vec<T>) -> Value {
+            Value::Array(Some(Box::new(x.into_iter().map(|e| e.into()).collect())))
+        }
+    }
+
+    impl<T> Nullable for Vec<T>
+    where
+        T: Into<Value> + NotU8,
+    {
+        fn null() -> Value {
+            Value::Array(None)
+        }
+    }
+
+    impl<T> ValueType for Vec<T>
+    where
+        T: NotU8 + ValueType,
+    {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::Array(Some(v)) => Ok(v.into_iter().map(|e| e.unwrap()).collect()),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(Vec<T>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            use ColumnType::*;
+            Array(None)
+        }
+    }
+}
+
 #[allow(unused_macros)]
 macro_rules! box_to_opt_ref {
     ( $v: expr ) => {
@@ -542,6 +632,27 @@ impl Value {
     #[cfg(not(feature = "with-uuid"))]
     pub fn as_ref_uuid(&self) -> Option<&bool> {
         panic!("not Value::Uuid")
+    }
+}
+
+impl Value {
+    pub fn is_array(&self) -> bool {
+        #[cfg(feature = "with-array")]
+        return matches!(self, Self::Array(_));
+        #[cfg(not(feature = "with-array"))]
+        return false;
+    }
+
+    #[cfg(feature = "with-array")]
+    pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
+        match self {
+            Self::Array(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Array"),
+        }
+    }
+    #[cfg(not(feature = "with-array"))]
+    pub fn as_ref_array(&self) -> Option<&bool> {
+        panic!("not Value::Array")
     }
 }
 
@@ -835,6 +946,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
+        #[cfg(feature = "with-array")]
+        Value::Array(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -869,6 +982,13 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
+        #[cfg(feature = "with-array")]
+        Value::Array(Some(v)) => Json::Array(
+            v.as_ref()
+                .iter()
+                .map(|v| sea_value_to_json_value(v))
+                .collect(),
+        ),
     }
 }
 
@@ -1200,5 +1320,14 @@ mod tests {
         let v: Value = val.into();
         let out: Decimal = v.unwrap();
         assert_eq!(out.to_string(), num);
+    }
+
+    #[test]
+    #[cfg(feature = "with-rust_decimal")]
+    fn test_array_value() {
+        let array = vec![1, 2, 3, 4, 5];
+        let v: Value = array.into();
+        let out: Vec<i32> = v.unwrap();
+        assert_eq!(out, vec![1, 2, 3, 4, 5]);
     }
 }

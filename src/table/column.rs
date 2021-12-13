@@ -37,6 +37,7 @@ pub enum ColumnType {
     Uuid,
     Custom(DynIden),
     Enum(String, Vec<String>),
+    Array(Option<String>),
 }
 
 /// All column specification keywords
@@ -414,6 +415,13 @@ impl ColumnDef {
             name.to_string(),
             variants.into_iter().map(|v| v.to_string()).collect(),
         ));
+        self
+    }
+
+    /// Set column type as an array with a specified element type.
+    /// This is only supported on Postgres.
+    pub fn array(&mut self, elem_type: String) -> &mut Self {
+        self.types = Some(ColumnType::Array(Some(elem_type)));
         self
     }
 

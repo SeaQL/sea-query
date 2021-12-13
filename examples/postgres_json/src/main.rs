@@ -29,6 +29,7 @@ fn main() {
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
+            .col(ColumnDef::new(Document::Array).array("integer".to_string()))
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
@@ -53,6 +54,7 @@ fn main() {
         timestamp_with_time_zone: DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00")
             .unwrap(),
         decimal: Decimal::from_i128_with_scale(3141i128, 3),
+        array: vec![3, 4, 5, 6],
     };
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
@@ -62,6 +64,7 @@ fn main() {
             Document::Timestamp,
             Document::TimestampWithTimeZone,
             Document::Decimal,
+            Document::Array,
         ])
         .values_panic(vec![
             document.uuid.into(),
@@ -69,6 +72,7 @@ fn main() {
             document.timestamp.into(),
             document.timestamp_with_time_zone.into(),
             document.decimal.into(),
+            document.array.into(),
         ])
         .build(PostgresQueryBuilder);
 
@@ -85,6 +89,7 @@ fn main() {
             Document::Timestamp,
             Document::TimestampWithTimeZone,
             Document::Decimal,
+            Document::Array,
         ])
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
@@ -109,6 +114,7 @@ enum Document {
     Timestamp,
     TimestampWithTimeZone,
     Decimal,
+    Array,
 }
 
 #[derive(Debug)]
@@ -119,6 +125,7 @@ struct DocumentStruct {
     timestamp: NaiveDateTime,
     timestamp_with_time_zone: DateTime<FixedOffset>,
     decimal: Decimal,
+    array: Vec<i32>,
 }
 
 impl From<Row> for DocumentStruct {
@@ -130,6 +137,7 @@ impl From<Row> for DocumentStruct {
             timestamp: row.get("timestamp"),
             timestamp_with_time_zone: row.get("timestamp_with_time_zone"),
             decimal: row.get("decimal"),
+            array: row.get("array"),
         }
     }
 }

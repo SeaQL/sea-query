@@ -89,6 +89,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Uuid => "binary(16)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(_, variants) => format!("ENUM('{}')", variants.join("', '")),
+                ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
             }
         )
         .unwrap()
