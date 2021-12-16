@@ -244,6 +244,13 @@ pub trait QueryBuilder: QuotedBuilder {
                         write!(sql, ".").unwrap();
                         column.prepare(sql, self.quote());
                     }
+                    ColumnRef::SchemaTableColumn(schema, table, column) => {
+                        schema.prepare(sql, self.quote());
+                        write!(sql, ".").unwrap();
+                        table.prepare(sql, self.quote());
+                        write!(sql, ".").unwrap();
+                        column.prepare(sql, self.quote());
+                    }
                 };
             }
             SimpleExpr::Tuple(exprs) => {

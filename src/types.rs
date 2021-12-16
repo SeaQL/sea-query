@@ -62,6 +62,7 @@ impl fmt::Debug for dyn Iden {
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
+    SchemaTableColumn(DynIden, DynIden, DynIden),
 }
 
 pub trait IntoColumnRef {
@@ -259,6 +260,17 @@ where
 {
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
+    }
+}
+
+impl<S: 'static, T: 'static, U: 'static> IntoColumnRef for (S, T, U)
+where
+    S: IntoIden,
+    T: IntoIden,
+    U: IntoIden,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::SchemaTableColumn(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
     }
 }
 
