@@ -49,6 +49,7 @@ pub enum ColumnSpec {
     UniqueKey,
     PrimaryKey,
     Extra(String),
+    Unsigned,
 }
 
 // All interval fields
@@ -99,6 +100,12 @@ impl ColumnDef {
     /// Set column not null
     pub fn not_null(&mut self) -> &mut Self {
         self.spec.push(ColumnSpec::NotNull);
+        self
+    }
+
+    /// Set column unsigned
+    pub fn unsigned(&mut self) -> &mut Self {
+        self.spec.push(ColumnSpec::Unsigned);
         self
     }
 

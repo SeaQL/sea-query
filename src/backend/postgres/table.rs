@@ -111,6 +111,7 @@ impl TableBuilder for PostgresQueryBuilder {
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
             ColumnSpec::Extra(string) => write!(sql, "{}", string),
+            ColumnSpec::Unsigned => Ok(()),
         }
         .unwrap()
     }

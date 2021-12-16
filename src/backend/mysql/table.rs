@@ -103,6 +103,7 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
             ColumnSpec::Extra(string) => write!(sql, "{}", string),
+            ColumnSpec::Unsigned => write!(sql, "UNSIGNED"),
         }
         .unwrap()
     }
