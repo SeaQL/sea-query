@@ -153,6 +153,7 @@ pub enum JoinType {
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
+    pub(crate) nulls_last: Option<bool>,
 }
 
 /// Join on types
