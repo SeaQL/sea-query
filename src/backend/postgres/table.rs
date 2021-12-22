@@ -29,19 +29,21 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger(length) => match length {
-                    Some(length) => format!("tinyint({})", length),
-                    None => "tinyint".into(),
-                },
-                ColumnType::SmallInteger(length) => match length {
-                    Some(length) => format!("smallint({})", length),
-                    None => "smallint".into(),
-                },
-                ColumnType::Integer(length) => match length {
+                ColumnType::TinyInteger(length) | ColumnType::TinyUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("tinyint({})", length),
+                        None => "tinyint".into(),
+                    },
+                ColumnType::SmallInteger(length) | ColumnType::SmallUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("smallint({})", length),
+                        None => "smallint".into(),
+                    },
+                ColumnType::Integer(length) | ColumnType::Unsigned(length) => match length {
                     Some(length) => format!("integer({})", length),
                     None => "integer".into(),
                 },
-                ColumnType::BigInteger(length) => match length {
+                ColumnType::BigInteger(length) | ColumnType::BigUnsigned(length) => match length {
                     Some(length) => format!("bigint({})", length),
                     None => "bigint".into(),
                 },
