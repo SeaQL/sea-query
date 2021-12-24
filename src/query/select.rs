@@ -331,6 +331,28 @@ impl SelectStatement {
     ///     r#"SELECT `character`.`character` FROM `character`"#
     /// );
     /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .column((Alias::new("schema"), Char::Table, Char::Character))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `schema`.`character`.`character` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "schema"."character"."character" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `schema`.`character`.`character` FROM `character`"#
+    /// );
+    /// ```
     pub fn column<C>(&mut self, col: C) -> &mut Self
     where
         C: IntoColumnRef,
