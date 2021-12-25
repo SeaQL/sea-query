@@ -4,39 +4,39 @@ use sea_query::*;
 #[test]
 fn with_quote_1() {
     for (interval_field, token_stream) in [
-        (IntervalField::Year, quote! { IntervalField::Year }),
-        (IntervalField::Month, quote! { IntervalField::Month }),
-        (IntervalField::Day, quote! { IntervalField::Day }),
-        (IntervalField::Hour, quote! { IntervalField::Hour }),
-        (IntervalField::Minute, quote! { IntervalField::Minute }),
-        (IntervalField::Second, quote! { IntervalField::Second }),
+        (PgInterval::Year, quote! { PgInterval::Year }),
+        (PgInterval::Month, quote! { PgInterval::Month }),
+        (PgInterval::Day, quote! { PgInterval::Day }),
+        (PgInterval::Hour, quote! { PgInterval::Hour }),
+        (PgInterval::Minute, quote! { PgInterval::Minute }),
+        (PgInterval::Second, quote! { PgInterval::Second }),
         (
-            IntervalField::YearToMonth,
-            quote! { IntervalField::YearToMonth },
+            PgInterval::YearToMonth,
+            quote! { PgInterval::YearToMonth },
         ),
         (
-            IntervalField::DayToHour,
-            quote! { IntervalField::DayToHour },
+            PgInterval::DayToHour,
+            quote! { PgInterval::DayToHour },
         ),
         (
-            IntervalField::DayToMinute,
-            quote! { IntervalField::DayToMinute },
+            PgInterval::DayToMinute,
+            quote! { PgInterval::DayToMinute },
         ),
         (
-            IntervalField::DayToSecond,
-            quote! { IntervalField::DayToSecond },
+            PgInterval::DayToSecond,
+            quote! { PgInterval::DayToSecond },
         ),
         (
-            IntervalField::HourToMinute,
-            quote! { IntervalField::HourToMinute },
+            PgInterval::HourToMinute,
+            quote! { PgInterval::HourToMinute },
         ),
         (
-            IntervalField::HourToSecond,
-            quote! { IntervalField::HourToSecond },
+            PgInterval::HourToSecond,
+            quote! { PgInterval::HourToSecond },
         ),
         (
-            IntervalField::MinuteToSecond,
-            quote! { IntervalField::MinuteToSecond },
+            PgInterval::MinuteToSecond,
+            quote! { PgInterval::MinuteToSecond },
         ),
     ] {
         assert_eq!(
