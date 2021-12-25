@@ -72,7 +72,7 @@ with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
 with-bigdecimal = ["bigdecimal"]
 with-uuid = ["uuid"]
-with-quote = ["proc-macro2", "quote"]
+pg-interval = ["proc-macro2", "quote"]
 
 [[test]]
 name = "test-derive"
@@ -100,9 +100,9 @@ path = "tests/sqlite/mod.rs"
 required-features = ["backend-sqlite"]
 
 [[test]]
-name = "test-with-quote"
-path = "tests/with-quote/mod.rs"
-required-features = ["with-quote"]
+name = "test-pg-interval"
+path = "tests/pg-interval/mod.rs"
+required-features = ["pg-interval"]
 
 [[bench]]
 name = "basic"

@@ -69,7 +69,7 @@ pub enum IntervalField {
     MinuteToSecond,
 }
 
-#[cfg(feature = "with-quote")]
+#[cfg(feature = "pg-interval")]
 impl quote::ToTokens for IntervalField {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         use quote::{quote, TokenStreamExt};
