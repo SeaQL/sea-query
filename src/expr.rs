@@ -1536,7 +1536,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn exists(sel: SelectStatement) -> SimpleExpr {
+    pub fn exists(mut sel: SelectStatement) -> SimpleExpr {
+        sel.clear_selects()
+            .expr(Self::wildcard());
         SimpleExpr::UnarySelect(UnOper::Exists, Box::new(sel))
     }
 
@@ -1575,7 +1577,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn not_exists(sel: SelectStatement) -> SimpleExpr {
+    pub fn not_exists(mut sel: SelectStatement) -> SimpleExpr {
+        sel.clear_selects()
+            .expr(Self::wildcard());
         SimpleExpr::UnarySelect(UnOper::NotExists, Box::new(sel))
     }
 

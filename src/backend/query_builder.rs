@@ -345,8 +345,6 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::UnarySelect(op, select) => {
                 self.prepare_un_oper(op, sql, collector);
                 write!(sql, " (").unwrap();
-                // TODO: When/If Expr::wildcard() is available:
-                //   clean the columns and add the wildcard to express only a SELECT *
                 self.prepare_select_statement(select, sql, collector);
                 write!(sql, ")").unwrap();
             }

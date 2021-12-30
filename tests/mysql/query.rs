@@ -791,7 +791,7 @@ fn select_48() {
 }
 
 #[test]
-fn select_50() {
+fn select_51() {
     let statement = sea_query::Query::select()
         .column(Char::Id)
         .from(Char::Table)
