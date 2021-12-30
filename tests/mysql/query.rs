@@ -791,6 +791,19 @@ fn select_48() {
 }
 
 #[test]
+fn select_49() {
+    assert_eq!(
+        Query::select()
+            .exists()
+            .columns(vec![Char::Character])
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).eq("A"))
+            .to_string(MysqlQueryBuilder),
+        "SELECT EXISTS (SELECT * FROM `character` WHERE `character` = 'A') AS `exists`"
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -904,3 +917,4 @@ fn delete_1() {
         "DELETE FROM `glyph` WHERE `id` = 1 ORDER BY `id` ASC LIMIT 1"
     );
 }
+ 

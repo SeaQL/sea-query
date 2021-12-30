@@ -51,6 +51,7 @@ pub struct SelectStatement {
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
     pub(crate) lock: Option<LockType>,
+    pub(crate) exists: Option<bool>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -122,6 +123,7 @@ impl SelectStatement {
             limit: None,
             offset: None,
             lock: None,
+            exists: None,
         }
     }
 
@@ -140,6 +142,7 @@ impl SelectStatement {
             limit: self.limit.take(),
             offset: self.offset.take(),
             lock: self.lock.take(),
+            exists: self.exists.take(),
         }
     }
 
@@ -279,6 +282,12 @@ impl SelectStatement {
     /// Select distinct
     pub fn distinct(&mut self) -> &mut Self {
         self.distinct = Some(SelectDistinct::Distinct);
+        self
+    }
+
+    /// Select exists
+    pub fn exists(&mut self) -> &mut Self {
+        self.exists = Some(true);
         self
     }
 
@@ -1672,3 +1681,4 @@ impl ConditionalStatement for SelectStatement {
         self
     }
 }
+ 

@@ -58,6 +58,36 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        if let Some(_) = &select.exists {
+            // Clone current query and clean all eventual select to perform a wildcard select
+            let mut sub_query = select.clone();
+            sub_query
+                .clear_selects()
+                .expr(Expr::expr(SimpleExpr::Custom("*".to_string())))
+                .exists = None;
+
+            // Wrap the subquery into an `EXISTS()` statement
+            let mut sub_sql = SqlWriter::new();
+            write!(sub_sql, " EXISTS (").unwrap();
+            self.prepare_select_statement(&sub_query, &mut sub_sql, collector);
+            write!(sub_sql, ")").unwrap();
+
+            // Return a query aliased to exists
+            let main_query =
+                Query::select()
+                    .expr_as(
+                        Expr::expr(
+                            SimpleExpr::Custom(sub_sql.result())
+                        ),
+                        Alias::new("exists")
+                    )
+                    .take();
+
+            self.prepare_select_statement(&main_query, sql, collector);
+
+            return ()
+        }
+
         write!(sql, "SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
