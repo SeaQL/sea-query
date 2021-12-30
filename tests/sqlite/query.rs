@@ -808,7 +808,7 @@ fn select_51() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `character` WHERE EXISTS (SELECT * FROM `font` WHERE `font`.`id` = `charachter`.`font_id` AND `font`.`variant` = 'italic')"#
+        r#"SELECT `id` FROM `character` WHERE EXISTS (SELECT * FROM `font` WHERE `font`.`id` = `character`.`font_id` AND `font`.`variant` = 'italic')"#
     );
 }
 
