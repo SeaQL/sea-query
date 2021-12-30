@@ -793,7 +793,7 @@ fn select_48() {
 #[test]
 fn select_49() {
     let statement = sea_query::Query::select()
-        .epxr(Expr::wildcard())
+        .expr(Expr::wildcard())
         .from(Char::Table)
         .to_string(MysqlQueryBuilder);
 
@@ -806,7 +806,7 @@ fn select_49() {
 #[test]
 fn select_50() {
     let statement = sea_query::Query::select()
-        .epxr(Expr::tbl_wildcard(Char::Table))
+        .expr(Expr::tbl_wildcard(Char::Table))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
@@ -814,7 +814,7 @@ fn select_50() {
 
     assert_eq!(
         statement,
-        r#"SELECT `character`.*, `font`.`name` FROM `character` INNJER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+        r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     );
 }
 
