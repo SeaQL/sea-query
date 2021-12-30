@@ -58,51 +58,27 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        if let Some(_) = &select.exists {
-            // Clone current query and clean all eventual select to perform a wildcard select
-            let mut sub_query = select.clone();
-            sub_query
-                .clear_selects()
-                .expr(Expr::expr(SimpleExpr::Custom("*".to_string())))
-                .exists = None;
-
-            // Wrap the subquery into an `EXISTS()` statement
-            let mut sub_sql = SqlWriter::new();
-            write!(sub_sql, " EXISTS (").unwrap();
-            self.prepare_select_statement(&sub_query, &mut sub_sql, collector);
-            write!(sub_sql, ")").unwrap();
-
-            // Return a query aliased to exists
-            let main_query =
-                Query::select()
-                    .expr_as(
-                        Expr::expr(
-                            SimpleExpr::Custom(sub_sql.result())
-                        ),
-                        Alias::new("exists")
-                    )
-                    .take();
-
-            self.prepare_select_statement(&main_query, sql, collector);
-
-            return ()
-        }
+        let is_exists_stmt = select.exists.is_some();
 
         write!(sql, "SELECT ").unwrap();
 
-        if let Some(distinct) = &select.distinct {
-            write!(sql, " ").unwrap();
-            self.prepare_select_distinct(distinct, sql, collector);
-            write!(sql, " ").unwrap();
-        }
-
-        select.selects.iter().fold(true, |first, expr| {
-            if !first {
-                write!(sql, ", ").unwrap()
+        if is_exists_stmt {
+            write!(sql, "EXISTS (SELECT * ").unwrap();
+        } else {
+            if let Some(distinct) = &select.distinct {
+                write!(sql, " ").unwrap();
+                self.prepare_select_distinct(distinct, sql, collector);
+                write!(sql, " ").unwrap();
             }
-            self.prepare_select_expr(expr, sql, collector);
-            false
-        });
+    
+            select.selects.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_select_expr(expr, sql, collector);
+                false
+            });
+        }
 
         if let Some(from) = &select.from {
             write!(sql, " FROM ").unwrap();
@@ -165,6 +141,10 @@ pub trait QueryBuilder: QuotedBuilder {
         if let Some(lock) = &select.lock {
             write!(sql, " ").unwrap();
             self.prepare_select_lock(lock, sql, collector);
+        }
+
+        if is_exists_stmt {
+            write!(sql, ") AS {}exists{}", self.quote(), self.quote()).unwrap();
         }
     }
 
