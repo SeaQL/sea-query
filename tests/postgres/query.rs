@@ -790,7 +790,7 @@ fn select_49() {
 #[test]
 fn select_50() {
     let statement = sea_query::Query::select()
-        .epxr(Expr::wildcard(Char::Table))
+        .epxr(Expr::tbl_wildcard(Char::Table))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
