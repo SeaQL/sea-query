@@ -35,6 +35,7 @@ pub enum SimpleExpr {
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
+    UnarySelect(UnOper, Box<SelectStatement>)
 }
 
 impl Expr {
@@ -1498,6 +1499,84 @@ impl Expr {
         self.bopr = Some(BinOper::NotIn);
         self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
         self.into()
+    }
+
+    /// Express a `EXISTS` unary operator expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::exists(
+    ///             Query::select()
+    ///                 .from(Font::Table)
+    ///                 .and_where(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///                 .and_where(Expr::tbl(Font::Table, Font::Variant).eq("italic"))
+    ///                 .take()
+    ///         )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`.`id` FROM `character` WHERE EXISTS (SELECT * FROM `font` WHERE `character`.`font_id` = `font`.`id` AND `font`.`variant` = 'italic')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character"."id" FROM "character" WHERE EXISTS (SELECT * FROM "font" WHERE "character"."font_id" = "font"."id" AND "font"."variant" = 'italic')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`.`id` FROM `character` WHERE EXISTS (SELECT * FROM `font` WHERE `character`.`font_id` = `font`.`id` AND `font`.`variant` = 'italic')"#
+    /// );
+    /// ```
+    #[allow(clippy::wrong_self_convention)]
+    pub fn exists(sel: SelectStatement) -> SimpleExpr {
+        SimpleExpr::UnarySelect(UnOper::Exists, Box::new(sel))
+    }
+
+    /// Express a `NOT EXISTS` unary operator expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::not_exists(
+    ///             Query::select()
+    ///                 .from(Font::Table)
+    ///                 .and_where(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///                 .and_where(Expr::tbl(Font::Table, Font::Variant).eq("bold"))
+    ///                 .take()
+    ///         )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`.`id` FROM `character` WHERE NOT EXISTS (SELECT * FROM `font` WHERE `character`.`font_id` = `font`.`id` AND `font`.`variant` = 'bold')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character"."id" FROM "character" WHERE NOT EXISTS (SELECT * FROM "font" WHERE "character"."font_id" = "font"."id" AND "font"."variant" = 'bold')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `character`.`id` FROM `character` WHERE NOT EXISTS (SELECT * FROM `font` WHERE `character`.`font_id` = `font`.`id` AND `font`.`variant` = 'bold')"#
+    /// );
+    /// ```
+    #[allow(clippy::wrong_self_convention)]
+    pub fn not_exists(sel: SelectStatement) -> SimpleExpr {
+        SimpleExpr::UnarySelect(UnOper::NotExists, Box::new(sel))
     }
 
     /// Express an postgres fulltext search matches (`@@`) expression.

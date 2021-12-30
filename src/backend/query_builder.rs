@@ -342,6 +342,14 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql, collector);
             }
+            SimpleExpr::UnarySelect(op, select) => {
+                self.prepare_un_oper(op, sql, collector);
+                write!(sql, " (").unwrap();
+                // TODO: When/If Expr::wildcard() is available:
+                //   clean the columns and add the wildcard to express only a SELECT *
+                self.prepare_select_statement(select, sql, collector);
+                write!(sql, ")").unwrap();
+            }
         }
     }
 
@@ -490,6 +498,8 @@ pub trait QueryBuilder: QuotedBuilder {
             "{}",
             match un_oper {
                 UnOper::Not => "NOT",
+                UnOper::Exists => "EXISTS",
+                UnOper::NotExists => "NOT EXISTS",
             }
         )
         .unwrap();

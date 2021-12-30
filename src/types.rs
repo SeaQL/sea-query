@@ -97,6 +97,8 @@ pub trait IntoTableRef {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnOper {
     Not,
+    Exists,
+    NotExists
 }
 
 /// Binary operator

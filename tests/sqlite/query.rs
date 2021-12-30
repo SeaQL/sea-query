@@ -791,6 +791,29 @@ fn select_48() {
 }
 
 #[test]
+fn select_50() {
+    let statement = sea_query::Query::select()
+        .column(Char::Id)
+        .from(Char::Table)
+        .and_where(
+            Expr::exists(
+                Query::select()
+                    .from(Font::Table)
+                    .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+                    .and_where(Expr::tbl(Font::Table, Font::Variant).eq("italic"))
+                    .take()
+            )
+        )
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `character` WHERE EXISTS (SELECT * FROM `font` WHERE `font`.`id` = `charachter`.`font_id` AND `font`.`variant` = 'italic')"#
+    );
+}
+
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
