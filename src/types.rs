@@ -63,6 +63,8 @@ pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
     SchemaTableColumn(DynIden, DynIden, DynIden),
+    Wildcard,
+    TableWildcard(DynIden)
 }
 
 pub trait IntoColumnRef {
