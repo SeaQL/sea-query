@@ -148,11 +148,11 @@ pub trait OrderedStatement {
     }
 
     /// Order by custom string with nulls order option.
-    fn order_by_customs_with_nulls<T>(&mut self, cols: Vec<(T, Order)>, nulls: Nulls) -> &mut Self
+    fn order_by_customs_with_nulls<T>(&mut self, cols: Vec<(T, Order, Nulls)>) -> &mut Self
     where
         T: ToString,
     {
-        cols.into_iter().for_each(|(c, order)| {
+        cols.into_iter().for_each(|(c, order, nulls)| {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
@@ -163,11 +163,11 @@ pub trait OrderedStatement {
     }
 
     /// Order by vector of columns with nulls order option.
-    fn order_by_columns_with_nulls<T>(&mut self, cols: Vec<(T, Order)>, nulls: Nulls) -> &mut Self
+    fn order_by_columns_with_nulls<T>(&mut self, cols: Vec<(T, Order, Nulls)>) -> &mut Self
     where
         T: IntoColumnRef,
     {
-        cols.into_iter().for_each(|(c, order)| {
+        cols.into_iter().for_each(|(c, order, nulls)| {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
