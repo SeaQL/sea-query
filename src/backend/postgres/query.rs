@@ -102,10 +102,10 @@ impl QueryBuilder for PostgresQueryBuilder {
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
         write!(sql, " ").unwrap();
         self.prepare_order(&order_expr.order, sql, collector);
-        match order_expr.nulls_last {
+        match order_expr.nulls {
             None => (),
-            Some(true) => write!(sql, " NULLS LAST").unwrap(),
-            Some(false) => write!(sql, " NULLS FISRT").unwrap(),
+            Some(Nulls::Last) => write!(sql, " NULLS LAST").unwrap(),
+            Some(Nulls::First) => write!(sql, " NULLS FISRT").unwrap(),
         }
     }
 }

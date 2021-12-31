@@ -32,7 +32,7 @@ pub trait OrderedStatement {
         self.add_order_by(OrderExpr {
             expr: SimpleExpr::Column(col.into_column_ref()),
             order,
-            nulls_last: None,
+            nulls: None,
         })
     }
 
@@ -53,7 +53,7 @@ pub trait OrderedStatement {
         self.add_order_by(OrderExpr {
             expr,
             order,
-            nulls_last: None,
+            nulls: None,
         })
     }
 
@@ -66,7 +66,7 @@ pub trait OrderedStatement {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
-                nulls_last: None,
+                nulls: None,
             });
         });
         self
@@ -81,7 +81,7 @@ pub trait OrderedStatement {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
-                nulls_last: None,
+                nulls: None,
             });
         });
         self
@@ -113,8 +113,8 @@ pub trait OrderedStatement {
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .order_by_nulls_last(Glyph::Image, Order::Desc, true)
-    ///     .order_by_nulls_last((Glyph::Table, Glyph::Aspect), Order::Asc, false)
+    ///     .order_by_nulls_last(Glyph::Image, Order::Desc, Nulls::Last)
+    ///     .order_by_nulls_last((Glyph::Table, Glyph::Aspect), Order::Asc, Nulls::First)
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -122,14 +122,14 @@ pub trait OrderedStatement {
     ///     r#"SELECT "aspect" FROM "glyph" ORDER BY "image" DESC NULLS LAST, "glyph"."aspect" ASC NULLS FISRT"#
     /// );
     /// ```
-    fn order_by_nulls_last<T>(&mut self, col: T, order: Order, nulls_last: bool) -> &mut Self
+    fn order_by_nulls_last<T>(&mut self, col: T, order: Order, nulls: Nulls) -> &mut Self
     where
         T: IntoColumnRef,
     {
         self.add_order_by(OrderExpr {
             expr: SimpleExpr::Column(col.into_column_ref()),
             order,
-            nulls_last: Some(nulls_last),
+            nulls: Some(nulls),
         })
     }
 
@@ -138,21 +138,17 @@ pub trait OrderedStatement {
         &mut self,
         expr: SimpleExpr,
         order: Order,
-        nulls_last: bool,
+        nulls: Nulls,
     ) -> &mut Self {
         self.add_order_by(OrderExpr {
             expr,
             order,
-            nulls_last: Some(nulls_last),
+            nulls: Some(nulls),
         })
     }
 
     /// Order by custom string with nulls order option.
-    fn order_by_customs_nulls_last<T>(
-        &mut self,
-        cols: Vec<(T, Order)>,
-        nulls_last: bool,
-    ) -> &mut Self
+    fn order_by_customs_nulls_last<T>(&mut self, cols: Vec<(T, Order)>, nulls: Nulls) -> &mut Self
     where
         T: ToString,
     {
@@ -160,18 +156,14 @@ pub trait OrderedStatement {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
-                nulls_last: Some(nulls_last),
+                nulls: Some(nulls),
             });
         });
         self
     }
 
     /// Order by vector of columns with nulls order option.
-    fn order_by_columns_nulls_last<T>(
-        &mut self,
-        cols: Vec<(T, Order)>,
-        nulls_last: bool,
-    ) -> &mut Self
+    fn order_by_columns_nulls_last<T>(&mut self, cols: Vec<(T, Order)>, nulls: Nulls) -> &mut Self
     where
         T: IntoColumnRef,
     {
@@ -179,7 +171,7 @@ pub trait OrderedStatement {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
-                nulls_last: Some(nulls_last),
+                nulls: Some(nulls),
             });
         });
         self
