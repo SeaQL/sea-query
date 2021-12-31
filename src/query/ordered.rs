@@ -121,6 +121,10 @@ pub trait OrderedStatement {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "aspect" FROM "glyph" ORDER BY "image" DESC NULLS LAST, "glyph"."aspect" ASC NULLS FISRT"#
     /// );
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `aspect` FROM `glyph` ORDER BY `image` IS NULL ASC, `image` DESC, `glyph`.`aspect` IS NULL DESC, `glyph`.`aspect` ASC"#
+    /// );
     /// ```
     fn order_by_with_nulls<T>(&mut self, col: T, order: Order, nulls: Nulls) -> &mut Self
     where
