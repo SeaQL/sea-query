@@ -105,7 +105,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         match order_expr.nulls {
             None => (),
             Some(Nulls::Last) => write!(sql, " NULLS LAST").unwrap(),
-            Some(Nulls::First) => write!(sql, " NULLS FISRT").unwrap(),
+            Some(Nulls::First) => write!(sql, " NULLS FIRST").unwrap(),
         }
     }
 }
