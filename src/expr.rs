@@ -67,7 +67,7 @@ impl Expr {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT * FROM `character`#
+    ///     r#"SELECT * FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -212,7 +212,7 @@ impl Expr {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT * FROM `character`#
+    ///     r#"SELECT * FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -228,7 +228,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .tbl_wildcard(Char::Character)
+    ///     .expr(Expr::tbl_wildcard(Char::Table))
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
