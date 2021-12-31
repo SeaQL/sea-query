@@ -92,4 +92,20 @@ impl QueryBuilder for PostgresQueryBuilder {
             _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql, collector),
         }
     }
+
+    fn prepare_order_expr(
+        &self,
+        order_expr: &OrderExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        write!(sql, " ").unwrap();
+        self.prepare_order(&order_expr.order, sql, collector);
+        match order_expr.nulls_last {
+            None => (),
+            Some(true) => write!(sql, " NULLS LAST").unwrap(),
+            Some(false) => write!(sql, " NULLS FISRT").unwrap(),
+        }
+    }
 }

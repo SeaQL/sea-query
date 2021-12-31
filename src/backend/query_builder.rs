@@ -637,11 +637,6 @@ pub trait QueryBuilder: QuotedBuilder {
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
         write!(sql, " ").unwrap();
         self.prepare_order(&order_expr.order, sql, collector);
-        match order_expr.nulls_last {
-            Some(true) => write!(sql, " NULLS LAST").unwrap(),
-            Some(false) => write!(sql, " NULLS FISRT").unwrap(),
-            _ => (),
-        }
     }
 
     /// Translate [`JoinOn`] into SQL statement.
