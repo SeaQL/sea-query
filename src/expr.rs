@@ -53,7 +53,7 @@ impl Expr {
         }
     }
 
-    /// Express the wildcard without table prefix.
+    /// Express the asterisk without table prefix.
     ///
     /// # Examples
     ///
@@ -61,7 +61,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::wildcard())
+    ///     .expr(Expr::asterisk())
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -101,8 +101,8 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// ```
-    pub fn wildcard() -> Self {
-        Self::col(ColumnRef::Wildcard)
+    pub fn asterisk() -> Self {
+        Self::col(ColumnRef::Asterisk)
     }
 
     /// Express the target column without table prefix.
@@ -198,7 +198,7 @@ impl Expr {
         ))
     }
 
-    /// Express the wildcard with table prefix.
+    /// Express the asterisk with table prefix.
     ///
     /// # Examples
     ///
@@ -206,7 +206,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::wildcard())
+    ///     .expr(Expr::asterisk())
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -228,7 +228,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl_wildcard(Char::Table))
+    ///     .expr(Expr::tbl_asterisk(Char::Table))
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
@@ -247,11 +247,11 @@ impl Expr {
     ///     r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn tbl_wildcard<T>(t: T) -> Self
+    pub fn tbl_asterisk<T>(t: T) -> Self
     where
         T: IntoIden
     {
-        Self::col(ColumnRef::TableWildcard(t.into_iden()))
+        Self::col(ColumnRef::TableAsterisk(t.into_iden()))
     }
 
     /// Express the target column with table prefix.

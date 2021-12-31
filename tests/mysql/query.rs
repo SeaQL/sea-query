@@ -793,7 +793,7 @@ fn select_48() {
 #[test]
 fn select_49() {
     let statement = sea_query::Query::select()
-        .expr(Expr::wildcard())
+        .expr(Expr::asterisk())
         .from(Char::Table)
         .to_string(MysqlQueryBuilder);
 
@@ -806,7 +806,7 @@ fn select_49() {
 #[test]
 fn select_50() {
     let statement = sea_query::Query::select()
-        .expr(Expr::tbl_wildcard(Char::Table))
+        .expr(Expr::tbl_asterisk(Char::Table))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
