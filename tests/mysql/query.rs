@@ -791,6 +791,79 @@ fn select_48() {
 }
 
 #[test]
+fn select_49() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_with_nulls(Glyph::Image, Order::Desc, Nulls::First)
+            .order_by_with_nulls((Glyph::Table, Glyph::Aspect), Order::Asc, Nulls::Last)
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY `image` IS NULL DESC,"#,
+            r#"`image` DESC,"#,
+            r#"`glyph`.`aspect` IS NULL ASC,"#,
+            r#"`glyph`.`aspect` ASC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_50() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                (Glyph::Id, Order::Asc, Nulls::First),
+                (Glyph::Aspect, Order::Desc, Nulls::Last),
+            ])
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY `id` IS NULL DESC,"#,
+            r#"`id` ASC,"#,
+            r#"`aspect` IS NULL ASC,"#,
+            r#"`aspect` DESC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_51() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, Nulls::First),
+                ((Glyph::Table, Glyph::Aspect), Order::Desc, Nulls::Last),
+            ])
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY `glyph`.`id` IS NULL DESC,"#,
+            r#"`glyph`.`id` ASC,"#,
+            r#"`glyph`.`aspect` IS NULL ASC,"#,
+            r#"`glyph`.`aspect` DESC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
