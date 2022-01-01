@@ -24,7 +24,7 @@ impl IndexBuilder for SqliteQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
         }
 
         // self.prepare_index_type(&create.index_type, sql);
@@ -40,7 +40,7 @@ impl IndexBuilder for SqliteQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &drop.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
         }
     }
 
