@@ -50,6 +50,8 @@ macro_rules! bind_params_sqlx_postgres {
                         query.bind(value.as_ref_big_decimal())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
+                    } else if value.is_array() {
+                        query.bind(value.as_ref_array())
                     } else {
                         unimplemented!();
                     }
