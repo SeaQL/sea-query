@@ -791,6 +791,34 @@ fn select_48() {
 }
 
 #[test]
+fn select_49() {
+    let statement = sea_query::Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .to_string(MysqlQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT * FROM `character`"#
+    );
+}
+
+#[test]
+fn select_50() {
+    let statement = sea_query::Query::select()
+        .expr(Expr::table_asterisk(Char::Table))
+        .column((Font::Table, Font::Name))
+        .from(Char::Table)
+        .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+        .to_string(MysqlQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    );
+}
+
+#[test]
 fn select_51() {
     let statement = sea_query::Query::select()
         .column(Char::Id)

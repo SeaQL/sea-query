@@ -251,6 +251,13 @@ pub trait QueryBuilder: QuotedBuilder {
                         write!(sql, ".").unwrap();
                         column.prepare(sql, self.quote());
                     }
+                    ColumnRef::Asterisk => {
+                        write!(sql, "*").unwrap();
+                    }
+                    ColumnRef::TableAsterisk(table) => {
+                        table.prepare(sql, self.quote());
+                        write!(sql, ".*").unwrap();
+                    }
                 };
             }
             SimpleExpr::Tuple(exprs) => {
@@ -801,10 +808,20 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(
         &self,
-        _returning: &[SelectExpr],
-        _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        returning: &[SelectExpr],
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
     ) {
+        if !returning.is_empty() {
+            write!(sql, " RETURNING ").unwrap();
+            returning.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_select_expr(expr, sql, collector);
+                false
+            });
+        }
     }
 
     #[doc(hidden)]
