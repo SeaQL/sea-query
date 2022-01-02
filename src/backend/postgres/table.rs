@@ -30,8 +30,8 @@ impl TableBuilder for PostgresQueryBuilder {
                 },
                 ColumnType::Text => "text".into(),
                 ColumnType::TinyInteger(length) => match length {
-                    Some(length) => format!("tinyint({})", length),
-                    None => "tinyint".into(),
+                    Some(length) => format!("smallint({})", length),
+                    None => "smallint".into(),
                 },
                 ColumnType::SmallInteger(length) => match length {
                     Some(length) => format!("smallint({})", length),

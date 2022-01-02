@@ -100,7 +100,15 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions.
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0 and
+    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -121,7 +129,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -129,8 +137,16 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING a column after delete. Postgres only.
+    /// RETURNING a column after delete.
     /// Wrapper over [`DeleteStatement::returning()`].
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0 and
+    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -151,7 +167,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self

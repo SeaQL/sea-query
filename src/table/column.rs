@@ -28,7 +28,7 @@ pub enum ColumnType {
     TimestampWithTimeZone(Option<u32>),
     Time(Option<u32>),
     Date,
-    Interval(Option<IntervalField>, Option<u32>),
+    Interval(Option<PgInterval>, Option<u32>),
     Binary(Option<u32>),
     Boolean,
     Money(Option<(u32, u32)>),
@@ -54,7 +54,7 @@ pub enum ColumnSpec {
 
 // All interval fields
 #[derive(Debug, Clone)]
-pub enum IntervalField {
+pub enum PgInterval {
     Year,
     Month,
     Day,
@@ -68,6 +68,28 @@ pub enum IntervalField {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
+}
+
+#[cfg(feature = "pg-interval")]
+impl quote::ToTokens for PgInterval {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        use quote::{quote, TokenStreamExt};
+        tokens.append_all(match self {
+            PgInterval::Year => quote! { PgInterval::Year },
+            PgInterval::Month => quote! { PgInterval::Month },
+            PgInterval::Day => quote! { PgInterval::Day },
+            PgInterval::Hour => quote! { PgInterval::Hour },
+            PgInterval::Minute => quote! { PgInterval::Minute },
+            PgInterval::Second => quote! { PgInterval::Second },
+            PgInterval::YearToMonth => quote! { PgInterval::YearToMonth },
+            PgInterval::DayToHour => quote! { PgInterval::DayToHour },
+            PgInterval::DayToMinute => quote! { PgInterval::DayToMinute },
+            PgInterval::DayToSecond => quote! { PgInterval::DayToSecond },
+            PgInterval::HourToMinute => quote! { PgInterval::HourToMinute },
+            PgInterval::HourToSecond => quote! { PgInterval::HourToSecond },
+            PgInterval::MinuteToSecond => quote! { PgInterval::MinuteToSecond },
+        });
+    }
 }
 
 impl ColumnDef {
@@ -270,7 +292,7 @@ impl ColumnDef {
     ///         )
     ///         .col(
     ///             ColumnDef::new(Alias::new("I2"))
-    ///                 .interval(Some(IntervalField::YearToMonth), None)
+    ///                 .interval(Some(PgInterval::YearToMonth), None)
     ///                 .not_null()
     ///         )
     ///         .col(
@@ -280,7 +302,7 @@ impl ColumnDef {
     ///         )
     ///         .col(
     ///             ColumnDef::new(Alias::new("I4"))
-    ///                 .interval(Some(IntervalField::Hour), Some(43))
+    ///                 .interval(Some(PgInterval::Hour), Some(43))
     ///                 .not_null()
     ///         )
     ///         .to_string(PostgresQueryBuilder),
@@ -296,7 +318,7 @@ impl ColumnDef {
     /// );
     /// ```
     #[cfg(feature = "backend-postgres")]
-    pub fn interval(&mut self, fields: Option<IntervalField>, precision: Option<u32>) -> &mut Self {
+    pub fn interval(&mut self, fields: Option<PgInterval>, precision: Option<u32>) -> &mut Self {
         self.types = Some(ColumnType::Interval(fields, precision));
         self
     }
