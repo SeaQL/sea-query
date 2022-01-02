@@ -228,7 +228,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl_asterisk(Char::Table))
+    ///     .expr(Expr::table_asterisk(Char::Table))
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
@@ -247,7 +247,7 @@ impl Expr {
     ///     r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    pub fn tbl_asterisk<T>(t: T) -> Self
+    pub fn table_asterisk<T>(t: T) -> Self
     where
         T: IntoIden
     {
