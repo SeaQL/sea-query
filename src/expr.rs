@@ -249,7 +249,7 @@ impl Expr {
     /// ```
     pub fn table_asterisk<T>(t: T) -> Self
     where
-        T: IntoIden
+        T: IntoIden,
     {
         Self::col(ColumnRef::TableAsterisk(t.into_iden()))
     }

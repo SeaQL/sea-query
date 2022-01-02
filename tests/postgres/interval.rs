@@ -10,22 +10,10 @@ fn with_quote_1() {
         (PgInterval::Hour, quote! { PgInterval::Hour }),
         (PgInterval::Minute, quote! { PgInterval::Minute }),
         (PgInterval::Second, quote! { PgInterval::Second }),
-        (
-            PgInterval::YearToMonth,
-            quote! { PgInterval::YearToMonth },
-        ),
-        (
-            PgInterval::DayToHour,
-            quote! { PgInterval::DayToHour },
-        ),
-        (
-            PgInterval::DayToMinute,
-            quote! { PgInterval::DayToMinute },
-        ),
-        (
-            PgInterval::DayToSecond,
-            quote! { PgInterval::DayToSecond },
-        ),
+        (PgInterval::YearToMonth, quote! { PgInterval::YearToMonth }),
+        (PgInterval::DayToHour, quote! { PgInterval::DayToHour }),
+        (PgInterval::DayToMinute, quote! { PgInterval::DayToMinute }),
+        (PgInterval::DayToSecond, quote! { PgInterval::DayToSecond }),
         (
             PgInterval::HourToMinute,
             quote! { PgInterval::HourToMinute },

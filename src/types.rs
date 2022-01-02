@@ -64,7 +64,7 @@ pub enum ColumnRef {
     TableColumn(DynIden, DynIden),
     SchemaTableColumn(DynIden, DynIden, DynIden),
     Asterisk,
-    TableAsterisk(DynIden)
+    TableAsterisk(DynIden),
 }
 
 pub trait IntoColumnRef {

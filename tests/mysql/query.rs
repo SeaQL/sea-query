@@ -797,10 +797,7 @@ fn select_49() {
         .from(Char::Table)
         .to_string(MysqlQueryBuilder);
 
-    assert_eq!(
-        statement,
-        r#"SELECT * FROM `character`"#
-    );
+    assert_eq!(statement, r#"SELECT * FROM `character`"#);
 }
 
 #[test]
@@ -809,7 +806,10 @@ fn select_50() {
         .expr(Expr::table_asterisk(Char::Table))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
-        .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+        .inner_join(
+            Font::Table,
+            Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+        )
         .to_string(MysqlQueryBuilder);
 
     assert_eq!(
