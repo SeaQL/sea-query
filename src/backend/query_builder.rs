@@ -754,7 +754,7 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
             Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
@@ -794,7 +794,7 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::Array(Some(v)) => write!(
                 s,
                 "\'{{{}}}\'",

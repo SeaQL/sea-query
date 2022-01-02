@@ -73,8 +73,8 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
 
-    #[cfg(feature = "with-array")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
+    #[cfg(feature = "postgres-array")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
     Array(Option<Box<Vec<Value>>>),
 }
 
@@ -350,8 +350,8 @@ mod with_uuid {
     type_to_box_value!(Uuid, Uuid, Uuid);
 }
 
-#[cfg(feature = "with-array")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
+#[cfg(feature = "postgres-array")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 mod with_array {
     use super::*;
 
@@ -637,20 +637,20 @@ impl Value {
 
 impl Value {
     pub fn is_array(&self) -> bool {
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         return matches!(self, Self::Array(_));
-        #[cfg(not(feature = "with-array"))]
+        #[cfg(not(feature = "postgres-array"))]
         return false;
     }
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
         match self {
             Self::Array(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Array"),
         }
     }
-    #[cfg(not(feature = "with-array"))]
+    #[cfg(not(feature = "postgres-array"))]
     pub fn as_ref_array(&self) -> Option<&bool> {
         panic!("not Value::Array")
     }
@@ -946,7 +946,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
@@ -982,7 +982,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::Array(Some(v)) => Json::Array(
             v.as_ref()
                 .iter()
@@ -1323,7 +1323,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     fn test_array_value() {
         let array = vec![1, 2, 3, 4, 5];
         let v: Value = array.into();
