@@ -94,7 +94,7 @@ required-features = ["backend-mysql"]
 [[test]]
 name = "test-postgres"
 path = "tests/postgres/mod.rs"
-required-features = ["backend-postgres", "postgres-interval"]
+required-features = ["backend-postgres"]
 
 [[test]]
 name = "test-sqlite"
