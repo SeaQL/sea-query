@@ -251,6 +251,13 @@ pub trait QueryBuilder: QuotedBuilder {
                         write!(sql, ".").unwrap();
                         column.prepare(sql, self.quote());
                     }
+                    ColumnRef::Asterisk => {
+                        write!(sql, "*").unwrap();
+                    }
+                    ColumnRef::TableAsterisk(table) => {
+                        table.prepare(sql, self.quote());
+                        write!(sql, ".*").unwrap();
+                    }
                 };
             }
             SimpleExpr::Tuple(exprs) => {
