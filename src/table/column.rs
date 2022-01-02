@@ -70,7 +70,7 @@ pub enum PgInterval {
     MinuteToSecond,
 }
 
-#[cfg(feature = "pg-interval")]
+#[cfg(feature = "postgres-interval")]
 impl quote::ToTokens for PgInterval {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         use quote::{quote, TokenStreamExt};

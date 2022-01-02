@@ -63,6 +63,7 @@ postgres-rust_decimal = ["with-rust_decimal", "rust_decimal/db-postgres"]
 postgres-bigdecimal = ["with-bigdecimal"]
 postgres-uuid = ["with-uuid", "postgres-types/with-uuid-0_8"]
 postgres-array = ["with-array", "postgres-types/array-impls"]
+postgres-interval = ["proc-macro2", "quote"]
 rusqlite = []
 sqlx-mysql = []
 sqlx-postgres = []
@@ -73,7 +74,6 @@ with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
 with-bigdecimal = ["bigdecimal"]
 with-uuid = ["uuid"]
-pg-interval = ["proc-macro2", "quote"]
 with-array = []
 
 [[test]]
@@ -94,17 +94,12 @@ required-features = ["backend-mysql"]
 [[test]]
 name = "test-postgres"
 path = "tests/postgres/mod.rs"
-required-features = ["backend-postgres"]
+required-features = ["backend-postgres", "postgres-interval"]
 
 [[test]]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
 required-features = ["backend-sqlite"]
-
-[[test]]
-name = "test-pg-interval"
-path = "tests/pg-interval/mod.rs"
-required-features = ["pg-interval"]
 
 [[bench]]
 name = "basic"
