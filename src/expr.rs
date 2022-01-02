@@ -1617,7 +1617,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .column((Char::Table, Char::Id))
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::exists(
@@ -1658,7 +1658,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .column((Char::Table, Char::Id))
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::not_exists(
