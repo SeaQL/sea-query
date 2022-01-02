@@ -779,7 +779,7 @@ fn select_49() {
     let statement = sea_query::Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
-        .to_string(MysqlQueryBuilder);
+        .to_string(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
@@ -794,7 +794,7 @@ fn select_50() {
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-        .to_string(MysqlQueryBuilder);
+        .to_string(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
@@ -816,7 +816,7 @@ fn select_51() {
                     .take()
             )
         )
-        .to_string(MysqlQueryBuilder);
+        .to_string(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
