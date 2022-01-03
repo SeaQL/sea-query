@@ -19,7 +19,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     table.to_string(SqliteQueryBuilder),
-///     r#"TRUNCATE TABLE `font`"#
+///     r#"TRUNCATE TABLE "font""#
 /// );
 /// ```
 #[derive(Debug, Clone)]
