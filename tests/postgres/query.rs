@@ -809,8 +809,12 @@ fn select_51() {
             .columns(vec![Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-            .order_by_with_nulls(Glyph::Image, Order::Desc, Nulls::First)
-            .order_by_with_nulls((Glyph::Table, Glyph::Aspect), Order::Asc, Nulls::Last)
+            .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
+            .order_by_with_nulls(
+                (Glyph::Table, Glyph::Aspect),
+                Order::Asc,
+                NullOrdering::Last
+            )
             .to_string(PostgresQueryBuilder),
         [
             r#"SELECT "aspect""#,
@@ -831,8 +835,8 @@ fn select_52() {
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls(vec![
-                (Glyph::Id, Order::Asc, Nulls::First),
-                (Glyph::Aspect, Order::Desc, Nulls::Last),
+                (Glyph::Id, Order::Asc, NullOrdering::First),
+                (Glyph::Aspect, Order::Desc, NullOrdering::Last),
             ])
             .to_string(PostgresQueryBuilder),
         [
@@ -854,8 +858,12 @@ fn select_53() {
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls(vec![
-                ((Glyph::Table, Glyph::Id), Order::Asc, Nulls::First),
-                ((Glyph::Table, Glyph::Aspect), Order::Desc, Nulls::Last),
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
             ])
             .to_string(PostgresQueryBuilder),
         [

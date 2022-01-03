@@ -113,8 +113,8 @@ pub trait OrderedStatement {
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .order_by_with_nulls(Glyph::Image, Order::Desc, Nulls::Last)
-    ///     .order_by_with_nulls((Glyph::Table, Glyph::Aspect), Order::Asc, Nulls::First)
+    ///     .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::Last)
+    ///     .order_by_with_nulls((Glyph::Table, Glyph::Aspect), Order::Asc, NullOrdering::First)
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -126,7 +126,7 @@ pub trait OrderedStatement {
     ///     r#"SELECT `aspect` FROM `glyph` ORDER BY `image` IS NULL ASC, `image` DESC, `glyph`.`aspect` IS NULL DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```
-    fn order_by_with_nulls<T>(&mut self, col: T, order: Order, nulls: Nulls) -> &mut Self
+    fn order_by_with_nulls<T>(&mut self, col: T, order: Order, nulls: NullOrdering) -> &mut Self
     where
         T: IntoColumnRef,
     {
@@ -142,7 +142,7 @@ pub trait OrderedStatement {
         &mut self,
         expr: SimpleExpr,
         order: Order,
-        nulls: Nulls,
+        nulls: NullOrdering,
     ) -> &mut Self {
         self.add_order_by(OrderExpr {
             expr,
@@ -152,7 +152,7 @@ pub trait OrderedStatement {
     }
 
     /// Order by custom string with nulls order option.
-    fn order_by_customs_with_nulls<T>(&mut self, cols: Vec<(T, Order, Nulls)>) -> &mut Self
+    fn order_by_customs_with_nulls<T>(&mut self, cols: Vec<(T, Order, NullOrdering)>) -> &mut Self
     where
         T: ToString,
     {
@@ -167,7 +167,7 @@ pub trait OrderedStatement {
     }
 
     /// Order by vector of columns with nulls order option.
-    fn order_by_columns_with_nulls<T>(&mut self, cols: Vec<(T, Order, Nulls)>) -> &mut Self
+    fn order_by_columns_with_nulls<T>(&mut self, cols: Vec<(T, Order, NullOrdering)>) -> &mut Self
     where
         T: IntoColumnRef,
     {

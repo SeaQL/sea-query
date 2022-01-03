@@ -17,11 +17,11 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         match order_expr.nulls {
             None => (),
-            Some(Nulls::Last) => {
+            Some(NullOrdering::Last) => {
                 self.prepare_simple_expr(&order_expr.expr, sql, collector);
                 write!(sql, " IS NULL ASC, ").unwrap()
             }
-            Some(Nulls::First) => {
+            Some(NullOrdering::First) => {
                 self.prepare_simple_expr(&order_expr.expr, sql, collector);
                 write!(sql, " IS NULL DESC, ").unwrap()
             }

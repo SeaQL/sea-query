@@ -25,8 +25,8 @@ impl QueryBuilder for SqliteQueryBuilder {
         self.prepare_order(&order_expr.order, sql, collector);
         match order_expr.nulls {
             None => (),
-            Some(Nulls::Last) => write!(sql, " NULLS LAST").unwrap(),
-            Some(Nulls::First) => write!(sql, " NULLS FIRST").unwrap(),
+            Some(NullOrdering::Last) => write!(sql, " NULLS LAST").unwrap(),
+            Some(NullOrdering::First) => write!(sql, " NULLS FIRST").unwrap(),
         }
     }
 }
