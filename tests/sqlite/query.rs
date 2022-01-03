@@ -777,7 +777,7 @@ fn select_49() {
         .from(Char::Table)
         .to_string(SqliteQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT * FROM `character`"#);
+    assert_eq!(statement, r#"SELECT * FROM "character""#);
 }
 
 #[test]
@@ -794,7 +794,7 @@ fn select_50() {
 
     assert_eq!(
         statement,
-        r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+        r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     );
 }
 

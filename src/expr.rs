@@ -75,7 +75,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT * FROM `character`"#
+    ///     r#"SELECT * FROM "character""#
     /// );
     /// ```
     ///
@@ -98,7 +98,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// ```
     pub fn asterisk() -> Self {
@@ -220,7 +220,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT * FROM `character`"#
+    ///     r#"SELECT * FROM "character""#
     /// );
     /// ```
     ///
@@ -244,7 +244,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// ```
     pub fn table_asterisk<T>(t: T) -> Self

@@ -129,7 +129,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM "glyph" WHERE "id" = 1"#
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -167,7 +167,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM "glyph" WHERE "id" = 1"#
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self

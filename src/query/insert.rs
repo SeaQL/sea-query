@@ -209,7 +209,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A')"#
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -248,7 +248,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A')"#
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self

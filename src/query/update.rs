@@ -254,7 +254,7 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -295,7 +295,7 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
