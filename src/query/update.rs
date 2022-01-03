@@ -223,7 +223,15 @@ impl UpdateStatement {
         self
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions.
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0 and
+    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -246,7 +254,7 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -254,8 +262,16 @@ impl UpdateStatement {
         self
     }
 
-    /// RETURNING a column after update. Postgres only.
+    /// RETURNING a column after update.
     /// Wrapper over [`UpdateStatement::returning()`].
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0 and
+    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -279,7 +295,7 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self

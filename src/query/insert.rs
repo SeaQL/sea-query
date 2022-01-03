@@ -179,7 +179,15 @@ impl InsertStatement {
         self.exprs(values).unwrap()
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions.
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0 and
+    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -201,7 +209,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -209,8 +217,16 @@ impl InsertStatement {
         self
     }
 
-    /// RETURNING a column after insertion. Postgres only. This is equivalent to MySQL's LAST_INSERT_ID.
+    /// RETURNING a column after insertion. This is equivalent to MySQL's LAST_INSERT_ID.
     /// Wrapper over [`InsertStatement::returning()`].
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0 and
+    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -232,7 +248,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self

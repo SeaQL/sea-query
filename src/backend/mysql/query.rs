@@ -1,6 +1,14 @@
 use super::*;
 
 impl QueryBuilder for MysqlQueryBuilder {
+    fn prepare_returning(
+        &self,
+        _returning: &[SelectExpr],
+        _sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
+    }
+
     fn prepare_order_expr(
         &self,
         order_expr: &OrderExpr,

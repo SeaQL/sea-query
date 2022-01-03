@@ -109,6 +109,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Uuid => "text(36)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(_, _) => "text".into(),
+                ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
             }
         )
         .unwrap()
