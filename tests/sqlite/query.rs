@@ -853,7 +853,7 @@ fn insert_5() {
             .columns(vec![Glyph::Image])
             .values_panic(vec![uuid::Uuid::nil().into()])
             .to_string(SqliteQueryBuilder),
-        r#"INSERT INTO `glyph` (`image`) VALUES ('00000000-0000-0000-0000-000000000000')"#
+        r#"INSERT INTO "glyph" ("image") VALUES ('00000000-0000-0000-0000-000000000000')"#
     );
 }
 
