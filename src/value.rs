@@ -7,7 +7,7 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -60,6 +60,11 @@ pub enum Value {
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+
+    /// Add support for `chrono::DateTime<Utc>`
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    DateTimeUtc(Option<Box<DateTime<Utc>>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -286,7 +291,7 @@ mod with_json {
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
     use super::*;
-    use chrono::{Offset, TimeZone};
+    use chrono::{Offset, TimeZone, Utc};
 
     type_to_box_value!(NaiveDate, Date, Date);
     type_to_box_value!(NaiveTime, Time, Time(None));
@@ -318,6 +323,29 @@ mod with_chrono {
 
         fn type_name() -> String {
             stringify!(DateTime<FixedOffset>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::TimestampWithTimeZone(None)
+        }
+    }
+
+    impl Nullable for DateTime<Utc> {
+        fn null() -> Value {
+            Value::DateTimeUtc(None)
+        }
+    }
+
+    impl ValueType for DateTime<Utc> {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::DateTimeUtc(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(DateTime<Utc>).to_owned()
         }
 
         fn column_type() -> ColumnType {
@@ -970,6 +998,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::DateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::DateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
+        Value::DateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
@@ -1270,6 +1300,17 @@ mod tests {
     #[cfg(feature = "with-chrono")]
     fn test_chrono_timezone_value() {
         let timestamp = DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00").unwrap();
+        let value: Value = timestamp.into();
+        let out: DateTime<FixedOffset> = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-chrono")]
+    fn test_chrono_utc_value() {
+        use chrono::{DateTime, NaiveDateTime, Utc};
+
+        let timestamp = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(61, 0), Utc);
         let value: Value = timestamp.into();
         let out: DateTime<FixedOffset> = value.unwrap();
         assert_eq!(out, timestamp);
