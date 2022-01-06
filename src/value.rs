@@ -291,19 +291,23 @@ mod with_json {
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
     use super::*;
-    use chrono::{Offset, TimeZone, Utc};
+    use chrono::{Offset, Utc};
 
     type_to_box_value!(NaiveDate, Date, Date);
     type_to_box_value!(NaiveTime, Time, Time(None));
     type_to_box_value!(NaiveDateTime, DateTime, DateTime(None));
 
-    impl<Tz> From<DateTime<Tz>> for Value
-    where
-        Tz: TimeZone,
-    {
-        fn from(x: DateTime<Tz>) -> Value {
+    impl From<DateTime<FixedOffset>> for Value {
+        fn from(x: DateTime<FixedOffset>) -> Value {
             let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
             Value::DateTimeWithTimeZone(Some(Box::new(v)))
+        }
+    }
+
+    impl From<DateTime<Utc>> for Value {
+        fn from(x: DateTime<Utc>) -> Value {
+            let v = DateTime::<Utc>::from_utc(x.naive_utc(), Utc);
+            Value::DateTimeUtc(Some(Box::new(v)))
         }
     }
 
@@ -561,6 +565,12 @@ impl Value {
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
+    pub fn is_date_time_utc(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::DateTimeUtc(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
     #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
@@ -582,6 +592,18 @@ impl Value {
     #[cfg(not(feature = "with-chrono"))]
     pub fn as_ref_date_time_with_time_zone_in_naive_utc(&self) -> Option<&bool> {
         panic!("not Value::DateTimeWithTimeZone")
+    }
+
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date_time_utc(&self) -> Option<String> {
+        match self {
+            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            _ => panic!("not Value::DateTimeUtc"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
+        panic!("not Value::DateTimeUtc")
     }
 }
 
@@ -1312,7 +1334,7 @@ mod tests {
 
         let timestamp = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(61, 0), Utc);
         let value: Value = timestamp.into();
-        let out: DateTime<FixedOffset> = value.unwrap();
+        let out: DateTime<Utc> = value.unwrap();
         assert_eq!(out, timestamp);
     }
 
