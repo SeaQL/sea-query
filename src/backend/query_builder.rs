@@ -21,32 +21,36 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " ").unwrap();
         }
 
-        write!(sql, "(").unwrap();
-        insert.columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap()
-            }
-            col.prepare(sql, self.quote());
-            false
-        });
-        write!(sql, ")").unwrap();
-
-        write!(sql, " VALUES ").unwrap();
-        insert.values.iter().fold(true, |first, row| {
-            if !first {
-                write!(sql, ", ").unwrap()
-            }
+        if insert.columns.is_empty() && insert.values.is_empty() {
+            write!(sql, "{}", self.insert_default_keyword()).unwrap();
+        } else {
             write!(sql, "(").unwrap();
-            row.iter().fold(true, |first, col| {
+            insert.columns.iter().fold(true, |first, col| {
                 if !first {
                     write!(sql, ", ").unwrap()
                 }
-                self.prepare_simple_expr(col, sql, collector);
+                col.prepare(sql, self.quote());
                 false
             });
             write!(sql, ")").unwrap();
-            false
-        });
+
+            write!(sql, " VALUES ").unwrap();
+            insert.values.iter().fold(true, |first, row| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                write!(sql, "(").unwrap();
+                row.iter().fold(true, |first, col| {
+                    if !first {
+                        write!(sql, ", ").unwrap()
+                    }
+                    self.prepare_simple_expr(col, sql, collector);
+                    false
+                });
+                write!(sql, ")").unwrap();
+                false
+            });
+        }
 
         self.prepare_returning(&insert.returning, sql, collector);
     }
@@ -961,6 +965,11 @@ pub trait QueryBuilder: QuotedBuilder {
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
+    }
+
+    /// The keywords for insert default statement (insert without explicit values)
+    fn insert_default_keyword(&self) -> &str {
+        "DEFAULT VALUES"
     }
 }
 

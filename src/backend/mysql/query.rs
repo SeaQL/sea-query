@@ -8,4 +8,8 @@ impl QueryBuilder for MysqlQueryBuilder {
         _collector: &mut dyn FnMut(Value),
     ) {
     }
+
+    fn insert_default_keyword(&self) -> &str {
+        "VALUES (DEFAULT)"
+    }
 }
