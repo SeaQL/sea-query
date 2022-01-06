@@ -897,6 +897,17 @@ fn insert_6() {
 }
 
 #[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .returning_col(Glyph::Id)
+            .to_string(SqliteQueryBuilder),
+        "INSERT INTO `glyph` DEFAULT VALUES RETURNING `id`"
+    );
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
