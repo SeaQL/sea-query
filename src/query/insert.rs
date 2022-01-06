@@ -159,7 +159,9 @@ impl InsertStatement {
                 val_len: values.len(),
             });
         }
-        self.values.push(values);
+        if !values.is_empty() {
+            self.values.push(values);
+        }
         Ok(self)
     }
 
