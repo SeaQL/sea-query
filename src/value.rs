@@ -595,9 +595,9 @@ impl Value {
     }
 
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_utc(&self) -> Option<String> {
+    pub fn as_ref_date_time_utc(&self) -> Option<&DateTime<Utc>> {
         match self {
-            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.as_ref()),
             _ => panic!("not Value::DateTimeUtc"),
         }
     }
