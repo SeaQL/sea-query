@@ -21,6 +21,6 @@ impl SchemaBuilder for SqliteQueryBuilder {}
 
 impl QuotedBuilder for SqliteQueryBuilder {
     fn quote(&self) -> char {
-        '`'
+        '"'
     }
 }

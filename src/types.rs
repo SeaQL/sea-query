@@ -389,7 +389,7 @@ mod tests {
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
-            r#"SELECT `hello-World_`"#
+            r#"SELECT "hello-World_""#
         );
     }
 
@@ -400,7 +400,7 @@ mod tests {
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
         #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel``lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel`lo""#);
 
         let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
 
@@ -415,7 +415,7 @@ mod tests {
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
         #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel````lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel``lo""#);
 
         let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
 

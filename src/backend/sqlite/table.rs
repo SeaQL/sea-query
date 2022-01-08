@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for SqliteQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
-        column_def.name.prepare(sql, '`');
+        column_def.name.prepare(sql, self.quote());
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
@@ -139,7 +139,7 @@ impl TableBuilder for SqliteQueryBuilder {
         };
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
             write!(sql, " ").unwrap();
         }
         match alter_option {
@@ -152,9 +152,9 @@ impl TableBuilder for SqliteQueryBuilder {
             }
             TableAlterOption::RenameColumn(from_name, to_name) => {
                 write!(sql, "RENAME COLUMN ").unwrap();
-                from_name.prepare(sql, '`');
+                from_name.prepare(sql, self.quote());
                 write!(sql, " TO ").unwrap();
-                to_name.prepare(sql, '`');
+                to_name.prepare(sql, self.quote());
             }
             TableAlterOption::DropColumn(_) => {
                 panic!("Sqlite not support dropping table column")
@@ -165,11 +165,11 @@ impl TableBuilder for SqliteQueryBuilder {
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
-            from_name.prepare(sql, '`');
+            from_name.prepare(sql, self.quote());
         }
         write!(sql, " RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
-            to_name.prepare(sql, '`');
+            to_name.prepare(sql, self.quote());
         }
     }
 }

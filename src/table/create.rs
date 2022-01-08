@@ -64,14 +64,14 @@ use crate::{
 /// assert_eq!(
 ///     table.to_string(SqliteQueryBuilder),
 ///     vec![
-///        r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-///            r#"`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-///            r#"`font_size` integer NOT NULL,"#,
-///            r#"`character` text NOT NULL,"#,
-///            r#"`size_w` integer NOT NULL,"#,
-///            r#"`size_h` integer NOT NULL,"#,
-///            r#"`font_id` integer DEFAULT NULL,"#,
-///            r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`) ON DELETE CASCADE ON UPDATE CASCADE"#,
+///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+///            r#""font_size" integer NOT NULL,"#,
+///            r#""character" text NOT NULL,"#,
+///            r#""size_w" integer NOT NULL,"#,
+///            r#""size_h" integer NOT NULL,"#,
+///            r#""font_id" integer DEFAULT NULL,"#,
+///            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
 ///        r#")"#,
 ///     ].join(" ")
 /// );
@@ -216,11 +216,11 @@ impl TableCreateStatement {
     /// assert_eq!(
     ///     statement.to_string(SqliteQueryBuilder),
     ///     vec![
-    ///         "CREATE TABLE `glyph` (",
-    ///         "`id` integer NOT NULL,",
-    ///         "`image` text NOT NULL,",
-    ///         "PRIMARY KEY (`id`, `image`)",
-    ///         ")",
+    ///         r#"CREATE TABLE "glyph" ("#,
+    ///         r#""id" integer NOT NULL,"#,
+    ///         r#""image" text NOT NULL,"#,
+    ///         r#"PRIMARY KEY ("id", "image")"#,
+    ///         r#")"#,
     ///     ]
     ///     .join(" ")
     /// );
