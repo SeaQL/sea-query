@@ -229,8 +229,7 @@ impl UpdateStatement {
     /// Works on
     /// * PostgreSQL
     /// * SQLite
-    ///     - SQLite version >= 3.35.0 and
-    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - SQLite version >= 3.35.0
     ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
@@ -269,8 +268,7 @@ impl UpdateStatement {
     /// Works on
     /// * PostgreSQL
     /// * SQLite
-    ///     - SQLite version >= 3.35.0 and
-    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - SQLite version >= 3.35.0
     ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
