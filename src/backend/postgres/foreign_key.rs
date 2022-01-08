@@ -8,7 +8,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
     ) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &drop.table {
-            table.prepare(sql, '"');
+            table.prepare(sql, self.quote());
         }
 
         write!(sql, " DROP CONSTRAINT ").unwrap();
@@ -26,7 +26,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if !inside_table_creation {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
-                table.prepare(sql, '"');
+                table.prepare(sql, self.quote());
             }
             write!(sql, " ADD ").unwrap();
         }
@@ -41,14 +41,14 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql, '"');
+            col.prepare(sql, self.quote());
             false
         });
         write!(sql, ")").unwrap();
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            ref_table.prepare(sql, '"');
+            ref_table.prepare(sql, self.quote());
         }
         write!(sql, " ").unwrap();
 
@@ -61,7 +61,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql, '"');
+                col.prepare(sql, self.quote());
                 false
             });
         write!(sql, ")").unwrap();

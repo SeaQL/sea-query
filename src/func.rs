@@ -87,7 +87,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
+    ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
     pub fn max<T>(expr: T) -> SimpleExpr
@@ -119,7 +119,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MIN(`character`.`size_h`) FROM `character`"#
+    ///     r#"SELECT MIN("character"."size_h") FROM "character""#
     /// );
     /// ```
     pub fn min<T>(expr: T) -> SimpleExpr
@@ -151,7 +151,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
+    ///     r#"SELECT SUM("character"."size_h") FROM "character""#
     /// );
     /// ```
     pub fn sum<T>(expr: T) -> SimpleExpr
@@ -183,7 +183,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT AVG(`character`.`size_h`) FROM `character`"#
+    ///     r#"SELECT AVG("character"."size_h") FROM "character""#
     /// );
     /// ```
     pub fn avg<T>(expr: T) -> SimpleExpr
@@ -215,7 +215,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT COUNT(`character`.`id`) FROM `character`"#
+    ///     r#"SELECT COUNT("character"."id") FROM "character""#
     /// );
     /// ```
     pub fn count<T>(expr: T) -> SimpleExpr
@@ -247,7 +247,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT LENGTH(`character`.`character`) FROM `character`"#
+    ///     r#"SELECT LENGTH("character"."character") FROM "character""#
     /// );
     /// ```
     pub fn char_length<T>(expr: T) -> SimpleExpr
@@ -282,7 +282,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT IFNULL(`size_w`, `size_h`) FROM `character`"#
+    ///     r#"SELECT IFNULL("size_w", "size_h") FROM "character""#
     /// );
     /// ```
     pub fn if_null<A, B>(a: A, b: B) -> SimpleExpr

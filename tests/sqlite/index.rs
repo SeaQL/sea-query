@@ -8,7 +8,7 @@ fn create_1() {
             .table(Glyph::Table)
             .col(Glyph::Aspect)
             .to_string(SqliteQueryBuilder),
-        "CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"
+        r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
     );
 }
 
@@ -22,7 +22,7 @@ fn create_2() {
             .col(Glyph::Aspect)
             .col(Glyph::Image)
             .to_string(SqliteQueryBuilder),
-        "CREATE UNIQUE INDEX `idx-glyph-aspect-image` ON `glyph` (`aspect`, `image`)"
+        r#"CREATE UNIQUE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
     );
 }
 
@@ -33,6 +33,6 @@ fn drop_1() {
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
             .to_string(SqliteQueryBuilder),
-        "DROP INDEX `idx-glyph-aspect` ON `glyph`"
+        r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
     );
 }
