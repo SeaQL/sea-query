@@ -151,11 +151,19 @@ pub enum JoinType {
     RightJoin,
 }
 
+/// Nulls order
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NullOrdering {
+    First,
+    Last,
+}
+
 /// Order expression
 #[derive(Debug, Clone)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
+    pub(crate) nulls: Option<NullOrdering>,
 }
 
 /// Join on types

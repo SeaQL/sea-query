@@ -32,6 +32,7 @@ pub trait OrderedStatement {
         self.add_order_by(OrderExpr {
             expr: SimpleExpr::Column(col.into_column_ref()),
             order,
+            nulls: None,
         })
     }
 
@@ -49,7 +50,11 @@ pub trait OrderedStatement {
 
     /// Order by [`SimpleExpr`].
     fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
-        self.add_order_by(OrderExpr { expr, order })
+        self.add_order_by(OrderExpr {
+            expr,
+            order,
+            nulls: None,
+        })
     }
 
     /// Order by custom string.
@@ -61,6 +66,7 @@ pub trait OrderedStatement {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Custom(c.to_string()),
                 order,
+                nulls: None,
             });
         });
         self
@@ -75,6 +81,7 @@ pub trait OrderedStatement {
             self.add_order_by(OrderExpr {
                 expr: SimpleExpr::Column(c.into_column_ref()),
                 order,
+                nulls: None,
             });
         });
         self
@@ -94,5 +101,83 @@ pub trait OrderedStatement {
                 .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
                 .collect(),
         )
+    }
+
+    /// Order by column with nulls order option.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Aspect)
+    ///     .from(Glyph::Table)
+    ///     .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::Last)
+    ///     .order_by_with_nulls((Glyph::Table, Glyph::Aspect), Order::Asc, NullOrdering::First)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "aspect" FROM "glyph" ORDER BY "image" DESC NULLS LAST, "glyph"."aspect" ASC NULLS FIRST"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `aspect` FROM `glyph` ORDER BY `image` IS NULL ASC, `image` DESC, `glyph`.`aspect` IS NULL DESC, `glyph`.`aspect` ASC"#
+    /// );
+    /// ```
+    fn order_by_with_nulls<T>(&mut self, col: T, order: Order, nulls: NullOrdering) -> &mut Self
+    where
+        T: IntoColumnRef,
+    {
+        self.add_order_by(OrderExpr {
+            expr: SimpleExpr::Column(col.into_column_ref()),
+            order,
+            nulls: Some(nulls),
+        })
+    }
+
+    /// Order by [`SimpleExpr`] with nulls order option.
+    fn order_by_expr_with_nulls(
+        &mut self,
+        expr: SimpleExpr,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self {
+        self.add_order_by(OrderExpr {
+            expr,
+            order,
+            nulls: Some(nulls),
+        })
+    }
+
+    /// Order by custom string with nulls order option.
+    fn order_by_customs_with_nulls<T>(&mut self, cols: Vec<(T, Order, NullOrdering)>) -> &mut Self
+    where
+        T: ToString,
+    {
+        cols.into_iter().for_each(|(c, order, nulls)| {
+            self.add_order_by(OrderExpr {
+                expr: SimpleExpr::Custom(c.to_string()),
+                order,
+                nulls: Some(nulls),
+            });
+        });
+        self
+    }
+
+    /// Order by vector of columns with nulls order option.
+    fn order_by_columns_with_nulls<T>(&mut self, cols: Vec<(T, Order, NullOrdering)>) -> &mut Self
+    where
+        T: IntoColumnRef,
+    {
+        cols.into_iter().for_each(|(c, order, nulls)| {
+            self.add_order_by(OrderExpr {
+                expr: SimpleExpr::Column(c.into_column_ref()),
+                order,
+                nulls: Some(nulls),
+            });
+        });
+        self
     }
 }

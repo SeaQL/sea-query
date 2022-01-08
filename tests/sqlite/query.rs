@@ -795,6 +795,81 @@ fn select_50() {
     assert_eq!(
         statement,
         r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
+    )
+}
+
+#[test]
+fn select_51() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
+            .order_by_with_nulls(
+                (Glyph::Table, Glyph::Aspect),
+                Order::Asc,
+                NullOrdering::Last
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY "image" DESC NULLS FIRST,"#,
+            r#""glyph"."aspect" ASC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_52() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                (Glyph::Id, Order::Asc, NullOrdering::First),
+                (Glyph::Aspect, Order::Desc, NullOrdering::Last),
+            ])
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY "id" ASC NULLS FIRST,"#,
+            r#""aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_53() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
+            ])
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."id" ASC NULLS FIRST,"#,
+            r#""glyph"."aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
     );
 }
 
