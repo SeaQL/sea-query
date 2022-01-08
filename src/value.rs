@@ -605,6 +605,17 @@ impl Value {
     pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
         panic!("not Value::DateTimeUtc")
     }
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date_time_naive_utc(&self) -> Option<String> {
+        match self {
+            Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| format! {"{:?}", v.as_ref()}),
+            _ => panic!("not Value::DateTimeWithTimeZone"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date_time_naive_utc(&self) -> Option<&bool> {
+        panic!("not Value::DateTimeWithTimeZone")
+    }
 }
 
 impl Value {
