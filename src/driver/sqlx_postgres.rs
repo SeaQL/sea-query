@@ -51,7 +51,7 @@ macro_rules! bind_params_sqlx_postgres {
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
                     } else if value.is_array() {
-                        unimplemented!("SQLx array is not supported");
+                        query.bind(value.as_ref_array())
                     } else {
                         unimplemented!();
                     }
