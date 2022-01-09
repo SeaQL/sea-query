@@ -656,6 +656,188 @@ impl Value {
     }
 }
 
+macro_rules! is_primitives {
+    ( $is_ty: ident, $variant: ident ) => {
+        impl Value {
+            pub fn $is_ty(&self) -> bool {
+                return matches!(self, Self::$variant(_));
+            }
+        }
+    };
+}
+
+is_primitives!(is_bool, Bool);
+is_primitives!(is_tiny_int, TinyInt);
+is_primitives!(is_small_int, SmallInt);
+is_primitives!(is_int, Int);
+is_primitives!(is_big_int, BigInt);
+is_primitives!(is_tiny_unsigned, TinyUnsigned);
+is_primitives!(is_small_unsigned, SmallUnsigned);
+is_primitives!(is_unsigned, Unsigned);
+is_primitives!(is_big_unsigned, BigUnsigned);
+is_primitives!(is_float, Float);
+is_primitives!(is_double, Double);
+is_primitives!(is_string, String);
+
+macro_rules! bind_array_values {
+    ( $is_ty: ident, $is_ty_array: ident, $as_ty_ref_array: ident, $ty: ty, $feature: literal ) => {
+        impl Value {
+            pub fn $is_ty_array(&self) -> bool {
+                #[cfg(feature = "postgres-array")]
+                return match self {
+                    Self::Array(Some(values)) => !values.is_empty() && values[0].$is_ty(),
+                    _ => false,
+                };
+                #[cfg(not(feature = "postgres-array"))]
+                return false;
+            }
+
+            #[cfg(all(feature = "postgres-array", feature = $feature))]
+            pub fn $as_ty_ref_array(&self) -> Option<Vec<$ty>> {
+                match self {
+                    Self::Array(v) => v
+                        .as_ref()
+                        .map(|values| values.iter().map(|value| value.clone().unwrap()).collect()),
+                    _ => panic!("not Value::Array"),
+                }
+            }
+            #[cfg(not(all(feature = "postgres-array", feature = $feature)))]
+            pub fn $as_ty_ref_array(&self) -> Option<&bool> {
+                panic!("not Value::Array")
+            }
+        }
+    };
+}
+
+bind_array_values!(
+    is_bool,
+    is_bool_array,
+    as_bool_ref_array,
+    bool,
+    "postgres-array"
+);
+bind_array_values!(
+    is_tiny_int,
+    is_tiny_int_array,
+    as_tiny_int_ref_array,
+    i8,
+    "postgres-array"
+);
+bind_array_values!(
+    is_small_int,
+    is_small_int_array,
+    as_small_int_ref_array,
+    i16,
+    "postgres-array"
+);
+bind_array_values!(
+    is_int,
+    is_int_array,
+    as_int_ref_array,
+    i32,
+    "postgres-array"
+);
+bind_array_values!(
+    is_big_int,
+    is_big_int_array,
+    as_big_int_ref_array,
+    i64,
+    "postgres-array"
+);
+bind_array_values!(
+    is_tiny_unsigned,
+    is_tiny_unsigned_array,
+    as_tiny_unsigned_ref_array,
+    u8,
+    "postgres-array"
+);
+bind_array_values!(
+    is_small_unsigned,
+    is_small_unsigned_array,
+    as_small_unsigned_ref_array,
+    u32, // Unwrap u16 as u32 here because SQLx PostgreSQL didn't support u16
+    "postgres-array"
+);
+bind_array_values!(
+    is_unsigned,
+    is_unsigned_array,
+    as_unsigned_ref_array,
+    u32,
+    "postgres-array"
+);
+bind_array_values!(
+    is_big_unsigned,
+    is_big_unsigned_array,
+    as_big_unsigned_ref_array,
+    i64, // Unwrap u64 as i64 here because SQLx PostgreSQL didn't support u64
+    "postgres-array"
+);
+bind_array_values!(
+    is_float,
+    is_float_array,
+    as_float_ref_array,
+    f32,
+    "postgres-array"
+);
+bind_array_values!(
+    is_double,
+    is_double_array,
+    as_double_ref_array,
+    f64,
+    "postgres-array"
+);
+bind_array_values!(
+    is_string,
+    is_string_array,
+    as_string_ref_array,
+    String,
+    "postgres-array"
+);
+bind_array_values!(is_json, is_json_array, as_json_ref_array, Json, "with-json");
+bind_array_values!(
+    is_date,
+    is_date_array,
+    as_date_ref_array,
+    NaiveDate,
+    "with-chrono"
+);
+bind_array_values!(
+    is_time,
+    is_time_array,
+    as_time_ref_array,
+    NaiveTime,
+    "with-chrono"
+);
+bind_array_values!(
+    is_date_time,
+    is_date_time_array,
+    as_date_time_ref_array,
+    NaiveDateTime,
+    "with-chrono"
+);
+bind_array_values!(
+    is_date_time_with_time_zone,
+    is_date_time_with_time_zone_array,
+    as_date_time_with_time_zone_ref_array,
+    DateTime<FixedOffset>,
+    "with-chrono"
+);
+bind_array_values!(
+    is_decimal,
+    is_decimal_array,
+    as_decimal_ref_array,
+    Decimal,
+    "with-rust_decimal"
+);
+bind_array_values!(
+    is_big_decimal,
+    is_big_decimal_array,
+    as_big_decimal_ref_array,
+    BigDecimal,
+    "with-bigdecimal"
+);
+bind_array_values!(is_uuid, is_uuid_array, as_uuid_ref_array, Uuid, "with-uuid");
+
 impl IntoIterator for ValueTuple {
     type Item = Value;
     type IntoIter = std::vec::IntoIter<Self::Item>;

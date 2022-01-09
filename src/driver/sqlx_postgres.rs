@@ -51,7 +51,49 @@ macro_rules! bind_params_sqlx_postgres {
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
                     } else if value.is_array() {
-                        query.bind(value.as_ref_array())
+                        if value.is_bool_array() {
+                            query.bind(value.as_bool_ref_array())
+                        } else if value.is_tiny_int_array() {
+                            query.bind(value.as_tiny_int_ref_array())
+                        } else if value.is_small_int_array() {
+                            query.bind(value.as_small_int_ref_array())
+                        } else if value.is_int_array() {
+                            query.bind(value.as_int_ref_array())
+                        } else if value.is_big_int_array() {
+                            query.bind(value.as_big_int_ref_array())
+                        } else if value.is_tiny_unsigned_array() {
+                            query.bind(value.as_tiny_unsigned_ref_array())
+                        } else if value.is_small_unsigned_array() {
+                            query.bind(value.as_small_unsigned_ref_array())
+                        } else if value.is_unsigned_array() {
+                            query.bind(value.as_unsigned_ref_array())
+                        } else if value.is_big_unsigned_array() {
+                            query.bind(value.as_big_unsigned_ref_array())
+                        } else if value.is_float_array() {
+                            query.bind(value.as_float_ref_array())
+                        } else if value.is_double_array() {
+                            query.bind(value.as_double_ref_array())
+                        } else if value.is_string_array() {
+                            query.bind(value.as_string_ref_array())
+                        } else if value.is_json_array() {
+                            query.bind(value.as_json_ref_array())
+                        } else if value.is_date_array() {
+                            query.bind(value.as_date_ref_array())
+                        } else if value.is_time_array() {
+                            query.bind(value.as_time_ref_array())
+                        } else if value.is_date_time_array() {
+                            query.bind(value.as_date_time_ref_array())
+                        } else if value.is_date_time_with_time_zone_array() {
+                            query.bind(value.as_date_time_with_time_zone_ref_array())
+                        } else if value.is_decimal_array() {
+                            query.bind(value.as_decimal_ref_array())
+                        } else if value.is_big_decimal_array() {
+                            query.bind(value.as_big_decimal_ref_array())
+                        } else if value.is_uuid_array() {
+                            query.bind(value.as_uuid_ref_array())
+                        } else {
+                            unimplemented!();
+                        }
                     } else {
                         unimplemented!();
                     }
