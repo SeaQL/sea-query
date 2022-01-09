@@ -300,14 +300,18 @@ fn select_22() {
             .from(Char::Table)
             .cond_where(
                 Cond::all()
-                .add(
-                    Cond::any()
-                    .add(Expr::col(Char::Character).like("C"))
-                    .add(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
-                )
-                .add(
-                    Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G"))
-                )
+                    .add(
+                        Cond::any().add(Expr::col(Char::Character).like("C")).add(
+                            Expr::col(Char::Character)
+                                .like("D")
+                                .and(Expr::col(Char::Character).like("E"))
+                        )
+                    )
+                    .add(
+                        Expr::col(Char::Character)
+                            .like("F")
+                            .or(Expr::col(Char::Character).like("G"))
+                    )
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
@@ -957,9 +961,9 @@ fn update_3() {
             .table(Glyph::Table)
             .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
             .values(vec![(
-                             Glyph::Image,
-                             "24B0E11951B03B07F8300FD003983F03F0780060".into()
-                         ), ])
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(SqliteQueryBuilder),
         r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#

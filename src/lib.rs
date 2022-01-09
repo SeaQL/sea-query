@@ -55,6 +55,9 @@
 //! Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
 //! `postgres`, `postgres-*`, `rusqlite`
 //!
+//! Postgres support: `postgres`, `postgres-chrono`, `postgres-json`, `postgres-rust_decimal`,
+//! `postgres-bigdecimal`, `postgres-uuid`, `postgres-array`, `postgres-interval`
+//!
 //! ## Usage
 //!
 //! Table of Content
