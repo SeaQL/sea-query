@@ -61,7 +61,29 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
 
-    /// Add support for `chrono::DateTime<Utc>`
+    /// Support for `chrono::DateTime<Utc>`
+    ///
+    /// #### Example
+    /// ```
+    /// use sea_orm::entity::prelude::*;
+    ///
+    /// #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+    /// #[sea_orm(table_name = "satellites")]
+    /// pub struct Model {
+    ///     #[sea_orm(primary_key)]
+    ///     pub id: i32,
+    ///     pub satellite_name: String,
+    ///     // For older mysql databases like 5.7
+    ///     // use `Option<DateTimeUtc` to ensure the value is nullable
+    ///     pub launch_date: Option<DateTimeUtc>,
+    ///     pub deployment_date: DateTimeUtc,
+    /// }
+    ///
+    /// #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+    /// pub enum Relation {}
+    ///
+    /// impl ActiveModelBehavior for ActiveModel {}
+    /// ```
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTimeUtc(Option<Box<DateTime<Utc>>>),
