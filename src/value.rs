@@ -10,6 +10,9 @@ use std::str::from_utf8;
 #[cfg(feature = "with-chrono")]
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
+#[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+use chrono::Duration;
+
 #[cfg(feature = "with-time")]
 use time::{OffsetDateTime, PrimitiveDateTime};
 
@@ -79,6 +82,13 @@ pub enum ArrayType {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone,
 
+    #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "postgres-interval", feature = "with-chrono")))
+    )]
+    ChronoDuration,
+
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDate,
@@ -94,6 +104,13 @@ pub enum ArrayType {
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone,
+
+    #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "postgres-interval", feature = "with-time")))
+    )]
+    TimeDuration,
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -202,6 +219,13 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
 
+    #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "postgres-interval", feature = "with-chrono")))
+    )]
+    ChronoDuration(Option<Box<Duration>>),
+
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDate(Option<Box<time::Date>>),
@@ -217,6 +241,13 @@ pub enum Value {
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
+
+    #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "postgres-interval", feature = "with-time")))
+    )]
+    TimeDuration(Option<Box<time::Duration>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -621,6 +652,18 @@ mod with_chrono {
     }
 }
 
+#[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "postgres-interval", feature = "with-chrono")))
+)]
+mod with_chrono_duration {
+    use super::*;
+    use chrono::Duration;
+
+    type_to_box_value!(Duration, ChronoDuration, Interval(None, None));
+}
+
 #[cfg(feature = "with-time")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
 pub mod time_format {
@@ -676,6 +719,81 @@ mod with_time {
 
         fn column_type() -> ColumnType {
             ColumnType::TimestampWithTimeZone
+        }
+    }
+}
+
+#[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "postgres-interval", feature = "with-time")))
+)]
+mod with_time_duration {
+    use super::*;
+
+    type_to_box_value!(time::Duration, TimeDuration, Interval(None, None));
+}
+
+#[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "postgres-interval", feature = "with-time")))
+)]
+pub mod time_duration_format {
+    use core::fmt;
+
+    // from chrono/0.4.31/src/chrono/duration.rs.html#22-39
+    /// The number of nanoseconds in a microsecond.
+    const NANOS_PER_MICRO: i32 = 1000;
+    /// The number of nanoseconds in a millisecond.
+    const NANOS_PER_MILLI: i32 = 1_000_000;
+    /// The number of (non-leap) seconds in days.
+    const SECS_PER_DAY: i64 = 86_400;
+
+    #[derive(Debug)]
+    pub struct ISO8601Duration {
+        inner: time::Duration,
+    }
+
+    impl ISO8601Duration {
+        pub fn from(d: &time::Duration) -> Self {
+            Self { inner: *d }
+        }
+    }
+
+    impl fmt::Display for ISO8601Duration {
+        // adapted from chrono/0.4.31/src/chrono/duration.rs.html#407-434
+        /// Format a duration using the [ISO 8601] format
+        ///
+        /// [ISO 8601]: https://en.wikipedia.org/wiki/ISO_8601#Durations
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            // technically speaking, negative duration is not valid ISO 8601,
+            // but we need to print it anyway.
+            let sign = if self.inner.is_negative() { "-" } else { "" };
+
+            let days = self.inner.whole_seconds() / SECS_PER_DAY;
+            let secs = self.inner.whole_seconds() - days * SECS_PER_DAY;
+            let nanos = self.inner.subsec_nanoseconds();
+            let hasdate = days != 0;
+            let hastime = (secs != 0 || nanos != 0) || !hasdate;
+
+            write!(f, "{}P", sign)?;
+
+            if hasdate {
+                write!(f, "{}D", days)?;
+            }
+            if hastime {
+                if nanos == 0 {
+                    write!(f, "T{}S", secs)?;
+                } else if nanos % NANOS_PER_MILLI == 0 {
+                    write!(f, "T{}.{:03}S", secs, nanos / NANOS_PER_MILLI)?;
+                } else if nanos % NANOS_PER_MICRO == 0 {
+                    write!(f, "T{}.{:06}S", secs, nanos / NANOS_PER_MICRO)?;
+                } else {
+                    write!(f, "T{}.{:09}S", secs, nanos)?;
+                }
+            }
+            Ok(())
         }
     }
 }
@@ -804,6 +922,9 @@ pub mod with_array {
     #[cfg(feature = "with-chrono")]
     impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
 
+    #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+    impl NotU8 for Duration {}
+
     #[cfg(feature = "with-time")]
     impl NotU8 for time::Date {}
 
@@ -815,6 +936,9 @@ pub mod with_array {
 
     #[cfg(feature = "with-time")]
     impl NotU8 for OffsetDateTime {}
+
+    #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+    impl NotU8 for time::Duration {}
 
     #[cfg(feature = "with-rust_decimal")]
     impl NotU8 for Decimal {}
@@ -1090,6 +1214,34 @@ impl Value {
                     .ok()
             }),
             _ => panic!("not time Value"),
+        }
+    }
+}
+
+#[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+impl Value {
+    pub fn is_chrono_duration(&self) -> bool {
+        matches!(self, Self::ChronoDuration(_))
+    }
+
+    pub fn as_ref_chrono_duration(&self) -> Option<&Duration> {
+        match self {
+            Self::ChronoDuration(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Interval"),
+        }
+    }
+}
+
+#[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+impl Value {
+    pub fn is_time_duration(&self) -> bool {
+        matches!(self, Self::TimeDuration(_))
+    }
+
+    pub fn as_ref_time_duration(&self) -> Option<&time::Duration> {
+        match self {
+            Self::TimeDuration(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Interval"),
         }
     }
 }
@@ -1422,6 +1574,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+        Value::ChronoDuration(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
@@ -1430,6 +1584,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+        Value::TimeDuration(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
