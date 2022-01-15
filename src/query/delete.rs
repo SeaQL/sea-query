@@ -4,7 +4,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, SelectExpr, SelectStatement,
+    Query, QueryStatementBuilder, QueryStatementBuilderGenerics, SelectExpr, SelectStatement,
+    WithClause, WithQuery,
 };
 
 /// Delete existing rows from the table
@@ -174,9 +175,60 @@ impl DeleteStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
+
+    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id])
+    ///         .from(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Image).like("0%"))
+    ///         .to_owned();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .table_name(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let update = DeleteStatement::new()
+    ///         .from_table(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
+    ///         .to_owned();
+    ///     let query = update.with(with_clause);
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`) AS (SELECT `id` FROM `glyph` WHERE `image` LIKE '0%') DELETE FROM `glyph` WHERE `id` IN (SELECT `id` FROM `cte`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// ```
+    pub fn with(self, clause: WithClause) -> WithQuery {
+        clause.query(self)
+    }
 }
 
 impl QueryStatementBuilder for DeleteStatement {
+    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        query_builder.prepare_delete_statement(self, sql, collector);
+    }
+
+    fn box_clone(&self) -> Box<dyn QueryStatementBuilder> {
+        Box::new(self.clone())
+    }
+}
+
+impl QueryStatementBuilderGenerics for DeleteStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -206,16 +258,6 @@ impl QueryStatementBuilder for DeleteStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_delete_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

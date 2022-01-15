@@ -15,6 +15,7 @@ mod select;
 mod shim;
 mod traits;
 mod update;
+mod with;
 
 pub use condition::*;
 pub use delete::*;
@@ -23,6 +24,7 @@ pub use ordered::*;
 pub use select::*;
 pub use traits::*;
 pub use update::*;
+pub use with::*;
 
 /// Shorthand for constructing any table query
 #[derive(Debug, Clone)]
@@ -56,5 +58,10 @@ impl Query {
     /// Construct table [`DeleteStatement`]
     pub fn delete() -> DeleteStatement {
         DeleteStatement::new()
+    }
+
+    /// Construct [`WithClause`]
+    pub fn with() -> WithClause {
+        WithClause::new()
     }
 }

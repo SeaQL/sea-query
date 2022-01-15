@@ -29,4 +29,22 @@ impl QueryBuilder for SqliteQueryBuilder {
             Some(NullOrdering::First) => write!(sql, " NULLS FIRST").unwrap(),
         }
     }
+
+    fn prepare_query_statement(
+        &self,
+        query: &dyn QueryStatementBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query.build_collect_any_into(self, sql, collector);
+    }
+
+    fn prepare_with_clause_recursive_options(
+        &self,
+        _: &WithClause,
+        _: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        // Sqlite doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
+    }
 }

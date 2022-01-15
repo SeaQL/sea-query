@@ -1,6 +1,7 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
-    QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
+    QueryStatementBuilder, QueryStatementBuilderGenerics, SelectExpr, SelectStatement, SimpleExpr,
+    WithClause, WithQuery,
 };
 
 /// Represents a value source that can be used in an insert query.
@@ -352,9 +353,67 @@ impl InsertStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
+
+    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from(Glyph::Table)
+    ///         .to_owned();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .column(Glyph::Image)
+    ///         .column(Glyph::Aspect)
+    ///         .table_name(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let mut insert = Query::insert();
+    ///     insert
+    ///         .into_table(Glyph::Table)
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .select_from(select)
+    ///         .unwrap();
+    ///     let query = insert.with(with_clause);
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`, `image`, `aspect`) AS (SELECT `id`, `image`, `aspect` FROM `glyph`) INSERT INTO `glyph` (`id`, `image`, `aspect`) SELECT `id`, `image`, `aspect` FROM `cte`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// ```
+    pub fn with(self, clause: WithClause) -> WithQuery {
+        clause.query(self)
+    }
 }
 
 impl QueryStatementBuilder for InsertStatement {
+    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        query_builder.prepare_insert_statement(self, sql, collector);
+    }
+
+    fn box_clone(&self) -> Box<dyn QueryStatementBuilder> {
+        Box::new(self.clone())
+    }
+}
+
+impl QueryStatementBuilderGenerics for InsertStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -391,16 +450,6 @@ impl QueryStatementBuilder for InsertStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_insert_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

@@ -5,7 +5,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder,
+    QueryStatementBuilder, QueryStatementBuilderGenerics, WithClause, WithQuery,
 };
 
 /// Select rows from an existing table
@@ -1672,9 +1672,89 @@ impl SelectStatement {
         self.unions.extend(unions);
         self
     }
+
+    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let base_query = SelectStatement::new()
+    ///                     .column(Alias::new("id"))
+    ///                     .expr(Expr::val(1i32))
+    ///                     .column(Alias::new("next"))
+    ///                     .column(Alias::new("value"))
+    ///                     .from(Alias::new("table"))
+    ///                     .to_owned();
+    ///
+    /// let cte_referencing = SelectStatement::new()
+    ///                             .column(Alias::new("id"))
+    ///                             .expr(Expr::col(Alias::new("depth")).add(1i32))
+    ///                             .column(Alias::new("next"))
+    ///                             .column(Alias::new("value"))
+    ///                             .from(Alias::new("table"))
+    ///                             .join(
+    ///                                 JoinType::InnerJoin,
+    ///                                 Alias::new("cte_traversal"),
+    ///                                 Expr::tbl(Alias::new("cte_traversal"), Alias::new("next")).equals(Alias::new("table"), Alias::new("id")).into_condition()
+    ///                             )
+    ///                             .to_owned();
+    ///
+    /// let common_table_expression = CommonTableExpression::new()
+    ///             .query(
+    ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
+    ///             )
+    ///             .column(Alias::new("id"))
+    ///             .column(Alias::new("depth"))
+    ///             .column(Alias::new("next"))
+    ///             .column(Alias::new("value"))
+    ///             .table_name(Alias::new("cte_traversal"))
+    ///             .to_owned();
+    ///
+    /// let select = SelectStatement::new()
+    ///         .column(ColumnRef::Asterisk)
+    ///         .from(Alias::new("cte_traversal"))
+    ///         .to_owned();
+    ///
+    /// let with_clause = WithClause::new()
+    ///         .recursive(true)
+    ///         .cte(common_table_expression)
+    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
+    ///         .to_owned();
+    ///
+    /// let query = select.with(with_clause).to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `table` UNION ALL SELECT `id`, `depth` + 1, `next`, `value` FROM `table` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `table`.`id`) SELECT * FROM `cte_traversal`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
+    /// );
+    /// ```
+    pub fn with(self, clause: WithClause) -> WithQuery {
+        clause.query(self)
+    }
+
 }
 
 impl QueryStatementBuilder for SelectStatement {
+    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        query_builder.prepare_select_statement(self, sql, collector);
+    }
+
+    fn box_clone(&self) -> Box<dyn QueryStatementBuilder> {
+        Box::new(self.clone())
+    }
+}
+
+impl QueryStatementBuilderGenerics for SelectStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -1710,16 +1790,6 @@ impl QueryStatementBuilder for SelectStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_select_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();
