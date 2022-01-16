@@ -53,6 +53,8 @@ impl ToSql for Value {
             Value::DateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
             #[cfg(feature = "postgres-chrono")]
             Value::DateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
+            #[cfg(feature = "postgres-chrono")]
+            Value::DateTimeUtc(v) => box_to_sql!(v, chrono::DateTime<chrono::Utc>),
             #[cfg(feature = "postgres-rust_decimal")]
             Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
             #[cfg(feature = "postgres-bigdecimal")]

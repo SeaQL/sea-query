@@ -42,6 +42,8 @@ macro_rules! bind_params_sqlx_mysql {
                         query.bind(value.as_ref_time())
                     } else if value.is_date_time() {
                         query.bind(value.as_ref_date_time())
+                    } else if value.is_date_time_utc() {
+                        query.bind(value.as_ref_date_time_utc())
                     } else if value.is_date_time_with_time_zone() {
                         query.bind(value.as_ref_date_time_with_time_zone_in_naive_utc())
                     } else if value.is_decimal() {
