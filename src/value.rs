@@ -59,34 +59,11 @@ pub enum Value {
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+    DateTimeUtc(Option<Box<DateTime<Utc>>>),
 
-    /// Support for `chrono::DateTime<Utc>`
-    ///
-    /// #### Example
-    /// ```
-    /// use sea_orm::entity::prelude::*;
-    ///
-    /// #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-    /// #[sea_orm(table_name = "satellites")]
-    /// pub struct Model {
-    ///     #[sea_orm(primary_key)]
-    ///     pub id: i32,
-    ///     pub satellite_name: String,
-    ///     // For older mysql databases like 5.7
-    ///     // use `Option<DateTimeUtc` to ensure the value is nullable
-    ///     pub launch_date: Option<DateTimeUtc>,
-    ///     pub deployment_date: DateTimeUtc,
-    /// }
-    ///
-    /// #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-    /// pub enum Relation {}
-    ///
-    /// impl ActiveModelBehavior for ActiveModel {}
-    /// ```
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTimeUtc(Option<Box<DateTime<Utc>>>),
+    DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -319,40 +296,16 @@ mod with_chrono {
     type_to_box_value!(NaiveTime, Time, Time(None));
     type_to_box_value!(NaiveDateTime, DateTime, DateTime(None));
 
-    impl From<DateTime<FixedOffset>> for Value {
-        fn from(x: DateTime<FixedOffset>) -> Value {
-            let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
-            Value::DateTimeWithTimeZone(Some(Box::new(v)))
-        }
-    }
-
     impl From<DateTime<Utc>> for Value {
-        fn from(x: DateTime<Utc>) -> Value {
-            let v = DateTime::<Utc>::from_utc(x.naive_utc(), Utc);
+        fn from(v: DateTime<Utc>) -> Value {
             Value::DateTimeUtc(Some(Box::new(v)))
         }
     }
 
-    impl Nullable for DateTime<FixedOffset> {
-        fn null() -> Value {
-            Value::DateTimeWithTimeZone(None)
-        }
-    }
-
-    impl ValueType for DateTime<FixedOffset> {
-        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-            match v {
-                Value::DateTimeWithTimeZone(Some(x)) => Ok(*x),
-                _ => Err(ValueTypeErr),
-            }
-        }
-
-        fn type_name() -> String {
-            stringify!(DateTime<FixedOffset>).to_owned()
-        }
-
-        fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+    impl From<DateTime<FixedOffset>> for Value {
+        fn from(x: DateTime<FixedOffset>) -> Value {
+            let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
+            Value::DateTimeWithTimeZone(Some(Box::new(v)))
         }
     }
 
@@ -372,6 +325,29 @@ mod with_chrono {
 
         fn type_name() -> String {
             stringify!(DateTime<Utc>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::TimestampWithTimeZone(None)
+        }
+    }
+
+    impl Nullable for DateTime<FixedOffset> {
+        fn null() -> Value {
+            Value::DateTimeWithTimeZone(None)
+        }
+    }
+
+    impl ValueType for DateTime<FixedOffset> {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::DateTimeWithTimeZone(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(DateTime<FixedOffset>).to_owned()
         }
 
         fn column_type() -> ColumnType {
@@ -581,18 +557,31 @@ impl Value {
 }
 
 impl Value {
-    pub fn is_date_time_with_time_zone(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTimeWithTimeZone(_));
-        #[cfg(not(feature = "with-chrono"))]
-        return false;
-    }
     pub fn is_date_time_utc(&self) -> bool {
         #[cfg(feature = "with-chrono")]
         return matches!(self, Self::DateTimeUtc(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
+    pub fn is_date_time_with_time_zone(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::DateTimeWithTimeZone(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
+
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date_time_utc(&self) -> Option<&DateTime<Utc>> {
+        match self {
+            Self::DateTimeUtc(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::DateTimeUtc"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
+        panic!("not Value::DateTimeUtc")
+    }
+
     #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
@@ -604,39 +593,19 @@ impl Value {
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&bool> {
         panic!("not Value::DateTimeWithTimeZone")
     }
-    #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_with_time_zone_in_naive_utc(&self) -> Option<String> {
-        match self {
-            Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
-            _ => panic!("not Value::DateTimeWithTimeZone"),
-        }
-    }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_with_time_zone_in_naive_utc(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeWithTimeZone")
-    }
 
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_utc(&self) -> Option<&DateTime<Utc>> {
+    pub fn as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.as_ref()),
-            _ => panic!("not Value::DateTimeUtc"),
+            Self::DateTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            _ => panic!("not Value::DateTime"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeUtc")
-    }
-    #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_naive_utc(&self) -> Option<String> {
-        match self {
-            Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| format! {"{:?}", v.as_ref()}),
-            _ => panic!("not Value::DateTimeWithTimeZone"),
-        }
-    }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_naive_utc(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeWithTimeZone")
+    pub fn as_naive_utc_in_string(&self) -> Option<&bool> {
+        panic!("not Value::DateTime")
     }
 }
 
@@ -1353,21 +1322,20 @@ mod tests {
 
     #[test]
     #[cfg(feature = "with-chrono")]
-    fn test_chrono_timezone_value() {
-        let timestamp = DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00").unwrap();
+    fn test_chrono_utc_value() {
+        let timestamp =
+            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
         let value: Value = timestamp.into();
-        let out: DateTime<FixedOffset> = value.unwrap();
+        let out: DateTime<Utc> = value.unwrap();
         assert_eq!(out, timestamp);
     }
 
     #[test]
     #[cfg(feature = "with-chrono")]
-    fn test_chrono_utc_value() {
-        use chrono::{DateTime, NaiveDateTime, Utc};
-
-        let timestamp = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(61, 0), Utc);
+    fn test_chrono_timezone_value() {
+        let timestamp = DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00").unwrap();
         let value: Value = timestamp.into();
-        let out: DateTime<Utc> = value.unwrap();
+        let out: DateTime<FixedOffset> = value.unwrap();
         assert_eq!(out, timestamp);
     }
 
