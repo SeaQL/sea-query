@@ -74,6 +74,7 @@ pub struct JoinExpr {
     pub join: JoinType,
     pub table: Box<TableRef>,
     pub on: Option<JoinOn>,
+    pub lateral: bool,
 }
 
 /// List of lock types that can be used in select statement
@@ -902,6 +903,7 @@ impl SelectStatement {
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
+            false,
         )
     }
 
@@ -973,6 +975,7 @@ impl SelectStatement {
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
+            false,
         )
     }
 
@@ -1061,14 +1064,86 @@ impl SelectStatement {
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
+            false,
         )
     }
 
-    fn join_join(&mut self, join: JoinType, table: TableRef, on: JoinOn) -> &mut Self {
+    /// Join Lateral with sub-query.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let sub_glyph: DynIden = SeaRc::new(Alias::new("sub_glyph"));
+    /// let query = Query::select()
+    ///     .column(Font::Name)
+    ///     .from(Font::Table)
+    ///     .join_lateral_subquery(
+    ///         JoinType::LeftJoin,
+    ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
+    ///         sub_glyph.clone(),
+    ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name" FROM "font" LEFT JOIN LATERAL (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    ///
+    /// // Constructing chained join conditions
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .column(Font::Name)
+    ///         .from(Font::Table)
+    ///         .join_lateral_subquery(
+    ///             JoinType::LeftJoin,
+    ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
+    ///             sub_glyph.clone(),
+    ///             Condition::all()
+    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    /// ```
+    pub fn join_lateral_subquery<T, C>(
+        &mut self,
+        join: JoinType,
+        query: SelectStatement,
+        alias: T,
+        condition: C,
+    ) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoCondition,
+    {
+        self.join_join(
+            join,
+            TableRef::SubQuery(query, alias.into_iden()),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
+            true,
+        )
+    }
+
+    fn join_join(&mut self, join: JoinType, table: TableRef, on: JoinOn, lateral: bool) -> &mut Self {
         self.join.push(JoinExpr {
             join,
             table: Box::new(table),
             on: Some(on),
+            lateral,
         });
         self
     }

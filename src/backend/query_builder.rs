@@ -415,6 +415,9 @@ pub trait QueryBuilder: QuotedBuilder {
     ) {
         self.prepare_join_type(&join_expr.join, sql, collector);
         write!(sql, " ").unwrap();
+        if join_expr.lateral {
+            write!(sql, "LATERAL ").unwrap();
+        }
         self.prepare_table_ref(&join_expr.table, sql, collector);
         if let Some(on) = &join_expr.on {
             write!(sql, " ").unwrap();
