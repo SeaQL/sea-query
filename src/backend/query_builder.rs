@@ -415,14 +415,23 @@ pub trait QueryBuilder: QuotedBuilder {
     ) {
         self.prepare_join_type(&join_expr.join, sql, collector);
         write!(sql, " ").unwrap();
-        if join_expr.lateral {
-            write!(sql, "LATERAL ").unwrap();
-        }
-        self.prepare_table_ref(&join_expr.table, sql, collector);
+        self.prepare_join_table_ref(join_expr, sql, collector);
         if let Some(on) = &join_expr.on {
             write!(sql, " ").unwrap();
             self.prepare_join_on(on, sql, collector);
         }
+    }
+
+    fn prepare_join_table_ref(
+        &self,
+        join_expr: &JoinExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if join_expr.lateral {
+            write!(sql, "LATERAL ").unwrap();
+        }
+        QueryBuilder::prepare_table_ref_common(self, &join_expr.table, sql, collector);
     }
 
     /// Translate [`TableRef`] into SQL statement.

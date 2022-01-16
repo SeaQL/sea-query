@@ -1068,7 +1068,7 @@ impl SelectStatement {
         )
     }
 
-    /// Join Lateral with sub-query.
+    /// Join Lateral with sub-query. Not supported by SQLite.
     ///
     /// # Examples
     ///
@@ -1079,7 +1079,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)
-    ///     .join_lateral_subquery(
+    ///     .join_lateral(
     ///         JoinType::LeftJoin,
     ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
     ///         sub_glyph.clone(),
@@ -1095,17 +1095,13 @@ impl SelectStatement {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "name" FROM "font" LEFT JOIN LATERAL (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
-    /// );
     ///
     /// // Constructing chained join conditions
     /// assert_eq!(
     ///     Query::select()
     ///         .column(Font::Name)
     ///         .from(Font::Table)
-    ///         .join_lateral_subquery(
+    ///         .join_lateral(
     ///             JoinType::LeftJoin,
     ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
     ///             sub_glyph.clone(),
@@ -1117,7 +1113,7 @@ impl SelectStatement {
     ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// ```
-    pub fn join_lateral_subquery<T, C>(
+    pub fn join_lateral<T, C>(
         &mut self,
         join: JoinType,
         query: SelectStatement,
@@ -1138,7 +1134,13 @@ impl SelectStatement {
         )
     }
 
-    fn join_join(&mut self, join: JoinType, table: TableRef, on: JoinOn, lateral: bool) -> &mut Self {
+    fn join_join(
+        &mut self,
+        join: JoinType,
+        table: TableRef,
+        on: JoinOn,
+        lateral: bool,
+    ) -> &mut Self {
         self.join.push(JoinExpr {
             join,
             table: Box::new(table),
