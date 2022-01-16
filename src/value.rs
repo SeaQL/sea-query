@@ -7,7 +7,7 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -56,6 +56,10 @@ pub enum Value {
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTime(Option<Box<NaiveDateTime>>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    DateTimeUtc(Option<Box<DateTime<Utc>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
@@ -286,19 +290,45 @@ mod with_json {
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
     use super::*;
-    use chrono::{Offset, TimeZone};
+    use chrono::{Offset, Utc};
 
     type_to_box_value!(NaiveDate, Date, Date);
     type_to_box_value!(NaiveTime, Time, Time(None));
     type_to_box_value!(NaiveDateTime, DateTime, DateTime(None));
 
-    impl<Tz> From<DateTime<Tz>> for Value
-    where
-        Tz: TimeZone,
-    {
-        fn from(x: DateTime<Tz>) -> Value {
+    impl From<DateTime<Utc>> for Value {
+        fn from(v: DateTime<Utc>) -> Value {
+            Value::DateTimeUtc(Some(Box::new(v)))
+        }
+    }
+
+    impl From<DateTime<FixedOffset>> for Value {
+        fn from(x: DateTime<FixedOffset>) -> Value {
             let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
             Value::DateTimeWithTimeZone(Some(Box::new(v)))
+        }
+    }
+
+    impl Nullable for DateTime<Utc> {
+        fn null() -> Value {
+            Value::DateTimeUtc(None)
+        }
+    }
+
+    impl ValueType for DateTime<Utc> {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::DateTimeUtc(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(DateTime<Utc>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::TimestampWithTimeZone(None)
         }
     }
 
@@ -527,12 +557,31 @@ impl Value {
 }
 
 impl Value {
+    pub fn is_date_time_utc(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::DateTimeUtc(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
     pub fn is_date_time_with_time_zone(&self) -> bool {
         #[cfg(feature = "with-chrono")]
         return matches!(self, Self::DateTimeWithTimeZone(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
+
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date_time_utc(&self) -> Option<&DateTime<Utc>> {
+        match self {
+            Self::DateTimeUtc(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::DateTimeUtc"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
+        panic!("not Value::DateTimeUtc")
+    }
+
     #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
@@ -544,16 +593,19 @@ impl Value {
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&bool> {
         panic!("not Value::DateTimeWithTimeZone")
     }
+
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_with_time_zone_in_naive_utc(&self) -> Option<String> {
+    pub fn as_naive_utc_in_string(&self) -> Option<String> {
         match self {
+            Self::DateTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
             Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
-            _ => panic!("not Value::DateTimeWithTimeZone"),
+            _ => panic!("not Value::DateTime"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_with_time_zone_in_naive_utc(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeWithTimeZone")
+    pub fn as_naive_utc_in_string(&self) -> Option<&bool> {
+        panic!("not Value::DateTime")
     }
 }
 
@@ -970,6 +1022,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::DateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::DateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
+        Value::DateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
@@ -1263,6 +1317,16 @@ mod tests {
         let timestamp = chrono::NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2);
         let value: Value = timestamp.into();
         let out: NaiveDateTime = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-chrono")]
+    fn test_chrono_utc_value() {
+        let timestamp =
+            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let value: Value = timestamp.into();
+        let out: DateTime<Utc> = value.unwrap();
         assert_eq!(out, timestamp);
     }
 

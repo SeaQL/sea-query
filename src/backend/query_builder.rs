@@ -759,6 +759,8 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-chrono")]
             Value::DateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
+            Value::DateTimeUtc(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
@@ -795,6 +797,10 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-chrono")]
             Value::DateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
+            }
+            #[cfg(feature = "with-chrono")]
+            Value::DateTimeUtc(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(Some(v)) => {
