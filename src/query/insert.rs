@@ -8,7 +8,7 @@ use crate::{
 /// [`InsertValueSource`] is a node in the expression tree and can represent a raw value set
 /// ('VALUES') or a select query.
 #[derive(Debug, Clone)]
-pub enum InsertValueSource {
+enum InsertValueSource {
     Values(Vec<Vec<SimpleExpr>>),
     Select(Box<SelectStatement>),
 }
@@ -149,7 +149,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns(vec![Glyph::Aspect, Glyph::Image])
-    ///     .select(Query::select()
+    ///     .select_from(Query::select()
     ///         .column(Glyph::Aspect)
     ///         .column(Glyph::Image)
     ///         .from(Glyph::Table)
@@ -172,7 +172,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
     /// );
     /// ```
-    pub fn select<S>(&mut self, select: S) -> Result<&mut Self>
+    pub fn select_from<S>(&mut self, select: S) -> Result<&mut Self>
     where
         S: Into<SelectStatement>,
     {
@@ -222,7 +222,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
     /// );
     /// ```
-    pub fn value_source<S>(&mut self, source: S) -> Result<&mut InsertStatement>
+    fn value_source<S>(&mut self, source: S) -> Result<&mut InsertStatement>
     where
         S: Into<InsertValueSource>,
     {
@@ -233,7 +233,7 @@ impl InsertStatement {
                 }
                 Ok(self)
             }
-            InsertValueSource::Select(select) => self.select(*select),
+            InsertValueSource::Select(select) => self.select_from(*select),
         }
     }
 

@@ -973,7 +973,7 @@ fn insert_from_select() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns(vec![Glyph::Aspect, Glyph::Image])
-            .select(
+            .select_from(
                 Query::select()
                     .column(Glyph::Aspect)
                     .column(Glyph::Image)
