@@ -966,6 +966,40 @@ fn insert_from_select() {
 }
 
 #[test]
+fn insert_6() -> sea_query::error::Result<()> {
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Glyph::Table)
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .column(Glyph::Id)
+        .column(Glyph::Image)
+        .column(Glyph::Aspect)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Alias::new("cte"))
+        .to_owned();
+    let mut insert = Query::insert();
+    insert
+        .into_table(Glyph::Table)
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .select_from(select)?;
+    let sql = insert.with(with_clause).to_string(PostgresQueryBuilder);
+    assert_eq!(
+        sql.as_str(),
+        [
+            r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph")"#,
+            r#"INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#,
+        ].join(" ")
+    );
+    Ok(())
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
