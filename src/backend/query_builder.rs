@@ -1,4 +1,3 @@
-use crate::backend::query_builder::InsertValueSource;
 use crate::*;
 use std::ops::Deref;
 
@@ -35,41 +34,32 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if let Some(source) = &insert.source {
             write!(sql, " ").unwrap();
-            self.prepare_insert_value_source(source, sql, collector);
-        }
-
-        self.prepare_returning(&insert.returning, sql, collector);
-    }
-
-    fn prepare_insert_value_source(
-        &self,
-        source: &InsertValueSource,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        match source {
-            InsertValueSource::Values(values) => {
-                write!(sql, "VALUES ").unwrap();
-                values.iter().fold(true, |first, row| {
-                    if !first {
-                        write!(sql, ", ").unwrap()
-                    }
-                    write!(sql, "(").unwrap();
-                    row.iter().fold(true, |first, col| {
+            match source {
+                InsertValueSource::Values(values) => {
+                    write!(sql, "VALUES ").unwrap();
+                    values.iter().fold(true, |first, row| {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        self.prepare_simple_expr(col, sql, collector);
+                        write!(sql, "(").unwrap();
+                        row.iter().fold(true, |first, col| {
+                            if !first {
+                                write!(sql, ", ").unwrap()
+                            }
+                            self.prepare_simple_expr(col, sql, collector);
+                            false
+                        });
+                        write!(sql, ")").unwrap();
                         false
                     });
-                    write!(sql, ")").unwrap();
-                    false
-                });
-            }
-            InsertValueSource::Select(select_query) => {
-                self.prepare_select_statement(select_query.deref(), sql, collector);
+                }
+                InsertValueSource::Select(select_query) => {
+                    self.prepare_select_statement(select_query.deref(), sql, collector);
+                }
             }
         }
+
+        self.prepare_returning(&insert.returning, sql, collector);
     }
 
     /// Translate [`SelectStatement`] into SQL statement.

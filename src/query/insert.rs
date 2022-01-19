@@ -8,7 +8,7 @@ use crate::{
 /// [`InsertValueSource`] is a node in the expression tree and can represent a raw value set
 /// ('VALUES') or a select query.
 #[derive(Debug, Clone)]
-enum InsertValueSource {
+pub(crate) enum InsertValueSource {
     Values(Vec<Vec<SimpleExpr>>),
     Select(Box<SelectStatement>),
 }
@@ -190,39 +190,7 @@ impl InsertStatement {
     }
 
     /// Specify the value source of the insert.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
-    ///     .value_source(InsertValueSource::Select(Box::new(Query::select()
-    ///         .column(Glyph::Aspect)
-    ///         .column(Glyph::Image)
-    ///         .from(Glyph::Table)
-    ///         .and_where(Expr::col(Glyph::Image).like("0%"))
-    ///         .to_owned()))
-    ///     )
-    ///     .unwrap()
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) SELECT `aspect`, `image` FROM `glyph` WHERE `image` LIKE '0%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
-    /// );
-    /// ```
-    fn value_source<S>(&mut self, source: S) -> Result<&mut InsertStatement>
+    fn value_source<S>(&mut self, source: S) -> Result<&mut Self>
     where
         S: Into<InsertValueSource>,
     {
