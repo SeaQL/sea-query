@@ -309,7 +309,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::SubQuery(sel) => {
                 write!(sql, "(").unwrap();
-                self.prepare_select_statement(sel, sql, collector);
+                self.prepare_query_statement(sel.deref(), sql, collector);
                 write!(sql, ")").unwrap();
             }
             SimpleExpr::Value(val) => {
