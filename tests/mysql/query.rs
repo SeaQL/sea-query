@@ -900,6 +900,25 @@ fn select_53() {
 }
 
 #[test]
+fn select_54() {
+    let sub_glyph: DynIden = SeaRc::new(Alias::new("sub_glyph"));
+    let query = Query::select()
+        .column(Font::Name)
+        .from(Font::Table)
+        .join_lateral(
+            JoinType::LeftJoin,
+            Query::select().column(Glyph::Id).from(Glyph::Table).take(),
+            sub_glyph.clone(),
+            Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id),
+        )
+        .to_owned();
+    assert_eq!(
+        query.to_string(MysqlQueryBuilder),
+        "SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(

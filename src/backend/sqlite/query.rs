@@ -14,6 +14,18 @@ impl QueryBuilder for SqliteQueryBuilder {
         // SQLite doesn't supports row locking
     }
 
+    fn prepare_join_table_ref(
+        &self,
+        join_expr: &JoinExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if join_expr.lateral {
+            panic!("SQLite does not support LATERAL join")
+        }
+        QueryBuilder::prepare_table_ref_common(self, &join_expr.table, sql, collector);
+    }
+
     fn prepare_order_expr(
         &self,
         order_expr: &OrderExpr,

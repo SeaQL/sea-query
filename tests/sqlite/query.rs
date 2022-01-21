@@ -878,6 +878,23 @@ fn select_53() {
 }
 
 #[test]
+#[should_panic(expected = "SQLite does not support LATERAL join")]
+fn select_54() {
+    let sub_glyph: DynIden = SeaRc::new(Alias::new("sub_glyph"));
+    let query = Query::select()
+        .column(Font::Name)
+        .from(Font::Table)
+        .join_lateral(
+            JoinType::LeftJoin,
+            Query::select().column(Glyph::Id).from(Glyph::Table).take(),
+            sub_glyph.clone(),
+            Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id),
+        )
+        .to_owned();
+    let _ = query.to_string(SqliteQueryBuilder);
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
