@@ -50,12 +50,8 @@ where
 
 impl SqlWriter {
     pub fn new() -> Self {
-        Self::new_params_from(0)
-    }
-
-    pub fn new_params_from(start_params_from: usize) -> Self {
         Self {
-            counter: start_params_from,
+            counter: 0,
             string: String::with_capacity(256),
         }
     }

@@ -1,15 +1,15 @@
-use crate::{Alias, QueryBuilder};
 use crate::ColumnRef;
 use crate::DynIden;
 use crate::IntoIden;
 use crate::QueryStatementBuilder;
-use crate::QueryStatementBuilderGenerics;
+use crate::QueryStatementWriter;
 use crate::SelectExpr;
 use crate::SelectStatement;
 use crate::SimpleExpr;
 use crate::SqlWriter;
 use crate::TableRef;
 use crate::Value;
+use crate::{Alias, QueryBuilder};
 use std::ops::Deref;
 
 /// A table definition inside a WITH clause ([WithClause]).
@@ -98,7 +98,7 @@ impl CommonTableExpression {
     /// columns.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
-        Q: QueryStatementBuilder,
+        Q: QueryStatementBuilder + 'static,
     {
         self.query = Some(Box::new(query));
         self
@@ -480,7 +480,7 @@ impl WithClause {
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
-        T: QueryStatementBuilder,
+        T: QueryStatementBuilder + 'static,
     {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }
@@ -571,7 +571,7 @@ impl WithQuery {
     /// Set the query that you execute with the [WithClause].
     pub fn query<T>(&mut self, query: T) -> &mut Self
     where
-        T: QueryStatementBuilder,
+        T: QueryStatementBuilder + 'static,
     {
         self.query = Some(Box::new(query));
         self
@@ -579,7 +579,12 @@ impl WithQuery {
 }
 
 impl QueryStatementBuilder for WithQuery {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         query_builder.prepare_with_query(self, sql, collector);
     }
 
@@ -588,7 +593,7 @@ impl QueryStatementBuilder for WithQuery {
     }
 }
 
-impl QueryStatementBuilderGenerics for WithQuery {
+impl QueryStatementWriter for WithQuery {
     fn build_collect<T: crate::QueryBuilder>(
         &self,
         query_builder: T,

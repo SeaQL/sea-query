@@ -1,8 +1,12 @@
-use crate::{backend::QueryBuilder, prepare::inject_parameters, SqlWriter, value::{Value, Values}};
-use std::any::Any;
+use crate::{
+    backend::QueryBuilder,
+    prepare::inject_parameters,
+    value::{Value, Values},
+    SqlWriter,
+};
 use std::fmt::Debug;
 
-pub trait QueryStatementBuilder: Any + Debug {
+pub trait QueryStatementBuilder: Debug {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
     fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
         let mut values = Vec::new();
@@ -23,7 +27,12 @@ pub trait QueryStatementBuilder: Any + Debug {
     }
 
     /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value));
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    );
 
     fn box_clone(&self) -> Box<dyn QueryStatementBuilder>;
 }
@@ -34,7 +43,7 @@ impl Clone for Box<dyn QueryStatementBuilder> {
     }
 }
 
-pub trait QueryStatementBuilderGenerics: QueryStatementBuilder {
+pub trait QueryStatementWriter: QueryStatementBuilder {
     /// Build corresponding SQL statement for certain database backend and return SQL string
     ///
     /// # Examples

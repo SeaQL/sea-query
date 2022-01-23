@@ -28,17 +28,16 @@ macro_rules! impl_query_statement_builder {
         mod $mod_name {
 
             use crate::{
-                $struct_name, QueryBuilder, QueryStatementBuilder, QueryStatementBuilderGenerics,
-                Values,
+                $struct_name, QueryBuilder, QueryStatementBuilder, QueryStatementWriter, Values,
             };
 
             impl $struct_name {
                 pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-                    <Self as QueryStatementBuilderGenerics>::to_string(self, query_builder)
+                    <Self as QueryStatementWriter>::to_string(self, query_builder)
                 }
 
                 pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-                    <Self as QueryStatementBuilderGenerics>::build(self, query_builder)
+                    <Self as QueryStatementWriter>::build(self, query_builder)
                 }
 
                 pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {

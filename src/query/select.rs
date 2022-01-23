@@ -5,7 +5,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementBuilderGenerics, WithClause, WithQuery,
+    QueryStatementBuilder, QueryStatementWriter, WithClause, WithQuery,
 };
 
 /// Select rows from an existing table
@@ -1741,11 +1741,15 @@ impl SelectStatement {
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
-
 }
 
 impl QueryStatementBuilder for SelectStatement {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         query_builder.prepare_select_statement(self, sql, collector);
     }
 
@@ -1754,7 +1758,7 @@ impl QueryStatementBuilder for SelectStatement {
     }
 }
 
-impl QueryStatementBuilderGenerics for SelectStatement {
+impl QueryStatementWriter for SelectStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples

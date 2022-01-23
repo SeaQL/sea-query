@@ -1,6 +1,6 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
-    QueryStatementBuilder, QueryStatementBuilderGenerics, SelectExpr, SelectStatement, SimpleExpr,
+    QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
     WithClause, WithQuery,
 };
 
@@ -404,7 +404,12 @@ impl InsertStatement {
 }
 
 impl QueryStatementBuilder for InsertStatement {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         query_builder.prepare_insert_statement(self, sql, collector);
     }
 
@@ -413,7 +418,7 @@ impl QueryStatementBuilder for InsertStatement {
     }
 }
 
-impl QueryStatementBuilderGenerics for InsertStatement {
+impl QueryStatementWriter for InsertStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
