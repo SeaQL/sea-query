@@ -90,4 +90,13 @@ impl QueryBuilder for PostgresQueryBuilder {
             Some(NullOrdering::First) => write!(sql, " NULLS FIRST").unwrap(),
         }
     }
+
+    fn prepare_query_statement(
+        &self,
+        query: &dyn QueryStatementBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query.build_collect_any_into(self, sql, collector);
+    }
 }

@@ -309,7 +309,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::SubQuery(sel) => {
                 write!(sql, "(").unwrap();
-                self.prepare_select_statement(sel, sql, collector);
+                self.prepare_query_statement(sel.deref(), sql, collector);
                 write!(sql, ")").unwrap();
             }
             SimpleExpr::Value(val) => {
@@ -632,6 +632,173 @@ pub trait QueryBuilder: QuotedBuilder {
                 }
             )
             .unwrap();
+        }
+    }
+
+    /// Translate [`QueryStatement`] into SQL statement.
+    fn prepare_query_statement(
+        &self,
+        query: &dyn QueryStatementBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    );
+
+    fn prepare_with_query(
+        &self,
+        query: &WithQuery,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_with_clause(&query.with_clause, sql, collector);
+        self.prepare_query_statement(query.query.as_ref().unwrap().deref(), sql, collector);
+    }
+
+    fn prepare_with_clause(
+        &self,
+        with_clause: &WithClause,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_with_clause_start(with_clause, sql);
+        self.prepare_with_clause_common_tables(with_clause, sql, collector);
+        if with_clause.recursive {
+            self.prepare_with_clause_recursive_options(with_clause, sql, collector);
+        }
+    }
+
+    fn prepare_with_clause_recursive_options(
+        &self,
+        with_clause: &WithClause,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if with_clause.recursive {
+            if let Some(search) = &with_clause.search {
+                write!(
+                    sql,
+                    "SEARCH {} FIRST BY ",
+                    match &search.order.as_ref().unwrap() {
+                        SearchOrder::BREADTH => "BREADTH",
+                        SearchOrder::DEPTH => "DEPTH",
+                    }
+                )
+                .unwrap();
+
+                self.prepare_simple_expr(&search.expr.as_ref().unwrap().expr, sql, collector);
+
+                write!(sql, " SET ").unwrap();
+
+                search
+                    .expr
+                    .as_ref()
+                    .unwrap()
+                    .alias
+                    .as_ref()
+                    .unwrap()
+                    .prepare(sql, self.quote());
+                write!(sql, " ").unwrap();
+            }
+            if let Some(cycle) = &with_clause.cycle {
+                write!(sql, "CYCLE ").unwrap();
+
+                self.prepare_simple_expr(cycle.expr.as_ref().unwrap(), sql, collector);
+
+                write!(sql, " SET ").unwrap();
+
+                cycle.set_as.as_ref().unwrap().prepare(sql, self.quote());
+                write!(sql, " USING ").unwrap();
+                cycle.using.as_ref().unwrap().prepare(sql, self.quote());
+                write!(sql, " ").unwrap();
+            }
+        }
+    }
+
+    fn prepare_with_clause_common_tables(
+        &self,
+        with_clause: &WithClause,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        let mut cte_first = true;
+        assert_ne!(
+            with_clause.cte_expressions.len(),
+            0,
+            "Cannot build a with query that has no common table expression!"
+        );
+
+        if with_clause.recursive {
+            assert_eq!(
+                with_clause.cte_expressions.len(),
+                1,
+                "Cannot build a recursive query with more than one common table! \
+                A recursive with query must have a single cte inside it that has a union query of \
+                two queries!"
+            );
+        }
+        for cte in &with_clause.cte_expressions {
+            if !cte_first {
+                write!(sql, ", ").unwrap();
+            }
+            cte_first = false;
+
+            self.prepare_with_query_clause_common_table(cte, sql, collector);
+        }
+    }
+
+    fn prepare_with_query_clause_common_table(
+        &self,
+        cte: &CommonTableExpression,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        cte.table_name.as_ref().unwrap().prepare(sql, self.quote());
+
+        if !cte.cols.is_empty() {
+            write!(sql, " (").unwrap();
+
+            let mut col_first = true;
+            for col in &cte.cols {
+                if !col_first {
+                    write!(sql, ", ").unwrap();
+                }
+                col_first = false;
+                col.prepare(sql, self.quote());
+            }
+
+            write!(sql, ") ").unwrap();
+        }
+
+        write!(sql, "AS ").unwrap();
+
+        self.prepare_with_query_clause_materialization(cte, sql);
+
+        write!(sql, "(").unwrap();
+
+        self.prepare_query_statement(cte.query.as_ref().unwrap().deref(), sql, collector);
+
+        write!(sql, ") ").unwrap();
+    }
+
+    fn prepare_with_query_clause_materialization(
+        &self,
+        cte: &CommonTableExpression,
+        sql: &mut SqlWriter,
+    ) {
+        if let Some(materialized) = cte.materialized {
+            write!(
+                sql,
+                "{} MATERIALIZED ",
+                if materialized { "" } else { "NOT" }
+            )
+            .unwrap()
+        }
+    }
+
+    fn prepare_with_clause_start(&self, with_clause: &WithClause, sql: &mut SqlWriter) {
+        write!(sql, "WITH ").unwrap();
+
+        if with_clause.recursive {
+            write!(sql, "RECURSIVE ").unwrap();
         }
     }
 
@@ -995,7 +1162,16 @@ pub trait QueryBuilder: QuotedBuilder {
 
 pub(crate) struct CommonSqlQueryBuilder;
 
-impl QueryBuilder for CommonSqlQueryBuilder {}
+impl QueryBuilder for CommonSqlQueryBuilder {
+    fn prepare_query_statement(
+        &self,
+        query: &dyn QueryStatementBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query.build_collect_any_into(self, sql, collector);
+    }
+}
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
     fn quote(&self) -> char {

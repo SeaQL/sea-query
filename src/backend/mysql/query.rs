@@ -30,4 +30,30 @@ impl QueryBuilder for MysqlQueryBuilder {
         write!(sql, " ").unwrap();
         self.prepare_order(&order_expr.order, sql, collector);
     }
+
+    fn prepare_query_statement(
+        &self,
+        query: &dyn QueryStatementBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query.build_collect_any_into(self, sql, collector);
+    }
+
+    fn prepare_with_clause_recursive_options(
+        &self,
+        _: &WithClause,
+        _: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        // MySQL doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
+    }
+
+    fn prepare_with_query_clause_materialization(
+        &self,
+        _: &CommonTableExpression,
+        _: &mut SqlWriter,
+    ) {
+        // MySQL doesn't support declaring materialization in SQL for with query.
+    }
 }

@@ -28,7 +28,7 @@ pub enum SimpleExpr {
     Unary(UnOper, Box<SimpleExpr>),
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
-    SubQuery(Box<SelectStatement>),
+    SubQuery(Box<dyn QueryStatementBuilder>),
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
