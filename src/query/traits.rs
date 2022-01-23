@@ -2,7 +2,7 @@ use crate::{
     backend::QueryBuilder,
     prepare::inject_parameters,
     value::{Value, Values},
-    SqlWriter,
+    SqlWriter, SubQueryStatement,
 };
 use std::fmt::Debug;
 
@@ -34,13 +34,7 @@ pub trait QueryStatementBuilder: Debug {
         collector: &mut dyn FnMut(Value),
     );
 
-    fn box_clone(&self) -> Box<dyn QueryStatementBuilder>;
-}
-
-impl Clone for Box<dyn QueryStatementBuilder> {
-    fn clone(&self) -> Self {
-        self.box_clone()
-    }
+    fn into_sub_query_statement(self) -> SubQueryStatement;
 }
 
 pub trait QueryStatementWriter: QueryStatementBuilder {

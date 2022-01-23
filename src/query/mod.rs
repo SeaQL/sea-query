@@ -39,6 +39,15 @@ pub enum QueryStatement {
     Delete(DeleteStatement),
 }
 
+#[derive(Debug, Clone)]
+pub enum SubQueryStatement {
+    SelectStatement(SelectStatement),
+    InsertStatement(InsertStatement),
+    UpdateStatement(UpdateStatement),
+    DeleteStatement(DeleteStatement),
+    WithStatement(WithQuery),
+}
+
 impl Query {
     /// Construct table [`SelectStatement`]
     pub fn select() -> SelectStatement {

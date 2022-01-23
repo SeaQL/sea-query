@@ -5,7 +5,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, WithClause, WithQuery,
+    QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Select rows from an existing table
@@ -1753,8 +1753,8 @@ impl QueryStatementBuilder for SelectStatement {
         query_builder.prepare_select_statement(self, sql, collector);
     }
 
-    fn box_clone(&self) -> Box<dyn QueryStatementBuilder> {
-        Box::new(self.clone())
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::SelectStatement(self)
     }
 }
 

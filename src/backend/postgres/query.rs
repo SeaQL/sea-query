@@ -93,10 +93,10 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_query_statement(
         &self,
-        query: &dyn QueryStatementBuilder,
+        query: &SubQueryStatement,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        query.build_collect_any_into(self, sql, collector);
+        query.prepare_statement(self, sql, collector);
     }
 }

@@ -638,7 +638,7 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Translate [`QueryStatement`] into SQL statement.
     fn prepare_query_statement(
         &self,
-        query: &dyn QueryStatementBuilder,
+        query: &SubQueryStatement,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     );
@@ -1160,16 +1160,34 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 }
 
+impl SubQueryStatement {
+    pub(crate) fn prepare_statement(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        use SubQueryStatement::*;
+        match self {
+            SelectStatement(stmt) => query_builder.prepare_select_statement(stmt, sql, collector),
+            InsertStatement(stmt) => query_builder.prepare_insert_statement(stmt, sql, collector),
+            UpdateStatement(stmt) => query_builder.prepare_update_statement(stmt, sql, collector),
+            DeleteStatement(stmt) => query_builder.prepare_delete_statement(stmt, sql, collector),
+            WithStatement(stmt) => query_builder.prepare_with_query(stmt, sql, collector),
+        }
+    }
+}
+
 pub(crate) struct CommonSqlQueryBuilder;
 
 impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_query_statement(
         &self,
-        query: &dyn QueryStatementBuilder,
+        query: &SubQueryStatement,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        query.build_collect_any_into(self, sql, collector);
+        query.prepare_statement(self, sql, collector);
     }
 }
 

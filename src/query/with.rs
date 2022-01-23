@@ -7,6 +7,7 @@ use crate::SelectExpr;
 use crate::SelectStatement;
 use crate::SimpleExpr;
 use crate::SqlWriter;
+use crate::SubQueryStatement;
 use crate::TableRef;
 use crate::Value;
 use crate::{Alias, QueryBuilder};
@@ -57,7 +58,7 @@ use std::ops::Deref;
 pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
     pub(crate) cols: Vec<DynIden>,
-    pub(crate) query: Option<Box<dyn QueryStatementBuilder>>,
+    pub(crate) query: Option<Box<SubQueryStatement>>,
     pub(crate) materialized: Option<bool>,
 }
 
@@ -98,9 +99,9 @@ impl CommonTableExpression {
     /// columns.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
-        Q: QueryStatementBuilder + 'static,
+        Q: QueryStatementBuilder,
     {
-        self.query = Some(Box::new(query));
+        self.query = Some(Box::new(query.into_sub_query_statement()));
         self
     }
 
@@ -123,7 +124,7 @@ impl CommonTableExpression {
                 _ => {}
             }
         }
-        cte.query = Some(Box::new(select));
+        cte.query = Some(Box::new(select.into_sub_query_statement()));
         cte
     }
 
@@ -529,7 +530,7 @@ impl WithClause {
 #[derive(Debug, Clone, Default)]
 pub struct WithQuery {
     pub(crate) with_clause: WithClause,
-    pub(crate) query: Option<Box<dyn QueryStatementBuilder>>,
+    pub(crate) query: Option<Box<SubQueryStatement>>,
 }
 
 impl WithQuery {
@@ -571,9 +572,9 @@ impl WithQuery {
     /// Set the query that you execute with the [WithClause].
     pub fn query<T>(&mut self, query: T) -> &mut Self
     where
-        T: QueryStatementBuilder + 'static,
+        T: QueryStatementBuilder,
     {
-        self.query = Some(Box::new(query));
+        self.query = Some(Box::new(query.into_sub_query_statement()));
         self
     }
 }
@@ -588,8 +589,8 @@ impl QueryStatementBuilder for WithQuery {
         query_builder.prepare_with_query(self, sql, collector);
     }
 
-    fn box_clone(&self) -> Box<dyn QueryStatementBuilder> {
-        Box::new(self.clone())
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::WithStatement(self)
     }
 }
 

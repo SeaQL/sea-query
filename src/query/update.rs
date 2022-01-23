@@ -5,8 +5,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, WithClause,
-    WithQuery,
+    Query, QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement,
+    SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Update existing rows in the table
@@ -357,8 +357,8 @@ impl QueryStatementBuilder for UpdateStatement {
         query_builder.prepare_update_statement(self, sql, collector);
     }
 
-    fn box_clone(&self) -> Box<dyn QueryStatementBuilder> {
-        Box::new(self.clone())
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::UpdateStatement(self)
     }
 }
 

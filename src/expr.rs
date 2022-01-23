@@ -28,7 +28,7 @@ pub enum SimpleExpr {
     Unary(UnOper, Box<SimpleExpr>),
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
-    SubQuery(Box<dyn QueryStatementBuilder>),
+    SubQuery(Box<SubQueryStatement>),
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
@@ -1567,7 +1567,9 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
         self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
+        self.right = Some(SimpleExpr::SubQuery(Box::new(
+            sel.into_sub_query_statement(),
+        )));
         self.into()
     }
 
@@ -1604,7 +1606,9 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn not_in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
         self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
+        self.right = Some(SimpleExpr::SubQuery(Box::new(
+            sel.into_sub_query_statement(),
+        )));
         self.into()
     }
 

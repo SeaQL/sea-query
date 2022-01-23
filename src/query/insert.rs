@@ -1,7 +1,7 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
     QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
-    WithClause, WithQuery,
+    SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Represents a value source that can be used in an insert query.
@@ -397,8 +397,8 @@ impl QueryStatementBuilder for InsertStatement {
         query_builder.prepare_insert_statement(self, sql, collector);
     }
 
-    fn box_clone(&self) -> Box<dyn QueryStatementBuilder> {
-        Box::new(self.clone())
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::InsertStatement(self)
     }
 }
 
