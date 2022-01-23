@@ -190,22 +190,6 @@ impl InsertStatement {
         Ok(self)
     }
 
-    /// Specify the value source of the insert.
-    fn value_source<S>(&mut self, source: S) -> Result<&mut Self>
-    where
-        S: Into<InsertValueSource>,
-    {
-        match source.into() {
-            InsertValueSource::Values(values) => {
-                for value in values {
-                    self.exprs(value)?;
-                }
-                Ok(self)
-            }
-            InsertValueSource::Select(select) => self.select_from(*select),
-        }
-    }
-
     /// Specify a row of values to be inserted.
     ///
     /// # Examples
