@@ -7,7 +7,7 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -59,6 +59,10 @@ pub enum Value {
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    DateTimeUtc(Option<Box<DateTime<Utc>>>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
 
     #[cfg(feature = "with-uuid")]
@@ -72,6 +76,10 @@ pub enum Value {
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
+
+    #[cfg(feature = "postgres-array")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+    Array(Option<Box<Vec<Value>>>),
 }
 
 pub trait ValueType: Sized {
@@ -280,19 +288,45 @@ mod with_json {
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
     use super::*;
-    use chrono::{Offset, TimeZone};
+    use chrono::{Offset, Utc};
 
     type_to_box_value!(NaiveDate, Date, Date);
     type_to_box_value!(NaiveTime, Time, Time(None));
     type_to_box_value!(NaiveDateTime, DateTime, DateTime(None));
 
-    impl<Tz> From<DateTime<Tz>> for Value
-    where
-        Tz: TimeZone,
-    {
-        fn from(x: DateTime<Tz>) -> Value {
+    impl From<DateTime<Utc>> for Value {
+        fn from(v: DateTime<Utc>) -> Value {
+            Value::DateTimeUtc(Some(Box::new(v)))
+        }
+    }
+
+    impl From<DateTime<FixedOffset>> for Value {
+        fn from(x: DateTime<FixedOffset>) -> Value {
             let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
             Value::DateTimeWithTimeZone(Some(Box::new(v)))
+        }
+    }
+
+    impl Nullable for DateTime<Utc> {
+        fn null() -> Value {
+            Value::DateTimeUtc(None)
+        }
+    }
+
+    impl ValueType for DateTime<Utc> {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::DateTimeUtc(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(DateTime<Utc>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::TimestampWithTimeZone(None)
         }
     }
 
@@ -342,6 +376,92 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid, Uuid);
+}
+
+#[cfg(feature = "postgres-array")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+mod with_array {
+    use super::*;
+
+    // We only imlement conversion from Vec<T> to Array when T is not u8.
+    // This is because for u8's case, there is already conversion to Byte defined above.
+    // TODO When negative trait becomes a stable feature, following code can be much shorter.
+    pub trait NotU8 {}
+
+    impl NotU8 for bool {}
+    impl NotU8 for i8 {}
+    impl NotU8 for i16 {}
+    impl NotU8 for i32 {}
+    impl NotU8 for i64 {}
+    impl NotU8 for u16 {}
+    impl NotU8 for u32 {}
+    impl NotU8 for u64 {}
+    impl NotU8 for f32 {}
+    impl NotU8 for f64 {}
+    impl NotU8 for String {}
+
+    #[cfg(feature = "with-json")]
+    impl NotU8 for Json {}
+
+    #[cfg(feature = "with-chrono")]
+    impl NotU8 for NaiveDate {}
+
+    #[cfg(feature = "with-chrono")]
+    impl NotU8 for NaiveTime {}
+
+    #[cfg(feature = "with-chrono")]
+    impl NotU8 for NaiveDateTime {}
+
+    #[cfg(feature = "with-chrono")]
+    impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
+
+    #[cfg(feature = "with-rust_decimal")]
+    impl NotU8 for Decimal {}
+
+    #[cfg(feature = "with-bigdecimal")]
+    impl NotU8 for BigDecimal {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for Uuid {}
+
+    impl<T> From<Vec<T>> for Value
+    where
+        T: Into<Value> + NotU8,
+    {
+        fn from(x: Vec<T>) -> Value {
+            Value::Array(Some(Box::new(x.into_iter().map(|e| e.into()).collect())))
+        }
+    }
+
+    impl<T> Nullable for Vec<T>
+    where
+        T: Into<Value> + NotU8,
+    {
+        fn null() -> Value {
+            Value::Array(None)
+        }
+    }
+
+    impl<T> ValueType for Vec<T>
+    where
+        T: NotU8 + ValueType,
+    {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::Array(Some(v)) => Ok(v.into_iter().map(|e| e.unwrap()).collect()),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(Vec<T>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            use ColumnType::*;
+            Array(None)
+        }
+    }
 }
 
 #[allow(unused_macros)]
@@ -435,12 +555,31 @@ impl Value {
 }
 
 impl Value {
+    pub fn is_date_time_utc(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::DateTimeUtc(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
     pub fn is_date_time_with_time_zone(&self) -> bool {
         #[cfg(feature = "with-chrono")]
         return matches!(self, Self::DateTimeWithTimeZone(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
+
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date_time_utc(&self) -> Option<&DateTime<Utc>> {
+        match self {
+            Self::DateTimeUtc(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::DateTimeUtc"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
+        panic!("not Value::DateTimeUtc")
+    }
+
     #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
@@ -452,16 +591,19 @@ impl Value {
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&bool> {
         panic!("not Value::DateTimeWithTimeZone")
     }
+
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_with_time_zone_in_naive_utc(&self) -> Option<String> {
+    pub fn as_naive_utc_in_string(&self) -> Option<String> {
         match self {
+            Self::DateTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
             Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
-            _ => panic!("not Value::DateTimeWithTimeZone"),
+            _ => panic!("not Value::DateTime"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_with_time_zone_in_naive_utc(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeWithTimeZone")
+    pub fn as_naive_utc_in_string(&self) -> Option<&bool> {
+        panic!("not Value::DateTime")
     }
 }
 
@@ -540,6 +682,27 @@ impl Value {
     #[cfg(not(feature = "with-uuid"))]
     pub fn as_ref_uuid(&self) -> Option<&bool> {
         panic!("not Value::Uuid")
+    }
+}
+
+impl Value {
+    pub fn is_array(&self) -> bool {
+        #[cfg(feature = "postgres-array")]
+        return matches!(self, Self::Array(_));
+        #[cfg(not(feature = "postgres-array"))]
+        return false;
+    }
+
+    #[cfg(feature = "postgres-array")]
+    pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
+        match self {
+            Self::Array(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Array"),
+        }
+    }
+    #[cfg(not(feature = "postgres-array"))]
+    pub fn as_ref_array(&self) -> Option<&bool> {
+        panic!("not Value::Array")
     }
 }
 
@@ -833,6 +996,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
+        #[cfg(feature = "postgres-array")]
+        Value::Array(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -855,6 +1020,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::DateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::DateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
+        Value::DateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
@@ -867,6 +1034,13 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
+        #[cfg(feature = "postgres-array")]
+        Value::Array(Some(v)) => Json::Array(
+            v.as_ref()
+                .iter()
+                .map(|v| sea_value_to_json_value(v))
+                .collect(),
+        ),
     }
 }
 
@@ -1146,6 +1320,16 @@ mod tests {
 
     #[test]
     #[cfg(feature = "with-chrono")]
+    fn test_chrono_utc_value() {
+        let timestamp =
+            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let value: Value = timestamp.into();
+        let out: DateTime<Utc> = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-chrono")]
     fn test_chrono_timezone_value() {
         let timestamp = DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00").unwrap();
         let value: Value = timestamp.into();
@@ -1198,5 +1382,14 @@ mod tests {
         let v: Value = val.into();
         let out: Decimal = v.unwrap();
         assert_eq!(out.to_string(), num);
+    }
+
+    #[test]
+    #[cfg(feature = "postgres-array")]
+    fn test_array_value() {
+        let array = vec![1, 2, 3, 4, 5];
+        let v: Value = array.into();
+        let out: Vec<i32> = v.unwrap();
+        assert_eq!(out, vec![1, 2, 3, 4, 5]);
     }
 }

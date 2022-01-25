@@ -179,7 +179,7 @@ fn create_8() {
             .table(Glyph::Table)
             .col(
                 ColumnDef::new(Glyph::Aspect)
-                    .interval(Some(IntervalField::YearToMonth), None)
+                    .interval(Some(PgInterval::YearToMonth), None)
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),
@@ -219,7 +219,7 @@ fn create_10() {
             .table(Glyph::Table)
             .col(
                 ColumnDef::new(Glyph::Aspect)
-                    .interval(Some(IntervalField::Hour), Some(43))
+                    .interval(Some(PgInterval::Hour), Some(43))
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),

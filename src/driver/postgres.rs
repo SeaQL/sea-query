@@ -52,6 +52,8 @@ impl ToSql for Value {
             #[cfg(feature = "postgres-chrono")]
             Value::DateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
             #[cfg(feature = "postgres-chrono")]
+            Value::DateTimeUtc(v) => box_to_sql!(v, chrono::DateTime<chrono::Utc>),
+            #[cfg(feature = "postgres-chrono")]
             Value::DateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
             #[cfg(feature = "postgres-rust_decimal")]
             Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
@@ -59,6 +61,8 @@ impl ToSql for Value {
             Value::BigDecimal(_) => unimplemented!("Not supported"),
             #[cfg(feature = "postgres-uuid")]
             Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
+            #[cfg(feature = "postgres-array")]
+            Value::Array(v) => box_to_sql!(v, Vec<Value>),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }

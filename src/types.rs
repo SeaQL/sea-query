@@ -62,6 +62,9 @@ impl fmt::Debug for dyn Iden {
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
+    SchemaTableColumn(DynIden, DynIden, DynIden),
+    Asterisk,
+    TableAsterisk(DynIden),
 }
 
 pub trait IntoColumnRef {
@@ -148,11 +151,19 @@ pub enum JoinType {
     RightJoin,
 }
 
+/// Nulls order
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NullOrdering {
+    First,
+    Last,
+}
+
 /// Order expression
 #[derive(Debug, Clone)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
+    pub(crate) nulls: Option<NullOrdering>,
 }
 
 /// Join on types
@@ -259,6 +270,17 @@ where
 {
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
+    }
+}
+
+impl<S: 'static, T: 'static, U: 'static> IntoColumnRef for (S, T, U)
+where
+    S: IntoIden,
+    T: IntoIden,
+    U: IntoIden,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::SchemaTableColumn(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
     }
 }
 
@@ -375,7 +397,7 @@ mod tests {
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
-            r#"SELECT `hello-World_`"#
+            r#"SELECT "hello-World_""#
         );
     }
 
@@ -386,7 +408,7 @@ mod tests {
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
         #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel``lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel`lo""#);
 
         let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
 
@@ -401,7 +423,7 @@ mod tests {
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
         #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel````lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel``lo""#);
 
         let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
 

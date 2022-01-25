@@ -1,7 +1,18 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
-    QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
+    QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
+    SubQueryStatement, WithClause, WithQuery,
 };
+
+/// Represents a value source that can be used in an insert query.
+///
+/// [`InsertValueSource`] is a node in the expression tree and can represent a raw value set
+/// ('VALUES') or a select query.
+#[derive(Debug, Clone)]
+pub(crate) enum InsertValueSource {
+    Values(Vec<Vec<SimpleExpr>>),
+    Select(Box<SelectStatement>),
+}
 
 /// Insert any new rows into an existing table
 ///
@@ -27,14 +38,14 @@ use crate::{
 /// );
 /// assert_eq!(
 ///     query.to_string(SqliteQueryBuilder),
-///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
+///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// ```
 #[derive(Debug, Default, Clone)]
 pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
-    pub(crate) values: Vec<Vec<SimpleExpr>>,
+    pub(crate) source: Option<InsertValueSource>,
     pub(crate) returning: Vec<SelectExpr>,
 }
 
@@ -97,7 +108,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// ```
     pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
@@ -114,7 +125,68 @@ impl InsertStatement {
                 val_len: values.len(),
             });
         }
-        self.values.push(values);
+
+        let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
+            values
+        } else {
+            self.source = Some(InsertValueSource::Values(Default::default()));
+            if let Some(InsertValueSource::Values(values)) = &mut self.source {
+                values
+            } else {
+                unreachable!();
+            }
+        };
+        values_source.push(values);
+        Ok(self)
+    }
+
+    /// Specify a select query whose values to be inserted.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .select_from(Query::select()
+    ///         .column(Glyph::Aspect)
+    ///         .column(Glyph::Image)
+    ///         .from(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Image).like("0%"))
+    ///         .to_owned()
+    ///     )
+    ///     .unwrap()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) SELECT `aspect`, `image` FROM `glyph` WHERE `image` LIKE '0%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
+    /// );
+    /// ```
+    pub fn select_from<S>(&mut self, select: S) -> Result<&mut Self>
+    where
+        S: Into<SelectStatement>,
+    {
+        let statement = select.into();
+
+        if self.columns.len() != statement.selects.len() {
+            return Err(Error::ColValNumMismatch {
+                col_len: self.columns.len(),
+                val_len: statement.selects.len(),
+            });
+        }
+
+        self.source = Some(InsertValueSource::Select(Box::new(statement)));
         Ok(self)
     }
 
@@ -145,7 +217,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
     /// );
     /// ```
     pub fn exprs<I>(&mut self, values: I) -> Result<&mut Self>
@@ -159,7 +231,17 @@ impl InsertStatement {
                 val_len: values.len(),
             });
         }
-        self.values.push(values);
+        let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
+            values
+        } else {
+            self.source = Some(InsertValueSource::Values(Default::default()));
+            if let Some(InsertValueSource::Values(values)) = &mut self.source {
+                values
+            } else {
+                unreachable!();
+            }
+        };
+        values_source.push(values);
         Ok(self)
     }
 
@@ -179,7 +261,14 @@ impl InsertStatement {
         self.exprs(values).unwrap()
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions.
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -201,7 +290,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -209,8 +298,15 @@ impl InsertStatement {
         self
     }
 
-    /// RETURNING a column after insertion. Postgres only. This is equivalent to MySQL's LAST_INSERT_ID.
+    /// RETURNING a column after insertion. This is equivalent to MySQL's LAST_INSERT_ID.
     /// Wrapper over [`InsertStatement::returning()`].
+    ///
+    /// ## Note:
+    /// Works on
+    /// * PostgreSQL
+    /// * SQLite
+    ///     - SQLite version >= 3.35.0
+    ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -232,7 +328,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
@@ -241,9 +337,72 @@ impl InsertStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
+
+    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from(Glyph::Table)
+    ///         .to_owned();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .column(Glyph::Image)
+    ///         .column(Glyph::Aspect)
+    ///         .table_name(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let mut insert = Query::insert();
+    ///     insert
+    ///         .into_table(Glyph::Table)
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .select_from(select)
+    ///         .unwrap();
+    ///     let query = insert.with(with_clause);
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`, `image`, `aspect`) AS (SELECT `id`, `image`, `aspect` FROM `glyph`) INSERT INTO `glyph` (`id`, `image`, `aspect`) SELECT `id`, `image`, `aspect` FROM `cte`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// ```
+    pub fn with(self, clause: WithClause) -> WithQuery {
+        clause.query(self)
+    }
 }
 
 impl QueryStatementBuilder for InsertStatement {
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query_builder.prepare_insert_statement(self, sql, collector);
+    }
+
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::InsertStatement(self)
+    }
+}
+
+impl QueryStatementWriter for InsertStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -280,16 +439,6 @@ impl QueryStatementBuilder for InsertStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_insert_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

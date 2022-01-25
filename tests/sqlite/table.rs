@@ -16,11 +16,11 @@ fn create_1() {
             .col(ColumnDef::new(Glyph::Image).text())
             .to_string(SqliteQueryBuilder),
         vec![
-            "CREATE TABLE `glyph` (",
-            "`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,",
-            "`aspect` real NOT NULL,",
-            "`image` text",
-            ")",
+            r#"CREATE TABLE "glyph" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""aspect" real NOT NULL,"#,
+            r#""image" text"#,
+            r#")"#,
         ]
         .join(" ")
     );
@@ -43,12 +43,12 @@ fn create_2() {
             .col(ColumnDef::new(Font::Language).string().not_null())
             .to_string(SqliteQueryBuilder),
         vec![
-            "CREATE TABLE `font` (",
-            "`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,",
-            "`name` text NOT NULL,",
-            "`variant` text NOT NULL,",
-            "`language` text NOT NULL",
-            ")",
+            r#"CREATE TABLE "font" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""name" text NOT NULL,"#,
+            r#""variant" text NOT NULL,"#,
+            r#""language" text NOT NULL"#,
+            r#")"#,
         ]
         .join(" ")
     );
@@ -85,15 +85,15 @@ fn create_3() {
             )
             .to_string(SqliteQueryBuilder),
         vec![
-            "CREATE TABLE IF NOT EXISTS `character` (",
-            "`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,",
-            "`font_size` integer NOT NULL,",
-            "`character` text NOT NULL,",
-            "`size_w` integer NOT NULL,",
-            "`size_h` integer NOT NULL,",
-            "`font_id` integer DEFAULT NULL,",
-            "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`) ON DELETE CASCADE ON UPDATE CASCADE",
-            ")",
+            r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""font_size" integer NOT NULL,"#,
+            r#""character" text NOT NULL,"#,
+            r#""size_w" integer NOT NULL,"#,
+            r#""size_h" integer NOT NULL,"#,
+            r#""font_id" integer DEFAULT NULL,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+            r#")"#,
         ]
         .join(" ")
     );
@@ -107,7 +107,7 @@ fn drop_1() {
             .table(Char::Table)
             .cascade()
             .to_string(SqliteQueryBuilder),
-        "DROP TABLE `glyph`, `character`"
+        r#"DROP TABLE "glyph", "character""#
     );
 }
 
@@ -117,7 +117,7 @@ fn truncate_1() {
         Table::truncate()
             .table(Font::Table)
             .to_string(SqliteQueryBuilder),
-        "TRUNCATE TABLE `font`"
+        r#"TRUNCATE TABLE "font""#
     );
 }
 
@@ -133,7 +133,7 @@ fn alter_1() {
                     .default(99)
             )
             .to_string(SqliteQueryBuilder),
-        "ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 99"
+        r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 99"#
     );
 }
 
@@ -153,7 +153,7 @@ fn alter_3() {
             .table(Font::Table)
             .rename_column(Alias::new("new_col"), Alias::new("new_column"))
             .to_string(SqliteQueryBuilder),
-        "ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"
+        r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     );
 }
 
@@ -172,7 +172,7 @@ fn alter_5() {
         Table::rename()
             .table(Font::Table, Alias::new("font_new"))
             .to_string(SqliteQueryBuilder),
-        "ALTER TABLE `font` RENAME TO `font_new`"
+        r#"ALTER TABLE "font" RENAME TO "font_new""#
     );
 }
 
