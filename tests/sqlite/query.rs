@@ -971,7 +971,7 @@ fn insert_6() {
         Query::insert()
             .into_table(Glyph::Table)
             .to_string(SqliteQueryBuilder),
-        "INSERT INTO `glyph` DEFAULT VALUES"
+        r#"INSERT INTO "glyph" DEFAULT VALUES"#
     );
 }
 
@@ -982,7 +982,7 @@ fn insert_7() {
             .into_table(Glyph::Table)
             .returning_col(Glyph::Id)
             .to_string(SqliteQueryBuilder),
-        "INSERT INTO `glyph` DEFAULT VALUES RETURNING `id`"
+        r#"INSERT INTO "glyph" DEFAULT VALUES RETURNING "id""#
     );
 }
 
