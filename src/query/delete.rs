@@ -4,7 +4,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, SelectExpr, SelectStatement,
+    Query, QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement,
+    SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Delete existing rows from the table
@@ -30,7 +31,7 @@ use crate::{
 /// );
 /// assert_eq!(
 ///     query.to_string(SqliteQueryBuilder),
-///     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
+///     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 /// );
 /// ```
 #[derive(Debug, Clone)]
@@ -82,7 +83,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
@@ -106,8 +107,7 @@ impl DeleteStatement {
     /// Works on
     /// * PostgreSQL
     /// * SQLite
-    ///     - SQLite version >= 3.35.0 and
-    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - SQLite version >= 3.35.0
     ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
@@ -129,7 +129,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
     pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
@@ -144,8 +144,7 @@ impl DeleteStatement {
     /// Works on
     /// * PostgreSQL
     /// * SQLite
-    ///     - SQLite version >= 3.35.0 and
-    ///     - Not with sqlx, see [issue](https://github.com/launchbadge/sqlx/issues/1531)
+    ///     - SQLite version >= 3.35.0
     ///     - **Note that sea-query won't try to enforce either of these constraints**
     ///
     /// ```
@@ -167,7 +166,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
@@ -176,9 +175,65 @@ impl DeleteStatement {
     {
         self.returning(Query::select().column(col.into_iden()).take())
     }
+
+    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id])
+    ///         .from(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Image).like("0%"))
+    ///         .to_owned();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .table_name(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let update = DeleteStatement::new()
+    ///         .from_table(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
+    ///         .to_owned();
+    ///     let query = update.with(with_clause);
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`) AS (SELECT `id` FROM `glyph` WHERE `image` LIKE '0%') DELETE FROM `glyph` WHERE `id` IN (SELECT `id` FROM `cte`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// ```
+    pub fn with(self, clause: WithClause) -> WithQuery {
+        clause.query(self)
+    }
 }
 
 impl QueryStatementBuilder for DeleteStatement {
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query_builder.prepare_delete_statement(self, sql, collector);
+    }
+
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::DeleteStatement(self)
+    }
+}
+
+impl QueryStatementWriter for DeleteStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -208,16 +263,6 @@ impl QueryStatementBuilder for DeleteStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_delete_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

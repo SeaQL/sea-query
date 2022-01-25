@@ -8,7 +8,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
     ) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &drop.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
         }
 
         write!(sql, " DROP FOREIGN KEY ").unwrap();
@@ -32,14 +32,14 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql, '`');
+            col.prepare(sql, self.quote());
             false
         });
         write!(sql, ")").unwrap();
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            ref_table.prepare(sql, '`');
+            ref_table.prepare(sql, self.quote());
         }
         write!(sql, " (").unwrap();
         create
@@ -50,7 +50,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql, '`');
+                col.prepare(sql, self.quote());
                 false
             });
         write!(sql, ")").unwrap();

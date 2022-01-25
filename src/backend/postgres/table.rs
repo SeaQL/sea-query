@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for PostgresQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
-        column_def.name.prepare(sql, '"');
+        column_def.name.prepare(sql, self.quote());
 
         self.prepare_column_type_check_auto_increment(column_def, sql);
 
@@ -123,7 +123,7 @@ impl TableBuilder for PostgresQueryBuilder {
         };
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
-            table.prepare(sql, '"');
+            table.prepare(sql, self.quote());
             write!(sql, " ").unwrap();
         }
         match alter_option {
@@ -133,7 +133,7 @@ impl TableBuilder for PostgresQueryBuilder {
             }
             TableAlterOption::ModifyColumn(column_def) => {
                 write!(sql, "ALTER COLUMN ").unwrap();
-                column_def.name.prepare(sql, '"');
+                column_def.name.prepare(sql, self.quote());
                 write!(sql, " TYPE").unwrap();
                 self.prepare_column_type_check_auto_increment(column_def, sql);
                 for column_spec in column_def.spec.iter() {
@@ -142,20 +142,20 @@ impl TableBuilder for PostgresQueryBuilder {
                     }
                     write!(sql, ", ").unwrap();
                     write!(sql, "ALTER COLUMN ").unwrap();
-                    column_def.name.prepare(sql, '"');
+                    column_def.name.prepare(sql, self.quote());
                     write!(sql, " SET ").unwrap();
                     self.prepare_column_spec(column_spec, sql);
                 }
             }
             TableAlterOption::RenameColumn(from_name, to_name) => {
                 write!(sql, "RENAME COLUMN ").unwrap();
-                from_name.prepare(sql, '"');
+                from_name.prepare(sql, self.quote());
                 write!(sql, " TO ").unwrap();
-                to_name.prepare(sql, '"');
+                to_name.prepare(sql, self.quote());
             }
             TableAlterOption::DropColumn(column_name) => {
                 write!(sql, "DROP COLUMN ").unwrap();
-                column_name.prepare(sql, '"');
+                column_name.prepare(sql, self.quote());
             }
         }
     }
@@ -163,11 +163,11 @@ impl TableBuilder for PostgresQueryBuilder {
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
-            from_name.prepare(sql, '"');
+            from_name.prepare(sql, self.quote());
         }
         write!(sql, " RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
-            to_name.prepare(sql, '"');
+            to_name.prepare(sql, self.quote());
         }
     }
 }

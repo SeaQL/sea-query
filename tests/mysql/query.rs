@@ -815,6 +815,87 @@ fn select_50() {
     assert_eq!(
         statement,
         r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    )
+}
+
+#[test]
+fn select_51() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
+            .order_by_with_nulls(
+                (Glyph::Table, Glyph::Aspect),
+                Order::Asc,
+                NullOrdering::Last
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY `image` IS NULL DESC,"#,
+            r#"`image` DESC,"#,
+            r#"`glyph`.`aspect` IS NULL ASC,"#,
+            r#"`glyph`.`aspect` ASC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_52() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                (Glyph::Id, Order::Asc, NullOrdering::First),
+                (Glyph::Aspect, Order::Desc, NullOrdering::Last),
+            ])
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY `id` IS NULL DESC,"#,
+            r#"`id` ASC,"#,
+            r#"`aspect` IS NULL ASC,"#,
+            r#"`aspect` DESC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_53() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
+            ])
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY `glyph`.`id` IS NULL DESC,"#,
+            r#"`glyph`.`id` ASC,"#,
+            r#"`glyph`.`aspect` IS NULL ASC,"#,
+            r#"`glyph`.`aspect` DESC"#,
+        ]
+        .join(" ")
     );
 }
 
@@ -904,6 +985,35 @@ fn insert_7() {
             .returning_col(Glyph::Id)
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` VALUES (DEFAULT)"
+    );
+}
+
+#[test]
+fn insert_from_select() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .select_from(
+                Query::select()
+                    .column(Glyph::Aspect)
+                    .column(Glyph::Image)
+                    .from(Glyph::Table)
+                    .conditions(
+                        true,
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Image).like("%"));
+                        },
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Id).eq(6i32));
+                        },
+                    )
+                    .to_owned()
+            )
+            .unwrap()
+            .to_owned()
+            .to_string(MysqlQueryBuilder),
+        r#"INSERT INTO `glyph` (`aspect`, `image`) SELECT `aspect`, `image` FROM `glyph` WHERE `image` LIKE '%'"#
     );
 }
 

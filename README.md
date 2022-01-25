@@ -46,10 +46,14 @@ Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
 SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
-Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`
+Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
+`postgres-array`
 
 Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
 `postgres`, `postgres-*`, `rusqlite`
+
+Postgres support: `postgres`, `postgres-chrono`, `postgres-json`, `postgres-rust_decimal`,
+`postgres-bigdecimal`, `postgres-uuid`, `postgres-array`, `postgres-interval`
 
 ## Usage
 
@@ -321,7 +325,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
+    r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 );
 ```
 
@@ -345,7 +349,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 );
 ```
 
@@ -371,7 +375,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
+    r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 );
 ```
 
@@ -397,7 +401,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
+    r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 );
 ```
 
@@ -458,14 +462,14 @@ assert_eq!(
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
     vec![
-       r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-           r#"`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-           r#"`font_size` integer NOT NULL,"#,
-           r#"`character` text NOT NULL,"#,
-           r#"`size_w` integer NOT NULL,"#,
-           r#"`size_h` integer NOT NULL,"#,
-           r#"`font_id` integer DEFAULT NULL,"#,
-           r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`) ON DELETE CASCADE ON UPDATE CASCADE"#,
+       r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+           r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+           r#""font_size" integer NOT NULL,"#,
+           r#""character" text NOT NULL,"#,
+           r#""size_w" integer NOT NULL,"#,
+           r#""size_h" integer NOT NULL,"#,
+           r#""font_id" integer DEFAULT NULL,"#,
+           r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
        r#")"#,
     ].join(" ")
 );
@@ -494,7 +498,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 100"#,
+    r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
 );
 ```
 
@@ -516,7 +520,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"DROP TABLE `glyph`, `character`"#
+    r#"DROP TABLE "glyph", "character""#
 );
 ```
 
@@ -537,7 +541,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"ALTER TABLE `font` RENAME TO `font_new`"#
+    r#"ALTER TABLE "font" RENAME TO "font_new""#
 );
 ```
 
@@ -556,7 +560,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"TRUNCATE TABLE `font`"#
+    r#"TRUNCATE TABLE "font""#
 );
 ```
 
@@ -631,7 +635,7 @@ assert_eq!(
 );
 assert_eq!(
     index.to_string(SqliteQueryBuilder),
-    r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
+    r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 );
 ```
 
@@ -653,7 +657,7 @@ assert_eq!(
 );
 assert_eq!(
     index.to_string(SqliteQueryBuilder),
-    r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
+    r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
 );
 ```
 

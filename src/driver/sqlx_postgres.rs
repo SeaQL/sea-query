@@ -42,6 +42,8 @@ macro_rules! bind_params_sqlx_postgres {
                         query.bind(value.as_ref_time())
                     } else if value.is_date_time() {
                         query.bind(value.as_ref_date_time())
+                    } else if value.is_date_time_utc() {
+                        query.bind(value.as_ref_date_time_utc())
                     } else if value.is_date_time_with_time_zone() {
                         query.bind(value.as_ref_date_time_with_time_zone())
                     } else if value.is_decimal() {
@@ -50,9 +52,8 @@ macro_rules! bind_params_sqlx_postgres {
                         query.bind(value.as_ref_big_decimal())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
-                    // FIXME: comment out binding of array values for now
-                    // } else if value.is_array() {
-                    //     query.bind(value.as_ref_array())
+                    } else if value.is_array() {
+                        unimplemented!("SQLx array is not supported");
                     } else {
                         unimplemented!();
                     }

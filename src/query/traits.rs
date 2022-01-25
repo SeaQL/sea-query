@@ -2,9 +2,42 @@ use crate::{
     backend::QueryBuilder,
     prepare::inject_parameters,
     value::{Value, Values},
+    SqlWriter, SubQueryStatement,
 };
+use std::fmt::Debug;
 
-pub trait QueryStatementBuilder {
+pub trait QueryStatementBuilder: Debug {
+    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
+    fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+        let mut values = Vec::new();
+        let mut collector = |v| values.push(v);
+        let sql = self.build_collect_any(query_builder, &mut collector);
+        (sql, Values(values))
+    }
+
+    /// Build corresponding SQL statement for certain database backend and collect query parameters
+    fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        collector: &mut dyn FnMut(Value),
+    ) -> String {
+        let mut sql = SqlWriter::new();
+        self.build_collect_any_into(query_builder, &mut sql, collector);
+        sql.result()
+    }
+
+    /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    );
+
+    fn into_sub_query_statement(self) -> SubQueryStatement;
+}
+
+pub trait QueryStatementWriter: QueryStatementBuilder {
     /// Build corresponding SQL statement for certain database backend and return SQL string
     ///
     /// # Examples
@@ -61,14 +94,6 @@ pub trait QueryStatementBuilder {
         (sql, Values(values))
     }
 
-    /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
-    }
-
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -104,13 +129,6 @@ pub trait QueryStatementBuilder {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String;
-
-    /// Build corresponding SQL statement for certain database backend and collect query parameters
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String;
 }

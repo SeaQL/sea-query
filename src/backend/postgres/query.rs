@@ -74,4 +74,29 @@ impl QueryBuilder for PostgresQueryBuilder {
             _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql, collector),
         }
     }
+
+    fn prepare_order_expr(
+        &self,
+        order_expr: &OrderExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        write!(sql, " ").unwrap();
+        self.prepare_order(&order_expr.order, sql, collector);
+        match order_expr.nulls {
+            None => (),
+            Some(NullOrdering::Last) => write!(sql, " NULLS LAST").unwrap(),
+            Some(NullOrdering::First) => write!(sql, " NULLS FIRST").unwrap(),
+        }
+    }
+
+    fn prepare_query_statement(
+        &self,
+        query: &SubQueryStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query.prepare_statement(self, sql, collector);
+    }
 }

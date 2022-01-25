@@ -24,7 +24,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     index.to_string(SqliteQueryBuilder),
-///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// ```
 /// Index with prefix
@@ -47,7 +47,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     index.to_string(SqliteQueryBuilder),
-///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// ```
 /// Index with order
@@ -70,7 +70,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     index.to_string(SqliteQueryBuilder),
-///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` DESC)"#
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC)"#
 /// );
 /// ```
 /// Index with prefix and order
@@ -93,7 +93,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     index.to_string(SqliteQueryBuilder),
-///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` ASC)"#
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" ASC)"#
 /// );
 /// ```
 #[derive(Debug, Clone)]

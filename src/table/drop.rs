@@ -22,7 +22,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     table.to_string(SqliteQueryBuilder),
-///     r#"DROP TABLE `glyph`, `character`"#
+///     r#"DROP TABLE "glyph", "character""#
 /// );
 /// ```
 #[derive(Debug, Clone)]

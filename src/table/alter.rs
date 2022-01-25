@@ -27,7 +27,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaState
 /// );
 /// assert_eq!(
 ///     table.to_string(SqliteQueryBuilder),
-///     r#"ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 100"#,
+///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
 /// );
 /// ```
 #[derive(Debug, Clone)]
@@ -96,7 +96,7 @@ impl TableAlterStatement {
     /// );
     /// assert_eq!(
     ///     table.to_string(SqliteQueryBuilder),
-    ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 100"#,
+    ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
     /// );
     /// ```
     pub fn add_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
@@ -160,7 +160,7 @@ impl TableAlterStatement {
     /// );
     /// assert_eq!(
     ///     table.to_string(SqliteQueryBuilder),
-    ///     r#"ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"#
+    ///     r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     /// );
     /// ```
     pub fn rename_column<T: 'static, R: 'static>(&mut self, from_name: T, to_name: R) -> &mut Self

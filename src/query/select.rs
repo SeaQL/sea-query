@@ -5,7 +5,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder,
+    QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Select rows from an existing table
@@ -34,7 +34,7 @@ use crate::{
 /// );
 /// assert_eq!(
 ///     query.to_string(SqliteQueryBuilder),
-///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
+///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// ```
 #[derive(Debug, Clone)]
@@ -74,6 +74,7 @@ pub struct JoinExpr {
     pub join: JoinType,
     pub table: Box<TableRef>,
     pub on: Option<JoinOn>,
+    pub lateral: bool,
 }
 
 /// List of lock types that can be used in select statement
@@ -174,7 +175,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
     /// );
     /// ```
     pub fn conditions<T, F>(&mut self, b: bool, if_true: T, if_false: F) -> &mut Self
@@ -220,7 +221,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT 42, MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
+    ///     r#"SELECT 42, MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// ```
     pub fn expr<T>(&mut self, expr: T) -> &mut Self
@@ -256,7 +257,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
+    ///     r#"SELECT MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// ```
     pub fn exprs<T, I>(&mut self, exprs: I) -> &mut Self
@@ -306,7 +307,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// ```
     ///
@@ -328,7 +329,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`.`character` FROM `character`"#
+    ///     r#"SELECT "character"."character" FROM "character""#
     /// );
     /// ```
     ///
@@ -350,7 +351,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `schema`.`character`.`character` FROM `character`"#
+    ///     r#"SELECT "schema"."character"."character" FROM "character""#
     /// );
     /// ```
     pub fn column<C>(&mut self, col: C) -> &mut Self
@@ -394,7 +395,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// ```
     ///
@@ -420,7 +421,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
+    ///     r#"SELECT "character"."character", "character"."size_w", "character"."size_h" FROM "character""#
     /// );
     /// ```
     pub fn columns<T, I>(&mut self, cols: I) -> &mut Self
@@ -473,7 +474,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` AS `C` FROM `character`"#
+    ///     r#"SELECT "character" AS "C" FROM "character""#
     /// );
     /// ```
     pub fn expr_as<T, A>(&mut self, expr: T, alias: A) -> &mut Self
@@ -522,7 +523,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `character`"#
+    ///     r#"SELECT "font_size" FROM "character""#
     /// );
     /// ```
     ///
@@ -544,7 +545,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
+    ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// ```
     ///
@@ -566,7 +567,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `database`.`character`.`glyph`"#
+    ///     r#"SELECT "font_size" FROM "database"."character"."glyph""#
     /// );
     /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
@@ -602,7 +603,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
+    ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// ```
     pub fn from_schema<S: 'static, T: 'static>(&mut self, schema: S, table: T) -> &mut Self
@@ -637,7 +638,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `char`.`character` FROM `character` AS `char`"#
+    ///     r#"SELECT "char"."character" FROM "character" AS "char""#
     /// );
     /// ```
     ///
@@ -661,7 +662,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
+    ///     r#"SELECT "alias"."character" FROM "font"."character" AS "alias""#
     /// );
     /// ```
     pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
@@ -730,7 +731,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"#
+    ///     r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     /// );
     /// ```
     pub fn from_subquery<T>(&mut self, query: SelectStatement, alias: T) -> &mut Self
@@ -769,7 +770,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
     /// // Constructing chained join conditions
@@ -820,7 +821,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT "character", "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
     /// // Constructing chained join conditions
@@ -871,7 +872,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
     /// // Constructing chained join conditions
@@ -902,6 +903,7 @@ impl SelectStatement {
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
+            false,
         )
     }
 
@@ -934,7 +936,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
     /// );
     ///
     /// // Constructing chained join conditions
@@ -973,6 +975,7 @@ impl SelectStatement {
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
+            false,
         )
     }
 
@@ -1024,7 +1027,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
+    ///     r#"SELECT "name" FROM "font" LEFT JOIN (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
     ///
     /// // Constructing chained join conditions
@@ -1061,14 +1064,88 @@ impl SelectStatement {
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
+            false,
         )
     }
 
-    fn join_join(&mut self, join: JoinType, table: TableRef, on: JoinOn) -> &mut Self {
+    /// Join Lateral with sub-query. Not supported by SQLite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let sub_glyph: DynIden = SeaRc::new(Alias::new("sub_glyph"));
+    /// let query = Query::select()
+    ///     .column(Font::Name)
+    ///     .from(Font::Table)
+    ///     .join_lateral(
+    ///         JoinType::LeftJoin,
+    ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
+    ///         sub_glyph.clone(),
+    ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name" FROM "font" LEFT JOIN LATERAL (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
+    /// );
+    ///
+    /// // Constructing chained join conditions
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .column(Font::Name)
+    ///         .from(Font::Table)
+    ///         .join_lateral(
+    ///             JoinType::LeftJoin,
+    ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
+    ///             sub_glyph.clone(),
+    ///             Condition::all()
+    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    /// ```
+    pub fn join_lateral<T, C>(
+        &mut self,
+        join: JoinType,
+        query: SelectStatement,
+        alias: T,
+        condition: C,
+    ) -> &mut Self
+    where
+        T: IntoIden,
+        C: IntoCondition,
+    {
+        self.join_join(
+            join,
+            TableRef::SubQuery(query, alias.into_iden()),
+            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
+                condition.into_condition(),
+            ))),
+            true,
+        )
+    }
+
+    fn join_join(
+        &mut self,
+        join: JoinType,
+        table: TableRef,
+        on: JoinOn,
+        lateral: bool,
+    ) -> &mut Self {
         self.join.push(JoinExpr {
             join,
             table: Box::new(table),
             on: Some(on),
+            lateral,
         });
         self
     }
@@ -1100,7 +1177,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`"#
+    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character""#
     /// );
     /// ```
     ///
@@ -1127,7 +1204,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
+    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// ```
     pub fn group_by_columns<T, I>(&mut self, cols: I) -> &mut Self
@@ -1165,7 +1242,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
+    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// ```
     pub fn group_by_col<T>(&mut self, col: T) -> &mut Self
@@ -1217,7 +1294,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` GROUP BY `size_w`, `size_h`"#
+    ///     r#"SELECT "character" FROM "character" GROUP BY "size_w", "size_h""#
     /// );
     /// ```
     pub fn add_group_by<I>(&mut self, expr: I) -> &mut Self
@@ -1294,7 +1371,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 AND `aspect` < 8"#
+    ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 AND "aspect" < 8"#
     /// );
     /// ```
     pub fn and_having(&mut self, other: SimpleExpr) -> &mut Self {
@@ -1334,7 +1411,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 OR `aspect` < 8"#
+    ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 OR "aspect" < 8"#
     /// );
     /// ```
     pub fn or_having(&mut self, other: SimpleExpr) -> &mut Self {
@@ -1365,7 +1442,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10"#
+    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
     /// );
     /// ```
     pub fn limit(&mut self, limit: u64) -> &mut Self {
@@ -1403,7 +1480,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10 OFFSET 10"#
+    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10 OFFSET 10"#
     /// );
     /// ```
     pub fn offset(&mut self, offset: u64) -> &mut Self {
@@ -1441,7 +1518,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
     pub fn lock(&mut self, lock_type: LockType) -> &mut Self {
@@ -1473,7 +1550,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
     pub fn lock_shared(&mut self) -> &mut Self {
@@ -1505,7 +1582,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 "#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
     pub fn lock_exclusive(&mut self) -> &mut Self {
@@ -1542,7 +1619,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
     /// ```
     pub fn union(&mut self, union_type: UnionType, query: SelectStatement) -> &mut Self {
@@ -1585,7 +1662,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION SELECT `character` FROM `character` WHERE `font_id` = 3"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "character" FROM "character" WHERE "font_id" = 3"#
     /// );
     /// ```
     pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement)>>(
@@ -1595,9 +1672,93 @@ impl SelectStatement {
         self.unions.extend(unions);
         self
     }
+
+    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let base_query = SelectStatement::new()
+    ///                     .column(Alias::new("id"))
+    ///                     .expr(Expr::val(1i32))
+    ///                     .column(Alias::new("next"))
+    ///                     .column(Alias::new("value"))
+    ///                     .from(Alias::new("table"))
+    ///                     .to_owned();
+    ///
+    /// let cte_referencing = SelectStatement::new()
+    ///                             .column(Alias::new("id"))
+    ///                             .expr(Expr::col(Alias::new("depth")).add(1i32))
+    ///                             .column(Alias::new("next"))
+    ///                             .column(Alias::new("value"))
+    ///                             .from(Alias::new("table"))
+    ///                             .join(
+    ///                                 JoinType::InnerJoin,
+    ///                                 Alias::new("cte_traversal"),
+    ///                                 Expr::tbl(Alias::new("cte_traversal"), Alias::new("next")).equals(Alias::new("table"), Alias::new("id")).into_condition()
+    ///                             )
+    ///                             .to_owned();
+    ///
+    /// let common_table_expression = CommonTableExpression::new()
+    ///             .query(
+    ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
+    ///             )
+    ///             .column(Alias::new("id"))
+    ///             .column(Alias::new("depth"))
+    ///             .column(Alias::new("next"))
+    ///             .column(Alias::new("value"))
+    ///             .table_name(Alias::new("cte_traversal"))
+    ///             .to_owned();
+    ///
+    /// let select = SelectStatement::new()
+    ///         .column(ColumnRef::Asterisk)
+    ///         .from(Alias::new("cte_traversal"))
+    ///         .to_owned();
+    ///
+    /// let with_clause = WithClause::new()
+    ///         .recursive(true)
+    ///         .cte(common_table_expression)
+    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
+    ///         .to_owned();
+    ///
+    /// let query = select.with(with_clause).to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `table` UNION ALL SELECT `id`, `depth` + 1, `next`, `value` FROM `table` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `table`.`id`) SELECT * FROM `cte_traversal`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
+    /// );
+    /// ```
+    pub fn with(self, clause: WithClause) -> WithQuery {
+        clause.query(self)
+    }
 }
 
 impl QueryStatementBuilder for SelectStatement {
+    fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query_builder.prepare_select_statement(self, sql, collector);
+    }
+
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::SelectStatement(self)
+    }
+}
+
+impl QueryStatementWriter for SelectStatement {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     ///
     /// # Examples
@@ -1633,16 +1794,6 @@ impl QueryStatementBuilder for SelectStatement {
     fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_select_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    fn build_collect_any(
-        &self,
-        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

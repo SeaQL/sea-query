@@ -1,4 +1,5 @@
 use crate::*;
+use std::ops::Deref;
 
 pub trait QueryBuilder: QuotedBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
@@ -21,7 +22,7 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " ").unwrap();
         }
 
-        if insert.columns.is_empty() && insert.values.is_empty() {
+        if insert.columns.is_empty() && insert.source.is_none() {
             write!(sql, "{}", self.insert_default_keyword()).unwrap();
         } else {
             write!(sql, "(").unwrap();
@@ -34,22 +35,32 @@ pub trait QueryBuilder: QuotedBuilder {
             });
             write!(sql, ")").unwrap();
 
-            write!(sql, " VALUES ").unwrap();
-            insert.values.iter().fold(true, |first, row| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
-                write!(sql, "(").unwrap();
-                row.iter().fold(true, |first, col| {
-                    if !first {
-                        write!(sql, ", ").unwrap()
+            if let Some(source) = &insert.source {
+                write!(sql, " ").unwrap();
+                match source {
+                    InsertValueSource::Values(values) => {
+                        write!(sql, "VALUES ").unwrap();
+                        values.iter().fold(true, |first, row| {
+                            if !first {
+                                write!(sql, ", ").unwrap()
+                            }
+                            write!(sql, "(").unwrap();
+                            row.iter().fold(true, |first, col| {
+                                if !first {
+                                    write!(sql, ", ").unwrap()
+                                }
+                                self.prepare_simple_expr(col, sql, collector);
+                                false
+                            });
+                            write!(sql, ")").unwrap();
+                            false
+                        });
                     }
-                    self.prepare_simple_expr(col, sql, collector);
-                    false
-                });
-                write!(sql, ")").unwrap();
-                false
-            });
+                    InsertValueSource::Select(select_query) => {
+                        self.prepare_select_statement(select_query.deref(), sql, collector);
+                    }
+                }
+            }
         }
 
         self.prepare_returning(&insert.returning, sql, collector);
@@ -302,7 +313,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::SubQuery(sel) => {
                 write!(sql, "(").unwrap();
-                self.prepare_select_statement(sel, sql, collector);
+                self.prepare_query_statement(sel.deref(), sql, collector);
                 write!(sql, ")").unwrap();
             }
             SimpleExpr::Value(val) => {
@@ -419,11 +430,23 @@ pub trait QueryBuilder: QuotedBuilder {
     ) {
         self.prepare_join_type(&join_expr.join, sql, collector);
         write!(sql, " ").unwrap();
-        self.prepare_table_ref(&join_expr.table, sql, collector);
+        self.prepare_join_table_ref(join_expr, sql, collector);
         if let Some(on) = &join_expr.on {
             write!(sql, " ").unwrap();
             self.prepare_join_on(on, sql, collector);
         }
+    }
+
+    fn prepare_join_table_ref(
+        &self,
+        join_expr: &JoinExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if join_expr.lateral {
+            write!(sql, "LATERAL ").unwrap();
+        }
+        QueryBuilder::prepare_table_ref_common(self, &join_expr.table, sql, collector);
     }
 
     /// Translate [`TableRef`] into SQL statement.
@@ -616,6 +639,173 @@ pub trait QueryBuilder: QuotedBuilder {
         }
     }
 
+    /// Translate [`QueryStatement`] into SQL statement.
+    fn prepare_query_statement(
+        &self,
+        query: &SubQueryStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    );
+
+    fn prepare_with_query(
+        &self,
+        query: &WithQuery,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_with_clause(&query.with_clause, sql, collector);
+        self.prepare_query_statement(query.query.as_ref().unwrap().deref(), sql, collector);
+    }
+
+    fn prepare_with_clause(
+        &self,
+        with_clause: &WithClause,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_with_clause_start(with_clause, sql);
+        self.prepare_with_clause_common_tables(with_clause, sql, collector);
+        if with_clause.recursive {
+            self.prepare_with_clause_recursive_options(with_clause, sql, collector);
+        }
+    }
+
+    fn prepare_with_clause_recursive_options(
+        &self,
+        with_clause: &WithClause,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if with_clause.recursive {
+            if let Some(search) = &with_clause.search {
+                write!(
+                    sql,
+                    "SEARCH {} FIRST BY ",
+                    match &search.order.as_ref().unwrap() {
+                        SearchOrder::BREADTH => "BREADTH",
+                        SearchOrder::DEPTH => "DEPTH",
+                    }
+                )
+                .unwrap();
+
+                self.prepare_simple_expr(&search.expr.as_ref().unwrap().expr, sql, collector);
+
+                write!(sql, " SET ").unwrap();
+
+                search
+                    .expr
+                    .as_ref()
+                    .unwrap()
+                    .alias
+                    .as_ref()
+                    .unwrap()
+                    .prepare(sql, self.quote());
+                write!(sql, " ").unwrap();
+            }
+            if let Some(cycle) = &with_clause.cycle {
+                write!(sql, "CYCLE ").unwrap();
+
+                self.prepare_simple_expr(cycle.expr.as_ref().unwrap(), sql, collector);
+
+                write!(sql, " SET ").unwrap();
+
+                cycle.set_as.as_ref().unwrap().prepare(sql, self.quote());
+                write!(sql, " USING ").unwrap();
+                cycle.using.as_ref().unwrap().prepare(sql, self.quote());
+                write!(sql, " ").unwrap();
+            }
+        }
+    }
+
+    fn prepare_with_clause_common_tables(
+        &self,
+        with_clause: &WithClause,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        let mut cte_first = true;
+        assert_ne!(
+            with_clause.cte_expressions.len(),
+            0,
+            "Cannot build a with query that has no common table expression!"
+        );
+
+        if with_clause.recursive {
+            assert_eq!(
+                with_clause.cte_expressions.len(),
+                1,
+                "Cannot build a recursive query with more than one common table! \
+                A recursive with query must have a single cte inside it that has a union query of \
+                two queries!"
+            );
+        }
+        for cte in &with_clause.cte_expressions {
+            if !cte_first {
+                write!(sql, ", ").unwrap();
+            }
+            cte_first = false;
+
+            self.prepare_with_query_clause_common_table(cte, sql, collector);
+        }
+    }
+
+    fn prepare_with_query_clause_common_table(
+        &self,
+        cte: &CommonTableExpression,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        cte.table_name.as_ref().unwrap().prepare(sql, self.quote());
+
+        if !cte.cols.is_empty() {
+            write!(sql, " (").unwrap();
+
+            let mut col_first = true;
+            for col in &cte.cols {
+                if !col_first {
+                    write!(sql, ", ").unwrap();
+                }
+                col_first = false;
+                col.prepare(sql, self.quote());
+            }
+
+            write!(sql, ") ").unwrap();
+        }
+
+        write!(sql, "AS ").unwrap();
+
+        self.prepare_with_query_clause_materialization(cte, sql);
+
+        write!(sql, "(").unwrap();
+
+        self.prepare_query_statement(cte.query.as_ref().unwrap().deref(), sql, collector);
+
+        write!(sql, ") ").unwrap();
+    }
+
+    fn prepare_with_query_clause_materialization(
+        &self,
+        cte: &CommonTableExpression,
+        sql: &mut SqlWriter,
+    ) {
+        if let Some(materialized) = cte.materialized {
+            write!(
+                sql,
+                "{} MATERIALIZED ",
+                if materialized { "" } else { "NOT" }
+            )
+            .unwrap()
+        }
+    }
+
+    fn prepare_with_clause_start(&self, with_clause: &WithClause, sql: &mut SqlWriter) {
+        write!(sql, "WITH ").unwrap();
+
+        if with_clause.recursive {
+            write!(sql, "RECURSIVE ").unwrap();
+        }
+    }
+
     fn prepare_function(
         &self,
         function: &Function,
@@ -751,6 +941,8 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-chrono")]
             Value::DateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
+            Value::DateTimeUtc(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
@@ -787,6 +979,10 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-chrono")]
             Value::DateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
+            }
+            #[cfg(feature = "with-chrono")]
+            Value::DateTimeUtc(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(Some(v)) => {
@@ -973,9 +1169,36 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 }
 
+impl SubQueryStatement {
+    pub(crate) fn prepare_statement(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        use SubQueryStatement::*;
+        match self {
+            SelectStatement(stmt) => query_builder.prepare_select_statement(stmt, sql, collector),
+            InsertStatement(stmt) => query_builder.prepare_insert_statement(stmt, sql, collector),
+            UpdateStatement(stmt) => query_builder.prepare_update_statement(stmt, sql, collector),
+            DeleteStatement(stmt) => query_builder.prepare_delete_statement(stmt, sql, collector),
+            WithStatement(stmt) => query_builder.prepare_with_query(stmt, sql, collector),
+        }
+    }
+}
+
 pub(crate) struct CommonSqlQueryBuilder;
 
-impl QueryBuilder for CommonSqlQueryBuilder {}
+impl QueryBuilder for CommonSqlQueryBuilder {
+    fn prepare_query_statement(
+        &self,
+        query: &SubQueryStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query.prepare_statement(self, sql, collector);
+    }
+}
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
     fn quote(&self) -> char {

@@ -799,6 +799,81 @@ fn select_50() {
     assert_eq!(
         statement,
         r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
+    )
+}
+
+#[test]
+fn select_51() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
+            .order_by_with_nulls(
+                (Glyph::Table, Glyph::Aspect),
+                Order::Asc,
+                NullOrdering::Last
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY "image" DESC NULLS FIRST,"#,
+            r#""glyph"."aspect" ASC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_52() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                (Glyph::Id, Order::Asc, NullOrdering::First),
+                (Glyph::Aspect, Order::Desc, NullOrdering::Last),
+            ])
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY "id" ASC NULLS FIRST,"#,
+            r#""aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_53() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
+            ])
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."id" ASC NULLS FIRST,"#,
+            r#""glyph"."aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
     );
 }
 
@@ -862,7 +937,41 @@ fn insert_5() {
 }
 
 #[test]
-fn insert_6() {
+fn insert_6() -> sea_query::error::Result<()> {
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Glyph::Table)
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .column(Glyph::Id)
+        .column(Glyph::Image)
+        .column(Glyph::Aspect)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Alias::new("cte"))
+        .to_owned();
+    let mut insert = Query::insert();
+    insert
+        .into_table(Glyph::Table)
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .select_from(select)?;
+    let sql = insert.with(with_clause).to_string(PostgresQueryBuilder);
+    assert_eq!(
+        sql.as_str(),
+        [
+            r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph")"#,
+            r#"INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#,
+        ].join(" ")
+    );
+    Ok(())
+}
+
+#[test]
+fn insert_7() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
@@ -872,13 +981,42 @@ fn insert_6() {
 }
 
 #[test]
-fn insert_7() {
+fn insert_8() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
             .returning_col(Glyph::Id)
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" DEFAULT VALUES RETURNING \"id\""
+    );
+}
+
+#[test]
+fn insert_from_select() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .select_from(
+                Query::select()
+                    .column(Glyph::Aspect)
+                    .column(Glyph::Image)
+                    .from(Glyph::Table)
+                    .conditions(
+                        true,
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Image).like("%"));
+                        },
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Id).eq(6));
+                        },
+                    )
+                    .to_owned()
+            )
+            .unwrap()
+            .to_owned()
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '%'"#
     );
 }
 
