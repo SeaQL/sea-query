@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, query::*};
+use crate::{expr::*, query::*, Values};
 use std::fmt;
 
 #[cfg(not(feature = "thread-safe"))]
@@ -174,10 +174,11 @@ pub enum JoinOn {
 }
 
 /// Ordering options
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Order {
     Asc,
     Desc,
+    Field(Values),
 }
 
 /// Helper for create name alias

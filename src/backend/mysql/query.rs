@@ -28,7 +28,27 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
         write!(sql, " ").unwrap();
-        self.prepare_order(&order_expr.order, sql, collector);
+        self.prepare_order(order_expr, sql, collector);
+    }
+
+    fn prepare_field_order(
+        &self,
+        order_expr: &OrderExpr,
+        values: &Values,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, " FIELD (").unwrap();
+        self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        write!(sql, ", [").unwrap();
+        let len = values.0.len();
+        for i in 0..len {
+            self.prepare_value(&values.0[i], sql, collector);
+            if i != len - 1 {
+                write!(sql, ", ").unwrap();
+            }
+        }
+        write!(sql, "])").unwrap();
     }
 
     fn prepare_query_statement(
