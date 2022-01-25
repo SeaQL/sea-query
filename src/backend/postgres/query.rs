@@ -81,8 +81,10 @@ impl QueryBuilder for PostgresQueryBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
-        write!(sql, " ").unwrap();
+        if !matches!(order_expr.order, Order::Field(_)) {
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+            write!(sql, " ").unwrap();
+        }
         self.prepare_order(order_expr, sql, collector);
         match order_expr.nulls {
             None => (),

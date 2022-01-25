@@ -26,8 +26,10 @@ impl QueryBuilder for MysqlQueryBuilder {
                 write!(sql, " IS NULL DESC, ").unwrap()
             }
         }
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
-        write!(sql, " ").unwrap();
+        if !matches!(order_expr.order, Order::Field(_)) {
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+            write!(sql, " ").unwrap();
+        }
         self.prepare_order(order_expr, sql, collector);
     }
 
@@ -38,17 +40,18 @@ impl QueryBuilder for MysqlQueryBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        write!(sql, " FIELD (").unwrap();
+        write!(sql, " FIELD(").unwrap();
         self.prepare_simple_expr(&order_expr.expr, sql, collector);
-        write!(sql, ", [").unwrap();
+        write!(sql, ", ").unwrap();
         let len = values.0.len();
         for i in 0..len {
-            self.prepare_value(&values.0[i], sql, collector);
+            let value = self.value_to_string(&values.0[i]);
+            write!(sql, "{}", value).unwrap();
             if i != len - 1 {
                 write!(sql, ", ").unwrap();
             }
         }
-        write!(sql, "])").unwrap();
+        write!(sql, ")").unwrap();
     }
 
     fn prepare_query_statement(

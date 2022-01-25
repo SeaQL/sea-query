@@ -900,6 +900,54 @@ fn select_53() {
 }
 
 #[test]
+fn select_54() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by(
+                Glyph::Id,
+                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into(),]))
+            )
+            .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY FIELD(`id`, 4, 5, 1, 3),"#,
+            r#"`glyph`.`aspect` ASC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_55() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
+            .order_by(
+                Glyph::Id,
+                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into(),]))
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `aspect`"#,
+            r#"FROM `glyph`"#,
+            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
+            r#"ORDER BY `glyph`.`aspect` ASC,"#,
+            r#"FIELD(`id`, 4, 5, 1, 3)"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(

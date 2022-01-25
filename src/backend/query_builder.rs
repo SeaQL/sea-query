@@ -838,7 +838,9 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        if !matches!(order_expr.order, Order::Field(_)) {
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        }
         write!(sql, " ").unwrap();
         self.prepare_order(order_expr, sql, collector);
     }
@@ -881,13 +883,15 @@ pub trait QueryBuilder: QuotedBuilder {
         write!(sql, " CASE ").unwrap();
         let mut i = 0;
         for value in &values.0 {
+            write!(sql, " WHEN ").unwrap();
             self.prepare_simple_expr(&order_expr.expr, sql, collector);
             write!(sql, "=").unwrap();
-            self.prepare_value(value, sql, collector);
+            let value = self.value_to_string(value);
+            write!(sql, "{}", value).unwrap();
             write!(sql, " THEN {} ", i).unwrap();
             i += 1;
         }
-        write!(sql, "ELSE {}", i).unwrap();
+        write!(sql, "ELSE {} END", i).unwrap();
     }
 
     /// Translate [`Value`] into SQL statement.

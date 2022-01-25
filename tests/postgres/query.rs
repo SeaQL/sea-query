@@ -878,6 +878,73 @@ fn select_53() {
 }
 
 #[test]
+fn select_54() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by(
+                Glyph::Id,
+                Order::Field(Values(vec![
+                    Value::Int(Some(4)),
+                    Value::Int(Some(5)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(3))
+                ]))
+            )
+            .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY CASE"#,
+            r#"WHEN "id"=4 THEN 0"#,
+            r#"WHEN "id"=5 THEN 1"#,
+            r#"WHEN "id"=1 THEN 2"#,
+            r#"WHEN "id"=3 THEN 3"#,
+            r#"ELSE 4 END,"#,
+            r#""glyph"."aspect" ASC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_55() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
+            .order_by(
+                Glyph::Id,
+                Order::Field(Values(vec![
+                    Value::Int(Some(4)),
+                    Value::Int(Some(5)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(3))
+                ]))
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."aspect" ASC,"#,
+            r#"CASE WHEN "id"=4 THEN 0"#,
+            r#"WHEN "id"=5 THEN 1"#,
+            r#"WHEN "id"=1 THEN 2"#,
+            r#"WHEN "id"=3 THEN 3"#,
+            r#"ELSE 4 END"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
