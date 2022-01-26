@@ -916,7 +916,8 @@ fn select_54() {
             r#"SELECT `aspect`"#,
             r#"FROM `glyph`"#,
             r#"WHERE IFNULL(`aspect`, 0) > 2"#,
-            r#"ORDER BY FIELD(`id`, 4, 5, 1, 3),"#,
+            r#"ORDER BY IF(`id` NOT IN (4, 5, 1, 3), 4, 0),"#,
+            r#"FIELD(`id`, 4, 5, 1, 3),"#,
             r#"`glyph`.`aspect` ASC"#,
         ]
         .join(" ")
@@ -941,6 +942,7 @@ fn select_55() {
             r#"FROM `glyph`"#,
             r#"WHERE IFNULL(`aspect`, 0) > 2"#,
             r#"ORDER BY `glyph`.`aspect` ASC,"#,
+            r#"IF(`id` NOT IN (4, 5, 1, 3), 4, 0),"#,
             r#"FIELD(`id`, 4, 5, 1, 3)"#,
         ]
         .join(" ")
