@@ -33,32 +33,6 @@ impl QueryBuilder for MysqlQueryBuilder {
         self.prepare_order(order_expr, sql, collector);
     }
 
-    fn prepare_field_order(
-        &self,
-        order_expr: &OrderExpr,
-        values: &Values,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        let len = values.0.len();
-        let mut values_str = String::from("");
-        for i in 0..len {
-            let value = self.value_to_string(&values.0[i]);
-            values_str.push_str(&*value);
-            if i != len - 1 {
-                values_str.push_str(", ");
-            }
-        }
-        write!(sql, " IF(").unwrap();
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
-        write!(sql, " NOT IN ({}), {}, 0),", values_str, len).unwrap();
-        write!(sql, " FIELD(").unwrap();
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
-        write!(sql, ", ").unwrap();
-        write!(sql, "{}", values_str).unwrap();
-        write!(sql, ")").unwrap();
-    }
-
     fn prepare_query_statement(
         &self,
         query: &SubQueryStatement,
