@@ -880,7 +880,7 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        write!(sql, " CASE ").unwrap();
+        write!(sql, "CASE ").unwrap();
         let mut i = 0;
         for value in &values.0 {
             write!(sql, " WHEN ").unwrap();
