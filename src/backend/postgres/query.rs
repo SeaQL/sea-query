@@ -83,8 +83,8 @@ impl QueryBuilder for PostgresQueryBuilder {
     ) {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql, collector);
-            write!(sql, " ").unwrap();
         }
+        write!(sql, " ").unwrap();
         self.prepare_order(order_expr, sql, collector);
         match order_expr.nulls {
             None => (),
