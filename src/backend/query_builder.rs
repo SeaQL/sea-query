@@ -1,6 +1,9 @@
 use crate::*;
 use std::ops::Deref;
 
+#[cfg(feature = "with-time")]
+use time::macros::format_description;
+
 pub trait QueryBuilder: QuotedBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
@@ -946,6 +949,18 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::DateTimeLocal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::Date(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::Time(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::DateTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::DateTimeUtc(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::DateTimeLocal(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
@@ -993,6 +1008,38 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+            }
+
+
+            #[cfg(feature = "with-time")]
+            Value::Date(Some(v)) => {
+                let format = format_description!("[year]-[month]-[day]");
+                write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
+            },
+            #[cfg(feature = "with-time")]
+            Value::Time(Some(v)) => {
+                let format = format_description!("[hour]:[minute]:[second]");
+                write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
+            },
+            #[cfg(feature = "with-time")]
+            Value::DateTime(Some(v)) => {
+                let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
+                write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::DateTimeUtc(Some(v)) => {
+                let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory]:[offset_minute]");
+                write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::DateTimeLocal(Some(v)) => {
+                let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory]:[offset_minute]");
+                write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::DateTimeWithTimeZone(Some(v)) => {
+                let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory]:[offset_minute]");
+                write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),

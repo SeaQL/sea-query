@@ -22,7 +22,7 @@ jobs:
           toolchain: stable
           components: clippy
           override: true
-          
+
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
@@ -61,6 +61,11 @@ jobs:
         with:
           command: build
           args: --features=with-chrono
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --features=with-time
 
       - uses: actions-rs/cargo@v1
         with:
