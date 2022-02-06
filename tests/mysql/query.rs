@@ -968,6 +968,27 @@ fn insert_5() {
 }
 
 #[test]
+fn insert_6() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .to_string(MysqlQueryBuilder),
+        "INSERT INTO `glyph` VALUES (DEFAULT)"
+    );
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .returning_col(Glyph::Id)
+            .to_string(MysqlQueryBuilder),
+        "INSERT INTO `glyph` VALUES (DEFAULT)"
+    );
+}
+
+#[test]
 fn insert_from_select() {
     assert_eq!(
         Query::insert()

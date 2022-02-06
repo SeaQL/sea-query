@@ -937,35 +937,6 @@ fn insert_5() {
 }
 
 #[test]
-fn insert_from_select() {
-    assert_eq!(
-        Query::insert()
-            .into_table(Glyph::Table)
-            .columns(vec![Glyph::Aspect, Glyph::Image])
-            .select_from(
-                Query::select()
-                    .column(Glyph::Aspect)
-                    .column(Glyph::Image)
-                    .from(Glyph::Table)
-                    .conditions(
-                        true,
-                        |x| {
-                            x.and_where(Expr::col(Glyph::Image).like("%"));
-                        },
-                        |x| {
-                            x.and_where(Expr::col(Glyph::Id).eq(6));
-                        },
-                    )
-                    .to_owned()
-            )
-            .unwrap()
-            .to_owned()
-            .to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '%'"#
-    );
-}
-
-#[test]
 fn insert_6() -> sea_query::error::Result<()> {
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
@@ -997,6 +968,56 @@ fn insert_6() -> sea_query::error::Result<()> {
         ].join(" ")
     );
     Ok(())
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .to_string(PostgresQueryBuilder),
+        "INSERT INTO \"glyph\" DEFAULT VALUES"
+    );
+}
+
+#[test]
+fn insert_8() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .returning_col(Glyph::Id)
+            .to_string(PostgresQueryBuilder),
+        "INSERT INTO \"glyph\" DEFAULT VALUES RETURNING \"id\""
+    );
+}
+
+#[test]
+fn insert_from_select() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .select_from(
+                Query::select()
+                    .column(Glyph::Aspect)
+                    .column(Glyph::Image)
+                    .from(Glyph::Table)
+                    .conditions(
+                        true,
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Image).like("%"));
+                        },
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Id).eq(6));
+                        },
+                    )
+                    .to_owned()
+            )
+            .unwrap()
+            .to_owned()
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '%'"#
+    );
 }
 
 #[test]
