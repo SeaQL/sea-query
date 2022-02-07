@@ -613,7 +613,7 @@ impl Value {
         return matches!(self, Self::Date(_));
         #[cfg(feature = "with-time")]
         return matches!(self, Self::Date(_));
-        #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+        #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
     #[cfg(feature = "with-chrono")]
@@ -630,7 +630,7 @@ impl Value {
             _ => panic!("not Value::Date"),
         }
     }
-    #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+    #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
     pub fn as_ref_date(&self) -> Option<&bool> {
         panic!("not Value::Date")
     }
@@ -642,7 +642,7 @@ impl Value {
         return matches!(self, Self::Time(_));
         #[cfg(feature = "with-time")]
         return matches!(self, Self::Time(_));
-        #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+        #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
     #[cfg(feature = "with-chrono")]
@@ -659,7 +659,7 @@ impl Value {
             _ => panic!("not Value::Time"),
         }
     }
-    #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+    #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
     pub fn as_ref_time(&self) -> Option<&bool> {
         panic!("not Value::Time")
     }
@@ -671,7 +671,7 @@ impl Value {
         return matches!(self, Self::DateTime(_));
         #[cfg(feature = "with-time")]
         return matches!(self, Self::DateTime(_));
-        #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+        #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
     #[cfg(feature = "with-chrono")]
@@ -688,7 +688,7 @@ impl Value {
             _ => panic!("not Value::DateTime"),
         }
     }
-    #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+    #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
     pub fn as_ref_date_time(&self) -> Option<&bool> {
         panic!("not Value::DateTime")
     }
@@ -700,7 +700,7 @@ impl Value {
         return matches!(self, Self::DateTimeUtc(_));
         #[cfg(feature = "with-time")]
         return matches!(self, Self::DateTimeUtc(_));
-        #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+        #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
 
@@ -709,7 +709,7 @@ impl Value {
         return matches!(self, Self::DateTimeLocal(_));
         #[cfg(feature = "with-time")]
         return matches!(self, Self::DateTimeLocal(_));
-        #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+        #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
     pub fn is_date_time_with_time_zone(&self) -> bool {
@@ -717,7 +717,7 @@ impl Value {
         return matches!(self, Self::DateTimeWithTimeZone(_));
         #[cfg(feature = "with-time")]
         return matches!(self, Self::DateTimeWithTimeZone(_));
-        #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+        #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
 
@@ -735,7 +735,7 @@ impl Value {
             _ => panic!("not Value::DateTimeUtc"),
         }
     }
-    #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+    #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
     pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
         panic!("not Value::DateTimeUtc")
     }
@@ -754,7 +754,7 @@ impl Value {
             _ => panic!("not Value::DateTimeLocal"),
         }
     }
-    #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+    #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
     pub fn as_ref_date_time_local(&self) -> Option<&bool> {
         panic!("not Value::DateTimeLocal")
     }
@@ -773,7 +773,7 @@ impl Value {
             _ => panic!("not Value::DateTimeWithTimeZone"),
         }
     }
-    #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+    #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&bool> {
         panic!("not Value::DateTimeWithTimeZone")
     }
@@ -800,7 +800,7 @@ impl Value {
             _ => panic!("not Value::DateTime"),
         }
     }
-    #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
+    #[cfg(not(all(feature = "with-chrono", feature = "with-time")))]
     pub fn as_naive_utc_in_string(&self) -> Option<&bool> {
         panic!("not Value::DateTime")
     }
