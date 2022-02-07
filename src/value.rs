@@ -10,7 +10,7 @@ use std::str::from_utf8;
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-time")]
-use time::{PrimitiveDateTime, OffsetDateTime, macros::offset};
+use time::{macros::offset, OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -794,7 +794,9 @@ impl Value {
             Self::DateTime(v) => v.as_ref().map(|v| v.to_string()),
             Self::DateTimeUtc(v) => v.as_ref().map(|v| v.to_offset(offset!(UTC)).to_string()),
             Self::DateTimeLocal(v) => v.as_ref().map(|v| v.to_offset(offset!(UTC)).to_string()),
-            Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| v.to_offset(offset!(UTC)).to_string()),
+            Self::DateTimeWithTimeZone(v) => {
+                v.as_ref().map(|v| v.to_offset(offset!(UTC)).to_string())
+            }
             _ => panic!("not Value::DateTime"),
         }
     }
@@ -1588,7 +1590,10 @@ mod tests {
     #[test]
     #[cfg(feature = "with-time")]
     fn test_time_value() {
-        let timestamp = time::Date::from_calendar_date(2020, time::Month::January, 1).unwrap().with_hms(2, 2, 2).unwrap();
+        let timestamp = time::Date::from_calendar_date(2020, time::Month::January, 1)
+            .unwrap()
+            .with_hms(2, 2, 2)
+            .unwrap();
         let value: Value = timestamp.into();
         let out: PrimitiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);

@@ -1010,17 +1010,16 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
 
-
             #[cfg(feature = "with-time")]
             Value::Date(Some(v)) => {
                 let format = format_description!("[year]-[month]-[day]");
                 write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
-            },
+            }
             #[cfg(feature = "with-time")]
             Value::Time(Some(v)) => {
                 let format = format_description!("[hour]:[minute]:[second]");
                 write!(s, "\'{}\'", v.format(&format).unwrap()).unwrap()
-            },
+            }
             #[cfg(feature = "with-time")]
             Value::DateTime(Some(v)) => {
                 let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
