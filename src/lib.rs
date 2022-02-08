@@ -708,6 +708,10 @@
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL icon dark.png"
 )]
+
+#[cfg(all(feature = "with-chrono", feature = "with-time"))]
+compile_error!("feature \"with-chrono\" and feature \"with-time\" cannot be enabled at the same time");
+
 pub mod backend;
 pub mod driver;
 pub mod error;

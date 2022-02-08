@@ -50,7 +50,12 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features
+          args: cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes chrono default derive postgres postgres-array postgres-bigdecimal postgres-chrono postgres-interval postgres-json postgres-rust_decimal postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe uuid with-bigdecimal with-chrono with-json with-rust_decimal with-uuid"
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes default derive postgres postgres-array postgres-bigdecimal postgres-interval postgres-json postgres-rust_decimal postgres-time postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe time uuid with-bigdecimal with-json with-rust_decimal with-time with-uuid"
 
       - uses: actions-rs/cargo@v1
         with:
@@ -97,7 +102,12 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features
+          args: cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes chrono default derive postgres postgres-array postgres-bigdecimal postgres-chrono postgres-interval postgres-json postgres-rust_decimal postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe uuid with-bigdecimal with-chrono with-json with-rust_decimal with-uuid"
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes default derive postgres postgres-array postgres-bigdecimal postgres-interval postgres-json postgres-rust_decimal postgres-time postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe time uuid with-bigdecimal with-json with-rust_decimal with-time with-uuid"
 
   derive-test:
     name: Derive Tests
@@ -116,12 +126,22 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --package sea-query-derive --all-features
+          args: --package sea-query-derive cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes chrono default derive postgres postgres-array postgres-bigdecimal postgres-chrono postgres-interval postgres-json postgres-rust_decimal postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe uuid with-bigdecimal with-chrono with-json with-rust_decimal with-uuid"
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --package sea-query-derive cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes default derive postgres postgres-array postgres-bigdecimal postgres-interval postgres-json postgres-rust_decimal postgres-time postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe time uuid with-bigdecimal with-json with-rust_decimal with-time with-uuid"
 
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --package sea-query-derive --all-features
+          args: --package sea-query-derive cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes chrono default derive postgres postgres-array postgres-bigdecimal postgres-chrono postgres-interval postgres-json postgres-rust_decimal postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe uuid with-bigdecimal with-chrono with-json with-rust_decimal with-uuid"
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --package sea-query-derive cargo b --features "backend-mysql backend-postgres backend-sqlite bigdecimal bytes default derive postgres postgres-array postgres-bigdecimal postgres-interval postgres-json postgres-rust_decimal postgres-time postgres-types postgres-uuid proc-macro2 quote rusqlite rust_decimal sea-query-derive serde_json sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe time uuid with-bigdecimal with-json with-rust_decimal with-time with-uuid"
 
   sqlite:
     name: SQLite

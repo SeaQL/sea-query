@@ -609,9 +609,7 @@ impl Value {
 
 impl Value {
     pub fn is_date(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::Date(_));
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-chrono", feature = "with-time"))]
         return matches!(self, Self::Date(_));
         #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
         return false;
@@ -638,9 +636,7 @@ impl Value {
 
 impl Value {
     pub fn is_time(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::Time(_));
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-chrono", feature = "with-time"))]
         return matches!(self, Self::Time(_));
         #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
         return false;
@@ -667,9 +663,7 @@ impl Value {
 
 impl Value {
     pub fn is_date_time(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTime(_));
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-chrono", feature = "with-time"))]
         return matches!(self, Self::DateTime(_));
         #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
         return false;
@@ -696,26 +690,20 @@ impl Value {
 
 impl Value {
     pub fn is_date_time_utc(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTimeUtc(_));
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-chrono", feature = "with-time"))]
         return matches!(self, Self::DateTimeUtc(_));
         #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
 
     pub fn is_date_time_local(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTimeLocal(_));
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-chrono", feature = "with-time"))]
         return matches!(self, Self::DateTimeLocal(_));
         #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
         return false;
     }
     pub fn is_date_time_with_time_zone(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTimeWithTimeZone(_));
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-chrono", feature = "with-time"))]
         return matches!(self, Self::DateTimeWithTimeZone(_));
         #[cfg(not(any(feature = "with-chrono", feature = "with-time")))]
         return false;
