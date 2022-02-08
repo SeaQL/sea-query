@@ -877,6 +877,35 @@ fn select_53() {
     );
 }
 
+
+#[test]
+fn select_54() {
+    assert_eq!(
+        Query::select()
+            .distinct_on(vec![Glyph::Aspect,])
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
+            ])
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT DISTINCT ON ("aspect") "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."id" ASC NULLS FIRST,"#,
+            r#""glyph"."aspect" DESC NULLS LAST"#,
+        ]
+            .join(" ")
+    );
+}
+
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {

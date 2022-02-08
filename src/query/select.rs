@@ -54,11 +54,13 @@ pub struct SelectStatement {
 }
 
 /// List of distinct keywords that can be used in select statement
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum SelectDistinct {
     All,
     Distinct,
     DistinctRow,
+    #[cfg(feature = "backend-postgres")]
+    DistinctOn(Vec<DynIden>),
 }
 
 /// Select expression used in select statement
@@ -280,6 +282,22 @@ impl SelectStatement {
     /// Select distinct
     pub fn distinct(&mut self) -> &mut Self {
         self.distinct = Some(SelectDistinct::Distinct);
+        self
+    }
+
+    /// Select distinct on
+    #[cfg(feature = "backend-postgres")]
+    pub fn distinct_on<T, I>(&mut self, cols: I) -> &mut Self
+        where
+            T: IntoColumnRef,
+            I: IntoIterator<Item = T>,
+    {
+        self.distinct = Some(SelectDistinct::DistinctOn(cols.into_iter().filter_map(|col| {
+            match col.into_column_ref() {
+                ColumnRef::Column(c) => Some(c),
+                _ => None
+            }
+        }).collect()));
         self
     }
 
