@@ -41,7 +41,7 @@ use crate::{
 pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
     pub(crate) selects: Vec<SelectExpr>,
-    pub(crate) from: Option<Box<TableRef>>,
+    pub(crate) from: Vec<TableRef>,
     pub(crate) join: Vec<JoinExpr>,
     pub(crate) r#where: ConditionHolder,
     pub(crate) groups: Vec<SimpleExpr>,
@@ -113,7 +113,7 @@ impl SelectStatement {
         Self {
             distinct: None,
             selects: Vec::new(),
-            from: None,
+            from: Vec::new(),
             join: Vec::new(),
             r#where: ConditionHolder::new(),
             groups: Vec::new(),
@@ -131,7 +131,7 @@ impl SelectStatement {
         Self {
             distinct: self.distinct.take(),
             selects: std::mem::take(&mut self.selects),
-            from: self.from.take(),
+            from: std::mem::take(&mut self.from),
             join: std::mem::take(&mut self.join),
             r#where: std::mem::replace(&mut self.r#where, ConditionHolder::new()),
             groups: std::mem::take(&mut self.groups),
@@ -742,7 +742,7 @@ impl SelectStatement {
     }
 
     fn from_from(&mut self, select: TableRef) -> &mut Self {
-        self.from = Some(Box::new(select));
+        self.from.push(select);
         self
     }
 

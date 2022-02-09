@@ -878,6 +878,21 @@ fn select_53() {
 }
 
 #[test]
+fn select_54() {
+    let statement = sea_query::Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .from(Font::Table)
+        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
