@@ -107,11 +107,11 @@ impl CommonTableExpression {
 
     /// Create a CTE from a [SelectStatement] if the selections are named columns then this will
     /// return a [CommonTableExpression] that has the column names set. The [Self::table_name] is
-    /// not set.
+    /// set if the [SelectStatement] from clause contains at least one table.
     pub fn from_select(select: SelectStatement) -> Self {
         let mut cte = Self::default();
         cte.try_set_cols_from_selects(&select.selects);
-        if let Some(from) = &select.from {
+        if let Some(from) = select.from.get(0) {
             match from.deref() {
                 TableRef::Table(iden) => cte.set_table_name_from_select(iden),
                 TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden),

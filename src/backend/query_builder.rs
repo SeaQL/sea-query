@@ -89,9 +89,15 @@ pub trait QueryBuilder: QuotedBuilder {
             false
         });
 
-        if let Some(from) = &select.from {
+        if !select.from.is_empty() {
             write!(sql, " FROM ").unwrap();
-            self.prepare_table_ref(from, sql, collector);
+            select.from.iter().fold(true, |first, table_ref| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_table_ref(table_ref, sql, collector);
+                false
+            });
         }
 
         if !select.join.is_empty() {
