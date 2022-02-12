@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.22.0
+
+* Support multiple tables in the select from #261
+
 ## 0.21.0 - 2022-02-01
 
 ### Breaking changes
