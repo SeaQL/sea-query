@@ -14,7 +14,7 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        write!(sql, "INSERT").unwrap();
+        self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
             write!(sql, " INTO ").unwrap();
@@ -809,6 +809,14 @@ pub trait QueryBuilder: QuotedBuilder {
 
         if with_clause.recursive {
             write!(sql, "RECURSIVE ").unwrap();
+        }
+    }
+
+    fn prepare_insert(&self, replace: bool, sql: &mut SqlWriter) {
+        if replace {
+            write!(sql, "REPLACE").unwrap();
+        } else {
+            write!(sql, "INSERT").unwrap();
         }
     }
 
