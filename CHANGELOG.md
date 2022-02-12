@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.22.0
 
 * Support multiple tables in the select from #261
+* Add support for replace insert #262
 
 ## 0.21.0 - 2022-02-01
 
