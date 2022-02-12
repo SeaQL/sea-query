@@ -570,6 +570,33 @@ impl SelectStatement {
     ///     r#"SELECT "font_size" FROM "database"."character"."glyph""#
     /// );
     /// ```
+    ///
+    /// If you specify `from` multiple times, the resulting query will have multiple from clauses.
+    /// You can perform an 'old-school' join this way.
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = sea_query::Query::select()
+    ///     .expr(Expr::asterisk())
+    ///     .from(Char::Table)
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT * FROM `character`, `font` WHERE `font`.`id` = `character`.`font_id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
+    /// );
+    /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
     where
         R: IntoTableRef,
