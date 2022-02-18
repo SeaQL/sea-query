@@ -17,12 +17,15 @@ sea-query = { path = "../../", features = [
     "with-rust_decimal",
     "with-bigdecimal",
     "with-uuid",
+    "with-ltree",
 ] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "^0", features = [...] }
 
 [dependencies.sqlx]
-version = "^0.5"
+# TODO: once sqlx is release with LTREE support
+git = "https://github.com/launchbadge/sqlx.git"
+#version = "^0.5"
 default-features = false
 features = [
     "runtime-async-std-native-tls",

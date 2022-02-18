@@ -38,6 +38,8 @@ pub enum ColumnType {
     Custom(DynIden),
     Enum(String, Vec<String>),
     Array(Option<String>),
+    #[cfg(feature = "with-ltree")]
+    LTree,
 }
 
 /// All column specification keywords
@@ -414,6 +416,13 @@ impl ColumnDef {
     /// Set column type as uuid
     pub fn uuid(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Uuid);
+        self
+    }
+
+    /// Set column type as ltree
+    #[cfg(feature = "with-ltree")]
+    pub fn ltree(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::LTree);
         self
     }
 

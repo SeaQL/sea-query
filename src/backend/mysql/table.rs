@@ -90,6 +90,8 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(_, variants) => format!("ENUM('{}')", variants.join("', '")),
                 ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
+                #[cfg(feature = "with-ltree")]
+                ColumnType::LTree => unimplemented!("LTree is not available in MySQL."),
             }
         )
         .unwrap()

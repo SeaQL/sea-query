@@ -98,6 +98,8 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Array(elem_type) => format!("{}[]", elem_type.as_ref().unwrap()),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(name, _) => name.into(),
+                #[cfg(feature = "with-ltree")]
+                ColumnType::LTree => "ltree".into(),
             }
         )
         .unwrap()
