@@ -18,7 +18,7 @@ use bigdecimal::BigDecimal;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
-#[cfg(feature = "with-ltree")]
+#[cfg(feature = "backend-postgres")]
 use sqlx_core::postgres::types::PgLTree;
 
 use crate::ColumnType;
@@ -88,12 +88,12 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
     Array(Option<Box<Vec<Value>>>),
 
-    #[cfg(feature = "with-ltree")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-ltree")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     LTree(Option<Box<PgLTree>>),
 
-    #[cfg(feature = "with-ltree")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-ltree")))]
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     LTreeArray(Option<Box<Vec<PgLTree>>>),
 }
 
@@ -424,8 +424,8 @@ mod with_uuid {
     type_to_box_value!(Uuid, Uuid, Uuid);
 }
 
-#[cfg(feature = "with-ltree")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-ltree")))]
+#[cfg(feature = "backend-postgres")]
+#[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
 mod with_ltree {
     use super::*;
 
@@ -479,7 +479,7 @@ mod with_array {
     #[cfg(feature = "with-uuid")]
     impl NotU8 for Uuid {}
 
-    #[cfg(feature = "with-ltree")]
+    #[cfg(feature = "backend-postgres")]
     impl NotU8 for PgLTree {}
 
     impl<T> From<Vec<T>> for Value
@@ -765,37 +765,37 @@ impl Value {
 
 impl Value {
     pub fn is_ltree(&self) -> bool {
-        #[cfg(feature = "with-ltree")]
+        #[cfg(feature = "backend-postgres")]
         return matches!(self, Self::LTree(_));
-        #[cfg(not(feature = "with-ltree"))]
+        #[cfg(not(feature = "backend-postgres"))]
         return false;
     }
-    #[cfg(feature = "with-ltree")]
+    #[cfg(feature = "backend-postgres")]
     pub fn as_ref_ltree(&self) -> Option<&PgLTree> {
         match self {
             Self::LTree(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::LTree"),
         }
     }
-    #[cfg(not(feature = "with-ltree"))]
+    #[cfg(not(feature = "backend-postgres"))]
     pub fn as_ref_ltree(&self) -> Option<&bool> {
         panic!("not Value::LTree")
     }
 
     pub fn is_ltree_array(&self) -> bool {
-        #[cfg(feature = "with-ltree")]
+        #[cfg(feature = "backend-postgres")]
         return matches!(self, Self::LTreeArray(_));
-        #[cfg(not(feature = "with-ltree"))]
+        #[cfg(not(feature = "backend-postgres"))]
         return false;
     }
-    #[cfg(feature = "with-ltree")]
+    #[cfg(feature = "backend-postgres")]
     pub fn as_ref_ltree_array(&self) -> Option<&Vec<PgLTree>> {
         match self {
             Self::LTreeArray(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::LTreeArray"),
         }
     }
-    #[cfg(not(feature = "with-ltree"))]
+    #[cfg(not(feature = "backend-postgres"))]
     pub fn as_ref_ltree_array(&self) -> Option<&bool> {
         panic!("not Value::LTreeArray")
     }
@@ -1112,9 +1112,9 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
-        #[cfg(feature = "with-ltree")]
+        #[cfg(feature = "backend-postgres")]
         Value::LTree(None) => Json::Null,
-        #[cfg(feature = "with-ltree")]
+        #[cfg(feature = "backend-postgres")]
         Value::LTreeArray(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
@@ -1156,9 +1156,9 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
-        #[cfg(feature = "with-ltree")]
+        #[cfg(feature = "backend-postgres")]
         Value::LTree(Some(v)) => Json::String(v.to_string()),
-        #[cfg(feature = "with-ltree")]
+        #[cfg(feature = "backend-postgres")]
         Value::LTreeArray(Some(v)) => Json::Array(
             v.as_ref()
                 .iter()
@@ -1181,7 +1181,7 @@ impl Values {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(feature = "with-ltree")]
+    #[cfg(feature = "backend-postgres")]
     use std::str::FromStr;
 
     #[test]
@@ -1514,7 +1514,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "with-ltree")]
+    #[cfg(feature = "backend-postgres")]
     fn test_ltree_value() {
         let ltree = sqlx_core::postgres::types::PgLTree::from_str("A.B.C").unwrap();
         let value: Value = ltree.clone().into();

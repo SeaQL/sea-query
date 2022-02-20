@@ -38,7 +38,7 @@ pub enum ColumnType {
     Custom(DynIden),
     Enum(String, Vec<String>),
     Array(Option<String>),
-    #[cfg(feature = "with-ltree")]
+    #[cfg(feature = "backend-postgres")]
     LTree,
 }
 
@@ -420,7 +420,7 @@ impl ColumnDef {
     }
 
     /// Set column type as ltree
-    #[cfg(feature = "with-ltree")]
+    #[cfg(feature = "backend-postgres")]
     pub fn ltree(&mut self) -> &mut Self {
         self.types = Some(ColumnType::LTree);
         self

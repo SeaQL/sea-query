@@ -4,6 +4,9 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
+#[cfg(feature = "backend-postgres")]
+use sqlx_core::postgres::types::PgLQuery;
+
 use crate::{func::*, query::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
@@ -35,6 +38,8 @@ pub enum SimpleExpr {
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
+    #[cfg(feature = "backend-postgres")]
+    LQuery(PgLQuery)
 }
 
 impl Expr {
@@ -1691,6 +1696,14 @@ impl Expr {
         T: Into<SimpleExpr>,
     {
         self.bin_oper(BinOper::Contained, expr.into())
+    }
+
+    #[cfg(feature = "backend-postgres")]
+    pub fn lquery<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(BinOper::LQuery, expr.into())
     }
 
     /// Express an postgres concatenate (`||`) expression.

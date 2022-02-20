@@ -110,7 +110,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(_, _) => "text".into(),
                 ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
-                #[cfg(feature = "with-ltree")]
+                #[cfg(feature = "backend-postgres")]
                 ColumnType::LTree => unimplemented!("LTree is not available in Sqlite."),
             }
         )

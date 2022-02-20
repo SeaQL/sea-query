@@ -360,6 +360,10 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql, collector);
             }
+            #[cfg(feature = "backend-postgres")]
+            SimpleExpr::LQuery(lquery) => {
+                write!(sql, "{}", lquery).unwrap();
+            }
         }
     }
 
@@ -556,6 +560,8 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
+                #[cfg(feature = "backend-postgres")]
+                BinOper::LQuery => "~",
                 _ => unimplemented!(),
             }
         )
@@ -948,9 +954,9 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-ltree")]
+            #[cfg(feature = "backend-postgres")]
             Value::LTree(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-ltree")]
+            #[cfg(feature = "backend-postgres")]
             Value::LTreeArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
@@ -1000,9 +1006,9 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
-            #[cfg(feature = "with-ltree")]
+            #[cfg(feature = "backend-postgres")]
             Value::LTree(Some(v)) => write!(s, "{}", v).unwrap(),
-            #[cfg(feature = "with-ltree")]
+            #[cfg(feature = "backend-postgres")]
             // TODO: maybe rewrite this to a generic sqlx-postgres array
             Value::LTreeArray(Some(v)) => write!(
                 s,
