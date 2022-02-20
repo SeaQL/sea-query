@@ -21,6 +21,9 @@ use uuid::Uuid;
 #[cfg(feature = "backend-postgres")]
 use sqlx_core::postgres::types::PgLTree;
 
+#[cfg(feature = "backend-postgres")]
+use sqlx_core::postgres::types::PgLQuery;
+
 use crate::ColumnType;
 
 /// Value variants
@@ -95,6 +98,10 @@ pub enum Value {
     #[cfg(feature = "backend-postgres")]
     #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
     LTreeArray(Option<Box<Vec<PgLTree>>>),
+
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
+    LQuery(Option<Box<PgLQuery>>),
 }
 
 pub trait ValueType: Sized {
@@ -431,6 +438,7 @@ mod with_ltree {
 
     type_to_box_value!(PgLTree, LTree, LTree);
     type_to_box_value!(Vec<PgLTree>, LTreeArray, LTree);
+    type_to_box_value!(PgLQuery, LQuery, LTree);
 }
 
 #[cfg(feature = "postgres-array")]
@@ -802,6 +810,26 @@ impl Value {
 }
 
 impl Value {
+    pub fn is_lquery(&self) -> bool {
+        #[cfg(feature = "backend-postgres")]
+        return matches!(self, Self::LQuery(_));
+        #[cfg(not(feature = "backend-postgres"))]
+        return false;
+    }
+    #[cfg(feature = "backend-postgres")]
+    pub fn as_ref_lquery(&self) -> Option<&PgLQuery> {
+        match self {
+            Self::LQuery(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::LQuery"),
+        }
+    }
+    #[cfg(not(feature = "backend-postgres"))]
+    pub fn as_ref_ltree(&self) -> Option<&bool> {
+        panic!("not Value::LQuery")
+    }
+}
+
+impl Value {
     pub fn is_array(&self) -> bool {
         #[cfg(feature = "postgres-array")]
         return matches!(self, Self::Array(_));
@@ -1116,6 +1144,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::LTree(None) => Json::Null,
         #[cfg(feature = "backend-postgres")]
         Value::LTreeArray(None) => Json::Null,
+        #[cfg(feature = "backend-postgres")]
+        Value::LQuery(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
@@ -1165,6 +1195,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
                 .map(|v| Json::String(v.to_string()))
                 .collect(),
         ),
+        #[cfg(feature = "backend-postgres")]
+        Value::LQuery(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
         Value::Array(Some(v)) => {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())

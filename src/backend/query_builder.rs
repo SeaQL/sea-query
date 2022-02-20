@@ -560,8 +560,6 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
-                #[cfg(feature = "backend-postgres")]
-                BinOper::LQuery => "~",
                 _ => unimplemented!(),
             }
         )
@@ -958,6 +956,8 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::LTree(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "backend-postgres")]
             Value::LTreeArray(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            Value::LQuery(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -1019,6 +1019,8 @@ pub trait QueryBuilder: QuotedBuilder {
                     .join(",")
             )
             .unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            Value::LQuery(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(Some(v)) => write!(
                 s,

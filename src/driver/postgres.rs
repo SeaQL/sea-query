@@ -1,6 +1,7 @@
 use crate::{Value, Values};
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
+use sqlx_core::postgres::types::PgLQuery;
 use std::error::Error;
 
 pub trait PostgresDriver<'a> {
@@ -65,6 +66,12 @@ impl ToSql for Value {
             Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => box_to_sql!(v, Vec<Value>),
+            #[cfg(feature = "backend-postgres")]
+            Value::LTree(v) => box_to_sql!(v, sqlx_core::postgres::types::PgLTree),
+            #[cfg(feature = "backend-postgres")]
+            Value::LTreeArray(v) => box_to_sql!(v, Vec<sqlx_core::postgres::types::PgLTree>),
+            #[cfg(feature = "backend-postgres")]
+            Value::LQuery(v) => box_to_sql!(v, sqlx_core::postgres::types::PgLQuery),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }
