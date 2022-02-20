@@ -29,19 +29,21 @@ impl TableBuilder for MysqlQueryBuilder {
                     None => "varchar(255)".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger(length) => match length {
-                    Some(length) => format!("tinyint({})", length),
-                    None => "tinyint".into(),
-                },
-                ColumnType::SmallInteger(length) => match length {
-                    Some(length) => format!("smallint({})", length),
-                    None => "smallint".into(),
-                },
-                ColumnType::Integer(length) => match length {
+                ColumnType::TinyInteger(length) | ColumnType::TinyUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("tinyint({})", length),
+                        None => "tinyint".into(),
+                    },
+                ColumnType::SmallInteger(length) | ColumnType::SmallUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("smallint({})", length),
+                        None => "smallint".into(),
+                    },
+                ColumnType::Integer(length) | ColumnType::Unsigned(length) => match length {
                     Some(length) => format!("int({})", length),
                     None => "int".into(),
                 },
-                ColumnType::BigInteger(length) => match length {
+                ColumnType::BigInteger(length) | ColumnType::BigUnsigned(length) => match length {
                     Some(length) => format!("bigint({})", length),
                     None => "bigint".into(),
                 },
@@ -92,7 +94,17 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
             }
         )
-        .unwrap()
+        .unwrap();
+        if matches!(
+            column_type,
+            ColumnType::TinyUnsigned(_)
+                | ColumnType::SmallUnsigned(_)
+                | ColumnType::Unsigned(_)
+                | ColumnType::BigUnsigned(_)
+        ) {
+            write!(sql, " ").unwrap();
+            write!(sql, "UNSIGNED").unwrap();
+        }
     }
 
     fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter) {

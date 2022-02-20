@@ -218,12 +218,10 @@ type_to_value!(i8, TinyInt, TinyInteger(None));
 type_to_value!(i16, SmallInt, SmallInteger(None));
 type_to_value!(i32, Int, Integer(None));
 type_to_value!(i64, BigInt, BigInteger(None));
-
-// FIXME: edit this mapping after we added unsigned column types
-type_to_value!(u8, TinyUnsigned, TinyInteger(None));
-type_to_value!(u16, SmallUnsigned, SmallInteger(None));
-type_to_value!(u32, Unsigned, Integer(None));
-type_to_value!(u64, BigUnsigned, BigInteger(None));
+type_to_value!(u8, TinyUnsigned, TinyUnsigned(None));
+type_to_value!(u16, SmallUnsigned, SmallUnsigned(None));
+type_to_value!(u32, Unsigned, Unsigned(None));
+type_to_value!(u64, BigUnsigned, BigUnsigned(None));
 type_to_value!(f32, Float, Float(None));
 type_to_value!(f64, Double, Double(None));
 
