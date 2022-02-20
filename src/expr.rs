@@ -39,7 +39,7 @@ pub enum SimpleExpr {
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     #[cfg(feature = "backend-postgres")]
-    LQuery(PgLQuery)
+    LQuery(PgLQuery),
 }
 
 impl Expr {
@@ -1703,7 +1703,7 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     /// use sqlx_core::postgres::types::PgLQuery;
     /// use std::str::FromStr;
     ///
