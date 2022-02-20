@@ -23,9 +23,7 @@ sea-query = { path = "../../", features = [
 # sea-query = { version = "^0", features = [...] }
 
 [dependencies.sqlx]
-# TODO: once sqlx is release with LTREE support
-git = "https://github.com/launchbadge/sqlx.git"
-#version = "^0.5"
+version = "^0.5"
 default-features = false
 features = [
     "runtime-async-std-native-tls",
