@@ -66,11 +66,11 @@ impl ToSql for Value {
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => box_to_sql!(v, Vec<Value>),
             #[cfg(feature = "backend-postgres")]
-            Value::LTree(v) => box_to_sql!(v, sqlx_core::postgres::types::PgLTree),
+            Value::LTree(v) => unimplemented!("Not supported"),
             #[cfg(feature = "backend-postgres")]
-            Value::LTreeArray(v) => box_to_sql!(v, Vec<sqlx_core::postgres::types::PgLTree>),
+            Value::LTreeArray(v) => unimplemented!("Not supported"),
             #[cfg(feature = "backend-postgres")]
-            Value::LQuery(v) => box_to_sql!(v, sqlx_core::postgres::types::PgLQuery),
+            Value::LQuery(v) => unimplemented!("Not supported"),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }
