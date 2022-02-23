@@ -11,6 +11,7 @@ rust_decimal = { version = "^1" }
 bigdecimal = { version = "^0.2" }
 async-std = { version = "1.8", features = [ "attributes" ] }
 sea-query = { path = "../../", features = [
+    "runtime-async-std-native-tls",
     "sqlx-mysql",
     "with-chrono",
     "with-json",

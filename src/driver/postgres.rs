@@ -1,7 +1,6 @@
 use crate::{Value, Values};
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
-use sqlx_core::postgres::types::PgLQuery;
 use std::error::Error;
 
 pub trait PostgresDriver<'a> {

@@ -487,9 +487,6 @@ mod with_array {
     #[cfg(feature = "with-uuid")]
     impl NotU8 for Uuid {}
 
-    #[cfg(feature = "backend-postgres")]
-    impl NotU8 for PgLTree {}
-
     impl<T> From<Vec<T>> for Value
     where
         T: Into<Value> + NotU8,
@@ -824,7 +821,7 @@ impl Value {
         }
     }
     #[cfg(not(feature = "backend-postgres"))]
-    pub fn as_ref_ltree(&self) -> Option<&bool> {
+    pub fn as_ref_lquery(&self) -> Option<&bool> {
         panic!("not Value::LQuery")
     }
 }

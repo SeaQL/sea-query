@@ -22,7 +22,7 @@ jobs:
           toolchain: stable
           components: clippy
           override: true
-          
+
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
@@ -50,7 +50,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features
+          args: --features "runtime-async-std-native-tls postgres postgres-chrono postgres-json postgres-array postgres-interval rusqlite sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe with-chrono with-json with-rust_decimal with-bigdecimal with-uuid"
 
       - uses: actions-rs/cargo@v1
         with:
@@ -92,7 +92,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features
+          args: --features "runtime-async-std-native-tls postgres postgres-chrono postgres-json postgres-array postgres-interval rusqlite sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe with-chrono with-json with-rust_decimal with-bigdecimal with-uuid"
 
   derive-test:
     name: Derive Tests
@@ -111,12 +111,12 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --package sea-query-derive --all-features
+          args: --package sea-query-derive --features "runtime-async-std-native-tls postgres postgres-chrono postgres-json postgres-array postgres-interval rusqlite sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe with-chrono with-json with-rust_decimal with-bigdecimal with-uuid"
 
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --package sea-query-derive --all-features
+          args: --package sea-query-derive --features "runtime-async-std-native-tls postgres postgres-chrono postgres-json postgres-array postgres-interval rusqlite sqlx-mysql sqlx-postgres sqlx-sqlite thread-safe with-chrono with-json with-rust_decimal with-bigdecimal with-uuid"
 
   sqlite:
     name: SQLite
