@@ -632,6 +632,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Min => "MIN",
                     Function::Sum => "SUM",
                     Function::Avg => "AVG",
+                    Function::Coalesce => "COALESCE",
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
