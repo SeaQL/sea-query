@@ -17,6 +17,7 @@ pub enum Function {
     CharLength,
     Cast,
     Custom(DynIden),
+    Coalesce,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -326,5 +327,42 @@ impl Func {
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
         ))
+    }
+
+    /// Call `COALESCE` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::coalesce([
+    ///         Expr::col(Char::SizeW),
+    ///         Expr::col(Char::SizeH),
+    ///         Expr::val(12),
+    ///     ]))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    /// );
+    /// ```
+    pub fn coalesce<I, T>(args: I) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+        I: IntoIterator<Item = T>,
+    {
+        Expr::func(Function::Coalesce).args(args)
     }
 }
