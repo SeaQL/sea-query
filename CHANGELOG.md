@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Support multiple tables in the select from #261
 * Add support for replace insert #262
-* Add `ColumnType` unsigned integer types (#211)
+* Add `ColumnType` unsigned integer types #211
 
 ## 0.21.0 - 2022-02-01
 
