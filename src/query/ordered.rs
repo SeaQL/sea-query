@@ -9,6 +9,7 @@ pub trait OrderedStatement {
     ///
     /// # Examples
     ///
+    /// Order by ASC and DESC
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     ///
@@ -23,6 +24,65 @@ pub trait OrderedStatement {
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
+    /// );
+    /// ```
+    ///
+    /// Order by custom field ordering
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Glyph::Aspect])
+    ///     .from(Glyph::Table)
+    ///     .order_by(
+    ///         Glyph::Id,
+    ///         Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into()])),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"SELECT `aspect`"#,
+    ///         r#"FROM `glyph`"#,
+    ///         r#"ORDER BY CASE"#,
+    ///         r#"WHEN `id`=4 THEN 0"#,
+    ///         r#"WHEN `id`=5 THEN 1"#,
+    ///         r#"WHEN `id`=1 THEN 2"#,
+    ///         r#"WHEN `id`=3 THEN 3"#,
+    ///         r#"ELSE 4 END"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"SELECT "aspect""#,
+    ///         r#"FROM "glyph""#,
+    ///         r#"ORDER BY CASE"#,
+    ///         r#"WHEN "id"=4 THEN 0"#,
+    ///         r#"WHEN "id"=5 THEN 1"#,
+    ///         r#"WHEN "id"=1 THEN 2"#,
+    ///         r#"WHEN "id"=3 THEN 3"#,
+    ///         r#"ELSE 4 END"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     [
+    ///         r#"SELECT "aspect""#,
+    ///         r#"FROM "glyph""#,
+    ///         r#"ORDER BY CASE"#,
+    ///         r#"WHEN "id"=4 THEN 0"#,
+    ///         r#"WHEN "id"=5 THEN 1"#,
+    ///         r#"WHEN "id"=1 THEN 2"#,
+    ///         r#"WHEN "id"=3 THEN 3"#,
+    ///         r#"ELSE 4 END"#,
+    ///     ]
+    ///     .join(" ")
     /// );
     /// ```
     fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
