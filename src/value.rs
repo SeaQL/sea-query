@@ -7,7 +7,7 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -60,6 +60,10 @@ pub enum Value {
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     DateTimeUtc(Option<Box<DateTime<Utc>>>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    DateTimeLocal(Option<Box<DateTime<Local>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
@@ -214,12 +218,10 @@ type_to_value!(i8, TinyInt, TinyInteger(None));
 type_to_value!(i16, SmallInt, SmallInteger(None));
 type_to_value!(i32, Int, Integer(None));
 type_to_value!(i64, BigInt, BigInteger(None));
-
-// FIXME: edit this mapping after we added unsigned column types
-type_to_value!(u8, TinyUnsigned, TinyInteger(None));
-type_to_value!(u16, SmallUnsigned, SmallInteger(None));
-type_to_value!(u32, Unsigned, Integer(None));
-type_to_value!(u64, BigUnsigned, BigInteger(None));
+type_to_value!(u8, TinyUnsigned, TinyUnsigned(None));
+type_to_value!(u16, SmallUnsigned, SmallUnsigned(None));
+type_to_value!(u32, Unsigned, Unsigned(None));
+type_to_value!(u64, BigUnsigned, BigUnsigned(None));
 type_to_value!(f32, Float, Float(None));
 type_to_value!(f64, Double, Double(None));
 
@@ -290,7 +292,7 @@ mod with_json {
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
     use super::*;
-    use chrono::{Offset, Utc};
+    use chrono::{Local, Offset, Utc};
 
     type_to_box_value!(NaiveDate, Date, Date);
     type_to_box_value!(NaiveTime, Time, Time(None));
@@ -299,6 +301,12 @@ mod with_chrono {
     impl From<DateTime<Utc>> for Value {
         fn from(v: DateTime<Utc>) -> Value {
             Value::DateTimeUtc(Some(Box::new(v)))
+        }
+    }
+
+    impl From<DateTime<Local>> for Value {
+        fn from(v: DateTime<Local>) -> Value {
+            Value::DateTimeLocal(Some(Box::new(v)))
         }
     }
 
@@ -325,6 +333,29 @@ mod with_chrono {
 
         fn type_name() -> String {
             stringify!(DateTime<Utc>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::TimestampWithTimeZone(None)
+        }
+    }
+
+    impl Nullable for DateTime<Local> {
+        fn null() -> Value {
+            Value::DateTimeLocal(None)
+        }
+    }
+
+    impl ValueType for DateTime<Local> {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::DateTimeLocal(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(DateTime<Local>).to_owned()
         }
 
         fn column_type() -> ColumnType {
@@ -563,6 +594,13 @@ impl Value {
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
+
+    pub fn is_date_time_local(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::DateTimeLocal(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
     pub fn is_date_time_with_time_zone(&self) -> bool {
         #[cfg(feature = "with-chrono")]
         return matches!(self, Self::DateTimeWithTimeZone(_));
@@ -583,6 +621,18 @@ impl Value {
     }
 
     #[cfg(feature = "with-chrono")]
+    pub fn as_ref_date_time_local(&self) -> Option<&DateTime<Local>> {
+        match self {
+            Self::DateTimeLocal(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::DateTimeLocal"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_date_time_local(&self) -> Option<&bool> {
+        panic!("not Value::DateTimeLocal")
+    }
+
+    #[cfg(feature = "with-chrono")]
     pub fn as_ref_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
             Self::DateTimeWithTimeZone(v) => box_to_opt_ref!(v),
@@ -599,6 +649,7 @@ impl Value {
         match self {
             Self::DateTime(v) => v.as_ref().map(|v| v.to_string()),
             Self::DateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            Self::DateTimeLocal(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
             Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
             _ => panic!("not Value::DateTime"),
         }
@@ -1024,6 +1075,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::DateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::DateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-chrono")]
+        Value::DateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
@@ -1328,6 +1381,17 @@ mod tests {
         let value: Value = timestamp.into();
         let out: DateTime<Utc> = value.unwrap();
         assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-chrono")]
+    fn test_chrono_local_value() {
+        let timestamp_utc =
+            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let timestamp_local: DateTime<Local> = timestamp_utc.into();
+        let value: Value = timestamp_local.into();
+        let out: DateTime<Local> = value.unwrap();
+        assert_eq!(out, timestamp_local);
     }
 
     #[test]

@@ -879,6 +879,21 @@ fn select_53() {
 
 #[test]
 fn select_54() {
+    let statement = sea_query::Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .from(Font::Table)
+        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .to_string(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
+    );
+}
+
+#[test]
+fn select_55() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])
@@ -912,7 +927,7 @@ fn select_54() {
 }
 
 #[test]
-fn select_55() {
+fn select_56() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])

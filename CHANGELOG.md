@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.22.0 - 2022-02-26
+
+* Support multiple tables in the select from #261
+* Add support for replace insert #262
+* Add `ColumnType` unsigned integer types #211
+
+## 0.21.0 - 2022-02-01
+
+### Breaking changes
+
+* Use double quotes for quuoting identifgiers for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/221
+
+### New features
+
+* Implement `RETURNING` for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/194
+* Support 'NULLS LAST' and 'NULLS FIRST' by @qyihua in https://github.com/SeaQL/sea-query/pull/210
+* [join-lateral]  by @rex-remind101 in https://github.com/SeaQL/sea-query/pull/224
+* Insert from select by @05storm26 in https://github.com/SeaQL/sea-query/pull/238
+* Add Expr::asterisk() and Expr::tbl_asterisk(table: DynIden) methods - Fix #217 by @RomainMazB in https://github.com/SeaQL/sea-query/pull/219
+
+### Enhancements
+
+* Implement ToTokens for IntervalField by @autarch in https://github.com/SeaQL/sea-query/pull/195
+* Implemented 'Array' type for Postgres. by @kev0960 in https://github.com/SeaQL/sea-query/pull/205
+* Add `Value::DateTimeLocal` by @billy1624 in https://github.com/SeaQL/sea-query/pull/249
+* Add `ColumnRef::SchemaTableColumn` by @billy1624 in https://github.com/SeaQL/sea-query/pull/206
+* Datetime utc by @tyt2y3 in https://github.com/SeaQL/sea-query/pull/241
+* Support the use of chrono::DateTime<Utc> using the type alias DateTim… by @charleschege in https://github.com/SeaQL/sea-query/pull/222
+
+### Bug fixes
+
+* Fix PostgreSQL `ColumnType::TinyInteger` mapping by @billy1624 in https://github.com/SeaQL/sea-query/pull/207
+* PR without clippy warmings in file changed tab by @billy1624 in https://github.com/SeaQL/sea-query/pull/212
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.20.0...0.21.0
+
 ## 0.20.0 - 2021-12-11
 
 ### Merged PRs

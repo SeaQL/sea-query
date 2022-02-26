@@ -76,6 +76,10 @@ macro_rules! sea_query_driver_rusqlite {
                                 ty_to_sql!(self.0.as_ref_time())
                             } else if self.0.is_date_time() {
                                 ty_to_sql!(self.0.as_ref_date_time())
+                            } else if self.0.is_date_time_utc() {
+                                ty_to_sql!(self.0.as_ref_date_time_utc())
+                            } else if self.0.is_date_time_local() {
+                                ty_to_sql!(self.0.as_ref_date_time_local())
                             } else if self.0.is_date_time_with_time_zone() {
                                 ty_to_sql!(self.0.as_ref_date_time_with_time_zone())
                             } else if self.0.is_uuid() {

@@ -14,7 +14,7 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        write!(sql, "INSERT").unwrap();
+        self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
             write!(sql, " INTO ").unwrap();
@@ -85,9 +85,15 @@ pub trait QueryBuilder: QuotedBuilder {
             false
         });
 
-        if let Some(from) = &select.from {
+        if !select.from.is_empty() {
             write!(sql, " FROM ").unwrap();
-            self.prepare_table_ref(from, sql, collector);
+            select.from.iter().fold(true, |first, table_ref| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_table_ref(table_ref, sql, collector);
+                false
+            });
         }
 
         if !select.join.is_empty() {
@@ -802,6 +808,14 @@ pub trait QueryBuilder: QuotedBuilder {
         }
     }
 
+    fn prepare_insert(&self, replace: bool, sql: &mut SqlWriter) {
+        if replace {
+            write!(sql, "REPLACE").unwrap();
+        } else {
+            write!(sql, "INSERT").unwrap();
+        }
+    }
+
     fn prepare_function(
         &self,
         function: &Function,
@@ -969,6 +983,8 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-chrono")]
             Value::DateTimeUtc(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
+            Value::DateTimeLocal(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-chrono")]
             Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
@@ -1008,6 +1024,10 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             #[cfg(feature = "with-chrono")]
             Value::DateTimeUtc(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+            }
+            #[cfg(feature = "with-chrono")]
+            Value::DateTimeLocal(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]

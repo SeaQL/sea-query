@@ -44,6 +44,8 @@ macro_rules! bind_params_sqlx_postgres {
                         query.bind(value.as_ref_date_time())
                     } else if value.is_date_time_utc() {
                         query.bind(value.as_ref_date_time_utc())
+                    } else if value.is_date_time_local() {
+                        query.bind(value.as_ref_date_time_local())
                     } else if value.is_date_time_with_time_zone() {
                         query.bind(value.as_ref_date_time_with_time_zone())
                     } else if value.is_decimal() {

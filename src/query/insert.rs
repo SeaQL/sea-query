@@ -43,6 +43,7 @@ pub(crate) enum InsertValueSource {
 /// ```
 #[derive(Debug, Default, Clone)]
 pub struct InsertStatement {
+    pub(crate) replace: bool,
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) source: Option<InsertValueSource>,
@@ -55,12 +56,40 @@ impl InsertStatement {
         Self::default()
     }
 
+    /// Use REPLACE instead of INSERT
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .replace()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .values_panic(vec![5.15.into(), "12A".into()])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"REPLACE INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"REPLACE INTO "glyph" ("aspect", "image") VALUES (5.15, '12A')"#
+    /// );
+    /// ```
+    #[cfg(any(feature = "backend-sqlite", feature = "backend-mysql"))]
+    pub fn replace(&mut self) -> &mut Self {
+        self.replace = true;
+        self
+    }
+
     /// Specify which table to insert into.
     ///
     /// # Examples
     ///
     /// See [`InsertStatement::values`]
-    #[allow(clippy::wrong_self_convention)]
     pub fn into_table<T>(&mut self, tbl_ref: T) -> &mut Self
     where
         T: IntoTableRef,

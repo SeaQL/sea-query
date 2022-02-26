@@ -20,6 +20,10 @@ pub enum ColumnType {
     SmallInteger(Option<u32>),
     Integer(Option<u32>),
     BigInteger(Option<u32>),
+    TinyUnsigned(Option<u32>),
+    SmallUnsigned(Option<u32>),
+    Unsigned(Option<u32>),
+    BigUnsigned(Option<u32>),
     Float(Option<u32>),
     Double(Option<u32>),
     Decimal(Option<(u32, u32)>),
@@ -227,6 +231,54 @@ impl ColumnDef {
     /// Set column type as big_integer
     pub fn big_integer(&mut self) -> &mut Self {
         self.types = Some(ColumnType::BigInteger(None));
+        self
+    }
+
+    /// Set column type as tiny_unsigned with custom length
+    pub fn tiny_unsigned_len(&mut self, length: u32) -> &mut Self {
+        self.types = Some(ColumnType::TinyUnsigned(Some(length)));
+        self
+    }
+
+    /// Set column type as tiny_unsigned
+    pub fn tiny_unsigned(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::TinyUnsigned(None));
+        self
+    }
+
+    /// Set column type as small_unsigned with custom length
+    pub fn small_unsigned_len(&mut self, length: u32) -> &mut Self {
+        self.types = Some(ColumnType::SmallUnsigned(Some(length)));
+        self
+    }
+
+    /// Set column type as small_unsigned
+    pub fn small_unsigned(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::SmallUnsigned(None));
+        self
+    }
+
+    /// Set column type as unsigned with custom length
+    pub fn unsigned_len(&mut self, length: u32) -> &mut Self {
+        self.types = Some(ColumnType::Unsigned(Some(length)));
+        self
+    }
+
+    /// Set column type as unsigned
+    pub fn unsigned(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::Unsigned(None));
+        self
+    }
+
+    /// Set column type as big_unsigned with custom length
+    pub fn big_unsigned_len(&mut self, length: u32) -> &mut Self {
+        self.types = Some(ColumnType::BigUnsigned(Some(length)));
+        self
+    }
+
+    /// Set column type as big_unsigned
+    pub fn big_unsigned(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::BigUnsigned(None));
         self
     }
 
