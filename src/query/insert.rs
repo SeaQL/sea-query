@@ -260,19 +260,17 @@ impl InsertStatement {
                 val_len: values.len(),
             });
         }
-        if !values.is_empty() {
-            let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
+        let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
+            values
+        } else {
+            self.source = Some(InsertValueSource::Values(Default::default()));
+            if let Some(InsertValueSource::Values(values)) = &mut self.source {
                 values
             } else {
-                self.source = Some(InsertValueSource::Values(Default::default()));
-                if let Some(InsertValueSource::Values(values)) = &mut self.source {
-                    values
-                } else {
-                    unreachable!();
-                }
-            };
-            values_source.push(values);
-        }
+                unreachable!();
+            }
+        };
+        values_source.push(values);
         Ok(self)
     }
 

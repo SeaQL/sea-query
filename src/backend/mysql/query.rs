@@ -56,8 +56,4 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         // MySQL doesn't support declaring materialization in SQL for with query.
     }
-
-    fn insert_default_keyword(&self) -> &str {
-        "VALUES (DEFAULT)"
-    }
 }
