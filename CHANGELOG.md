@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Breaking changes
 
-* Use double quotes for quuoting identifgiers for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/221
+* Use double quotes for quoting identifiers for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/221
 
 ### New features
 
