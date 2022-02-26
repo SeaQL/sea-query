@@ -852,9 +852,11 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        if !matches!(order_expr.order, Order::Field(_)) {
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        }
         write!(sql, " ").unwrap();
-        self.prepare_order(&order_expr.order, sql, collector);
+        self.prepare_order(order_expr, sql, collector);
     }
 
     /// Translate [`JoinOn`] into SQL statement.
@@ -871,11 +873,39 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Order`] into SQL statement.
-    fn prepare_order(&self, order: &Order, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
-        match order {
+    fn prepare_order(
+        &self,
+        order_expr: &OrderExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        match &order_expr.order {
             Order::Asc => write!(sql, "ASC").unwrap(),
             Order::Desc => write!(sql, "DESC").unwrap(),
+            Order::Field(values) => self.prepare_field_order(order_expr, values, sql, collector),
         }
+    }
+
+    /// Translate [`Order::Field`] into SQL statement
+    fn prepare_field_order(
+        &self,
+        order_expr: &OrderExpr,
+        values: &Values,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "CASE ").unwrap();
+        let mut i = 0;
+        for value in &values.0 {
+            write!(sql, " WHEN ").unwrap();
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+            write!(sql, "=").unwrap();
+            let value = self.value_to_string(value);
+            write!(sql, "{}", value).unwrap();
+            write!(sql, " THEN {} ", i).unwrap();
+            i += 1;
+        }
+        write!(sql, "ELSE {} END", i).unwrap();
     }
 
     /// Translate [`Value`] into SQL statement.

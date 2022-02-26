@@ -26,9 +26,11 @@ impl QueryBuilder for MysqlQueryBuilder {
                 write!(sql, " IS NULL DESC, ").unwrap()
             }
         }
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        if !matches!(order_expr.order, Order::Field(_)) {
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        }
         write!(sql, " ").unwrap();
-        self.prepare_order(&order_expr.order, sql, collector);
+        self.prepare_order(order_expr, sql, collector);
     }
 
     fn prepare_query_statement(
