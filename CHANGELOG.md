@@ -7,17 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.22.0 - 2022-02-26
 
-* Support multiple tables in the select from #261
-* Add support for replace insert #262
-* Add `ColumnType` unsigned integer types #211
+### New Features
+
+* Support multiple tables in the select from by @Sytten in https://github.com/SeaQL/sea-query/pull/261
+* Add support for replace insert by @Sytten in https://github.com/SeaQL/sea-query/pull/262
+* Add `ColumnType` unsigned integer types by @billy1624 in https://github.com/SeaQL/sea-query/pull/211
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.21.0...0.22.0
 
 ## 0.21.0 - 2022-02-01
 
-### Breaking changes
+### Breaking Changes
 
 * Use double quotes for quoting identifiers for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/221
 
-### New features
+### New Features
 
 * Implement `RETURNING` for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/194
 * Support 'NULLS LAST' and 'NULLS FIRST' by @qyihua in https://github.com/SeaQL/sea-query/pull/210
@@ -34,7 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Datetime utc by @tyt2y3 in https://github.com/SeaQL/sea-query/pull/241
 * Support the use of chrono::DateTime<Utc> using the type alias DateTim… by @charleschege in https://github.com/SeaQL/sea-query/pull/222
 
-### Bug fixes
+### Bug Fixes
 
 * Fix PostgreSQL `ColumnType::TinyInteger` mapping by @billy1624 in https://github.com/SeaQL/sea-query/pull/207
 * PR without clippy warmings in file changed tab by @billy1624 in https://github.com/SeaQL/sea-query/pull/212
