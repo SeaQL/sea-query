@@ -14,7 +14,7 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        write!(sql, "INSERT").unwrap();
+        self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
             write!(sql, " INTO ").unwrap();
@@ -22,43 +22,39 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " ").unwrap();
         }
 
-        if insert.columns.is_empty() && insert.source.is_none() {
-            write!(sql, "{}", self.insert_default_keyword()).unwrap();
-        } else {
-            write!(sql, "(").unwrap();
-            insert.columns.iter().fold(true, |first, col| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
-                col.prepare(sql, self.quote());
-                false
-            });
-            write!(sql, ")").unwrap();
+        write!(sql, "(").unwrap();
+        insert.columns.iter().fold(true, |first, col| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+            col.prepare(sql, self.quote());
+            false
+        });
+        write!(sql, ")").unwrap();
 
-            if let Some(source) = &insert.source {
-                write!(sql, " ").unwrap();
-                match source {
-                    InsertValueSource::Values(values) => {
-                        write!(sql, "VALUES ").unwrap();
-                        values.iter().fold(true, |first, row| {
+        if let Some(source) = &insert.source {
+            write!(sql, " ").unwrap();
+            match source {
+                InsertValueSource::Values(values) => {
+                    write!(sql, "VALUES ").unwrap();
+                    values.iter().fold(true, |first, row| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        write!(sql, "(").unwrap();
+                        row.iter().fold(true, |first, col| {
                             if !first {
                                 write!(sql, ", ").unwrap()
                             }
-                            write!(sql, "(").unwrap();
-                            row.iter().fold(true, |first, col| {
-                                if !first {
-                                    write!(sql, ", ").unwrap()
-                                }
-                                self.prepare_simple_expr(col, sql, collector);
-                                false
-                            });
-                            write!(sql, ")").unwrap();
+                            self.prepare_simple_expr(col, sql, collector);
                             false
                         });
-                    }
-                    InsertValueSource::Select(select_query) => {
-                        self.prepare_select_statement(select_query.deref(), sql, collector);
-                    }
+                        write!(sql, ")").unwrap();
+                        false
+                    });
+                }
+                InsertValueSource::Select(select_query) => {
+                    self.prepare_select_statement(select_query.deref(), sql, collector);
                 }
             }
         }
@@ -89,9 +85,15 @@ pub trait QueryBuilder: QuotedBuilder {
             false
         });
 
-        if let Some(from) = &select.from {
+        if !select.from.is_empty() {
             write!(sql, " FROM ").unwrap();
-            self.prepare_table_ref(from, sql, collector);
+            select.from.iter().fold(true, |first, table_ref| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_table_ref(table_ref, sql, collector);
+                false
+            });
         }
 
         if !select.join.is_empty() {
@@ -633,6 +635,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Min => "MIN",
                     Function::Sum => "SUM",
                     Function::Avg => "AVG",
+                    Function::Coalesce => "COALESCE",
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
@@ -813,6 +816,14 @@ pub trait QueryBuilder: QuotedBuilder {
         }
     }
 
+    fn prepare_insert(&self, replace: bool, sql: &mut SqlWriter) {
+        if replace {
+            write!(sql, "REPLACE").unwrap();
+        } else {
+            write!(sql, "INSERT").unwrap();
+        }
+    }
+
     fn prepare_function(
         &self,
         function: &Function,
@@ -849,9 +860,11 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        if !matches!(order_expr.order, Order::Field(_)) {
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        }
         write!(sql, " ").unwrap();
-        self.prepare_order(&order_expr.order, sql, collector);
+        self.prepare_order(order_expr, sql, collector);
     }
 
     /// Translate [`JoinOn`] into SQL statement.
@@ -868,11 +881,39 @@ pub trait QueryBuilder: QuotedBuilder {
     }
 
     /// Translate [`Order`] into SQL statement.
-    fn prepare_order(&self, order: &Order, sql: &mut SqlWriter, _collector: &mut dyn FnMut(Value)) {
-        match order {
+    fn prepare_order(
+        &self,
+        order_expr: &OrderExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        match &order_expr.order {
             Order::Asc => write!(sql, "ASC").unwrap(),
             Order::Desc => write!(sql, "DESC").unwrap(),
+            Order::Field(values) => self.prepare_field_order(order_expr, values, sql, collector),
         }
+    }
+
+    /// Translate [`Order::Field`] into SQL statement
+    fn prepare_field_order(
+        &self,
+        order_expr: &OrderExpr,
+        values: &Values,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "CASE ").unwrap();
+        let mut i = 0;
+        for value in &values.0 {
+            write!(sql, " WHEN ").unwrap();
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+            write!(sql, "=").unwrap();
+            let value = self.value_to_string(value);
+            write!(sql, "{}", value).unwrap();
+            write!(sql, " THEN {} ", i).unwrap();
+            i += 1;
+        }
+        write!(sql, "ELSE {} END", i).unwrap();
     }
 
     /// Translate [`Value`] into SQL statement.
@@ -1174,11 +1215,6 @@ pub trait QueryBuilder: QuotedBuilder {
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
-    }
-
-    /// The keywords for insert default statement (insert without explicit values)
-    fn insert_default_keyword(&self) -> &str {
-        "DEFAULT VALUES"
     }
 }
 

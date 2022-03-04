@@ -69,8 +69,8 @@ fn create_3() {
             )
             .col(ColumnDef::new(Char::FontSize).integer().not_null())
             .col(ColumnDef::new(Char::Character).string_len(255).not_null())
-            .col(ColumnDef::new(Char::SizeW).integer().not_null())
-            .col(ColumnDef::new(Char::SizeH).integer().not_null())
+            .col(ColumnDef::new(Char::SizeW).unsigned().not_null())
+            .col(ColumnDef::new(Char::SizeH).unsigned().not_null())
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
