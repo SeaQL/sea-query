@@ -907,7 +907,7 @@ fn select_54() {
 }
 
 #[test]
-fn select_54() {
+fn select_55() {
     let statement = sea_query::Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
@@ -922,7 +922,7 @@ fn select_54() {
 }
 
 #[test]
-fn select_55() {
+fn select_56() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])
@@ -956,7 +956,7 @@ fn select_55() {
 }
 
 #[test]
-fn select_56() {
+fn select_57() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])
