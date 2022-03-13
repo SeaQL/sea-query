@@ -983,9 +983,13 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
+            Value::ChronoDate(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap()
+            }
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap(),
+            Value::ChronoTime(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap()
+            }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
@@ -1003,13 +1007,9 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDate(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap()
-            }
+            Value::TimeDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%H:%M:%S")).unwrap()
-            }
+            Value::TimeTime(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S")).unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()

@@ -1618,8 +1618,7 @@ mod tests {
     #[cfg(feature = "with-time")]
     fn test_time_value() {
         use time::{date, time};
-        let timestamp = date!(2020-01-01)
-            .with_time(time!(2:2:2));
+        let timestamp = date!(2020 - 01 - 01).with_time(time!(2:2:2));
         let value: Value = timestamp.into();
         let out: PrimitiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1629,7 +1628,7 @@ mod tests {
     #[cfg(feature = "with-time")]
     fn test_time_utc_value() {
         use time::{date, time};
-        let timestamp = date!(2022-01-02).with_time(time!(3:04:05)).assume_utc();
+        let timestamp = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
         let value: Value = timestamp.into();
         let out: OffsetDateTime = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1638,8 +1637,8 @@ mod tests {
     #[test]
     #[cfg(feature = "with-time")]
     fn test_time_local_value() {
-        use time::{date, time, offset};
-        let timestamp_utc = date!(2022-01-02).with_time(time!(3:04:05)).assume_utc();
+        use time::{date, offset, time};
+        let timestamp_utc = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
         let timestamp_local: OffsetDateTime = timestamp_utc.to_offset(offset!(+3));
         let value: Value = timestamp_local.into();
         let out: OffsetDateTime = value.unwrap();
@@ -1649,8 +1648,10 @@ mod tests {
     #[test]
     #[cfg(feature = "with-time")]
     fn test_time_timezone_value() {
-        use time::{date, time, offset};
-        let timestamp = date!(2022-01-02).with_time(time!(3:04:05)).assume_offset(offset!(+8));
+        use time::{date, offset, time};
+        let timestamp = date!(2022 - 01 - 02)
+            .with_time(time!(3:04:05))
+            .assume_offset(offset!(+8));
         let value: Value = timestamp.into();
         let out: OffsetDateTime = value.unwrap();
         assert_eq!(out, timestamp);

@@ -56,7 +56,9 @@ impl ToSql for Value {
             #[cfg(feature = "postgres-chrono")]
             Value::ChronoDateTimeLocal(v) => box_to_sql!(v, chrono::DateTime<chrono::Local>),
             #[cfg(feature = "postgres-chrono")]
-            Value::ChronoDateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
+            Value::ChronoDateTimeWithTimeZone(v) => {
+                box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>)
+            }
             #[cfg(feature = "postgres-time")]
             Value::TimeDate(v) => box_to_sql!(v, time::Date),
             #[cfg(feature = "postgres-time")]

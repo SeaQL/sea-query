@@ -962,7 +962,9 @@ fn insert_8() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns(vec![Glyph::Image])
-            .values_panic(vec![date!(1970-01-01).with_time(time!(00:00:00)).into()])
+            .values_panic(vec![date!(1970 - 01 - 01)
+                .with_time(time!(00:00:00))
+                .into()])
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` (`image`) VALUES ('1970-01-01 00:00:00')"
     );
