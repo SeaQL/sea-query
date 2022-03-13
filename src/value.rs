@@ -825,9 +825,9 @@ impl Value {
             Self::TimeDate(v) => v.as_ref().map(|v| v.to_string()),
             Self::TimeTime(v) => v.as_ref().map(|v| v.to_string()),
             Self::TimeDateTime(v) => v.as_ref().map(|v| v.to_string()),
-            Self::TimeDateTimeWithTimeZone(v) => {
-                v.as_ref().map(|v| v.to_offset(offset!(+0)).to_string())
-            }
+            Self::TimeDateTimeWithTimeZone(v) => v
+                .as_ref()
+                .map(|v| v.to_offset(offset!(+0)).format("%Y-%m-%d %H:%M:%S")),
             _ => panic!("not time Value"),
         }
     }
