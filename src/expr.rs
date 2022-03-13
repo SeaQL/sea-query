@@ -4,6 +4,9 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
+#[cfg(feature = "backend-postgres")]
+use sqlx_core::postgres::types::PgLQuery;
+
 use crate::{func::*, query::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
@@ -35,6 +38,8 @@ pub enum SimpleExpr {
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
+    #[cfg(feature = "backend-postgres")]
+    LQuery(PgLQuery),
 }
 
 impl Expr {
@@ -1693,6 +1698,34 @@ impl Expr {
         self.bin_oper(BinOper::Contained, expr.into())
     }
 
+    /// Express an postgres lqury search (`~`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// use sqlx_core::postgres::types::PgLQuery;
+    /// use std::str::FromStr;
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::val("a.b.c").lquery(PgLQuery::from_str("*.b.c").unwrap()))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a.b.c' ~ *.b.c"#
+    /// );
+    /// ```
+    #[cfg(feature = "backend-postgres")]
+    pub fn lquery<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(BinOper::LQuery, expr.into())
+    }
+
     /// Express an postgres concatenate (`||`) expression.
     ///
     /// # Examples
@@ -2206,5 +2239,11 @@ impl SimpleExpr {
                 Expr::cust(type_name.into_iden().to_string().as_str()),
             )],
         )
+    }
+}
+
+impl From<PgLQuery> for SimpleExpr {
+    fn from(lquery: PgLQuery) -> Self {
+        SimpleExpr::LQuery(lquery)
     }
 }

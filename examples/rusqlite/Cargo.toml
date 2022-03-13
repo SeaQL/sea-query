@@ -8,6 +8,7 @@ chrono = { version = "^0" }
 serde_json = { version = "^1" }
 uuid = { version = "^0", features = ["serde", "v4"] }
 sea-query = { path = "../../", features = [
+    "runtime-async-std-native-tls",
     "rusqlite",
     "with-chrono",
     "with-json",
@@ -22,7 +23,7 @@ sea-query = { path = "../../", features = [
 # ] }
 
 [dependencies.rusqlite]
-version = "^0.25"
+version = "^0.26"
 features = [
     "bundled",
     "chrono",

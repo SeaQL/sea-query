@@ -366,6 +366,10 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql, collector);
             }
+            #[cfg(feature = "backend-postgres")]
+            SimpleExpr::LQuery(lquery) => {
+                write!(sql, "{}", lquery).unwrap();
+            }
         }
     }
 
@@ -993,6 +997,12 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            Value::LTree(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            Value::LTreeArray(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            Value::LQuery(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -1041,6 +1051,21 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            Value::LTree(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            // TODO: maybe rewrite this to a generic sqlx-postgres array
+            Value::LTreeArray(Some(v)) => write!(
+                s,
+                "[{}]::ltree[]",
+                v.iter()
+                    .map(|element| element.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+            )
+            .unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            Value::LQuery(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(Some(v)) => write!(
                 s,

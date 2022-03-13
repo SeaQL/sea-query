@@ -18,6 +18,12 @@ use bigdecimal::BigDecimal;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
+#[cfg(feature = "backend-postgres")]
+use sqlx_core::postgres::types::PgLTree;
+
+#[cfg(feature = "backend-postgres")]
+use sqlx_core::postgres::types::PgLQuery;
+
 use crate::ColumnType;
 
 /// Value variants
@@ -84,6 +90,18 @@ pub enum Value {
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
     Array(Option<Box<Vec<Value>>>),
+
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
+    LTree(Option<Box<PgLTree>>),
+
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
+    LTreeArray(Option<Box<Vec<PgLTree>>>),
+
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
+    LQuery(Option<Box<PgLQuery>>),
 }
 
 pub trait ValueType: Sized {
@@ -409,6 +427,16 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid, Uuid);
+}
+
+#[cfg(feature = "backend-postgres")]
+#[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
+mod with_ltree {
+    use super::*;
+
+    type_to_box_value!(PgLTree, LTree, LTree);
+    type_to_box_value!(Vec<PgLTree>, LTreeArray, LTree);
+    type_to_box_value!(PgLQuery, LQuery, LTree);
 }
 
 #[cfg(feature = "postgres-array")]
@@ -739,6 +767,64 @@ impl Value {
 }
 
 impl Value {
+    pub fn is_ltree(&self) -> bool {
+        #[cfg(feature = "backend-postgres")]
+        return matches!(self, Self::LTree(_));
+        #[cfg(not(feature = "backend-postgres"))]
+        return false;
+    }
+    #[cfg(feature = "backend-postgres")]
+    pub fn as_ref_ltree(&self) -> Option<&PgLTree> {
+        match self {
+            Self::LTree(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::LTree"),
+        }
+    }
+    #[cfg(not(feature = "backend-postgres"))]
+    pub fn as_ref_ltree(&self) -> Option<&bool> {
+        panic!("not Value::LTree")
+    }
+
+    pub fn is_ltree_array(&self) -> bool {
+        #[cfg(feature = "backend-postgres")]
+        return matches!(self, Self::LTreeArray(_));
+        #[cfg(not(feature = "backend-postgres"))]
+        return false;
+    }
+    #[cfg(feature = "backend-postgres")]
+    pub fn as_ref_ltree_array(&self) -> Option<&Vec<PgLTree>> {
+        match self {
+            Self::LTreeArray(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::LTreeArray"),
+        }
+    }
+    #[cfg(not(feature = "backend-postgres"))]
+    pub fn as_ref_ltree_array(&self) -> Option<&bool> {
+        panic!("not Value::LTreeArray")
+    }
+}
+
+impl Value {
+    pub fn is_lquery(&self) -> bool {
+        #[cfg(feature = "backend-postgres")]
+        return matches!(self, Self::LQuery(_));
+        #[cfg(not(feature = "backend-postgres"))]
+        return false;
+    }
+    #[cfg(feature = "backend-postgres")]
+    pub fn as_ref_lquery(&self) -> Option<&PgLQuery> {
+        match self {
+            Self::LQuery(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::LQuery"),
+        }
+    }
+    #[cfg(not(feature = "backend-postgres"))]
+    pub fn as_ref_lquery(&self) -> Option<&bool> {
+        panic!("not Value::LQuery")
+    }
+}
+
+impl Value {
     pub fn is_array(&self) -> bool {
         #[cfg(feature = "postgres-array")]
         return matches!(self, Self::Array(_));
@@ -1049,6 +1135,12 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
+        #[cfg(feature = "backend-postgres")]
+        Value::LTree(None) => Json::Null,
+        #[cfg(feature = "backend-postgres")]
+        Value::LTreeArray(None) => Json::Null,
+        #[cfg(feature = "backend-postgres")]
+        Value::LQuery(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
@@ -1089,13 +1181,21 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
-        #[cfg(feature = "postgres-array")]
-        Value::Array(Some(v)) => Json::Array(
+        #[cfg(feature = "backend-postgres")]
+        Value::LTree(Some(v)) => Json::String(v.to_string()),
+        #[cfg(feature = "backend-postgres")]
+        Value::LTreeArray(Some(v)) => Json::Array(
             v.as_ref()
                 .iter()
-                .map(|v| sea_value_to_json_value(v))
+                .map(|v| Json::String(v.to_string()))
                 .collect(),
         ),
+        #[cfg(feature = "backend-postgres")]
+        Value::LQuery(Some(v)) => Json::String(v.to_string()),
+        #[cfg(feature = "postgres-array")]
+        Value::Array(Some(v)) => {
+            Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
+        }
     }
 }
 
@@ -1108,6 +1208,8 @@ impl Values {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "backend-postgres")]
+    use std::str::FromStr;
 
     #[test]
     fn test_escape_1() {
@@ -1436,6 +1538,15 @@ mod tests {
         let value: Value = uuid.into();
         let out: uuid::Uuid = value.unwrap();
         assert_eq!(out, uuid);
+    }
+
+    #[test]
+    #[cfg(feature = "backend-postgres")]
+    fn test_ltree_value() {
+        let ltree = sqlx_core::postgres::types::PgLTree::from_str("A.B.C").unwrap();
+        let value: Value = ltree.clone().into();
+        let out: sqlx_core::postgres::types::PgLTree = value.unwrap();
+        assert_eq!(out, ltree);
     }
 
     #[test]

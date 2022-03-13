@@ -1,5 +1,5 @@
 use crate::{Value, Values};
-use bytes::BytesMut;
+use bytes::{BytesMut, BufMut};
 use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
 use std::error::Error;
 
@@ -65,6 +65,28 @@ impl ToSql for Value {
             Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => box_to_sql!(v, Vec<Value>),
+            #[cfg(feature = "backend-postgres")]
+            Value::LTree(v) => {
+                match v {
+                    Some(v) => {
+                        out.put_slice(v.to_string().as_bytes());
+                        Ok(IsNull::No)
+                    },
+                    None => Ok(IsNull::Yes),
+                }
+            },
+            #[cfg(feature = "backend-postgres")]
+            Value::LTreeArray(_) => unimplemented!("Not supported"),
+            #[cfg(feature = "backend-postgres")]
+            Value::LQuery(v) => {
+                match v {
+                    Some(v) => {
+                        out.put_slice(v.to_string().as_bytes());
+                        Ok(IsNull::No)
+                    },
+                    None => Ok(IsNull::Yes),
+                }
+            }
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }

@@ -54,6 +54,12 @@ macro_rules! bind_params_sqlx_postgres {
                         query.bind(value.as_ref_big_decimal())
                     } else if value.is_uuid() {
                         query.bind(value.as_ref_uuid())
+                    } else if value.is_ltree() {
+                        query.bind(value.as_ref_ltree())
+                    } else if value.is_ltree_array() {
+                        query.bind(value.as_ref_ltree_array())
+                    } else if value.is_lquery() {
+                        query.bind(value.as_ref_lquery())
                     } else if value.is_array() {
                         unimplemented!("SQLx array is not supported");
                     } else {

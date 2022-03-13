@@ -133,6 +133,8 @@ pub enum BinOper {
     Contained,
     #[cfg(feature = "backend-postgres")]
     Concatenate,
+    #[cfg(feature = "backend-postgres")]
+    LQuery,
 }
 
 /// Logical chain operator

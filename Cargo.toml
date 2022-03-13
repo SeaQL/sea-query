@@ -46,13 +46,14 @@ bigdecimal = { version = "^0.2", optional = true }
 uuid = { version = "^0", optional = true }
 proc-macro2 = { version = "1", optional = true }
 quote = { version = "^1", optional = true }
+sqlx-core = { version = "^0.5", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
 
 [features]
 backend-mysql = []
-backend-postgres = []
+backend-postgres = ["sqlx-core", "sqlx-core/postgres"]
 backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
@@ -66,7 +67,7 @@ postgres-array = ["postgres-types/array-impls"]
 postgres-interval = ["proc-macro2", "quote"]
 rusqlite = []
 sqlx-mysql = []
-sqlx-postgres = []
+sqlx-postgres = ["backend-postgres"]
 sqlx-sqlite = []
 thread-safe = []
 with-chrono = ["chrono"]
@@ -74,6 +75,22 @@ with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
 with-bigdecimal = ["bigdecimal"]
 with-uuid = ["uuid"]
+runtime-async-std = []
+runtime-async-std-native-tls = [
+    "sqlx-core/runtime-async-std-native-tls",
+    "runtime-async-std",
+]
+runtime-async-std-rustls = [
+    "sqlx-core/runtime-async-std-rustls",
+    "runtime-async-std",
+]
+runtime-actix = []
+runtime-actix-native-tls = ["sqlx-core/runtime-actix-native-tls", "runtime-actix"]
+runtime-actix-rustls = ["sqlx-core/runtime-actix-rustls", "runtime-actix"]
+runtime-tokio = []
+runtime-tokio-native-tls = ["sqlx-core/runtime-tokio-native-tls", "runtime-tokio"]
+runtime-tokio-rustls = ["sqlx-core/runtime-tokio-rustls", "runtime-tokio"]
+
 
 [[test]]
 name = "test-derive"

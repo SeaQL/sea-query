@@ -1,8 +1,10 @@
+use std::str::FromStr;
+
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
 use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table};
-use sqlx::{PgPool, Row};
+use sqlx::{postgres::types::PgLTree, PgPool, Row};
 
 sea_query::sea_query_driver_postgres!();
 use sea_query_driver_postgres::{bind_query, bind_query_as};
@@ -35,6 +37,7 @@ async fn main() {
         .col(ColumnDef::new(Character::Decimal).decimal())
         .col(ColumnDef::new(Character::BigDecimal).decimal())
         .col(ColumnDef::new(Character::Created).date_time())
+        .col(ColumnDef::new(Character::LTree).ltree())
         .build(PostgresQueryBuilder);
 
     let result = sqlx::query(&sql).execute(&mut pool).await;
@@ -52,6 +55,7 @@ async fn main() {
             Character::Decimal,
             Character::BigDecimal,
             Character::Created,
+            Character::LTree,
         ])
         .values_panic(vec![
             Uuid::new_v4().into(),
@@ -67,6 +71,7 @@ async fn main() {
                 .with_scale(3)
                 .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+            PgLTree::from_str("A.B.C").unwrap().into(),
         ])
         .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
@@ -79,7 +84,6 @@ async fn main() {
     println!("Insert into character: last_insert_id = {}\n", id);
 
     // Read
-
     let (sql, values) = Query::select()
         .columns(vec![
             Character::Id,
@@ -90,6 +94,7 @@ async fn main() {
             Character::Decimal,
             Character::BigDecimal,
             Character::Created,
+            Character::LTree,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -131,6 +136,7 @@ async fn main() {
             Character::Decimal,
             Character::BigDecimal,
             Character::Created,
+            Character::LTree,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -187,6 +193,7 @@ enum Character {
     Decimal,
     BigDecimal,
     Created,
+    LTree,
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -199,4 +206,5 @@ struct CharacterStruct {
     decimal: Decimal,
     big_decimal: BigDecimal,
     created: NaiveDateTime,
+    ltree: PgLTree,
 }

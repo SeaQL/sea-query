@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 postgres = "^0.19"
-sea-query = { path = "../../", features = ["postgres"] }
+sea-query = { path = "../../", features = ["runtime-async-std-native-tls", "postgres"] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "^0", features = ["postgres"] }

@@ -42,6 +42,8 @@ pub enum ColumnType {
     Custom(DynIden),
     Enum(String, Vec<String>),
     Array(Option<String>),
+    #[cfg(feature = "backend-postgres")]
+    LTree,
 }
 
 /// All column specification keywords
@@ -466,6 +468,13 @@ impl ColumnDef {
     /// Set column type as uuid
     pub fn uuid(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Uuid);
+        self
+    }
+
+    /// Set column type as ltree
+    #[cfg(feature = "backend-postgres")]
+    pub fn ltree(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::LTree);
         self
     }
 
