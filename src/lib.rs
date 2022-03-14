@@ -15,8 +15,6 @@
 //!   [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
 //!   [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
 //!
-//!   <sub>Built with 🔥 by 🌊🦀🐚</sub>
-//!
 //! </div>
 //!
 //! ## Introduction
