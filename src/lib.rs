@@ -31,6 +31,12 @@
 //!
 //! SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 //!
+//! [![GitHub stars](https://img.shields.io/github/stars/SeaQL/sea-query.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/sea-query/stargazers/)
+//! If you like what we do, consider starring, commenting, sharing and contributing!
+//!
+//! [![Discord](https://img.shields.io/discord/873880840487206962?label=Discord)](https://discord.com/invite/uCPdDXzbdv)
+//! Join our Discord server to chat with others in the SeaQL community!
+//!
 //! ## Install
 //!
 //! ```toml
