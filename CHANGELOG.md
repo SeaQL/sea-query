@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.23.0
+## 0.23.0 - 2022-03-15
 
 ### New Features
 
@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug fixes
 
 * Fix UNIQUE table index expression syntax for sqlite https://github.com/SeaQL/sea-query/pull/227
+
+### Breaking changes
+
+In order to co-exist with the `time` crate, `Date`, `Time`, `DateTime` etc are renamed to `ChronoDate`, `ChronoTime`, `ChronoDateTime`. In addition, new variants `TimeDate`, `TimeTime`, `TimeDateTime` and so on are introduced to `Value`.
 
 ## 0.22.0 - 2022-02-26
 
