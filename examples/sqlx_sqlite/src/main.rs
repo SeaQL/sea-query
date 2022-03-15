@@ -1,6 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
-use sqlx::{Row, SqlitePool};
+use sqlx::{sqlite::SqliteRow, Row, SqlitePool};
+use time::{date, time, PrimitiveDateTime};
 
 sea_query::sea_query_driver_sqlite!();
 use sea_query_driver_sqlite::{bind_query, bind_query_as};
@@ -52,6 +53,16 @@ async fn main() {
             .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
         ])
+        .values_panic(vec![
+            Uuid::new_v4().into(),
+            12.into(),
+            "A".into(),
+            json!({
+                "notes": "some notes here",
+            })
+            .into(),
+            date!(2020 - 8 - 20).with_time(time!(0:0:0)).into(),
+        ])
         .build(SqliteQueryBuilder);
 
     //TODO: Implement RETURNING (returning_col) for the Sqlite driver.
@@ -78,13 +89,24 @@ async fn main() {
         .limit(1)
         .build(SqliteQueryBuilder);
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{:?}", row);
+    }
+    println!();
+
+    let rows = bind_query(sqlx::query(&sql), &values)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        let item = CharacterStructTime::try_from(row).unwrap();
+        println!("{:?}", item);
     }
     println!();
 
@@ -113,15 +135,25 @@ async fn main() {
         .limit(1)
         .build(SqliteQueryBuilder);
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
-
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{:?}\n", row);
     }
+
+    let rows = bind_query(sqlx::query(&sql), &values)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        let item = CharacterStructTime::try_from(row).unwrap();
+        println!("{:?}", item);
+    }
+    println!();
 
     // Count
     let (sql, values) = Query::select()
@@ -160,11 +192,40 @@ enum Character {
 }
 
 #[derive(sqlx::FromRow, Debug)]
-struct CharacterStruct {
+#[allow(dead_code)]
+struct CharacterStructChrono {
     id: i32,
     uuid: Uuid,
     character: String,
     font_size: i32,
     meta: Json,
     created: NaiveDateTime,
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+struct CharacterStructTime {
+    id: i32,
+    uuid: Uuid,
+    character: String,
+    font_size: i32,
+    meta: Json,
+    created: PrimitiveDateTime,
+}
+
+impl TryFrom<&SqliteRow> for CharacterStructTime {
+    type Error = sqlx::Error;
+
+    fn try_from(row: &SqliteRow) -> Result<Self, Self::Error> {
+        let created: String = dbg!(row.try_get("created")?);
+        let created = PrimitiveDateTime::parse(&created, "%Y-%m-%d %H:%M:%S").unwrap();
+        Ok(Self {
+            id: row.try_get("id")?,
+            uuid: row.try_get("uuid")?,
+            character: row.try_get("character")?,
+            font_size: row.try_get("font_size")?,
+            meta: row.try_get("meta")?,
+            created,
+        })
+    }
 }

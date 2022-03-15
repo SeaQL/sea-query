@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 chrono = "^0"
+time = "^0.2"
 postgres = "^0.19"
 sea-query = { path = "../../", features = ["postgres", "postgres-chrono", "postgres-json", "postgres-uuid", "postgres-time"] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
