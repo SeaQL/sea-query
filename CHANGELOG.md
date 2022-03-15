@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.23.0
 
+### New Features
+
+* Supports `time` in addition to `chrono` https://github.com/SeaQL/sea-query/pull/267
+
 ### Enhancements
 
 * Allow for trailing commas in any and all macros https://github.com/SeaQL/sea-query/pull/270
