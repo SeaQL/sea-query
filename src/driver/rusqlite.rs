@@ -53,6 +53,14 @@ macro_rules! sea_query_driver_rusqlite {
                             }
                         };
                     }
+                    macro_rules! opt_string_to_sql {
+                        ( $v: expr ) => {
+                            match $v {
+                                Some(v) => Ok(ToSqlOutput::from(v)),
+                                None => None::<bool>.to_sql(),
+                            }
+                        };
+                    }
                     match &self.0 {
                         Value::Bool(v) => to_sql!(v, bool),
                         Value::TinyInt(v) => to_sql!(v, i8),
@@ -70,18 +78,26 @@ macro_rules! sea_query_driver_rusqlite {
                         _ => {
                             if self.0.is_json() {
                                 ty_to_sql!(self.0.as_ref_json())
-                            } else if self.0.is_date() {
-                                ty_to_sql!(self.0.as_ref_date())
-                            } else if self.0.is_time() {
-                                ty_to_sql!(self.0.as_ref_time())
-                            } else if self.0.is_date_time() {
-                                ty_to_sql!(self.0.as_ref_date_time())
-                            } else if self.0.is_date_time_utc() {
-                                ty_to_sql!(self.0.as_ref_date_time_utc())
-                            } else if self.0.is_date_time_local() {
-                                ty_to_sql!(self.0.as_ref_date_time_local())
-                            } else if self.0.is_date_time_with_time_zone() {
-                                ty_to_sql!(self.0.as_ref_date_time_with_time_zone())
+                            } else if self.0.is_chrono_date() {
+                                ty_to_sql!(self.0.as_ref_chrono_date())
+                            } else if self.0.is_chrono_time() {
+                                ty_to_sql!(self.0.as_ref_chrono_time())
+                            } else if self.0.is_chrono_date_time() {
+                                ty_to_sql!(self.0.as_ref_chrono_date_time())
+                            } else if self.0.is_chrono_date_time_utc() {
+                                ty_to_sql!(self.0.as_ref_chrono_date_time_utc())
+                            } else if self.0.is_chrono_date_time_local() {
+                                ty_to_sql!(self.0.as_ref_chrono_date_time_local())
+                            } else if self.0.is_chrono_date_time_with_time_zone() {
+                                ty_to_sql!(self.0.as_ref_chrono_date_time_with_time_zone())
+                            } else if self.0.is_time_date() {
+                                opt_string_to_sql!(self.0.time_as_naive_utc_in_string())
+                            } else if self.0.is_time_time() {
+                                opt_string_to_sql!(self.0.time_as_naive_utc_in_string())
+                            } else if self.0.is_time_date_time() {
+                                opt_string_to_sql!(self.0.time_as_naive_utc_in_string())
+                            } else if self.0.is_time_date_time_with_time_zone() {
+                                ty_to_sql!(self.0.as_ref_time_date_time_with_time_zone())
                             } else if self.0.is_uuid() {
                                 ty_to_sql!(self.0.as_ref_uuid())
                             } else {

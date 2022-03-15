@@ -9,6 +9,9 @@ use std::str::from_utf8;
 #[cfg(feature = "with-chrono")]
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
+#[cfg(feature = "with-time")]
+use time::{offset, OffsetDateTime, PrimitiveDateTime};
+
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
 
@@ -47,27 +50,43 @@ pub enum Value {
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    Date(Option<Box<NaiveDate>>),
+    ChronoDate(Option<Box<NaiveDate>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    Time(Option<Box<NaiveTime>>),
+    ChronoTime(Option<Box<NaiveTime>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTime(Option<Box<NaiveDateTime>>),
+    ChronoDateTime(Option<Box<NaiveDateTime>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTimeUtc(Option<Box<DateTime<Utc>>>),
+    ChronoDateTimeUtc(Option<Box<DateTime<Utc>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTimeLocal(Option<Box<DateTime<Local>>>),
+    ChronoDateTimeLocal(Option<Box<DateTime<Local>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    DateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+    ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDate(Option<Box<time::Date>>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeTime(Option<Box<time::Time>>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTime(Option<Box<PrimitiveDateTime>>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -294,39 +313,39 @@ mod with_chrono {
     use super::*;
     use chrono::{Local, Offset, Utc};
 
-    type_to_box_value!(NaiveDate, Date, Date);
-    type_to_box_value!(NaiveTime, Time, Time(None));
-    type_to_box_value!(NaiveDateTime, DateTime, DateTime(None));
+    type_to_box_value!(NaiveDate, ChronoDate, Date);
+    type_to_box_value!(NaiveTime, ChronoTime, Time(None));
+    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime(None));
 
     impl From<DateTime<Utc>> for Value {
         fn from(v: DateTime<Utc>) -> Value {
-            Value::DateTimeUtc(Some(Box::new(v)))
+            Value::ChronoDateTimeUtc(Some(Box::new(v)))
         }
     }
 
     impl From<DateTime<Local>> for Value {
         fn from(v: DateTime<Local>) -> Value {
-            Value::DateTimeLocal(Some(Box::new(v)))
+            Value::ChronoDateTimeLocal(Some(Box::new(v)))
         }
     }
 
     impl From<DateTime<FixedOffset>> for Value {
         fn from(x: DateTime<FixedOffset>) -> Value {
             let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
-            Value::DateTimeWithTimeZone(Some(Box::new(v)))
+            Value::ChronoDateTimeWithTimeZone(Some(Box::new(v)))
         }
     }
 
     impl Nullable for DateTime<Utc> {
         fn null() -> Value {
-            Value::DateTimeUtc(None)
+            Value::ChronoDateTimeUtc(None)
         }
     }
 
     impl ValueType for DateTime<Utc> {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::DateTimeUtc(Some(x)) => Ok(*x),
+                Value::ChronoDateTimeUtc(Some(x)) => Ok(*x),
                 _ => Err(ValueTypeErr),
             }
         }
@@ -342,14 +361,14 @@ mod with_chrono {
 
     impl Nullable for DateTime<Local> {
         fn null() -> Value {
-            Value::DateTimeLocal(None)
+            Value::ChronoDateTimeLocal(None)
         }
     }
 
     impl ValueType for DateTime<Local> {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::DateTimeLocal(Some(x)) => Ok(*x),
+                Value::ChronoDateTimeLocal(Some(x)) => Ok(*x),
                 _ => Err(ValueTypeErr),
             }
         }
@@ -365,20 +384,59 @@ mod with_chrono {
 
     impl Nullable for DateTime<FixedOffset> {
         fn null() -> Value {
-            Value::DateTimeWithTimeZone(None)
+            Value::ChronoDateTimeWithTimeZone(None)
         }
     }
 
     impl ValueType for DateTime<FixedOffset> {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::DateTimeWithTimeZone(Some(x)) => Ok(*x),
+                Value::ChronoDateTimeWithTimeZone(Some(x)) => Ok(*x),
                 _ => Err(ValueTypeErr),
             }
         }
 
         fn type_name() -> String {
             stringify!(DateTime<FixedOffset>).to_owned()
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::TimestampWithTimeZone(None)
+        }
+    }
+}
+
+#[cfg(feature = "with-time")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+mod with_time {
+    use super::*;
+
+    type_to_box_value!(time::Date, TimeDate, Date);
+    type_to_box_value!(time::Time, TimeTime, Time(None));
+    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime(None));
+
+    impl From<OffsetDateTime> for Value {
+        fn from(v: OffsetDateTime) -> Value {
+            Value::TimeDateTimeWithTimeZone(Some(Box::new(v)))
+        }
+    }
+
+    impl Nullable for OffsetDateTime {
+        fn null() -> Value {
+            Value::TimeDateTimeWithTimeZone(None)
+        }
+    }
+
+    impl ValueType for OffsetDateTime {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::TimeDateTimeWithTimeZone(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(OffsetDateTime).to_owned()
         }
 
         fn column_type() -> ColumnType {
@@ -447,6 +505,18 @@ mod with_array {
 
     #[cfg(feature = "with-chrono")]
     impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
+
+    #[cfg(feature = "with-time")]
+    impl NotU8 for time::Date {}
+
+    #[cfg(feature = "with-time")]
+    impl NotU8 for time::Time {}
+
+    #[cfg(feature = "with-time")]
+    impl NotU8 for PrimitiveDateTime {}
+
+    #[cfg(feature = "with-time")]
+    impl NotU8 for OffsetDateTime {}
 
     #[cfg(feature = "with-rust_decimal")]
     impl NotU8 for Decimal {}
@@ -528,135 +598,240 @@ impl Value {
 }
 
 impl Value {
-    pub fn is_date(&self) -> bool {
+    pub fn is_chrono_date(&self) -> bool {
         #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::Date(_));
+        return matches!(self, Self::ChronoDate(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date(&self) -> Option<&NaiveDate> {
+    pub fn as_ref_chrono_date(&self) -> Option<&NaiveDate> {
         match self {
-            Self::Date(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::Date"),
+            Self::ChronoDate(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::ChronoDate"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date(&self) -> Option<&bool> {
-        panic!("not Value::Date")
+    pub fn as_ref_chrono_date(&self) -> Option<&bool> {
+        panic!("not Value::ChronoDate")
     }
 }
 
 impl Value {
-    pub fn is_time(&self) -> bool {
-        #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::Time(_));
-        #[cfg(not(feature = "with-chrono"))]
+    pub fn is_time_date(&self) -> bool {
+        #[cfg(feature = "with-time")]
+        return matches!(self, Self::TimeDate(_));
+        #[cfg(not(feature = "with-time"))]
         return false;
     }
-    #[cfg(feature = "with-chrono")]
-    pub fn as_ref_time(&self) -> Option<&NaiveTime> {
+    #[cfg(feature = "with-time")]
+    pub fn as_ref_time_date(&self) -> Option<&time::Date> {
         match self {
-            Self::Time(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::Time"),
+            Self::TimeDate(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::TimeDate"),
         }
     }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_time(&self) -> Option<&bool> {
-        panic!("not Value::Time")
+    #[cfg(not(feature = "with-time"))]
+    pub fn as_ref_time_date(&self) -> Option<&bool> {
+        panic!("not Value::TimeDate")
     }
 }
 
 impl Value {
-    pub fn is_date_time(&self) -> bool {
+    pub fn is_chrono_time(&self) -> bool {
         #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTime(_));
+        return matches!(self, Self::ChronoTime(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time(&self) -> Option<&NaiveDateTime> {
+    pub fn as_ref_chrono_time(&self) -> Option<&NaiveTime> {
         match self {
-            Self::DateTime(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::DateTime"),
+            Self::ChronoTime(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::ChronoTime"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time(&self) -> Option<&bool> {
-        panic!("not Value::DateTime")
+    pub fn as_ref_chrono_time(&self) -> Option<&bool> {
+        panic!("not Value::ChronoTime")
     }
 }
 
 impl Value {
-    pub fn is_date_time_utc(&self) -> bool {
+    pub fn is_time_time(&self) -> bool {
+        #[cfg(feature = "with-time")]
+        return matches!(self, Self::TimeTime(_));
+        #[cfg(not(feature = "with-time"))]
+        return false;
+    }
+    #[cfg(feature = "with-time")]
+    pub fn as_ref_time_time(&self) -> Option<&time::Time> {
+        match self {
+            Self::TimeTime(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::TimeTime"),
+        }
+    }
+    #[cfg(not(feature = "with-time"))]
+    pub fn as_ref_time_time(&self) -> Option<&bool> {
+        panic!("not Value::TimeTime")
+    }
+}
+
+impl Value {
+    pub fn is_chrono_date_time(&self) -> bool {
         #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTimeUtc(_));
+        return matches!(self, Self::ChronoDateTime(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_chrono_date_time(&self) -> Option<&NaiveDateTime> {
+        match self {
+            Self::ChronoDateTime(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::ChronoDateTime"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_chrono_date_time(&self) -> Option<&bool> {
+        panic!("not Value::ChronoDateTime")
+    }
+}
 
-    pub fn is_date_time_local(&self) -> bool {
+impl Value {
+    pub fn is_time_date_time(&self) -> bool {
+        #[cfg(feature = "with-time")]
+        return matches!(self, Self::TimeDateTime(_));
+        #[cfg(not(feature = "with-time"))]
+        return false;
+    }
+    #[cfg(feature = "with-time")]
+    pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
+        match self {
+            Self::TimeDateTime(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::TimeDateTime"),
+        }
+    }
+    #[cfg(not(feature = "with-time"))]
+    pub fn as_ref_time_date_time(&self) -> Option<&bool> {
+        panic!("not Value::TimeDateTime")
+    }
+}
+
+impl Value {
+    pub fn is_chrono_date_time_utc(&self) -> bool {
         #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTimeLocal(_));
+        return matches!(self, Self::ChronoDateTimeUtc(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
-    pub fn is_date_time_with_time_zone(&self) -> bool {
+    #[cfg(feature = "with-chrono")]
+    pub fn as_ref_chrono_date_time_utc(&self) -> Option<&DateTime<Utc>> {
+        match self {
+            Self::ChronoDateTimeUtc(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::ChronoDateTimeUtc"),
+        }
+    }
+    #[cfg(not(feature = "with-chrono"))]
+    pub fn as_ref_chrono_date_time_utc(&self) -> Option<&bool> {
+        panic!("not Value::ChronoDateTimeUtc")
+    }
+}
+
+impl Value {
+    pub fn is_chrono_date_time_local(&self) -> bool {
         #[cfg(feature = "with-chrono")]
-        return matches!(self, Self::DateTimeWithTimeZone(_));
+        return matches!(self, Self::ChronoDateTimeLocal(_));
         #[cfg(not(feature = "with-chrono"))]
         return false;
     }
-
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_utc(&self) -> Option<&DateTime<Utc>> {
+    pub fn as_ref_chrono_date_time_local(&self) -> Option<&DateTime<Local>> {
         match self {
-            Self::DateTimeUtc(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::DateTimeUtc"),
+            Self::ChronoDateTimeLocal(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::ChronoDateTimeLocal"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_utc(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeUtc")
+    pub fn as_ref_chrono_date_time_local(&self) -> Option<&bool> {
+        panic!("not Value::ChronoDateTimeLocal")
     }
+}
 
+impl Value {
+    pub fn is_chrono_date_time_with_time_zone(&self) -> bool {
+        #[cfg(feature = "with-chrono")]
+        return matches!(self, Self::ChronoDateTimeWithTimeZone(_));
+        #[cfg(not(feature = "with-chrono"))]
+        return false;
+    }
     #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_local(&self) -> Option<&DateTime<Local>> {
+    pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
-            Self::DateTimeLocal(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::DateTimeLocal"),
+            Self::ChronoDateTimeWithTimeZone(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::ChronoDateTimeWithTimeZone"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_local(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeLocal")
+    pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&bool> {
+        panic!("not Value::ChronoDateTimeWithTimeZone")
     }
+}
 
-    #[cfg(feature = "with-chrono")]
-    pub fn as_ref_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
+impl Value {
+    pub fn is_time_date_time_with_time_zone(&self) -> bool {
+        #[cfg(feature = "with-time")]
+        return matches!(self, Self::TimeDateTimeWithTimeZone(_));
+        #[cfg(not(feature = "with-time"))]
+        return false;
+    }
+    #[cfg(feature = "with-time")]
+    pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
         match self {
-            Self::DateTimeWithTimeZone(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::DateTimeWithTimeZone"),
+            Self::TimeDateTimeWithTimeZone(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::TimeDateTimeWithTimeZone"),
+        }
+    }
+    #[cfg(not(feature = "with-time"))]
+    pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&bool> {
+        panic!("not Value::TimeDateTimeWithTimeZone")
+    }
+}
+
+impl Value {
+    #[cfg(feature = "with-chrono")]
+    pub fn chrono_as_naive_utc_in_string(&self) -> Option<String> {
+        match self {
+            Self::ChronoDate(v) => v.as_ref().map(|v| v.to_string()),
+            Self::ChronoTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::ChronoDateTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::ChronoDateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            Self::ChronoDateTimeLocal(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            Self::ChronoDateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
+            _ => panic!("not chrono Value"),
         }
     }
     #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_date_time_with_time_zone(&self) -> Option<&bool> {
-        panic!("not Value::DateTimeWithTimeZone")
+    pub fn chrono_as_naive_utc_in_string(&self) -> Option<&bool> {
+        panic!("not chrono Value")
     }
+}
 
-    #[cfg(feature = "with-chrono")]
-    pub fn as_naive_utc_in_string(&self) -> Option<String> {
+impl Value {
+    #[cfg(feature = "with-time")]
+    pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::DateTime(v) => v.as_ref().map(|v| v.to_string()),
-            Self::DateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
-            Self::DateTimeLocal(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
-            Self::DateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
-            _ => panic!("not Value::DateTime"),
+            Self::TimeDate(v) => v.as_ref().map(|v| v.format("%Y-%m-%d")),
+            Self::TimeTime(v) => v.as_ref().map(|v| v.format("%H:%M:%S")),
+            Self::TimeDateTime(v) => v.as_ref().map(|v| v.format("%Y-%m-%d %H:%M:%S")),
+            Self::TimeDateTimeWithTimeZone(v) => v
+                .as_ref()
+                .map(|v| v.to_offset(offset!(+0)).format("%Y-%m-%d %H:%M:%S")),
+            _ => panic!("not time Value"),
         }
     }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_naive_utc_in_string(&self) -> Option<&bool> {
-        panic!("not Value::DateTime")
+    #[cfg(not(feature = "with-time"))]
+    pub fn time_as_naive_utc_in_string(&self) -> Option<&bool> {
+        panic!("not time Value")
     }
 }
 
@@ -1066,17 +1241,25 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
-        Value::Date(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::Time(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
-        Value::DateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-time")]
+        Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-time")]
+        Value::TimeTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-time")]
+        Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-time")]
+        Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
@@ -1414,6 +1597,75 @@ mod tests {
         let query = Query::select().expr(Expr::val(timestamp)).to_owned();
 
         let formatted = "2020-01-01 02:02:02 +08:00";
+
+        assert_eq!(
+            query.to_string(MysqlQueryBuilder),
+            format!("SELECT '{}'", formatted)
+        );
+        assert_eq!(
+            query.to_string(PostgresQueryBuilder),
+            format!("SELECT '{}'", formatted)
+        );
+        assert_eq!(
+            query.to_string(SqliteQueryBuilder),
+            format!("SELECT '{}'", formatted)
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "with-time")]
+    fn test_time_value() {
+        use time::{date, time};
+        let timestamp = date!(2020 - 01 - 01).with_time(time!(2:2:2));
+        let value: Value = timestamp.into();
+        let out: PrimitiveDateTime = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-time")]
+    fn test_time_utc_value() {
+        use time::{date, time};
+        let timestamp = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
+        let value: Value = timestamp.into();
+        let out: OffsetDateTime = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-time")]
+    fn test_time_local_value() {
+        use time::{date, offset, time};
+        let timestamp_utc = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
+        let timestamp_local: OffsetDateTime = timestamp_utc.to_offset(offset!(+3));
+        let value: Value = timestamp_local.into();
+        let out: OffsetDateTime = value.unwrap();
+        assert_eq!(out, timestamp_local);
+    }
+
+    #[test]
+    #[cfg(feature = "with-time")]
+    fn test_time_timezone_value() {
+        use time::{date, offset, time};
+        let timestamp = date!(2022 - 01 - 02)
+            .with_time(time!(3:04:05))
+            .assume_offset(offset!(+8));
+        let value: Value = timestamp.into();
+        let out: OffsetDateTime = value.unwrap();
+        assert_eq!(out, timestamp);
+    }
+
+    #[test]
+    #[cfg(feature = "with-time")]
+    fn test_time_query() {
+        use crate::*;
+
+        let string = "2020-01-01 02:02:02 +0800";
+        let timestamp = OffsetDateTime::parse(string, "%Y-%m-%d %H:%M:%S %z").unwrap();
+
+        let query = Query::select().expr(Expr::val(timestamp)).to_owned();
+
+        let formatted = "2020-01-01 02:02:02 +0800";
 
         assert_eq!(
             query.to_string(MysqlQueryBuilder),

@@ -36,18 +36,26 @@ macro_rules! bind_params_sqlx_mysql {
                 _ => {
                     if value.is_json() {
                         query.bind(value.as_ref_json())
-                    } else if value.is_date() {
-                        query.bind(value.as_ref_date())
-                    } else if value.is_time() {
-                        query.bind(value.as_ref_time())
-                    } else if value.is_date_time() {
-                        query.bind(value.as_ref_date_time())
-                    } else if value.is_date_time_utc() {
-                        query.bind(value.as_ref_date_time_utc())
-                    } else if value.is_date_time_local() {
-                        query.bind(value.as_ref_date_time_local())
-                    } else if value.is_date_time_with_time_zone() {
-                        query.bind(value.as_naive_utc_in_string())
+                    } else if value.is_chrono_date() {
+                        query.bind(value.as_ref_chrono_date())
+                    } else if value.is_chrono_time() {
+                        query.bind(value.as_ref_chrono_time())
+                    } else if value.is_chrono_date_time() {
+                        query.bind(value.as_ref_chrono_date_time())
+                    } else if value.is_chrono_date_time_utc() {
+                        query.bind(value.as_ref_chrono_date_time_utc())
+                    } else if value.is_chrono_date_time_local() {
+                        query.bind(value.as_ref_chrono_date_time_local())
+                    } else if value.is_chrono_date_time_with_time_zone() {
+                        query.bind(value.chrono_as_naive_utc_in_string())
+                    } else if value.is_time_date() {
+                        query.bind(value.as_ref_time_date())
+                    } else if value.is_time_time() {
+                        query.bind(value.as_ref_time_time())
+                    } else if value.is_time_date_time() {
+                        query.bind(value.as_ref_time_date_time())
+                    } else if value.is_time_date_time_with_time_zone() {
+                        query.bind(value.time_as_naive_utc_in_string())
                     } else if value.is_decimal() {
                         query.bind(value.as_ref_decimal())
                     } else if value.is_big_decimal() {

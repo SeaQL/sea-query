@@ -976,17 +976,25 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::Date(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDate(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::Time(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::DateTime(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeUtc(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeUtc(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeLocal(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeDate(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
@@ -1016,24 +1024,40 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
-            Value::Date(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap(),
+            Value::ChronoDate(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap()
+            }
             #[cfg(feature = "with-chrono")]
-            Value::Time(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap(),
+            Value::ChronoTime(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap()
+            }
             #[cfg(feature = "with-chrono")]
-            Value::DateTime(Some(v)) => {
+            Value::ChronoDateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeUtc(Some(v)) => {
+            Value::ChronoDateTimeUtc(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeLocal(Some(v)) => {
+            Value::ChronoDateTimeLocal(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
             }
             #[cfg(feature = "with-chrono")]
-            Value::DateTimeWithTimeZone(Some(v)) => {
+            Value::ChronoDateTimeWithTimeZone(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::TimeDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeTime(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S")).unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTime(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTimeWithTimeZone(Some(v)) => {
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %z")).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),

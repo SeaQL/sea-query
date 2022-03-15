@@ -50,7 +50,7 @@ Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
 SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
-Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
+Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 `postgres-array`
 
 Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,

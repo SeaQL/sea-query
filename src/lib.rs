@@ -53,7 +53,7 @@
 //!
 //! SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 //!
-//! Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
+//! Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 //! `postgres-array`
 //!
 //! Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
@@ -712,6 +712,7 @@
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL icon dark.png"
 )]
+
 pub mod backend;
 pub mod driver;
 pub mod error;
