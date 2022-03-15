@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.23.0
+
+### Bug fixes
+
+* Fix UNIQUE table index expression syntax for sqlite https://github.com/SeaQL/sea-query/pull/227
+
 ## 0.22.0 - 2022-02-26
 
 ### New Features
