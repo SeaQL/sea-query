@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.23.0
 
+### Enhancements
+
+* Allow for trailing commas in any and all macros https://github.com/SeaQL/sea-query/pull/270
+
 ### Bug fixes
 
 * Fix UNIQUE table index expression syntax for sqlite https://github.com/SeaQL/sea-query/pull/227
