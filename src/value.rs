@@ -822,9 +822,9 @@ impl Value {
     #[cfg(feature = "with-time")]
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::TimeDate(v) => v.as_ref().map(|v| v.to_string()),
-            Self::TimeTime(v) => v.as_ref().map(|v| v.to_string()),
-            Self::TimeDateTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::TimeDate(v) => v.as_ref().map(|v| v.format("%Y-%m-%d")),
+            Self::TimeTime(v) => v.as_ref().map(|v| v.format("%H:%M:%S")),
+            Self::TimeDateTime(v) => v.as_ref().map(|v| v.format("%Y-%m-%d %H:%M:%S")),
             Self::TimeDateTimeWithTimeZone(v) => v
                 .as_ref()
                 .map(|v| v.to_offset(offset!(+0)).format("%Y-%m-%d %H:%M:%S")),
