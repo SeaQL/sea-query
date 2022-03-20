@@ -1,4 +1,5 @@
 use crate::*;
+use either::Either;
 use std::ops::Deref;
 
 pub trait QueryBuilder: QuotedBuilder {
@@ -152,6 +153,12 @@ pub trait QueryBuilder: QuotedBuilder {
         if let Some(lock) = &select.lock {
             write!(sql, " ").unwrap();
             self.prepare_select_lock(lock, sql, collector);
+        }
+
+        if let Some((name, query)) = &select.window {
+            let name = name.quoted(self.quote());
+            write!(sql, " WINDOW {} AS ", name).unwrap();
+            self.prepare_window_statement(query, sql, collector);
         }
     }
 
@@ -414,13 +421,22 @@ pub trait QueryBuilder: QuotedBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         self.prepare_simple_expr(&select_expr.expr, sql, collector);
+        match &select_expr.window {
+            Some(Either::Left(name)) => {
+                let quoted_name = name.quoted(self.quote());
+                write!(sql, " OVER {} ", quoted_name).unwrap()
+            }
+            Some(Either::Right(window)) => self.prepare_window_statement(window, sql, collector),
+            None => {}
+        };
+
         match &select_expr.alias {
             Some(alias) => {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
             None => {}
-        }
+        };
     }
 
     /// Translate [`JoinExpr`] into SQL statement.
@@ -1174,6 +1190,70 @@ pub trait QueryBuilder: QuotedBuilder {
         }
         if condition.negate {
             write!(sql, ")").unwrap();
+        }
+    }
+
+    #[doc(hidden)]
+    /// Translate [`Frame`] into SQL statement.
+    fn prepare_frame(&self, frame: &Frame, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        match *frame {
+            Frame::UboundedPreceding => write!(sql, " UNBOUNDED PRECEDING ").unwrap(),
+            Frame::Preceding(v) => {
+                self.prepare_value(&Some(v).into(), sql, collector);
+                write!(sql, " PRECEDING ").unwrap();
+            }
+            Frame::CurrentRow => write!(sql, " CURRENT ROW ").unwrap(),
+            Frame::Following(v) => {
+                self.prepare_value(&Some(v).into(), sql, collector);
+                write!(sql, " FOLLOWING ").unwrap();
+            }
+            Frame::UnboundedFollowing => write!(sql, " UNBOUNDED FOLLOWING ").unwrap(),
+        }
+    }
+
+    #[doc(hidden)]
+    /// Translate [`WindowStatement`] into SQL statement.
+    fn prepare_window_statement(
+        &self,
+        window: &WindowStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if !window.partition_by.is_empty() {
+            write!(sql, " PARTITION BY ").unwrap();
+            window.partition_by.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_simple_expr(expr, sql, collector);
+                false
+            });
+        }
+
+        if !window.order_by.is_empty() {
+            write!(sql, " ORDER BY ").unwrap();
+            window.order_by.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_order_expr(expr, sql, collector);
+                false
+            });
+        }
+
+        if let Some(frame) = &window.frame {
+            match frame.r#type {
+                FrameType::Range => write!(sql, " RANGE ").unwrap(),
+                FrameType::Rows => write!(sql, " ROWS ").unwrap(),
+            };
+            if let Some(end) = &frame.end {
+                write!(sql, " BETWEEN ").unwrap();
+                self.prepare_frame(&frame.start, sql, collector);
+                write!(sql, " AND ").unwrap();
+                self.prepare_frame(end, sql, collector);
+            } else {
+                self.prepare_frame(&frame.start, sql, collector);
+            }
         }
     }
 

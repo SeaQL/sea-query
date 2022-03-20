@@ -5,8 +5,10 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WithClause, WithQuery,
+    QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement, WithClause,
+    WithQuery,
 };
+use either::Either;
 
 /// Select rows from an existing table
 ///
@@ -51,6 +53,7 @@ pub struct SelectStatement {
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
     pub(crate) lock: Option<LockType>,
+    pub(crate) window: Option<(DynIden, WindowStatement)>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -66,6 +69,7 @@ pub enum SelectDistinct {
 pub struct SelectExpr {
     pub expr: SimpleExpr,
     pub alias: Option<DynIden>,
+    pub window: Option<Either<DynIden, WindowStatement>>,
 }
 
 /// Join expression used in select statement
@@ -97,6 +101,7 @@ impl Into<SelectExpr> for SimpleExpr {
         SelectExpr {
             expr: self,
             alias: None,
+            window: None,
         }
     }
 }
@@ -123,6 +128,7 @@ impl SelectStatement {
             limit: None,
             offset: None,
             lock: None,
+            window: None,
         }
     }
 
@@ -141,6 +147,7 @@ impl SelectStatement {
             limit: self.limit.take(),
             offset: self.offset.take(),
             lock: self.lock.take(),
+            window: self.window.take(),
         }
     }
 
@@ -485,6 +492,7 @@ impl SelectStatement {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: Some(alias.into_iden()),
+            window: None,
         });
         self
     }
@@ -1767,6 +1775,14 @@ impl SelectStatement {
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
+    }
+
+    pub fn window<A>(&mut self, name: A, window: WindowStatement) -> &mut Self
+    where
+        A: IntoIden,
+    {
+        self.window = Some((name.into_iden(), window));
+        self
     }
 }
 

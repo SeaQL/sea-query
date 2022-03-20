@@ -15,6 +15,7 @@ mod select;
 mod shim;
 mod traits;
 mod update;
+mod window;
 mod with;
 
 pub use condition::*;
@@ -24,6 +25,7 @@ pub use ordered::*;
 pub use select::*;
 pub use traits::*;
 pub use update::*;
+pub use window::*;
 pub use with::*;
 
 /// Shorthand for constructing any table query
