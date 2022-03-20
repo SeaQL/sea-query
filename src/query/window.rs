@@ -17,51 +17,21 @@ pub enum FrameType {
     Rows,
 }
 
-/// Over expression
+/// Frame clause
 #[derive(Debug, Clone)]
-pub struct FrameStatement {
+pub struct FrameClause {
     pub(crate) r#type: FrameType,
     pub(crate) start: Frame,
     pub(crate) end: Option<Frame>,
 }
 
-pub trait PartitionStatement {
-    fn add_partition_by(&mut self, col: SimpleExpr) -> &mut Self;
 
-    fn partition_by<T>(&mut self, col: T) -> &mut Self
-    where
-        T: IntoColumnRef,
-    {
-        self.add_partition_by(SimpleExpr::Column(col.into_column_ref()));
-        self
-    }
-
-    fn partition_by_columns<T>(&mut self, cols: Vec<T>) -> &mut Self
-    where
-        T: IntoColumnRef,
-    {
-        cols.into_iter().for_each(|c| {
-            self.add_partition_by(SimpleExpr::Column(c.into_column_ref()));
-        });
-        self
-    }
-
-    fn partition_by_customs<T>(&mut self, cols: Vec<T>) -> &mut Self
-    where
-        T: ToString,
-    {
-        cols.into_iter().for_each(|c| {
-            self.add_partition_by(SimpleExpr::Custom(c.to_string()));
-        });
-        self
-    }
-}
-
+/// Window expression
 #[derive(Debug, Clone)]
 pub struct WindowStatement {
-    pub(crate) partition_by: Vec<SimpleExpr>,
+    pub(crate) partition_by: (SimpleExpr, Vec<SimpleExpr>),
     pub(crate) order_by: Vec<OrderExpr>,
-    pub(crate) frame: Option<FrameStatement>,
+    pub(crate) frame: Option<FrameClause>,
 }
 
 impl OrderedStatement for WindowStatement {
@@ -71,9 +41,33 @@ impl OrderedStatement for WindowStatement {
     }
 }
 
-impl PartitionStatement for WindowStatement {
-    fn add_partition_by(&mut self, partition: SimpleExpr) -> &mut Self {
-        self.partition_by.push(partition);
+impl WindowStatement {
+    pub fn new(exp: SimpleExpr) -> Self
+    {
+        Self {
+            partition_by: (exp, Vec::new()),
+            order_by: Vec::new(),
+            frame: None,
+        }
+    }
+
+    pub fn partition_by<T>(col: T) -> Self
+        where
+            T: IntoColumnRef,
+    {
+        Self::new(SimpleExpr::Column(col.into_column_ref()))
+    }
+
+    pub fn partition_by_custom<T>(col: T) -> Self
+        where
+            T: ToString,
+    {
+        Self::new(SimpleExpr::Custom(col.to_string()))
+    }
+
+    pub fn add_partition_by(&mut self, partition: SimpleExpr) -> &mut Self {
+        self.partition_by.1.push(partition);
         self
     }
+
 }

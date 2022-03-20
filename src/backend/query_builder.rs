@@ -426,7 +426,12 @@ pub trait QueryBuilder: QuotedBuilder {
                 let quoted_name = name.quoted(self.quote());
                 write!(sql, " OVER {} ", quoted_name).unwrap()
             }
-            Some(Either::Right(window)) => self.prepare_window_statement(window, sql, collector),
+            Some(Either::Right(window)) => {
+                write!(sql, " OVER ").unwrap();
+                write!(sql, "( ").unwrap();
+                self.prepare_window_statement(window, sql, collector);
+                write!(sql, " ) ").unwrap();
+            },
             None => {}
         };
 
@@ -1219,15 +1224,15 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        if !window.partition_by.is_empty() {
-            write!(sql, " PARTITION BY ").unwrap();
-            window.partition_by.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
+        let (first, exprs) = &window.partition_by;
+        write!(sql, " PARTITION BY ").unwrap();
+        self.prepare_simple_expr(first, sql, collector);
+
+        if !exprs.is_empty() {
+            for expr in exprs {
+                write!(sql, ", ").unwrap();
                 self.prepare_simple_expr(expr, sql, collector);
-                false
-            });
+            }
         }
 
         if !window.order_by.is_empty() {

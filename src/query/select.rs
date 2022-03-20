@@ -509,6 +509,159 @@ impl SelectStatement {
         self.expr_as(expr, alias)
     }
 
+    /// Select column with window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER ( PARTITION BY `character` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn expr_window<T>(&mut self, expr: T, window: WindowStatement) -> &mut Self
+        where
+            T: Into<SimpleExpr>,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: None,
+            window: Some(Either::Right(window)),
+        });
+        self
+    }
+
+    /// Select column with window function and label.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character), Alias::new("C"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER ( PARTITION BY `character` ) AS `C` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) AS "C" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) AS "C" FROM "character""#
+    /// );
+    /// ```
+    pub fn expr_window_as<T, A>(&mut self, expr: T, window: WindowStatement, alias: A) -> &mut Self
+        where
+            T: Into<SimpleExpr>,
+            A: IntoIden,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: Some(alias.into_iden()),
+            window: Some(Either::Right(window)),
+        });
+        self
+    }
+
+    /// Select column with window name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_name(Expr::col(Char::Character), "C")
+    ///     .window("C", WindowStatement::partition_by(Char::Character))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER `C` FROM `character` WINDOW `C` PARTITION BY `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" PARTITION BY `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" PARTITION BY "character""#
+    /// );
+    /// ```
+    pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
+        where
+            T: Into<SimpleExpr>,
+            W: IntoIden,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: None,
+            window: Some(Either::Left(window.into_iden())),
+        });
+        self
+    }
+
+    /// Select column with window name and label.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_name_as(Expr::col(Char::Character), "C", Alias::new("C"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER `C` AS `C` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER "C" AS "C" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER "C" AS "C" FROM "character""#
+    /// );
+    /// ```
+    pub fn expr_window_name_as<T, A, W>(&mut self, expr: T, window: W, alias: A) -> &mut Self
+        where
+            T: Into<SimpleExpr>,
+            A: IntoIden,
+            W: IntoIden,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: Some(alias.into_iden()),
+            window: Some(Either::Left(window.into_iden())),
+        });
+        self
+    }
+
     /// From table.
     ///
     /// # Examples
@@ -1777,6 +1930,14 @@ impl SelectStatement {
         clause.query(self)
     }
 
+    /// WINDOW
+    ///
+    /// # Examples:
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// ```
     pub fn window<A>(&mut self, name: A, window: WindowStatement) -> &mut Self
     where
         A: IntoIden,
