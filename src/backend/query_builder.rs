@@ -431,7 +431,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, "( ").unwrap();
                 self.prepare_window_statement(window, sql, collector);
                 write!(sql, " ) ").unwrap();
-            },
+            }
             None => {}
         };
 

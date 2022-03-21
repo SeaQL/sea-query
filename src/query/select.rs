@@ -518,7 +518,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character))
+    /// `    .expr_window(Expr::col(Char::Character), WindowStatement::column(Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -535,8 +535,8 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn expr_window<T>(&mut self, expr: T, window: WindowStatement) -> &mut Self
-        where
-            T: Into<SimpleExpr>,
+    where
+        T: Into<SimpleExpr>,
     {
         self.expr(SelectExpr {
             expr: expr.into(),
@@ -555,7 +555,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character), Alias::new("C"))
+    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::column(Char::Character), Alias::new("C"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -572,9 +572,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn expr_window_as<T, A>(&mut self, expr: T, window: WindowStatement, alias: A) -> &mut Self
-        where
-            T: Into<SimpleExpr>,
-            A: IntoIden,
+    where
+        T: Into<SimpleExpr>,
+        A: IntoIden,
     {
         self.expr(SelectExpr {
             expr: expr.into(),
@@ -594,7 +594,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr_window_name(Expr::col(Char::Character), "C")
-    ///     .window("C", WindowStatement::partition_by(Char::Character))
+    ///     .window("C", WindowStatement::column(Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -611,9 +611,9 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
-        where
-            T: Into<SimpleExpr>,
-            W: IntoIden,
+    where
+        T: Into<SimpleExpr>,
+        W: IntoIden,
     {
         self.expr(SelectExpr {
             expr: expr.into(),
@@ -649,10 +649,10 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn expr_window_name_as<T, A, W>(&mut self, expr: T, window: W, alias: A) -> &mut Self
-        where
-            T: Into<SimpleExpr>,
-            A: IntoIden,
-            W: IntoIden,
+    where
+        T: Into<SimpleExpr>,
+        A: IntoIden,
+        W: IntoIden,
     {
         self.expr(SelectExpr {
             expr: expr.into(),
