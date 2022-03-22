@@ -1,21 +1,51 @@
-use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
-use rust_decimal::Decimal;
 use sea_query::{
-    ColumnDef, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
+    ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, PostgresQueryBuilder, Query,
+    QueryBuilder, SchemaBuilder, SqliteQueryBuilder, Table,
 };
-use sqlx::{PgPool, Row};
-use time::{date, time, PrimitiveDateTime};
+use sqlx::{AnyPool, Row};
+use std::env;
 
 use sea_query_binders::SqlxBinder;
-use serde_json::{json, Value as Json};
-use uuid::Uuid;
 
 #[async_std::main]
 async fn main() {
-    let connection = PgPool::connect("postgres://sea:sea@127.0.0.1/query")
-        .await
-        .unwrap();
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 || (args[1] != "postgres" && args[1] != "mysql" && args[1] != "sqlite") {
+        println!(
+            "Expected a single argument out of {{postgres, mysql, sqlite}}, got {}",
+            args.split_at(1).1.join(", ")
+        );
+        return;
+    }
+    let (url, box_query_builder, box_schema_builder): (
+        &str,
+        Box<dyn QueryBuilder>,
+        Box<dyn SchemaBuilder>,
+    ) = if args[1] == "postgres" {
+        (
+            "postgres://sea:sea@127.0.0.1/query",
+            Box::new(PostgresQueryBuilder {}),
+            Box::new(PostgresQueryBuilder {}),
+        )
+    } else if args[1] == "sqlite" {
+        (
+            "sqlite::memory:",
+            Box::new(SqliteQueryBuilder {}),
+            Box::new(SqliteQueryBuilder {}),
+        )
+    } else if args[1] == "mysql" {
+        (
+            "mysql://sea:sea@127.0.0.1/query",
+            Box::new(MysqlQueryBuilder {}),
+            Box::new(MysqlQueryBuilder {}),
+        )
+    } else {
+        panic!()
+    };
+    let query_builder = &*box_query_builder;
+    let schema_builder = &*box_schema_builder;
+    let connection = AnyPool::connect(url).await.unwrap();
     let mut pool = connection.try_acquire().unwrap();
 
     // Schema
@@ -30,14 +60,10 @@ async fn main() {
                 .auto_increment()
                 .primary_key(),
         )
-        .col(ColumnDef::new(Character::Uuid).uuid())
         .col(ColumnDef::new(Character::FontSize).integer())
         .col(ColumnDef::new(Character::Character).string())
-        .col(ColumnDef::new(Character::Meta).json())
-        .col(ColumnDef::new(Character::Decimal).decimal())
-        .col(ColumnDef::new(Character::BigDecimal).decimal())
         .col(ColumnDef::new(Character::Created).date_time())
-        .build(PostgresQueryBuilder);
+        .build_any(schema_builder);
 
     let result = sqlx::query(&sql).execute(&mut pool).await;
     println!("Create table character: {:?}\n", result);
@@ -46,47 +72,18 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns([
-            Character::Uuid,
+        .columns(vec![
             Character::FontSize,
             Character::Character,
-            Character::Meta,
-            Character::Decimal,
-            Character::BigDecimal,
             Character::Created,
         ])
         .values_panic(vec![
-            Uuid::new_v4().into(),
             12.into(),
             "A".into(),
-            json!({
-                "notes": "some notes here",
-            })
-            .into(),
-            Decimal::from_i128_with_scale(3141i128, 3).into(),
-            BigDecimal::from_i128(3141i128)
-                .unwrap()
-                .with_scale(3)
-                .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
         ])
-        .values_panic(vec![
-            Uuid::new_v4().into(),
-            12.into(),
-            "A".into(),
-            json!({
-                "notes": "some notes here",
-            })
-            .into(),
-            Decimal::from_i128_with_scale(3141i128, 3).into(),
-            BigDecimal::from_i128(3141i128)
-                .unwrap()
-                .with_scale(3)
-                .into(),
-            date!(2020 - 8 - 20).with_time(time!(0:0:0)).into(),
-        ])
         .returning_col(Character::Id)
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
     let row = sqlx::query_with(&sql, values)
         .fetch_one(&mut pool)
@@ -98,32 +95,18 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns([
+        .columns(vec![
             Character::Id,
-            Character::Uuid,
             Character::Character,
             Character::FontSize,
-            Character::Meta,
-            Character::Decimal,
-            Character::BigDecimal,
             Character::Created,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut pool)
-        .await
-        .unwrap();
-    println!("Select one from character:");
-    for row in rows.iter() {
-        println!("{:?}", row);
-    }
-    println!();
-
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -139,7 +122,7 @@ async fn main() {
         .table(Character::Table)
         .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
     let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Update character: {:?}\n", result);
@@ -147,32 +130,18 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns([
+        .columns(vec![
             Character::Id,
-            Character::Uuid,
             Character::Character,
             Character::FontSize,
-            Character::Meta,
-            Character::Decimal,
-            Character::BigDecimal,
             Character::Created,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut pool)
-        .await
-        .unwrap();
-    println!("Select one from character:");
-    for row in rows.iter() {
-        println!("{:?}", row);
-    }
-    println!();
-
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -187,7 +156,7 @@ async fn main() {
     let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
     let row = sqlx::query_with(&sql, values)
         .fetch_one(&mut pool)
@@ -202,15 +171,18 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns([Character::Id, Character::FontSize, Character::Character])
+        .columns(vec![
+            Character::Id,
+            Character::FontSize,
+            Character::Character,
+        ])
         .values_panic(vec![1.into(), 16.into(), "B".into()])
-        .values_panic(vec![2.into(), 24.into(), "C".into()])
         .on_conflict(
             OnConflict::column(Character::Id)
                 .update_columns([Character::FontSize, Character::Character])
                 .to_owned(),
         )
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
     let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Insert into character (with upsert): {:?}\n", result);
@@ -218,31 +190,17 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns([
+        .columns(vec![
             Character::Id,
-            Character::Uuid,
             Character::Character,
             Character::FontSize,
-            Character::Meta,
-            Character::Decimal,
-            Character::BigDecimal,
             Character::Created,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut pool)
-        .await
-        .unwrap();
-    println!("Select all characters:");
-    for row in rows.iter() {
-        println!("{:?}", row);
-    }
-    println!();
-
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -257,7 +215,7 @@ async fn main() {
     let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
-        .build_sqlx(PostgresQueryBuilder);
+        .build_any_sqlx(query_builder);
 
     let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Delete character: {:?}", result);
@@ -267,12 +225,8 @@ async fn main() {
 enum Character {
     Table,
     Id,
-    Uuid,
     Character,
     FontSize,
-    Meta,
-    Decimal,
-    BigDecimal,
     Created,
 }
 
@@ -280,24 +234,7 @@ enum Character {
 #[allow(dead_code)]
 struct CharacterStructChrono {
     id: i32,
-    uuid: Uuid,
     character: String,
     font_size: i32,
-    meta: Json,
-    decimal: Decimal,
-    big_decimal: BigDecimal,
     created: NaiveDateTime,
-}
-
-#[derive(sqlx::FromRow, Debug)]
-#[allow(dead_code)]
-struct CharacterStructTime {
-    id: i32,
-    uuid: Uuid,
-    character: String,
-    font_size: i32,
-    meta: Json,
-    decimal: Decimal,
-    big_decimal: BigDecimal,
-    created: PrimitiveDateTime,
 }
