@@ -633,6 +633,8 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::IfNull => self.if_null_function(),
                     Function::CharLength => self.char_length_function(),
                     Function::Cast => "CAST",
+                    Function::Lower => "LOWER",
+                    Function::Upper => "UPPER",
                     Function::Custom(_) => "",
                     #[cfg(feature = "backend-postgres")]
                     Function::PgFunction(_) => unimplemented!(),
