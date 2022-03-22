@@ -428,8 +428,8 @@ impl Func {
     /// );
     /// ```
     pub fn upper<T>(expr: T) -> SimpleExpr
-        where
-            T: Into<SimpleExpr>,
+    where
+        T: Into<SimpleExpr>,
     {
         Expr::func(Function::Upper).arg(expr)
     }
