@@ -518,7 +518,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    /// `    .expr_window(Expr::col(Char::Character), WindowStatement::column(Char::Character))
+    ///     .expr_window(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -555,7 +555,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::column(Char::Character), Alias::new("C"))
+    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character), Alias::new("C"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -593,21 +593,21 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name(Expr::col(Char::Character), "C")
-    ///     .window("C", WindowStatement::column(Char::Character))
+    ///     .expr_window_name(Expr::col(Char::Character), Alias::new("C"))
+    ///     .window(Alias::new("C"), WindowStatement::partition_by(Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `C` FROM `character` WINDOW `C` PARTITION BY `character`"#
+    ///     r#"SELECT `character` OVER `C` FROM `character` WINDOW `C` AS PARTITION BY `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" PARTITION BY `character`"#
+    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" AS PARTITION BY "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" PARTITION BY "character""#
+    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" AS PARTITION BY "character""#
     /// );
     /// ```
     pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
@@ -632,7 +632,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name_as(Expr::col(Char::Character), "C", Alias::new("C"))
+    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("C"), Alias::new("C"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -648,7 +648,7 @@ impl SelectStatement {
     ///     r#"SELECT "character" OVER "C" AS "C" FROM "character""#
     /// );
     /// ```
-    pub fn expr_window_name_as<T, A, W>(&mut self, expr: T, window: W, alias: A) -> &mut Self
+    pub fn expr_window_name_as<T, W, A>(&mut self, expr: T, window: W, alias: A) -> &mut Self
     where
         T: Into<SimpleExpr>,
         A: IntoIden,

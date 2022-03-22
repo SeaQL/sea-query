@@ -62,37 +62,73 @@ pub struct FrameClause {
 }
 
 /// Window expression
+///
+/// # References:
+///
+/// 1. <https://dev.mysql.com/doc/refman/8.0/en/window-function-descriptions.html>
+/// 2. <https://www.sqlite.org/windowfunctions.html>
+/// 3. <https://www.postgresql.org/docs/current/tutorial-window.html>
 #[derive(Debug, Clone)]
 pub struct WindowStatement {
-    pub(crate) partition_by: (SimpleExpr, Vec<SimpleExpr>),
+    pub(crate) partition_by: Vec<SimpleExpr>,
     pub(crate) order_by: Vec<OrderExpr>,
     pub(crate) frame: Option<FrameClause>,
 }
 
+impl Default for WindowStatement {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WindowStatement {
-    /// Construct a new [`WindowStatement`] by [`SimpleExpr`]
-    pub fn expr(exp: SimpleExpr) -> Self {
+    /// Construct a new [`WindowStatement`]
+    pub fn new() -> Self {
         Self {
-            partition_by: (exp, Vec::new()),
+            partition_by: Vec::new(),
             order_by: Vec::new(),
             frame: None,
         }
     }
 
-    /// Construct a new [`WindowStatement`] by column name
-    pub fn column<T>(col: T) -> Self
+    /// Construct a new [`WindowStatement`] with PARTITION BY column
+    pub fn partition_by<T>(col: T) -> Self
     where
         T: IntoColumnRef,
     {
-        Self::expr(SimpleExpr::Column(col.into_column_ref()))
+        let mut window = Self::new();
+        window.add_partition_by(SimpleExpr::Column(col.into_column_ref()));
+        window
     }
 
-    /// Construct a new [`WindowStatement`] by custom
-    pub fn custom<T>(col: T) -> Self
+    /// Construct a new [`WindowStatement`] with PARTITION BY custom
+    pub fn partition_by_custom<T>(col: T) -> Self
     where
         T: ToString,
     {
-        Self::expr(SimpleExpr::Custom(col.to_string()))
+        let mut window = Self::new();
+        window.add_partition_by(SimpleExpr::Custom(col.to_string()));
+        window
+    }
+
+    /// Construct a new [`WindowStatement`] with ORDER BY column
+    pub fn order_by<T>(col: T, order: Order) -> Self
+        where
+            T: IntoColumnRef,
+    {
+        let mut window = Self::new();
+        window.order_by_expr(SimpleExpr::Column(col.into_column_ref()), order);
+        window
+    }
+
+    /// Construct a new [`WindowStatement`] with ORDER BY custom
+    pub fn order_by_custom<T>(col: T, order: Order) -> Self
+        where
+            T: ToString,
+    {
+        let mut window = Self::new();
+        window.order_by_expr(SimpleExpr::Custom(col.to_string()), order);
+        window
     }
 
     /// frame_start
@@ -115,7 +151,7 @@ impl WindowStatement {
 
 impl OverStatement for WindowStatement {
     fn add_partition_by(&mut self, partition: SimpleExpr) -> &mut Self {
-        self.partition_by.1.push(partition);
+        self.partition_by.push(partition);
         self
     }
 }
