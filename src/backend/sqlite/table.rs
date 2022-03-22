@@ -135,16 +135,18 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {
-        let alter_option = match &alter.alter_option {
-            Some(alter_option) => alter_option,
-            None => panic!("No alter option found"),
+        if alter.options.is_empty() {
+            panic!("No alter option found")
         };
+        if alter.options.len() > 1 {
+            panic!("Does not support multiple ALTER")
+        }
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
             table.prepare(sql, self.quote());
             write!(sql, " ").unwrap();
         }
-        match alter_option {
+        match &alter.options[0] {
             TableAlterOption::AddColumn(column_def) => {
                 write!(sql, "ADD COLUMN ").unwrap();
                 self.prepare_column_def(column_def, sql);
