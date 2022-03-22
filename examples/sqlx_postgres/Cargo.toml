@@ -11,7 +11,10 @@ serde_json = "^1"
 rust_decimal = { version = "^1" }
 bigdecimal = { version = "^0.2" }
 async-std = { version = "1.8", features = [ "attributes" ] }
-sea-query = { path = "../../", features = [
+sea-query = { path = "../../" }
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0", features = [...] }
+sea-query-binders = { path = "../../sea-query-binders", features = [
     "sqlx-postgres",
     "with-chrono",
     "with-json",
@@ -19,9 +22,8 @@ sea-query = { path = "../../", features = [
     "with-bigdecimal",
     "with-uuid",
     "with-time",
+    "postgres-array",
 ] }
-# NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "^0", features = [...] }
 
 [dependencies.sqlx]
 version = "^0.5"
