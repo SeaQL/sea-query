@@ -39,7 +39,7 @@ pub trait OverStatement {
 /// frame_start or frame_end clause
 #[derive(Debug, Clone)]
 pub enum Frame {
-    UboundedPreceding,
+    UnboundedPreceding,
     Preceding(u32),
     CurrentRow,
     Following(u32),
@@ -91,6 +91,14 @@ impl WindowStatement {
         }
     }
 
+    pub fn take(&mut self) -> Self {
+        Self {
+            partition_by: std::mem::take(&mut self.partition_by),
+            order_by: std::mem::take(&mut self.order_by),
+            frame: self.frame.take(),
+        }
+    }
+
     /// Construct a new [`WindowStatement`] with PARTITION BY column
     pub fn partition_by<T>(col: T) -> Self
     where
@@ -113,8 +121,8 @@ impl WindowStatement {
 
     /// Construct a new [`WindowStatement`] with ORDER BY column
     pub fn order_by<T>(col: T, order: Order) -> Self
-        where
-            T: IntoColumnRef,
+    where
+        T: IntoColumnRef,
     {
         let mut window = Self::new();
         window.order_by_expr(SimpleExpr::Column(col.into_column_ref()), order);
@@ -123,25 +131,82 @@ impl WindowStatement {
 
     /// Construct a new [`WindowStatement`] with ORDER BY custom
     pub fn order_by_custom<T>(col: T, order: Order) -> Self
-        where
-            T: ToString,
+    where
+        T: ToString,
     {
         let mut window = Self::new();
         window.order_by_expr(SimpleExpr::Custom(col.to_string()), order);
         window
     }
 
-    /// frame_start
+    /// frame clause for frame_start
+    /// # Examples:
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_as(
+    ///         Expr::col(Char::Character),
+    ///         WindowStatement::partition_by(Char::FontSize)
+    ///             .frame_start(FrameType::Rows, Frame::UnboundedPreceding)
+    ///             .take(),
+    ///         Alias::new("C"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ROWS UNBOUNDED PRECEDING ) AS `C` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ROWS UNBOUNDED PRECEDING ) AS "C" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ROWS UNBOUNDED PRECEDING ) AS "C" FROM "character""#
+    /// );
+    /// ```
     pub fn frame_start(&mut self, r#type: FrameType, start: Frame) -> &mut Self {
         self.frame(r#type, start, None)
     }
 
-    /// BETWEEN frame_start AND frame_end
+    /// frame clause for BETWEEN frame_start AND frame_end
+    ///
+    /// # Examples:
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_as(
+    ///         Expr::col(Char::Character),
+    ///         WindowStatement::partition_by(Char::FontSize)
+    ///             .frame_between(FrameType::Rows, Frame::UnboundedPreceding, Frame::UnboundedFollowing)
+    ///             .take(),
+    ///         Alias::new("C"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS `C` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS "C" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS "C" FROM "character""#
+    /// );
+    /// ```
     pub fn frame_between(&mut self, r#type: FrameType, start: Frame, end: Frame) -> &mut Self {
         self.frame(r#type, start, Some(end))
     }
 
-    ///
+    /// frame clause
     pub fn frame(&mut self, r#type: FrameType, start: Frame, end: Option<Frame>) -> &mut Self {
         let frame_clause = FrameClause { r#type, start, end };
         self.frame = Some(frame_clause);

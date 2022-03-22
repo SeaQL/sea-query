@@ -1203,7 +1203,7 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Translate [`Frame`] into SQL statement.
     fn prepare_frame(&self, frame: &Frame, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         match *frame {
-            Frame::UboundedPreceding => write!(sql, " UNBOUNDED PRECEDING ").unwrap(),
+            Frame::UnboundedPreceding => write!(sql, " UNBOUNDED PRECEDING ").unwrap(),
             Frame::Preceding(v) => {
                 self.prepare_value(&Some(v).into(), sql, collector);
                 write!(sql, " PRECEDING ").unwrap();

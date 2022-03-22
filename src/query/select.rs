@@ -518,20 +518,20 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character))
+    ///     .expr_window(Expr::col(Char::Character), WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER ( PARTITION BY `character` ) FROM `character`"#
+    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) FROM "character""#
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) FROM "character""#
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
     /// );
     /// ```
     pub fn expr_window<T>(&mut self, expr: T, window: WindowStatement) -> &mut Self
@@ -555,20 +555,20 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::partition_by(Char::Character), Alias::new("C"))
+    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::partition_by(Char::FontSize), Alias::new("C"))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER ( PARTITION BY `character` ) AS `C` FROM `character`"#
+    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) AS `C` FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) AS "C" FROM "character""#
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "character" ) AS "C" FROM "character""#
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
     /// );
     /// ```
     pub fn expr_window_as<T, A>(&mut self, expr: T, window: WindowStatement, alias: A) -> &mut Self
@@ -593,21 +593,21 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name(Expr::col(Char::Character), Alias::new("C"))
-    ///     .window(Alias::new("C"), WindowStatement::partition_by(Char::Character))
+    ///     .expr_window_name(Expr::col(Char::Character), Alias::new("w"))
+    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `C` FROM `character` WINDOW `C` AS PARTITION BY `character`"#
+    ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" AS PARTITION BY "character""#
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "C" FROM "character" WINDOW "C" AS PARTITION BY "character""#
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// ```
     pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
@@ -632,20 +632,21 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("C"), Alias::new("C"))
+    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("w"), Alias::new("C"))
+    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `C` AS `C` FROM `character`"#
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "C" AS "C" FROM "character""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "C" AS "C" FROM "character""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// ```
     pub fn expr_window_name_as<T, W, A>(&mut self, expr: T, window: W, alias: A) -> &mut Self
@@ -1935,8 +1936,26 @@ impl SelectStatement {
     /// # Examples:
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("w"), Alias::new("C"))
+    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
     /// ```
     pub fn window<A>(&mut self, name: A, window: WindowStatement) -> &mut Self
     where
