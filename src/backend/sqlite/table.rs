@@ -147,7 +147,7 @@ impl TableBuilder for SqliteQueryBuilder {
             write!(sql, " ").unwrap();
         }
         match &alter.options[0] {
-            TableAlterOption::AddColumn(column_def) => {
+            TableAlterOption::AddColumn(column_def, _) => {
                 write!(sql, "ADD COLUMN ").unwrap();
                 self.prepare_column_def(column_def, sql);
             }
