@@ -1252,7 +1252,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 FrameType::Rows => write!(sql, " ROWS ").unwrap(),
             };
             if let Some(end) = &frame.end {
-                write!(sql, " BETWEEN ").unwrap();
+                write!(sql, "BETWEEN ").unwrap();
                 self.prepare_frame(&frame.start, sql, collector);
                 write!(sql, " AND ").unwrap();
                 self.prepare_frame(end, sql, collector);
