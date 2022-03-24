@@ -59,6 +59,8 @@ pub trait QueryBuilder: QuotedBuilder {
             }
         }
 
+        self.prepare_on_conflict(&insert.on_conflict, sql, collector);
+
         self.prepare_returning(&insert.returning, sql, collector);
     }
 
@@ -1077,6 +1079,101 @@ pub trait QueryBuilder: QuotedBuilder {
             .unwrap(),
         };
         s
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT expression
+    fn prepare_on_conflict(
+        &self,
+        on_conflict: &Option<OnConflict>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if let Some(on_conflict) = on_conflict {
+            self.prepare_on_conflict_keywords(sql, collector);
+            self.prepare_on_conflict_target(&on_conflict.target, sql, collector);
+            self.prepare_on_conflict_action(&on_conflict.action, sql, collector);
+        }
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT target
+    fn prepare_on_conflict_target(
+        &self,
+        on_conflict_target: &Option<OnConflictTarget>,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        if let Some(target) = on_conflict_target {
+            match target {
+                OnConflictTarget::ConflictColumns(columns) => {
+                    write!(sql, "(").unwrap();
+                    columns.iter().fold(true, |first, col| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        col.prepare(sql, self.quote());
+                        false
+                    });
+                    write!(sql, ")").unwrap();
+                }
+            }
+        }
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT action
+    fn prepare_on_conflict_action(
+        &self,
+        on_conflict_action: &Option<OnConflictAction>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if let Some(action) = on_conflict_action {
+            match action {
+                OnConflictAction::UpdateColumns(columns) => {
+                    self.prepare_on_conflict_do_update_keywords(sql, collector);
+                    columns.iter().fold(true, |first, col| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        col.prepare(sql, self.quote());
+                        write!(sql, " = ").unwrap();
+                        self.prepare_on_conflict_excluded_table(col, sql, collector);
+                        false
+                    });
+                }
+            }
+        }
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT keywords
+    fn prepare_on_conflict_keywords(&self, sql: &mut SqlWriter, _: &mut dyn FnMut(Value)) {
+        write!(sql, " ON CONFLICT ").unwrap();
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT keywords
+    fn prepare_on_conflict_do_update_keywords(
+        &self,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, " DO UPDATE SET ").unwrap();
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT update action by retrieving value from the excluded table
+    fn prepare_on_conflict_excluded_table(
+        &self,
+        col: &DynIden,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "{0}excluded{0}", self.quote()).unwrap();
+        write!(sql, ".").unwrap();
+        col.prepare(sql, self.quote());
     }
 
     #[doc(hidden)]

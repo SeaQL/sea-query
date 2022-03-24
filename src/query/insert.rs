@@ -1,5 +1,5 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict, Query,
     QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
     SubQueryStatement, WithClause, WithQuery,
 };
@@ -47,6 +47,7 @@ pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) source: Option<InsertValueSource>,
+    pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Vec<SelectExpr>,
 }
 
@@ -288,6 +289,45 @@ impl InsertStatement {
         I: IntoIterator<Item = SimpleExpr>,
     {
         self.exprs(values).unwrap()
+    }
+
+    /// ON CONFLICT expression
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .values_panic(vec![
+    ///         2.into(),
+    ///         3.into(),
+    ///     ])
+    ///     .on_conflict(
+    ///         OnConflict::column(Glyph::Id)
+    ///             .update_columns([Glyph::Aspect, Glyph::Image])
+    ///             .to_owned(),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
+    /// );
+    /// ```
+    pub fn on_conflict(&mut self, on_conflict: OnConflict) -> &mut Self {
+        self.on_conflict = Some(on_conflict);
+        self
     }
 
     /// RETURNING expressions.

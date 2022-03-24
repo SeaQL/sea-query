@@ -58,4 +58,36 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         // MySQL doesn't support declaring materialization in SQL for with query.
     }
+
+    fn prepare_on_conflict_target(
+        &self,
+        _: &Option<OnConflictTarget>,
+        _: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        // MySQL doesn't support declaring ON CONFLICT target.
+    }
+
+    fn prepare_on_conflict_keywords(&self, sql: &mut SqlWriter, _: &mut dyn FnMut(Value)) {
+        write!(sql, " ON DUPLICATE KEY ").unwrap();
+    }
+
+    fn prepare_on_conflict_do_update_keywords(
+        &self,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, " UPDATE ").unwrap();
+    }
+
+    fn prepare_on_conflict_excluded_table(
+        &self,
+        col: &DynIden,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "VALUES(").unwrap();
+        col.prepare(sql, self.quote());
+        write!(sql, ")").unwrap();
+    }
 }
