@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.24.0 - Not yet
 
 * Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
+* Add support for multiple `ALTER` operations https://github.com/SeaQL/sea-query/pull/277
 
 ## 0.23.0 - 2022-03-15
 
