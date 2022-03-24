@@ -220,14 +220,13 @@ async fn main() {
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
-        .limit(1)
         .build(MysqlQueryBuilder);
 
     let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
-    println!("Select one from character:");
+    println!("Select all characters:");
     for row in rows.iter() {
         println!("{:?}", row);
     }
@@ -237,7 +236,7 @@ async fn main() {
         .fetch_all(&mut pool)
         .await
         .unwrap();
-    println!("Select one from character:");
+    println!("Select all characters:");
     for row in rows.iter() {
         println!("{:?}", row);
     }
