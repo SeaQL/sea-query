@@ -64,6 +64,7 @@ pub enum SelectDistinct {
 }
 
 /// Window type in [`SelectExpr`]
+#[derive(Debug, Clone)]
 pub enum WindowSelectType {
     /// Name in [`SelectStatement`]
     Name(DynIden),
