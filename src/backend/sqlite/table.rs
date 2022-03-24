@@ -138,9 +138,6 @@ impl TableBuilder for SqliteQueryBuilder {
         if alter.options.is_empty() {
             panic!("No alter option found")
         };
-        if alter.options.len() > 1 {
-            panic!("Does not support multiple ALTER")
-        }
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
             table.prepare(sql, self.quote());

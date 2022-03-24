@@ -275,7 +275,6 @@ fn alter_6() {
 }
 
 #[test]
-#[should_panic(expected = "Does not support multiple ALTER")]
 fn alter_7() {
     let _ = Table::alter()
         .table(Font::Table)
