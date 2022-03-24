@@ -33,7 +33,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaState
 #[derive(Debug, Clone)]
 pub struct TableAlterStatement {
     pub(crate) table: Option<DynIden>,
-    pub(crate) alter_option: Option<TableAlterOption>,
+    pub(crate) options: Vec<TableAlterOption>,
 }
 
 /// All available table alter options
@@ -56,7 +56,7 @@ impl TableAlterStatement {
     pub fn new() -> Self {
         Self {
             table: None,
-            alter_option: None,
+            options: Vec::new(),
         }
     }
 
@@ -100,7 +100,9 @@ impl TableAlterStatement {
     /// );
     /// ```
     pub fn add_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
-        self.alter_option(TableAlterOption::AddColumn(column_def.take()))
+        self.options
+            .push(TableAlterOption::AddColumn(column_def.take()));
+        self
     }
 
     /// Modify a column in an existing table
@@ -135,7 +137,7 @@ impl TableAlterStatement {
     /// // Sqlite not support modifying table column
     /// ```
     pub fn modify_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
-        self.alter_option(TableAlterOption::ModifyColumn(column_def.take()))
+        self.add_alter_option(TableAlterOption::ModifyColumn(column_def.take()))
     }
 
     /// Rename a column in an existing table
@@ -168,7 +170,7 @@ impl TableAlterStatement {
         T: Iden,
         R: Iden,
     {
-        self.alter_option(TableAlterOption::RenameColumn(
+        self.add_alter_option(TableAlterOption::RenameColumn(
             SeaRc::new(from_name),
             SeaRc::new(to_name),
         ))
@@ -200,18 +202,18 @@ impl TableAlterStatement {
     where
         T: Iden,
     {
-        self.alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
+        self.add_alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
     }
 
-    fn alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
-        self.alter_option = Some(alter_option);
+    fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
+        self.options.push(alter_option);
         self
     }
 
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
-            alter_option: self.alter_option.take(),
+            options: std::mem::take(&mut self.options),
         }
     }
 }

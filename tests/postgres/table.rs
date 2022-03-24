@@ -327,3 +327,15 @@ fn alter_5() {
 fn alter_6() {
     Table::alter().to_string(PostgresQueryBuilder);
 }
+
+#[test]
+fn alter_7() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .add_column(ColumnDef::new(Alias::new("new_col")).integer())
+            .rename_column(Font::Name, Alias::new("name_new"))
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "font" ADD COLUMN "new_col" integer, RENAME COLUMN "name" TO "name_new""#
+    );
+}

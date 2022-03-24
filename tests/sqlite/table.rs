@@ -273,3 +273,13 @@ fn alter_5() {
 fn alter_6() {
     Table::alter().to_string(SqliteQueryBuilder);
 }
+
+#[test]
+#[should_panic(expected = "Does not support multiple ALTER")]
+fn alter_7() {
+    let _ = Table::alter()
+        .table(Font::Table)
+        .add_column(ColumnDef::new(Alias::new("new_col")).integer())
+        .rename_column(Font::Name, Alias::new("name_new"))
+        .to_string(SqliteQueryBuilder);
+}
