@@ -8,7 +8,6 @@ use crate::{
     QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement, WithClause,
     WithQuery,
 };
-use either::Either;
 
 /// Select rows from an existing table
 ///
@@ -64,12 +63,20 @@ pub enum SelectDistinct {
     DistinctRow,
 }
 
+/// Window type in [`SelectExpr`]
+pub enum WindowSelectType {
+    /// Name in [`SelectStatement`]
+    Name(DynIden),
+    /// Inline query in [`SelectExpr`]
+    Query(WindowStatement),
+}
+
 /// Select expression used in select statement
 #[derive(Debug, Clone)]
 pub struct SelectExpr {
     pub expr: SimpleExpr,
     pub alias: Option<DynIden>,
-    pub window: Option<Either<DynIden, WindowStatement>>,
+    pub window: Option<WindowSelectType>,
 }
 
 /// Join expression used in select statement
@@ -541,7 +548,7 @@ impl SelectStatement {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: None,
-            window: Some(Either::Right(window)),
+            window: Some(WindowSelectType::Query(window)),
         });
         self
     }
@@ -579,7 +586,7 @@ impl SelectStatement {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: Some(alias.into_iden()),
-            window: Some(Either::Right(window)),
+            window: Some(WindowSelectType::Query(window)),
         });
         self
     }
@@ -618,7 +625,7 @@ impl SelectStatement {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: None,
-            window: Some(Either::Left(window.into_iden())),
+            window: Some(WindowSelectType::Name(window.into_iden())),
         });
         self
     }
@@ -658,7 +665,7 @@ impl SelectStatement {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: Some(alias.into_iden()),
-            window: Some(Either::Left(window.into_iden())),
+            window: Some(WindowSelectType::Name(window.into_iden())),
         });
         self
     }

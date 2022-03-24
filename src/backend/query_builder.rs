@@ -1,5 +1,4 @@
 use crate::*;
-use either::Either;
 use std::ops::Deref;
 
 pub trait QueryBuilder: QuotedBuilder {
@@ -423,11 +422,11 @@ pub trait QueryBuilder: QuotedBuilder {
     ) {
         self.prepare_simple_expr(&select_expr.expr, sql, collector);
         match &select_expr.window {
-            Some(Either::Left(name)) => {
+            Some(WindowSelectType::Name(name)) => {
                 write!(sql, " OVER ").unwrap();
                 name.prepare(sql, self.quote())
             }
-            Some(Either::Right(window)) => {
+            Some(WindowSelectType::Query(window)) => {
                 write!(sql, " OVER ").unwrap();
                 write!(sql, "( ").unwrap();
                 self.prepare_window_statement(window, sql, collector);
