@@ -36,10 +36,17 @@ pub struct TableAlterStatement {
     pub(crate) options: Vec<TableAlterOption>,
 }
 
+/// table alter add column options
+#[derive(Debug, Clone)]
+pub struct AddColumnOption {
+    pub(crate) column: ColumnDef,
+    pub(crate) if_not_exists: bool,
+}
+
 /// All available table alter options
 #[derive(Debug, Clone)]
 pub enum TableAlterOption {
-    AddColumn(ColumnDef, bool),
+    AddColumn(AddColumnOption),
     ModifyColumn(ColumnDef),
     RenameColumn(DynIden, DynIden),
     DropColumn(DynIden),
@@ -101,7 +108,10 @@ impl TableAlterStatement {
     /// ```
     pub fn add_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
         self.options
-            .push(TableAlterOption::AddColumn(column_def.take(), false));
+            .push(TableAlterOption::AddColumn(AddColumnOption {
+                column: column_def.take(),
+                if_not_exists: false,
+            }));
         self
     }
 
@@ -137,7 +147,10 @@ impl TableAlterStatement {
     /// ```
     pub fn add_column_if_not_exists(&mut self, column_def: &mut ColumnDef) -> &mut Self {
         self.options
-            .push(TableAlterOption::AddColumn(column_def.take(), true));
+            .push(TableAlterOption::AddColumn(AddColumnOption {
+                column: column_def.take(),
+                if_not_exists: true,
+            }));
         self
     }
 

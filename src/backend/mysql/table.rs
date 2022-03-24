@@ -134,12 +134,12 @@ impl TableBuilder for MysqlQueryBuilder {
                 write!(sql, ", ").unwrap();
             };
             match option {
-                TableAlterOption::AddColumn(column_def, if_not_exists) => {
+                TableAlterOption::AddColumn(AddColumnOption {
+                    column,
+                    if_not_exists: _,
+                }) => {
                     write!(sql, "ADD COLUMN ").unwrap();
-                    if *if_not_exists {
-                        write!(sql, "IF NOT EXISTS ").unwrap();
-                    }
-                    self.prepare_column_def(column_def, sql);
+                    self.prepare_column_def(column, sql);
                 }
                 TableAlterOption::ModifyColumn(column_def) => {
                     write!(sql, "MODIFY COLUMN ").unwrap();
