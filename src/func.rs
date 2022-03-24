@@ -18,6 +18,8 @@ pub enum Function {
     Cast,
     Custom(DynIden),
     Coalesce,
+    Lower,
+    Upper,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -364,5 +366,71 @@ impl Func {
         I: IntoIterator<Item = T>,
     {
         Expr::func(Function::Coalesce).args(args)
+    }
+
+    /// Call `LOWER` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::tests_cfg::Character::Character;
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::lower(Expr::col(Char::Character)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT LOWER(`character`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT LOWER("character") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT LOWER("character") FROM "character""#
+    /// );
+    /// ```
+    pub fn lower<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::Lower).arg(expr)
+    }
+
+    /// Call `UPPER` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::tests_cfg::Character::Character;
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::upper(Expr::col(Char::Character)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT UPPER(`character`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT UPPER("character") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT UPPER("character") FROM "character""#
+    /// );
+    /// ```
+    pub fn upper<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::Upper).arg(expr)
     }
 }
