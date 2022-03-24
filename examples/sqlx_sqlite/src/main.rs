@@ -1,5 +1,5 @@
 use chrono::{NaiveDate, NaiveDateTime};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table};
 use sqlx::{sqlite::SqliteRow, Row, SqlitePool};
 use time::{date, time, PrimitiveDateTime};
 
@@ -168,6 +168,61 @@ async fn main() {
 
     let count: i64 = row.try_get(0).unwrap();
     println!("Count character: {}\n", count);
+
+    // Upsert
+    let (sql, values) = Query::insert()
+        .into_table(Character::Table)
+        .columns(vec![
+            Character::Id,
+            Character::FontSize,
+            Character::Character,
+        ])
+        .values_panic(vec![1.into(), 16.into(), "B".into()])
+        .values_panic(vec![2.into(), 24.into(), "C".into()])
+        .on_conflict(
+            OnConflict::column(Character::Id)
+                .update_columns([Character::FontSize, Character::Character])
+                .to_owned(),
+        )
+        .build(SqliteQueryBuilder);
+
+    let result = bind_query(sqlx::query(&sql), &values).execute(&pool).await;
+    println!("Insert into character (with upsert): {:?}\n", result);
+
+    // Read
+    let (sql, values) = Query::select()
+        .columns(vec![
+            Character::Id,
+            Character::Uuid,
+            Character::Character,
+            Character::FontSize,
+            Character::Meta,
+            Character::Created,
+        ])
+        .from(Character::Table)
+        .order_by(Character::Id, Order::Desc)
+        .limit(1)
+        .build(SqliteQueryBuilder);
+
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        println!("{:?}\n", row);
+    }
+
+    let rows = bind_query(sqlx::query(&sql), &values)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        let item = CharacterStructTime::try_from(row).unwrap();
+        println!("{:?}", item);
+    }
+    println!();
 
     // Delete
     let (sql, values) = Query::delete()

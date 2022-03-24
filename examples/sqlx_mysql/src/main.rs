@@ -1,7 +1,7 @@
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table};
+use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
 use sqlx::{types::chrono::NaiveDateTime, MySqlPool, Row};
 use time::{date, time, PrimitiveDateTime};
 
@@ -142,6 +142,68 @@ async fn main() {
         .execute(&mut pool)
         .await;
     println!("Update character: {:?}\n", result);
+
+    // Read
+
+    let (sql, values) = Query::select()
+        .columns(vec![
+            Character::Id,
+            Character::Uuid,
+            Character::Character,
+            Character::FontSize,
+            Character::Meta,
+            Character::Decimal,
+            Character::BigDecimal,
+            Character::Created,
+        ])
+        .from(Character::Table)
+        .order_by(Character::Id, Order::Desc)
+        .limit(1)
+        .build(MysqlQueryBuilder);
+
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+        .fetch_all(&mut pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        println!("{:?}", row);
+    }
+    println!();
+
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructTime>(&sql), &values)
+        .fetch_all(&mut pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        println!("{:?}", row);
+    }
+    println!();
+
+    // Upsert
+
+    let (sql, values) = Query::insert()
+        .into_table(Character::Table)
+        .columns(vec![
+            Character::Id,
+            Character::FontSize,
+            Character::Character,
+        ])
+        .values_panic(vec![1.into(), 16.into(), "B".into()])
+        .values_panic(vec![2.into(), 24.into(), "C".into()])
+        .on_conflict(
+            OnConflict::new()
+                .update_columns([Character::FontSize, Character::Character])
+                .to_owned(),
+        )
+        .build(MysqlQueryBuilder);
+
+    let result = bind_query(sqlx::query(&sql), &values)
+        .execute(&mut pool)
+        .await;
+    println!("Insert into character (with upsert): {:?}\n", result);
+    let id = result.unwrap().last_insert_id();
 
     // Read
 
