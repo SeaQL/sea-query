@@ -295,36 +295,9 @@ impl InsertStatement {
     ///
     /// # Examples
     ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
-    ///     .values_panic(vec![
-    ///         2.into(),
-    ///         3.into(),
-    ///     ])
-    ///     .on_conflict(
-    ///         OnConflict::column(Glyph::Id)
-    ///             .update_columns([Glyph::Aspect, Glyph::Image])
-    ///             .to_owned(),
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
-    /// );
-    /// ```
+    /// - [`OnConflict::update_columns`]: Update column value of existing row with inserting value
+    /// - [`OnConflict::update_values`]: Update column value of existing row with value
+    /// - [`OnConflict::update_exprs`]: Update column value of existing row with expression
     pub fn on_conflict(&mut self, on_conflict: OnConflict) -> &mut Self {
         self.on_conflict = Some(on_conflict);
         self

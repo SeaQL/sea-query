@@ -1143,6 +1143,18 @@ pub trait QueryBuilder: QuotedBuilder {
                         false
                     });
                 }
+                OnConflictAction::UpdateExprs(column_exprs) => {
+                    self.prepare_on_conflict_do_update_keywords(sql, collector);
+                    column_exprs.iter().fold(true, |first, (col, expr)| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        col.prepare(sql, self.quote());
+                        write!(sql, " = ").unwrap();
+                        self.prepare_simple_expr(expr, sql, collector);
+                        false
+                    });
+                }
             }
         }
     }
