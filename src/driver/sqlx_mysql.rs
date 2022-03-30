@@ -33,39 +33,35 @@ macro_rules! bind_params_sqlx_mysql {
                 Value::Double(v) => bind!(v, f64),
                 Value::String(v) => bind_box!(v, String),
                 Value::Bytes(v) => bind_box!(v, Vec<u8>),
-                _ => {
-                    if value.is_json() {
-                        query.bind(value.as_ref_json())
-                    } else if value.is_chrono_date() {
-                        query.bind(value.as_ref_chrono_date())
-                    } else if value.is_chrono_time() {
-                        query.bind(value.as_ref_chrono_time())
-                    } else if value.is_chrono_date_time() {
-                        query.bind(value.as_ref_chrono_date_time())
-                    } else if value.is_chrono_date_time_utc() {
-                        query.bind(value.as_ref_chrono_date_time_utc())
-                    } else if value.is_chrono_date_time_local() {
-                        query.bind(value.as_ref_chrono_date_time_local())
-                    } else if value.is_chrono_date_time_with_time_zone() {
-                        query.bind(value.chrono_as_naive_utc_in_string())
-                    } else if value.is_time_date() {
-                        query.bind(value.as_ref_time_date())
-                    } else if value.is_time_time() {
-                        query.bind(value.as_ref_time_time())
-                    } else if value.is_time_date_time() {
-                        query.bind(value.as_ref_time_date_time())
-                    } else if value.is_time_date_time_with_time_zone() {
-                        query.bind(value.time_as_naive_utc_in_string())
-                    } else if value.is_decimal() {
-                        query.bind(value.as_ref_decimal())
-                    } else if value.is_big_decimal() {
-                        query.bind(value.as_ref_big_decimal())
-                    } else if value.is_uuid() {
-                        query.bind(value.as_ref_uuid())
-                    } else {
-                        unimplemented!();
-                    }
-                }
+                #[cfg(feature = "with-json")]
+                Value::Json(v) => query.bind(v),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDate(v) => query.bind(v),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoTime(v) => query.bind(v),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTime(v) => query.bind(v),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTimeUtc(v) => query.bind(v),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTimeLocal(v) => query.bind(v),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTimeWithTimeZone(v) => query.bind(v),
+                #[cfg(feature = "with-time")]
+                Value::TimeDate(v) => query.bind(v),
+                #[cfg(feature = "with-time")]
+                Value::TimeTime(v) => query.bind(v),
+                #[cfg(feature = "with-time")]
+                Value::TimeDateTime(v) => query.bind(v),
+                #[cfg(feature = "with-time")]
+                Value::TimeDateTimeWithTimeZone(v) => query.bind(v),
+                #[cfg(feature = "with-uuid")]
+                Value::Uuid(v) => query.bind(v),
+                #[cfg(feature = "with-rust_decimal")]
+                Value::Decimal(v) => query.bind(v),
+                #[cfg(feature = "with-bigdecimal")]
+                Value::BigDecimal(v) => query.bind(v),
+                _ => unimplemented!(),
             };
         }
         query

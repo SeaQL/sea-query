@@ -591,10 +591,6 @@ impl Value {
             _ => panic!("not Value::Json"),
         }
     }
-    #[cfg(not(feature = "with-json"))]
-    pub fn as_ref_json(&self) -> Option<&bool> {
-        panic!("not Value::Json")
-    }
 }
 
 impl Value {
@@ -610,10 +606,6 @@ impl Value {
             Self::ChronoDate(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::ChronoDate"),
         }
-    }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_chrono_date(&self) -> Option<&bool> {
-        panic!("not Value::ChronoDate")
     }
 }
 
@@ -631,10 +623,6 @@ impl Value {
             _ => panic!("not Value::TimeDate"),
         }
     }
-    #[cfg(not(feature = "with-time"))]
-    pub fn as_ref_time_date(&self) -> Option<&bool> {
-        panic!("not Value::TimeDate")
-    }
 }
 
 impl Value {
@@ -650,10 +638,6 @@ impl Value {
             Self::ChronoTime(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::ChronoTime"),
         }
-    }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_chrono_time(&self) -> Option<&bool> {
-        panic!("not Value::ChronoTime")
     }
 }
 
@@ -671,10 +655,6 @@ impl Value {
             _ => panic!("not Value::TimeTime"),
         }
     }
-    #[cfg(not(feature = "with-time"))]
-    pub fn as_ref_time_time(&self) -> Option<&bool> {
-        panic!("not Value::TimeTime")
-    }
 }
 
 impl Value {
@@ -690,10 +670,6 @@ impl Value {
             Self::ChronoDateTime(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::ChronoDateTime"),
         }
-    }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_chrono_date_time(&self) -> Option<&bool> {
-        panic!("not Value::ChronoDateTime")
     }
 }
 
@@ -711,10 +687,6 @@ impl Value {
             _ => panic!("not Value::TimeDateTime"),
         }
     }
-    #[cfg(not(feature = "with-time"))]
-    pub fn as_ref_time_date_time(&self) -> Option<&bool> {
-        panic!("not Value::TimeDateTime")
-    }
 }
 
 impl Value {
@@ -730,10 +702,6 @@ impl Value {
             Self::ChronoDateTimeUtc(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::ChronoDateTimeUtc"),
         }
-    }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_chrono_date_time_utc(&self) -> Option<&bool> {
-        panic!("not Value::ChronoDateTimeUtc")
     }
 }
 
@@ -751,10 +719,6 @@ impl Value {
             _ => panic!("not Value::ChronoDateTimeLocal"),
         }
     }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_chrono_date_time_local(&self) -> Option<&bool> {
-        panic!("not Value::ChronoDateTimeLocal")
-    }
 }
 
 impl Value {
@@ -770,10 +734,6 @@ impl Value {
             Self::ChronoDateTimeWithTimeZone(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::ChronoDateTimeWithTimeZone"),
         }
-    }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&bool> {
-        panic!("not Value::ChronoDateTimeWithTimeZone")
     }
 }
 
@@ -791,10 +751,6 @@ impl Value {
             _ => panic!("not Value::TimeDateTimeWithTimeZone"),
         }
     }
-    #[cfg(not(feature = "with-time"))]
-    pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&bool> {
-        panic!("not Value::TimeDateTimeWithTimeZone")
-    }
 }
 
 impl Value {
@@ -810,10 +766,6 @@ impl Value {
             _ => panic!("not chrono Value"),
         }
     }
-    #[cfg(not(feature = "with-chrono"))]
-    pub fn chrono_as_naive_utc_in_string(&self) -> Option<&bool> {
-        panic!("not chrono Value")
-    }
 }
 
 impl Value {
@@ -828,10 +780,6 @@ impl Value {
                 .map(|v| v.to_offset(offset!(+0)).format("%Y-%m-%d %H:%M:%S")),
             _ => panic!("not time Value"),
         }
-    }
-    #[cfg(not(feature = "with-time"))]
-    pub fn time_as_naive_utc_in_string(&self) -> Option<&bool> {
-        panic!("not time Value")
     }
 }
 
@@ -854,14 +802,6 @@ impl Value {
         use rust_decimal::prelude::ToPrimitive;
         self.as_ref_decimal().map(|d| d.to_f64().unwrap())
     }
-    #[cfg(not(feature = "with-rust_decimal"))]
-    pub fn as_ref_decimal(&self) -> Option<&bool> {
-        panic!("not Value::Decimal")
-    }
-    #[cfg(not(feature = "with-rust_decimal"))]
-    pub fn decimal_to_f64(&self) -> Option<f64> {
-        None
-    }
 }
 
 impl Value {
@@ -883,14 +823,6 @@ impl Value {
         use bigdecimal::ToPrimitive;
         self.as_ref_big_decimal().map(|d| d.to_f64().unwrap())
     }
-    #[cfg(not(feature = "with-bigdecimal"))]
-    pub fn as_ref_big_decimal(&self) -> Option<&bool> {
-        panic!("not Value::BigDecimal")
-    }
-    #[cfg(not(feature = "with-bigdecimal"))]
-    pub fn big_decimal_to_f64(&self) -> Option<f64> {
-        None
-    }
 }
 
 impl Value {
@@ -906,10 +838,6 @@ impl Value {
             Self::Uuid(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Uuid"),
         }
-    }
-    #[cfg(not(feature = "with-uuid"))]
-    pub fn as_ref_uuid(&self) -> Option<&bool> {
-        panic!("not Value::Uuid")
     }
 }
 
@@ -927,10 +855,6 @@ impl Value {
             Self::Array(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Array"),
         }
-    }
-    #[cfg(not(feature = "postgres-array"))]
-    pub fn as_ref_array(&self) -> Option<&bool> {
-        panic!("not Value::Array")
     }
 }
 
