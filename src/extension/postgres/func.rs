@@ -12,8 +12,11 @@ pub enum PgFunction {
     WebsearchToTsquery,
     TsRank,
     TsRankCd,
+    #[cfg(feature = "postgres-array")]
     Any,
+    #[cfg(feature = "postgres-array")]
     Some,
+    #[cfg(feature = "postgres-array")]
     All,
 }
 
@@ -249,6 +252,7 @@ impl PgFunc {
     ///     r#"SELECT ANY('{0,1}')"#
     /// );
     /// ```
+    #[cfg(feature = "postgres-array")]
     pub fn any<T>(expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -272,6 +276,7 @@ impl PgFunc {
     ///     r#"SELECT SOME('{0,1}')"#
     /// );
     /// ```
+    #[cfg(feature = "postgres-array")]
     pub fn some<T>(expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -295,6 +300,7 @@ impl PgFunc {
     ///     r#"SELECT ALL('{0,1}')"#
     /// );
     /// ```
+    #[cfg(feature = "postgres-array")]
     pub fn all<T>(expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
