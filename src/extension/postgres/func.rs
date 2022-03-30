@@ -12,6 +12,9 @@ pub enum PgFunction {
     WebsearchToTsquery,
     TsRank,
     TsRankCd,
+    Any,
+    Some,
+    All,
 }
 
 /// Function call helper.
@@ -228,5 +231,74 @@ impl PgFunc {
         T: Into<SimpleExpr>,
     {
         Expr::func(Function::PgFunction(PgFunction::TsRankCd)).args(vec![vector, query])
+    }
+
+    /// Call `ANY` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::any(Expr::val(vec![0, 1])))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT ANY('{0,1}')"#
+    /// );
+    /// ```
+    pub fn any<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::PgFunction(PgFunction::Any)).arg(expr)
+    }
+
+    /// Call `SOME` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::some(Expr::val(vec![0, 1])))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT SOME('{0,1}')"#
+    /// );
+    /// ```
+    pub fn some<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::PgFunction(PgFunction::Some)).arg(expr)
+    }
+
+    /// Call `ALL` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::all(Expr::val(vec![0, 1])))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT ALL('{0,1}')"#
+    /// );
+    /// ```
+    pub fn all<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::PgFunction(PgFunction::All)).arg(expr)
     }
 }
