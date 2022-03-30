@@ -50,7 +50,7 @@ pub struct SelectStatement {
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
-    pub(crate) lock: Option<LockType>,
+    pub(crate) lock: Option<Lock>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -80,8 +80,24 @@ pub struct JoinExpr {
 /// List of lock types that can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LockType {
-    Shared,
-    Exclusive,
+    Update,
+    NoKeyUpdate,
+    Share,
+    KeyShare,
+}
+
+/// List of lock behavior can be used in select statement
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LockBehavior {
+    Nowait,
+    SkipLocked,
+}
+
+#[derive(Debug, Clone)]
+pub struct Lock {
+    pub(crate) r#type: LockType,
+    pub(crate) tables: Vec<TableRef>,
+    pub(crate) behavior: Option<LockBehavior>,
 }
 
 /// List of union types that can be used in union clause
@@ -1532,7 +1548,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::FontId).eq(5))
-    ///     .lock(LockType::Exclusive)
+    ///     .lock(LockType::Update)
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1548,8 +1564,133 @@ impl SelectStatement {
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
-    pub fn lock(&mut self, lock_type: LockType) -> &mut Self {
-        self.lock = Some(lock_type);
+    pub fn lock(&mut self, r#type: LockType) -> &mut Self {
+        self.lock = Some(Lock {
+            r#type,
+            tables: Vec::new(),
+            behavior: None,
+        });
+        self
+    }
+
+    /// Row locking with tables (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_with_tables(LockType::Update, vec![Glyph::Table])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE OF `glyph`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE OF "glyph""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
+    /// );
+    /// ```
+    pub fn lock_with_tables<T, I>(&mut self, r#type: LockType, tables: I) -> &mut Self
+    where
+        T: IntoTableRef,
+        I: IntoIterator<Item = T>,
+    {
+        self.lock = Some(Lock {
+            r#type,
+            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            behavior: None,
+        });
+        self
+    }
+
+    /// Row locking with behavior (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_with_behavior(LockType::Update, LockBehavior::Nowait)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
+    /// );
+    /// ```
+    pub fn lock_with_behavior(&mut self, r#type: LockType, behavior: LockBehavior) -> &mut Self {
+        self.lock = Some(Lock {
+            r#type,
+            tables: Vec::new(),
+            behavior: Some(behavior),
+        });
+        self
+    }
+
+    /// Row locking with tables and behavior (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_with_tables_behavior(LockType::Update, vec![Glyph::Table], LockBehavior::Nowait)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE OF `glyph` NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE OF "glyph" NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
+    /// );
+    /// ```
+    pub fn lock_with_tables_behavior<T, I>(
+        &mut self,
+        r#type: LockType,
+        tables: I,
+        behavior: LockBehavior,
+    ) -> &mut Self
+    where
+        T: IntoTableRef,
+        I: IntoIterator<Item = T>,
+    {
+        self.lock = Some(Lock {
+            r#type,
+            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            behavior: Some(behavior),
+        });
         self
     }
 
@@ -1581,8 +1722,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn lock_shared(&mut self) -> &mut Self {
-        self.lock = Some(LockType::Shared);
-        self
+        self.lock(LockType::Share)
     }
 
     /// Exclusive row locking (if supported).
@@ -1613,8 +1753,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn lock_exclusive(&mut self) -> &mut Self {
-        self.lock = Some(LockType::Exclusive);
-        self
+        self.lock(LockType::Update)
     }
 
     /// Union with another SelectStatement that must have the same selected fields.

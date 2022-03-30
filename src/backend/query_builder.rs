@@ -391,19 +391,37 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(
         &self,
-        select_lock: &LockType,
+        lock: &Lock,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Value),
     ) {
         write!(
             sql,
-            "{}",
-            match select_lock {
-                LockType::Shared => "FOR SHARE",
-                LockType::Exclusive => "FOR UPDATE",
+            "FOR {}",
+            match lock.r#type {
+                LockType::Update => "UPDATE",
+                LockType::NoKeyUpdate => "NO KEY UPDATE",
+                LockType::Share => "SHARE",
+                LockType::KeyShare => "KEY SHARE",
             }
         )
         .unwrap();
+        if !lock.tables.is_empty() {
+            write!(sql, " OF ").unwrap();
+            lock.tables.iter().fold(true, |first, table_ref| {
+                if !first {
+                    write!(sql, ", ").unwrap();
+                }
+                self.prepare_table_ref(table_ref, sql, collector);
+                false
+            });
+        }
+        if let Some(behavior) = lock.behavior {
+            match behavior {
+                LockBehavior::Nowait => write!(sql, " NOWAIT").unwrap(),
+                LockBehavior::SkipLocked => write!(sql, " SKIP LOCKED").unwrap(),
+            }
+        }
     }
 
     /// Translate [`SelectExpr`] into SQL statement.
