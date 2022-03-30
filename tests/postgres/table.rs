@@ -233,6 +233,26 @@ fn create_10() {
 }
 
 #[test]
+fn create_11() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(
+                ColumnDef::new(Char::CreatedAt)
+                    .timestamp_with_time_zone_len(0)
+                    .not_null()
+            )
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "character" ("#,
+            r#""created_at" timestamp(0) with time zone NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
