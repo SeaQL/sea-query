@@ -50,7 +50,7 @@ pub struct SelectStatement {
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
-    pub(crate) lock: Option<Lock>,
+    pub(crate) lock: Option<LockClause>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -94,7 +94,7 @@ pub enum LockBehavior {
 }
 
 #[derive(Debug, Clone)]
-pub struct Lock {
+pub struct LockClause {
     pub(crate) r#type: LockType,
     pub(crate) tables: Vec<TableRef>,
     pub(crate) behavior: Option<LockBehavior>,
@@ -1565,7 +1565,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn lock(&mut self, r#type: LockType) -> &mut Self {
-        self.lock = Some(Lock {
+        self.lock = Some(LockClause {
             r#type,
             tables: Vec::new(),
             behavior: None,
@@ -1605,7 +1605,7 @@ impl SelectStatement {
         T: IntoTableRef,
         I: IntoIterator<Item = T>,
     {
-        self.lock = Some(Lock {
+        self.lock = Some(LockClause {
             r#type,
             tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
             behavior: None,
@@ -1641,7 +1641,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn lock_with_behavior(&mut self, r#type: LockType, behavior: LockBehavior) -> &mut Self {
-        self.lock = Some(Lock {
+        self.lock = Some(LockClause {
             r#type,
             tables: Vec::new(),
             behavior: Some(behavior),
@@ -1686,7 +1686,7 @@ impl SelectStatement {
         T: IntoTableRef,
         I: IntoIterator<Item = T>,
     {
-        self.lock = Some(Lock {
+        self.lock = Some(LockClause {
             r#type,
             tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
             behavior: Some(behavior),

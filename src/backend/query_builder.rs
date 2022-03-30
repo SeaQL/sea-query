@@ -391,7 +391,7 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(
         &self,
-        lock: &Lock,
+        lock: &LockClause,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
