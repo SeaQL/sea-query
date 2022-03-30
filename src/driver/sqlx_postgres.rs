@@ -63,6 +63,8 @@ macro_rules! bind_params_sqlx_postgres {
                 Value::BigDecimal(v) => query.bind(v),
                 #[cfg(feature = "postgres-array")]
                 Value::Array(_) => unimplemented!("SQLx array is not supported"),
+                #[allow(unreachable_patterns)]
+                _ => unimplemented!(),
             };
         }
         query

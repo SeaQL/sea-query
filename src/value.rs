@@ -1079,15 +1079,15 @@ where
 /// Escape a SQL string literal
 pub fn escape_string(string: &str) -> String {
     string
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("'", "\\'")
-        .replace("\0", "\\0")
-        .replace("\x08", "\\b")
-        .replace("\x09", "\\t")
-        .replace("\x1a", "\\z")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\'', "\\'")
+        .replace('\0', "\\0")
+        .replace('\x08', "\\b")
+        .replace('\x09', "\\t")
+        .replace('\x1a', "\\z")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
 }
 
 /// Unescape a SQL string literal
@@ -1197,12 +1197,9 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
-        Value::Array(Some(v)) => Json::Array(
-            v.as_ref()
-                .iter()
-                .map(|v| sea_value_to_json_value(v))
-                .collect(),
-        ),
+        Value::Array(Some(v)) => {
+            Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
+        }
     }
 }
 

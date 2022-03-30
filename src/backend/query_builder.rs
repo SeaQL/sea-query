@@ -1026,28 +1026,24 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap()
-            }
+            Value::ChronoDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap()
-            }
+            Value::ChronoTime(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S")).unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
@@ -1066,7 +1062,7 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
+            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v).unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(Some(v)) => write!(
                 s,
