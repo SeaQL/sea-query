@@ -75,35 +75,31 @@ macro_rules! sea_query_driver_rusqlite {
                         Value::Double(v) => to_sql!(v, f64),
                         Value::String(v) => box_to_sql!(v, String),
                         Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
-                        _ => {
-                            if self.0.is_json() {
-                                ty_to_sql!(self.0.as_ref_json())
-                            } else if self.0.is_chrono_date() {
-                                ty_to_sql!(self.0.as_ref_chrono_date())
-                            } else if self.0.is_chrono_time() {
-                                ty_to_sql!(self.0.as_ref_chrono_time())
-                            } else if self.0.is_chrono_date_time() {
-                                ty_to_sql!(self.0.as_ref_chrono_date_time())
-                            } else if self.0.is_chrono_date_time_utc() {
-                                ty_to_sql!(self.0.as_ref_chrono_date_time_utc())
-                            } else if self.0.is_chrono_date_time_local() {
-                                ty_to_sql!(self.0.as_ref_chrono_date_time_local())
-                            } else if self.0.is_chrono_date_time_with_time_zone() {
-                                ty_to_sql!(self.0.as_ref_chrono_date_time_with_time_zone())
-                            } else if self.0.is_time_date() {
-                                opt_string_to_sql!(self.0.time_as_naive_utc_in_string())
-                            } else if self.0.is_time_time() {
-                                opt_string_to_sql!(self.0.time_as_naive_utc_in_string())
-                            } else if self.0.is_time_date_time() {
-                                opt_string_to_sql!(self.0.time_as_naive_utc_in_string())
-                            } else if self.0.is_time_date_time_with_time_zone() {
-                                ty_to_sql!(self.0.as_ref_time_date_time_with_time_zone())
-                            } else if self.0.is_uuid() {
-                                ty_to_sql!(self.0.as_ref_uuid())
-                            } else {
-                                unimplemented!();
-                            }
-                        }
+                        #[cfg(feature = "with-json")]
+                        Value::Json(v) => ty_to_sql!(v),
+                        #[cfg(feature = "with-chrono")]
+                        Value::ChronoDate(v) => ty_to_sql!(v),
+                        #[cfg(feature = "with-chrono")]
+                        Value::ChronoTime(v) => ty_to_sql!(v),
+                        #[cfg(feature = "with-chrono")]
+                        Value::ChronoDateTime(v) => ty_to_sql!(v),
+                        #[cfg(feature = "with-chrono")]
+                        Value::ChronoDateTimeUtc(v) => ty_to_sql!(v),
+                        #[cfg(feature = "with-chrono")]
+                        Value::ChronoDateTimeLocal(v) => ty_to_sql!(v),
+                        #[cfg(feature = "with-chrono")]
+                        Value::ChronoDateTimeWithTimeZone(v) => ty_to_sql!(v),
+                        #[cfg(feature = "with-time")]
+                        Value::TimeDate(v) => opt_string_to_sql!(v),
+                        #[cfg(feature = "with-time")]
+                        Value::TimeTime(v) => opt_string_to_sql!(v),
+                        #[cfg(feature = "with-time")]
+                        Value::TimeDateTime(v) => opt_string_to_sql!(v),
+                        #[cfg(feature = "with-time")]
+                        Value::TimeDateTimeWithTimeZone(v) => opt_string_to_sql!(v),
+                        #[cfg(feature = "with-uuid")]
+                        Value::Uuid(v) => ty_to_sql!(v),
+                        _ => unimplemented!(),
                     }
                 }
             }
