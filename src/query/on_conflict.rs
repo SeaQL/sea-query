@@ -16,6 +16,8 @@ pub enum OnConflictTarget {
 /// Represents ON CONFLICT (upsert) actions
 #[derive(Debug, Clone)]
 pub enum OnConflictAction {
+    /// Do nothing
+    DoNothing,
     /// Update column value of existing row with inserting value
     UpdateColumns(Vec<DynIden>),
     /// Update column value of existing row with expression
@@ -49,6 +51,11 @@ impl OnConflict {
             )),
             action: None,
         }
+    }
+
+    pub fn do_nothing(&mut self) -> &mut Self {
+        self.action = Some(OnConflictAction::DoNothing);
+        self
     }
 
     /// Set ON CONFLICT update column

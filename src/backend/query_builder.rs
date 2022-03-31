@@ -1131,6 +1131,9 @@ pub trait QueryBuilder: QuotedBuilder {
     ) {
         if let Some(action) = on_conflict_action {
             match action {
+                OnConflictAction::DoNothing => {
+                    write!(sql, " DO NOTHING").unwrap();
+                }
                 OnConflictAction::UpdateColumns(columns) => {
                     self.prepare_on_conflict_do_update_keywords(sql, collector);
                     columns.iter().fold(true, |first, col| {
