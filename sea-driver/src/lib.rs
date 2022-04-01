@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use proc_macro::{self, TokenStream};
 
 #[cfg(feature = "rusqlite")]
@@ -8,6 +9,11 @@ mod sqlx_mysql;
 mod sqlx_postgres;
 #[cfg(feature = "sqlx-sqlite")]
 mod sqlx_sqlite;
+#[cfg(any(
+    feature = "sqlx-mysql",
+    feature = "sqlx-postgres",
+    feature = "sqlx-sqlite"
+))]
 mod utils;
 
 #[cfg(feature = "rusqlite")]
