@@ -14,7 +14,7 @@ keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
 proc-macro = true
 
 [dependencies]
-syn = { version = "1", default-features = false, features = [ "full" ] }
+syn = { version = "1", default-features = false, features = [ "derive", "parsing" ] }
 quote = "1"
 proc-macro2 = "1"
 
