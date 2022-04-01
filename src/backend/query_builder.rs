@@ -918,7 +918,7 @@ pub trait QueryBuilder: QuotedBuilder {
         collector(value.clone());
     }
 
-    /// Translate [`Tuple`] into SQL statement.
+    /// Translate [`SimpleExpr::Tuple`] into SQL statement.
     fn prepare_tuple(
         &self,
         exprs: &[SimpleExpr],
