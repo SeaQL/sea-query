@@ -45,13 +45,13 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
     };
 
     let with_rust_decimal = if cfg!(feature = "with-rust_decimal") {
-        quote! { Value::Decimal(v) => bind_box!(v), }
+        quote! { v @ Value::Decimal(_) => query.bind(v.decimal_to_f64()), }
     } else {
         quote! {}
     };
 
     let with_big_decimal = if cfg!(feature = "with-bigdecimal") {
-        quote! { Value::BigDecimal(v) => bind_box!(v), }
+        quote! { v @ Value::BigDecimal(_) => query.bind(v.big_decimal_to_f64()), }
     } else {
         quote! {}
     };
