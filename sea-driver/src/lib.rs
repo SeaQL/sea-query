@@ -25,7 +25,7 @@ pub fn sea_query_driver_mysql(_: TokenStream) -> TokenStream {
 #[cfg(feature = "sqlx-mysql")]
 #[proc_macro]
 pub fn bind_params_sqlx_mysql(input: TokenStream) -> TokenStream {
-    utils::bind_params_sqlx_impl(input)
+    sqlx_mysql::bind_params_sqlx_mysql_impl(input)
 }
 
 #[cfg(feature = "sqlx-postgres")]
@@ -37,7 +37,7 @@ pub fn sea_query_driver_postgres(_: TokenStream) -> TokenStream {
 #[cfg(feature = "sqlx-postgres")]
 #[proc_macro]
 pub fn bind_params_sqlx_postgres(input: TokenStream) -> TokenStream {
-    utils::bind_params_sqlx_impl(input)
+    sqlx_postgres::bind_params_sqlx_postgres_impl(input)
 }
 
 #[cfg(feature = "sqlx-sqlite")]
@@ -49,5 +49,5 @@ pub fn sea_query_driver_sqlite(_: TokenStream) -> TokenStream {
 #[cfg(feature = "sqlx-sqlite")]
 #[proc_macro]
 pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
-    utils::bind_params_sqlx_impl(input)
+    sqlx_sqlite::bind_params_sqlx_sqlite(input)
 }
