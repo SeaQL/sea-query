@@ -50,6 +50,7 @@ time = { version = "^0.2", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
+pretty_assertions = { version = "^1" }
 
 [features]
 backend-mysql = []
