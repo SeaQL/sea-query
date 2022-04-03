@@ -36,10 +36,17 @@ pub struct TableAlterStatement {
     pub(crate) options: Vec<TableAlterOption>,
 }
 
+/// table alter add column options
+#[derive(Debug, Clone)]
+pub struct AddColumnOption {
+    pub(crate) column: ColumnDef,
+    pub(crate) if_not_exists: bool,
+}
+
 /// All available table alter options
 #[derive(Debug, Clone)]
 pub enum TableAlterOption {
-    AddColumn(ColumnDef),
+    AddColumn(AddColumnOption),
     ModifyColumn(ColumnDef),
     RenameColumn(DynIden, DynIden),
     DropColumn(DynIden),
@@ -101,7 +108,49 @@ impl TableAlterStatement {
     /// ```
     pub fn add_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
         self.options
-            .push(TableAlterOption::AddColumn(column_def.take()));
+            .push(TableAlterOption::AddColumn(AddColumnOption {
+                column: column_def.take(),
+                if_not_exists: false,
+            }));
+        self
+    }
+
+    /// Try add a column to an existing table if it does not exists
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Font::Table)
+    ///     .add_column_if_not_exists(
+    ///         ColumnDef::new(Alias::new("new_col"))
+    ///             .integer()
+    ///             .not_null()
+    ///             .default(100),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     r#"ALTER TABLE `font` ADD COLUMN IF NOT EXISTS `new_col` int NOT NULL DEFAULT 100"#
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TABLE "font" ADD COLUMN IF NOT EXISTS "new_col" integer NOT NULL DEFAULT 100"#
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(SqliteQueryBuilder),
+    ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
+    /// );
+    /// ```
+    pub fn add_column_if_not_exists(&mut self, column_def: &mut ColumnDef) -> &mut Self {
+        self.options
+            .push(TableAlterOption::AddColumn(AddColumnOption {
+                column: column_def.take(),
+                if_not_exists: true,
+            }));
         self
     }
 

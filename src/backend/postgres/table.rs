@@ -133,9 +133,15 @@ impl TableBuilder for PostgresQueryBuilder {
                 write!(sql, ", ").unwrap();
             };
             match option {
-                TableAlterOption::AddColumn(column_def) => {
+                TableAlterOption::AddColumn(AddColumnOption {
+                    column,
+                    if_not_exists,
+                }) => {
                     write!(sql, "ADD COLUMN ").unwrap();
-                    self.prepare_column_def(column_def, sql);
+                    if *if_not_exists {
+                        write!(sql, "IF NOT EXISTS ").unwrap();
+                    }
+                    self.prepare_column_def(column, sql);
                 }
                 TableAlterOption::ModifyColumn(column_def) => {
                     write!(sql, "ALTER COLUMN ").unwrap();
