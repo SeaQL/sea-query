@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
 * Add support for multiple `ALTER` operations https://github.com/SeaQL/sea-query/pull/277
 
+### Bug fixes
+
+* #285 Fix timestamp_with_time_zone_len https://github.com/SeaQL/sea-query/pull/286
+
 ## 0.23.0 - 2022-03-15
 
 ### New Features
