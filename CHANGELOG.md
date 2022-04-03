@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 * Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
+* Insert `ON CONFLICT` support https://github.com/SeaQL/sea-query/pull/279
 
 ### Enhancements
 
