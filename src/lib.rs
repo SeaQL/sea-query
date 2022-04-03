@@ -832,6 +832,7 @@ pub mod tests_cfg;
 pub mod token;
 pub mod types;
 pub mod value;
+pub mod view;
 
 pub use backend::*;
 //pub use extension::*;
@@ -849,6 +850,7 @@ pub use schema::*;
 pub use token::*;
 pub use types::*;
 pub use value::*;
+pub use view::*;
 
 #[cfg(feature = "derive")]
 pub use sea_query_derive::{Iden, IdenStatic};

@@ -3,6 +3,7 @@ pub(crate) mod index;
 pub(crate) mod query;
 pub(crate) mod table;
 pub(crate) mod types;
+pub(crate) mod view;
 
 use super::*;
 
