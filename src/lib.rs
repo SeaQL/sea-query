@@ -752,4 +752,4 @@ pub use value::*;
 #[cfg(feature = "derive")]
 pub use sea_query_derive::Iden;
 
-pub use sea_driver::*;
+pub use sea_query_driver::*;

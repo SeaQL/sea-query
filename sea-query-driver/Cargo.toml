@@ -1,5 +1,5 @@
 [package]
-name = "sea-driver"
+name = "sea-query-driver"
 version = "0.0.1"
 authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>" ]
 edition = "2021"
@@ -33,5 +33,4 @@ postgres-array = []
 
 
 [dev-dependencies]
-trybuild = "^1.0"
 sea-query = { version = "^0", path = ".." }
