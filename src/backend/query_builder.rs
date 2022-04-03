@@ -59,6 +59,8 @@ pub trait QueryBuilder: QuotedBuilder {
             }
         }
 
+        self.prepare_on_conflict(&insert.on_conflict, sql, collector);
+
         self.prepare_returning(&insert.returning, sql, collector);
     }
 
@@ -152,6 +154,13 @@ pub trait QueryBuilder: QuotedBuilder {
         if let Some(lock) = &select.lock {
             write!(sql, " ").unwrap();
             self.prepare_select_lock(lock, sql, collector);
+        }
+
+        if let Some((name, query)) = &select.window {
+            write!(sql, " WINDOW ").unwrap();
+            name.prepare(sql, self.quote());
+            write!(sql, " AS ").unwrap();
+            self.prepare_window_statement(query, sql, collector);
         }
     }
 
@@ -432,13 +441,27 @@ pub trait QueryBuilder: QuotedBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         self.prepare_simple_expr(&select_expr.expr, sql, collector);
+        match &select_expr.window {
+            Some(WindowSelectType::Name(name)) => {
+                write!(sql, " OVER ").unwrap();
+                name.prepare(sql, self.quote())
+            }
+            Some(WindowSelectType::Query(window)) => {
+                write!(sql, " OVER ").unwrap();
+                write!(sql, "( ").unwrap();
+                self.prepare_window_statement(window, sql, collector);
+                write!(sql, " ) ").unwrap();
+            }
+            None => {}
+        };
+
         match &select_expr.alias {
             Some(alias) => {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
             None => {}
-        }
+        };
     }
 
     /// Translate [`JoinExpr`] into SQL statement.
@@ -936,7 +959,7 @@ pub trait QueryBuilder: QuotedBuilder {
         collector(value.clone());
     }
 
-    /// Translate [`Tuple`] into SQL statement.
+    /// Translate [`SimpleExpr::Tuple`] into SQL statement.
     fn prepare_tuple(
         &self,
         exprs: &[SimpleExpr],
@@ -1044,28 +1067,24 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d").to_string()).unwrap()
-            }
+            Value::ChronoDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%H:%M:%S").to_string()).unwrap()
-            }
+            Value::ChronoTime(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S")).unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z").to_string()).unwrap()
+                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
@@ -1084,7 +1103,7 @@ pub trait QueryBuilder: QuotedBuilder {
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v.to_string()).unwrap(),
+            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v).unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(Some(v)) => write!(
                 s,
@@ -1097,6 +1116,116 @@ pub trait QueryBuilder: QuotedBuilder {
             .unwrap(),
         };
         s
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT expression
+    fn prepare_on_conflict(
+        &self,
+        on_conflict: &Option<OnConflict>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if let Some(on_conflict) = on_conflict {
+            self.prepare_on_conflict_keywords(sql, collector);
+            self.prepare_on_conflict_target(&on_conflict.target, sql, collector);
+            self.prepare_on_conflict_action(&on_conflict.action, sql, collector);
+        }
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT target
+    fn prepare_on_conflict_target(
+        &self,
+        on_conflict_target: &Option<OnConflictTarget>,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        if let Some(target) = on_conflict_target {
+            match target {
+                OnConflictTarget::ConflictColumns(columns) => {
+                    write!(sql, "(").unwrap();
+                    columns.iter().fold(true, |first, col| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        col.prepare(sql, self.quote());
+                        false
+                    });
+                    write!(sql, ")").unwrap();
+                }
+            }
+        }
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT action
+    fn prepare_on_conflict_action(
+        &self,
+        on_conflict_action: &Option<OnConflictAction>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if let Some(action) = on_conflict_action {
+            match action {
+                OnConflictAction::DoNothing => {
+                    write!(sql, " DO NOTHING").unwrap();
+                }
+                OnConflictAction::UpdateColumns(columns) => {
+                    self.prepare_on_conflict_do_update_keywords(sql, collector);
+                    columns.iter().fold(true, |first, col| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        col.prepare(sql, self.quote());
+                        write!(sql, " = ").unwrap();
+                        self.prepare_on_conflict_excluded_table(col, sql, collector);
+                        false
+                    });
+                }
+                OnConflictAction::UpdateExprs(column_exprs) => {
+                    self.prepare_on_conflict_do_update_keywords(sql, collector);
+                    column_exprs.iter().fold(true, |first, (col, expr)| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        col.prepare(sql, self.quote());
+                        write!(sql, " = ").unwrap();
+                        self.prepare_simple_expr(expr, sql, collector);
+                        false
+                    });
+                }
+            }
+        }
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT keywords
+    fn prepare_on_conflict_keywords(&self, sql: &mut SqlWriter, _: &mut dyn FnMut(Value)) {
+        write!(sql, " ON CONFLICT ").unwrap();
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT keywords
+    fn prepare_on_conflict_do_update_keywords(
+        &self,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, " DO UPDATE SET ").unwrap();
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT update action by retrieving value from the excluded table
+    fn prepare_on_conflict_excluded_table(
+        &self,
+        col: &DynIden,
+        sql: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "{0}excluded{0}", self.quote()).unwrap();
+        write!(sql, ".").unwrap();
+        col.prepare(sql, self.quote());
     }
 
     #[doc(hidden)]
@@ -1194,6 +1323,70 @@ pub trait QueryBuilder: QuotedBuilder {
         }
         if condition.negate {
             write!(sql, ")").unwrap();
+        }
+    }
+
+    #[doc(hidden)]
+    /// Translate [`Frame`] into SQL statement.
+    fn prepare_frame(&self, frame: &Frame, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        match *frame {
+            Frame::UnboundedPreceding => write!(sql, " UNBOUNDED PRECEDING ").unwrap(),
+            Frame::Preceding(v) => {
+                self.prepare_value(&Some(v).into(), sql, collector);
+                write!(sql, " PRECEDING ").unwrap();
+            }
+            Frame::CurrentRow => write!(sql, " CURRENT ROW ").unwrap(),
+            Frame::Following(v) => {
+                self.prepare_value(&Some(v).into(), sql, collector);
+                write!(sql, " FOLLOWING ").unwrap();
+            }
+            Frame::UnboundedFollowing => write!(sql, " UNBOUNDED FOLLOWING ").unwrap(),
+        }
+    }
+
+    #[doc(hidden)]
+    /// Translate [`WindowStatement`] into SQL statement.
+    fn prepare_window_statement(
+        &self,
+        window: &WindowStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if !window.partition_by.is_empty() {
+            write!(sql, " PARTITION BY ").unwrap();
+            window.partition_by.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_simple_expr(expr, sql, collector);
+                false
+            });
+        }
+
+        if !window.order_by.is_empty() {
+            write!(sql, " ORDER BY ").unwrap();
+            window.order_by.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_order_expr(expr, sql, collector);
+                false
+            });
+        }
+
+        if let Some(frame) = &window.frame {
+            match frame.r#type {
+                FrameType::Range => write!(sql, " RANGE ").unwrap(),
+                FrameType::Rows => write!(sql, " ROWS ").unwrap(),
+            };
+            if let Some(end) = &frame.end {
+                write!(sql, "BETWEEN ").unwrap();
+                self.prepare_frame(&frame.start, sql, collector);
+                write!(sql, " AND ").unwrap();
+                self.prepare_frame(end, sql, collector);
+            } else {
+                self.prepare_frame(&frame.start, sql, collector);
+            }
         }
     }
 

@@ -7,8 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.24.0 - Not yet
 
+### New Features
+
 * Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
+* Insert `ON CONFLICT` support https://github.com/SeaQL/sea-query/pull/279
+* #174 Add support for WINDOWS statement https://github.com/SeaQL/sea-query/pull/271
+
+### Enhancements
+
 * Add support for multiple `ALTER` operations https://github.com/SeaQL/sea-query/pull/277
+* #229 add column if not exists https://github.com/SeaQL/sea-query/pull/278
+
+### Bug fixes
+
+* #285 Fix timestamp_with_time_zone_len https://github.com/SeaQL/sea-query/pull/286
 
 ## 0.23.0 - 2022-03-15
 
