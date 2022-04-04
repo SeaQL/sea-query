@@ -134,7 +134,7 @@ impl TableAlterStatement {
     ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
-    ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
+    ///     r#"ALTER TABLE `font` ADD COLUMN IF NOT EXISTS `new_col` int NOT NULL DEFAULT 100"#
     /// );
     /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
