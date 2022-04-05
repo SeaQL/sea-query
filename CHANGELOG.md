@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Add support for multiple `ALTER` operations https://github.com/SeaQL/sea-query/pull/277
 * #229 add column if not exists https://github.com/SeaQL/sea-query/pull/278
+* #255 Add support to CommonTableExpression columns method https://github.com/SeaQL/sea-query/pull/284
 
 ### Bug fixes
 
