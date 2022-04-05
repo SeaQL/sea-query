@@ -603,6 +603,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
+                #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }
         )
