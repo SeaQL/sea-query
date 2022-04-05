@@ -321,10 +321,9 @@ fn drop_1() {
     assert_eq!(
         Table::drop()
             .table(Glyph::Table)
-            .table(Char::Table)
             .cascade()
             .to_string(SqliteQueryBuilder),
-        r#"DROP TABLE "glyph", "character""#
+        r#"DROP TABLE "glyph""#
     );
 }
 
