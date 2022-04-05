@@ -1,9 +1,9 @@
 [package]
 name = "sea-query-driver"
-version = "0.0.1"
-authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>" ]
+version = "0.1.0"
+authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2021"
-description = "Proc macros for drivers"
+description = "Proc macros for SeaQuery drivers"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
@@ -30,7 +30,6 @@ with-bigdecimal = []
 with-uuid = []
 with-time = []
 postgres-array = []
-
 
 [dev-dependencies]
 sea-query = { version = "^0", path = ".." }
