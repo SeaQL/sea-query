@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
 * Insert `ON CONFLICT` support https://github.com/SeaQL/sea-query/pull/279
-* #174 Add support for WINDOWS statement https://github.com/SeaQL/sea-query/pull/271
+* #174 Add support for `WINDOWS` statement https://github.com/SeaQL/sea-query/pull/271
 * #142 full support lock in select https://github.com/SeaQL/sea-query/pull/289
+* #269 add support for postgres `ANY`, `SOME`, `ALL` https://github.com/SeaQL/sea-query/pull/283
 
 ### Enhancements
 
