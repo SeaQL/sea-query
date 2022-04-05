@@ -2043,10 +2043,7 @@ impl SelectStatement {
     ///             .query(
     ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
     ///             )
-    ///             .column(Alias::new("id"))
-    ///             .column(Alias::new("depth"))
-    ///             .column(Alias::new("next"))
-    ///             .column(Alias::new("value"))
+    ///             .columns(vec![Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
     ///             .table_name(Alias::new("cte_traversal"))
     ///             .to_owned();
     ///
