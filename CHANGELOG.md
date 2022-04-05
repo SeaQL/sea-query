@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add support for multiple `ALTER` operations https://github.com/SeaQL/sea-query/pull/277
 * #229 add column if not exists https://github.com/SeaQL/sea-query/pull/278
 * #255 Add support to CommonTableExpression columns method https://github.com/SeaQL/sea-query/pull/284
+* #280 Rewrite drivers using proc-macro https://github.com/SeaQL/sea-query/pull/292
 
 ### Bug fixes
 
@@ -27,7 +28,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Breaking changes
 
-* The enum variants for `LockType` were renamed: `Exclusive` -> `Update` and `Shared` -> `Share` 
+* The enum variants for `LockType` were renamed: `Exclusive` -> `Update` and `Shared` -> `Share`
+* As part of #283, the drivers are split to the `sea-query-driver` crate
+    1. Remove methods `Value::is_json` and `Value::as_ref_json` when feature: **with-json** is disabled
+    2. Remove methods `Value::is_time_*` and `Value::as_ref_time_*` when feature: **with-time** is disabled
+    3. Remove methods `Value::is_chrono_*` and `Value::as_ref_chrono*` when feature: **with-chrono** is disabled
+    4. Remove methods `Value::is_decimal`, `Value::as_ref_decimal` and `Value::decimal_to_f64` when feature: **with-rust_decimal** is disabled
+    5. Remove methods `Value::is_big_decimal`, `Value::as_ref_big_decimal` and `Value::big_decimal_to_f64` when feature: **with-bigdecimal** is disabled
+    6. Remove methods `Value::is_uuid` and `Value::as_ref_uuid` when feature: **with-uuid** is disabled
+    7. Remove methods `Value::is_array` and `Value::as_ref_array` when feature: **postgres-array** is disabled
 
 ## 0.23.0 - 2022-03-15
 
