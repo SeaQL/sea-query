@@ -92,8 +92,10 @@ pub struct JoinExpr {
 /// List of lock types that can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LockType {
+    /// Exclusive lock
     Update,
     NoKeyUpdate,
+    /// Shared lock
     Share,
     KeyShare,
 }

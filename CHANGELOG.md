@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
 * Insert `ON CONFLICT` support https://github.com/SeaQL/sea-query/pull/279
 * #174 Add support for WINDOWS statement https://github.com/SeaQL/sea-query/pull/271
+* #142 full support lock in select https://github.com/SeaQL/sea-query/pull/289
 
 ### Enhancements
 
@@ -21,6 +22,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug fixes
 
 * #285 Fix timestamp_with_time_zone_len https://github.com/SeaQL/sea-query/pull/286
+
+### Breaking changes
+
+* The enum variants for `LockType` were renamed: `Exclusive` -> `Update` and `Shared` -> `Share` 
 
 ## 0.23.0 - 2022-03-15
 
