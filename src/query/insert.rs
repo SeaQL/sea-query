@@ -1,7 +1,7 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, OnConflict, QueryStatementBuilder,
-    QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryStatement,
-    WithClause, WithQuery,
+    QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryBuilder,
+    SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Represents a value source that can be used in an insert query.
@@ -521,14 +521,16 @@ impl QueryStatementBuilder for InsertStatement {
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
         query_builder.prepare_insert_statement(self, sql);
     }
-
-    fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::InsertStatement(self)
-    }
 }
 
 impl QueryStatementWriter for InsertStatement {
     fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
         query_builder.prepare_insert_statement(self, sql);
+    }
+}
+
+impl SubQueryBuilder for InsertStatement {
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        SubQueryStatement::InsertStatement(self)
     }
 }

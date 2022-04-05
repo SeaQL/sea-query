@@ -12,9 +12,18 @@ use crate::{
 pub struct ViewCreateStatement {
     pub(crate) view: Option<TableRef>,
     pub(crate) columns: Vec<DynIden>,
-    pub(crate) select: Option<SelectStatement>,
+    pub(crate) query: SelectStatement,
     pub(crate) or_replace: bool,
     pub(crate) if_not_exists: bool,
+    pub(crate) recursive: bool,
+    pub(crate) temporary: bool,
+    pub(crate) opt: Option<ViewCreateOpt>,
+}
+
+#[derive(Debug, Clone)]
+pub enum ViewCreateOpt {
+    Cascade,
+    Local,
 }
 
 impl Default for ViewCreateStatement {
@@ -29,9 +38,12 @@ impl ViewCreateStatement {
         Self {
             view: None,
             columns: Vec::new(),
-            select: None,
+            query: SelectStatement::new(),
             if_not_exists: false,
             or_replace: false,
+            recursive: false,
+            temporary: false,
+            opt: None,
         }
     }
 
@@ -44,6 +56,18 @@ impl ViewCreateStatement {
     /// Create or replace view.
     pub fn or_replace(&mut self) -> &mut Self {
         self.or_replace = true;
+        self
+    }
+
+    /// Create recursive view .
+    pub fn recursive(&mut self) -> &mut Self {
+        self.recursive = true;
+        self
+    }
+
+    /// Create temporary view.
+    pub fn temporary(&mut self) -> &mut Self {
+        self.temporary = true;
         self
     }
 
@@ -78,8 +102,13 @@ impl ViewCreateStatement {
     }
 
     /// Adds AS select query to the view.
-    pub fn select(&mut self, select: SelectStatement) -> &mut Self {
-        self.select = Some(select);
+    pub fn query(&mut self, select: SelectStatement) -> &mut Self {
+        self.query = select;
+        self
+    }
+
+    pub fn create_opt(&mut self, opt: ViewCreateOpt) -> &mut Self {
+        self.opt = Some(opt);
         self
     }
 
@@ -91,17 +120,20 @@ impl ViewCreateStatement {
         self.columns.as_ref()
     }
 
-    pub fn get_select(&self) -> Option<&SelectStatement> {
-        self.select.as_ref()
+    pub fn get_query(&self) -> &SelectStatement {
+        &self.query
     }
 
     pub fn take(&mut self) -> Self {
         Self {
             view: self.view.take(),
             columns: std::mem::take(&mut self.columns),
-            select: self.select.take(),
+            query: self.query.take(),
             or_replace: self.or_replace,
             if_not_exists: self.if_not_exists,
+            recursive: self.recursive,
+            temporary: self.temporary,
+            opt: self.opt.take(),
         }
     }
 }

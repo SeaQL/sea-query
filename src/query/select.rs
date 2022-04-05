@@ -5,8 +5,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
-    WithClause, WithQuery,
+    FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryBuilder, SubQueryStatement,
+    WindowStatement, WithClause, WithQuery,
 };
 
 /// Select rows from an existing table
@@ -2279,7 +2279,9 @@ impl QueryStatementBuilder for SelectStatement {
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
         query_builder.prepare_select_statement(self, sql);
     }
+}
 
+impl SubQueryBuilder for SelectStatement {
     fn into_sub_query_statement(self) -> SubQueryStatement {
         SubQueryStatement::SelectStatement(self)
     }
