@@ -10,6 +10,7 @@ mod sqlx_postgres;
 #[cfg(feature = "sqlx-sqlite")]
 mod sqlx_sqlite;
 #[cfg(any(
+    feature = "rusqlite",
     feature = "sqlx-mysql",
     feature = "sqlx-postgres",
     feature = "sqlx-sqlite"
