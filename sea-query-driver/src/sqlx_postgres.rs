@@ -115,7 +115,7 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
 
 pub fn sea_query_driver_postgres_impl(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as DriverArgs);
-    let sqlx_path = args.sqlx;
+    let sqlx_path = args.driver;
     let sea_query_path = args.sea_query;
 
     let output = quote! {

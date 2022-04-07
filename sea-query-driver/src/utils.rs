@@ -16,40 +16,32 @@ impl parse::Parse for BindParamArgs {
     }
 }
 
-pub struct OptionTypePath {
-    pub(crate) path: Option<syn::TypePath>,
-}
-
-impl parse::Parse for OptionTypePath {
-    fn parse(input: parse::ParseStream) -> parse::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(syn::Ident) {
-            input.parse().map(|path| Self { path: Some(path) })
-        } else {
-            Ok(Self { path: None })
-        }
-    }
-}
-
-impl quote::ToTokens for OptionTypePath {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        if let Some(path) = &self.path {
-            path.to_tokens(tokens)
-        }
+fn parse_option_path(input: &parse::ParseStream) -> parse::Result<Option<syn::TypePath>> {
+    let lookahead = input.lookahead1();
+    if lookahead.peek(syn::Ident) {
+        input.parse().map(|path| Some(path))
+    } else {
+        Ok(None)
     }
 }
 
 pub struct DriverArgs {
-    pub(crate) sqlx: OptionTypePath,
-    pub(crate) sea_query: OptionTypePath,
+    pub(crate) driver: Option<syn::TypePath>,
+    pub(crate) sea_query: Option<syn::TypePath>,
 }
 
 impl parse::Parse for DriverArgs {
     fn parse(input: parse::ParseStream) -> parse::Result<Self> {
-        let sqlx: OptionTypePath = input.parse()?;
-        let _: token::Comma = input.parse()?;
-        let sea_query: OptionTypePath = input.parse()?;
+        let driver = parse_option_path(&input)?;
+        if driver.is_none() {
+            return Ok(DriverArgs {
+                driver,
+                sea_query: None,
+            });
+        }
+        let comma: Option<token::Comma> = input.parse()?;
+        let sea_query = parse_option_path(&input)?;
 
-        Ok(DriverArgs { sqlx, sea_query })
+        Ok(DriverArgs { driver, sea_query })
     }
 }
