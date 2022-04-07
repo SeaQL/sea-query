@@ -39,7 +39,7 @@ impl parse::Parse for DriverArgs {
                 sea_query: None,
             });
         }
-        let comma: Option<token::Comma> = input.parse()?;
+        let _: Option<token::Comma> = input.parse()?;
         let sea_query = parse_option_path(&input)?;
 
         Ok(DriverArgs { driver, sea_query })
