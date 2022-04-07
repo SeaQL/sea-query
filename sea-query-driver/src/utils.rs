@@ -16,11 +16,11 @@ impl parse::Parse for BindParamArgs {
     }
 }
 
-pub struct DriverArgs {
+pub struct OptionTypePath {
     pub(crate) path: Option<syn::TypePath>,
 }
 
-impl parse::Parse for DriverArgs {
+impl parse::Parse for OptionTypePath {
     fn parse(input: parse::ParseStream) -> parse::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(syn::Ident) {
@@ -31,10 +31,25 @@ impl parse::Parse for DriverArgs {
     }
 }
 
-impl quote::ToTokens for DriverArgs {
+impl quote::ToTokens for OptionTypePath {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if let Some(path) = &self.path {
             path.to_tokens(tokens)
         }
+    }
+}
+
+pub struct DriverArgs {
+    pub(crate) sqlx: OptionTypePath,
+    pub(crate) sea_query: OptionTypePath,
+}
+
+impl parse::Parse for DriverArgs {
+    fn parse(input: parse::ParseStream) -> parse::Result<Self> {
+        let sqlx: OptionTypePath = input.parse()?;
+        let _: token::Comma = input.parse()?;
+        let sea_query: OptionTypePath = input.parse()?;
+
+        Ok(DriverArgs { sqlx, sea_query })
     }
 }

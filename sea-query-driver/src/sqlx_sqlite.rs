@@ -107,25 +107,27 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
 }
 
 pub fn sea_query_driver_sqlite_impl(input: TokenStream) -> TokenStream {
-    let sqlx_path = parse_macro_input!(input as DriverArgs);
+    let args = parse_macro_input!(input as DriverArgs);
+    let sqlx_path = args.sqlx;
+    let sea_query_path = args.sea_query;
 
     let output = quote! {
         mod sea_query_driver_sqlite {
             use #sqlx_path::sqlx::{sqlite::SqliteArguments, Sqlite};
-            use ::sea_query::{Value, Values};
+            use #sea_query_path::sea_query::{Value, Values};
 
             type SqlxQuery<'a> = #sqlx_path::sqlx::query::Query<'a, Sqlite, SqliteArguments<'a>>;
             type SqlxQueryAs<'a, T> = #sqlx_path::sqlx::query::QueryAs<'a, Sqlite, T, SqliteArguments<'a>>;
 
             pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a Values) -> SqlxQuery<'a> {
-                ::sea_query::bind_params_sqlx_sqlite!(query, params.0)
+                #sea_query_path::sea_query::bind_params_sqlx_sqlite!(query, params.0)
             }
 
             pub fn bind_query_as<'a, T>(
                 query: SqlxQueryAs<'a, T>,
                 params: &'a Values,
             ) -> SqlxQueryAs<'a, T> {
-                ::sea_query::bind_params_sqlx_sqlite!(query, params.0)
+                #sea_query_path::sea_query::bind_params_sqlx_sqlite!(query, params.0)
             }
         }
     };

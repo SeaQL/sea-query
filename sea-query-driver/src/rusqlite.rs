@@ -5,6 +5,8 @@ use syn::parse_macro_input;
 
 pub fn sea_query_driver_rusqlite_impl(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as DriverArgs);
+    let sqlx_path = args.sqlx;
+    let sea_query_path = args.sea_query;
 
     let with_json = if cfg!(feature = "with-json") {
         quote! { Value::Json(v) => box_to_sql!(v), }
@@ -46,8 +48,8 @@ pub fn sea_query_driver_rusqlite_impl(input: TokenStream) -> TokenStream {
 
     let output = quote! {
         mod sea_query_driver_rusqlite {
-            use #args::rusqlite::{types::{Null, ToSqlOutput}, Result, ToSql};
-            use ::sea_query::{Value, Values};
+            use #sqlx_path::rusqlite::{types::{Null, ToSqlOutput}, Result, ToSql};
+            use #sea_query_path::sea_query::{Value, Values};
 
             pub struct RusqliteValue(pub Value);
 

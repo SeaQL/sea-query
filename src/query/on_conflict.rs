@@ -1,6 +1,6 @@
 use crate::{DynIden, Expr, IntoIden, SimpleExpr, Value};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct OnConflict {
     pub(crate) target: Option<OnConflictTarget>,
     pub(crate) action: Option<OnConflictAction>,
@@ -224,14 +224,5 @@ impl OnConflict {
                 .collect(),
         ));
         self
-    }
-}
-
-impl Default for OnConflict {
-    fn default() -> Self {
-        Self {
-            target: None,
-            action: None,
-        }
     }
 }
