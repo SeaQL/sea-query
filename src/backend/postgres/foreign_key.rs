@@ -1,17 +1,21 @@
 use super::*;
 
 impl ForeignKeyBuilder for PostgresQueryBuilder {
-    fn prepare_foreign_key_drop_statement(
+    fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
         sql: &mut SqlWriter,
+        inside_table_single_alter: bool,
     ) {
-        write!(sql, "ALTER TABLE ").unwrap();
-        if let Some(table) = &drop.table {
-            table.prepare(sql, self.quote());
+        if inside_table_single_alter {
+            write!(sql, "ALTER TABLE ").unwrap();
+            if let Some(table) = &drop.table {
+                table.prepare(sql, self.quote());
+            }
+            write!(sql, " ").unwrap();
         }
 
-        write!(sql, " DROP CONSTRAINT ").unwrap();
+        write!(sql, "DROP CONSTRAINT ").unwrap();
         if let Some(name) = &drop.foreign_key.name {
             write!(sql, "\"{}\"", name).unwrap();
         }
@@ -22,13 +26,17 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
         inside_table_creation: bool,
+        inside_table_single_alter: bool,
     ) {
-        if !inside_table_creation {
+        if !inside_table_creation && inside_table_single_alter{
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
                 table.prepare(sql, self.quote());
             }
-            write!(sql, " ADD ").unwrap();
+            write!(sql, " ").unwrap();
+        }
+        if !inside_table_creation {
+            write!(sql, "ADD ").unwrap();
         }
 
         if let Some(name) = &create.foreign_key.name {

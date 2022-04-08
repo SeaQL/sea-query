@@ -163,6 +163,12 @@ impl TableBuilder for SqliteQueryBuilder {
             TableAlterOption::DropColumn(_) => {
                 panic!("Sqlite not support dropping table column")
             }
+            TableAlterOption::DropForeignKey(_) => {
+                panic!("Sqlite does not support modification of foreign key constraints to existing tables");
+            }
+            TableAlterOption::AddForeignKey(_) => {
+                panic!("Sqlite does not support modification of foreign key constraints to existing tables");
+            }
         }
     }
 

@@ -169,6 +169,12 @@ impl TableBuilder for PostgresQueryBuilder {
                     write!(sql, "DROP COLUMN ").unwrap();
                     column_name.prepare(sql, self.quote());
                 }
+                TableAlterOption::DropForeignKey(drop) => {
+                    self.prepare_foreign_key_drop_statement_internal(drop, sql, false)
+                }
+                TableAlterOption::AddForeignKey(create) => {
+                    self.prepare_foreign_key_create_statement_internal(create, sql, false, false)
+                }
             }
             false
         });

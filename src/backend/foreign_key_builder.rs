@@ -7,7 +7,16 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
     ) {
-        self.prepare_foreign_key_create_statement_internal(create, sql, false)
+        self.prepare_foreign_key_create_statement_internal(create, sql, false, true)
+    }
+
+    /// Translate [`ForeignKeyDropStatement`] into SQL statement.
+    fn prepare_foreign_key_drop_statement(
+        &self,
+        drop: &ForeignKeyDropStatement,
+        sql: &mut SqlWriter,
+    ) {
+        self.prepare_foreign_key_drop_statement_internal(drop, sql, true)
     }
 
     /// Translate [`ForeignKeyAction`] into SQL statement.
@@ -30,12 +39,15 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         .unwrap()
     }
 
-    /// Translate [`ForeignKeyDropStatement`] into SQL statement.
-    fn prepare_foreign_key_drop_statement(
+    #[doc(hidden)]
+    /// Internal function to factor foreign key drop in table and outside.
+    fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
         sql: &mut SqlWriter,
+        inside_table_single_alter: bool,
     );
+
 
     #[doc(hidden)]
     /// Internal function to factor foreign key creation in table and outside.
@@ -44,5 +56,6 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
         inside_table_creation: bool,
+        inside_table_single_alter: bool,
     );
 }
