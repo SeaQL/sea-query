@@ -1709,6 +1709,36 @@ impl SelectStatement {
         self
     }
 
+    /// First rows to return.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Glyph::Aspect)
+    ///     .from(Glyph::Table)
+    ///     .first(10)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
+    /// );
+    /// ```
+    pub fn first(&mut self, first: u64) -> &mut Self {
+        Self::reset_offset(self).limit(first)
+    }
+
     /// Row locking (if supported).
     ///
     /// # Examples

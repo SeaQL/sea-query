@@ -15,6 +15,18 @@ fn select_1() {
 }
 
 #[test]
+fn select_1a() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .from(Char::Table)
+            .first(10)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character", "size_w", "size_h" FROM "character" LIMIT 10"#
+    );
+}
+
+#[test]
 fn select_2() {
     assert_eq!(
         Query::select()
