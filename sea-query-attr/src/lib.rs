@@ -44,11 +44,12 @@ pub fn gen_type_def(_args: TokenStream, input: TokenStream) -> TokenStream {
         input.ident.to_string().to_snake_case().as_str(),
         input.ident.span(),
     );
+    
     let struct_name = quote::format_ident!("{}TypeDef", &input.ident);
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
     let pascal_def_names2 = pascal_def_names.clone(); // we can't repeat the same ident twice in a quote!, so we need to clone the first one
     let default_names = field_names.iter().map(|field| &field.default);
- 
+
     TokenStream::from(quote! {
         #input
 
