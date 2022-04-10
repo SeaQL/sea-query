@@ -47,7 +47,7 @@
 //!
 //! ### Feature flags
 //!
-//! Macro: `derive`
+//! Macro: `derive` `attr`
 //!
 //! Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 //!
@@ -751,5 +751,8 @@ pub use value::*;
 
 #[cfg(feature = "derive")]
 pub use sea_query_derive::Iden;
+
+#[cfg(feature = "attr")]
+pub use sea_query_attr::gen_type_def;
 
 pub use sea_query_driver::*;
