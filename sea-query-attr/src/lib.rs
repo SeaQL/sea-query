@@ -45,10 +45,13 @@ pub fn gen_type_def(_args: TokenStream, input: TokenStream) -> TokenStream {
         input.ident.span(),
     );
     
+    let original_name = &input.ident;
     let struct_name = quote::format_ident!("{}TypeDef", &input.ident);
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
     let pascal_def_names2 = pascal_def_names.clone(); // we can't repeat the same ident twice in a quote!, so we need to clone the first one
+    let pascal_def_names3 = pascal_def_names.clone(); 
     let default_names = field_names.iter().map(|field| &field.default);
+    let default_names2 = default_names.clone();
 
     TokenStream::from(quote! {
         #input
@@ -65,6 +68,15 @@ pub fn gen_type_def(_args: TokenStream, input: TokenStream) -> TokenStream {
                     #struct_name::Table => stringify!(#table_name),
                     #(#struct_name::#pascal_def_names2 => stringify!(#default_names)),*
                 }).unwrap();
+            }
+        }
+
+        impl #struct_name {
+            pub fn value_for<I>(&self, entity: &#original_name) -> I {
+                match self {
+                    #(#struct_name::#pascal_def_names3 => entity.#default_names2 as I),*
+                    #struct_name::Table => unreachable!()
+                }
             }
         }
     })
