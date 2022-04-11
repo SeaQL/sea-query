@@ -70,14 +70,5 @@ pub fn gen_type_def(_args: TokenStream, input: TokenStream) -> TokenStream {
                 }).unwrap();
             }
         }
-
-        impl #struct_name {
-            pub fn value_for<I>(&self, entity: &#original_name) -> I {
-                match self {
-                    #(#struct_name::#pascal_def_names3 => entity.#default_names2 as I),*
-                    #struct_name::Table => unreachable!()
-                }
-            }
-        }
     })
 }
