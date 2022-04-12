@@ -55,7 +55,7 @@ macro_rules! args_parse_impl {
                     let arg: DriverArg = input.parse()?;
                     args.sea_query = Some(arg.0)
                 } else {
-                    return Err(lookahead.error());
+                    return Ok(args);
                 };
                 let comma: Option<token::Comma> = input.parse()?;
                 if comma.is_none() {
@@ -67,8 +67,6 @@ macro_rules! args_parse_impl {
                 } else if lookahead.peek(kw::sea_query) {
                     let arg: DriverArg = input.parse()?;
                     args.sea_query = Some(arg.0)
-                } else {
-                    return Err(lookahead.error());
                 };
                 Ok(args)
             }
