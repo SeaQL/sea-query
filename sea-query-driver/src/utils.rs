@@ -1,5 +1,4 @@
-use proc_macro2::TokenStream;
-use syn::{parse, token, Token};
+use syn::{parse, token};
 
 pub struct BindParamArgs {
     pub(crate) query: syn::Expr,
@@ -17,63 +16,65 @@ impl parse::Parse for BindParamArgs {
 }
 
 mod kw {
-    syn::custom_keyword!(driver);
+    syn::custom_keyword!(rusqlite);
+    syn::custom_keyword!(sqlx);
     syn::custom_keyword!(sea_query);
 }
 
-enum DriverArgument {
-    Driver(syn::Path),
-    SeaQuery(syn::Path),
-}
+struct DriverArg(syn::Path);
 
-impl parse::Parse for DriverArgument {
+impl parse::Parse for DriverArg {
     fn parse(input: parse::ParseStream) -> parse::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::driver) {
-            let _: kw::driver = input.parse()?;
-            let _: token::Eq = input.parse()?;
-            let s: syn::LitStr = input.parse()?;
-            let value: syn::Path = syn::parse_str(&s.value())?;
-            Ok(DriverArgument::Driver(value))
-        } else if lookahead.peek(kw::sea_query) {
-            let _: kw::sea_query = input.parse()?;
-            let _: token::Eq = input.parse()?;
-            let s: syn::LitStr = input.parse()?;
-            let value: syn::Path = syn::parse_str(&s.value())?;
-            Ok(DriverArgument::SeaQuery(value))
-        } else {
-            Err(lookahead.error())
-        }
+        let _: syn::Ident = input.parse()?;
+        let _: token::Eq = input.parse()?;
+        let s: syn::LitStr = input.parse()?;
+        let value: syn::Path = syn::parse_str(&s.value())?;
+        Ok(DriverArg(value))
     }
 }
 
-pub struct DriverArgs {
-    pub(crate) driver: Option<syn::Path>,
-    pub(crate) sea_query: Option<syn::Path>,
+macro_rules! args_parse_impl {
+    ($ident:ident, $driver_ident:path) => {
+        pub struct $ident {
+            pub(crate) driver: Option<syn::Path>,
+            pub(crate) sea_query: Option<syn::Path>,
+        }
+
+        impl parse::Parse for $ident {
+            fn parse(input: parse::ParseStream) -> parse::Result<Self> {
+                let mut args = $ident {
+                    driver: None,
+                    sea_query: None,
+                };
+                let lookahead = input.lookahead1();
+
+                if lookahead.peek($driver_ident) {
+                    let arg: DriverArg = input.parse()?;
+                    args.driver = Some(arg.0)
+                } else if lookahead.peek(kw::sea_query) {
+                    let arg: DriverArg = input.parse()?;
+                    args.sea_query = Some(arg.0)
+                } else {
+                    return Err(lookahead.error());
+                };
+                let comma: Option<token::Comma> = input.parse()?;
+                if comma.is_none() {
+                    return Ok(args);
+                }
+                if lookahead.peek($driver_ident) {
+                    let arg: DriverArg = input.parse()?;
+                    args.driver = Some(arg.0)
+                } else if lookahead.peek(kw::sea_query) {
+                    let arg: DriverArg = input.parse()?;
+                    args.sea_query = Some(arg.0)
+                } else {
+                    return Err(lookahead.error());
+                };
+                Ok(args)
+            }
+        }
+    };
 }
 
-impl parse::Parse for DriverArgs {
-    fn parse(input: parse::ParseStream) -> parse::Result<Self> {
-        let mut args = DriverArgs {
-            driver: None,
-            sea_query: None,
-        };
-        let lookahead = input.lookahead1();
-        if lookahead.peek(syn::Ident) {
-            let arg: DriverArgument = input.parse()?;
-            match arg {
-                DriverArgument::Driver(p) => args.driver = Some(p),
-                DriverArgument::SeaQuery(p) => args.sea_query = Some(p),
-            }
-        }
-        let comma: Option<token::Comma> = input.parse()?;
-        if comma.is_some() {
-            let arg: DriverArgument = input.parse()?;
-            match arg {
-                DriverArgument::Driver(p) => args.driver = Some(p),
-                DriverArgument::SeaQuery(p) => args.sea_query = Some(p),
-            }
-        }
-        Ok(args)
-    }
-}
+args_parse_impl!(RusqliteDriverArgs, kw::rusqlite);
+args_parse_impl!(SqlxDriverArgs, kw::sqlx);

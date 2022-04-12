@@ -1,10 +1,10 @@
-use crate::utils::DriverArgs;
+use crate::utils::RusqliteDriverArgs;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
 
 pub fn sea_query_driver_rusqlite_impl(input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(input as DriverArgs);
+    let args = parse_macro_input!(input as RusqliteDriverArgs);
     let rusqlite_path = args.driver;
     let sea_query_path = args.sea_query;
 

@@ -1,4 +1,4 @@
-use crate::utils::{BindParamArgs, DriverArgs};
+use crate::utils::{BindParamArgs, SqlxDriverArgs};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
@@ -107,7 +107,7 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
 }
 
 pub fn sea_query_driver_sqlite_impl(input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(input as DriverArgs);
+    let args = parse_macro_input!(input as SqlxDriverArgs);
     let sqlx_path = args.driver;
     let sea_query_path = args.sea_query;
 
