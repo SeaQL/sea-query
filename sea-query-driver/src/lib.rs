@@ -34,7 +34,7 @@ mod utils;
 /// sea_query::sea_query_driver_rusqlite!(sea_query="...")
 /// ```
 ///
-/// Specify pathes to the `sea-query` and to the `rusqlite` crates instances
+/// Specify paths to the `sea-query` and to the `rusqlite` crates instances
 /// ```
 /// sea_query::sea_query_driver_rusqlite!(rusqlite="...", sea_query="...")
 /// // or
