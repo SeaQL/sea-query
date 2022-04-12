@@ -17,7 +17,29 @@ mod sqlx_sqlite;
 ))]
 mod utils;
 
-/// Macro for generate rusqlite driver.
+/// Macro for generate `rusqlite` driver.
+///
+/// Examples:
+/// ```
+/// sea_query::sea_query_driver_rusqlite!()
+/// ```
+///
+/// Specify a path to the `rusqlite` crate instance
+/// ```
+/// sea_query::sea_query_driver_rusqlite!(driver="...")
+/// ```
+///
+/// Specify a path to the `sea-query` crate instance
+/// ```
+/// sea_query::sea_query_driver_rusqlite!(sea_query="...")
+/// ```
+///
+/// Specify pathes to the `sea-query` and to the `rusqlite` crates instances
+/// ```
+/// sea_query::sea_query_driver_rusqlite!(driver="...", sea_query="...")
+/// // or
+/// sea_query::sea_query_driver_rusqlite!(sea_query="...", driver="...")
+/// ```
 #[cfg(feature = "rusqlite")]
 #[proc_macro]
 pub fn sea_query_driver_rusqlite(input: TokenStream) -> TokenStream {
@@ -25,6 +47,28 @@ pub fn sea_query_driver_rusqlite(input: TokenStream) -> TokenStream {
 }
 
 /// Macro for generate new mod for sqlx-mysql.
+///
+/// Examples:
+/// ```
+/// sea_query::sea_query_driver_mysql!()
+/// ```
+///
+/// Specify a path to the `sqlx` crate instance
+/// ```
+/// sea_query::sea_query_driver_mysql!(driver="...")
+/// ```
+///
+/// Specify a path to the `sea-query` crate instance
+/// ```
+/// sea_query::sea_query_driver_mysql!(sea_query="...")
+/// ```
+///
+/// Specify pathes to the `sea-query` and to the `sqlx` crates instances
+/// ```
+/// sea_query::sea_query_driver_mysql!(driver="...", sea_query="...")
+/// // or
+/// sea_query::sea_query_driver_mysql!(sea_query="...", driver="...")
+/// ```
 #[cfg(feature = "sqlx-mysql")]
 #[proc_macro]
 pub fn sea_query_driver_mysql(input: TokenStream) -> TokenStream {
@@ -39,6 +83,28 @@ pub fn bind_params_sqlx_mysql(input: TokenStream) -> TokenStream {
 }
 
 /// Macro to generate sqlx-postgres driver.
+///
+/// Examples:
+/// ```
+/// sea_query::sea_query_driver_postgres!()
+/// ```
+///
+/// Specify a path to the `sqlx` crate instance
+/// ```
+/// sea_query::sea_query_driver_postgres!(driver="...")
+/// ```
+///
+/// Specify a path to the `sea-query` crate instance
+/// ```
+/// sea_query::sea_query_driver_postgres!(sea_query="...")
+/// ```
+///
+/// Specify pathes to the `sea-query` and to the `sqlx` crates instances
+/// ```
+/// sea_query::sea_query_driver_postgres!(driver="...", sea_query="...")
+/// // or
+/// sea_query::sea_query_driver_postgres!(sea_query="...", driver="...")
+/// ```
 #[cfg(feature = "sqlx-postgres")]
 #[proc_macro]
 pub fn sea_query_driver_postgres(input: TokenStream) -> TokenStream {
@@ -53,6 +119,28 @@ pub fn bind_params_sqlx_postgres(input: TokenStream) -> TokenStream {
 }
 
 /// Macro to generate sqlx-sqlite driver.
+///
+/// Examples:
+/// ```
+/// sea_query::sea_query_driver_sqlite!()
+/// ```
+///
+/// Specify a path to the `sqlx` crate instance
+/// ```
+/// sea_query::sea_query_driver_sqlite!(driver="...")
+/// ```
+///
+/// Specify a path to the `sea-query` crate instance
+/// ```
+/// sea_query::sea_query_driver_sqlite!(sea_query="...")
+/// ```
+///
+/// Specify pathes to the `sea-query` and to the `sqlx` crates instances
+/// ```
+/// sea_query::sea_query_driver_sqlite!(driver="...", sea_query="...")
+/// // or
+/// sea_query::sea_query_driver_sqlite!(sea_query="...", driver="...")
+/// ```
 #[cfg(feature = "sqlx-sqlite")]
 #[proc_macro]
 pub fn sea_query_driver_sqlite(input: TokenStream) -> TokenStream {
