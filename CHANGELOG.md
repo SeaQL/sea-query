@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.24.1 - Not Yet
 
 * #295 Add parameter for SQLx path to proc-macro https://github.com/SeaQL/sea-query/pull/297
+* CTE optional columns https://github.com/SeaQL/sea-query/pull/301
 
 ## 0.24.0 - 2022-04-05
 
