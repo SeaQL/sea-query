@@ -373,8 +373,8 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
     /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::lower(Expr::col(Char::Character)))
@@ -406,8 +406,8 @@ impl Func {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
     /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Func::upper(Expr::col(Char::Character)))

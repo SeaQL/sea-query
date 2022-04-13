@@ -805,7 +805,7 @@ pub trait QueryBuilder: QuotedBuilder {
         cte.table_name.as_ref().unwrap().prepare(sql, self.quote());
 
         if cte.cols.is_empty() {
-            write!(sql," ").unwrap();
+            write!(sql, " ").unwrap();
         } else {
             write!(sql, " (").unwrap();
 

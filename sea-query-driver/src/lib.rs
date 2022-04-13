@@ -26,12 +26,12 @@ mod utils;
 ///
 /// Specify a path to the `rusqlite` crate instance
 /// ```
-/// sea_query::sea_query_driver_rusqlite!(rusqlite="...")
+/// sea_query::sea_query_driver_rusqlite!(rusqlite = "...")
 /// ```
 ///
 /// Specify a path to the `sea-query` crate instance
 /// ```
-/// sea_query::sea_query_driver_rusqlite!(sea_query="...")
+/// sea_query::sea_query_driver_rusqlite!(sea_query = "...")
 /// ```
 ///
 /// Specify paths to the `sea-query` and to the `rusqlite` crates instances
@@ -55,12 +55,12 @@ pub fn sea_query_driver_rusqlite(input: TokenStream) -> TokenStream {
 ///
 /// Specify a path to the `sqlx` crate instance
 /// ```
-/// sea_query::sea_query_driver_mysql!(sqlx="...")
+/// sea_query::sea_query_driver_mysql!(sqlx = "...")
 /// ```
 ///
 /// Specify a path to the `sea-query` crate instance
 /// ```
-/// sea_query::sea_query_driver_mysql!(sea_query="...")
+/// sea_query::sea_query_driver_mysql!(sea_query = "...")
 /// ```
 ///
 /// Specify pathes to the `sea-query` and to the `sqlx` crates instances
@@ -91,12 +91,12 @@ pub fn bind_params_sqlx_mysql(input: TokenStream) -> TokenStream {
 ///
 /// Specify a path to the `sqlx` crate instance
 /// ```
-/// sea_query::sea_query_driver_postgres!(sqlx="...")
+/// sea_query::sea_query_driver_postgres!(sqlx = "...")
 /// ```
 ///
 /// Specify a path to the `sea-query` crate instance
 /// ```
-/// sea_query::sea_query_driver_postgres!(sea_query="...")
+/// sea_query::sea_query_driver_postgres!(sea_query = "...")
 /// ```
 ///
 /// Specify pathes to the `sea-query` and to the `sqlx` crates instances
@@ -127,12 +127,12 @@ pub fn bind_params_sqlx_postgres(input: TokenStream) -> TokenStream {
 ///
 /// Specify a path to the `sqlx` crate instance
 /// ```
-/// sea_query::sea_query_driver_sqlite!(sqlx="...")
+/// sea_query::sea_query_driver_sqlite!(sqlx = "...")
 /// ```
 ///
 /// Specify a path to the `sea-query` crate instance
 /// ```
-/// sea_query::sea_query_driver_sqlite!(sea_query="...")
+/// sea_query::sea_query_driver_sqlite!(sea_query = "...")
 /// ```
 ///
 /// Specify pathes to the `sea-query` and to the `sqlx` crates instances

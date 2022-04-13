@@ -976,8 +976,7 @@ fn select_57() {
         .from(Alias::new("cte"))
         .to_owned();
     assert_eq!(
-        select.with(with_clause)
-            .to_string(PostgresQueryBuilder),
+        select.with(with_clause).to_string(PostgresQueryBuilder),
         [
             r#"WITH "cte" AS"#,
             r#"(SELECT "id", "image", "aspect""#,
