@@ -1,6 +1,5 @@
 use crate::{
-    backend::SchemaBuilder, prepare::*, types::*, ColumnDef, ForeignKeyCreateStatement,
-    ForeignKeyDropStatement, SchemaStatementBuilder,
+    backend::SchemaBuilder, prepare::*, types::*, ColumnDef, TableForeignKey, SchemaStatementBuilder,
 };
 
 /// Alter a table
@@ -53,8 +52,8 @@ pub enum TableAlterOption {
     ModifyColumn(ColumnDef),
     RenameColumn(DynIden, DynIden),
     DropColumn(DynIden),
-    AddForeignKey(ForeignKeyCreateStatement),
-    DropForeignKey(ForeignKeyDropStatement),
+    AddForeignKey(TableForeignKey),
+    DropForeignKey(String),
 }
 
 impl Default for TableAlterStatement {
@@ -266,18 +265,24 @@ impl TableAlterStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let foreign_key_char = ForeignKey::create()
+    /// let foreign_key_char = TableForeignKey::new()
     ///     .name("FK_character_glyph")
-    ///     .from(Char::Table, (Char::FontId, Char::Id))
-    ///     .to(Glyph::Table, (Char::FontId, Glyph::Id))
+    ///     .from_tbl(Char::Table)
+    ///     .from_col(Char::FontId)
+    ///     .from_col(Char::Id)
+    ///     .to_tbl(Glyph::Table)
+    ///     .to_col(Char::FontId)
+    ///     .to_col(Char::Id)
     ///     .on_delete(ForeignKeyAction::Cascade)
     ///     .on_update(ForeignKeyAction::Cascade)
     ///     .to_owned();
     ///
-    /// let foreign_key_font = ForeignKey::create()
+    /// let foreign_key_font = TableForeignKey::new()
     ///     .name("FK_character_font")
-    ///     .from(Char::Table, (Char::FontId))
-    ///     .to(Font::Table, (Font::Id))
+    ///     .from_tbl(Char::Table)
+    ///     .from_col(Char::FontId)
+    ///     .to_tbl(Font::Table)
+    ///     .to_col(Font::Id)
     ///     .on_delete(ForeignKeyAction::Cascade)
     ///     .on_update(ForeignKeyAction::Cascade)
     ///     .to_owned();
@@ -318,7 +323,7 @@ impl TableAlterStatement {
     ///
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn add_foreign_key(&mut self, foreign_key: &ForeignKeyCreateStatement) -> &mut Self {
+    pub fn add_foreign_key(&mut self, foreign_key: &TableForeignKey) -> &mut Self {
         self.add_alter_option(TableAlterOption::AddForeignKey(foreign_key.to_owned()))
     }
 
@@ -329,18 +334,10 @@ impl TableAlterStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let foreign_key_char = ForeignKey::drop()
-    ///     .name("FK_character_glyph")
-    ///     .to_owned();
-    ///
-    /// let foreign_key_font = ForeignKey::drop()
-    ///     .name("FK_character_font")
-    ///     .to_owned();
-    ///
     /// let table = Table::alter()
     ///     .table(Character::Table)
-    ///     .drop_foreign_key(&foreign_key_char)
-    ///     .drop_foreign_key(&foreign_key_font)
+    ///     .drop_foreign_key(&"FK_character_glyph".into())
+    ///     .drop_foreign_key(&"FK_character_font".into())
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -365,8 +362,8 @@ impl TableAlterStatement {
     ///
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn drop_foreign_key(&mut self, foreign_key: &ForeignKeyDropStatement) -> &mut Self {
-        self.add_alter_option(TableAlterOption::DropForeignKey(foreign_key.to_owned()))
+    pub fn drop_foreign_key(&mut self, name: &String) -> &mut Self {
+        self.add_alter_option(TableAlterOption::DropForeignKey(name.to_owned()))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
