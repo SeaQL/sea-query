@@ -1,7 +1,13 @@
+use crate::utils::RusqliteDriverArgs;
 use proc_macro::TokenStream;
 use quote::quote;
+use syn::parse_macro_input;
 
-pub fn sea_query_driver_rusqlite_impl() -> TokenStream {
+pub fn sea_query_driver_rusqlite_impl(input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(input as RusqliteDriverArgs);
+    let rusqlite_path = args.driver;
+    let sea_query_path = args.sea_query;
+
     let with_json = if cfg!(feature = "with-json") {
         quote! { Value::Json(v) => box_to_sql!(v), }
     } else {
@@ -42,8 +48,8 @@ pub fn sea_query_driver_rusqlite_impl() -> TokenStream {
 
     let output = quote! {
         mod sea_query_driver_rusqlite {
-            use rusqlite::{types::{Null, ToSqlOutput}, Result, ToSql};
-            use sea_query::{Value, Values};
+            use #rusqlite_path::rusqlite::{types::{Null, ToSqlOutput}, Result, ToSql};
+            use #sea_query_path::sea_query::{Value, Values};
 
             pub struct RusqliteValue(pub Value);
 
