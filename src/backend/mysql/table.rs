@@ -159,11 +159,10 @@ impl TableBuilder for MysqlQueryBuilder {
                     column_name.prepare(sql, self.quote());
                 }
                 TableAlterOption::DropForeignKey(drop) => {
-                    self.prepare_foreign_key_drop_statement_internal(drop, sql, false);
+                    self.prepare_foreign_key_drop_statement_internal(drop, sql, Mode::TableAlter);
                 }
-                TableAlterOption::AddForeignKey(create) => {
-                    self.prepare_foreign_key_create_statement_internal(create, sql, false, false)
-                }
+                TableAlterOption::AddForeignKey(create) => self
+                    .prepare_foreign_key_create_statement_internal(create, sql, Mode::TableAlter),
             };
             false
         });

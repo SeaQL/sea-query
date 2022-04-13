@@ -1,4 +1,7 @@
-use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaStatementBuilder, ForeignKeyCreateStatement, ForeignKeyDropStatement};
+use crate::{
+    backend::SchemaBuilder, prepare::*, types::*, ColumnDef, ForeignKeyCreateStatement,
+    ForeignKeyDropStatement, SchemaStatementBuilder,
+};
 
 /// Alter a table
 ///
@@ -315,8 +318,7 @@ impl TableAlterStatement {
     ///
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn add_foreign_key(&mut self, foreign_key: &ForeignKeyCreateStatement) -> &mut Self
-    {
+    pub fn add_foreign_key(&mut self, foreign_key: &ForeignKeyCreateStatement) -> &mut Self {
         self.add_alter_option(TableAlterOption::AddForeignKey(foreign_key.to_owned()))
     }
 
@@ -363,8 +365,7 @@ impl TableAlterStatement {
     ///
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn drop_foreign_key(&mut self, foreign_key: &ForeignKeyDropStatement) -> &mut Self
-    {
+    pub fn drop_foreign_key(&mut self, foreign_key: &ForeignKeyDropStatement) -> &mut Self {
         self.add_alter_option(TableAlterOption::DropForeignKey(foreign_key.to_owned()))
     }
 

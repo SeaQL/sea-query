@@ -1,5 +1,12 @@
 use crate::*;
 
+#[derive(Debug, PartialEq)]
+pub enum Mode {
+    Creation,
+    Alter,
+    TableAlter,
+}
+
 pub trait ForeignKeyBuilder: QuotedBuilder {
     /// Translate [`ForeignKeyCreateStatement`] into SQL statement.
     fn prepare_foreign_key_create_statement(
@@ -7,7 +14,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
     ) {
-        self.prepare_foreign_key_create_statement_internal(create, sql, false, true)
+        self.prepare_foreign_key_create_statement_internal(create, sql, Mode::Alter)
     }
 
     /// Translate [`ForeignKeyDropStatement`] into SQL statement.
@@ -16,7 +23,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         drop: &ForeignKeyDropStatement,
         sql: &mut SqlWriter,
     ) {
-        self.prepare_foreign_key_drop_statement_internal(drop, sql, true)
+        self.prepare_foreign_key_drop_statement_internal(drop, sql, Mode::Alter)
     }
 
     /// Translate [`ForeignKeyAction`] into SQL statement.
@@ -45,9 +52,8 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         &self,
         drop: &ForeignKeyDropStatement,
         sql: &mut SqlWriter,
-        inside_table_single_alter: bool,
+        mode: Mode,
     );
-
 
     #[doc(hidden)]
     /// Internal function to factor foreign key creation in table and outside.
@@ -55,7 +61,6 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         &self,
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
-        inside_table_creation: bool,
-        inside_table_single_alter: bool,
+        mode: Mode,
     );
 }

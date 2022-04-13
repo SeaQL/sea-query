@@ -36,7 +36,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             if count > 0 {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, true, false);
+            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, Mode::Creation);
             count += 1;
         }
 

@@ -5,9 +5,9 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         &self,
         drop: &ForeignKeyDropStatement,
         sql: &mut SqlWriter,
-        inside_table_single_alter: bool,
+        mode: Mode,
     ) {
-        if inside_table_single_alter {
+        if mode != Mode::Creation {
             panic!("Sqlite does not support modification of foreign key constraints to existing tables");
         }
 
@@ -21,10 +21,9 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         &self,
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
-        inside_table_creation: bool,
-        inside_table_single_alter: bool,
+        mode: Mode,
     ) {
-        if !inside_table_creation || inside_table_single_alter {
+        if mode != Mode::Creation {
             panic!("Sqlite does not support modification of foreign key constraints to existing tables");
         }
 

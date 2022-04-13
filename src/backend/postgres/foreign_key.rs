@@ -5,9 +5,9 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         &self,
         drop: &ForeignKeyDropStatement,
         sql: &mut SqlWriter,
-        inside_table_single_alter: bool,
+        mode: Mode,
     ) {
-        if inside_table_single_alter {
+        if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &drop.table {
                 table.prepare(sql, self.quote());
@@ -25,17 +25,17 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         &self,
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
-        inside_table_creation: bool,
-        inside_table_single_alter: bool,
+        mode: Mode,
     ) {
-        if !inside_table_creation && inside_table_single_alter{
+        if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
                 table.prepare(sql, self.quote());
             }
             write!(sql, " ").unwrap();
         }
-        if !inside_table_creation {
+
+        if mode != Mode::Creation {
             write!(sql, "ADD ").unwrap();
         }
 
