@@ -837,7 +837,9 @@ pub trait QueryBuilder: QuotedBuilder {
     ) {
         cte.table_name.as_ref().unwrap().prepare(sql, self.quote());
 
-        if !cte.cols.is_empty() {
+        if cte.cols.is_empty() {
+            write!(sql, " ").unwrap();
+        } else {
             write!(sql, " (").unwrap();
 
             let mut col_first = true;

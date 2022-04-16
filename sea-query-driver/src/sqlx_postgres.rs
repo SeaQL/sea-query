@@ -1,10 +1,10 @@
-use crate::utils::Args;
+use crate::utils::{BindParamArgs, SqlxDriverArgs};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
 
 pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(input as Args);
+    let args = parse_macro_input!(input as BindParamArgs);
     let query = args.query;
     let params = args.params;
 
@@ -113,24 +113,28 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-pub fn sea_query_driver_postgres_impl() -> TokenStream {
+pub fn sea_query_driver_postgres_impl(input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(input as SqlxDriverArgs);
+    let sqlx_path = args.driver;
+    let sea_query_path = args.sea_query;
+
     let output = quote! {
         mod sea_query_driver_postgres {
-            use sqlx::{postgres::PgArguments, Postgres};
-            use sea_query::{Value, Values};
+            use #sqlx_path::sqlx::{postgres::PgArguments, Postgres};
+            use #sea_query_path::sea_query::{Value, Values};
 
-            type SqlxQuery<'a> = sqlx::query::Query<'a, Postgres, PgArguments>;
-            type SqlxQueryAs<'a, T> = sqlx::query::QueryAs<'a, Postgres, T, PgArguments>;
+            type SqlxQuery<'a> = #sqlx_path::sqlx::query::Query<'a, Postgres, PgArguments>;
+            type SqlxQueryAs<'a, T> = #sqlx_path::sqlx::query::QueryAs<'a, Postgres, T, PgArguments>;
 
             pub fn bind_query<'a>(query: SqlxQuery<'a>, params: &'a Values) -> SqlxQuery<'a> {
-                sea_query::bind_params_sqlx_postgres!(query, params.0)
+                #sea_query_path::sea_query::bind_params_sqlx_postgres!(query, params.0)
             }
 
             pub fn bind_query_as<'a, T>(
                 query: SqlxQueryAs<'a, T>,
                 params: &'a Values,
             ) -> SqlxQueryAs<'a, T> {
-                sea_query::bind_params_sqlx_postgres!(query, params.0)
+                #sea_query_path::sea_query::bind_params_sqlx_postgres!(query, params.0)
             }
         }
     };

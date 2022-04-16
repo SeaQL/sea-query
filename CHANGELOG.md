@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.24.1 - 2022-04-15
+
+### Enhancements
+
+* #295 Add parameter for SQLx path to proc-macro https://github.com/SeaQL/sea-query/pull/297
+
+### Bug fixes
+
+* CTE optional columns https://github.com/SeaQL/sea-query/pull/301
+
 ## 0.24.0 - 2022-04-05
 
 ### New Features
