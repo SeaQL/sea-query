@@ -4,6 +4,7 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
+
 use crate::{func::*, query::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
@@ -35,6 +36,7 @@ pub enum SimpleExpr {
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
+    Case(Vec<(Option<SimpleExpr>, SimpleExpr)>)
 }
 
 impl Expr {

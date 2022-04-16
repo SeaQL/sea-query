@@ -18,6 +18,7 @@ mod traits;
 mod update;
 mod window;
 mod with;
+mod case;
 
 pub use condition::*;
 pub use delete::*;
@@ -29,6 +30,7 @@ pub use traits::*;
 pub use update::*;
 pub use window::*;
 pub use with::*;
+pub use case::*;
 
 /// Shorthand for constructing any table query
 #[derive(Debug, Clone)]

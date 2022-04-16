@@ -375,7 +375,40 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql, collector);
             }
+            SimpleExpr::Case(case_stmt) => {
+                self.prepare_case_statement(case_stmt, sql, collector);
+            }
         }
+    }
+
+    fn prepare_case_statement(
+        &self,
+        stmts: &Vec<(Option<SimpleExpr>, SimpleExpr)>,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        assert!(
+            stmts.len() >= 2,
+            "Case statements need at least two results"
+        );
+        write!(sql, "( CASE ").unwrap();
+        for (cond, res) in stmts.into_iter() {
+            
+            if let Some(when) = cond.clone() {
+                write!(sql, "WHEN ( ").unwrap();
+                self.prepare_condition_where(&when.into_condition(), sql, collector);
+                write!(sql, " ) ").unwrap();
+                write!(sql, "THEN ").unwrap();
+            }
+            else{
+                write!(sql, "ELSE ").unwrap();
+            }
+
+            self.prepare_simple_expr(res, sql, collector);
+            
+        }
+
+        write!(sql, "END ) ").unwrap();
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
