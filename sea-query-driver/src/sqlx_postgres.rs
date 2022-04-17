@@ -62,6 +62,23 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
         quote! {}
     };
 
+    let with_ipnetwork = if cfg!(feature = "with-ipnetwork") {
+        quote! {
+            Value::Ipv4Network(v) => bind_box!(v),
+            Value::Ipv6Network(v) => bind_box!(v),
+        }
+    } else {
+        quote! {}
+    };
+
+    let with_mac_address = if cfg!(feature = "with-mac_address") {
+        quote! {
+            Value::MacAddress(v) => bind_box!(v),
+        }
+    } else {
+        quote! {}
+    };
+
     let output = quote! {
         {
             let mut query = #query;
@@ -104,6 +121,8 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
                     #with_rust_decimal
                     #with_big_decimal
                     #with_postgres_array
+                    #with_ipnetwork
+                    #with_mac_address
                     #[allow(unreachable_patterns)]
                     _ => unimplemented!(),
                 };

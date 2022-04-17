@@ -29,6 +29,8 @@ with-rust_decimal = []
 with-bigdecimal = []
 with-uuid = []
 with-time = []
+with-ipnetwork = []
+with-mac_address = []
 postgres-array = []
 
 [dev-dependencies]

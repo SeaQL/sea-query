@@ -1076,6 +1076,12 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv4Network(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv6Network(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-mac_address")]
+            Value::MacAddress(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -1146,6 +1152,12 @@ pub trait QueryBuilder: QuotedBuilder {
                     .join(",")
             )
             .unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv4Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv6Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-mac_address")]
+            Value::MacAddress(Some(v)) => write!(s, "{}", v).unwrap(),
         };
         s
     }
