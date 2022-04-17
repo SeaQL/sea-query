@@ -381,34 +381,32 @@ pub trait QueryBuilder: QuotedBuilder {
         }
     }
 
+    /// Translate [`CaseStatement`] into SQL statement.
     fn prepare_case_statement(
         &self,
-        stmts: &Vec<(Option<SimpleExpr>, SimpleExpr)>,
+        stmts: &CaseStatement,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
         assert!(
-            stmts.len() >= 2,
+            stmts.conditions.clone().len() >= 2,
             "Case statements need at least two results"
         );
-        write!(sql, "( CASE ").unwrap();
-        for (cond, res) in stmts.into_iter() {
-            
-            if let Some(when) = cond.clone() {
-                write!(sql, "WHEN ( ").unwrap();
+        write!(sql, "(CASE").unwrap();
+        for case in stmts.conditions.iter() {
+            if let Some(when) = case.condition.clone() {
+                write!(sql, " WHEN (").unwrap();
                 self.prepare_condition_where(&when.into_condition(), sql, collector);
-                write!(sql, " ) ").unwrap();
+                write!(sql, ") ").unwrap();
                 write!(sql, "THEN ").unwrap();
-            }
-            else{
-                write!(sql, "ELSE ").unwrap();
+            } else {
+                write!(sql, " ELSE ").unwrap();
             }
 
-            self.prepare_simple_expr(res, sql, collector);
-            
+            self.prepare_simple_expr(&case.result.clone().into(), sql, collector);
         }
 
-        write!(sql, "END ) ").unwrap();
+        write!(sql, " END) ").unwrap();
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
