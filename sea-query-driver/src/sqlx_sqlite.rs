@@ -69,12 +69,13 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
                     };
                 }
                 macro_rules! bind_box {
-                    ( $v: expr ) => {
-                        match $v {
-                            Some(v) => query.bind(v.as_ref()),
-                            None => query.bind(None::<bool>),
-                        }
-                    };
+                    ( $v: expr ) => {{
+                        let v = match $v {
+                            Some(v) => Some(v.as_ref()),
+                            None => None,
+                        };
+                        query.bind(v)
+                    }};
                 }
                 query = match value {
                     Value::Bool(v) => bind!(v, bool),
