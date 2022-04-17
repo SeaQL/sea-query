@@ -2,7 +2,12 @@ use crate::{Condition, Expr, SimpleExpr};
 
 #[derive(Debug, Clone)]
 pub(crate) struct CaseStatementCondition {
+    /// The condition in the `WHEN` clause of a case statement.
+    /// If None, query builder will infer this to be the closing
+    /// `ELSE` clause. Note that `ELSE` is optional and will return NULL
+    /// if `ELSE` is not present but the condition is met.
     pub(crate) condition: Option<Condition>,
+    /// The result if the condition is met. This is the `THEN` clause.
     pub(crate) result: Expr,
 }
 
