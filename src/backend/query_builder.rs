@@ -388,10 +388,6 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        assert!(
-            stmts.conditions.clone().len() >= 2,
-            "Case statements need at least two results"
-        );
         write!(sql, "(CASE").unwrap();
         for case in stmts.conditions.iter() {
             if let Some(when) = case.condition.clone() {
