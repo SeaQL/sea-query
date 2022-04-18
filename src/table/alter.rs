@@ -53,7 +53,7 @@ pub enum TableAlterOption {
     RenameColumn(DynIden, DynIden),
     DropColumn(DynIden),
     AddForeignKey(TableForeignKey),
-    DropForeignKey(String),
+    DropForeignKey(DynIden),
 }
 
 impl Default for TableAlterStatement {
@@ -336,8 +336,8 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Character::Table)
-    ///     .drop_foreign_key(&"FK_character_glyph".into())
-    ///     .drop_foreign_key(&"FK_character_font".into())
+    ///     .drop_foreign_key(Alias::new("FK_character_glyph"))
+    ///     .drop_foreign_key(Alias::new("FK_character_font"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -362,8 +362,11 @@ impl TableAlterStatement {
     ///
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn drop_foreign_key(&mut self, name: &String) -> &mut Self {
-        self.add_alter_option(TableAlterOption::DropForeignKey(name.to_owned()))
+    pub fn drop_foreign_key<T>(&mut self, name: T) -> &mut Self
+    where
+        T: IntoIden
+    {
+        self.add_alter_option(TableAlterOption::DropForeignKey(name.into_iden()))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
