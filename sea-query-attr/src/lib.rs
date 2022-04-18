@@ -1,21 +1,45 @@
+use darling::FromMeta;
 use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, spanned::Spanned, Data, DataStruct, DeriveInput, Fields, Ident};
-
-extern crate proc_macro;
+use syn::{
+    parse_macro_input, spanned::Spanned, AttributeArgs, Data, DataStruct, DeriveInput, Fields,
+    Ident,
+};
 
 #[macro_use]
 extern crate quote;
-extern crate syn;
 
 struct NamingHolder {
     pub default: Ident,
     pub pascal: Ident,
 }
 
+#[derive(Debug, FromMeta)]
+struct GenTypeDefArgs {
+    #[darling(default)]
+    pub prefix: Option<String>,
+    #[darling(default)]
+    pub suffix: Option<String>,
+}
+
+const DEFAULT_PREFIX: &'static str = "";
+const DEFAULT_SUFFIX: &'static str = "TypeDef";
+
+impl Default for GenTypeDefArgs {
+    fn default() -> Self {
+        Self {
+            prefix: Some(DEFAULT_PREFIX.to_string()),
+            suffix: Some(DEFAULT_SUFFIX.to_string()),
+        }
+    }
+}
+
 #[proc_macro_attribute]
-pub fn gen_type_def(_args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn gen_type_def(args: TokenStream, input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(args as AttributeArgs);
     let input = parse_macro_input!(input as DeriveInput);
+    let args = GenTypeDefArgs::from_list(&args).unwrap_or_default();
+
     let fields = match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
@@ -44,29 +68,31 @@ pub fn gen_type_def(_args: TokenStream, input: TokenStream) -> TokenStream {
         input.ident.to_string().to_snake_case().as_str(),
         input.ident.span(),
     );
-    
-    let original_name = &input.ident;
-    let struct_name = quote::format_ident!("{}TypeDef", &input.ident);
+
+    let enum_name = quote::format_ident!(
+        "{}{}{}",
+        args.prefix.unwrap_or(DEFAULT_PREFIX.to_string()),
+        &input.ident,
+        args.suffix.unwrap_or(DEFAULT_SUFFIX.to_string())
+    );
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
-    let pascal_def_names2 = pascal_def_names.clone(); // we can't repeat the same ident twice in a quote!, so we need to clone the first one
-    let pascal_def_names3 = pascal_def_names.clone(); 
+    let pascal_def_names2 = pascal_def_names.clone();
     let default_names = field_names.iter().map(|field| &field.default);
-    let default_names2 = default_names.clone();
 
     TokenStream::from(quote! {
         #input
 
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        enum #struct_name {
+        enum #enum_name {
             Table,
             #(#pascal_def_names,)*
         }
 
-        impl sea_query::Iden for #struct_name {
+        impl sea_query::Iden for #enum_name {
             fn unquoted(&self, s: &mut dyn sea_query::Write) {
                 write!(s, "{}", match self {
-                    #struct_name::Table => stringify!(#table_name),
-                    #(#struct_name::#pascal_def_names2 => stringify!(#default_names)),*
+                    #enum_name::Table => stringify!(#table_name),
+                    #(#enum_name::#pascal_def_names2 => stringify!(#default_names)),*
                 }).unwrap();
             }
         }

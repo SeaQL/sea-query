@@ -17,7 +17,9 @@ proc-macro = true
 syn = { version = "^1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
 quote = "^1"
 heck = "^0.4"
+darling = "^0.14"
 
 [dev-dependencies]
-sea-query = { version = "^0", path = ".." }
+trybuild = "^1.0"
+sea-query = { version = "^0", path = "..", features = ["attr"] }
 strum = { version = "^0.24", features = ["derive"] }
