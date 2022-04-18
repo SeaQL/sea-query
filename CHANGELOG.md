@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Fixed https://github.com/SeaQL/sea-query/issues/303 driver breakage in 0.24.0
 
+Notes: 0.24.0 & 0.24.1 were yanked
+
 ## 0.24.1 - 2022-04-15
 
 ### Enhancements
