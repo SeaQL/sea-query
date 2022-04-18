@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.24.2 - 2022-04-18
+
+### Bug fixes
+
+* Fixed https://github.com/SeaQL/sea-query/issues/303 driver breakage in 0.24.0
+
 ## 0.24.1 - 2022-04-15
 
 ### Enhancements
