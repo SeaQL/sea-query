@@ -6,9 +6,6 @@ use syn::{
     Ident,
 };
 
-#[macro_use]
-extern crate quote;
-
 struct NamingHolder {
     pub default: Ident,
     pub pascal: Ident,
@@ -79,7 +76,7 @@ pub fn gen_type_def(args: TokenStream, input: TokenStream) -> TokenStream {
     let pascal_def_names2 = pascal_def_names.clone();
     let default_names = field_names.iter().map(|field| &field.default);
 
-    TokenStream::from(quote! {
+    TokenStream::from(quote::quote! {
         #input
 
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
