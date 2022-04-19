@@ -1,19 +1,15 @@
-use crate::{Condition, Expr, SimpleExpr};
+use crate::{Condition, Expr, IntoCondition, SimpleExpr};
 
 #[derive(Debug, Clone)]
-pub(crate) struct CaseStatementCondition {
-    /// The condition in the `WHEN` clause of a case statement.
-    /// If None, query builder will infer this to be the closing
-    /// `ELSE` clause. Note that `ELSE` is optional and will return NULL
-    /// if `ELSE` is not present but the condition is met.
-    pub(crate) condition: Option<Condition>,
-    /// The result if the condition is met. This is the `THEN` clause.
+pub struct CaseStatementCondition {
+    pub(crate) condition: Condition,
     pub(crate) result: Expr,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct CaseStatement {
-    pub(crate) conditions: Vec<CaseStatementCondition>,
+    pub(crate) when: Vec<CaseStatementCondition>,
+    pub(crate) r#else: Option<Expr>,
 }
 
 impl CaseStatement {
@@ -27,11 +23,7 @@ impl CaseStatement {
     /// let query = Query::select()
     ///     .expr_as(
     ///         CaseStatement::new()
-    ///             .case(
-    ///                 Cond::any()
-    ///                     .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4])),
-    ///                 Expr::val(true)
-    ///              )
+    ///             .case((Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4]), Expr::val(true)))
     ///             .finally(Expr::val(false)),
     ///          Alias::new("is_even")
     ///     )
@@ -44,9 +36,7 @@ impl CaseStatement {
     /// );    
     /// ```
     pub fn new() -> Self {
-        Self {
-            conditions: Vec::new(),
-        }
+        Self::default()
     }
 
     /// Adds new `CASE WHEN` to existing case statement.
@@ -59,16 +49,14 @@ impl CaseStatement {
     /// let query = Query::select()
     ///     .expr_as(
     ///         CaseStatement::new()
-    ///             .case(
-    ///                 Cond::any()
-    ///                     .add(Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0)),
+    ///             .case((
+    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
     ///                 Expr::val("positive")
-    ///              )
-    ///             .case(
-    ///                 Cond::any()
-    ///                     .add(Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0)),
+    ///              ))
+    ///             .case((
+    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
     ///                 Expr::val("negative")
-    ///              )    
+    ///              ))
     ///             .finally(Expr::val("zero")),
     ///          Alias::new("polarity")
     ///     )
@@ -81,15 +69,11 @@ impl CaseStatement {
     /// );    
     /// ```
 
-    pub fn case<C, E>(mut self, when: C, then: E) -> Self
+    pub fn case<C>(mut self, case: C) -> Self
     where
-        C: Into<Condition>,
-        E: Into<Expr>,
+        C: IntoCaseStatement,
     {
-        self.conditions.push(CaseStatementCondition {
-            condition: Some(when.into()),
-            result: then.into(),
-        });
+        self.when.push(case.into_case_statement());
         self
     }
 
@@ -98,16 +82,46 @@ impl CaseStatement {
     where
         E: Into<Expr>,
     {
-        self.conditions.push(CaseStatementCondition {
-            condition: None,
-            result: r#else.into(),
-        });
+        self.r#else = Some(r#else.into());
         self
+    }
+}
+
+impl<C> From<C> for CaseStatement
+where
+    C: IntoCaseStatement,
+{
+    fn from(c: C) -> CaseStatement {
+        CaseStatement::new().case(c.into_case_statement())
     }
 }
 
 impl Into<SimpleExpr> for CaseStatement {
     fn into(self) -> SimpleExpr {
         SimpleExpr::Case(Box::new(self))
+    }
+}
+
+pub trait IntoCaseStatement {
+    fn into_case_statement(self) -> CaseStatementCondition;
+}
+
+impl IntoCaseStatement for CaseStatementCondition {
+    fn into_case_statement(self) -> CaseStatementCondition {
+        self
+    }
+}
+
+impl<C: 'static, T: 'static> IntoCaseStatement for (C, T)
+where
+    C: IntoCondition,
+    T: Into<Expr>,
+{
+    fn into_case_statement(self) -> CaseStatementCondition {
+        let (c, t) = self;
+        CaseStatementCondition {
+            condition: c.into_condition(),
+            result: t.into(),
+        }
     }
 }

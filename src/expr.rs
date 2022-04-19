@@ -1827,11 +1827,35 @@ impl Expr {
         self.into()
     }
 
-    pub fn case<C>(c: C) -> Self
+    /// Adds new `CASE WHEN` to existing case statement.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr_as(
+    ///         Expr::case((
+    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4]),
+    ///                 Expr::val(true)
+    ///              ))
+    ///             .finally(Expr::val(false)),
+    ///          Alias::new("is_even")
+    ///     )
+    ///     .from(Glyph::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
+    /// );    
+    /// ```
+    pub fn case<C>(c: C) -> CaseStatement
     where
-        C: Into<CaseStatement>,
+        C: IntoCaseStatement,
     {
-        Self::new_with_left(SimpleExpr::Case(Box::new(c.into())))
+        CaseStatement::new().case(c)
     }
 }
 

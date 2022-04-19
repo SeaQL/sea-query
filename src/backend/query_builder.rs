@@ -389,17 +389,23 @@ pub trait QueryBuilder: QuotedBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         write!(sql, "(CASE").unwrap();
-        for case in stmts.conditions.iter() {
-            if let Some(when) = case.condition.clone() {
-                write!(sql, " WHEN (").unwrap();
-                self.prepare_condition_where(&when.into_condition(), sql, collector);
-                write!(sql, ") ").unwrap();
-                write!(sql, "THEN ").unwrap();
-            } else {
-                write!(sql, " ELSE ").unwrap();
-            }
+
+        let CaseStatement { when, r#else } = stmts;
+
+        for case in when.iter() {
+            write!(sql, " WHEN (").unwrap();
+            self.prepare_condition_where(&case.condition, sql, collector);
+            write!(sql, ") ").unwrap();
+            write!(sql, "THEN ").unwrap();
+            // } else {
+            //     write!(sql, " ELSE ").unwrap();
+            // }
 
             self.prepare_simple_expr(&case.result.clone().into(), sql, collector);
+        }
+        if let Some(r#else) = r#else.clone() {
+            write!(sql, " ELSE ").unwrap();
+            self.prepare_simple_expr(&r#else.into(), sql, collector);
         }
 
         write!(sql, " END) ").unwrap();
