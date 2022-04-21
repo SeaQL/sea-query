@@ -158,7 +158,7 @@ mod tests {
     fn inject_parameters_6() {
         assert_eq!(
             inject_parameters("WHERE A = $1", vec!["B'C".into()], &PostgresQueryBuilder),
-            "WHERE A = E'B\\'C'"
+            "WHERE A = 'B''C'"
         );
     }
 

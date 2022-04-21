@@ -26,3 +26,5 @@ impl QuotedBuilder for MysqlQueryBuilder {
         '`'
     }
 }
+
+impl EscapeBuilder for MysqlQueryBuilder {}

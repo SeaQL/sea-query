@@ -24,3 +24,5 @@ impl QuotedBuilder for SqliteQueryBuilder {
         '"'
     }
 }
+
+impl EscapeBuilder for SqliteQueryBuilder {}
