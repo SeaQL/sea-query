@@ -17,16 +17,20 @@ struct GenTypeDefArgs {
     pub prefix: Option<String>,
     #[darling(default)]
     pub suffix: Option<String>,
+    #[darling(default)]
+    pub crate_name: Option<String>,
 }
 
 const DEFAULT_PREFIX: &'static str = "";
 const DEFAULT_SUFFIX: &'static str = "TypeDef";
+const DEFAULT_CRATE_NAME: &'static str = "sea_query";
 
 impl Default for GenTypeDefArgs {
     fn default() -> Self {
         Self {
             prefix: Some(DEFAULT_PREFIX.to_string()),
             suffix: Some(DEFAULT_SUFFIX.to_string()),
+            crate_name: Some(DEFAULT_CRATE_NAME.to_string()),
         }
     }
 }
@@ -68,13 +72,14 @@ pub fn gen_type_def(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let enum_name = quote::format_ident!(
         "{}{}{}",
-        args.prefix.unwrap_or(DEFAULT_PREFIX.to_string()),
+        args.prefix.unwrap_or_else(|| DEFAULT_PREFIX.to_string()),
         &input.ident,
-        args.suffix.unwrap_or(DEFAULT_SUFFIX.to_string())
+        args.suffix.unwrap_or_else(|| DEFAULT_SUFFIX.to_string())
     );
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
     let pascal_def_names2 = pascal_def_names.clone();
     let default_names = field_names.iter().map(|field| &field.default);
+    let import_name = Ident::new(args.crate_name.unwrap_or_else(|| DEFAULT_CRATE_NAME.to_string()).as_str(), input.span());
 
     TokenStream::from(quote::quote! {
         #input
@@ -85,7 +90,7 @@ pub fn gen_type_def(args: TokenStream, input: TokenStream) -> TokenStream {
             #(#pascal_def_names,)*
         }
 
-        impl sea_query::Iden for #enum_name {
+        impl #import_name::Iden for #enum_name {
             fn unquoted(&self, s: &mut dyn sea_query::Write) {
                 write!(s, "{}", match self {
                     #enum_name::Table => stringify!(#table_name),
