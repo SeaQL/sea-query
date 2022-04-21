@@ -988,6 +988,31 @@ fn select_57() {
 }
 
 #[test]
+fn select_58() {
+    let query = Query::select()
+        .expr_as(
+            CaseStatement::new()
+                .case((
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
+                    Expr::val("positive"),
+                ))
+                .case((
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
+                    Expr::val("negative"),
+                ))
+                .finally(Expr::val("zero")),
+            Alias::new("polarity"),
+        )
+        .from(Glyph::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(

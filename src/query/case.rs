@@ -48,8 +48,7 @@ impl CaseStatement {
     ///
     /// let query = Query::select()
     ///     .expr_as(
-    ///         CaseStatement::new()
-    ///             .case((
+    ///             Expr::case((
     ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
     ///                 Expr::val("positive")
     ///              ))
@@ -68,7 +67,6 @@ impl CaseStatement {
     ///     r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
     /// );    
     /// ```
-
     pub fn case<C>(mut self, case: C) -> Self
     where
         C: IntoCaseStatement,

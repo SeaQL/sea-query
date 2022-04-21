@@ -395,11 +395,7 @@ pub trait QueryBuilder: QuotedBuilder {
         for case in when.iter() {
             write!(sql, " WHEN (").unwrap();
             self.prepare_condition_where(&case.condition, sql, collector);
-            write!(sql, ") ").unwrap();
-            write!(sql, "THEN ").unwrap();
-            // } else {
-            //     write!(sql, " ELSE ").unwrap();
-            // }
+            write!(sql, ") THEN ").unwrap();
 
             self.prepare_simple_expr(&case.result.clone().into(), sql, collector);
         }
