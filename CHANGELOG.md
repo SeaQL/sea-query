@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.24.3 - Pending
+
+* Add length check on condition array https://github.com/SeaQL/sea-query/pull/307
+
 ## 0.24.2 - 2022-04-18
 
 ### Bug fixes
