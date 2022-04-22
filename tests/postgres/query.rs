@@ -1,4 +1,5 @@
 use super::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn select_1() {
@@ -960,6 +961,33 @@ fn select_56() {
 }
 
 #[test]
+fn select_57() {
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Glyph::Table)
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Alias::new("cte"))
+        .to_owned();
+    assert_eq!(
+        select.with(with_clause).to_string(PostgresQueryBuilder),
+        [
+            r#"WITH "cte" AS"#,
+            r#"(SELECT "id", "image", "aspect""#,
+            r#"FROM "glyph")"#,
+            r#"SELECT "id", "image", "aspect" FROM "cte""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -1006,6 +1034,22 @@ fn insert_4() {
 }
 
 #[test]
+#[cfg(feature = "with-time")]
+fn insert_9() {
+    use time::{date, time};
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .values_panic(vec![date!(1970 - 01 - 01)
+                .with_time(time!(00:00:00))
+                .into()])
+            .to_string(PostgresQueryBuilder),
+        "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00')"
+    );
+}
+
+#[test]
 #[cfg(feature = "with-uuid")]
 fn insert_5() {
     assert_eq!(
@@ -1015,6 +1059,36 @@ fn insert_5() {
             .values_panic(vec![uuid::Uuid::nil().into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('00000000-0000-0000-0000-000000000000')"
+    );
+}
+
+#[test]
+fn insert_from_select() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .select_from(
+                Query::select()
+                    .column(Glyph::Aspect)
+                    .column(Glyph::Image)
+                    .from(Glyph::Table)
+                    .conditions(
+                        true,
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Image).like("%"));
+                        },
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Id).eq(6));
+                        },
+                    )
+                    .to_owned()
+            )
+            .unwrap()
+            .to_owned()
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '%'"#
     );
 }
 
@@ -1076,32 +1150,109 @@ fn insert_8() {
 }
 
 #[test]
-fn insert_from_select() {
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_1() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .or_default_values()
             .columns(vec![Glyph::Aspect, Glyph::Image])
-            .select_from(
-                Query::select()
-                    .column(Glyph::Aspect)
-                    .column(Glyph::Image)
-                    .from(Glyph::Table)
-                    .conditions(
-                        true,
-                        |x| {
-                            x.and_where(Expr::col(Glyph::Image).like("%"));
-                        },
-                        |x| {
-                            x.and_where(Expr::col(Glyph::Id).eq(6));
-                        },
-                    )
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::column(Glyph::Id)
+                    .update_column(Glyph::Aspect)
                     .to_owned()
             )
-            .unwrap()
-            .to_owned()
             .to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '%'"#
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_2() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_columns([Glyph::Aspect, Glyph::Image])
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_3() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_values([
+                        (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
+                        (Glyph::Image, 3.1415.into()),
+                    ])
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_4() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_expr((Glyph::Image, Expr::val(1).add(2)))
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "image" = 1 + 2"#,
+        ]
+        .join(" ")
     );
 }
 

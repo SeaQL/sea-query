@@ -1,4 +1,5 @@
 use super::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn select_1() {
@@ -1027,6 +1028,22 @@ fn insert_4() {
 }
 
 #[test]
+#[cfg(feature = "with-time")]
+fn insert_8() {
+    use time::{date, time};
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .values_panic(vec![date!(1970 - 01 - 01)
+                .with_time(time!(00:00:00))
+                .into()])
+            .to_string(MysqlQueryBuilder),
+        "INSERT INTO `glyph` (`image`) VALUES ('1970-01-01 00:00:00')"
+    );
+}
+
+#[test]
 #[cfg(feature = "with-uuid")]
 fn insert_5() {
     assert_eq!(
@@ -1088,6 +1105,139 @@ fn insert_from_select() {
             .to_owned()
             .to_string(MysqlQueryBuilder),
         r#"INSERT INTO `glyph` (`aspect`, `image`) SELECT `aspect`, `image` FROM `glyph` WHERE `image` LIKE '%'"#
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_0() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::new()
+                    .update_columns([Glyph::Aspect, Glyph::Image])
+                    .to_owned()
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_1() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::column(Glyph::Id)
+                    .update_column(Glyph::Aspect)
+                    .to_owned()
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`)"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_2() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_columns([Glyph::Aspect, Glyph::Image])
+                    .to_owned()
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_3() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_values([
+                        (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
+                        (Glyph::Image, 3.1415.into()),
+                    ])
+                    .to_owned()
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = 3.1415"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_4() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_expr((Glyph::Image, Expr::val(1).add(2)))
+                    .to_owned()
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `image` = 1 + 2"#,
+        ]
+        .join(" ")
     );
 }
 

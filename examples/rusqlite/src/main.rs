@@ -5,6 +5,7 @@ use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, T
 sea_query::sea_query_driver_rusqlite!();
 use sea_query_driver_rusqlite::RusqliteValues;
 use serde_json::{json, Value as Json};
+use time::{date, time, PrimitiveDateTime};
 use uuid::Uuid;
 
 fn main() -> Result<()> {
@@ -61,6 +62,36 @@ fn main() -> Result<()> {
             .into(),
             None::<NaiveDate>.into(),
         ])
+        .values_panic(vec![
+            Uuid::new_v4().into(),
+            12.into(),
+            "A".into(),
+            json!({
+                "notes": "some notes here",
+            })
+            .into(),
+            Some(NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2)).into(),
+        ])
+        .values_panic(vec![
+            Uuid::new_v4().into(),
+            12.into(),
+            "A".into(),
+            json!({
+                "notes": "some notes here",
+            })
+            .into(),
+            None::<PrimitiveDateTime>.into(),
+        ])
+        .values_panic(vec![
+            Uuid::new_v4().into(),
+            12.into(),
+            "A".into(),
+            json!({
+                "notes": "some notes here",
+            })
+            .into(),
+            Some(date!(2020 - 1 - 1).with_time(time!(2:2:2))).into(),
+        ])
         .build(SqliteQueryBuilder);
 
     let result = conn.execute(
@@ -90,7 +121,10 @@ fn main() -> Result<()> {
     let mut stmt = conn.prepare(sql.as_str())?;
     let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
     while let Some(row) = rows.next()? {
-        let item = CharacterStruct::from(row);
+        let item = CharacterStructChrono::from(row);
+        println!("{:?}", item);
+
+        let item = CharacterStructTime::from(row);
         println!("{:?}", item);
     }
     println!();
@@ -129,7 +163,10 @@ fn main() -> Result<()> {
     let mut stmt = conn.prepare(sql.as_str())?;
     let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
     while let Some(row) = rows.next()? {
-        let item = CharacterStruct::from(row);
+        let item = CharacterStructChrono::from(row);
+        println!("{:?}", item);
+
+        let item = CharacterStructTime::from(row);
         println!("{:?}", item);
     }
     println!();
@@ -180,7 +217,8 @@ enum Character {
 }
 
 #[derive(Debug)]
-struct CharacterStruct {
+#[allow(dead_code)]
+struct CharacterStructChrono {
     id: i32,
     uuid: Uuid,
     character: String,
@@ -189,7 +227,18 @@ struct CharacterStruct {
     created: Option<NaiveDateTime>,
 }
 
-impl From<&Row<'_>> for CharacterStruct {
+#[derive(Debug)]
+#[allow(dead_code)]
+struct CharacterStructTime {
+    id: i32,
+    uuid: Uuid,
+    character: String,
+    font_size: i32,
+    meta: Json,
+    created: Option<PrimitiveDateTime>,
+}
+
+impl From<&Row<'_>> for CharacterStructChrono {
     fn from(row: &Row) -> Self {
         Self {
             id: row.get_unwrap("id"),
@@ -198,6 +247,21 @@ impl From<&Row<'_>> for CharacterStruct {
             font_size: row.get_unwrap("font_size"),
             meta: row.get_unwrap("meta"),
             created: row.get_unwrap("created"),
+        }
+    }
+}
+
+impl From<&Row<'_>> for CharacterStructTime {
+    fn from(row: &Row) -> Self {
+        let created: String = row.get_unwrap("created");
+        let created = PrimitiveDateTime::parse(created, "%Y-%m-%d %H:%M:%S").ok();
+        Self {
+            id: row.get_unwrap("id"),
+            uuid: row.get_unwrap("uuid"),
+            character: row.get_unwrap("character"),
+            font_size: row.get_unwrap("font_size"),
+            meta: row.get_unwrap("meta"),
+            created,
         }
     }
 }

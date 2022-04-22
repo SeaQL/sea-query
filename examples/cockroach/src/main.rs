@@ -131,6 +131,7 @@ enum Character {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct CharacterStruct {
     id: i64,
     character: String,

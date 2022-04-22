@@ -53,6 +53,12 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
                     PgFunction::TsRank => "TS_RANK",
                     PgFunction::TsRankCd => "TS_RANK_CD",
+                    #[cfg(feature = "postgres-array")]
+                    PgFunction::Any => "ANY",
+                    #[cfg(feature = "postgres-array")]
+                    PgFunction::Some => "SOME",
+                    #[cfg(feature = "postgres-array")]
+                    PgFunction::All => "ALL",
                 }
             )
             .unwrap(),

@@ -1,5 +1,5 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict, Query,
     QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
     SubQueryStatement, WithClause, WithQuery,
 };
@@ -47,6 +47,7 @@ pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) source: Option<InsertValueSource>,
+    pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Vec<SelectExpr>,
     pub(crate) default_values: bool,
 }
@@ -291,6 +292,18 @@ impl InsertStatement {
         I: IntoIterator<Item = SimpleExpr>,
     {
         self.exprs(values).unwrap()
+    }
+
+    /// ON CONFLICT expression
+    ///
+    /// # Examples
+    ///
+    /// - [`OnConflict::update_columns`]: Update column value of existing row with inserting value
+    /// - [`OnConflict::update_values`]: Update column value of existing row with value
+    /// - [`OnConflict::update_exprs`]: Update column value of existing row with expression
+    pub fn on_conflict(&mut self, on_conflict: OnConflict) -> &mut Self {
+        self.on_conflict = Some(on_conflict);
+        self
     }
 
     /// RETURNING expressions.

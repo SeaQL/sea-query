@@ -7,7 +7,7 @@ impl QueryBuilder for SqliteQueryBuilder {
 
     fn prepare_select_lock(
         &self,
-        _select_lock: &LockType,
+        _select_lock: &LockClause,
         _sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {

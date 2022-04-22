@@ -5,7 +5,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WithClause, WithQuery,
+    QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement, WithClause,
+    WithQuery,
 };
 
 /// Select rows from an existing table
@@ -50,7 +51,8 @@ pub struct SelectStatement {
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
-    pub(crate) lock: Option<LockType>,
+    pub(crate) lock: Option<LockClause>,
+    pub(crate) window: Option<(DynIden, WindowStatement)>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -61,11 +63,21 @@ pub enum SelectDistinct {
     DistinctRow,
 }
 
+/// Window type in [`SelectExpr`]
+#[derive(Debug, Clone)]
+pub enum WindowSelectType {
+    /// Name in [`SelectStatement`]
+    Name(DynIden),
+    /// Inline query in [`SelectExpr`]
+    Query(WindowStatement),
+}
+
 /// Select expression used in select statement
 #[derive(Debug, Clone)]
 pub struct SelectExpr {
     pub expr: SimpleExpr,
     pub alias: Option<DynIden>,
+    pub window: Option<WindowSelectType>,
 }
 
 /// Join expression used in select statement
@@ -80,8 +92,26 @@ pub struct JoinExpr {
 /// List of lock types that can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LockType {
-    Shared,
-    Exclusive,
+    /// Exclusive lock
+    Update,
+    NoKeyUpdate,
+    /// Shared lock
+    Share,
+    KeyShare,
+}
+
+/// List of lock behavior can be used in select statement
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LockBehavior {
+    Nowait,
+    SkipLocked,
+}
+
+#[derive(Debug, Clone)]
+pub struct LockClause {
+    pub(crate) r#type: LockType,
+    pub(crate) tables: Vec<TableRef>,
+    pub(crate) behavior: Option<LockBehavior>,
 }
 
 /// List of union types that can be used in union clause
@@ -97,6 +127,7 @@ impl Into<SelectExpr> for SimpleExpr {
         SelectExpr {
             expr: self,
             alias: None,
+            window: None,
         }
     }
 }
@@ -123,6 +154,7 @@ impl SelectStatement {
             limit: None,
             offset: None,
             lock: None,
+            window: None,
         }
     }
 
@@ -141,6 +173,7 @@ impl SelectStatement {
             limit: self.limit.take(),
             offset: self.offset.take(),
             lock: self.lock.take(),
+            window: self.window.take(),
         }
     }
 
@@ -485,6 +518,7 @@ impl SelectStatement {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: Some(alias.into_iden()),
+            window: None,
         });
         self
     }
@@ -499,6 +533,170 @@ impl SelectStatement {
         A: IntoIden,
     {
         self.expr_as(expr, alias)
+    }
+
+    /// Select column with window function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window(
+    ///         Expr::col(Char::Character),
+    ///         WindowStatement::partition_by(Char::FontSize),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
+    /// );
+    /// ```
+    pub fn expr_window<T>(&mut self, expr: T, window: WindowStatement) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: None,
+            window: Some(WindowSelectType::Query(window)),
+        });
+        self
+    }
+
+    /// Select column with window function and label.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_as(
+    ///         Expr::col(Char::Character),
+    ///         WindowStatement::partition_by(Char::FontSize),
+    ///         Alias::new("C"),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) AS `C` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
+    /// );
+    /// ```
+    pub fn expr_window_as<T, A>(&mut self, expr: T, window: WindowStatement, alias: A) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+        A: IntoIden,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: Some(alias.into_iden()),
+            window: Some(WindowSelectType::Query(window)),
+        });
+        self
+    }
+
+    /// Select column with window name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_name(Expr::col(Char::Character), Alias::new("w"))
+    ///     .window(
+    ///         Alias::new("w"),
+    ///         WindowStatement::partition_by(Char::FontSize),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
+    /// ```
+    pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+        W: IntoIden,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: None,
+            window: Some(WindowSelectType::Name(window.into_iden())),
+        });
+        self
+    }
+
+    /// Select column with window name and label.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("w"), Alias::new("C"))
+    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
+    /// ```
+    pub fn expr_window_name_as<T, W, A>(&mut self, expr: T, window: W, alias: A) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+        A: IntoIden,
+        W: IntoIden,
+    {
+        self.expr(SelectExpr {
+            expr: expr.into(),
+            alias: Some(alias.into_iden()),
+            window: Some(WindowSelectType::Name(window.into_iden())),
+        });
+        self
     }
 
     /// From table.
@@ -1532,7 +1730,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::FontId).eq(5))
-    ///     .lock(LockType::Exclusive)
+    ///     .lock(LockType::Update)
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1548,8 +1746,133 @@ impl SelectStatement {
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
-    pub fn lock(&mut self, lock_type: LockType) -> &mut Self {
-        self.lock = Some(lock_type);
+    pub fn lock(&mut self, r#type: LockType) -> &mut Self {
+        self.lock = Some(LockClause {
+            r#type,
+            tables: Vec::new(),
+            behavior: None,
+        });
+        self
+    }
+
+    /// Row locking with tables (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_with_tables(LockType::Update, vec![Glyph::Table])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE OF `glyph`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE OF "glyph""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
+    /// );
+    /// ```
+    pub fn lock_with_tables<T, I>(&mut self, r#type: LockType, tables: I) -> &mut Self
+    where
+        T: IntoTableRef,
+        I: IntoIterator<Item = T>,
+    {
+        self.lock = Some(LockClause {
+            r#type,
+            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            behavior: None,
+        });
+        self
+    }
+
+    /// Row locking with behavior (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_with_behavior(LockType::Update, LockBehavior::Nowait)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
+    /// );
+    /// ```
+    pub fn lock_with_behavior(&mut self, r#type: LockType, behavior: LockBehavior) -> &mut Self {
+        self.lock = Some(LockClause {
+            r#type,
+            tables: Vec::new(),
+            behavior: Some(behavior),
+        });
+        self
+    }
+
+    /// Row locking with tables and behavior (if supported).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::FontId).eq(5))
+    ///     .lock_with_tables_behavior(LockType::Update, vec![Glyph::Table], LockBehavior::Nowait)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE OF `glyph` NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE OF "glyph" NOWAIT"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
+    /// );
+    /// ```
+    pub fn lock_with_tables_behavior<T, I>(
+        &mut self,
+        r#type: LockType,
+        tables: I,
+        behavior: LockBehavior,
+    ) -> &mut Self
+    where
+        T: IntoTableRef,
+        I: IntoIterator<Item = T>,
+    {
+        self.lock = Some(LockClause {
+            r#type,
+            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            behavior: Some(behavior),
+        });
         self
     }
 
@@ -1581,8 +1904,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn lock_shared(&mut self) -> &mut Self {
-        self.lock = Some(LockType::Shared);
-        self
+        self.lock(LockType::Share)
     }
 
     /// Exclusive row locking (if supported).
@@ -1613,8 +1935,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn lock_exclusive(&mut self) -> &mut Self {
-        self.lock = Some(LockType::Exclusive);
-        self
+        self.lock(LockType::Update)
     }
 
     /// Union with another SelectStatement that must have the same selected fields.
@@ -1732,10 +2053,7 @@ impl SelectStatement {
     ///             .query(
     ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
     ///             )
-    ///             .column(Alias::new("id"))
-    ///             .column(Alias::new("depth"))
-    ///             .column(Alias::new("next"))
-    ///             .column(Alias::new("value"))
+    ///             .columns(vec![Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
     ///             .table_name(Alias::new("cte_traversal"))
     ///             .to_owned();
     ///
@@ -1767,6 +2085,40 @@ impl SelectStatement {
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
+    }
+
+    /// WINDOW
+    ///
+    /// # Examples:
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("w"), Alias::new("C"))
+    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    /// );
+    /// ```
+    pub fn window<A>(&mut self, name: A, window: WindowStatement) -> &mut Self
+    where
+        A: IntoIden,
+    {
+        self.window = Some((name.into_iden(), window));
+        self
     }
 }
 

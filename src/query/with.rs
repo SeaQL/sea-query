@@ -86,6 +86,17 @@ impl CommonTableExpression {
         self
     }
 
+    /// Adds a named columns to the CTE table definition.
+    pub fn columns<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoIden,
+        I: IntoIterator<Item = T>,
+    {
+        self.cols
+            .extend(cols.into_iter().map(|col| col.into_iden()));
+        self
+    }
+
     /// Some databases allow you to put "MATERIALIZED" or "NOT MATERIALIZED" in the CTE definition.
     /// This will affect how during the execution of [WithQuery] the CTE in the [WithClause] will be
     /// executed. If the database doesn't support this syntax this option specified here will be

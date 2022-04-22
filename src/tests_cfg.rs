@@ -21,6 +21,7 @@ pub enum Character {
     SizeW,
     SizeH,
     FontId,
+    CreatedAt,
 }
 
 /// A shorthand for [`Character`]
@@ -39,6 +40,7 @@ impl Iden for Character {
                 Self::SizeW => "size_w",
                 Self::SizeH => "size_h",
                 Self::FontId => "font_id",
+                Self::CreatedAt => "created_at",
             }
         )
         .unwrap();

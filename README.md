@@ -5,7 +5,7 @@
   <h1>SeaQuery</h1>
 
   <p>
-    <strong>🌊 A dynamic query builder for MySQL, Postgres and SQLite</strong>
+    <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
   </p>
 
   [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
@@ -26,6 +26,12 @@ See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usag
 
 SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 
+[![GitHub stars](https://img.shields.io/github/stars/SeaQL/sea-query.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/sea-query/stargazers/)
+If you like what we do, consider starring, commenting, sharing and contributing!
+
+[![Discord](https://img.shields.io/discord/873880840487206962?label=Discord)](https://discord.com/invite/uCPdDXzbdv)
+Join our Discord server to chat with others in the SeaQL community!
+
 ## Install
 
 ```toml
@@ -44,7 +50,7 @@ Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
 SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
-Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
+Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 `postgres-array`
 
 Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,

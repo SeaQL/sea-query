@@ -240,3 +240,15 @@ fn alter_5() {
 fn alter_6() {
     Table::alter().to_string(MysqlQueryBuilder);
 }
+
+#[test]
+fn alter_7() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_column(Alias::new("new_column"))
+            .rename_column(Font::Name, Alias::new("name_new"))
+            .to_string(MysqlQueryBuilder),
+        "ALTER TABLE `font` DROP COLUMN `new_column`, RENAME COLUMN `name` TO `name_new`"
+    );
+}

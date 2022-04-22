@@ -272,7 +272,7 @@ impl std::convert::From<SimpleExpr> for ConditionExpression {
 /// ```
 #[macro_export]
 macro_rules! any {
-    ( $( $x:expr ),* ) => {
+    ( $( $x:expr ),* $(,)?) => {
         {
             let mut tmp = sea_query::Condition::any();
             $(
@@ -307,7 +307,7 @@ macro_rules! any {
 /// );
 #[macro_export]
 macro_rules! all {
-    ( $( $x:expr ),* ) => {
+    ( $( $x:expr ),* $(,)?) => {
         {
             let mut tmp = sea_query::Condition::all();
             $(

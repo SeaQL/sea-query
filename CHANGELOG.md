@@ -5,6 +5,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.24.2 - 2022-04-18
+
+### Bug fixes
+
+* Fixed https://github.com/SeaQL/sea-query/issues/303 driver breakage in 0.24.0
+
+Notes: 0.24.0 & 0.24.1 were yanked
+
+## 0.24.1 - 2022-04-15
+
+### Enhancements
+
+* #295 Add parameter for SQLx path to proc-macro https://github.com/SeaQL/sea-query/pull/297
+
+### Bug fixes
+
+* CTE optional columns https://github.com/SeaQL/sea-query/pull/301
+
+## 0.24.0 - 2022-04-05
+
+### New Features
+
+* Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
+* Insert `ON CONFLICT` support https://github.com/SeaQL/sea-query/pull/279
+* #174 Add support for `WINDOWS` statement https://github.com/SeaQL/sea-query/pull/271
+* #142 full support lock in select https://github.com/SeaQL/sea-query/pull/289
+* #269 add support for postgres `ANY`, `SOME`, `ALL` https://github.com/SeaQL/sea-query/pull/283
+
+### Enhancements
+
+* Add support for multiple `ALTER` operations https://github.com/SeaQL/sea-query/pull/277
+* #229 add column if not exists https://github.com/SeaQL/sea-query/pull/278
+* #255 Add support to CommonTableExpression columns method https://github.com/SeaQL/sea-query/pull/284
+* #280 Rewrite drivers using proc-macro https://github.com/SeaQL/sea-query/pull/292
+
+### Bug fixes
+
+* #285 Fix timestamp_with_time_zone_len https://github.com/SeaQL/sea-query/pull/286
+
+### Breaking changes
+
+* The enum variants for `LockType` were renamed: `Exclusive` -> `Update` and `Shared` -> `Share`
+* As part of #283, the drivers are split to the `sea-query-driver` crate
+    1. Remove methods `Value::is_json` and `Value::as_ref_json` when feature: **with-json** is disabled
+    2. Remove methods `Value::is_time_*` and `Value::as_ref_time_*` when feature: **with-time** is disabled
+    3. Remove methods `Value::is_chrono_*` and `Value::as_ref_chrono*` when feature: **with-chrono** is disabled
+    4. Remove methods `Value::is_decimal`, `Value::as_ref_decimal` and `Value::decimal_to_f64` when feature: **with-rust_decimal** is disabled
+    5. Remove methods `Value::is_big_decimal`, `Value::as_ref_big_decimal` and `Value::big_decimal_to_f64` when feature: **with-bigdecimal** is disabled
+    6. Remove methods `Value::is_uuid` and `Value::as_ref_uuid` when feature: **with-uuid** is disabled
+    7. Remove methods `Value::is_array` and `Value::as_ref_array` when feature: **postgres-array** is disabled
+
+## 0.23.0 - 2022-03-15
+
+### New Features
+
+* Supports `time` in addition to `chrono` https://github.com/SeaQL/sea-query/pull/267
+
+### Enhancements
+
+* Allow for trailing commas in any and all macros https://github.com/SeaQL/sea-query/pull/270
+
+### Bug fixes
+
+* Fix UNIQUE table index expression syntax for sqlite https://github.com/SeaQL/sea-query/pull/227
+
+### Breaking changes
+
+In order to co-exist with the `time` crate, `Date`, `Time`, `DateTime` etc are renamed to `ChronoDate`, `ChronoTime`, `ChronoDateTime`. In addition, new variants `TimeDate`, `TimeTime`, `TimeDateTime` and so on are introduced to `Value`.
+
 ## 0.22.0 - 2022-02-26
 
 ### New Features

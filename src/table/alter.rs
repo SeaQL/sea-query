@@ -33,13 +33,20 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaState
 #[derive(Debug, Clone)]
 pub struct TableAlterStatement {
     pub(crate) table: Option<DynIden>,
-    pub(crate) alter_option: Option<TableAlterOption>,
+    pub(crate) options: Vec<TableAlterOption>,
+}
+
+/// table alter add column options
+#[derive(Debug, Clone)]
+pub struct AddColumnOption {
+    pub(crate) column: ColumnDef,
+    pub(crate) if_not_exists: bool,
 }
 
 /// All available table alter options
 #[derive(Debug, Clone)]
 pub enum TableAlterOption {
-    AddColumn(ColumnDef),
+    AddColumn(AddColumnOption),
     ModifyColumn(ColumnDef),
     RenameColumn(DynIden, DynIden),
     DropColumn(DynIden),
@@ -56,7 +63,7 @@ impl TableAlterStatement {
     pub fn new() -> Self {
         Self {
             table: None,
-            alter_option: None,
+            options: Vec::new(),
         }
     }
 
@@ -100,7 +107,51 @@ impl TableAlterStatement {
     /// );
     /// ```
     pub fn add_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
-        self.alter_option(TableAlterOption::AddColumn(column_def.take()))
+        self.options
+            .push(TableAlterOption::AddColumn(AddColumnOption {
+                column: column_def.take(),
+                if_not_exists: false,
+            }));
+        self
+    }
+
+    /// Try add a column to an existing table if it does not exists
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Font::Table)
+    ///     .add_column_if_not_exists(
+    ///         ColumnDef::new(Alias::new("new_col"))
+    ///             .integer()
+    ///             .not_null()
+    ///             .default(100),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     r#"ALTER TABLE `font` ADD COLUMN IF NOT EXISTS `new_col` int NOT NULL DEFAULT 100"#
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TABLE "font" ADD COLUMN IF NOT EXISTS "new_col" integer NOT NULL DEFAULT 100"#
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(SqliteQueryBuilder),
+    ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
+    /// );
+    /// ```
+    pub fn add_column_if_not_exists(&mut self, column_def: &mut ColumnDef) -> &mut Self {
+        self.options
+            .push(TableAlterOption::AddColumn(AddColumnOption {
+                column: column_def.take(),
+                if_not_exists: true,
+            }));
+        self
     }
 
     /// Modify a column in an existing table
@@ -135,7 +186,7 @@ impl TableAlterStatement {
     /// // Sqlite not support modifying table column
     /// ```
     pub fn modify_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
-        self.alter_option(TableAlterOption::ModifyColumn(column_def.take()))
+        self.add_alter_option(TableAlterOption::ModifyColumn(column_def.take()))
     }
 
     /// Rename a column in an existing table
@@ -168,7 +219,7 @@ impl TableAlterStatement {
         T: Iden,
         R: Iden,
     {
-        self.alter_option(TableAlterOption::RenameColumn(
+        self.add_alter_option(TableAlterOption::RenameColumn(
             SeaRc::new(from_name),
             SeaRc::new(to_name),
         ))
@@ -200,18 +251,18 @@ impl TableAlterStatement {
     where
         T: Iden,
     {
-        self.alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
+        self.add_alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
     }
 
-    fn alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
-        self.alter_option = Some(alter_option);
+    fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
+        self.options.push(alter_option);
         self
     }
 
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
-            alter_option: self.alter_option.take(),
+            options: std::mem::take(&mut self.options),
         }
     }
 }

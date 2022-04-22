@@ -8,14 +8,12 @@
 //!   <h1>SeaQuery</h1>
 //!
 //!   <p>
-//!     <strong>🌊 A dynamic query builder for MySQL, Postgres and SQLite</strong>
+//!     <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
 //!   </p>
 //!
 //!   [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
 //!   [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
 //!   [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
-//!
-//!   <sub>Built with 🔥 by 🌊🦀🐚</sub>
 //!
 //! </div>
 //!
@@ -30,6 +28,12 @@
 //! See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
 //!
 //! SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
+//!
+//! [![GitHub stars](https://img.shields.io/github/stars/SeaQL/sea-query.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/sea-query/stargazers/)
+//! If you like what we do, consider starring, commenting, sharing and contributing!
+//!
+//! [![Discord](https://img.shields.io/discord/873880840487206962?label=Discord)](https://discord.com/invite/uCPdDXzbdv)
+//! Join our Discord server to chat with others in the SeaQL community!
 //!
 //! ## Install
 //!
@@ -49,7 +53,7 @@
 //!
 //! SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 //!
-//! Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
+//! Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 //! `postgres-array`
 //!
 //! Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
@@ -708,6 +712,7 @@
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL icon dark.png"
 )]
+
 pub mod backend;
 pub mod driver;
 pub mod error;
@@ -746,3 +751,5 @@ pub use value::*;
 
 #[cfg(feature = "derive")]
 pub use sea_query_derive::Iden;
+
+pub use sea_query_driver::*;
