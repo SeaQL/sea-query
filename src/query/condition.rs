@@ -233,6 +233,28 @@ impl Condition {
         self.negate = !self.negate;
         self
     }
+
+    /// Whether or not any condition has been added
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// Cond::all().is_empty();
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.conditions.is_empty()
+    }
+
+    /// How many conditions were added
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// Cond::all().len();
+    /// ```
+    pub fn len(&self) -> usize {
+        self.conditions.len()
+    }
 }
 
 impl std::convert::From<Condition> for ConditionExpression {
