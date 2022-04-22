@@ -239,7 +239,11 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// Cond::all().is_empty();
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let is_empty = Cond::all().is_empty();
+    /// 
+    /// assert!(is_empty);
     /// ```
     pub fn is_empty(&self) -> bool {
         self.conditions.is_empty()
@@ -250,7 +254,14 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// Cond::all().len();
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let len = Cond::all().len();
+    /// 
+    /// assert_eq!(
+    ///     len,
+    ///     0
+    /// );
     /// ```
     pub fn len(&self) -> usize {
         self.conditions.len()
