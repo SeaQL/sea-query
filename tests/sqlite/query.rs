@@ -968,7 +968,7 @@ fn select_57() {
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).like("A").escape('\\'))
             .to_string(SqliteQueryBuilder),
-        r#"SELECT `character` FROM `character` WHERE `character` LIKE 'A' ESCAPE '\'"#
+        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A' ESCAPE '\'"#
     );
 }
 

@@ -2088,7 +2088,7 @@ impl SimpleExpr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
     /// );
     /// ```
     pub fn escape(self, right: char) -> Self {
