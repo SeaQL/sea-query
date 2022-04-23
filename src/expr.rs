@@ -1836,10 +1836,10 @@ impl Expr {
     ///
     /// let query = Query::select()
     ///     .expr_as(
-    ///         Expr::case((
+    ///         Expr::case(
     ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4]),
     ///                 Expr::val(true)
-    ///              ))
+    ///              )
     ///             .finally(Expr::val(false)),
     ///          Alias::new("is_even")
     ///     )
@@ -1851,11 +1851,12 @@ impl Expr {
     ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
     /// );    
     /// ```
-    pub fn case<C>(c: C) -> CaseStatement
+    pub fn case<C, T>(cond: C, then: T) -> CaseStatement
     where
-        C: IntoCaseStatement,
+        C: IntoCondition,
+        T: Into<Expr>,
     {
-        CaseStatement::new().case(c)
+        CaseStatement::new().case(cond, then)
     }
 }
 

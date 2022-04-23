@@ -992,14 +992,14 @@ fn select_58() {
     let query = Query::select()
         .expr_as(
             CaseStatement::new()
-                .case((
+                .case(
                     Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
                     Expr::val("positive"),
-                ))
-                .case((
+                )
+                .case(
                     Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
                     Expr::val("negative"),
-                ))
+                )
                 .finally(Expr::val("zero")),
             Alias::new("polarity"),
         )

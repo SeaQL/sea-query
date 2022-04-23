@@ -7,6 +7,7 @@
 //! - Query Update, see [`UpdateStatement`]
 //! - Query Delete, see [`DeleteStatement`]
 
+mod case;
 mod condition;
 mod delete;
 mod insert;
@@ -18,8 +19,8 @@ mod traits;
 mod update;
 mod window;
 mod with;
-mod case;
 
+pub use case::*;
 pub use condition::*;
 pub use delete::*;
 pub use insert::*;
@@ -30,7 +31,6 @@ pub use traits::*;
 pub use update::*;
 pub use window::*;
 pub use with::*;
-pub use case::*;
 
 /// Shorthand for constructing any table query
 #[derive(Debug, Clone)]
