@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.24.2 - 2022-04-18
 
+### New Features
+
+* CASE WHEN statement support https://github.com/SeaQL/sea-query/pull/304
+
 ### Bug fixes
 
 * Fixed https://github.com/SeaQL/sea-query/issues/303 driver breakage in 0.24.0
