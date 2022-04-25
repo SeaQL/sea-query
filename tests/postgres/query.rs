@@ -1344,7 +1344,7 @@ fn escape_3() {
 #[test]
 fn escape_4() {
     let test = "a\"b";
-    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\\\"b".to_owned());
+    assert_eq!(PostgresQueryBuilder.escape_string(test), "a\\\"b".to_owned());
     assert_eq!(
         PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
         test
