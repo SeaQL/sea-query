@@ -44,7 +44,7 @@ pub trait EscapeBuilder {
         string
             .replace('\\', "\\\\")
             .replace('"', "\\\"")
-            .replace('\'', "''")
+            .replace('\'', "\\'")
             .replace('\0', "\\0")
             .replace('\x08', "\\b")
             .replace('\x09', "\\t")
