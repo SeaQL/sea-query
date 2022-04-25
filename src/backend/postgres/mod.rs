@@ -25,3 +25,5 @@ impl QuotedBuilder for PostgresQueryBuilder {
         '"'
     }
 }
+
+impl EscapeBuilder for PostgresQueryBuilder {}

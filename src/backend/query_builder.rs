@@ -1,7 +1,7 @@
 use crate::*;
 use std::ops::Deref;
 
-pub trait QueryBuilder: QuotedBuilder {
+pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
         ("?", false)
@@ -1464,7 +1464,7 @@ pub trait QueryBuilder: QuotedBuilder {
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        write!(buffer, "\'{}\'", escape_string(string)).unwrap()
+        write!(buffer, "\'{}\'", self.escape_string(string)).unwrap()
     }
 
     #[doc(hidden)]
@@ -1516,3 +1516,5 @@ impl QuotedBuilder for CommonSqlQueryBuilder {
         '"'
     }
 }
+
+impl EscapeBuilder for CommonSqlQueryBuilder {}

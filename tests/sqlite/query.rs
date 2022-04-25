@@ -1240,3 +1240,49 @@ fn delete_1() {
         r#"DELETE FROM "glyph" WHERE "id" = 1"#
     );
 }
+
+#[test]
+fn escape_1() {
+    let test = r#" "abc" "#;
+    assert_eq!(
+        SqliteQueryBuilder.escape_string(test),
+        r#" \"abc\" "#.to_owned()
+    );
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_2() {
+    let test = "a\nb\tc";
+    assert_eq!(
+        SqliteQueryBuilder.escape_string(test),
+        "a\\nb\\tc".to_owned()
+    );
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_3() {
+    let test = "a\\b";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\\\\b".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_4() {
+    let test = "a\"b";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\\\"b".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
