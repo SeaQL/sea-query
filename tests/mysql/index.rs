@@ -48,7 +48,7 @@ fn create_4() {
             .table(Glyph::Table)
             .col(Glyph::Image)
             .to_string(MysqlQueryBuilder),
-        "CREATE INDEX `idx-glyph-image` ON `glyph` USING HASH (`image`)"
+        "CREATE INDEX `idx-glyph-image` ON `glyph` (`image`) USING HASH"
     );
 }
 
