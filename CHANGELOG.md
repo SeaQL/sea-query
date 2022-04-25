@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Add length check on condition array https://github.com/SeaQL/sea-query/pull/307
 
+### Bug fixes
+
+* Fix MySQL index create statement https://github.com/SeaQL/sea-query/pull/308
+
 ## 0.24.2 - 2022-04-18
 
 ### Bug fixes
