@@ -580,7 +580,7 @@ macro_rules! box_to_opt_ref {
 #[cfg(feature = "with-json")]
 impl Value {
     pub fn is_json(&self) -> bool {
-        return matches!(self, Self::Json(_));
+        matches!(self, Self::Json(_))
     }
 
     pub fn as_ref_json(&self) -> Option<&Json> {
@@ -594,7 +594,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date(&self) -> bool {
-        return matches!(self, Self::ChronoDate(_));
+        matches!(self, Self::ChronoDate(_))
     }
 
     pub fn as_ref_chrono_date(&self) -> Option<&NaiveDate> {
@@ -608,7 +608,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_date(&self) -> bool {
-        return matches!(self, Self::TimeDate(_));
+        matches!(self, Self::TimeDate(_))
     }
 
     pub fn as_ref_time_date(&self) -> Option<&time::Date> {
@@ -622,7 +622,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_time(&self) -> bool {
-        return matches!(self, Self::ChronoTime(_));
+        matches!(self, Self::ChronoTime(_))
     }
 
     pub fn as_ref_chrono_time(&self) -> Option<&NaiveTime> {
@@ -636,7 +636,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_time(&self) -> bool {
-        return matches!(self, Self::TimeTime(_));
+        matches!(self, Self::TimeTime(_))
     }
 
     pub fn as_ref_time_time(&self) -> Option<&time::Time> {
@@ -650,7 +650,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time(&self) -> bool {
-        return matches!(self, Self::ChronoDateTime(_));
+        matches!(self, Self::ChronoDateTime(_))
     }
 
     pub fn as_ref_chrono_date_time(&self) -> Option<&NaiveDateTime> {
@@ -664,7 +664,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_date_time(&self) -> bool {
-        return matches!(self, Self::TimeDateTime(_));
+        matches!(self, Self::TimeDateTime(_))
     }
 
     pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
@@ -678,7 +678,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time_utc(&self) -> bool {
-        return matches!(self, Self::ChronoDateTimeUtc(_));
+        matches!(self, Self::ChronoDateTimeUtc(_))
     }
 
     pub fn as_ref_chrono_date_time_utc(&self) -> Option<&DateTime<Utc>> {
@@ -692,7 +692,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time_local(&self) -> bool {
-        return matches!(self, Self::ChronoDateTimeLocal(_));
+        matches!(self, Self::ChronoDateTimeLocal(_))
     }
 
     pub fn as_ref_chrono_date_time_local(&self) -> Option<&DateTime<Local>> {
@@ -706,7 +706,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time_with_time_zone(&self) -> bool {
-        return matches!(self, Self::ChronoDateTimeWithTimeZone(_));
+        matches!(self, Self::ChronoDateTimeWithTimeZone(_))
     }
 
     pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
@@ -720,7 +720,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_date_time_with_time_zone(&self) -> bool {
-        return matches!(self, Self::TimeDateTimeWithTimeZone(_));
+        matches!(self, Self::TimeDateTimeWithTimeZone(_))
     }
 
     pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
@@ -764,7 +764,7 @@ impl Value {
 #[cfg(feature = "with-rust_decimal")]
 impl Value {
     pub fn is_decimal(&self) -> bool {
-        return matches!(self, Self::Decimal(_));
+        matches!(self, Self::Decimal(_))
     }
     pub fn as_ref_decimal(&self) -> Option<&Decimal> {
         match self {
@@ -781,7 +781,7 @@ impl Value {
 #[cfg(feature = "with-bigdecimal")]
 impl Value {
     pub fn is_big_decimal(&self) -> bool {
-        return matches!(self, Self::BigDecimal(_));
+        matches!(self, Self::BigDecimal(_))
     }
     pub fn as_ref_big_decimal(&self) -> Option<&BigDecimal> {
         match self {
@@ -798,7 +798,7 @@ impl Value {
 #[cfg(feature = "with-uuid")]
 impl Value {
     pub fn is_uuid(&self) -> bool {
-        return matches!(self, Self::Uuid(_));
+        matches!(self, Self::Uuid(_))
     }
     pub fn as_ref_uuid(&self) -> Option<&Uuid> {
         match self {
@@ -811,7 +811,7 @@ impl Value {
 #[cfg(feature = "postgres-array")]
 impl Value {
     pub fn is_array(&self) -> bool {
-        return matches!(self, Self::Array(_));
+        matches!(self, Self::Array(_))
     }
 
     pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
