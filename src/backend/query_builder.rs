@@ -414,16 +414,23 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-        write!(
-            sql,
-            "{}",
-            match select_distinct {
-                SelectDistinct::All => "ALL",
-                SelectDistinct::Distinct => "DISTINCT",
-                SelectDistinct::DistinctRow => "DISTINCTROW",
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "{}", "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "{}", "DISTINCT").unwrap(),
+            SelectDistinct::DistinctRow => write!(sql, "{}", "DISTINCTROW").unwrap(),
+            #[cfg(feature = "backend-postgres")]
+            SelectDistinct::DistinctOn(cols) => {
+                write!(sql, "{}", "DISTINCT ON (").unwrap();
+                cols.into_iter().fold(true, |first, c| {
+                    if !first {
+                        write!(sql, "{}", ", ").unwrap();
+                    }
+                    c.prepare(sql, self.quote());
+                    false
+                });
+                write!(sql, "{}", ")").unwrap();
             }
-        )
-        .unwrap();
+        };
     }
 
     /// Translate [`LockType`] into SQL statement.
