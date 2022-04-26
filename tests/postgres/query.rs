@@ -878,7 +878,6 @@ fn select_53() {
     );
 }
 
-
 #[test]
 fn select_54() {
     assert_eq!(
@@ -903,7 +902,7 @@ fn select_54() {
             r#"ORDER BY "glyph"."id" ASC NULLS FIRST,"#,
             r#""glyph"."aspect" DESC NULLS LAST"#,
         ]
-            .join(" ")
+        .join(" ")
     );
 }
 
@@ -990,7 +989,7 @@ fn select_57() {
 }
 
 #[test]
-fn select_57() {
+fn select_58() {
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .from(Glyph::Table)
@@ -1017,7 +1016,7 @@ fn select_57() {
 }
 
 #[test]
-fn select_58() {
+fn select_59() {
     let query = Query::select()
         .expr_as(
             CaseStatement::new()

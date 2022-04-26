@@ -61,7 +61,6 @@ pub enum SelectDistinct {
     All,
     Distinct,
     DistinctRow,
-    #[cfg(feature = "backend-postgres")]
     DistinctOn(Vec<DynIden>),
 }
 
@@ -357,19 +356,23 @@ impl SelectStatement {
     /// )
     /// ```
     ///
-    #[cfg(feature = "backend-postgres")]
     pub fn distinct_on<T, I>(&mut self, cols: I) -> &mut Self
-        where
-            T: IntoColumnRef,
-            I: IntoIterator<Item = T>,
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
     {
-        let cols = cols.into_iter().filter_map(|col| {
-            match col.into_column_ref() {
+        let cols = cols
+            .into_iter()
+            .filter_map(|col| match col.into_column_ref() {
                 ColumnRef::Column(c) => Some(c),
-                _ => None
-            }
-        }).collect::<Vec<DynIden>>();
-        self.distinct = if cols.len() > 0 { Some(SelectDistinct::DistinctOn(cols)) } else { None };
+                _ => None,
+            })
+            .collect::<Vec<DynIden>>();
+        self.distinct = if cols.len() > 0 {
+            Some(SelectDistinct::DistinctOn(cols))
+        } else {
+            None
+        };
         self
     }
 
