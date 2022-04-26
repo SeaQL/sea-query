@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 * CASE WHEN statement support https://github.com/SeaQL/sea-query/pull/304
+* Add support for Ip(4,6)Network and MacAddress https://github.com/SeaQL/sea-query/pull/309
 
 ### Enhancements
 
