@@ -1286,3 +1286,13 @@ fn escape_4() {
         test
     );
 }
+
+#[test]
+fn escape_5() {
+    let test = "a'c";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a''c".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
