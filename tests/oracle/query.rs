@@ -701,7 +701,7 @@ fn select_45() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8 OR "aspect" IS NOT NULL)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT (("aspect" < 8 OR "aspect" IS NOT NULL))"#
     );
 }
 
@@ -738,7 +738,7 @@ fn select_47() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8 AND "aspect" IS NOT NULL)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT (("aspect" < 8 AND "aspect" IS NOT NULL))"#
     );
 }
 
@@ -760,7 +760,7 @@ fn select_48() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE ("aspect", 100) < (8, 100)"#
+        r#"SELECT "id" FROM "glyph" WHERE ("aspect" <= 8 AND ("aspect" < 8 OR ("aspect" = 8 AND 100 < 100)))"#
     );
 }
 
@@ -788,7 +788,7 @@ fn select_50() {
 
     assert_eq!(
         statement,
-        r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
+        r#"SELECT "character".*, "font"."name" FROM "character" JOIN "font" ON "character"."font_id" = "font"."id""#
     )
 }
 
@@ -806,7 +806,7 @@ fn select_51() {
                 NullOrdering::Last
             )
             .to_string(OracleQueryBuilder),
-        r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "image" DESC NULLS FIRST, "glyph"."aspect" ASC NULLS LAST"#,
+        r#"SELECT "aspect" FROM "glyph" WHERE coalesce("aspect", 0) > 2 ORDER BY "image" DESC NULLS FIRST, "glyph"."aspect" ASC NULLS LAST"#,
     );
 }
 
@@ -822,7 +822,7 @@ fn select_52() {
                 (Glyph::Aspect, Order::Desc, NullOrdering::Last),
             ])
             .to_string(OracleQueryBuilder),
-        r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "id" ASC NULLS FIRST, "aspect" DESC NULLS LAST"#,
+        r#"SELECT "aspect" FROM "glyph" WHERE coalesce("aspect", 0) > 2 ORDER BY "id" ASC NULLS FIRST, "aspect" DESC NULLS LAST"#,
     );
 }
 
@@ -842,7 +842,7 @@ fn select_53() {
                 ),
             ])
             .to_string(OracleQueryBuilder),
-        r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "glyph"."id" ASC NULLS FIRST, "glyph"."aspect" DESC NULLS LAST"#,
+        r#"SELECT "aspect" FROM "glyph" WHERE coalesce("aspect", 0) > 2 ORDER BY "glyph"."id" ASC NULLS FIRST, "glyph"."aspect" DESC NULLS LAST"#,
     );
 }
 
@@ -879,7 +879,7 @@ fn select_55() {
             )
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(OracleQueryBuilder),
-        r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY CASE WHEN "id"=4 THEN 0 WHEN "id"=5 THEN 1 WHEN "id"=1 THEN 2 WHEN "id"=3 THEN 3 ELSE 4 END, "glyph"."aspect" ASC"#
+        r#"SELECT "aspect" FROM "glyph" WHERE coalesce("aspect", 0) > 2 ORDER BY CASE WHEN "id" = 4 THEN 0 WHEN "id" = 5 THEN 1 WHEN "id" = 1 THEN 2 WHEN "id" = 3 THEN 3 ELSE 4 END, "glyph"."aspect" ASC"#
     );
 }
 
@@ -901,7 +901,7 @@ fn select_56() {
                 ]))
             )
             .to_string(OracleQueryBuilder),
-        r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "glyph"."aspect" ASC, CASE WHEN "id"=4 THEN 0 WHEN "id"=5 THEN 1 WHEN "id"=1 THEN 2 WHEN "id"=3 THEN 3 ELSE 4 END"#,
+        r#"SELECT "aspect" FROM "glyph" WHERE coalesce("aspect", 0) > 2 ORDER BY "glyph"."aspect" ASC, CASE WHEN "id" = 4 THEN 0 WHEN "id" = 5 THEN 1 WHEN "id" = 1 THEN 2 WHEN "id" = 3 THEN 3 ELSE 4 END"#,
     );
 }
 
