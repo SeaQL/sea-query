@@ -140,15 +140,28 @@ pub trait QueryBuilder: QuotedBuilder {
                 false
             });
         }
+        // OVERRIDE
+        if cfg!(feature = "oracle-overrides") {
+            if let Some(offset) = &select.offset {
+                write!(sql, " OFFSET ").unwrap();
+                self.prepare_value(offset, sql, collector);
+                write!(sql, " ROWS ").unwrap();
+            }
+            if let Some(limit) = &select.limit {
+                write!(sql, " FETCH NEXT ").unwrap();
+                self.prepare_value(limit, sql, collector);
+                write!(sql, " ROWS ONLY ").unwrap();
+            }
+        } else {
+            if let Some(limit) = &select.limit {
+                write!(sql, " LIMIT ").unwrap();
+                self.prepare_value(limit, sql, collector);
+            }
 
-        if let Some(limit) = &select.limit {
-            write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql, collector);
-        }
-
-        if let Some(offset) = &select.offset {
-            write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(offset, sql, collector);
+            if let Some(offset) = &select.offset {
+                write!(sql, " OFFSET ").unwrap();
+                self.prepare_value(offset, sql, collector);
+            }
         }
 
         if let Some(lock) = &select.lock {

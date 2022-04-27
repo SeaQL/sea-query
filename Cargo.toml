@@ -58,7 +58,10 @@ pretty_assertions = { version = "^1" }
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
-backend-oracle = []
+backend-oracle = ["oracle-overrides"]
+
+oracle-overrides = []
+
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite", "backend-oracle"]
 derive = ["sea-query-derive"]
 postgres = ["bytes", "postgres-types"]
