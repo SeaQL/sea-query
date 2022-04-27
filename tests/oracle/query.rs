@@ -521,7 +521,7 @@ fn select_34b() {
                     .or(Expr::col(Glyph::Aspect).lt(28))
             )
             .to_string(OracleQueryBuilder),
-        r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING (("aspect" > 2) OR ("aspect" < 8)) AND (("aspect" > 22) OR ("aspect" < 28))"#,
+        r#"SELECT "aspect", max("image") FROM "glyph" GROUP BY "aspect" HAVING (("aspect" > 2 OR "aspect" < 8) AND ("aspect" > 22 OR "aspect" < 28))"#,
     );
 }
 
@@ -581,7 +581,7 @@ fn select_38() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR "aspect" IS NOT NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE ("aspect" IS NULL OR "aspect" IS NOT NULL)"#
     );
     assert_eq!(values.0, vec![]);
 }
@@ -600,7 +600,7 @@ fn select_39() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL AND "aspect" IS NOT NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE ("aspect" IS NULL AND "aspect" IS NOT NULL)"#
     );
     assert_eq!(values.0, vec![]);
 }
@@ -621,7 +621,7 @@ fn select_40() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR ("aspect" IS NOT NULL AND "aspect" < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE ("aspect" IS NULL OR ("aspect" IS NOT NULL AND "aspect" < 8))"#
     );
 }
 
@@ -635,7 +635,7 @@ fn select_41() {
             .group_by_columns(vec![Glyph::Aspect])
             .cond_having(any![Expr::col(Glyph::Aspect).gt(2)])
             .to_string(OracleQueryBuilder),
-        r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
+        r#"SELECT "aspect", max("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
     );
 }
 
@@ -653,7 +653,7 @@ fn select_42() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE "aspect" < 8 AND "aspect" IS NOT NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE ("aspect" < 8 AND "aspect" IS NOT NULL)"#
     );
 }
 
