@@ -496,14 +496,23 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             None => {}
         };
-
-        match &select_expr.alias {
-            Some(alias) => {
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
-            }
-            None => {}
-        };
+        if cfg!(feature = "oracle-overrides") {
+            match &select_expr.alias {
+                Some(alias) => {
+                    write!(sql, " ").unwrap();
+                    alias.prepare(sql, self.quote());
+                }
+                None => {}
+            };
+        } else {
+            match &select_expr.alias {
+                Some(alias) => {
+                    write!(sql, " AS ").unwrap();
+                    alias.prepare(sql, self.quote());
+                }
+                None => {}
+            };
+        }
     }
 
     /// Translate [`JoinExpr`] into SQL statement.
@@ -588,11 +597,19 @@ pub trait QueryBuilder: QuotedBuilder {
                 alias.prepare(sql, self.quote());
             }
             TableRef::SubQuery(query, alias) => {
-                write!(sql, "(").unwrap();
-                self.prepare_select_statement(query, sql, collector);
-                write!(sql, ")").unwrap();
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
+                if cfg!(feature = "oracle-overrides") {
+                    write!(sql, "(").unwrap();
+                    self.prepare_select_statement(query, sql, collector);
+                    write!(sql, ")").unwrap();
+                    write!(sql, " ").unwrap();
+                    alias.prepare(sql, self.quote());
+                } else {
+                    write!(sql, "(").unwrap();
+                    self.prepare_select_statement(query, sql, collector);
+                    write!(sql, ")").unwrap();
+                    write!(sql, " AS ").unwrap();
+                    alias.prepare(sql, self.quote());
+                }
             }
         }
     }
@@ -921,17 +938,31 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-        write!(
-            sql,
-            "{}",
-            match join_type {
-                JoinType::Join => "JOIN",
-                JoinType::InnerJoin => "INNER JOIN",
-                JoinType::LeftJoin => "LEFT JOIN",
-                JoinType::RightJoin => "RIGHT JOIN",
-            }
-        )
-        .unwrap()
+        if cfg!(feature = "oracle-overrides") {
+            write!(
+                sql,
+                "{}",
+                match join_type {
+                    JoinType::Join => "JOIN",
+                    JoinType::InnerJoin => "JOIN",
+                    JoinType::LeftJoin => "LEFT OUTER JOIN",
+                    JoinType::RightJoin => "RIGHT JOIN",
+                }
+            )
+            .unwrap()
+        } else {
+            write!(
+                sql,
+                "{}",
+                match join_type {
+                    JoinType::Join => "JOIN",
+                    JoinType::InnerJoin => "INNER JOIN",
+                    JoinType::LeftJoin => "LEFT JOIN",
+                    JoinType::RightJoin => "RIGHT JOIN",
+                }
+            )
+            .unwrap()
+        }
     }
 
     /// Translate [`OrderExpr`] into SQL statement.
