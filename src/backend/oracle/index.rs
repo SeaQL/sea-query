@@ -1,6 +1,6 @@
 use super::*;
 
-impl IndexBuilder for PostgresQueryBuilder {
+impl IndexBuilder for OracleQueryBuilder {
     fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         if create.index.name.is_some() {
             write!(sql, "CONSTRAINT ").unwrap();

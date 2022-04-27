@@ -7,7 +7,7 @@ fn create_1() {
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
             .col(Glyph::Aspect)
-            .to_string(PostgresQueryBuilder),
+            .to_string(OracleQueryBuilder),
         r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
     );
 }
@@ -21,7 +21,7 @@ fn create_2() {
             .table(Glyph::Table)
             .col(Glyph::Aspect)
             .col(Glyph::Image)
-            .to_string(PostgresQueryBuilder),
+            .to_string(OracleQueryBuilder),
         r#"CREATE UNIQUE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
     );
 }
@@ -34,7 +34,7 @@ fn create_3() {
             .name("idx-glyph-image")
             .table(Glyph::Table)
             .col(Glyph::Image)
-            .to_string(PostgresQueryBuilder),
+            .to_string(OracleQueryBuilder),
         r#"CREATE INDEX "idx-glyph-image" ON "glyph" USING GIN ("image")"#
     );
 }
@@ -44,7 +44,7 @@ fn drop_1() {
     assert_eq!(
         Index::drop()
             .name("idx-glyph-aspect")
-            .to_string(PostgresQueryBuilder),
+            .to_string(OracleQueryBuilder),
         r#"DROP INDEX "idx-glyph-aspect""#
     );
 }

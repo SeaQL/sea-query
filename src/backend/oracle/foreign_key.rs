@@ -1,6 +1,6 @@
 use super::*;
 
-impl ForeignKeyBuilder for PostgresQueryBuilder {
+impl ForeignKeyBuilder for OracleQueryBuilder {
     fn prepare_foreign_key_drop_statement(
         &self,
         drop: &ForeignKeyDropStatement,

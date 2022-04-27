@@ -1,6 +1,6 @@
 use super::*;
 
-impl TableBuilder for PostgresQueryBuilder {
+impl TableBuilder for OracleQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
         column_def.name.prepare(sql, self.quote());
 
@@ -76,16 +76,6 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "time".into(),
                 },
                 ColumnType::Date => "date".into(),
-                ColumnType::Interval(fields, precision) => {
-                    let mut typ = "interval".to_string();
-                    if let Some(fields) = fields {
-                        typ.push_str(&format!(" {}", fields));
-                    }
-                    if let Some(precision) = precision {
-                        typ.push_str(&format!("({})", precision));
-                    }
-                    typ
-                }
                 ColumnType::Binary(length) => match length {
                     Some(_) | None => "bytea".into(),
                 },
@@ -100,6 +90,17 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Array(elem_type) => format!("{}[]", elem_type.as_ref().unwrap()),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(name, _) => name.into(),
+                _ => unimplemented!(),
+                // ColumnType::Interval(fields, precision) => {
+                //     let mut typ = "interval".to_string();
+                //     if let Some(fields) = fields {
+                //         typ.push_str(&format!(" {}", fields));
+                //     }
+                //     if let Some(precision) = precision {
+                //         typ.push_str(&format!("({})", precision));
+                //     }
+                //     typ
+                // }
             }
         )
         .unwrap()
@@ -186,7 +187,7 @@ impl TableBuilder for PostgresQueryBuilder {
     }
 }
 
-impl PostgresQueryBuilder {
+impl OracleQueryBuilder {
     fn prepare_column_type_check_auto_increment(
         &self,
         column_def: &ColumnDef,

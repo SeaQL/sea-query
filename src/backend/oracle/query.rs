@@ -1,7 +1,7 @@
 use super::*;
-use crate::extension::postgres::*;
+// use crate::extension::postgres::*;
 
-impl QueryBuilder for PostgresQueryBuilder {
+impl QueryBuilder for OracleQueryBuilder {
     fn placeholder(&self) -> (&str, bool) {
         ("$", true)
     }
@@ -27,10 +27,10 @@ impl QueryBuilder for PostgresQueryBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         match bin_oper {
-            BinOper::Matches => write!(sql, "@@").unwrap(),
-            BinOper::Contains => write!(sql, "@>").unwrap(),
-            BinOper::Contained => write!(sql, "<@").unwrap(),
-            BinOper::Concatenate => write!(sql, "||").unwrap(),
+            // BinOper::Matches => write!(sql, "@@").unwrap(),
+            // BinOper::Contains => write!(sql, "@>").unwrap(),
+            // BinOper::Contained => write!(sql, "<@").unwrap(),
+            // BinOper::Concatenate => write!(sql, "||").unwrap(),
             _ => self.prepare_bin_oper_common(bin_oper, sql, collector),
         }
     }
@@ -42,26 +42,26 @@ impl QueryBuilder for PostgresQueryBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         match function {
-            Function::PgFunction(function) => write!(
-                sql,
-                "{}",
-                match function {
-                    PgFunction::ToTsquery => "TO_TSQUERY",
-                    PgFunction::ToTsvector => "TO_TSVECTOR",
-                    PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
-                    PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
-                    PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
-                    PgFunction::TsRank => "TS_RANK",
-                    PgFunction::TsRankCd => "TS_RANK_CD",
-                    #[cfg(feature = "postgres-array")]
-                    PgFunction::Any => "ANY",
-                    #[cfg(feature = "postgres-array")]
-                    PgFunction::Some => "SOME",
-                    #[cfg(feature = "postgres-array")]
-                    PgFunction::All => "ALL",
-                }
-            )
-            .unwrap(),
+            // Function::PgFunction(function) => write!(
+            //     sql,
+            //     "{}",
+            //     match function {
+            //         PgFunction::ToTsquery => "TO_TSQUERY",
+            //         PgFunction::ToTsvector => "TO_TSVECTOR",
+            //         PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
+            //         PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
+            //         PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
+            //         PgFunction::TsRank => "TS_RANK",
+            //         PgFunction::TsRankCd => "TS_RANK_CD",
+            //         #[cfg(feature = "postgres-array")]
+            //         PgFunction::Any => "ANY",
+            //         #[cfg(feature = "postgres-array")]
+            //         PgFunction::Some => "SOME",
+            //         #[cfg(feature = "postgres-array")]
+            //         PgFunction::All => "ALL",
+            //     }
+            // )
+            // .unwrap(),
             _ => self.prepare_function_common(function, sql, collector),
         }
     }

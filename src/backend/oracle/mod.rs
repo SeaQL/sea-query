@@ -8,19 +8,19 @@ use super::*;
 
 /// Postgres query builder.
 #[derive(Debug)]
-pub struct PostgresQueryBuilder;
+pub struct OracleQueryBuilder;
 
-impl Default for PostgresQueryBuilder {
+impl Default for OracleQueryBuilder {
     fn default() -> Self {
         Self
     }
 }
 
-impl GenericBuilder for PostgresQueryBuilder {}
+impl GenericBuilder for OracleQueryBuilder {}
 
-impl SchemaBuilder for PostgresQueryBuilder {}
+impl SchemaBuilder for OracleQueryBuilder {}
 
-impl QuotedBuilder for PostgresQueryBuilder {
+impl QuotedBuilder for OracleQueryBuilder {
     fn quote(&self) -> char {
         '"'
     }
