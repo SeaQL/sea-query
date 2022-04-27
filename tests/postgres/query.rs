@@ -1133,7 +1133,7 @@ fn insert_7() {
             .into_table(Glyph::Table)
             .or_default_values()
             .to_string(PostgresQueryBuilder),
-        "INSERT INTO \"glyph\" VALUES (DEFAULT)"
+        r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
     );
 }
 
@@ -1145,7 +1145,7 @@ fn insert_8() {
             .or_default_values()
             .returning_col(Glyph::Id)
             .to_string(PostgresQueryBuilder),
-        "INSERT INTO \"glyph\" VALUES (DEFAULT) RETURNING \"id\""
+        r#"INSERT INTO "glyph" VALUES (DEFAULT) RETURNING "id""#
     );
 }
 
