@@ -22,8 +22,9 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " ").unwrap();
         }
 
-        if insert.default_values && insert.columns.is_empty() && insert.source.is_none() {
-            write!(sql, "{}", self.insert_default_keyword()).unwrap();
+        if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
+            let num_rows = insert.default_values.unwrap();
+            self.insert_default_values(num_rows, sql);
         } else {
             write!(sql, "(").unwrap();
             insert.columns.iter().fold(true, |first, col| {
@@ -1454,9 +1455,21 @@ pub trait QueryBuilder: QuotedBuilder {
         "CHAR_LENGTH"
     }
 
-    /// The keywords for insert default statement (insert without explicit values)
+    /// The keywords for insert default row.
     fn insert_default_keyword(&self) -> &str {
-        "DEFAULT VALUES"
+        "(DEFAULT)"
+    }
+
+    /// Write insert default rows expression.
+    fn insert_default_values(&self, num_rows: u32, sql: &mut SqlWriter) {
+        write!(sql, "VALUES ").unwrap();
+        (0..num_rows).fold(true, |first, _| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+            write!(sql, "{}", self.insert_default_keyword()).unwrap();
+            false
+        });
     }
 }
 

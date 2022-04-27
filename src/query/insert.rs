@@ -49,7 +49,7 @@ pub struct InsertStatement {
     pub(crate) source: Option<InsertValueSource>,
     pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Vec<SelectExpr>,
-    pub(crate) default_values: bool,
+    pub(crate) default_values: Option<u32>,
 }
 
 impl InsertStatement {
@@ -446,11 +446,11 @@ impl InsertStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"INSERT INTO `glyph` VALUES (DEFAULT)"#
+    ///     r#"INSERT INTO `glyph` VALUES ()"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" DEFAULT VALUES"#
+    ///     r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -479,7 +479,59 @@ impl InsertStatement {
     /// );
     /// ```
     pub fn or_default_values(&mut self) -> &mut Self {
-        self.default_values = true;
+        self.default_values = Some(1);
+        self
+    }
+
+    /// Insert multiple rows with default values if columns and values are not supplied.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// // Insert default
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .or_default_values_many(3)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` VALUES (), (), ()"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" VALUES (DEFAULT), (DEFAULT), (DEFAULT)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" DEFAULT VALUES"#
+    /// );
+    ///
+    /// // Ordinary insert as columns and values are supplied
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .or_default_values_many(3)
+    ///     .columns(vec![Glyph::Image])
+    ///     .values_panic(vec!["ABC".into()])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`image`) VALUES ('ABC')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
+    /// );
+    /// ```
+    pub fn or_default_values_many(&mut self, num_rows: u32) -> &mut Self {
+        self.default_values = Some(num_rows);
         self
     }
 }

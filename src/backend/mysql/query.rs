@@ -92,6 +92,6 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn insert_default_keyword(&self) -> &str {
-        "VALUES (DEFAULT)"
+        "()"
     }
 }

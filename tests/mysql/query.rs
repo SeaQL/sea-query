@@ -1063,7 +1063,7 @@ fn insert_6() {
             .into_table(Glyph::Table)
             .or_default_values()
             .to_string(MysqlQueryBuilder),
-        "INSERT INTO `glyph` VALUES (DEFAULT)"
+        "INSERT INTO `glyph` VALUES ()"
     );
 }
 
@@ -1075,7 +1075,7 @@ fn insert_7() {
             .or_default_values()
             .returning_col(Glyph::Id)
             .to_string(MysqlQueryBuilder),
-        "INSERT INTO `glyph` VALUES (DEFAULT)"
+        "INSERT INTO `glyph` VALUES ()"
     );
 }
 
