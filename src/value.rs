@@ -105,6 +105,76 @@ pub enum Value {
     Array(Option<Box<Vec<Value>>>),
 }
 
+#[cfg(feature = "oracle-overrides")]
+pub mod oracle_overrides {
+    use super::*;
+    use r2d2_oracle::oracle::sql_type::ToSql;
+
+    // /// 2021-07-14T23:59:59
+    // const CLIENT_DATETIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+    // const DB_DATETIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+
+    // pub fn to_oracle_format(time: chrono::NaiveDateTime) -> String {
+    //     format!(
+    //         r#"to_date('{time}', 'YYYY-MM-DD HH24:MI:SS')"#,
+    //         time = time.format(DB_DATETIME_FORMAT),
+    //     )
+    // }
+
+    impl ToSql for Value {
+        fn oratype(
+            &self,
+            conn: &r2d2_oracle::oracle::Connection,
+        ) -> r2d2_oracle::oracle::Result<r2d2_oracle::oracle::sql_type::OracleType> {
+            match self {
+                Value::Bool(v) => v.oratype(conn),
+                Value::TinyInt(v) => v.oratype(conn),
+                Value::SmallInt(v) => v.oratype(conn),
+                Value::Int(v) => v.oratype(conn),
+                Value::BigInt(v) => v.oratype(conn),
+                Value::TinyUnsigned(v) => v.oratype(conn),
+                Value::SmallUnsigned(v) => v.oratype(conn),
+                Value::Unsigned(v) => v.oratype(conn),
+                Value::BigUnsigned(v) => v.oratype(conn),
+                Value::Float(v) => v.oratype(conn),
+                Value::Double(v) => v.oratype(conn),
+                Value::String(v) => v.as_ref().map(|v| v.as_ref().clone()).oratype(conn),
+                Value::Bytes(v) => v.as_ref().map(|v| v.as_ref().clone()).oratype(conn),
+                // #[cfg(feature = "with-json")]
+                // Value::Json(v) => v.map(|v| v.as_ref().clone()).oratype(conn),
+                Value::ChronoDate(v) => v.as_ref().map(|v| *v.as_ref()).oratype(conn),
+                // Value::ChronoTime(v) => v.map(|v| v.as_ref().clone()).oratype(conn),
+                Value::ChronoDateTime(v) => v.as_ref().map(|v| *v.as_ref()).oratype(conn),
+                Value::ChronoDateTimeUtc(v) => v.as_ref().map(|v| *v.as_ref()).oratype(conn),
+                Value::ChronoDateTimeLocal(v) => v.as_ref().map(|v| *v.as_ref()).oratype(conn),
+                Value::ChronoDateTimeWithTimeZone(v) => {
+                    v.as_ref().map(|v| *v.as_ref()).oratype(conn)
+                }
+                // Value::TimeDate(v) => v.map(|v| v.as_ref().clone()).oratype(conn),
+                // Value::TimeTime(v) => v.map(|v| v.as_ref().clone()).oratype(conn),
+                // Value::TimeDateTime(v) => v.map(|v| v.as_ref().clone()).oratype(conn),
+                // Value::TimeDateTimeWithTimeZone(v) => v.map(|v| v.as_ref().clone()).oratype(conn),
+                // Value::Uuid(v) => v.map(|v| v.as_ref().clone()).oratype(conn),
+                // #[cfg(feature = "with-rust_decimal")]
+                // Value::Decimal(v) => v.map(|v| v.as_ref().clone().into()).oratype(conn),
+                #[cfg(feature = "with-bigdecimal")]
+                Value::BigDecimal(v) => v
+                    .as_ref()
+                    .map(|v| v.as_ref().clone().to_string()) // TODO: this is probably wrong
+                    .oratype(conn),
+                v => unimplemented!("{v:?}"),
+            }
+        }
+
+        fn to_sql(
+            &self,
+            val: &mut r2d2_oracle::oracle::SqlValue,
+        ) -> r2d2_oracle::oracle::Result<()> {
+            todo!()
+        }
+    }
+}
+
 pub trait ValueType: Sized {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr>;
 

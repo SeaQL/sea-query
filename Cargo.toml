@@ -49,7 +49,7 @@ uuid = { version = "^0", optional = true }
 proc-macro2 = { version = "1", optional = true }
 quote = { version = "^1", optional = true }
 time = { version = "^0.2", optional = true }
-
+r2d2-oracle = {version = "0.5.0", optional = true, features = ["chrono"] }
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
 pretty_assertions = { version = "^1" }
@@ -60,9 +60,9 @@ backend-postgres = []
 backend-sqlite = []
 backend-oracle = ["oracle-overrides"]
 
-oracle-overrides = []
+oracle-overrides = ["r2d2-oracle"]
 
-default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite", "backend-oracle"]
+default = ["derive", "backend-mysql", "backend-sqlite", "backend-oracle", "with-chrono"]
 derive = ["sea-query-derive"]
 postgres = ["bytes", "postgres-types"]
 postgres-chrono = ["with-chrono", "postgres-types/with-chrono-0_4"]
