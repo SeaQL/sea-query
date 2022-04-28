@@ -60,9 +60,9 @@ backend-postgres = []
 backend-sqlite = []
 backend-oracle = ["oracle-overrides"]
 
-oracle-overrides = ["r2d2-oracle"]
+oracle-overrides = ["r2d2-oracle", "with-chrono"]
 
-default = ["derive", "backend-mysql", "backend-sqlite", "backend-oracle", "with-chrono"]
+default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite", "backend-oracle"]
 derive = ["sea-query-derive"]
 postgres = ["bytes", "postgres-types"]
 postgres-chrono = ["with-chrono", "postgres-types/with-chrono-0_4"]
