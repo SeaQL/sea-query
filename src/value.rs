@@ -168,9 +168,46 @@ pub mod oracle_overrides {
 
         fn to_sql(
             &self,
-            val: &mut r2d2_oracle::oracle::SqlValue,
+            conn: &mut r2d2_oracle::oracle::SqlValue,
         ) -> r2d2_oracle::oracle::Result<()> {
-            todo!()
+            match self {
+                Value::Bool(v) => v.to_sql(conn),
+                Value::TinyInt(v) => v.to_sql(conn),
+                Value::SmallInt(v) => v.to_sql(conn),
+                Value::Int(v) => v.to_sql(conn),
+                Value::BigInt(v) => v.to_sql(conn),
+                Value::TinyUnsigned(v) => v.to_sql(conn),
+                Value::SmallUnsigned(v) => v.to_sql(conn),
+                Value::Unsigned(v) => v.to_sql(conn),
+                Value::BigUnsigned(v) => v.to_sql(conn),
+                Value::Float(v) => v.to_sql(conn),
+                Value::Double(v) => v.to_sql(conn),
+                Value::String(v) => v.as_ref().map(|v| v.as_ref().clone()).to_sql(conn),
+                Value::Bytes(v) => v.as_ref().map(|v| v.as_ref().clone()).to_sql(conn),
+                // #[cfg(feature = "with-json")]
+                // Value::Json(v) => v.map(|v| v.as_ref().clone()).to_sql(conn),
+                Value::ChronoDate(v) => v.as_ref().map(|v| *v.as_ref()).to_sql(conn),
+                // Value::ChronoTime(v) => v.map(|v| v.as_ref().clone()).to_sql(conn),
+                Value::ChronoDateTime(v) => v.as_ref().map(|v| *v.as_ref()).to_sql(conn),
+                Value::ChronoDateTimeUtc(v) => v.as_ref().map(|v| *v.as_ref()).to_sql(conn),
+                Value::ChronoDateTimeLocal(v) => v.as_ref().map(|v| *v.as_ref()).to_sql(conn),
+                Value::ChronoDateTimeWithTimeZone(v) => {
+                    v.as_ref().map(|v| *v.as_ref()).to_sql(conn)
+                }
+                // Value::TimeDate(v) => v.map(|v| v.as_ref().clone()).to_sql(conn),
+                // Value::TimeTime(v) => v.map(|v| v.as_ref().clone()).to_sql(conn),
+                // Value::TimeDateTime(v) => v.map(|v| v.as_ref().clone()).to_sql(conn),
+                // Value::TimeDateTimeWithTimeZone(v) => v.map(|v| v.as_ref().clone()).to_sql(conn),
+                // Value::Uuid(v) => v.map(|v| v.as_ref().clone()).to_sql(conn),
+                // #[cfg(feature = "with-rust_decimal")]
+                // Value::Decimal(v) => v.map(|v| v.as_ref().clone().into()).to_sql(conn),
+                #[cfg(feature = "with-bigdecimal")]
+                Value::BigDecimal(v) => v
+                    .as_ref()
+                    .map(|v| v.as_ref().clone().to_string()) // TODO: this is probably wrong
+                    .to_sql(conn),
+                v => unimplemented!("{v:?}"),
+            }
         }
     }
 }
