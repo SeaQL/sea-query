@@ -3,7 +3,7 @@ use super::*;
 
 impl QueryBuilder for OracleQueryBuilder {
     fn placeholder(&self) -> (&str, bool) {
-        ("$", true)
+        (":", true)
     }
 
     fn if_null_function(&self) -> &str {
