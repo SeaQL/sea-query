@@ -102,9 +102,9 @@ impl QueryBuilder for MysqlQueryBuilder {
         _collector: &mut dyn FnMut(Value),
     ) {
         match select_distinct {
-            SelectDistinct::All => write!(sql, "{}", "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "{}", "DISTINCT").unwrap(),
-            SelectDistinct::DistinctRow => write!(sql, "{}", "DISTINCTROW").unwrap(),
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::DistinctRow => write!(sql, "DISTINCTROW").unwrap(),
             _ => {}
         };
     }

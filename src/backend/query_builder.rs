@@ -418,7 +418,13 @@ pub trait QueryBuilder: QuotedBuilder {
         select_distinct: &SelectDistinct,
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
-    );
+    ) {
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            _ => {}
+        }
+    }
 
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(
@@ -1531,19 +1537,6 @@ impl QueryBuilder for CommonSqlQueryBuilder {
         collector: &mut dyn FnMut(Value),
     ) {
         query.prepare_statement(self, sql, collector);
-    }
-
-    fn prepare_select_distinct(
-        &self,
-        select_distinct: &SelectDistinct,
-        sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
-    ) {
-        match select_distinct {
-            SelectDistinct::All => write!(sql, "{}", "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "{}", "DISTINCT").unwrap(),
-            _ => {}
-        }
     }
 }
 

@@ -115,18 +115,18 @@ impl QueryBuilder for PostgresQueryBuilder {
         _collector: &mut dyn FnMut(Value),
     ) {
         match select_distinct {
-            SelectDistinct::All => write!(sql, "{}", "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "{}", "DISTINCT").unwrap(),
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
             SelectDistinct::DistinctOn(cols) => {
-                write!(sql, "{}", "DISTINCT ON (").unwrap();
-                cols.into_iter().fold(true, |first, c| {
+                write!(sql, "DISTINCT ON (").unwrap();
+                cols.iter().fold(true, |first, c| {
                     if !first {
-                        write!(sql, "{}", ", ").unwrap();
+                        write!(sql, ", ").unwrap();
                     }
                     c.prepare(sql, self.quote());
                     false
                 });
-                write!(sql, "{}", ")").unwrap();
+                write!(sql, ")").unwrap();
             }
             _ => {}
         };

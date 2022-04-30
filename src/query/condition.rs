@@ -240,9 +240,9 @@ impl Condition {
     ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let is_empty = Cond::all().is_empty();
-    /// 
+    ///
     /// assert!(is_empty);
     /// ```
     pub fn is_empty(&self) -> bool {
@@ -255,9 +255,9 @@ impl Condition {
     ///
     /// ```
     /// use sea_query::{*, tests_cfg::*};
-    /// 
+    ///
     /// let len = Cond::all().len();
-    /// 
+    ///
     /// assert_eq!(
     ///     len,
     ///     0

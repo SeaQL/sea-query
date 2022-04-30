@@ -54,17 +54,4 @@ impl QueryBuilder for SqliteQueryBuilder {
         // SQLite doesn't support inserting multiple rows with default values
         write!(sql, "DEFAULT VALUES").unwrap()
     }
-
-    fn prepare_select_distinct(
-        &self,
-        select_distinct: &SelectDistinct,
-        sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
-    ) {
-        match select_distinct {
-            SelectDistinct::All => write!(sql, "{}", "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "{}", "DISTINCT").unwrap(),
-            _ => {}
-        }
-    }
 }

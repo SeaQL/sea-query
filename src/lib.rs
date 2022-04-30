@@ -204,17 +204,17 @@
 //! struct Glyph;
 //! assert_eq!(Glyph.to_string(), "glyph");
 //! ```
-//! 
+//!
 //! ```rust
 //! #[cfg(feature = "attr")]
 //! # fn test() {
 //! use sea_query::{Iden, enum_def};
-//! 
+//!
 //! #[enum_def]
 //! struct Character {
 //!   pub foo: u64,
 //! }
-//! 
+//!
 //! // It generates the following along with Iden impl
 //! # let not_real = || {
 //! enum CharacterIden {
@@ -222,7 +222,7 @@
 //!     Foo,
 //! }
 //! # };
-//! 
+//!
 //! assert_eq!(CharacterIden::Table.to_string(), "character");
 //! assert_eq!(CharacterIden::Foo.to_string(), "foo");
 //! # }

@@ -79,7 +79,12 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
     let pascal_def_names2 = pascal_def_names.clone();
     let default_names = field_names.iter().map(|field| &field.default);
-    let import_name = Ident::new(args.crate_name.unwrap_or_else(|| DEFAULT_CRATE_NAME.to_string()).as_str(), input.span());
+    let import_name = Ident::new(
+        args.crate_name
+            .unwrap_or_else(|| DEFAULT_CRATE_NAME.to_string())
+            .as_str(),
+        input.span(),
+    );
 
     TokenStream::from(quote::quote! {
         #input
