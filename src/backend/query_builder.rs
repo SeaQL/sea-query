@@ -22,39 +22,44 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " ").unwrap();
         }
 
-        write!(sql, "(").unwrap();
-        insert.columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap()
-            }
-            col.prepare(sql, self.quote());
-            false
-        });
-        write!(sql, ")").unwrap();
+        if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
+            let num_rows = insert.default_values.unwrap();
+            self.insert_default_values(num_rows, sql);
+        } else {
+            write!(sql, "(").unwrap();
+            insert.columns.iter().fold(true, |first, col| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                col.prepare(sql, self.quote());
+                false
+            });
+            write!(sql, ")").unwrap();
 
-        if let Some(source) = &insert.source {
-            write!(sql, " ").unwrap();
-            match source {
-                InsertValueSource::Values(values) => {
-                    write!(sql, "VALUES ").unwrap();
-                    values.iter().fold(true, |first, row| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
-                        }
-                        write!(sql, "(").unwrap();
-                        row.iter().fold(true, |first, col| {
+            if let Some(source) = &insert.source {
+                write!(sql, " ").unwrap();
+                match source {
+                    InsertValueSource::Values(values) => {
+                        write!(sql, "VALUES ").unwrap();
+                        values.iter().fold(true, |first, row| {
                             if !first {
                                 write!(sql, ", ").unwrap()
                             }
-                            self.prepare_simple_expr(col, sql, collector);
+                            write!(sql, "(").unwrap();
+                            row.iter().fold(true, |first, col| {
+                                if !first {
+                                    write!(sql, ", ").unwrap()
+                                }
+                                self.prepare_simple_expr(col, sql, collector);
+                                false
+                            });
+                            write!(sql, ")").unwrap();
                             false
                         });
-                        write!(sql, ")").unwrap();
-                        false
-                    });
-                }
-                InsertValueSource::Select(select_query) => {
-                    self.prepare_select_statement(select_query.deref(), sql, collector);
+                    }
+                    InsertValueSource::Select(select_query) => {
+                        self.prepare_select_statement(select_query.deref(), sql, collector);
+                    }
                 }
             }
         }
@@ -1478,6 +1483,23 @@ pub trait QueryBuilder: QuotedBuilder {
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
+    }
+
+    /// The keywords for insert default row.
+    fn insert_default_keyword(&self) -> &str {
+        "(DEFAULT)"
+    }
+
+    /// Write insert default rows expression.
+    fn insert_default_values(&self, num_rows: u32, sql: &mut SqlWriter) {
+        write!(sql, "VALUES ").unwrap();
+        (0..num_rows).fold(true, |first, _| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+            write!(sql, "{}", self.insert_default_keyword()).unwrap();
+            false
+        });
     }
 }
 

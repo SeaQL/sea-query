@@ -44,7 +44,7 @@ SeaQuery is very lightweight, all dependencies are optional.
 
 ### Feature flags
 
-Macro: `derive`
+Macro: `derive` `attr`
 
 Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
@@ -178,11 +178,13 @@ impl Iden for Character {
 ```
 
 If you're okay with running another procedural macro, you can activate
-the `derive` feature on the crate to save you some boilerplate.
+the `derive` or `attr` feature on the crate to save you some boilerplate.
 For more usage information, look at
-[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
+[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass)
+or [the attribute examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-attr/tests/pass).
 
 ```rust
+#[cfg(feature = "derive")]
 use sea_query::Iden;
 
 // This will implement Iden exactly as shown above
@@ -197,6 +199,26 @@ assert_eq!(Character::Table.to_string(), "character");
 struct Glyph;
 assert_eq!(Glyph.to_string(), "glyph");
 ```
+
+```rust
+#[cfg(feature = "attr")]
+use sea_query::{Iden, enum_def};
+
+#[enum_def]
+struct Character {
+  pub foo: u64,
+}
+
+// It generates the following along with Iden impl
+enum CharacterIden {
+    Table,
+    Foo,
+}
+
+assert_eq!(CharacterIden::Table.to_string(), "character");
+assert_eq!(CharacterIden::Foo.to_string(), "foo");
+```
+
 
 ### Expression
 

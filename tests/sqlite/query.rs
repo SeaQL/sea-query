@@ -1090,6 +1090,29 @@ fn insert_5() {
 }
 
 #[test]
+fn insert_6() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "glyph" DEFAULT VALUES"#
+    );
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .returning_col(Glyph::Id)
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "glyph" DEFAULT VALUES RETURNING "id""#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_1() {
     assert_eq!(

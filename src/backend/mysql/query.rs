@@ -91,6 +91,10 @@ impl QueryBuilder for MysqlQueryBuilder {
         write!(sql, ")").unwrap();
     }
 
+    fn insert_default_keyword(&self) -> &str {
+        "()"
+    }
+
     fn prepare_select_distinct(
         &self,
         select_distinct: &SelectDistinct,
