@@ -1,10 +1,10 @@
-use sea_query::gen_type_def;
+use sea_query::enum_def;
 
-#[gen_type_def]
+#[enum_def]
 pub struct Hello {
     pub name: String
 }
 
 fn main() {
-    println!("{:?}", HelloTypeDef::Name);
+    println!("{:?}", HelloIden::Name);
 }

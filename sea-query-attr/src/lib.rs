@@ -12,7 +12,7 @@ struct NamingHolder {
 }
 
 #[derive(Debug, FromMeta)]
-struct GenTypeDefArgs {
+struct GenEnumArgs {
     #[darling(default)]
     pub prefix: Option<String>,
     #[darling(default)]
@@ -22,10 +22,10 @@ struct GenTypeDefArgs {
 }
 
 const DEFAULT_PREFIX: &'static str = "";
-const DEFAULT_SUFFIX: &'static str = "TypeDef";
+const DEFAULT_SUFFIX: &'static str = "Iden";
 const DEFAULT_CRATE_NAME: &'static str = "sea_query";
 
-impl Default for GenTypeDefArgs {
+impl Default for GenEnumArgs {
     fn default() -> Self {
         Self {
             prefix: Some(DEFAULT_PREFIX.to_string()),
@@ -36,17 +36,17 @@ impl Default for GenTypeDefArgs {
 }
 
 #[proc_macro_attribute]
-pub fn gen_type_def(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
     let input = parse_macro_input!(input as DeriveInput);
-    let args = GenTypeDefArgs::from_list(&args).unwrap_or_default();
+    let args = GenEnumArgs::from_list(&args).unwrap_or_default();
 
     let fields = match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
         }) => &fields.named,
-        _ => panic!("#[gen_type_def] can only be used on structs"),
+        _ => panic!("#[enum_def] can only be used on structs"),
     };
 
     let field_names: Vec<NamingHolder> = fields
@@ -55,7 +55,7 @@ pub fn gen_type_def(args: TokenStream, input: TokenStream) -> TokenStream {
             let ident = &field.ident;
             let string = ident
                 .as_ref()
-                .expect("#[gen_type_def] can only be used on structs with named fields")
+                .expect("#[enum_def] can only be used on structs with named fields")
                 .to_string();
             let as_pascal = string.to_pascal_case();
             NamingHolder {

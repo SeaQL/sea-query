@@ -205,18 +205,30 @@
 //! assert_eq!(Glyph.to_string(), "glyph");
 //! ```
 //! 
-//! ``
+//! ```rust
 //! # #[cfg(feature = "attr")]
-//! use sea_query::{Iden, gen_type_def};
+//! # fn test() {
+//! use sea_query::{Iden, enum_def};
 //! 
-//! #[gen_type_def]
-//! pub struct Character {
+//! #[enum_def]
+//! struct Character {
 //!   pub foo: u64,
 //! }
 //! 
-//! assert_eq!(CharacterTypeDef::Table.to_string(), "character");
-//! assert_eq!(CharacterTypeDef::Foo.to_string(), "foo");
-//! ``
+//! // It generates the following along with Iden impl
+//! # let not_real = || {
+//! enum CharacterIden {
+//!     Table,
+//!     Foo,
+//! }
+//! # };
+//! 
+//! assert_eq!(CharacterIden::Table.to_string(), "character");
+//! assert_eq!(CharacterIden::Foo.to_string(), "foo");
+//! # }
+//! # #[cfg(feature = "attr")]
+//! # test();
+//! ```
 //!
 //!
 //! ### Expression
@@ -768,6 +780,6 @@ pub use value::*;
 pub use sea_query_derive::Iden;
 
 #[cfg(feature = "attr")]
-pub use sea_query_attr::gen_type_def;
+pub use sea_query_attr::enum_def;
 
 pub use sea_query_driver::*;

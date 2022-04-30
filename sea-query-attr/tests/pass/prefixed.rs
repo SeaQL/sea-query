@@ -1,6 +1,6 @@
-use sea_query::gen_type_def;
+use sea_query::enum_def;
 
-#[gen_type_def(prefix = "Enum", suffix = "")]
+#[enum_def(prefix = "Enum", suffix = "")]
 pub struct Hello {
     pub name: String
 }
