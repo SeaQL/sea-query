@@ -49,4 +49,9 @@ impl QueryBuilder for SqliteQueryBuilder {
     ) {
         // Sqlite doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
     }
+
+    fn insert_default_values(&self, _: u32, sql: &mut SqlWriter) {
+        // SQLite doesn't support inserting multiple rows with default values
+        write!(sql, "DEFAULT VALUES").unwrap()
+    }
 }

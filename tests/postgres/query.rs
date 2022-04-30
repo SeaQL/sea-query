@@ -1067,6 +1067,7 @@ fn insert_from_select() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
+            .or_default_values()
             .columns(vec![Glyph::Aspect, Glyph::Image])
             .select_from(
                 Query::select()
@@ -1123,6 +1124,29 @@ fn insert_6() -> sea_query::error::Result<()> {
         ].join(" ")
     );
     Ok(())
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
+    );
+}
+
+#[test]
+fn insert_8() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .returning_col(Glyph::Id)
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" VALUES (DEFAULT) RETURNING "id""#
+    );
 }
 
 #[test]
