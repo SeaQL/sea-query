@@ -961,6 +961,58 @@ fn select_56() {
 }
 
 #[test]
+fn select_57() {
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Glyph::Table)
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Alias::new("cte"))
+        .to_owned();
+    assert_eq!(
+        select.with(with_clause).to_string(PostgresQueryBuilder),
+        [
+            r#"WITH "cte" AS"#,
+            r#"(SELECT "id", "image", "aspect""#,
+            r#"FROM "glyph")"#,
+            r#"SELECT "id", "image", "aspect" FROM "cte""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_58() {
+    let query = Query::select()
+        .expr_as(
+            CaseStatement::new()
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
+                    Expr::val("positive"),
+                )
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
+                    Expr::val("negative"),
+                )
+                .finally(Expr::val("zero")),
+            Alias::new("polarity"),
+        )
+        .from(Glyph::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -1040,6 +1092,7 @@ fn insert_from_select() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
+            .or_default_values()
             .columns(vec![Glyph::Aspect, Glyph::Image])
             .select_from(
                 Query::select()
@@ -1096,6 +1149,29 @@ fn insert_6() -> sea_query::error::Result<()> {
         ].join(" ")
     );
     Ok(())
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
+    );
+}
+
+#[test]
+fn insert_8() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .returning_col(Glyph::Id)
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" VALUES (DEFAULT) RETURNING "id""#
+    );
 }
 
 #[test]

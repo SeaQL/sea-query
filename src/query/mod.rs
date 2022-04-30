@@ -7,6 +7,7 @@
 //! - Query Update, see [`UpdateStatement`]
 //! - Query Delete, see [`DeleteStatement`]
 
+mod case;
 mod condition;
 mod delete;
 mod insert;
@@ -19,6 +20,7 @@ mod update;
 mod window;
 mod with;
 
+pub use case::*;
 pub use condition::*;
 pub use delete::*;
 pub use insert::*;

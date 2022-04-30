@@ -544,7 +544,10 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window(Expr::col(Char::Character), WindowStatement::partition_by(Char::FontSize))
+    ///     .expr_window(
+    ///         Expr::col(Char::Character),
+    ///         WindowStatement::partition_by(Char::FontSize),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -581,7 +584,11 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_as(Expr::col(Char::Character), WindowStatement::partition_by(Char::FontSize), Alias::new("C"))
+    ///     .expr_window_as(
+    ///         Expr::col(Char::Character),
+    ///         WindowStatement::partition_by(Char::FontSize),
+    ///         Alias::new("C"),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -620,7 +627,10 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr_window_name(Expr::col(Char::Character), Alias::new("w"))
-    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
+    ///     .window(
+    ///         Alias::new("w"),
+    ///         WindowStatement::partition_by(Char::FontSize),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(

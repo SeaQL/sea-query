@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.25.0 - Pending
+
+### New Features
+
+* CASE WHEN statement support https://github.com/SeaQL/sea-query/pull/304
+* Add support for Ip(4,6)Network and MacAddress https://github.com/SeaQL/sea-query/pull/309
+
+### Enhancements
+
+* Insert Default https://github.com/SeaQL/sea-query/pull/266
+
+## 0.24.4 - 2022-04-26
+
+* update sea-query-driver
+
+## 0.24.3 - 2022-04-26
+
+### Bug fixes
+
+* Fix MySQL index create statement https://github.com/SeaQL/sea-query/pull/308
+
+### Enhancements
+
+* Add length check on condition array https://github.com/SeaQL/sea-query/pull/307
+
+## 0.24.2 - 2022-04-18
+
+### Bug fixes
+
+* Fixed https://github.com/SeaQL/sea-query/issues/303 driver breakage in 0.24.0
+
+Notes: 0.24.0 & 0.24.1 were yanked
+
+## 0.24.1 - 2022-04-15
+
+### Enhancements
+
+* #295 Add parameter for SQLx path to proc-macro https://github.com/SeaQL/sea-query/pull/297
+
+### Bug fixes
+
+* CTE optional columns https://github.com/SeaQL/sea-query/pull/301
+
 ## 0.24.0 - 2022-04-05
 
 ### New Features

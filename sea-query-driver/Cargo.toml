@@ -1,6 +1,6 @@
 [package]
 name = "sea-query-driver"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2021"
 description = "Proc macros for SeaQuery drivers"
@@ -29,6 +29,8 @@ with-rust_decimal = []
 with-bigdecimal = []
 with-uuid = []
 with-time = []
+with-ipnetwork = []
+with-mac_address = []
 postgres-array = []
 
 [dev-dependencies]

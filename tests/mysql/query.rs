@@ -973,6 +973,31 @@ fn select_56() {
 }
 
 #[test]
+fn select_57() {
+    let query = Query::select()
+        .expr_as(
+            CaseStatement::new()
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
+                    Expr::val("positive"),
+                )
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
+                    Expr::val("negative"),
+                )
+                .finally(Expr::val("zero")),
+            Alias::new("polarity"),
+        )
+        .from(Glyph::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(MysqlQueryBuilder),
+        r#"SELECT (CASE WHEN (`glyph`.`aspect` > 0) THEN 'positive' WHEN (`glyph`.`aspect` < 0) THEN 'negative' ELSE 'zero' END) AS `polarity` FROM `glyph`"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -1053,6 +1078,29 @@ fn insert_5() {
             .values_panic(vec![uuid::Uuid::nil().into()])
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` (`image`) VALUES ('00000000-0000-0000-0000-000000000000')"
+    );
+}
+
+#[test]
+fn insert_6() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .to_string(MysqlQueryBuilder),
+        "INSERT INTO `glyph` VALUES ()"
+    );
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .returning_col(Glyph::Id)
+            .to_string(MysqlQueryBuilder),
+        "INSERT INTO `glyph` VALUES ()"
     );
 }
 

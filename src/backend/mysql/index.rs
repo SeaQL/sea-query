@@ -24,9 +24,9 @@ impl IndexBuilder for MysqlQueryBuilder {
             table.prepare(sql, self.quote());
         }
 
-        self.prepare_index_type(&create.index_type, sql);
-
         self.prepare_index_columns(&create.index.columns, sql);
+
+        self.prepare_index_type(&create.index_type, sql);
     }
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {

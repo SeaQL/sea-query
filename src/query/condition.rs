@@ -233,6 +233,39 @@ impl Condition {
         self.negate = !self.negate;
         self
     }
+
+    /// Whether or not any condition has been added
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let is_empty = Cond::all().is_empty();
+    /// 
+    /// assert!(is_empty);
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.conditions.is_empty()
+    }
+
+    /// How many conditions were added
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// 
+    /// let len = Cond::all().len();
+    /// 
+    /// assert_eq!(
+    ///     len,
+    ///     0
+    /// );
+    /// ```
+    pub fn len(&self) -> usize {
+        self.conditions.len()
+    }
 }
 
 impl std::convert::From<Condition> for ConditionExpression {
