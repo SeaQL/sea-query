@@ -90,4 +90,8 @@ impl QueryBuilder for MysqlQueryBuilder {
         col.prepare(sql, self.quote());
         write!(sql, ")").unwrap();
     }
+
+    fn insert_default_keyword(&self) -> &str {
+        "()"
+    }
 }
