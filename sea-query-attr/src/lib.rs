@@ -21,9 +21,9 @@ struct GenEnumArgs {
     pub crate_name: Option<String>,
 }
 
-const DEFAULT_PREFIX: &'static str = "";
-const DEFAULT_SUFFIX: &'static str = "Iden";
-const DEFAULT_CRATE_NAME: &'static str = "sea_query";
+const DEFAULT_PREFIX: &str = "";
+const DEFAULT_SUFFIX: &str = "Iden";
+const DEFAULT_CRATE_NAME: &str = "sea_query";
 
 impl Default for GenEnumArgs {
     fn default() -> Self {
