@@ -56,11 +56,12 @@ pub struct SelectStatement {
 }
 
 /// List of distinct keywords that can be used in select statement
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum SelectDistinct {
     All,
     Distinct,
     DistinctRow,
+    DistinctOn(Vec<DynIden>),
 }
 
 /// Window type in [`SelectExpr`]
@@ -313,6 +314,65 @@ impl SelectStatement {
     /// Select distinct
     pub fn distinct(&mut self) -> &mut Self {
         self.distinct = Some(SelectDistinct::Distinct);
+        self
+    }
+
+    /// Select distinct on for *POSTGRES ONLY*
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .distinct_on(vec![Char::Character, ])
+    ///     .column(Char::Character)
+    ///     .column(Char::SizeW)
+    ///     .column(Char::SizeH)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DISTINCT ON ("character") "character", "size_w", "size_h" FROM "character""#
+    /// )
+    /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let distinct_cols: Vec<Character> = vec![];
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .distinct_on(distinct_cols)
+    ///     .column(Char::Character)
+    ///     .column(Char::SizeW)
+    ///     .column(Char::SizeH)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
+    /// )
+    /// ```
+    ///
+    pub fn distinct_on<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
+    {
+        let cols = cols
+            .into_iter()
+            .filter_map(|col| match col.into_column_ref() {
+                ColumnRef::Column(c) => Some(c),
+                _ => None,
+            })
+            .collect::<Vec<DynIden>>();
+        self.distinct = if cols.len() > 0 {
+            Some(SelectDistinct::DistinctOn(cols))
+        } else {
+            None
+        };
         self
     }
 

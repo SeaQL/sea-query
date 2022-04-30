@@ -880,6 +880,34 @@ fn select_53() {
 
 #[test]
 fn select_54() {
+    assert_eq!(
+        Query::select()
+            .distinct_on(vec![Glyph::Aspect,])
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
+            ])
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT DISTINCT ON ("aspect") "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."id" ASC NULLS FIRST,"#,
+            r#""glyph"."aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_55() {
     let statement = sea_query::Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
@@ -894,7 +922,7 @@ fn select_54() {
 }
 
 #[test]
-fn select_55() {
+fn select_56() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])
@@ -928,7 +956,7 @@ fn select_55() {
 }
 
 #[test]
-fn select_56() {
+fn select_57() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])
@@ -961,7 +989,7 @@ fn select_56() {
 }
 
 #[test]
-fn select_57() {
+fn select_58() {
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .from(Glyph::Table)
@@ -988,7 +1016,7 @@ fn select_57() {
 }
 
 #[test]
-fn select_58() {
+fn select_59() {
     let query = Query::select()
         .expr_as(
             CaseStatement::new()
