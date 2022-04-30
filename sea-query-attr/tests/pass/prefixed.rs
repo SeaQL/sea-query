@@ -1,4 +1,4 @@
-use sea_query::enum_def;
+use sea_query_attr::enum_def;
 
 #[enum_def(prefix = "Enum", suffix = "")]
 pub struct Hello {
