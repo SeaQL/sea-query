@@ -85,7 +85,7 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
         #input
 
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        enum #enum_name {
+        pub enum #enum_name {
             Table,
             #(#pascal_def_names,)*
         }
