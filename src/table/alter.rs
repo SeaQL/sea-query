@@ -1,5 +1,6 @@
 use crate::{
-    backend::SchemaBuilder, prepare::*, types::*, ColumnDef, TableForeignKey, SchemaStatementBuilder,
+    backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaStatementBuilder,
+    TableForeignKey,
 };
 
 /// Alter a table
@@ -364,7 +365,7 @@ impl TableAlterStatement {
     /// ```
     pub fn drop_foreign_key<T>(&mut self, name: T) -> &mut Self
     where
-        T: IntoIden
+        T: IntoIden,
     {
         self.add_alter_option(TableAlterOption::DropForeignKey(name.into_iden()))
     }

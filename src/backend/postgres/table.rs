@@ -174,16 +174,20 @@ impl TableBuilder for PostgresQueryBuilder {
                     foreign_key.name(&name.to_string());
                     let drop = ForeignKeyDropStatement {
                         foreign_key: foreign_key,
-                        table: None
+                        table: None,
                     };
                     self.prepare_foreign_key_drop_statement_internal(&drop, sql, Mode::TableAlter);
                 }
                 TableAlterOption::AddForeignKey(foreign_key) => {
                     let create = ForeignKeyCreateStatement {
-                        foreign_key: foreign_key.to_owned()
+                        foreign_key: foreign_key.to_owned(),
                     };
-                    self.prepare_foreign_key_create_statement_internal(&create, sql, Mode::TableAlter);
-                },
+                    self.prepare_foreign_key_create_statement_internal(
+                        &create,
+                        sql,
+                        Mode::TableAlter,
+                    );
+                }
             }
             false
         });
