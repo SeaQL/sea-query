@@ -16,11 +16,11 @@ proc-macro = true
 [dependencies]
 syn = { version = "1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
 quote = "1"
-heck = "0.3"
+heck = "0.4"
 proc-macro2 = "1"
 thiserror = "^1.0"
 
 [dev-dependencies]
 trybuild = "^1.0"
 sea-query = { version = "^0", path = ".." }
-strum = { version = "^0.21", features = ["derive"] }
+strum = { version = "^0.24", features = ["derive"] }

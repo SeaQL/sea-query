@@ -47,7 +47,7 @@
 //!
 //! ### Feature flags
 //!
-//! Macro: `derive`
+//! Macro: `derive` `attr`
 //!
 //! Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 //!
@@ -183,9 +183,10 @@
 //! ```
 //!
 //! If you're okay with running another procedural macro, you can activate
-//! the `derive` feature on the crate to save you some boilerplate.
+//! the `derive` or `attr` feature on the crate to save you some boilerplate.
 //! For more usage information, look at
-//! [the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
+//! [the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass)
+//! or [the attribute examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-attr/tests/pass).
 //!
 //! ```rust
 //! # #[cfg(feature = "derive")]
@@ -203,6 +204,20 @@
 //! struct Glyph;
 //! assert_eq!(Glyph.to_string(), "glyph");
 //! ```
+//! 
+//! ``
+//! # #[cfg(feature = "attr")]
+//! use sea_query::{Iden, gen_type_def};
+//! 
+//! #[gen_type_def]
+//! pub struct Character {
+//!   pub foo: u64,
+//! }
+//! 
+//! assert_eq!(CharacterTypeDef::Table.to_string(), "character");
+//! assert_eq!(CharacterTypeDef::Foo.to_string(), "foo");
+//! ``
+//!
 //!
 //! ### Expression
 //!
@@ -751,5 +766,8 @@ pub use value::*;
 
 #[cfg(feature = "derive")]
 pub use sea_query_derive::Iden;
+
+#[cfg(feature = "attr")]
+pub use sea_query_attr::gen_type_def;
 
 pub use sea_query_driver::*;

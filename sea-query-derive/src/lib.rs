@@ -1,6 +1,6 @@
 use std::convert::{TryFrom, TryInto};
 
-use heck::SnakeCase;
+use heck::ToSnakeCase;
 use proc_macro::{self, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{parse_macro_input, Attribute, DataEnum, DataStruct, DeriveInput, Fields};

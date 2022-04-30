@@ -38,6 +38,7 @@ path = "src/lib.rs"
 
 [dependencies]
 sea-query-derive = { version = "0.2.0", path = "sea-query-derive", optional = true }
+sea-query-attr = { version = "0.1.0", path = "sea-query-attr", optional = true }
 sea-query-driver = { version = "^0.1.1", path = "sea-query-driver" }
 serde_json = { version = "^1", optional = true }
 bytes = { version = "^1", optional = true }
@@ -60,6 +61,7 @@ backend-postgres = []
 backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
+attr = ["sea-query-attr"]
 postgres = ["bytes", "postgres-types"]
 postgres-chrono = ["with-chrono", "postgres-types/with-chrono-0_4"]
 postgres-json = ["with-json", "postgres-types/with-serde_json-1"]
