@@ -189,7 +189,7 @@
 //! or [the attribute examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-attr/tests/pass).
 //!
 //! ```rust
-//! # #[cfg(feature = "derive")]
+//! #[cfg(feature = "derive")]
 //! use sea_query::Iden;
 //!
 //! // This will implement Iden exactly as shown above
@@ -206,7 +206,7 @@
 //! ```
 //! 
 //! ```rust
-//! # #[cfg(feature = "attr")]
+//! #[cfg(feature = "attr")]
 //! # fn test() {
 //! use sea_query::{Iden, enum_def};
 //! 
