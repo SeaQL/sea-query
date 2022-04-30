@@ -1,6 +1,6 @@
 [package]
 name = "sea-query-attr"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "Pedro Henrique <hello@exst.fun>" ]
 edition = "2021"
 description = "Proc macros for useful features in Sea Query"
