@@ -2,6 +2,8 @@
 use std::fmt::Write;
 
 #[cfg(feature = "with-json")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "with-json")]
 use serde_json::Value as Json;
 #[cfg(feature = "with-json")]
 use std::str::from_utf8;
@@ -321,11 +323,73 @@ type_to_box_value!(Vec<u8>, Bytes, Binary(None));
 type_to_box_value!(String, String, String(None));
 
 #[cfg(feature = "with-json")]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct JsonValue<T>(pub T)
+where
+    T: Sized + Serialize;
+
+#[cfg(feature = "with-json")]
+impl<T> From<T> for JsonValue<T>
+where
+    T: Sized + Serialize,
+    for<'de> T: Deserialize<'de>,
+{
+    fn from(json: T) -> Self {
+        Self(json)
+    }
+}
+
+#[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
     use super::*;
 
     type_to_box_value!(Json, Json, Json);
+
+    impl<T> From<JsonValue<T>> for Value
+    where
+        T: Sized + Serialize,
+        for<'de> T: Deserialize<'de>,
+    {
+        fn from(json_value: JsonValue<T>) -> Self {
+            let value = serde_json::to_value(json_value.0).unwrap();
+            Self::Json(Some(Box::new(value)))
+        }
+    }
+
+    impl<T> Nullable for JsonValue<T>
+    where
+        T: Sized + Serialize,
+        for<'de> T: Deserialize<'de>,
+    {
+        fn null() -> Value {
+            Value::Json(None)
+        }
+    }
+
+    impl<T> ValueType for JsonValue<T>
+    where
+        T: Sized + Serialize,
+        for<'de> T: Deserialize<'de>,
+    {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::Json(Some(x)) => {
+                    let json = serde_json::from_value::<T>(*x).map_err(|_| ValueTypeErr)?;
+                    Ok(Self(json))
+                }
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            Json::type_name()
+        }
+
+        fn column_type() -> ColumnType {
+            Json::column_type()
+        }
+    }
 }
 
 #[cfg(feature = "with-chrono")]

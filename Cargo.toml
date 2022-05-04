@@ -40,6 +40,7 @@ path = "src/lib.rs"
 sea-query-attr = { version = "^0.1.1", path = "sea-query-attr", optional = true }
 sea-query-derive = { version = "0.2.0", path = "sea-query-derive", optional = true }
 sea-query-driver = { version = "^0.1.1", path = "sea-query-driver" }
+serde = { version = "^1", optional = true }
 serde_json = { version = "^1", optional = true }
 bytes = { version = "^1", optional = true }
 chrono = { version = "^0", optional = true }
@@ -77,7 +78,7 @@ sqlx-postgres = ["sea-query-driver/sqlx-postgres"]
 sqlx-sqlite = ["sea-query-driver/sqlx-sqlite"]
 thread-safe = []
 with-chrono = ["chrono", "sea-query-driver/with-chrono"]
-with-json = ["serde_json", "sea-query-driver/with-json"]
+with-json = ["serde", "serde_json", "sea-query-driver/with-json"]
 with-rust_decimal = ["rust_decimal", "sea-query-driver/with-rust_decimal"]
 with-bigdecimal = ["bigdecimal", "sea-query-driver/with-bigdecimal"]
 with-uuid = ["uuid", "sea-query-driver/with-uuid"]
