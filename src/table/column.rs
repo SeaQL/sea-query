@@ -10,6 +10,7 @@ pub struct ColumnDef {
 }
 
 /// All column types
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum ColumnType {
     Char(Option<u32>),
@@ -27,6 +28,7 @@ pub enum ColumnType {
     TimestampWithTimeZone(Option<u32>),
     Time(Option<u32>),
     Date,
+    Interval(Option<IntervalField>, Option<u32>),
     Binary(Option<u32>),
     Boolean,
     Money(Option<(u32, u32)>),
@@ -46,6 +48,24 @@ pub enum ColumnSpec {
     UniqueKey,
     PrimaryKey,
     Extra(String),
+}
+
+// All interval fields
+#[derive(Debug, Clone)]
+pub enum IntervalField {
+    Year,
+    Month,
+    Day,
+    Hour,
+    Minute,
+    Second,
+    YearToMonth,
+    DayToHour,
+    DayToMinute,
+    DayToSecond,
+    HourToMinute,
+    HourToSecond,
+    MinuteToSecond,
 }
 
 impl ColumnDef {
@@ -234,6 +254,51 @@ impl ColumnDef {
         self
     }
 
+    /// Set column type as interval type with optional fields and precision. Postgres only
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I1"))
+    ///                 .interval(None, None)
+    ///                 .not_null()
+    ///         )
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I2"))
+    ///                 .interval(Some(IntervalField::YearToMonth), None)
+    ///                 .not_null()
+    ///         )
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I3"))
+    ///                 .interval(None, Some(42))
+    ///                 .not_null()
+    ///         )
+    ///         .col(
+    ///             ColumnDef::new(Alias::new("I4"))
+    ///                 .interval(Some(IntervalField::Hour), Some(43))
+    ///                 .not_null()
+    ///         )
+    ///         .to_string(PostgresQueryBuilder),
+    ///     vec![
+    ///         r#"CREATE TABLE "glyph" ("#,
+    ///         r#""I1" interval NOT NULL,"#,
+    ///         r#""I2" interval YEAR TO MONTH NOT NULL,"#,
+    ///         r#""I3" interval(42) NOT NULL,"#,
+    ///         r#""I4" interval HOUR(43) NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
+    #[cfg(feature = "backend-postgres")]
+    pub fn interval(&mut self, fields: Option<IntervalField>, precision: Option<u32>) -> &mut Self {
+        self.types = Some(ColumnType::Interval(fields, precision));
+        self
+    }
+
     /// Set column type as timestamp with custom precision
     pub fn timestamp_len(&mut self, precision: u32) -> &mut Self {
         self.types = Some(ColumnType::Timestamp(Some(precision)));
@@ -294,7 +359,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as money with custom precision ans scale
+    /// Set column type as money with custom precision and scale
     pub fn money_len(&mut self, precision: u32, scale: u32) -> &mut Self {
         self.types = Some(ColumnType::Money(Some((precision, scale))));
         self

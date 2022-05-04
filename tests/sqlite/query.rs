@@ -769,6 +769,31 @@ fn select_47() {
 }
 
 #[test]
+fn select_48() {
+    let statement = sea_query::Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .add_option(Some(ConditionExpression::SimpleExpr(Expr::tuple([
+                    Expr::col(Glyph::Aspect).into_simple_expr(),
+                    Expr::value(100),
+                ]).less_than(
+                    Expr::tuple([
+                        Expr::value(8),
+                        Expr::value(100),
+                    ])
+                ))))
+        )
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE (`aspect`, 100) < (8, 100)"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -837,6 +862,40 @@ fn insert_5() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
+fn insert_returning_all_columns() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .returning(Returning::All)
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415) RETURNING *"#
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_returning_specific_columns() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image,]))
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415) RETURNING `id`, `image`"#
+    );
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
@@ -867,6 +926,40 @@ fn update_3() {
 }
 
 #[test]
+fn update_returning_all_columns() {
+    assert_eq!(
+        Query::update()
+            .table(Glyph::Table)
+            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::All)
+            .to_string(SqliteQueryBuilder),
+        r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1 RETURNING *"#
+    );
+}
+
+#[test]
+fn update_returning_specified_columns() {
+    assert_eq!(
+        Query::update()
+            .table(Glyph::Table)
+            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image]))
+            .to_string(SqliteQueryBuilder),
+        r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1 RETURNING `id`, `image`"#
+    );
+}
+
+#[test]
 fn delete_1() {
     assert_eq!(
         Query::delete()
@@ -874,5 +967,29 @@ fn delete_1() {
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(SqliteQueryBuilder),
         "DELETE FROM `glyph` WHERE `id` = 1"
+    );
+}
+
+#[test]
+fn delete_returning_all_columns() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::All)
+            .to_string(SqliteQueryBuilder),
+        r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING *"#
+    );
+}
+
+#[test]
+fn delete_returning_specific_columns() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Returning::cols(vec![Glyph::Id, Glyph::Image,]))
+            .to_string(SqliteQueryBuilder),
+        r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`, `image`"#
     );
 }

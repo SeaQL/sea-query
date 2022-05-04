@@ -43,7 +43,7 @@ pub struct SelectStatement {
     pub(crate) selects: Vec<SelectExpr>,
     pub(crate) from: Option<Box<TableRef>>,
     pub(crate) join: Vec<JoinExpr>,
-    pub(crate) wherei: ConditionHolder,
+    pub(crate) r#where: ConditionHolder,
     pub(crate) groups: Vec<SimpleExpr>,
     pub(crate) having: ConditionHolder,
     pub(crate) unions: Vec<(UnionType, SelectStatement)>,
@@ -114,7 +114,7 @@ impl SelectStatement {
             selects: Vec::new(),
             from: None,
             join: Vec::new(),
-            wherei: ConditionHolder::new(),
+            r#where: ConditionHolder::new(),
             groups: Vec::new(),
             having: ConditionHolder::new(),
             unions: Vec::new(),
@@ -132,7 +132,7 @@ impl SelectStatement {
             selects: std::mem::take(&mut self.selects),
             from: self.from.take(),
             join: std::mem::take(&mut self.join),
-            wherei: std::mem::replace(&mut self.wherei, ConditionHolder::new()),
+            r#where: std::mem::replace(&mut self.r#where, ConditionHolder::new()),
             groups: std::mem::take(&mut self.groups),
             having: std::mem::replace(&mut self.having, ConditionHolder::new()),
             unions: std::mem::take(&mut self.unions),
@@ -1616,7 +1616,7 @@ impl OrderedStatement for SelectStatement {
 
 impl ConditionalStatement for SelectStatement {
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
-        self.wherei.add_and_or(condition);
+        self.r#where.add_and_or(condition);
         self
     }
 
@@ -1624,7 +1624,7 @@ impl ConditionalStatement for SelectStatement {
     where
         C: IntoCondition,
     {
-        self.wherei.add_condition(condition.into_condition());
+        self.r#where.add_condition(condition.into_condition());
         self
     }
 }

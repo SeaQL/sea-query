@@ -6,24 +6,6 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn prepare_returning(
-        &self,
-        returning: &[SelectExpr],
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        if !returning.is_empty() {
-            write!(sql, " RETURNING ").unwrap();
-            returning.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
-                self.prepare_select_expr(expr, sql, collector);
-                false
-            });
-        }
-    }
-
     fn if_null_function(&self) -> &str {
         "COALESCE"
     }
@@ -75,6 +57,21 @@ impl QueryBuilder for PostgresQueryBuilder {
             )
             .unwrap(),
             _ => self.prepare_function_common(function, sql, collector),
+        }
+    }
+
+    fn prepare_simple_expr(
+        &self,
+        simple_expr: &SimpleExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        match simple_expr {
+            SimpleExpr::AsEnum(type_name, expr) => {
+                let simple_expr = expr.clone().cast_as(SeaRc::clone(type_name));
+                self.prepare_simple_expr_common(&simple_expr, sql, collector);
+            }
+            _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql, collector),
         }
     }
 }

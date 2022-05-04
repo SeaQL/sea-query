@@ -86,7 +86,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
         }
 
-        self.prepare_condition(&select.wherei, "WHERE", sql, collector);
+        self.prepare_condition(&select.r#where, "WHERE", sql, collector);
 
         if !select.groups.is_empty() {
             write!(sql, " GROUP BY ").unwrap();
@@ -226,6 +226,15 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
+        self.prepare_simple_expr_common(simple_expr, sql, collector);
+    }
+
+    fn prepare_simple_expr_common(
+        &self,
+        simple_expr: &SimpleExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
                 match column_ref {
@@ -237,6 +246,9 @@ pub trait QueryBuilder: QuotedBuilder {
                     }
                 };
             }
+            SimpleExpr::Tuple(exprs) => {
+                self.prepare_tuple(exprs, sql, collector);
+            }
             SimpleExpr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql, collector);
                 write!(sql, " ").unwrap();
@@ -244,15 +256,7 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::FunctionCall(func, exprs) => {
                 self.prepare_function(func, sql, collector);
-                write!(sql, "(").unwrap();
-                exprs.iter().fold(true, |first, expr| {
-                    if !first {
-                        write!(sql, ", ").unwrap();
-                    }
-                    self.prepare_simple_expr(expr, sql, collector);
-                    false
-                });
-                write!(sql, ")").unwrap();
+                self.prepare_tuple(exprs, sql, collector);
             }
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
@@ -327,6 +331,9 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql, collector);
+            }
+            SimpleExpr::AsEnum(_, expr) => {
+                self.prepare_simple_expr(expr, sql, collector);
             }
         }
     }
@@ -635,6 +642,19 @@ pub trait QueryBuilder: QuotedBuilder {
         collector(value.clone());
     }
 
+    /// Translate [`Tuple`] into SQL statement.
+    fn prepare_tuple(&self, exprs: &Vec<SimpleExpr>,  sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
+        write!(sql, "(").unwrap();
+        exprs.iter().fold(true, |first, expr| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_simple_expr(expr, sql, collector);
+            false
+        });
+        write!(sql, ")").unwrap();
+    }
+
     /// Translate [`Keyword`] into SQL statement.
     fn prepare_keyword(
         &self,
@@ -736,10 +756,31 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(
         &self,
-        _returning: &[SelectExpr],
-        _sql: &mut SqlWriter,
+        returning: &Returning,
+        sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
+        match returning {
+            Returning::All => write!(sql, " RETURNING *").unwrap(),
+            Returning::Columns(cols) => {
+                write!(sql, " RETURNING ").unwrap();
+                cols.into_iter().fold(true, |first, column_ref| {
+                    if !first {
+                        write!(sql, ", ").unwrap()
+                    }
+                    match column_ref {
+                        ColumnRef::Column(column) => column.prepare(sql, self.quote()),
+                        ColumnRef::TableColumn(table, column) => {
+                            table.prepare(sql, self.quote());
+                            write!(sql, ".").unwrap();
+                            column.prepare(sql, self.quote());
+                        }
+                    };
+                    false
+                });
+            }
+            Returning::Nothing => return,
+        }
     }
 
     #[doc(hidden)]

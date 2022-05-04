@@ -1,6 +1,6 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, Query,
-    QueryStatementBuilder, SelectExpr, SelectStatement, SimpleExpr,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, QueryStatementBuilder,
+    Returning, SimpleExpr,
 };
 
 /// Insert any new rows into an existing table
@@ -35,7 +35,7 @@ pub struct InsertStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) values: Vec<Vec<SimpleExpr>>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Returning,
 }
 
 impl InsertStatement {
@@ -179,7 +179,7 @@ impl InsertStatement {
         self.exprs(values).unwrap()
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions. Supported fully by postgres, version deppendant on other databases
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -188,12 +188,12 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns(vec![Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Returning::Columns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -201,15 +201,15 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning: Returning) -> &mut Self {
+        self.returning = returning;
         self
     }
 
-    /// RETURNING a column after insertion. Postgres only. This is equivalent to MySQL's LAST_INSERT_ID.
+    /// RETURNING a column after insertion. Supported fully by postgres, version deppendant on other databases
     /// Wrapper over [`InsertStatement::returning()`].
     ///
     /// ```
@@ -224,7 +224,7 @@ impl InsertStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -232,14 +232,14 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A') RETURNING `id`"
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
         C: IntoIden,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(Returning::Columns(vec![ColumnRef::Column(col.into_iden())]))
     }
 }
 

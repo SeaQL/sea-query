@@ -4,7 +4,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, SelectExpr, SelectStatement,
+    ColumnRef, QueryStatementBuilder, Returning,
 };
 
 /// Delete existing rows from the table
@@ -39,7 +39,7 @@ pub struct DeleteStatement {
     pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Returning,
 }
 
 impl Default for DeleteStatement {
@@ -56,7 +56,7 @@ impl DeleteStatement {
             wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
-            returning: Vec::new(),
+            returning: Returning::default(),
         }
     }
 
@@ -100,7 +100,7 @@ impl DeleteStatement {
         self
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions. Supported fully by postgres, version deppendant on other databases
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -108,12 +108,12 @@ impl DeleteStatement {
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Returning::Columns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -121,15 +121,15 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning_cols: Returning) -> &mut Self {
+        self.returning = returning_cols;
         self
     }
 
-    /// RETURNING a column after delete. Postgres only.
+    /// RETURNING a column after delete. Supported fully by postgres, version deppendant on other databases
     /// Wrapper over [`DeleteStatement::returning()`].
     ///
     /// ```
@@ -143,7 +143,7 @@ impl DeleteStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -151,14 +151,14 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
         C: IntoIden,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(Returning::Columns(vec![ColumnRef::Column(col.into_iden())]))
     }
 }
 

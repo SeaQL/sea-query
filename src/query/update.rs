@@ -5,7 +5,7 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, SelectExpr, SelectStatement,
+    QueryStatementBuilder, Returning,
 };
 
 /// Update existing rows in the table
@@ -44,7 +44,7 @@ pub struct UpdateStatement {
     pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Returning,
 }
 
 impl Default for UpdateStatement {
@@ -62,7 +62,7 @@ impl UpdateStatement {
             wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
-            returning: Vec::new(),
+            returning: Returning::default(),
         }
     }
 
@@ -223,7 +223,7 @@ impl UpdateStatement {
         self
     }
 
-    /// RETURNING expressions. Postgres only.
+    /// RETURNING expressions. Supported fully by postgres, version deppendant on other databases
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -233,12 +233,12 @@ impl UpdateStatement {
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Returning::Columns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -246,15 +246,15 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning_cols: Returning) -> &mut Self {
+        self.returning = returning_cols;
         self
     }
 
-    /// RETURNING a column after update. Postgres only.
+    /// RETURNING a column after update. Supported fully by postgres, version deppendant on other databases
     /// Wrapper over [`UpdateStatement::returning()`].
     ///
     /// ```
@@ -271,7 +271,7 @@ impl UpdateStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -279,14 +279,14 @@ impl UpdateStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1 RETURNING `id`"#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
         C: IntoIden,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(Returning::Columns(vec![ColumnRef::Column(col.into_iden())]))
     }
 }
 
