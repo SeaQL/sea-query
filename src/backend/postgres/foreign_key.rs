@@ -1,17 +1,21 @@
 use super::*;
 
 impl ForeignKeyBuilder for PostgresQueryBuilder {
-    fn prepare_foreign_key_drop_statement(
+    fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
         sql: &mut SqlWriter,
+        mode: Mode,
     ) {
-        write!(sql, "ALTER TABLE ").unwrap();
-        if let Some(table) = &drop.table {
-            table.prepare(sql, '"');
+        if mode == Mode::Alter {
+            write!(sql, "ALTER TABLE ").unwrap();
+            if let Some(table) = &drop.table {
+                table.prepare(sql, self.quote());
+            }
+            write!(sql, " ").unwrap();
         }
 
-        write!(sql, " DROP CONSTRAINT ").unwrap();
+        write!(sql, "DROP CONSTRAINT ").unwrap();
         if let Some(name) = &drop.foreign_key.name {
             write!(sql, "\"{}\"", name).unwrap();
         }
@@ -21,14 +25,18 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         &self,
         create: &ForeignKeyCreateStatement,
         sql: &mut SqlWriter,
-        inside_table_creation: bool,
+        mode: Mode,
     ) {
-        if !inside_table_creation {
+        if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
-                table.prepare(sql, '"');
+                table.prepare(sql, self.quote());
             }
-            write!(sql, " ADD ").unwrap();
+            write!(sql, " ").unwrap();
+        }
+
+        if mode != Mode::Creation {
+            write!(sql, "ADD ").unwrap();
         }
 
         if let Some(name) = &create.foreign_key.name {
@@ -41,14 +49,14 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql, '"');
+            col.prepare(sql, self.quote());
             false
         });
         write!(sql, ")").unwrap();
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            ref_table.prepare(sql, '"');
+            ref_table.prepare(sql, self.quote());
         }
         write!(sql, " ").unwrap();
 
@@ -61,7 +69,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql, '"');
+                col.prepare(sql, self.quote());
                 false
             });
         write!(sql, ")").unwrap();

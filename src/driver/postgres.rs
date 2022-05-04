@@ -46,19 +46,37 @@ impl ToSql for Value {
             #[cfg(feature = "postgres-json")]
             Value::Json(v) => box_to_sql!(v, serde_json::Value),
             #[cfg(feature = "postgres-chrono")]
-            Value::Date(v) => box_to_sql!(v, chrono::NaiveDate),
+            Value::ChronoDate(v) => box_to_sql!(v, chrono::NaiveDate),
             #[cfg(feature = "postgres-chrono")]
-            Value::Time(v) => box_to_sql!(v, chrono::NaiveTime),
+            Value::ChronoTime(v) => box_to_sql!(v, chrono::NaiveTime),
             #[cfg(feature = "postgres-chrono")]
-            Value::DateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
+            Value::ChronoDateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
             #[cfg(feature = "postgres-chrono")]
-            Value::DateTimeWithTimeZone(v) => box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>),
+            Value::ChronoDateTimeUtc(v) => box_to_sql!(v, chrono::DateTime<chrono::Utc>),
+            #[cfg(feature = "postgres-chrono")]
+            Value::ChronoDateTimeLocal(v) => box_to_sql!(v, chrono::DateTime<chrono::Local>),
+            #[cfg(feature = "postgres-chrono")]
+            Value::ChronoDateTimeWithTimeZone(v) => {
+                box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>)
+            }
+            #[cfg(feature = "postgres-time")]
+            Value::TimeDate(v) => box_to_sql!(v, time::Date),
+            #[cfg(feature = "postgres-time")]
+            Value::TimeTime(v) => box_to_sql!(v, time::Time),
+            #[cfg(feature = "postgres-time")]
+            Value::TimeDateTime(v) => box_to_sql!(v, time::PrimitiveDateTime),
+            #[cfg(feature = "postgres-time")]
+            Value::TimeDateTimeWithTimeZone(v) => box_to_sql!(v, time::OffsetDateTime),
             #[cfg(feature = "postgres-rust_decimal")]
             Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
             #[cfg(feature = "postgres-bigdecimal")]
             Value::BigDecimal(_) => unimplemented!("Not supported"),
             #[cfg(feature = "postgres-uuid")]
             Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
+            #[cfg(feature = "postgres-array")]
+            Value::Array(v) => box_to_sql!(v, Vec<Value>),
+            #[allow(unreachable_patterns)]
+            _ => unimplemented!(),
         }
     }
 

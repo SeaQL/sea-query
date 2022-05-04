@@ -1,0 +1,37 @@
+[package]
+name = "sea-query-driver"
+version = "0.1.1"
+authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
+edition = "2021"
+description = "Proc macros for SeaQuery drivers"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = [ "database" ]
+keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
+quote = "1"
+proc-macro2 = "1"
+
+[features]
+rusqlite = []
+sqlx-mysql = []
+sqlx-postgres = []
+sqlx-sqlite = []
+with-chrono = []
+with-json = []
+with-rust_decimal = []
+with-bigdecimal = []
+with-uuid = []
+with-time = []
+with-ipnetwork = []
+with-mac_address = []
+postgres-array = []
+
+[dev-dependencies]
+sea-query = { version = "^0", path = ".." }

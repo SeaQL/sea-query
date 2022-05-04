@@ -1,10 +1,11 @@
 [package]
 name = "sea-query-sqlx-sqlite-example"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 chrono = "^0"
+time = "^0.2"
 uuid = { version = "^0", features = ["serde", "v4"] }
 serde_json = "^1"
 async-std = { version = "1.8", features = [ "attributes" ] }
@@ -13,6 +14,7 @@ sea-query = { path = "../../", features = [
     "with-chrono",
     "with-json",
     "with-uuid",
+    "with-time",
 ] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "^0", features = [
@@ -20,6 +22,7 @@ sea-query = { path = "../../", features = [
 #     "with-chrono",
 #     "with-json",
 #     "with-uuid",
+#     "with-time",
 # ] }
 
 [dependencies.sqlx]
@@ -32,4 +35,5 @@ features = [
     "chrono",
     "json",
     "uuid",
+    "time",
 ]

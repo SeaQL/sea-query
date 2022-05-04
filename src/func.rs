@@ -17,6 +17,9 @@ pub enum Function {
     CharLength,
     Cast,
     Custom(DynIden),
+    Coalesce,
+    Lower,
+    Upper,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -87,7 +90,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
+    ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
     pub fn max<T>(expr: T) -> SimpleExpr
@@ -119,7 +122,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MIN(`character`.`size_h`) FROM `character`"#
+    ///     r#"SELECT MIN("character"."size_h") FROM "character""#
     /// );
     /// ```
     pub fn min<T>(expr: T) -> SimpleExpr
@@ -151,7 +154,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
+    ///     r#"SELECT SUM("character"."size_h") FROM "character""#
     /// );
     /// ```
     pub fn sum<T>(expr: T) -> SimpleExpr
@@ -183,7 +186,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT AVG(`character`.`size_h`) FROM `character`"#
+    ///     r#"SELECT AVG("character"."size_h") FROM "character""#
     /// );
     /// ```
     pub fn avg<T>(expr: T) -> SimpleExpr
@@ -215,7 +218,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT COUNT(`character`.`id`) FROM `character`"#
+    ///     r#"SELECT COUNT("character"."id") FROM "character""#
     /// );
     /// ```
     pub fn count<T>(expr: T) -> SimpleExpr
@@ -247,7 +250,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT LENGTH(`character`.`character`) FROM `character`"#
+    ///     r#"SELECT LENGTH("character"."character") FROM "character""#
     /// );
     /// ```
     pub fn char_length<T>(expr: T) -> SimpleExpr
@@ -282,7 +285,7 @@ impl Func {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT IFNULL(`size_w`, `size_h`) FROM `character`"#
+    ///     r#"SELECT IFNULL("size_w", "size_h") FROM "character""#
     /// );
     /// ```
     pub fn if_null<A, B>(a: A, b: B) -> SimpleExpr
@@ -326,5 +329,108 @@ impl Func {
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
         ))
+    }
+
+    /// Call `COALESCE` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::coalesce([
+    ///         Expr::col(Char::SizeW),
+    ///         Expr::col(Char::SizeH),
+    ///         Expr::val(12),
+    ///     ]))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    /// );
+    /// ```
+    pub fn coalesce<I, T>(args: I) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+        I: IntoIterator<Item = T>,
+    {
+        Expr::func(Function::Coalesce).args(args)
+    }
+
+    /// Call `LOWER` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::lower(Expr::col(Char::Character)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT LOWER(`character`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT LOWER("character") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT LOWER("character") FROM "character""#
+    /// );
+    /// ```
+    pub fn lower<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::Lower).arg(expr)
+    }
+
+    /// Call `UPPER` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::upper(Expr::col(Char::Character)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT UPPER(`character`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT UPPER("character") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT UPPER("character") FROM "character""#
+    /// );
+    /// ```
+    pub fn upper<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::Upper).arg(expr)
     }
 }

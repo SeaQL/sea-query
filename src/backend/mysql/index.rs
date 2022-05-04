@@ -21,12 +21,12 @@ impl IndexBuilder for MysqlQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
         }
 
-        self.prepare_index_type(&create.index_type, sql);
-
         self.prepare_index_columns(&create.index.columns, sql);
+
+        self.prepare_index_type(&create.index_type, sql);
     }
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
@@ -37,7 +37,7 @@ impl IndexBuilder for MysqlQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &drop.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
         }
     }
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut SqlWriter) {

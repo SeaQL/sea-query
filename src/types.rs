@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, query::*};
+use crate::{expr::*, query::*, Values};
 use std::fmt;
 
 #[cfg(not(feature = "thread-safe"))]
@@ -62,6 +62,9 @@ impl fmt::Debug for dyn Iden {
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
+    SchemaTableColumn(DynIden, DynIden, DynIden),
+    Asterisk,
+    TableAsterisk(DynIden),
 }
 
 pub trait IntoColumnRef {
@@ -72,10 +75,19 @@ pub trait IntoColumnRef {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum TableRef {
+    /// Table identifier without any schema / database prefix
     Table(DynIden),
+    /// Table identifier with schema prefix
     SchemaTable(DynIden, DynIden),
+    /// Table identifier with database and schema prefix
+    DatabaseSchemaTable(DynIden, DynIden, DynIden),
+    /// Table identifier with alias
     TableAlias(DynIden, DynIden),
+    /// Table identifier with schema prefix and alias
     SchemaTableAlias(DynIden, DynIden, DynIden),
+    /// Table identifier with database and schema prefix and alias
+    DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
+    /// Subquery with alias
     SubQuery(SelectStatement, DynIden),
 }
 
@@ -139,11 +151,19 @@ pub enum JoinType {
     RightJoin,
 }
 
+/// Nulls order
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NullOrdering {
+    First,
+    Last,
+}
+
 /// Order expression
 #[derive(Debug, Clone)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
+    pub(crate) nulls: Option<NullOrdering>,
 }
 
 /// Join on types
@@ -154,10 +174,11 @@ pub enum JoinOn {
 }
 
 /// Ordering options
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Order {
     Asc,
     Desc,
+    Field(Values),
 }
 
 /// Helper for create name alias
@@ -253,6 +274,17 @@ where
     }
 }
 
+impl<S: 'static, T: 'static, U: 'static> IntoColumnRef for (S, T, U)
+where
+    S: IntoIden,
+    T: IntoIden,
+    U: IntoIden,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::SchemaTableColumn(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
+    }
+}
+
 impl IntoTableRef for TableRef {
     fn into_table_ref(self) -> TableRef {
         self
@@ -278,6 +310,17 @@ where
     }
 }
 
+impl<S: 'static, T: 'static, U: 'static> IntoTableRef for (S, T, U)
+where
+    S: IntoIden,
+    T: IntoIden,
+    U: IntoIden,
+{
+    fn into_table_ref(self) -> TableRef {
+        TableRef::DatabaseSchemaTable(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
+    }
+}
+
 impl TableRef {
     /// Add or replace the current alias
     pub fn alias<A: 'static>(self, alias: A) -> Self
@@ -290,8 +333,14 @@ impl TableRef {
             Self::SchemaTable(schema, table) => {
                 Self::SchemaTableAlias(schema, table, alias.into_iden())
             }
+            Self::DatabaseSchemaTable(database, schema, table) => {
+                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden())
+            }
             Self::SchemaTableAlias(schema, table, _) => {
                 Self::SchemaTableAlias(schema, table, alias.into_iden())
+            }
+            Self::DatabaseSchemaTableAlias(database, schema, table, _) => {
+                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden())
             }
             Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
         }
@@ -349,7 +398,7 @@ mod tests {
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
-            r#"SELECT `hello-World_`"#
+            r#"SELECT "hello-World_""#
         );
     }
 
@@ -360,7 +409,7 @@ mod tests {
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
         #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel``lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel`lo""#);
 
         let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
 
@@ -375,7 +424,7 @@ mod tests {
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
         #[cfg(feature = "backend-sqlite")]
-        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT `hel````lo`"#);
+        assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel``lo""#);
 
         let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
 

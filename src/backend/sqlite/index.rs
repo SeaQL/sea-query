@@ -8,9 +8,6 @@ impl IndexBuilder for SqliteQueryBuilder {
         self.prepare_index_name(&create.index.name, sql);
 
         self.prepare_index_prefix(create, sql);
-        write!(sql, "KEY ").unwrap();
-
-        // self.prepare_index_type(&create.index_type, sql);
 
         self.prepare_index_columns(&create.index.columns, sql);
     }
@@ -24,10 +21,8 @@ impl IndexBuilder for SqliteQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
         }
-
-        // self.prepare_index_type(&create.index_type, sql);
 
         self.prepare_index_columns(&create.index.columns, sql);
     }
@@ -35,12 +30,13 @@ impl IndexBuilder for SqliteQueryBuilder {
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(name) = &drop.index.name {
-            write!(sql, "`{}`", name).unwrap();
+            let quote = self.quote();
+            write!(sql, "{}{}{}", quote, name, quote).unwrap();
         }
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &drop.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
         }
     }
 
@@ -48,9 +44,8 @@ impl IndexBuilder for SqliteQueryBuilder {
 
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         if create.primary {
-            write!(sql, "PRIMARY ").unwrap();
-        }
-        if create.unique {
+            write!(sql, "PRIMARY KEY ").unwrap();
+        } else if create.unique {
             write!(sql, "UNIQUE ").unwrap();
         }
     }

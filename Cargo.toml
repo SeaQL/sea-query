@@ -2,6 +2,7 @@
 members = [
     ".",
     "sea-query-derive",
+    "sea-query-driver",
     "examples/postgres",
     "examples/postgres_json",
     "examples/cockroach",
@@ -14,12 +15,12 @@ members = [
 
 [package]
 name = "sea-query"
-version = "0.18.2"
+version = "0.24.4"
 authors = [
     "Chris Tsang <tyt2y7@gmail.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
 ]
-edition = "2018"
+edition = "2021"
 description = "🌊 A dynamic query builder for MySQL, Postgres and SQLite"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
@@ -36,7 +37,9 @@ name = "sea_query"
 path = "src/lib.rs"
 
 [dependencies]
+sea-query-attr = { version = "^0.1.1", path = "sea-query-attr", optional = true }
 sea-query-derive = { version = "0.2.0", path = "sea-query-derive", optional = true }
+sea-query-driver = { version = "^0.1.1", path = "sea-query-driver" }
 serde_json = { version = "^1", optional = true }
 bytes = { version = "^1", optional = true }
 chrono = { version = "^0", optional = true }
@@ -44,6 +47,13 @@ postgres-types = { version = "^0", optional = true }
 rust_decimal = { version = "^1", optional = true }
 bigdecimal = { version = "^0.2", optional = true }
 uuid = { version = "^0", optional = true }
+proc-macro2 = { version = "1", optional = true }
+quote = { version = "^1", optional = true }
+time = { version = "^0.2", optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.3", features = ["html_reports"] }
+pretty_assertions = { version = "^1" }
 
 [features]
 backend-mysql = []
@@ -51,22 +61,27 @@ backend-postgres = []
 backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
+attr = ["sea-query-attr"]
 postgres = ["bytes", "postgres-types"]
 postgres-chrono = ["with-chrono", "postgres-types/with-chrono-0_4"]
 postgres-json = ["with-json", "postgres-types/with-serde_json-1"]
 postgres-rust_decimal = ["with-rust_decimal", "rust_decimal/db-postgres"]
 postgres-bigdecimal = ["with-bigdecimal"]
 postgres-uuid = ["with-uuid", "postgres-types/with-uuid-0_8"]
-rusqlite = []
-sqlx-mysql = []
-sqlx-postgres = []
-sqlx-sqlite = []
+postgres-array = ["postgres-types/array-impls", "sea-query-driver/postgres-array"]
+postgres-interval = ["proc-macro2", "quote"]
+postgres-time = ["with-time", "postgres-types/with-time-0_2"]
+rusqlite = ["sea-query-driver/rusqlite"]
+sqlx-mysql = ["sea-query-driver/sqlx-mysql"]
+sqlx-postgres = ["sea-query-driver/sqlx-postgres"]
+sqlx-sqlite = ["sea-query-driver/sqlx-sqlite"]
 thread-safe = []
-with-chrono = ["chrono"]
-with-json = ["serde_json"]
-with-rust_decimal = ["rust_decimal"]
-with-bigdecimal = ["bigdecimal"]
-with-uuid = ["uuid"]
+with-chrono = ["chrono", "sea-query-driver/with-chrono"]
+with-json = ["serde_json", "sea-query-driver/with-json"]
+with-rust_decimal = ["rust_decimal", "sea-query-driver/with-rust_decimal"]
+with-bigdecimal = ["bigdecimal", "sea-query-driver/with-bigdecimal"]
+with-uuid = ["uuid", "sea-query-driver/with-uuid"]
+with-time = ["time", "sea-query-driver/with-time"]
 
 
 [[test]]
@@ -93,3 +108,7 @@ required-features = ["backend-postgres"]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
 required-features = ["backend-sqlite"]
+
+[[bench]]
+name = "basic"
+harness = false

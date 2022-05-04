@@ -1,8 +1,11 @@
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, PostgresQueryBuilder, Query, Table};
+use sea_query::{
+    ColumnDef, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
+};
 use sqlx::{PgPool, Row};
+use time::{date, time, PrimitiveDateTime};
 
 sea_query::sea_query_driver_postgres!();
 use sea_query_driver_postgres::{bind_query, bind_query_as};
@@ -68,6 +71,21 @@ async fn main() {
                 .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
         ])
+        .values_panic(vec![
+            Uuid::new_v4().into(),
+            12.into(),
+            "A".into(),
+            json!({
+                "notes": "some notes here",
+            })
+            .into(),
+            Decimal::from_i128_with_scale(3141i128, 3).into(),
+            BigDecimal::from_i128(3141i128)
+                .unwrap()
+                .with_scale(3)
+                .into(),
+            date!(2020 - 8 - 20).with_time(time!(0:0:0)).into(),
+        ])
         .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
 
@@ -96,7 +114,17 @@ async fn main() {
         .limit(1)
         .build(PostgresQueryBuilder);
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+        .fetch_all(&mut pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        println!("{:?}", row);
+    }
+    println!();
+
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructTime>(&sql), &values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -137,7 +165,17 @@ async fn main() {
         .limit(1)
         .build(PostgresQueryBuilder);
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStruct>(&sql), &values)
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+        .fetch_all(&mut pool)
+        .await
+        .unwrap();
+    println!("Select one from character:");
+    for row in rows.iter() {
+        println!("{:?}", row);
+    }
+    println!();
+
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructTime>(&sql), &values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -161,6 +199,66 @@ async fn main() {
     print!("Count character: ");
     let count: i64 = row.try_get(0).unwrap();
     println!("{}", count);
+    println!();
+
+    // Upsert
+
+    let (sql, values) = Query::insert()
+        .into_table(Character::Table)
+        .columns(vec![
+            Character::Id,
+            Character::FontSize,
+            Character::Character,
+        ])
+        .values_panic(vec![1.into(), 16.into(), "B".into()])
+        .values_panic(vec![2.into(), 24.into(), "C".into()])
+        .on_conflict(
+            OnConflict::column(Character::Id)
+                .update_columns([Character::FontSize, Character::Character])
+                .to_owned(),
+        )
+        .build(PostgresQueryBuilder);
+
+    let result = bind_query(sqlx::query(&sql), &values)
+        .execute(&mut pool)
+        .await;
+    println!("Insert into character (with upsert): {:?}\n", result);
+
+    // Read
+
+    let (sql, values) = Query::select()
+        .columns(vec![
+            Character::Id,
+            Character::Uuid,
+            Character::Character,
+            Character::FontSize,
+            Character::Meta,
+            Character::Decimal,
+            Character::BigDecimal,
+            Character::Created,
+        ])
+        .from(Character::Table)
+        .order_by(Character::Id, Order::Desc)
+        .build(PostgresQueryBuilder);
+
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+        .fetch_all(&mut pool)
+        .await
+        .unwrap();
+    println!("Select all characters:");
+    for row in rows.iter() {
+        println!("{:?}", row);
+    }
+    println!();
+
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructTime>(&sql), &values)
+        .fetch_all(&mut pool)
+        .await
+        .unwrap();
+    println!("Select all characters:");
+    for row in rows.iter() {
+        println!("{:?}", row);
+    }
     println!();
 
     // Delete
@@ -190,7 +288,8 @@ enum Character {
 }
 
 #[derive(sqlx::FromRow, Debug)]
-struct CharacterStruct {
+#[allow(dead_code)]
+struct CharacterStructChrono {
     id: i32,
     uuid: Uuid,
     character: String,
@@ -199,4 +298,17 @@ struct CharacterStruct {
     decimal: Decimal,
     big_decimal: BigDecimal,
     created: NaiveDateTime,
+}
+
+#[derive(sqlx::FromRow, Debug)]
+#[allow(dead_code)]
+struct CharacterStructTime {
+    id: i32,
+    uuid: Uuid,
+    character: String,
+    font_size: i32,
+    meta: Json,
+    decimal: Decimal,
+    big_decimal: BigDecimal,
+    created: PrimitiveDateTime,
 }

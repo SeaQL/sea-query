@@ -1,10 +1,11 @@
 [package]
 name = "sea-query-sqlx-mysql-example"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 chrono = "^0"
+time = "^0.2"
 uuid = { version = "^0", features = ["serde", "v4"] }
 serde_json = "^1"
 rust_decimal = { version = "^1" }
@@ -17,6 +18,7 @@ sea-query = { path = "../../", features = [
     "with-rust_decimal",
     "with-bigdecimal",
     "with-uuid",
+    "with-time",
 ] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "^0", features = [
@@ -26,6 +28,7 @@ sea-query = { path = "../../", features = [
 #     "with-rust_decimal",
 #     "with-bigdecimal",
 #     "with-uuid",
+#     "with-time",
 # ] }
 
 # To fix sqlx on unstable Rust:
@@ -44,4 +47,5 @@ features = [
     "decimal",
     "bigdecimal",
     "uuid",
+    "time",
 ]

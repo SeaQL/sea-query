@@ -75,8 +75,8 @@ fn create_3() {
             )
             .col(ColumnDef::new(Char::FontSize).integer_len(11).not_null())
             .col(ColumnDef::new(Char::Character).string_len(255).not_null())
-            .col(ColumnDef::new(Char::SizeW).integer_len(11).not_null())
-            .col(ColumnDef::new(Char::SizeH).integer_len(11).not_null())
+            .col(ColumnDef::new(Char::SizeW).unsigned_len(11).not_null())
+            .col(ColumnDef::new(Char::SizeH).unsigned_len(11).not_null())
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer_len(11)
@@ -99,8 +99,8 @@ fn create_3() {
             "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
             "`font_size` int(11) NOT NULL,",
             "`character` varchar(255) NOT NULL,",
-            "`size_w` int(11) NOT NULL,",
-            "`size_h` int(11) NOT NULL,",
+            "`size_w` int(11) UNSIGNED NOT NULL,",
+            "`size_h` int(11) UNSIGNED NOT NULL,",
             "`font_id` int(11) DEFAULT NULL,",
             "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
@@ -239,4 +239,16 @@ fn alter_5() {
 #[should_panic(expected = "No alter option found")]
 fn alter_6() {
     Table::alter().to_string(MysqlQueryBuilder);
+}
+
+#[test]
+fn alter_7() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_column(Alias::new("new_column"))
+            .rename_column(Font::Name, Alias::new("name_new"))
+            .to_string(MysqlQueryBuilder),
+        "ALTER TABLE `font` DROP COLUMN `new_column`, RENAME COLUMN `name` TO `name_new`"
+    );
 }

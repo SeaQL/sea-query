@@ -28,13 +28,14 @@ pub enum SimpleExpr {
     Unary(UnOper, Box<SimpleExpr>),
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
-    SubQuery(Box<SelectStatement>),
+    SubQuery(Box<SubQueryStatement>),
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
+    Case(Box<CaseStatement>),
 }
 
 impl Expr {
@@ -51,6 +52,58 @@ impl Expr {
             func: None,
             args: Vec::new(),
         }
+    }
+
+    /// Express the asterisk without table prefix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::asterisk())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT * FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT * FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT * FROM "character""#
+    /// );
+    /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
+    /// );
+    /// ```
+    pub fn asterisk() -> Self {
+        Self::col(ColumnRef::Asterisk)
     }
 
     /// Express the target column without table prefix.
@@ -76,7 +129,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
     /// );
     /// ```
     ///
@@ -99,7 +152,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// ```
     pub fn col<T>(n: T) -> Self
@@ -134,16 +187,72 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w`, 100) < (500, 100)"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w", 100) < (500, 100)"#
     /// );
     /// ```
     pub fn tuple<I>(n: I) -> Self
-        where
-            I: IntoIterator<Item = SimpleExpr>,
+    where
+        I: IntoIterator<Item = SimpleExpr>,
     {
         Expr::expr(SimpleExpr::Tuple(
-            n.into_iter().collect::<Vec<SimpleExpr>>()
+            n.into_iter().collect::<Vec<SimpleExpr>>(),
         ))
+    }
+
+    /// Express the asterisk with table prefix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::asterisk())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT * FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT * FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT * FROM "character""#
+    /// );
+    /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::table_asterisk(Char::Table))
+    ///     .column((Font::Table, Font::Name))
+    ///     .from(Char::Table)
+    ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
+    /// );
+    /// ```
+    pub fn table_asterisk<T>(t: T) -> Self
+    where
+        T: IntoIden,
+    {
+        Self::col(ColumnRef::TableAsterisk(t.into_iden()))
     }
 
     /// Express the target column with table prefix.
@@ -169,7 +278,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// ```
     pub fn tbl<T, C>(t: T, c: C) -> Self
@@ -205,7 +314,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// ```
     pub fn val<V>(v: V) -> Self
@@ -238,7 +347,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`size_w`, 0) > 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE IFNULL("size_w", 0) > 2"#
     /// );
     /// ```
     #[allow(clippy::self_named_constructors)]
@@ -271,7 +380,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// ```
     pub fn value<V>(v: V) -> SimpleExpr
@@ -304,7 +413,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 = 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// ```
     pub fn cust(s: &str) -> SimpleExpr {
@@ -335,7 +444,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
     /// ```
@@ -406,7 +515,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'What!' = 'Nothing' AND `id` = 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
     /// );
     /// ```
     pub fn eq<V>(self, v: V) -> SimpleExpr
@@ -440,7 +549,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
     /// );
     /// ```
     pub fn ne<V>(self, v: V) -> SimpleExpr
@@ -474,7 +583,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
     /// );
     /// ```
     pub fn equals<T, C>(self, t: T, c: C) -> SimpleExpr
@@ -511,7 +620,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
     /// );
     /// ```
     pub fn gt<V>(self, v: V) -> SimpleExpr
@@ -547,7 +656,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > `character`.`size_h`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > "character"."size_h""#
     /// );
     /// ```
     pub fn greater_than<T>(self, expr: T) -> SimpleExpr
@@ -579,7 +688,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
     /// );
     /// ```
     pub fn gte<V>(self, v: V) -> SimpleExpr
@@ -615,7 +724,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= `character`.`size_h`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= "character"."size_h""#
     /// );
     /// ```
     pub fn greater_or_equal<T>(self, expr: T) -> SimpleExpr
@@ -648,7 +757,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
     /// );
     /// ```
     pub fn lt<V>(self, v: V) -> SimpleExpr
@@ -684,7 +793,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < `character`.`size_h`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < "character"."size_h""#
     /// );
     /// ```
     pub fn less_than<T>(self, expr: T) -> SimpleExpr
@@ -717,7 +826,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
     /// );
     /// ```
     pub fn lte<V>(self, v: V) -> SimpleExpr
@@ -753,7 +862,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= `character`.`size_h`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= "character"."size_h""#
     /// );
     /// ```
     pub fn less_or_equal<T>(self, expr: T) -> SimpleExpr
@@ -786,7 +895,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 + 1 = 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -820,7 +929,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 - 1 = 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -854,7 +963,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 * 1 = 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -888,7 +997,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 / 1 = 2"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -922,7 +1031,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` BETWEEN 1 AND 10"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
     /// );
     /// ```
     pub fn between<V>(self, a: V, b: V) -> SimpleExpr
@@ -955,7 +1064,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` NOT BETWEEN 1 AND 10"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
     /// );
     /// ```
     pub fn not_between<V>(self, a: V, b: V) -> SimpleExpr
@@ -1002,7 +1111,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours\'%'"#
     /// );
     /// ```
     pub fn like(self, v: &str) -> SimpleExpr {
@@ -1042,7 +1151,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NULL"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NULL"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
@@ -1073,7 +1182,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NOT NULL"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NOT NULL"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
@@ -1105,7 +1214,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` < 10 AND `size_w` > `size_h`"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// ```
     pub fn binary<T>(self, operation: BinOper, right: T) -> SimpleExpr
@@ -1138,7 +1247,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -1168,7 +1277,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
+    ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
     pub fn max(mut self) -> SimpleExpr {
@@ -1198,7 +1307,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
+    ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// ```
     pub fn min(mut self) -> SimpleExpr {
@@ -1228,7 +1337,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
+    ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// ```
     pub fn sum(mut self) -> SimpleExpr {
@@ -1258,7 +1367,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
+    ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// ```
     pub fn count(mut self) -> SimpleExpr {
@@ -1288,7 +1397,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
+    ///     r#"SELECT IFNULL("character"."size_w", 0) FROM "character""#
     /// );
     /// ```
     pub fn if_null<V>(mut self, v: V) -> SimpleExpr
@@ -1325,7 +1434,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
     /// );
     /// ```
     /// Empty value list
@@ -1348,7 +1457,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE 1 = 2"#
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 2"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
@@ -1387,7 +1496,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
     /// );
     /// ```
     /// Empty value list
@@ -1410,7 +1519,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE 1 = 1"#
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 1"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
@@ -1453,13 +1562,15 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` IN (SELECT 3 + 2 * 2)"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" IN (SELECT 3 + 2 * 2)"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
         self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
+        self.right = Some(SimpleExpr::SubQuery(Box::new(
+            sel.into_sub_query_statement(),
+        )));
         self.into()
     }
 
@@ -1490,13 +1601,15 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` NOT IN (SELECT 3 + 2 * 2)"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn not_in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
         self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::SubQuery(Box::new(sel)));
+        self.right = Some(SimpleExpr::SubQuery(Box::new(
+            sel.into_sub_query_statement(),
+        )));
         self.into()
     }
 
@@ -1662,7 +1775,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `character`"#
+    ///     r#"SELECT "font_size" FROM "character""#
     /// );
     ///
     /// let query = Query::insert()
@@ -1681,7 +1794,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO `character` (`font_size`) VALUES ('large')"#
+    ///     r#"INSERT INTO "character" ("font_size") VALUES ('large')"#
     /// );
     /// ```
     pub fn as_enum<T>(self, type_name: T) -> SimpleExpr
@@ -1712,6 +1825,38 @@ impl Expr {
     /// `Into::<SimpleExpr>::into()` when type inference is impossible
     pub fn into_simple_expr(self) -> SimpleExpr {
         self.into()
+    }
+
+    /// Adds new `CASE WHEN` to existing case statement.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr_as(
+    ///         Expr::case(
+    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4]),
+    ///                 Expr::val(true)
+    ///              )
+    ///             .finally(Expr::val(false)),
+    ///          Alias::new("is_even")
+    ///     )
+    ///     .from(Glyph::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
+    /// );    
+    /// ```
+    pub fn case<C, T>(cond: C, then: T) -> CaseStatement
+    where
+        C: IntoCondition,
+        T: Into<Expr>,
+    {
+        CaseStatement::new().case(cond, then)
     }
 }
 
@@ -1767,7 +1912,7 @@ impl SimpleExpr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) AND (`size_h` = 2)) OR ((`size_w` = 3) AND (`size_h` = 4))"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) AND ("size_h" = 2)) OR (("size_w" = 3) AND ("size_h" = 4))"#
     /// );
     /// ```
     pub fn and(self, right: SimpleExpr) -> Self {
@@ -1798,7 +1943,7 @@ impl SimpleExpr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) OR (`size_h` = 2)) AND ((`size_w` = 3) OR (`size_h` = 4))"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) OR ("size_h" = 2)) AND (("size_w" = 3) OR ("size_h" = 4))"#
     /// );
     /// ```
     pub fn or(self, right: SimpleExpr) -> Self {
@@ -1832,7 +1977,7 @@ impl SimpleExpr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` * 3"#
+    ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" * 3"#
     /// );
     /// ```
     pub fn equals<T>(self, right: T) -> Self
@@ -1869,7 +2014,7 @@ impl SimpleExpr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 <> `size_h`"#
+    ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 <> "size_h""#
     /// );
     /// ```
     pub fn not_equals<T>(self, right: T) -> Self
@@ -1905,7 +2050,7 @@ impl SimpleExpr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MAX(`size_w`) + MAX(`size_h`) FROM `character`"#
+    ///     r#"SELECT MAX("size_w") + MAX("size_h") FROM "character""#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -1942,7 +2087,7 @@ impl SimpleExpr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT MAX(`size_w`) - MIN(`size_w`) FROM `character`"#
+    ///     r#"SELECT MAX("size_w") - MIN("size_w") FROM "character""#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]

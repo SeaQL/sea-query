@@ -1,6 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
+use time::{date, time, PrimitiveDateTime};
 
 fn main() {
     let mut client = Client::connect("postgresql://root:@localhost/query", NoTls).unwrap();
@@ -33,7 +34,7 @@ fn main() {
     println!("Create table document: {:?}\n", result);
 
     // Create
-    let document = DocumentStruct {
+    let document_chrono = DocumentStructChrono {
         id: 1,
         json_field: serde_json::json! {{
             "a": 25.0,
@@ -45,12 +46,32 @@ fn main() {
         }},
         timestamp: NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2),
     };
+    let document_time = DocumentStructTime {
+        id: 2,
+        json_field: serde_json::json! {{
+            "a": 25.0,
+            "b": "whatever",
+            "c": {
+                "another": "object",
+                "bla": 1
+            }
+        }},
+        timestamp: date!(2020 - 01 - 01).with_time(time!(2:2:2)),
+    };
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
         .columns(vec![Document::JsonField, Document::Timestamp])
         .values_panic(vec![
-            serde_json::to_value(document.json_field).unwrap().into(),
-            document.timestamp.into(),
+            serde_json::to_value(document_chrono.json_field)
+                .unwrap()
+                .into(),
+            document_chrono.timestamp.into(),
+        ])
+        .values_panic(vec![
+            serde_json::to_value(document_time.json_field)
+                .unwrap()
+                .into(),
+            document_time.timestamp.into(),
         ])
         .build(PostgresQueryBuilder);
 
@@ -68,8 +89,11 @@ fn main() {
 
     let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from document:");
-    for row in rows.into_iter() {
-        let item = DocumentStruct::from(row);
+    for row in rows.iter() {
+        let item = DocumentStructChrono::from(row);
+        println!("{:?}", item);
+
+        let item = DocumentStructTime::from(row);
         println!("{:?}", item);
     }
     println!();
@@ -84,14 +108,33 @@ enum Document {
 }
 
 #[derive(Debug)]
-struct DocumentStruct {
+#[allow(dead_code)]
+struct DocumentStructChrono {
     id: i64,
     json_field: serde_json::Value,
     timestamp: NaiveDateTime,
 }
 
-impl From<Row> for DocumentStruct {
-    fn from(row: Row) -> Self {
+#[derive(Debug)]
+#[allow(dead_code)]
+struct DocumentStructTime {
+    id: i64,
+    json_field: serde_json::Value,
+    timestamp: PrimitiveDateTime,
+}
+
+impl From<&Row> for DocumentStructChrono {
+    fn from(row: &Row) -> Self {
+        Self {
+            id: row.get("id"),
+            json_field: row.get("json_field"),
+            timestamp: row.get("timestamp"),
+        }
+    }
+}
+
+impl From<&Row> for DocumentStructTime {
+    fn from(row: &Row) -> Self {
         Self {
             id: row.get("id"),
             json_field: row.get("json_field"),

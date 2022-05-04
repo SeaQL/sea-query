@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for PostgresQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
-        column_def.name.prepare(sql, '"');
+        column_def.name.prepare(sql, self.quote());
 
         self.prepare_column_type_check_auto_increment(column_def, sql);
 
@@ -29,19 +29,21 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger(length) => match length {
-                    Some(length) => format!("tinyint({})", length),
-                    None => "tinyint".into(),
-                },
-                ColumnType::SmallInteger(length) => match length {
-                    Some(length) => format!("smallint({})", length),
-                    None => "smallint".into(),
-                },
-                ColumnType::Integer(length) => match length {
+                ColumnType::TinyInteger(length) | ColumnType::TinyUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("smallint({})", length),
+                        None => "smallint".into(),
+                    },
+                ColumnType::SmallInteger(length) | ColumnType::SmallUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("smallint({})", length),
+                        None => "smallint".into(),
+                    },
+                ColumnType::Integer(length) | ColumnType::Unsigned(length) => match length {
                     Some(length) => format!("integer({})", length),
                     None => "integer".into(),
                 },
-                ColumnType::BigInteger(length) => match length {
+                ColumnType::BigInteger(length) | ColumnType::BigUnsigned(length) => match length {
                     Some(length) => format!("bigint({})", length),
                     None => "bigint".into(),
                 },
@@ -66,7 +68,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "timestamp".into(),
                 },
                 ColumnType::TimestampWithTimeZone(precision) => match precision {
-                    Some(precision) => format!("timestamp with time zone({})", precision),
+                    Some(precision) => format!("timestamp({}) with time zone", precision),
                     None => "timestamp with time zone".into(),
                 },
                 ColumnType::Time(precision) => match precision {
@@ -95,7 +97,9 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Json => "json".into(),
                 ColumnType::JsonBinary => "jsonb".into(),
                 ColumnType::Uuid => "uuid".into(),
+                ColumnType::Array(elem_type) => format!("{}[]", elem_type.as_ref().unwrap()),
                 ColumnType::Custom(iden) => iden.to_string(),
+                ColumnType::Enum(name, _) => name.into(),
             }
         )
         .unwrap()
@@ -115,57 +119,88 @@ impl TableBuilder for PostgresQueryBuilder {
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {
-        let alter_option = match &alter.alter_option {
-            Some(alter_option) => alter_option,
-            None => panic!("No alter option found"),
+        if alter.options.is_empty() {
+            panic!("No alter option found")
         };
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
-            table.prepare(sql, '"');
+            table.prepare(sql, self.quote());
             write!(sql, " ").unwrap();
         }
-        match alter_option {
-            TableAlterOption::AddColumn(column_def) => {
-                write!(sql, "ADD COLUMN ").unwrap();
-                self.prepare_column_def(column_def, sql);
-            }
-            TableAlterOption::ModifyColumn(column_def) => {
-                write!(sql, "ALTER COLUMN ").unwrap();
-                column_def.name.prepare(sql, '"');
-                write!(sql, " TYPE").unwrap();
-                self.prepare_column_type_check_auto_increment(column_def, sql);
-                for column_spec in column_def.spec.iter() {
-                    if let ColumnSpec::AutoIncrement = column_spec {
-                        continue;
+
+        alter.options.iter().fold(true, |first, option| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            };
+            match option {
+                TableAlterOption::AddColumn(AddColumnOption {
+                    column,
+                    if_not_exists,
+                }) => {
+                    write!(sql, "ADD COLUMN ").unwrap();
+                    if *if_not_exists {
+                        write!(sql, "IF NOT EXISTS ").unwrap();
                     }
-                    write!(sql, ", ").unwrap();
+                    self.prepare_column_def(column, sql);
+                }
+                TableAlterOption::ModifyColumn(column_def) => {
                     write!(sql, "ALTER COLUMN ").unwrap();
-                    column_def.name.prepare(sql, '"');
-                    write!(sql, " SET ").unwrap();
-                    self.prepare_column_spec(column_spec, sql);
+                    column_def.name.prepare(sql, self.quote());
+                    write!(sql, " TYPE").unwrap();
+                    self.prepare_column_type_check_auto_increment(column_def, sql);
+                    for column_spec in column_def.spec.iter() {
+                        if let ColumnSpec::AutoIncrement = column_spec {
+                            continue;
+                        }
+                        write!(sql, ", ").unwrap();
+                        write!(sql, "ALTER COLUMN ").unwrap();
+                        column_def.name.prepare(sql, self.quote());
+                        write!(sql, " SET ").unwrap();
+                        self.prepare_column_spec(column_spec, sql);
+                    }
+                }
+                TableAlterOption::RenameColumn(from_name, to_name) => {
+                    write!(sql, "RENAME COLUMN ").unwrap();
+                    from_name.prepare(sql, self.quote());
+                    write!(sql, " TO ").unwrap();
+                    to_name.prepare(sql, self.quote());
+                }
+                TableAlterOption::DropColumn(column_name) => {
+                    write!(sql, "DROP COLUMN ").unwrap();
+                    column_name.prepare(sql, self.quote());
+                }
+                TableAlterOption::DropForeignKey(name) => {
+                    let mut foreign_key = TableForeignKey::new();
+                    foreign_key.name(&name.to_string());
+                    let drop = ForeignKeyDropStatement {
+                        foreign_key: foreign_key,
+                        table: None,
+                    };
+                    self.prepare_foreign_key_drop_statement_internal(&drop, sql, Mode::TableAlter);
+                }
+                TableAlterOption::AddForeignKey(foreign_key) => {
+                    let create = ForeignKeyCreateStatement {
+                        foreign_key: foreign_key.to_owned(),
+                    };
+                    self.prepare_foreign_key_create_statement_internal(
+                        &create,
+                        sql,
+                        Mode::TableAlter,
+                    );
                 }
             }
-            TableAlterOption::RenameColumn(from_name, to_name) => {
-                write!(sql, "RENAME COLUMN ").unwrap();
-                from_name.prepare(sql, '"');
-                write!(sql, " TO ").unwrap();
-                to_name.prepare(sql, '"');
-            }
-            TableAlterOption::DropColumn(column_name) => {
-                write!(sql, "DROP COLUMN ").unwrap();
-                column_name.prepare(sql, '"');
-            }
-        }
+            false
+        });
     }
 
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
-            from_name.prepare(sql, '"');
+            from_name.prepare(sql, self.quote());
         }
         write!(sql, " RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
-            to_name.prepare(sql, '"');
+            to_name.prepare(sql, self.quote());
         }
     }
 }

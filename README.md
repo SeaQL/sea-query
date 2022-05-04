@@ -5,14 +5,12 @@
   <h1>SeaQuery</h1>
 
   <p>
-    <strong>🌊 A dynamic query builder for MySQL, Postgres and SQLite</strong>
+    <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
   </p>
 
   [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
   [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
   [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
-
-  <sub>Built with 🔥 by 🌊🦀🐚</sub>
 
 </div>
 
@@ -28,6 +26,12 @@ See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usag
 
 SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 
+[![GitHub stars](https://img.shields.io/github/stars/SeaQL/sea-query.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/sea-query/stargazers/)
+If you like what we do, consider starring, commenting, sharing and contributing!
+
+[![Discord](https://img.shields.io/discord/873880840487206962?label=Discord)](https://discord.com/invite/uCPdDXzbdv)
+Join our Discord server to chat with others in the SeaQL community!
+
 ## Install
 
 ```toml
@@ -40,16 +44,20 @@ SeaQuery is very lightweight, all dependencies are optional.
 
 ### Feature flags
 
-Macro: `derive`
+Macro: `derive` `attr`
 
 Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
 SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
-Type support: `with-chrono`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`
+Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
+`postgres-array`
 
 Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
 `postgres`, `postgres-*`, `rusqlite`
+
+Postgres support: `postgres`, `postgres-chrono`, `postgres-json`, `postgres-rust_decimal`,
+`postgres-bigdecimal`, `postgres-uuid`, `postgres-array`, `postgres-interval`
 
 ## Usage
 
@@ -170,11 +178,13 @@ impl Iden for Character {
 ```
 
 If you're okay with running another procedural macro, you can activate
-the `derive` feature on the crate to save you some boilerplate.
+the `derive` or `attr` feature on the crate to save you some boilerplate.
 For more usage information, look at
-[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
+[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass)
+or [the attribute examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-attr/tests/pass).
 
 ```rust
+#[cfg(feature = "derive")]
 use sea_query::Iden;
 
 // This will implement Iden exactly as shown above
@@ -189,6 +199,26 @@ assert_eq!(Character::Table.to_string(), "character");
 struct Glyph;
 assert_eq!(Glyph.to_string(), "glyph");
 ```
+
+```rust
+#[cfg(feature = "attr")]
+use sea_query::{Iden, enum_def};
+
+#[enum_def]
+struct Character {
+  pub foo: u64,
+}
+
+// It generates the following along with Iden impl
+enum CharacterIden {
+    Table,
+    Foo,
+}
+
+assert_eq!(CharacterIden::Table.to_string(), "character");
+assert_eq!(CharacterIden::Foo.to_string(), "foo");
+```
+
 
 ### Expression
 
@@ -321,7 +351,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
+    r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 );
 ```
 
@@ -345,7 +375,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 );
 ```
 
@@ -371,7 +401,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
+    r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 );
 ```
 
@@ -397,7 +427,7 @@ assert_eq!(
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
+    r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 );
 ```
 
@@ -458,14 +488,14 @@ assert_eq!(
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
     vec![
-       r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-           r#"`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-           r#"`font_size` integer NOT NULL,"#,
-           r#"`character` text NOT NULL,"#,
-           r#"`size_w` integer NOT NULL,"#,
-           r#"`size_h` integer NOT NULL,"#,
-           r#"`font_id` integer DEFAULT NULL,"#,
-           r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`) ON DELETE CASCADE ON UPDATE CASCADE"#,
+       r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+           r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+           r#""font_size" integer NOT NULL,"#,
+           r#""character" text NOT NULL,"#,
+           r#""size_w" integer NOT NULL,"#,
+           r#""size_h" integer NOT NULL,"#,
+           r#""font_id" integer DEFAULT NULL,"#,
+           r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
        r#")"#,
     ].join(" ")
 );
@@ -494,7 +524,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"ALTER TABLE `font` ADD COLUMN `new_col` integer NOT NULL DEFAULT 100"#,
+    r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
 );
 ```
 
@@ -516,7 +546,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"DROP TABLE `glyph`, `character`"#
+    r#"DROP TABLE "glyph", "character""#
 );
 ```
 
@@ -537,7 +567,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"ALTER TABLE `font` RENAME TO `font_new`"#
+    r#"ALTER TABLE "font" RENAME TO "font_new""#
 );
 ```
 
@@ -556,7 +586,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    r#"TRUNCATE TABLE `font`"#
+    r#"TRUNCATE TABLE "font""#
 );
 ```
 
@@ -631,7 +661,7 @@ assert_eq!(
 );
 assert_eq!(
     index.to_string(SqliteQueryBuilder),
-    r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
+    r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 );
 ```
 
@@ -653,7 +683,7 @@ assert_eq!(
 );
 assert_eq!(
     index.to_string(SqliteQueryBuilder),
-    r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
+    r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
 );
 ```
 

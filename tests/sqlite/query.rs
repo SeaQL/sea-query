@@ -1,4 +1,5 @@
 use super::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn select_1() {
@@ -9,7 +10,7 @@ fn select_1() {
             .limit(10)
             .offset(100)
             .to_string(SqliteQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` LIMIT 10 OFFSET 100"
+        r#"SELECT "character", "size_w", "size_h" FROM "character" LIMIT 10 OFFSET 100"#
     );
 }
 
@@ -21,7 +22,7 @@ fn select_2() {
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3"
+        r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3"#
     );
 }
 
@@ -29,14 +30,12 @@ fn select_2() {
 fn select_3() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 AND `size_h` = 4"
+        r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3 AND "size_h" = 4"#
     );
 }
 
@@ -53,7 +52,7 @@ fn select_4() {
                 Alias::new("subglyph")
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"
+        r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     );
 }
 
@@ -65,7 +64,7 @@ fn select_5() {
             .from(Glyph::Table)
             .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
             .to_string(SqliteQueryBuilder),
-        "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4)"
+        r#"SELECT "glyph"."image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4)"#
     );
 }
 
@@ -79,7 +78,7 @@ fn select_6() {
             .group_by_columns(vec![Glyph::Aspect,])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(SqliteQueryBuilder),
-        "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2"
+        r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
     );
 }
 
@@ -91,7 +90,7 @@ fn select_7() {
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .to_string(SqliteQueryBuilder),
-        "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2"
+        r#"SELECT "aspect" FROM "glyph" WHERE IFNULL("aspect", 0) > 2"#
     );
 }
 
@@ -99,13 +98,14 @@ fn select_7() {
 fn select_8() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character,
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+            .left_join(
+                Font::Table,
+                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+            )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"
+        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     );
 }
 
@@ -113,14 +113,18 @@ fn select_8() {
 fn select_9() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character,
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-            .inner_join(Glyph::Table, Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image))
+            .left_join(
+                Font::Table,
+                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+            )
+            .inner_join(
+                Glyph::Table,
+                Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image),
+            )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` INNER JOIN `glyph` ON `character`.`character` = `glyph`.`image`"
+        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" INNER JOIN "glyph" ON "character"."character" = "glyph"."image""#
     );
 }
 
@@ -128,16 +132,16 @@ fn select_9() {
 fn select_10() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character,
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
-            .left_join(Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
-                .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+            .left_join(
+                Font::Table,
+                Expr::tbl(Char::Table, Char::FontId)
+                    .equals(Font::Table, Font::Id)
+                    .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)),
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` LEFT JOIN `font` ON (`character`.`font_id` = `font`.`id`) AND (`character`.`font_id` = `font`.`id`)"
+        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
     );
 }
 
@@ -145,15 +149,13 @@ fn select_10() {
 fn select_11() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(Glyph::Image, Order::Desc)
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(SqliteQueryBuilder),
-        "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"
+        r#"SELECT "aspect" FROM "glyph" WHERE IFNULL("aspect", 0) > 2 ORDER BY "image" DESC, "glyph"."aspect" ASC"#
     );
 }
 
@@ -161,17 +163,12 @@ fn select_11() {
 fn select_12() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-            .order_by_columns(vec![
-                (Glyph::Id, Order::Asc),
-                (Glyph::Aspect, Order::Desc),
-            ])
+            .order_by_columns(vec![(Glyph::Id, Order::Asc), (Glyph::Aspect, Order::Desc)])
             .to_string(SqliteQueryBuilder),
-        "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `id` ASC, `aspect` DESC"
+        r#"SELECT "aspect" FROM "glyph" WHERE IFNULL("aspect", 0) > 2 ORDER BY "id" ASC, "aspect" DESC"#
     );
 }
 
@@ -179,9 +176,7 @@ fn select_12() {
 fn select_13() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns(vec![
@@ -189,7 +184,7 @@ fn select_13() {
                 ((Glyph::Table, Glyph::Aspect), Order::Desc),
             ])
             .to_string(SqliteQueryBuilder),
-        "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `glyph`.`id` ASC, `glyph`.`aspect` DESC"
+        r#"SELECT "aspect" FROM "glyph" WHERE IFNULL("aspect", 0) > 2 ORDER BY "glyph"."id" ASC, "glyph"."aspect" DESC"#
     );
 }
 
@@ -197,10 +192,7 @@ fn select_13() {
 fn select_14() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Id,
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Id, Glyph::Aspect])
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
             .group_by_columns(vec![
@@ -209,7 +201,7 @@ fn select_14() {
             ])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(SqliteQueryBuilder),
-        "SELECT `id`, `aspect`, MAX(`image`) FROM `glyph` GROUP BY `glyph`.`id`, `glyph`.`aspect` HAVING `aspect` > 2"
+        r#"SELECT "id", "aspect", MAX("image") FROM "glyph" GROUP BY "glyph"."id", "glyph"."aspect" HAVING "aspect" > 2"#
     );
 }
 
@@ -221,7 +213,7 @@ fn select_15() {
             .from(Char::Table)
             .and_where(Expr::col(Char::FontId).is_null())
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE `font_id` IS NULL"
+        r#"SELECT "character" FROM "character" WHERE "font_id" IS NULL"#
     );
 }
 
@@ -234,7 +226,7 @@ fn select_16() {
             .and_where(Expr::col(Char::FontId).is_null())
             .and_where(Expr::col(Char::Character).is_not_null())
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE `font_id` IS NULL AND `character` IS NOT NULL"
+        r#"SELECT "character" FROM "character" WHERE "font_id" IS NULL AND "character" IS NOT NULL"#
     );
 }
 
@@ -246,7 +238,7 @@ fn select_17() {
             .from(Glyph::Table)
             .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).between(3, 5))
             .to_string(SqliteQueryBuilder),
-        "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` BETWEEN 3 AND 5"
+        r#"SELECT "glyph"."image" FROM "glyph" WHERE "glyph"."aspect" BETWEEN 3 AND 5"#
     );
 }
 
@@ -254,14 +246,12 @@ fn select_17() {
 fn select_18() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).between(3, 5))
             .and_where(Expr::col(Glyph::Aspect).not_between(8, 10))
             .to_string(SqliteQueryBuilder),
-        "SELECT `aspect` FROM `glyph` WHERE (`aspect` BETWEEN 3 AND 5) AND (`aspect` NOT BETWEEN 8 AND 10)"
+        r#"SELECT "aspect" FROM "glyph" WHERE ("aspect" BETWEEN 3 AND 5) AND ("aspect" NOT BETWEEN 8 AND 10)"#
     );
 }
 
@@ -273,7 +263,7 @@ fn select_19() {
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).eq("A"))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE `character` = 'A'"
+        r#"SELECT "character" FROM "character" WHERE "character" = 'A'"#
     );
 }
 
@@ -285,7 +275,7 @@ fn select_20() {
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).like("A"))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE `character` LIKE 'A'"
+        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A'"#
     );
 }
 
@@ -293,15 +283,13 @@ fn select_20() {
 fn select_21() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character
-            ])
+            .columns(vec![Char::Character])
             .from(Char::Table)
             .or_where(Expr::col(Char::Character).like("A%"))
             .or_where(Expr::col(Char::Character).like("%B"))
             .or_where(Expr::col(Char::Character).like("%C%"))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE `character` LIKE 'A%' OR `character` LIKE '%B' OR `character` LIKE '%C%'"
+        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A%' OR "character" LIKE '%B' OR "character" LIKE '%C%'"#
     );
 }
 
@@ -313,17 +301,21 @@ fn select_22() {
             .from(Char::Table)
             .cond_where(
                 Cond::all()
-                .add(
-                    Cond::any()
-                    .add(Expr::col(Char::Character).like("C"))
-                    .add(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
-                )
-                .add(
-                    Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G"))
-                )
+                    .add(
+                        Cond::any().add(Expr::col(Char::Character).like("C")).add(
+                            Expr::col(Char::Character)
+                                .like("D")
+                                .and(Expr::col(Char::Character).like("E"))
+                        )
+                    )
+                    .add(
+                        Expr::col(Char::Character)
+                            .like("F")
+                            .or(Expr::col(Char::Character).like("G"))
+                    )
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE (`character` LIKE 'C' OR ((`character` LIKE 'D') AND (`character` LIKE 'E'))) AND ((`character` LIKE 'F') OR (`character` LIKE 'G'))"
+        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
     );
 }
 
@@ -335,7 +327,7 @@ fn select_23() {
             .from(Char::Table)
             .and_where_option(None)
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character`"
+        r#"SELECT "character" FROM "character""#
     );
 }
 
@@ -353,7 +345,7 @@ fn select_24() {
                 |_| ()
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE `font_id` = 5"
+        r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
     );
 }
 
@@ -369,7 +361,7 @@ fn select_25() {
                     .equals(Expr::col(Char::SizeH).div(2))
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` / 2"
+        r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" / 2"#
     );
 }
 
@@ -385,7 +377,7 @@ fn select_26() {
                     .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` FROM `character` WHERE (`size_w` + 1) * 2 = (`size_h` / 2) - 1"
+        r#"SELECT "character" FROM "character" WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#
     );
 }
 
@@ -393,15 +385,13 @@ fn select_26() {
 fn select_27() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
             .and_where(Expr::col(Char::SizeH).eq(5))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 AND `size_h` = 4 AND `size_h` = 5"
+        r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3 AND "size_h" = 4 AND "size_h" = 5"#
     );
 }
 
@@ -409,15 +399,13 @@ fn select_27() {
 fn select_28() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .or_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
             .or_where(Expr::col(Char::SizeH).eq(5))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 OR `size_h` = 4 OR `size_h` = 5"
+        r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3 OR "size_h" = 4 OR "size_h" = 5"#
     );
 }
 
@@ -426,15 +414,13 @@ fn select_28() {
 fn select_29() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
             .and_where(Expr::col(Char::SizeH).eq(5))
             .to_string(SqliteQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 OR `size_h` = 4 AND `size_h` = 5"
+        r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3 OR "size_h" = 4 AND "size_h" = 5"#
     );
 }
 
@@ -442,17 +428,16 @@ fn select_29() {
 fn select_30() {
     assert_eq!(
         Query::select()
-            .columns(vec![
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(
-                Expr::col(Char::SizeW).mul(2)
+                Expr::col(Char::SizeW)
+                    .mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
                     .equals(Expr::value(4))
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` * 2) + (`size_h` / 3) = 4"
+        r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" * 2) + ("size_h" / 3) = 4"#
     );
 }
 
@@ -462,7 +447,7 @@ fn select_31() {
         Query::select()
             .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(Expr::value(i)) }))
             .to_string(SqliteQueryBuilder),
-        "SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"
+        r#"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"#
     );
 }
 
@@ -473,7 +458,7 @@ fn select_32() {
             .expr_as(Expr::col(Char::Character), Alias::new("C"))
             .from(Char::Table)
             .to_string(SqliteQueryBuilder),
-        "SELECT `character` AS `C` FROM `character`"
+        r#"SELECT "character" AS "C" FROM "character""#
     );
 }
 
@@ -488,7 +473,7 @@ fn select_33() {
                     .in_subquery(Query::select().expr(Expr::cust("3 + 2 * 2")).take())
             )
             .to_string(SqliteQueryBuilder),
-        "SELECT `image` FROM `glyph` WHERE `aspect` IN (SELECT 3 + 2 * 2)"
+        r#"SELECT "image" FROM "glyph" WHERE "aspect" IN (SELECT 3 + 2 * 2)"#
     );
 }
 
@@ -513,10 +498,10 @@ fn select_34a() {
             .or_having(Expr::col(Glyph::Aspect).gt(32))
             .to_string(SqliteQueryBuilder),
         vec![
-            "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect`",
-            "HAVING ((`aspect` > 2) OR (`aspect` < 8))",
-            "OR ((`aspect` > 12) AND (`aspect` < 18))",
-            "OR `aspect` > 32",
+            r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
+            r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
+            r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
+            r#"OR "aspect" > 32"#,
         ]
         .join(" ")
     );
@@ -543,9 +528,9 @@ fn select_34b() {
             )
             .to_string(SqliteQueryBuilder),
         vec![
-            "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect`",
-            "HAVING ((`aspect` > 2) OR (`aspect` < 8))",
-            "AND ((`aspect` > 22) OR (`aspect` < 28))",
+            r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
+            r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
+            r#"AND (("aspect" > 22) OR ("aspect" < 28))"#,
         ]
         .join(" ")
     );
@@ -561,7 +546,7 @@ fn select_35() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL"#
     );
     assert_eq!(values.0, vec![]);
 }
@@ -576,7 +561,7 @@ fn select_36() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL"#
     );
     assert_eq!(values.0, vec![]);
 }
@@ -589,7 +574,7 @@ fn select_37() {
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
         .build(sea_query::SqliteQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT `id` FROM `glyph`"#);
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph""#);
     assert_eq!(values.0, vec![]);
 }
 
@@ -607,7 +592,7 @@ fn select_38() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR `aspect` IS NOT NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR "aspect" IS NOT NULL"#
     );
     assert_eq!(values.0, vec![]);
 }
@@ -626,7 +611,7 @@ fn select_39() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL AND `aspect` IS NOT NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL AND "aspect" IS NOT NULL"#
     );
     assert_eq!(values.0, vec![]);
 }
@@ -647,7 +632,7 @@ fn select_40() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR (`aspect` IS NOT NULL AND `aspect` < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" IS NULL OR ("aspect" IS NOT NULL AND "aspect" < 8)"#
     );
 }
 
@@ -661,7 +646,7 @@ fn select_41() {
             .group_by_columns(vec![Glyph::Aspect])
             .cond_having(any![Expr::col(Glyph::Aspect).gt(2)])
             .to_string(SqliteQueryBuilder),
-        "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2"
+        r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
     );
 }
 
@@ -679,7 +664,7 @@ fn select_42() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` < 8 AND `aspect` IS NOT NULL"#
+        r#"SELECT "id" FROM "glyph" WHERE "aspect" < 8 AND "aspect" IS NOT NULL"#
     );
 }
 
@@ -691,7 +676,7 @@ fn select_43() {
         .cond_where(Cond::all().add_option::<SimpleExpr>(None))
         .to_string(SqliteQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT `id` FROM `glyph`"#);
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph""#);
 }
 
 #[test]
@@ -708,7 +693,7 @@ fn select_44() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
     );
 }
 
@@ -727,7 +712,7 @@ fn select_45() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8 OR `aspect` IS NOT NULL)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8 OR "aspect" IS NOT NULL)"#
     );
 }
 
@@ -745,7 +730,7 @@ fn select_46() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
     );
 }
 
@@ -764,7 +749,7 @@ fn select_47() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8 AND `aspect` IS NOT NULL)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8 AND "aspect" IS NOT NULL)"#
     );
 }
 
@@ -774,22 +759,229 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all()
-                .add_option(Some(ConditionExpression::SimpleExpr(Expr::tuple([
+            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+                Expr::tuple([
                     Expr::col(Glyph::Aspect).into_simple_expr(),
                     Expr::value(100),
-                ]).less_than(
-                    Expr::tuple([
-                        Expr::value(8),
-                        Expr::value(100),
-                    ])
-                ))))
+                ])
+                .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
+            ))),
         )
         .to_string(SqliteQueryBuilder);
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE (`aspect`, 100) < (8, 100)"#
+        r#"SELECT "id" FROM "glyph" WHERE ("aspect", 100) < (8, 100)"#
+    );
+}
+
+#[test]
+fn select_49() {
+    let statement = sea_query::Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(statement, r#"SELECT * FROM "character""#);
+}
+
+#[test]
+fn select_50() {
+    let statement = sea_query::Query::select()
+        .expr(Expr::table_asterisk(Char::Table))
+        .column((Font::Table, Font::Name))
+        .from(Char::Table)
+        .inner_join(
+            Font::Table,
+            Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+        )
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
+    )
+}
+
+#[test]
+fn select_51() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
+            .order_by_with_nulls(
+                (Glyph::Table, Glyph::Aspect),
+                Order::Asc,
+                NullOrdering::Last
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY "image" DESC NULLS FIRST,"#,
+            r#""glyph"."aspect" ASC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_52() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                (Glyph::Id, Order::Asc, NullOrdering::First),
+                (Glyph::Aspect, Order::Desc, NullOrdering::Last),
+            ])
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY "id" ASC NULLS FIRST,"#,
+            r#""aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_53() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
+            ])
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."id" ASC NULLS FIRST,"#,
+            r#""glyph"."aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_54() {
+    let statement = sea_query::Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .from(Font::Table)
+        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
+    );
+}
+
+#[test]
+fn select_55() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by(
+                Glyph::Id,
+                Order::Field(Values(vec![
+                    Value::Int(Some(4)),
+                    Value::Int(Some(5)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(3))
+                ]))
+            )
+            .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY CASE"#,
+            r#"WHEN "id"=4 THEN 0"#,
+            r#"WHEN "id"=5 THEN 1"#,
+            r#"WHEN "id"=1 THEN 2"#,
+            r#"WHEN "id"=3 THEN 3"#,
+            r#"ELSE 4 END,"#,
+            r#""glyph"."aspect" ASC"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_56() {
+    assert_eq!(
+        Query::select()
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
+            .order_by(
+                Glyph::Id,
+                Order::Field(Values(vec![
+                    Value::Int(Some(4)),
+                    Value::Int(Some(5)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(3))
+                ]))
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE IFNULL("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."aspect" ASC,"#,
+            r#"CASE WHEN "id"=4 THEN 0"#,
+            r#"WHEN "id"=5 THEN 1"#,
+            r#"WHEN "id"=1 THEN 2"#,
+            r#"WHEN "id"=3 THEN 3"#,
+            r#"ELSE 4 END"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_57() {
+    let query = Query::select()
+        .expr_as(
+            CaseStatement::new()
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
+                    Expr::val("positive"),
+                )
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
+                    Expr::val("negative"),
+                )
+                .finally(Expr::val("zero")),
+            Alias::new("polarity"),
+        )
+        .from(Glyph::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
     );
 }
 
@@ -799,16 +991,13 @@ fn insert_2() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![
-                Glyph::Image,
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Image, Glyph::Aspect])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
             .to_string(SqliteQueryBuilder),
-        "INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415)"
+        r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#
     );
 }
 
@@ -818,20 +1007,14 @@ fn insert_3() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![
-                Glyph::Image,
-                Glyph::Aspect,
-            ])
+            .columns(vec![Glyph::Image, Glyph::Aspect])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .values_panic(vec![
-                Value::Double(None),
-                2.1345.into(),
-            ])
+            .values_panic(vec![Value::Double(None), 2.1345.into()])
             .to_string(SqliteQueryBuilder),
-        "INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"
+        r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"#
     );
 }
 
@@ -844,7 +1027,52 @@ fn insert_4() {
             .columns(vec![Glyph::Image])
             .values_panic(vec![chrono::NaiveDateTime::from_timestamp(0, 0).into()])
             .to_string(SqliteQueryBuilder),
-        "INSERT INTO `glyph` (`image`) VALUES ('1970-01-01 00:00:00')"
+        r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
+    );
+}
+
+#[test]
+#[cfg(feature = "with-time")]
+fn insert_8() {
+    use time::{date, time};
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Image])
+            .values_panic(vec![date!(1970 - 01 - 01)
+                .with_time(time!(00:00:00))
+                .into()])
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
+    );
+}
+
+#[test]
+fn insert_from_select() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .select_from(
+                Query::select()
+                    .column(Glyph::Aspect)
+                    .column(Glyph::Image)
+                    .from(Glyph::Table)
+                    .conditions(
+                        true,
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Image).like("%"));
+                        },
+                        |x| {
+                            x.and_where(Expr::col(Glyph::Id).eq(6));
+                        },
+                    )
+                    .to_owned()
+            )
+            .unwrap()
+            .to_owned()
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '%'"#
     );
 }
 
@@ -857,7 +1085,137 @@ fn insert_5() {
             .columns(vec![Glyph::Image])
             .values_panic(vec![uuid::Uuid::nil().into()])
             .to_string(SqliteQueryBuilder),
-        "INSERT INTO `glyph` (`image`) VALUES ('00000000-0000-0000-0000-000000000000')"
+        r#"INSERT INTO "glyph" ("image") VALUES ('00000000-0000-0000-0000-000000000000')"#
+    );
+}
+
+#[test]
+fn insert_6() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "glyph" DEFAULT VALUES"#
+    );
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .returning_col(Glyph::Id)
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "glyph" DEFAULT VALUES RETURNING "id""#
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_1() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::column(Glyph::Id)
+                    .update_column(Glyph::Aspect)
+                    .to_owned()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_2() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_columns([Glyph::Aspect, Glyph::Image])
+                    .to_owned()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_3() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_values([
+                        (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
+                        (Glyph::Image, 3.1415.into()),
+                    ])
+                    .to_owned()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_4() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .values_panic(vec![
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_expr((Glyph::Image, Expr::val(1).add(2)))
+                    .to_owned()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "image" = 1 + 2"#,
+        ]
+        .join(" ")
     );
 }
 
@@ -902,11 +1260,14 @@ fn update_1() {
             .table(Glyph::Table)
             .values(vec![
                 (Glyph::Aspect, 2.1345.into()),
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
+                (
+                    Glyph::Image,
+                    "24B0E11951B03B07F8300FD003983F03F0780060".into()
+                ),
             ])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(SqliteQueryBuilder),
-        "UPDATE `glyph` SET `aspect` = 2.1345, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"
+        r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#
     );
 }
 
@@ -916,12 +1277,13 @@ fn update_3() {
         Query::update()
             .table(Glyph::Table)
             .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .values(vec![
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
-            ])
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(SqliteQueryBuilder),
-        "UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"
+        r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#
     );
 }
 
@@ -966,7 +1328,7 @@ fn delete_1() {
             .from_table(Glyph::Table)
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(SqliteQueryBuilder),
-        "DELETE FROM `glyph` WHERE `id` = 1"
+        r#"DELETE FROM "glyph" WHERE "id" = 1"#
     );
 }
 

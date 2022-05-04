@@ -9,8 +9,8 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             write!(sql, "IF NOT EXISTS ").unwrap();
         }
 
-        if let Some(table) = &create.table {
-            table.prepare(sql, self.quote());
+        if let Some(table_ref) = &create.table {
+            self.prepare_table_ref(table_ref, sql);
         }
 
         write!(sql, " ( ").unwrap();
@@ -36,7 +36,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             if count > 0 {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, true);
+            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, Mode::Creation);
             count += 1;
         }
 
@@ -45,6 +45,32 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
         for table_opt in create.options.iter() {
             write!(sql, " ").unwrap();
             self.prepare_table_opt(table_opt, sql);
+        }
+    }
+
+    /// Translate [`TableRef`] into SQL statement.
+    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        self.prepare_table_ref_common(table_ref, sql);
+    }
+
+    fn prepare_table_ref_common(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::Table(table) => {
+                table.prepare(sql, self.quote());
+            }
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            TableRef::DatabaseSchemaTable(database, schema, table) => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            _ => panic!("Not supported"),
         }
     }
 
@@ -86,7 +112,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref(table, sql);
             false
         });
 

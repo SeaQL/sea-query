@@ -53,6 +53,12 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
                     PgFunction::TsRank => "TS_RANK",
                     PgFunction::TsRankCd => "TS_RANK_CD",
+                    #[cfg(feature = "postgres-array")]
+                    PgFunction::Any => "ANY",
+                    #[cfg(feature = "postgres-array")]
+                    PgFunction::Some => "SOME",
+                    #[cfg(feature = "postgres-array")]
+                    PgFunction::All => "ALL",
                 }
             )
             .unwrap(),
@@ -73,5 +79,56 @@ impl QueryBuilder for PostgresQueryBuilder {
             }
             _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql, collector),
         }
+    }
+
+    fn prepare_order_expr(
+        &self,
+        order_expr: &OrderExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        if !matches!(order_expr.order, Order::Field(_)) {
+            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+        }
+        write!(sql, " ").unwrap();
+        self.prepare_order(order_expr, sql, collector);
+        match order_expr.nulls {
+            None => (),
+            Some(NullOrdering::Last) => write!(sql, " NULLS LAST").unwrap(),
+            Some(NullOrdering::First) => write!(sql, " NULLS FIRST").unwrap(),
+        }
+    }
+
+    fn prepare_query_statement(
+        &self,
+        query: &SubQueryStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        query.prepare_statement(self, sql, collector);
+    }
+
+    fn prepare_select_distinct(
+        &self,
+        select_distinct: &SelectDistinct,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::DistinctOn(cols) => {
+                write!(sql, "DISTINCT ON (").unwrap();
+                cols.iter().fold(true, |first, c| {
+                    if !first {
+                        write!(sql, ", ").unwrap();
+                    }
+                    c.prepare(sql, self.quote());
+                    false
+                });
+                write!(sql, ")").unwrap();
+            }
+            _ => {}
+        };
     }
 }

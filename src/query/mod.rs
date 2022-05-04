@@ -7,24 +7,32 @@
 //! - Query Update, see [`UpdateStatement`]
 //! - Query Delete, see [`DeleteStatement`]
 
+mod case;
 mod condition;
 mod delete;
 mod insert;
+mod on_conflict;
 mod ordered;
 mod returning;
 mod select;
 mod shim;
 mod traits;
 mod update;
+mod window;
+mod with;
 
+pub use case::*;
 pub use condition::*;
 pub use delete::*;
 pub use insert::*;
+pub use on_conflict::*;
 pub use ordered::*;
 pub use returning::*;
 pub use select::*;
 pub use traits::*;
 pub use update::*;
+pub use window::*;
+pub use with::*;
 
 /// Shorthand for constructing any table query
 #[derive(Debug, Clone)]
@@ -37,6 +45,15 @@ pub enum QueryStatement {
     Insert(InsertStatement),
     Update(UpdateStatement),
     Delete(DeleteStatement),
+}
+
+#[derive(Debug, Clone)]
+pub enum SubQueryStatement {
+    SelectStatement(SelectStatement),
+    InsertStatement(InsertStatement),
+    UpdateStatement(UpdateStatement),
+    DeleteStatement(DeleteStatement),
+    WithStatement(WithQuery),
 }
 
 impl Query {
@@ -58,5 +75,10 @@ impl Query {
     /// Construct table [`DeleteStatement`]
     pub fn delete() -> DeleteStatement {
         DeleteStatement::new()
+    }
+
+    /// Construct [`WithClause`]
+    pub fn with() -> WithClause {
+        WithClause::new()
     }
 }

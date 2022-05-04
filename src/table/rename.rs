@@ -21,7 +21,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     table.to_string(SqliteQueryBuilder),
-///     r#"ALTER TABLE `font` RENAME TO `font_new`"#
+///     r#"ALTER TABLE "font" RENAME TO "font_new""#
 /// );
 /// ```
 #[derive(Debug, Clone)]

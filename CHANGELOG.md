@@ -5,6 +5,184 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.25.0 - Pending
+
+### New Features
+
+* CASE WHEN statement support https://github.com/SeaQL/sea-query/pull/304
+* Add support for Ip(4,6)Network and MacAddress https://github.com/SeaQL/sea-query/pull/309
+* [sea-query-attr] macro for deriving `Iden` enum from struct https://github.com/SeaQL/sea-query/pull/300
+* Add ability to alter foreign keys https://github.com/SeaQL/sea-query/pull/299
+* Select `DISTINCT ON` https://github.com/SeaQL/sea-query/pull/313
+
+### Enhancements
+
+* Insert Default https://github.com/SeaQL/sea-query/pull/266
+
+## 0.24.4 - 2022-04-26
+
+* update sea-query-driver
+
+## 0.24.3 - 2022-04-26
+
+### Bug fixes
+
+* Fix MySQL index create statement https://github.com/SeaQL/sea-query/pull/308
+
+### Enhancements
+
+* Add length check on condition array https://github.com/SeaQL/sea-query/pull/307
+
+## 0.24.2 - 2022-04-18
+
+### Bug fixes
+
+* Fixed https://github.com/SeaQL/sea-query/issues/303 driver breakage in 0.24.0
+
+Notes: 0.24.0 & 0.24.1 were yanked
+
+## 0.24.1 - 2022-04-15
+
+### Enhancements
+
+* #295 Add parameter for SQLx path to proc-macro https://github.com/SeaQL/sea-query/pull/297
+
+### Bug fixes
+
+* CTE optional columns https://github.com/SeaQL/sea-query/pull/301
+
+## 0.24.0 - 2022-04-05
+
+### New Features
+
+* Add `LOWER` and `UPPER` func https://github.com/SeaQL/sea-query/pull/276
+* Insert `ON CONFLICT` support https://github.com/SeaQL/sea-query/pull/279
+* #174 Add support for `WINDOWS` statement https://github.com/SeaQL/sea-query/pull/271
+* #142 full support lock in select https://github.com/SeaQL/sea-query/pull/289
+* #269 add support for postgres `ANY`, `SOME`, `ALL` https://github.com/SeaQL/sea-query/pull/283
+
+### Enhancements
+
+* Add support for multiple `ALTER` operations https://github.com/SeaQL/sea-query/pull/277
+* #229 add column if not exists https://github.com/SeaQL/sea-query/pull/278
+* #255 Add support to CommonTableExpression columns method https://github.com/SeaQL/sea-query/pull/284
+* #280 Rewrite drivers using proc-macro https://github.com/SeaQL/sea-query/pull/292
+
+### Bug fixes
+
+* #285 Fix timestamp_with_time_zone_len https://github.com/SeaQL/sea-query/pull/286
+
+### Breaking changes
+
+* The enum variants for `LockType` were renamed: `Exclusive` -> `Update` and `Shared` -> `Share`
+* As part of #283, the drivers are split to the `sea-query-driver` crate
+    1. Remove methods `Value::is_json` and `Value::as_ref_json` when feature: **with-json** is disabled
+    2. Remove methods `Value::is_time_*` and `Value::as_ref_time_*` when feature: **with-time** is disabled
+    3. Remove methods `Value::is_chrono_*` and `Value::as_ref_chrono*` when feature: **with-chrono** is disabled
+    4. Remove methods `Value::is_decimal`, `Value::as_ref_decimal` and `Value::decimal_to_f64` when feature: **with-rust_decimal** is disabled
+    5. Remove methods `Value::is_big_decimal`, `Value::as_ref_big_decimal` and `Value::big_decimal_to_f64` when feature: **with-bigdecimal** is disabled
+    6. Remove methods `Value::is_uuid` and `Value::as_ref_uuid` when feature: **with-uuid** is disabled
+    7. Remove methods `Value::is_array` and `Value::as_ref_array` when feature: **postgres-array** is disabled
+
+## 0.23.0 - 2022-03-15
+
+### New Features
+
+* Supports `time` in addition to `chrono` https://github.com/SeaQL/sea-query/pull/267
+
+### Enhancements
+
+* Allow for trailing commas in any and all macros https://github.com/SeaQL/sea-query/pull/270
+
+### Bug fixes
+
+* Fix UNIQUE table index expression syntax for sqlite https://github.com/SeaQL/sea-query/pull/227
+
+### Breaking changes
+
+In order to co-exist with the `time` crate, `Date`, `Time`, `DateTime` etc are renamed to `ChronoDate`, `ChronoTime`, `ChronoDateTime`. In addition, new variants `TimeDate`, `TimeTime`, `TimeDateTime` and so on are introduced to `Value`.
+
+## 0.22.0 - 2022-02-26
+
+### New Features
+
+* Support multiple tables in the select from by @Sytten in https://github.com/SeaQL/sea-query/pull/261
+* Add support for replace insert by @Sytten in https://github.com/SeaQL/sea-query/pull/262
+* Add `ColumnType` unsigned integer types by @billy1624 in https://github.com/SeaQL/sea-query/pull/211
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.21.0...0.22.0
+
+## 0.21.0 - 2022-02-01
+
+### Breaking Changes
+
+* Use double quotes for quoting identifiers for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/221
+
+### New Features
+
+* Implement `RETURNING` for SQLite by @SpyrosRoum in https://github.com/SeaQL/sea-query/pull/194
+* Support 'NULLS LAST' and 'NULLS FIRST' by @qyihua in https://github.com/SeaQL/sea-query/pull/210
+* [join-lateral]  by @rex-remind101 in https://github.com/SeaQL/sea-query/pull/224
+* Insert from select by @05storm26 in https://github.com/SeaQL/sea-query/pull/238
+* Add Expr::asterisk() and Expr::tbl_asterisk(table: DynIden) methods - Fix #217 by @RomainMazB in https://github.com/SeaQL/sea-query/pull/219
+
+### Enhancements
+
+* Implement ToTokens for IntervalField by @autarch in https://github.com/SeaQL/sea-query/pull/195
+* Implemented 'Array' type for Postgres. by @kev0960 in https://github.com/SeaQL/sea-query/pull/205
+* Add `Value::DateTimeLocal` by @billy1624 in https://github.com/SeaQL/sea-query/pull/249
+* Add `ColumnRef::SchemaTableColumn` by @billy1624 in https://github.com/SeaQL/sea-query/pull/206
+* Datetime utc by @tyt2y3 in https://github.com/SeaQL/sea-query/pull/241
+* Support the use of chrono::DateTime<Utc> using the type alias DateTim… by @charleschege in https://github.com/SeaQL/sea-query/pull/222
+
+### Bug Fixes
+
+* Fix PostgreSQL `ColumnType::TinyInteger` mapping by @billy1624 in https://github.com/SeaQL/sea-query/pull/207
+* PR without clippy warmings in file changed tab by @billy1624 in https://github.com/SeaQL/sea-query/pull/212
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.20.0...0.21.0
+
+## 0.20.0 - 2021-12-11
+
+### Merged PRs
+
+* Add `TableRef::DatabaseSchemaTable` by @billy1624 in https://github.com/SeaQL/sea-query/pull/193
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.19.4...0.20.0
+
+## 0.19.4 - 2021-12-11
+
+### Merged PRs
+
+* Binding `DateTime<FixedOffset>` for SQLx MySQL & SQLite by @billy1624 in https://github.com/SeaQL/sea-query/pull/197
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.19.2...0.19.4
+
+## 0.19.2 - 2021-12-04
+
+### Merged PRs
+
+* Impl `ValueTuple` Up to Six by @billy1624 in https://github.com/SeaQL/sea-query/pull/200
+* Basic Benchmark by @tyt2y3 in https://github.com/SeaQL/sea-query/pull/192
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.19.1...0.19.2
+
+## 0.19.1 - 2021-11-25
+
+### Merged PRs
+* `driver/postgres` handle non-exhaustive `Value` by @billy1624 in https://github.com/SeaQL/sea-query/pull/191
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.19.0...0.19.1
+
+## 0.19.0 - 2021-11-19
+
+### Merged PRs
+* `TableCreateStatement` and `TableDropStatement` takes any `IntoTableRef` table name. by @josh-codes in https://github.com/SeaQL/sea-query/pull/186
+* Add `ColumnType::Enum` by @billy1624 in https://github.com/SeaQL/sea-query/pull/188
+* Update to Rust Edition 2021 by @billy1624 in https://github.com/SeaQL/sea-query/pull/189
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.18.2...0.19.0
+
 ## 0.18.2 - 2021-11-04
 
 ### Merged PRs

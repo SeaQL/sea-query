@@ -22,12 +22,12 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// assert_eq!(
 ///     table.to_string(SqliteQueryBuilder),
-///     r#"DROP TABLE `glyph`, `character`"#
+///     r#"DROP TABLE "glyph", "character""#
 /// );
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableDropStatement {
-    pub(crate) tables: Vec<DynIden>,
+    pub(crate) tables: Vec<TableRef>,
     pub(crate) options: Vec<TableDropOpt>,
     pub(crate) if_exists: bool,
 }
@@ -58,9 +58,9 @@ impl TableDropStatement {
     /// Set table name
     pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoTableRef,
     {
-        self.tables.push(SeaRc::new(table));
+        self.tables.push(table.into_table_ref());
         self
     }
 

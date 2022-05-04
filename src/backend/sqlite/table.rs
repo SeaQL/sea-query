@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for SqliteQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
-        column_def.name.prepare(sql, '`');
+        column_def.name.prepare(sql, self.quote());
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
@@ -49,19 +49,21 @@ impl TableBuilder for SqliteQueryBuilder {
                     None => "text".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger(length) => match length {
+                ColumnType::TinyInteger(length) | ColumnType::TinyUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("integer({})", length),
+                        None => "integer".into(),
+                    },
+                ColumnType::SmallInteger(length) | ColumnType::SmallUnsigned(length) =>
+                    match length {
+                        Some(length) => format!("integer({})", length),
+                        None => "integer".into(),
+                    },
+                ColumnType::Integer(length) | ColumnType::Unsigned(length) => match length {
                     Some(length) => format!("integer({})", length),
                     None => "integer".into(),
                 },
-                ColumnType::SmallInteger(length) => match length {
-                    Some(length) => format!("integer({})", length),
-                    None => "integer".into(),
-                },
-                ColumnType::Integer(length) => match length {
-                    Some(length) => format!("integer({})", length),
-                    None => "integer".into(),
-                },
-                ColumnType::BigInteger(length) => match length {
+                ColumnType::BigInteger(length) | ColumnType::BigUnsigned(length) => match length {
                     Some(length) => format!("integer({})", length),
                     None => "integer".into(),
                 },
@@ -108,6 +110,8 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::JsonBinary => "text".into(),
                 ColumnType::Uuid => "text(36)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
+                ColumnType::Enum(_, _) => "text".into(),
+                ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
             }
         )
         .unwrap()
@@ -131,31 +135,39 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {
-        let alter_option = match &alter.alter_option {
-            Some(alter_option) => alter_option,
-            None => panic!("No alter option found"),
+        if alter.options.is_empty() {
+            panic!("No alter option found")
         };
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
-            table.prepare(sql, '`');
+            table.prepare(sql, self.quote());
             write!(sql, " ").unwrap();
         }
-        match alter_option {
-            TableAlterOption::AddColumn(column_def) => {
+        match &alter.options[0] {
+            TableAlterOption::AddColumn(AddColumnOption {
+                column,
+                if_not_exists: _,
+            }) => {
                 write!(sql, "ADD COLUMN ").unwrap();
-                self.prepare_column_def(column_def, sql);
+                self.prepare_column_def(column, sql);
             }
             TableAlterOption::ModifyColumn(_) => {
                 panic!("Sqlite not support modifying table column")
             }
             TableAlterOption::RenameColumn(from_name, to_name) => {
                 write!(sql, "RENAME COLUMN ").unwrap();
-                from_name.prepare(sql, '`');
+                from_name.prepare(sql, self.quote());
                 write!(sql, " TO ").unwrap();
-                to_name.prepare(sql, '`');
+                to_name.prepare(sql, self.quote());
             }
             TableAlterOption::DropColumn(_) => {
                 panic!("Sqlite not support dropping table column")
+            }
+            TableAlterOption::DropForeignKey(_) => {
+                panic!("Sqlite does not support modification of foreign key constraints to existing tables");
+            }
+            TableAlterOption::AddForeignKey(_) => {
+                panic!("Sqlite does not support modification of foreign key constraints to existing tables");
             }
         }
     }
@@ -163,11 +175,11 @@ impl TableBuilder for SqliteQueryBuilder {
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
-            from_name.prepare(sql, '`');
+            from_name.prepare(sql, self.quote());
         }
         write!(sql, " RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
-            to_name.prepare(sql, '`');
+            to_name.prepare(sql, self.quote());
         }
     }
 }
