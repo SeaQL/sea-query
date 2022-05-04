@@ -4,8 +4,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    ColumnRef, Query, QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement,
-    SubQueryStatement, WithClause, WithQuery, Returning
+    ColumnRef, Query, QueryStatementBuilder, QueryStatementWriter, Returning, SelectExpr,
+    SelectStatement, SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Delete existing rows from the table

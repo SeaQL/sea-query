@@ -5,8 +5,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement,
-    SubQueryStatement, WithClause, WithQuery, Returning,
+    Query, QueryStatementBuilder, QueryStatementWriter, Returning, SelectExpr, SelectStatement,
+    SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Update existing rows in the table

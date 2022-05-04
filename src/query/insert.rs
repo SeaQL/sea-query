@@ -1,7 +1,7 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict, Query,
-    QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
-    SubQueryStatement, WithClause, WithQuery, Returning,
+    QueryStatementBuilder, QueryStatementWriter, Returning, SelectExpr, SelectStatement,
+    SimpleExpr, SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Represents a value source that can be used in an insert query.
