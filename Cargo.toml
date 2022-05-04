@@ -83,7 +83,6 @@ with-bigdecimal = ["bigdecimal", "sea-query-driver/with-bigdecimal"]
 with-uuid = ["uuid", "sea-query-driver/with-uuid"]
 with-time = ["time", "sea-query-driver/with-time"]
 
-
 [[test]]
 name = "test-derive"
 path = "tests/derive/mod.rs"
