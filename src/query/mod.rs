@@ -81,4 +81,9 @@ impl Query {
     pub fn with() -> WithClause {
         WithClause::new()
     }
+
+    /// Construct [`Returning`]
+    pub fn returning() -> Returning {
+        Returning::new()
+    }
 }

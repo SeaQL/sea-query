@@ -4,8 +4,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    ColumnRef, Query, QueryStatementBuilder, QueryStatementWriter, Returning, SelectExpr,
-    SelectStatement, SubQueryStatement, WithClause, WithQuery,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
+    WithQuery,
 };
 
 /// Delete existing rows from the table
@@ -40,7 +40,7 @@ pub struct DeleteStatement {
     pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
-    pub(crate) returning: Returning,
+    pub(crate) returning: Option<ReturningClause>,
 }
 
 impl Default for DeleteStatement {
@@ -57,7 +57,7 @@ impl DeleteStatement {
             wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
-            returning: Returning::default(),
+            returning: None,
         }
     }
 
@@ -103,12 +103,7 @@ impl DeleteStatement {
 
     /// RETURNING expressions.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -116,12 +111,12 @@ impl DeleteStatement {
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Returning::Columns(vec![Glyph::Id.into_column_ref()]))
+    ///     .returning(Query::returning().columns(vec![Glyph::Id.into_column_ref()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -132,20 +127,14 @@ impl DeleteStatement {
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
-    pub fn returning(&mut self, returning_cols: Returning) -> &mut Self {
-        self.returning = returning_cols;
+    pub fn returning(&mut self, returning_cols: ReturningClause) -> &mut Self {
+        self.returning = Some(returning_cols);
         self
     }
 
-    /// RETURNING a column after delete.
-    /// Wrapper over [`DeleteStatement::returning()`].
+    /// RETURNING expressions for a column.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -158,7 +147,7 @@ impl DeleteStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"DELETE FROM `glyph` WHERE `id` = 1 RETURNING `id`"#
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -171,9 +160,9 @@ impl DeleteStatement {
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
-        C: IntoIden,
+        C: IntoColumnRef,
     {
-        self.returning(Returning::Columns(vec![ColumnRef::Column(col.into_iden())]))
+        self.returning(ReturningClause::Columns(vec![col.into_column_ref()]))
     }
 
     /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.

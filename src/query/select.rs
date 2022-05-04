@@ -368,7 +368,7 @@ impl SelectStatement {
                 _ => None,
             })
             .collect::<Vec<DynIden>>();
-        self.distinct = if cols.len() > 0 {
+        self.distinct = if !cols.is_empty() {
             Some(SelectDistinct::DistinctOn(cols))
         } else {
             None

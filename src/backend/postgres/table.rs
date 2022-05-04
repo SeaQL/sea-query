@@ -173,7 +173,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     let mut foreign_key = TableForeignKey::new();
                     foreign_key.name(&name.to_string());
                     let drop = ForeignKeyDropStatement {
-                        foreign_key: foreign_key,
+                        foreign_key,
                         table: None,
                     };
                     self.prepare_foreign_key_drop_statement_internal(&drop, sql, Mode::TableAlter);

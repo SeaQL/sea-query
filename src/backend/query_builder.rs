@@ -268,28 +268,7 @@ pub trait QueryBuilder: QuotedBuilder {
     ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
-                match column_ref {
-                    ColumnRef::Column(column) => column.prepare(sql, self.quote()),
-                    ColumnRef::TableColumn(table, column) => {
-                        table.prepare(sql, self.quote());
-                        write!(sql, ".").unwrap();
-                        column.prepare(sql, self.quote());
-                    }
-                    ColumnRef::SchemaTableColumn(schema, table, column) => {
-                        schema.prepare(sql, self.quote());
-                        write!(sql, ".").unwrap();
-                        table.prepare(sql, self.quote());
-                        write!(sql, ".").unwrap();
-                        column.prepare(sql, self.quote());
-                    }
-                    ColumnRef::Asterisk => {
-                        write!(sql, "*").unwrap();
-                    }
-                    ColumnRef::TableAsterisk(table) => {
-                        table.prepare(sql, self.quote());
-                        write!(sql, ".*").unwrap();
-                    }
-                };
+                self.prepare_column_ref(column_ref, sql);
             }
             SimpleExpr::Tuple(exprs) => {
                 self.prepare_tuple(exprs, sql, collector);
@@ -582,6 +561,31 @@ pub trait QueryBuilder: QuotedBuilder {
                 alias.prepare(sql, self.quote());
             }
         }
+    }
+
+    fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut SqlWriter) {
+        match column_ref {
+            ColumnRef::Column(column) => column.prepare(sql, self.quote()),
+            ColumnRef::TableColumn(table, column) => {
+                table.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                column.prepare(sql, self.quote());
+            }
+            ColumnRef::SchemaTableColumn(schema, table, column) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                column.prepare(sql, self.quote());
+            }
+            ColumnRef::Asterisk => {
+                write!(sql, "*").unwrap();
+            }
+            ColumnRef::TableAsterisk(table) => {
+                table.prepare(sql, self.quote());
+                write!(sql, ".*").unwrap();
+            }
+        };
     }
 
     /// Translate [`UnOper`] into SQL statement.
@@ -1276,30 +1280,24 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(
         &self,
-        returning: &Returning,
+        returning: &Option<ReturningClause>,
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-        match returning {
-            Returning::All => write!(sql, " RETURNING *").unwrap(),
-            Returning::Columns(cols) => {
-                write!(sql, " RETURNING ").unwrap();
-                cols.into_iter().fold(true, |first, column_ref| {
-                    if !first {
-                        write!(sql, ", ").unwrap()
-                    }
-                    match column_ref {
-                        ColumnRef::Column(column) => column.prepare(sql, self.quote()),
-                        ColumnRef::TableColumn(table, column) => {
-                            table.prepare(sql, self.quote());
-                            write!(sql, ".").unwrap();
-                            column.prepare(sql, self.quote());
+        if let Some(returning) = returning {
+            match &returning {
+                ReturningClause::All => write!(sql, " RETURNING *").unwrap(),
+                ReturningClause::Columns(cols) => {
+                    write!(sql, " RETURNING ").unwrap();
+                    cols.iter().fold(true, |first, column_ref| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
                         }
-                    };
-                    false
-                });
+                        self.prepare_column_ref(column_ref, sql);
+                        false
+                    });
+                }
             }
-            Returning::Nothing => return,
         }
     }
 
