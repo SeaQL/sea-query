@@ -35,6 +35,7 @@ pub enum SimpleExpr {
     CustomWithValues(String, Vec<Value>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
+    Case(Box<CaseStatement>),
 }
 
 impl Expr {
@@ -1824,6 +1825,38 @@ impl Expr {
     /// `Into::<SimpleExpr>::into()` when type inference is impossible
     pub fn into_simple_expr(self) -> SimpleExpr {
         self.into()
+    }
+
+    /// Adds new `CASE WHEN` to existing case statement.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr_as(
+    ///         Expr::case(
+    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4]),
+    ///                 Expr::val(true)
+    ///              )
+    ///             .finally(Expr::val(false)),
+    ///          Alias::new("is_even")
+    ///     )
+    ///     .from(Glyph::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
+    /// );    
+    /// ```
+    pub fn case<C, T>(cond: C, then: T) -> CaseStatement
+    where
+        C: IntoCondition,
+        T: Into<Expr>,
+    {
+        CaseStatement::new().case(cond, then)
     }
 }
 

@@ -5,7 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.24.3 - Pending
+## 0.25.0 - Pending
+
+### New Features
+
+* CASE WHEN statement support https://github.com/SeaQL/sea-query/pull/304
+* Add support for Ip(4,6)Network and MacAddress https://github.com/SeaQL/sea-query/pull/309
+* [sea-query-attr] macro for deriving `Iden` enum from struct https://github.com/SeaQL/sea-query/pull/300
+* Add ability to alter foreign keys https://github.com/SeaQL/sea-query/pull/299
+* Select `DISTINCT ON` https://github.com/SeaQL/sea-query/pull/313
+
+### Enhancements
+
+* Insert Default https://github.com/SeaQL/sea-query/pull/266
+
+## 0.24.4 - 2022-04-26
+
+* update sea-query-driver
+
+## 0.24.3 - 2022-04-26
+
+### Bug fixes
+
+* Fix MySQL index create statement https://github.com/SeaQL/sea-query/pull/308
+
+### Enhancements
 
 * Add length check on condition array https://github.com/SeaQL/sea-query/pull/307
 

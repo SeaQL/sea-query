@@ -90,4 +90,22 @@ impl QueryBuilder for MysqlQueryBuilder {
         col.prepare(sql, self.quote());
         write!(sql, ")").unwrap();
     }
+
+    fn insert_default_keyword(&self) -> &str {
+        "()"
+    }
+
+    fn prepare_select_distinct(
+        &self,
+        select_distinct: &SelectDistinct,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::DistinctRow => write!(sql, "DISTINCTROW").unwrap(),
+            _ => {}
+        };
+    }
 }

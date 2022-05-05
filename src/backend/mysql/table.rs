@@ -158,6 +158,25 @@ impl TableBuilder for MysqlQueryBuilder {
                     write!(sql, "DROP COLUMN ").unwrap();
                     column_name.prepare(sql, self.quote());
                 }
+                TableAlterOption::DropForeignKey(name) => {
+                    let mut foreign_key = TableForeignKey::new();
+                    foreign_key.name(&name.to_string());
+                    let drop = ForeignKeyDropStatement {
+                        foreign_key: foreign_key,
+                        table: None,
+                    };
+                    self.prepare_foreign_key_drop_statement_internal(&drop, sql, Mode::TableAlter);
+                }
+                TableAlterOption::AddForeignKey(foreign_key) => {
+                    let create = ForeignKeyCreateStatement {
+                        foreign_key: foreign_key.to_owned(),
+                    };
+                    self.prepare_foreign_key_create_statement_internal(
+                        &create,
+                        sql,
+                        Mode::TableAlter,
+                    );
+                }
             };
             false
         });

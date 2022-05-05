@@ -22,39 +22,44 @@ pub trait QueryBuilder: QuotedBuilder {
             write!(sql, " ").unwrap();
         }
 
-        write!(sql, "(").unwrap();
-        insert.columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap()
-            }
-            col.prepare(sql, self.quote());
-            false
-        });
-        write!(sql, ")").unwrap();
+        if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
+            let num_rows = insert.default_values.unwrap();
+            self.insert_default_values(num_rows, sql);
+        } else {
+            write!(sql, "(").unwrap();
+            insert.columns.iter().fold(true, |first, col| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                col.prepare(sql, self.quote());
+                false
+            });
+            write!(sql, ")").unwrap();
 
-        if let Some(source) = &insert.source {
-            write!(sql, " ").unwrap();
-            match source {
-                InsertValueSource::Values(values) => {
-                    write!(sql, "VALUES ").unwrap();
-                    values.iter().fold(true, |first, row| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
-                        }
-                        write!(sql, "(").unwrap();
-                        row.iter().fold(true, |first, col| {
+            if let Some(source) = &insert.source {
+                write!(sql, " ").unwrap();
+                match source {
+                    InsertValueSource::Values(values) => {
+                        write!(sql, "VALUES ").unwrap();
+                        values.iter().fold(true, |first, row| {
                             if !first {
                                 write!(sql, ", ").unwrap()
                             }
-                            self.prepare_simple_expr(col, sql, collector);
+                            write!(sql, "(").unwrap();
+                            row.iter().fold(true, |first, col| {
+                                if !first {
+                                    write!(sql, ", ").unwrap()
+                                }
+                                self.prepare_simple_expr(col, sql, collector);
+                                false
+                            });
+                            write!(sql, ")").unwrap();
                             false
                         });
-                        write!(sql, ")").unwrap();
-                        false
-                    });
-                }
-                InsertValueSource::Select(select_query) => {
-                    self.prepare_select_statement(select_query.deref(), sql, collector);
+                    }
+                    InsertValueSource::Select(select_query) => {
+                        self.prepare_select_statement(select_query.deref(), sql, collector);
+                    }
                 }
             }
         }
@@ -375,7 +380,36 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql, collector);
             }
+            SimpleExpr::Case(case_stmt) => {
+                self.prepare_case_statement(case_stmt, sql, collector);
+            }
         }
+    }
+
+    /// Translate [`CaseStatement`] into SQL statement.
+    fn prepare_case_statement(
+        &self,
+        stmts: &CaseStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "(CASE").unwrap();
+
+        let CaseStatement { when, r#else } = stmts;
+
+        for case in when.iter() {
+            write!(sql, " WHEN (").unwrap();
+            self.prepare_condition_where(&case.condition, sql, collector);
+            write!(sql, ") THEN ").unwrap();
+
+            self.prepare_simple_expr(&case.result.clone().into(), sql, collector);
+        }
+        if let Some(r#else) = r#else.clone() {
+            write!(sql, " ELSE ").unwrap();
+            self.prepare_simple_expr(&r#else.into(), sql, collector);
+        }
+
+        write!(sql, " END) ").unwrap();
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
@@ -385,16 +419,11 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-        write!(
-            sql,
-            "{}",
-            match select_distinct {
-                SelectDistinct::All => "ALL",
-                SelectDistinct::Distinct => "DISTINCT",
-                SelectDistinct::DistinctRow => "DISTINCTROW",
-            }
-        )
-        .unwrap();
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            _ => {}
+        }
     }
 
     /// Translate [`LockType`] into SQL statement.
@@ -1048,6 +1077,12 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv4Network(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv6Network(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-mac_address")]
+            Value::MacAddress(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -1118,6 +1153,12 @@ pub trait QueryBuilder: QuotedBuilder {
                     .join(",")
             )
             .unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv4Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv6Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-mac_address")]
+            Value::MacAddress(Some(v)) => write!(s, "{}", v).unwrap(),
         };
         s
     }
@@ -1449,6 +1490,23 @@ pub trait QueryBuilder: QuotedBuilder {
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
+    }
+
+    /// The keywords for insert default row.
+    fn insert_default_keyword(&self) -> &str {
+        "(DEFAULT)"
+    }
+
+    /// Write insert default rows expression.
+    fn insert_default_values(&self, num_rows: u32, sql: &mut SqlWriter) {
+        write!(sql, "VALUES ").unwrap();
+        (0..num_rows).fold(true, |first, _| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+            write!(sql, "{}", self.insert_default_keyword()).unwrap();
+            false
+        });
     }
 }
 

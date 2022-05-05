@@ -880,6 +880,34 @@ fn select_53() {
 
 #[test]
 fn select_54() {
+    assert_eq!(
+        Query::select()
+            .distinct_on(vec![Glyph::Aspect,])
+            .columns(vec![Glyph::Aspect,])
+            .from(Glyph::Table)
+            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .order_by_columns_with_nulls(vec![
+                ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
+                (
+                    (Glyph::Table, Glyph::Aspect),
+                    Order::Desc,
+                    NullOrdering::Last
+                ),
+            ])
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT DISTINCT ON ("aspect") "aspect""#,
+            r#"FROM "glyph""#,
+            r#"WHERE COALESCE("aspect", 0) > 2"#,
+            r#"ORDER BY "glyph"."id" ASC NULLS FIRST,"#,
+            r#""glyph"."aspect" DESC NULLS LAST"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn select_55() {
     let statement = sea_query::Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
@@ -894,7 +922,7 @@ fn select_54() {
 }
 
 #[test]
-fn select_55() {
+fn select_56() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])
@@ -928,7 +956,7 @@ fn select_55() {
 }
 
 #[test]
-fn select_56() {
+fn select_57() {
     assert_eq!(
         Query::select()
             .columns(vec![Glyph::Aspect,])
@@ -961,7 +989,7 @@ fn select_56() {
 }
 
 #[test]
-fn select_57() {
+fn select_58() {
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .from(Glyph::Table)
@@ -988,7 +1016,32 @@ fn select_57() {
 }
 
 #[test]
-fn select_58() {
+fn select_59() {
+    let query = Query::select()
+        .expr_as(
+            CaseStatement::new()
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
+                    Expr::val("positive"),
+                )
+                .case(
+                    Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
+                    Expr::val("negative"),
+                )
+                .finally(Expr::val("zero")),
+            Alias::new("polarity"),
+        )
+        .from(Glyph::Table)
+        .to_owned();
+
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
+    );
+}
+
+#[test]
+fn select_60() {
     assert_eq!(
         Query::select()
             .column(Char::Character)
@@ -1079,6 +1132,7 @@ fn insert_from_select() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
+            .or_default_values()
             .columns(vec![Glyph::Aspect, Glyph::Image])
             .select_from(
                 Query::select()
@@ -1135,6 +1189,29 @@ fn insert_6() -> sea_query::error::Result<()> {
         ].join(" ")
     );
     Ok(())
+}
+
+#[test]
+fn insert_7() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
+    );
+}
+
+#[test]
+fn insert_8() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .or_default_values()
+            .returning_col(Glyph::Id)
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" VALUES (DEFAULT) RETURNING "id""#
+    );
 }
 
 #[test]
