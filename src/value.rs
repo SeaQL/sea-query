@@ -325,12 +325,14 @@ type_to_box_value!(String, String, String(None));
 /// A wrapper struct for any serializable types,
 /// providing convenient conversion into [`Value`]
 #[cfg(feature = "with-json")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct JsonValue<T>(pub T)
 where
     T: Sized + Serialize;
 
 #[cfg(feature = "with-json")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 impl<T> From<T> for JsonValue<T>
 where
     T: Sized + Serialize,
