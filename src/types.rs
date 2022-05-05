@@ -106,8 +106,6 @@ pub enum UnOper {
 pub enum BinOper {
     And,
     Or,
-    Like,
-    NotLike,
     Is,
     IsNot,
     In,
@@ -133,7 +131,6 @@ pub enum BinOper {
     Contained,
     #[cfg(feature = "backend-postgres")]
     Concatenate,
-    Escape,
 }
 
 /// Logical chain operator

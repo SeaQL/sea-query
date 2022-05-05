@@ -383,6 +383,12 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql, collector);
             }
+            SimpleExpr::Like(expr, like_stmt) => {
+                self.prepare_like_statement(false, expr, like_stmt, sql, collector)
+            }
+            SimpleExpr::NotLike(expr, like_stmt) => {
+                self.prepare_like_statement(true, expr, like_stmt, sql, collector)
+            }
         }
     }
 
@@ -410,6 +416,29 @@ pub trait QueryBuilder: QuotedBuilder {
         }
 
         write!(sql, " END) ").unwrap();
+    }
+
+    /// Translate [`LikeStatement`] into SQL statement.
+    fn prepare_like_statement(
+        &self,
+        negative: bool,
+        expr: &SimpleExpr,
+        stmts: &LikeClause,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_simple_expr(expr, sql, collector);
+        if negative {
+            write!(sql, " NOT LIKE ").unwrap();
+        } else {
+            write!(sql, " LIKE ").unwrap();
+        }
+        self.prepare_value(&stmts.pattern, sql, collector);
+
+        if let Some(escape) = stmts.escape {
+            write!(sql, " ESCAPE ").unwrap();
+            self.prepare_value(&Some(escape).into(), sql, collector);
+        }
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
@@ -613,8 +642,6 @@ pub trait QueryBuilder: QuotedBuilder {
             match bin_oper {
                 BinOper::And => "AND",
                 BinOper::Or => "OR",
-                BinOper::Like => "LIKE",
-                BinOper::NotLike => "NOT LIKE",
                 BinOper::Is => "IS",
                 BinOper::IsNot => "IS NOT",
                 BinOper::In => "IN",
@@ -632,7 +659,6 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
-                BinOper::Escape => "ESCAPE",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }
@@ -1048,6 +1074,7 @@ pub trait QueryBuilder: QuotedBuilder {
             | Value::Float(None)
             | Value::Double(None)
             | Value::String(None)
+            | Value::Char(None)
             | Value::Bytes(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
@@ -1097,6 +1124,7 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
+            Value::Char(Some(v)) => self.write_char_quoted(*v, &mut s),
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x\'{}\'",
@@ -1445,7 +1473,7 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual | BinOper::Escape);
+        let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
         let left_paren = left.need_parentheses()
             && left.is_binary()
             && *op != left.get_bin_oper().unwrap()
@@ -1478,6 +1506,12 @@ pub trait QueryBuilder: QuotedBuilder {
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
         write!(buffer, "\'{}\'", escape_string(string)).unwrap()
+    }
+
+    #[doc(hidden)]
+    /// Write a char surrounded by escaped quotes.
+    fn write_char_quoted(&self, c: char, buffer: &mut String) {
+        write!(buffer, "\'{}\'", c).unwrap()
     }
 
     #[doc(hidden)]

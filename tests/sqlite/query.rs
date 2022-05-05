@@ -303,19 +303,19 @@ fn select_22() {
                 Cond::all()
                     .add(
                         Cond::any().add(Expr::col(Char::Character).like("C")).add(
-                            Expr::col(Char::Character)
-                                .like("D")
-                                .and(Expr::col(Char::Character).like("E"))
+                            Cond::all()
+                                .add(Expr::col(Char::Character).like("D"))
+                                .add(Expr::col(Char::Character).like("E"))
                         )
                     )
                     .add(
-                        Expr::col(Char::Character)
-                            .like("F")
-                            .or(Expr::col(Char::Character).like("G"))
+                        Cond::any()
+                            .add(Expr::col(Char::Character).like("F"))
+                            .add(Expr::col(Char::Character).like("G"))
                     )
             )
             .to_string(SqliteQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
+        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR ("character" LIKE 'D' AND "character" LIKE 'E')) AND ("character" LIKE 'F' OR "character" LIKE 'G')"#
     );
 }
 

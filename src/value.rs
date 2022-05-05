@@ -49,6 +49,7 @@ pub enum Value {
     Float(Option<f32>),
     Double(Option<f64>),
     String(Option<Box<String>>),
+    Char(Option<char>),
 
     #[allow(clippy::box_collection)]
     Bytes(Option<Box<Vec<u8>>>),
@@ -264,6 +265,7 @@ type_to_value!(u32, Unsigned, Unsigned(None));
 type_to_value!(u64, BigUnsigned, BigUnsigned(None));
 type_to_value!(f32, Float, Float(None));
 type_to_value!(f64, Double, Double(None));
+type_to_value!(char, Char, Char(None));
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {

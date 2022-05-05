@@ -386,7 +386,7 @@ pub trait ConditionalStatement {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
     ///     .and_where_option(Some(Expr::col(Glyph::Image).like("A%")))
-    ///     .and_where_option(None)
+    ///     .and_where_option::<SimpleExpr>(None)
     ///     .to_owned();
     ///
     /// assert_eq!(

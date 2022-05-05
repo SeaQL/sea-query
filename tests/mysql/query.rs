@@ -317,14 +317,20 @@ fn select_22() {
                 .add(
                     Cond::any()
                     .add(Expr::col(Char::Character).like("C"))
-                    .add(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
+                    .add(
+                        Cond::all()
+                        .add(Expr::col(Char::Character).like("D"))
+                        .add(Expr::col(Char::Character).like("E"))
+                    )
                 )
                 .add(
-                    Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G"))
+                    Cond::any()
+                    .add(Expr::col(Char::Character).like("F"))
+                    .add(Expr::col(Char::Character).like("G"))
                 )
             )
             .to_string(MysqlQueryBuilder),
-        "SELECT `character` FROM `character` WHERE (`character` LIKE 'C' OR ((`character` LIKE 'D') AND (`character` LIKE 'E'))) AND ((`character` LIKE 'F') OR (`character` LIKE 'G'))"
+        "SELECT `character` FROM `character` WHERE (`character` LIKE 'C' OR (`character` LIKE 'D' AND `character` LIKE 'E')) AND (`character` LIKE 'F' OR `character` LIKE 'G')"
     );
 }
 

@@ -253,17 +253,15 @@
 //!                     .take()
 //!             )
 //!         )
-//!         .and_where(
-//!             Expr::col(Char::Character)
-//!                 .like("D")
-//!                 .and(Expr::col(Char::Character).like("E"))
-//!         )
+//!         .and_where(Expr::col(Char::Character).like("D"))
+//!         .and_where(Expr::col(Char::Character).like("E"))
 //!         .to_string(PostgresQueryBuilder),
 //!     [
 //!         r#"SELECT "character" FROM "character""#,
 //!         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
 //!         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
-//!         r#"AND (("character" LIKE 'D') AND ("character" LIKE 'E'))"#,
+//!         r#"AND "character" LIKE 'D'"#,
+//!         r#"AND "character" LIKE 'E'"#,
 //!     ]
 //!     .join(" ")
 //! );

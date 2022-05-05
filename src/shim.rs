@@ -57,23 +57,35 @@ macro_rules! impl_conditional_statement {
             use crate::{ConditionalStatement, SimpleExpr, IntoCondition, $struct_name};
 
             impl $struct_name {
-                pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
-                    <Self as ConditionalStatement>::and_where(self, other)
+                pub fn and_where<T>(&mut self, other: T) -> &mut Self
+                where
+                    T: Into<SimpleExpr>
+                {
+                    <Self as ConditionalStatement>::and_where(self, other.into())
                 }
 
-                pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
-                    <Self as ConditionalStatement>::and_where_option(self, other)
+                pub fn and_where_option<T>(&mut self, other: Option<T>) -> &mut Self
+                where
+                    T: Into<SimpleExpr>
+                {
+                    <Self as ConditionalStatement>::and_where_option(self, other.map(|o| o.into()))
                 }
 
                 #[deprecated(
                     since = "0.12.0",
                     note = "Please use [`ConditionalStatement::cond_where`]. Calling `or_where` after `and_where` will panic."
                 )]
-                pub fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
-                    <Self as ConditionalStatement>::or_where(self, other)
+                pub fn or_where<T>(&mut self, other: T) -> &mut Self
+                where
+                    T: Into<SimpleExpr>
+                {
+                    <Self as ConditionalStatement>::or_where(self, other.into())
                 }
 
-                pub fn cond_where<C>(&mut self, condition: C) -> &mut Self where C: IntoCondition {
+                pub fn cond_where<C>(&mut self, condition: C) -> &mut Self
+                where
+                    C: IntoCondition
+                {
                     <Self as ConditionalStatement>::cond_where(self, condition)
                 }
             }

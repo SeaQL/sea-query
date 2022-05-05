@@ -36,6 +36,8 @@ pub enum SimpleExpr {
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
+    Like(Box<SimpleExpr>, LikeClause),
+    NotLike(Box<SimpleExpr>, LikeClause),
 }
 
 impl Expr {
@@ -299,9 +301,9 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).into())
-    ///     .and_where(Expr::val(2.5).into())
-    ///     .and_where(Expr::val("3").into())
+    ///     .and_where(Expr::val(1))
+    ///     .and_where(Expr::val(2.5))
+    ///     .and_where(Expr::val("3"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -365,9 +367,9 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::value(1).into())
-    ///     .and_where(Expr::value(2.5).into())
-    ///     .and_where(Expr::value("3").into())
+    ///     .and_where(Expr::value(1))
+    ///     .and_where(Expr::value(2.5))
+    ///     .and_where(Expr::value("3"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -400,7 +402,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::cust("1 = 1").into())
+    ///     .and_where(Expr::cust("1 = 1"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -431,7 +433,7 @@ impl Expr {
     ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]).into())
+    ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1114,18 +1116,39 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours\'%'"#
     /// );
     /// ```
-    pub fn like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::Like,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+    pub fn like(self, pattern: &str) -> LikeStatement {
+        LikeStatement::new(false, self.left.unwrap(), pattern)
     }
 
-    pub fn not_like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::NotLike,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+    /// Express a `NOT LIKE` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::Character).not_like("Ours'%"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` NOT LIKE 'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" NOT LIKE E'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" NOT LIKE 'Ours\'%'"#
+    /// );
+    /// ```
+
+    pub fn not_like(self, pattern: &str) -> LikeStatement {
+        LikeStatement::new(true, self.left.unwrap(), pattern)
     }
 
     /// Express a `IS NULL` expression.
@@ -2096,36 +2119,6 @@ impl SimpleExpr {
         T: Into<SimpleExpr>,
     {
         self.binary(BinOper::Sub, right.into())
-    }
-
-    /// Select an espace character in a LIKE .
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like(r"|_Our|_").escape('|'))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// ```
-    pub fn escape(self, right: char) -> Self {
-        self.binary(BinOper::Escape, Expr::cust(&format!("'{}'", right)))
     }
 
     pub(crate) fn binary(self, op: BinOper, right: SimpleExpr) -> Self {
