@@ -1193,6 +1193,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Float(None)
         | Value::Double(None)
         | Value::String(None)
+        | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
@@ -1221,6 +1222,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Float(Some(v)) => (*v).into(),
         Value::Double(Some(v)) => (*v).into(),
         Value::String(Some(s)) => Json::String(s.as_ref().clone()),
+        Value::Char(Some(c)) => Json::String(c.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
