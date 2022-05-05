@@ -293,6 +293,37 @@ impl UpdateStatement {
         self.returning(ReturningClause::Columns(vec![col.into_column_ref()]))
     }
 
+    /// RETURNING expressions all columns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![Glyph::Image])
+    ///     .values_panic(vec!["12A".into()])
+    ///     .returning_all()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// ```
+    pub fn returning_all(&mut self) -> &mut Self {
+        self.returning(ReturningClause::All)
+    }
+
     /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
     ///
     /// # Examples
