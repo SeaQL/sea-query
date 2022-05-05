@@ -54,6 +54,7 @@ pub enum FrameType {
 }
 
 /// Frame clause
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct FrameClause {
     pub(crate) r#type: FrameType,
@@ -68,6 +69,7 @@ pub struct FrameClause {
 /// 1. <https://dev.mysql.com/doc/refman/8.0/en/window-function-descriptions.html>
 /// 2. <https://www.sqlite.org/windowfunctions.html>
 /// 3. <https://www.postgresql.org/docs/current/tutorial-window.html>
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct WindowStatement {
     pub(crate) partition_by: Vec<SimpleExpr>,

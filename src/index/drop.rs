@@ -25,6 +25,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
 /// );
 /// ```
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct IndexDropStatement {
     pub(crate) table: Option<DynIden>,

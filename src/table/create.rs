@@ -77,6 +77,7 @@ use crate::{
 /// );
 /// ```
 #[derive(Debug, Clone)]
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 pub struct TableCreateStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) columns: Vec<ColumnDef>,

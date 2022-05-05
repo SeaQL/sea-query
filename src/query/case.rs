@@ -1,16 +1,19 @@
 use crate::{Condition, Expr, IntoCondition, SimpleExpr};
 
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
-pub(crate) struct CaseStatementCondition {
+pub struct CaseStatementCondition {
     pub(crate) condition: Condition,
     pub(crate) result: Expr,
 }
 
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone, Default)]
 pub struct CaseStatement {
     pub(crate) when: Vec<CaseStatementCondition>,
     pub(crate) r#else: Option<Expr>,
 }
+
 
 impl CaseStatement {
     /// Creates a new case statement expression

@@ -7,6 +7,7 @@ pub enum ConditionType {
 }
 
 /// Represents the value of an [`Condition::any`] or [`Condition::all`]: a set of disjunctive or conjunctive conditions.
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct Condition {
     pub(crate) negate: bool,

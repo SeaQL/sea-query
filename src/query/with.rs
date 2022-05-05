@@ -54,6 +54,7 @@ use std::ops::Deref;
 ///     DELETE FROM table WHERE table.a = cte_name.a)
 ///
 /// It is mandatory to set the [Self::table_name] and the [Self::query].
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone, Default)]
 pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
@@ -216,6 +217,7 @@ pub enum SearchOrder {
 ///
 /// Setting [Self::order] and [Self::expr] is mandatory. The [SelectExpr] used must specify an alias
 /// which will be the name that you can use to order the result of the [CommonTableExpression].
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone, Default)]
 pub struct Search {
     pub(crate) order: Option<SearchOrder>,
@@ -274,6 +276,7 @@ impl Search {
 /// A query can have both SEARCH and CYCLE clauses.
 ///
 /// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone, Default)]
 pub struct Cycle {
     pub(crate) expr: Option<SimpleExpr>,
@@ -438,6 +441,7 @@ impl Cycle {
 ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
 /// );
 /// ```
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone, Default)]
 pub struct WithClause {
     pub(crate) recursive: bool,
@@ -538,6 +542,7 @@ impl WithClause {
 ///     DELETE FROM table WHERE table.a = cte_name.a)
 ///
 /// It is mandatory to set the [Self::cte] and the [Self::query].
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone, Default)]
 pub struct WithQuery {
     pub(crate) with_clause: WithClause,

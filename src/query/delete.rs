@@ -34,6 +34,7 @@ use crate::{
 ///     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 /// );
 /// ```
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct DeleteStatement {
     pub(crate) table: Option<Box<TableRef>>,

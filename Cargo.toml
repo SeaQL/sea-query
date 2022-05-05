@@ -50,10 +50,12 @@ uuid = { version = "^0", optional = true }
 proc-macro2 = { version = "1", optional = true }
 quote = { version = "^1", optional = true }
 time = { version = "^0.2", optional = true }
+getset = { version = "^0.1.2", optional = true}
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
 pretty_assertions = { version = "^1" }
+
 
 [features]
 backend-mysql = []
@@ -82,6 +84,7 @@ with-rust_decimal = ["rust_decimal", "sea-query-driver/with-rust_decimal"]
 with-bigdecimal = ["bigdecimal", "sea-query-driver/with-bigdecimal"]
 with-uuid = ["uuid", "sea-query-driver/with-uuid"]
 with-time = ["time", "sea-query-driver/with-time"]
+getters = ["getset"]
 
 [[test]]
 name = "test-derive"

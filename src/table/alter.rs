@@ -33,6 +33,7 @@ use crate::{
 ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
 /// );
 /// ```
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct TableAlterStatement {
     pub(crate) table: Option<DynIden>,
@@ -40,6 +41,7 @@ pub struct TableAlterStatement {
 }
 
 /// table alter add column options
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct AddColumnOption {
     pub(crate) column: ColumnDef,

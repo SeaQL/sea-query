@@ -7,6 +7,7 @@
 use crate::{func::*, query::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone, Default)]
 pub struct Expr {
     pub(crate) left: Option<SimpleExpr>,

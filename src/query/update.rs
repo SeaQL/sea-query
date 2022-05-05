@@ -38,6 +38,7 @@ use crate::{
 ///     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 /// );
 /// ```
+#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
 #[derive(Debug, Clone)]
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
