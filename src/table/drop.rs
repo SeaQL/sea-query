@@ -26,7 +26,11 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 pub struct TableDropStatement {
     pub(crate) tables: Vec<TableRef>,
     pub(crate) options: Vec<TableDropOpt>,

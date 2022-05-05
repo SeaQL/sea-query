@@ -38,7 +38,11 @@ use crate::{
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// ```
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
@@ -109,7 +113,11 @@ pub enum LockBehavior {
     SkipLocked,
 }
 
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct LockClause {
     pub(crate) r#type: LockType,
@@ -328,7 +336,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .distinct_on(vec![Char::Character, ])
+    ///     .distinct_on(vec![Char::Character])
     ///     .column(Char::Character)
     ///     .column(Char::SizeW)
     ///     .column(Char::SizeH)
@@ -357,7 +365,6 @@ impl SelectStatement {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// )
     /// ```
-    ///
     pub fn distinct_on<T, I>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,

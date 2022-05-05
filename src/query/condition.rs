@@ -7,7 +7,11 @@ pub enum ConditionType {
 }
 
 /// Represents the value of an [`Condition::any`] or [`Condition::all`]: a set of disjunctive or conjunctive conditions.
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct Condition {
     pub(crate) negate: bool,
@@ -240,7 +244,7 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let is_empty = Cond::all().is_empty();
     ///
@@ -255,14 +259,11 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let len = Cond::all().len();
     ///
-    /// assert_eq!(
-    ///     len,
-    ///     0
-    /// );
+    /// assert_eq!(len, 0);
     /// ```
     pub fn len(&self) -> usize {
         self.conditions.len()

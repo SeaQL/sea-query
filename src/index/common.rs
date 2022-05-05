@@ -1,13 +1,22 @@
 use crate::types::*;
 
 /// Specification of a table index
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct TableIndex {
     pub(crate) name: Option<String>,
     pub(crate) columns: Vec<IndexColumn>,
 }
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct IndexColumn {
     pub(crate) name: DynIden,

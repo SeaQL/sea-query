@@ -1,6 +1,10 @@
 use crate::{DynIden, Expr, IntoIden, SimpleExpr, Value};
 
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone, Default)]
 pub struct OnConflict {
     pub(crate) target: Option<OnConflictTarget>,

@@ -1,7 +1,11 @@
 use crate::{types::*, value::*};
 
 /// Specification of a table column
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct ColumnDef {
     pub(crate) table: Option<TableRef>,

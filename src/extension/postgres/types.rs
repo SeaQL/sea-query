@@ -4,7 +4,11 @@ use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
 #[derive(Debug)]
 pub struct Type;
 
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone, Default)]
 pub struct TypeCreateStatement {
     pub(crate) name: Option<DynIden>,
@@ -21,7 +25,11 @@ pub enum TypeAs {
      * Array, */
 }
 
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone, Default)]
 pub struct TypeDropStatement {
     pub(crate) names: Vec<DynIden>,
@@ -29,7 +37,11 @@ pub struct TypeDropStatement {
     pub(crate) if_exists: bool,
 }
 
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone, Default)]
 pub struct TypeAlterStatement {
     pub(crate) name: Option<DynIden>,

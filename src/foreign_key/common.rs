@@ -132,9 +132,13 @@ impl TableForeignKey {
     }
 }
 
-#[cfg(feature="getters")]
+#[cfg(feature = "getters")]
 impl TableForeignKey {
-    pub fn get_name(&self) -> &Option<String> { &self.name }
+    pub fn get_name(&self) -> &Option<String> {
+        &self.name
+    }
 
-    pub fn get_table(&self) -> &Option<DynIden> { &self.table }
+    pub fn get_table(&self) -> &Option<DynIden> {
+        &self.table
+    }
 }

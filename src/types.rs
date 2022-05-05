@@ -159,7 +159,11 @@ pub enum NullOrdering {
 }
 
 /// Order expression
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,

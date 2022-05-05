@@ -23,7 +23,11 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 pub struct TableTruncateStatement {
     pub(crate) table: Option<DynIden>,
 }

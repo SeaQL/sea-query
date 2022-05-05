@@ -24,7 +24,11 @@ use crate::{
 /// );
 /// // Sqlite does not support modification of foreign key constraints to existing tables
 /// ```
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 #[derive(Debug, Clone)]
 pub struct ForeignKeyDropStatement {
     pub(crate) foreign_key: TableForeignKey,

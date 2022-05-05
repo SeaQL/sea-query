@@ -208,11 +208,11 @@
 //! ```rust
 //! #[cfg(feature = "attr")]
 //! # fn test() {
-//! use sea_query::{Iden, enum_def};
+//! use sea_query::{enum_def, Iden};
 //!
 //! #[enum_def]
 //! struct Character {
-//!   pub foo: u64,
+//!     pub foo: u64,
 //! }
 //!
 //! // It generates the following along with Iden impl

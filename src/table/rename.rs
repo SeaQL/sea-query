@@ -25,7 +25,11 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// );
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(feature="getters",derive(getset::Getters),getset(get="pub with_prefix"))]
+#[cfg_attr(
+    feature = "getters",
+    derive(getset::Getters),
+    getset(get = "pub with_prefix")
+)]
 pub struct TableRenameStatement {
     pub(crate) from_name: Option<DynIden>,
     pub(crate) to_name: Option<DynIden>,
