@@ -140,28 +140,15 @@ pub trait QueryBuilder: QuotedBuilder {
                 false
             });
         }
-        // OVERRIDE
-        if cfg!(feature = "oracle-overrides") {
-            if let Some(offset) = &select.offset {
-                write!(sql, " OFFSET ").unwrap();
-                self.prepare_value(offset, sql, collector);
-                write!(sql, " ROWS ").unwrap();
-            }
-            if let Some(limit) = &select.limit {
-                write!(sql, " FETCH NEXT ").unwrap();
-                self.prepare_value(limit, sql, collector);
-                write!(sql, " ROWS ONLY ").unwrap();
-            }
-        } else {
-            if let Some(limit) = &select.limit {
-                write!(sql, " LIMIT ").unwrap();
-                self.prepare_value(limit, sql, collector);
-            }
 
-            if let Some(offset) = &select.offset {
-                write!(sql, " OFFSET ").unwrap();
-                self.prepare_value(offset, sql, collector);
-            }
+        if let Some(limit) = &select.limit {
+            write!(sql, " LIMIT ").unwrap();
+            self.prepare_value(limit, sql, collector);
+        }
+
+        if let Some(offset) = &select.offset {
+            write!(sql, " OFFSET ").unwrap();
+            self.prepare_value(offset, sql, collector);
         }
 
         if let Some(lock) = &select.lock {
@@ -496,23 +483,14 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             None => {}
         };
-        if cfg!(feature = "oracle-overrides") {
-            match &select_expr.alias {
-                Some(alias) => {
-                    write!(sql, " ").unwrap();
-                    alias.prepare(sql, self.quote());
-                }
-                None => {}
-            };
-        } else {
-            match &select_expr.alias {
-                Some(alias) => {
-                    write!(sql, " AS ").unwrap();
-                    alias.prepare(sql, self.quote());
-                }
-                None => {}
-            };
-        }
+
+        match &select_expr.alias {
+            Some(alias) => {
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+            None => {}
+        };
     }
 
     /// Translate [`JoinExpr`] into SQL statement.
@@ -597,19 +575,11 @@ pub trait QueryBuilder: QuotedBuilder {
                 alias.prepare(sql, self.quote());
             }
             TableRef::SubQuery(query, alias) => {
-                if cfg!(feature = "oracle-overrides") {
-                    write!(sql, "(").unwrap();
-                    self.prepare_select_statement(query, sql, collector);
-                    write!(sql, ")").unwrap();
-                    write!(sql, " ").unwrap();
-                    alias.prepare(sql, self.quote());
-                } else {
-                    write!(sql, "(").unwrap();
-                    self.prepare_select_statement(query, sql, collector);
-                    write!(sql, ")").unwrap();
-                    write!(sql, " AS ").unwrap();
-                    alias.prepare(sql, self.quote());
-                }
+                write!(sql, "(").unwrap();
+                self.prepare_select_statement(query, sql, collector);
+                write!(sql, ")").unwrap();
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
             }
         }
     }
@@ -938,31 +908,17 @@ pub trait QueryBuilder: QuotedBuilder {
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-        if cfg!(feature = "oracle-overrides") {
-            write!(
-                sql,
-                "{}",
-                match join_type {
-                    JoinType::Join => "JOIN",
-                    JoinType::InnerJoin => "JOIN",
-                    JoinType::LeftJoin => "LEFT OUTER JOIN",
-                    JoinType::RightJoin => "RIGHT JOIN",
-                }
-            )
-            .unwrap()
-        } else {
-            write!(
-                sql,
-                "{}",
-                match join_type {
-                    JoinType::Join => "JOIN",
-                    JoinType::InnerJoin => "INNER JOIN",
-                    JoinType::LeftJoin => "LEFT JOIN",
-                    JoinType::RightJoin => "RIGHT JOIN",
-                }
-            )
-            .unwrap()
-        }
+        write!(
+            sql,
+            "{}",
+            match join_type {
+                JoinType::Join => "JOIN",
+                JoinType::InnerJoin => "INNER JOIN",
+                JoinType::LeftJoin => "LEFT JOIN",
+                JoinType::RightJoin => "RIGHT JOIN",
+            }
+        )
+        .unwrap()
     }
 
     /// Translate [`OrderExpr`] into SQL statement.

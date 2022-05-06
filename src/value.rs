@@ -111,6 +111,7 @@ pub mod oracle_overrides {
     use r2d2_oracle::oracle::sql_type::ToSql;
 
     // /// 2021-07-14T23:59:59
+    // this works in my project, no idea if this helps anyone
     // const CLIENT_DATETIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
     // const DB_DATETIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
@@ -122,6 +123,7 @@ pub mod oracle_overrides {
     // }
 
     impl ToSql for Value {
+        /// I've commented out values I didn't know how to handle
         fn oratype(
             &self,
             conn: &r2d2_oracle::oracle::Connection,

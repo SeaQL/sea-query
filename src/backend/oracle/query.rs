@@ -107,4 +107,214 @@ impl QueryBuilder for OracleQueryBuilder {
     ) {
         query.prepare_statement(self, sql, collector);
     }
+
+    /// Translate [`SelectExpr`] into oracle SQL statement.
+    fn prepare_select_expr(
+        &self,
+        select_expr: &SelectExpr,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_simple_expr(&select_expr.expr, sql, collector);
+        match &select_expr.window {
+            Some(WindowSelectType::Name(name)) => {
+                write!(sql, " OVER ").unwrap();
+                name.prepare(sql, self.quote())
+            }
+            Some(WindowSelectType::Query(window)) => {
+                write!(sql, " OVER ").unwrap();
+                write!(sql, "( ").unwrap();
+                self.prepare_window_statement(window, sql, collector);
+                write!(sql, " ) ").unwrap();
+            }
+            None => {}
+        };
+        // oracle override
+        match &select_expr.alias {
+            Some(alias) => {
+                write!(sql, " ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+            None => {}
+        };
+    }
+
+    /// Translate [`SelectStatement`] into oracle SQL statement.
+    fn prepare_select_statement(
+        &self,
+        select: &SelectStatement,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        write!(sql, "SELECT ").unwrap();
+
+        if let Some(distinct) = &select.distinct {
+            write!(sql, " ").unwrap();
+            self.prepare_select_distinct(distinct, sql, collector);
+            write!(sql, " ").unwrap();
+        }
+
+        select.selects.iter().fold(true, |first, expr| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+            self.prepare_select_expr(expr, sql, collector);
+            false
+        });
+
+        if !select.from.is_empty() {
+            write!(sql, " FROM ").unwrap();
+            select.from.iter().fold(true, |first, table_ref| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                backend::query_builder::QueryBuilder::prepare_table_ref(
+                    self, table_ref, sql, collector,
+                );
+                false
+            });
+        }
+
+        if !select.join.is_empty() {
+            for expr in select.join.iter() {
+                write!(sql, " ").unwrap();
+                self.prepare_join_expr(expr, sql, collector);
+            }
+        }
+
+        self.prepare_condition(&select.r#where, "WHERE", sql, collector);
+
+        if !select.groups.is_empty() {
+            write!(sql, " GROUP BY ").unwrap();
+            select.groups.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_simple_expr(expr, sql, collector);
+                false
+            });
+        }
+
+        self.prepare_condition(&select.having, "HAVING", sql, collector);
+
+        if !select.unions.is_empty() {
+            select.unions.iter().for_each(|(union_type, query)| {
+                match union_type {
+                    UnionType::Distinct => write!(sql, " UNION ").unwrap(),
+                    UnionType::All => write!(sql, " UNION ALL ").unwrap(),
+                }
+                self.prepare_select_statement(query, sql, collector);
+            });
+        }
+
+        if !select.orders.is_empty() {
+            write!(sql, " ORDER BY ").unwrap();
+            select.orders.iter().fold(true, |first, expr| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_order_expr(expr, sql, collector);
+                false
+            });
+        }
+
+        // oracle override - requires oracle 11c or later!
+        if let Some(offset) = &select.offset {
+            write!(sql, " OFFSET ").unwrap();
+            self.prepare_value(offset, sql, collector);
+            write!(sql, " ROWS ").unwrap();
+        }
+
+        if let Some(limit) = &select.limit {
+            write!(sql, " FETCH NEXT ").unwrap();
+            self.prepare_value(limit, sql, collector);
+            write!(sql, " ROWS ONLY ").unwrap();
+        }
+
+        if let Some(lock) = &select.lock {
+            write!(sql, " ").unwrap();
+            self.prepare_select_lock(lock, sql, collector);
+        }
+
+        if let Some((name, query)) = &select.window {
+            write!(sql, " WINDOW ").unwrap();
+            name.prepare(sql, self.quote());
+            write!(sql, " AS ").unwrap();
+            self.prepare_window_statement(query, sql, collector);
+        }
+    }
+    /// Oracle override.
+    fn prepare_table_ref_common(
+        &self,
+        table_ref: &TableRef,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        match table_ref {
+            TableRef::Table(iden) => {
+                iden.prepare(sql, self.quote());
+            }
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            TableRef::DatabaseSchemaTable(database, schema, table) => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            TableRef::TableAlias(iden, alias) => {
+                iden.prepare(sql, self.quote());
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+            TableRef::SchemaTableAlias(schema, table, alias) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+            TableRef::DatabaseSchemaTableAlias(database, schema, table, alias) => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+            TableRef::SubQuery(query, alias) => {
+                // oracle override
+                write!(sql, "(").unwrap();
+                self.prepare_select_statement(query, sql, collector);
+                write!(sql, ")").unwrap();
+                write!(sql, " ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
+        }
+    }
+
+    /// Translate [`JoinType`] into oracle SQL statement.
+    fn prepare_join_type(
+        &self,
+        join_type: &JoinType,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
+        write!(
+            sql,
+            "{}",
+            match join_type {
+                JoinType::Join => "JOIN",
+                JoinType::InnerJoin => "JOIN",
+                JoinType::LeftJoin => "LEFT OUTER JOIN",
+                JoinType::RightJoin => "RIGHT JOIN",
+            }
+        )
+        .unwrap()
+    }
 }
