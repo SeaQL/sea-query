@@ -48,11 +48,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns([
-            Character::Id,
-            Character::Character,
-            Character::FontSize,
-        ])
+        .columns([Character::Id, Character::Character, Character::FontSize])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
@@ -80,11 +76,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns([
-            Character::Id,
-            Character::Character,
-            Character::FontSize,
-        ])
+        .columns([Character::Id, Character::Character, Character::FontSize])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)

@@ -326,7 +326,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .distinct_on(vec![Char::Character, ])
+    ///     .distinct_on(vec![Char::Character])
     ///     .column(Char::Character)
     ///     .column(Char::SizeW)
     ///     .column(Char::SizeH)
@@ -355,7 +355,6 @@ impl SelectStatement {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// )
     /// ```
-    ///
     pub fn distinct_on<T, I>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,

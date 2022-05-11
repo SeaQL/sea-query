@@ -7,7 +7,6 @@ use crate::{ColumnRef, IntoColumnRef};
 /// * SQLite
 ///     - SQLite version >= 3.35.0
 ///     - **Note that sea-query won't try to enforce either of these constraints**
-///
 #[derive(Clone, Debug)]
 pub enum ReturningClause {
     All,

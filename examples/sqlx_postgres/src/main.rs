@@ -205,11 +205,7 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns([
-            Character::Id,
-            Character::FontSize,
-            Character::Character,
-        ])
+        .columns([Character::Id, Character::FontSize, Character::Character])
         .values_panic(vec![1.into(), 16.into(), "B".into()])
         .values_panic(vec![2.into(), 24.into(), "C".into()])
         .on_conflict(
