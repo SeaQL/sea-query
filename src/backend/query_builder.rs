@@ -1080,6 +1080,8 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-uuid-1")]
+            Value::Uuid1(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-ipnetwork")]
             Value::Ipv4Network(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-ipnetwork")]
@@ -1146,6 +1148,8 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "\'{}\'", v).unwrap(),
+            #[cfg(feature = "with-uuid-1")]
+            Value::Uuid1(Some(v)) => write!(s, "\'{}\'", v).unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(Some(v)) => write!(
                 s,

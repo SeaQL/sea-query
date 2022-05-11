@@ -73,6 +73,8 @@ impl ToSql for Value {
             Value::BigDecimal(_) => unimplemented!("Not supported"),
             #[cfg(feature = "postgres-uuid")]
             Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
+            #[cfg(feature = "postgres-uuid-1")]
+            Value::Uuid1(v) => box_to_sql!(v, uuid_1::Uuid),
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => box_to_sql!(v, Vec<Value>),
             #[allow(unreachable_patterns)]

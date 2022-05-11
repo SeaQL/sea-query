@@ -42,6 +42,10 @@ pub fn sea_query_driver_rusqlite_impl(input: TokenStream) -> TokenStream {
         quote! {
             Value::Uuid(v) => box_to_sql!(v),
         }
+    } else if cfg!(feature = "with-uuid-1") {
+        quote! {
+            Value::Uuid1(v) => box_to_sql!(v),
+        }
     } else {
         quote! {}
     };
