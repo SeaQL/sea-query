@@ -5,7 +5,7 @@ use pretty_assertions::assert_eq;
 fn select_1() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .limit(10)
             .offset(100)
@@ -18,7 +18,7 @@ fn select_1() {
 fn select_2() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .to_string(PostgresQueryBuilder),
@@ -30,7 +30,7 @@ fn select_2() {
 fn select_3() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
@@ -43,10 +43,10 @@ fn select_3() {
 fn select_4() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect])
+            .columns([Glyph::Aspect])
             .from_subquery(
                 Query::select()
-                    .columns(vec![Glyph::Image, Glyph::Aspect])
+                    .columns([Glyph::Image, Glyph::Aspect])
                     .from(Glyph::Table)
                     .take(),
                 Alias::new("subglyph")
@@ -72,7 +72,7 @@ fn select_5() {
 fn select_6() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .exprs(vec![Expr::col(Glyph::Image).max(),])
             .from(Glyph::Table)
             .group_by_columns(vec![Glyph::Aspect,])
@@ -86,7 +86,7 @@ fn select_6() {
 fn select_7() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .to_string(PostgresQueryBuilder),
@@ -98,7 +98,7 @@ fn select_7() {
 fn select_8() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character,])
+            .columns([Char::Character,])
             .from(Char::Table)
             .left_join(
                 Font::Table,
@@ -113,7 +113,7 @@ fn select_8() {
 fn select_9() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character,])
+            .columns([Char::Character,])
             .from(Char::Table)
             .left_join(
                 Font::Table,
@@ -132,7 +132,7 @@ fn select_9() {
 fn select_10() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character,])
+            .columns([Char::Character,])
             .from(Char::Table)
             .left_join(
                 Font::Table,
@@ -149,7 +149,7 @@ fn select_10() {
 fn select_11() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(Glyph::Image, Order::Desc)
@@ -163,7 +163,7 @@ fn select_11() {
 fn select_12() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns(vec![(Glyph::Id, Order::Asc), (Glyph::Aspect, Order::Desc),])
@@ -176,7 +176,7 @@ fn select_12() {
 fn select_13() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns(vec![
@@ -192,7 +192,7 @@ fn select_13() {
 fn select_14() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Id, Glyph::Aspect,])
+            .columns([Glyph::Id, Glyph::Aspect,])
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
             .group_by_columns(vec![
@@ -209,7 +209,7 @@ fn select_14() {
 fn select_15() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character])
+            .columns([Char::Character])
             .from(Char::Table)
             .and_where(Expr::col(Char::FontId).is_null())
             .to_string(PostgresQueryBuilder),
@@ -221,7 +221,7 @@ fn select_15() {
 fn select_16() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character])
+            .columns([Char::Character])
             .from(Char::Table)
             .and_where(Expr::col(Char::FontId).is_null())
             .and_where(Expr::col(Char::Character).is_not_null())
@@ -234,7 +234,7 @@ fn select_16() {
 fn select_17() {
     assert_eq!(
         Query::select()
-            .columns(vec![(Glyph::Table, Glyph::Image),])
+            .columns([(Glyph::Table, Glyph::Image),])
             .from(Glyph::Table)
             .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).between(3, 5))
             .to_string(PostgresQueryBuilder),
@@ -246,7 +246,7 @@ fn select_17() {
 fn select_18() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).between(3, 5))
             .and_where(Expr::col(Glyph::Aspect).not_between(8, 10))
@@ -259,7 +259,7 @@ fn select_18() {
 fn select_19() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character])
+            .columns([Char::Character])
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).eq("A"))
             .to_string(PostgresQueryBuilder),
@@ -283,7 +283,7 @@ fn select_20() {
 fn select_21() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character])
+            .columns([Char::Character])
             .from(Char::Table)
             .or_where(Expr::col(Char::Character).like("A%"))
             .or_where(Expr::col(Char::Character).like("%B"))
@@ -385,7 +385,7 @@ fn select_26() {
 fn select_27() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
@@ -399,7 +399,7 @@ fn select_27() {
 fn select_28() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .or_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
@@ -414,7 +414,7 @@ fn select_28() {
 fn select_29() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .or_where(Expr::col(Char::SizeH).eq(4))
@@ -428,7 +428,7 @@ fn select_29() {
 fn select_30() {
     assert_eq!(
         Query::select()
-            .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(
                 Expr::col(Char::SizeW)
@@ -640,7 +640,7 @@ fn select_40() {
 fn select_41() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect])
+            .columns([Glyph::Aspect])
             .exprs(vec![Expr::col(Glyph::Image).max()])
             .from(Glyph::Table)
             .group_by_columns(vec![Glyph::Aspect])
@@ -807,7 +807,7 @@ fn select_50() {
 fn select_51() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
@@ -832,7 +832,7 @@ fn select_51() {
 fn select_52() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls(vec![
@@ -855,7 +855,7 @@ fn select_52() {
 fn select_53() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls(vec![
@@ -883,7 +883,7 @@ fn select_54() {
     assert_eq!(
         Query::select()
             .distinct_on(vec![Glyph::Aspect,])
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls(vec![
@@ -925,7 +925,7 @@ fn select_55() {
 fn select_56() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(
@@ -959,7 +959,7 @@ fn select_56() {
 fn select_57() {
     assert_eq!(
         Query::select()
-            .columns(vec![Glyph::Aspect,])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
@@ -1046,7 +1046,7 @@ fn insert_2() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .columns([Glyph::Image, Glyph::Aspect,])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1062,7 +1062,7 @@ fn insert_3() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .columns([Glyph::Image, Glyph::Aspect,])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1079,7 +1079,7 @@ fn insert_4() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Image])
+            .columns([Glyph::Image])
             .values_panic(vec![chrono::NaiveDateTime::from_timestamp(0, 0).into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00')"
@@ -1093,7 +1093,7 @@ fn insert_9() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Image])
+            .columns([Glyph::Image])
             .values_panic(vec![date!(1970 - 01 - 01)
                 .with_time(time!(00:00:00))
                 .into()])
@@ -1108,7 +1108,7 @@ fn insert_5() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Image])
+            .columns([Glyph::Image])
             .values_panic(vec![uuid::Uuid::nil().into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('00000000-0000-0000-0000-000000000000')"
@@ -1121,7 +1121,7 @@ fn insert_from_select() {
         Query::insert()
             .into_table(Glyph::Table)
             .or_default_values()
-            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .columns([Glyph::Aspect, Glyph::Image])
             .select_from(
                 Query::select()
                     .column(Glyph::Aspect)
@@ -1208,7 +1208,7 @@ fn insert_on_conflict_1() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .columns([Glyph::Aspect, Glyph::Image])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1234,7 +1234,7 @@ fn insert_on_conflict_2() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .columns([Glyph::Aspect, Glyph::Image])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1260,7 +1260,7 @@ fn insert_on_conflict_3() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .columns([Glyph::Aspect, Glyph::Image])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1289,7 +1289,7 @@ fn insert_on_conflict_4() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Aspect, Glyph::Image])
+            .columns([Glyph::Aspect, Glyph::Image])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1315,7 +1315,7 @@ fn insert_returning_all_columns() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .columns([Glyph::Image, Glyph::Aspect,])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1332,7 +1332,7 @@ fn insert_returning_specific_columns() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns(vec![Glyph::Image, Glyph::Aspect,])
+            .columns([Glyph::Image, Glyph::Aspect,])
             .values_panic(vec![
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),

@@ -23,7 +23,7 @@ pub(crate) enum InsertValueSource {
 ///
 /// let query = Query::insert()
 ///     .into_table(Glyph::Table)
-///     .columns(vec![Glyph::Aspect, Glyph::Image])
+///     .columns([Glyph::Aspect, Glyph::Image])
 ///     .values_panic(vec![5.15.into(), "12A".into()])
 ///     .values_panic(vec![4.21.into(), "123".into()])
 ///     .to_owned();
@@ -68,7 +68,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .replace()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic(vec![5.15.into(), "12A".into()])
     ///     .to_owned();
     ///
@@ -123,7 +123,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values(vec![2.1345.into(), "24B".into()])
     ///     .unwrap()
     ///     .values_panic(vec![5.15.into(), "12A".into()])
@@ -180,7 +180,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .select_from(Query::select()
     ///         .column(Glyph::Aspect)
     ///         .column(Glyph::Image)
@@ -230,7 +230,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .exprs(vec![
     ///         Expr::val(2).into(),
     ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")),
@@ -315,7 +315,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
     ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
@@ -347,7 +347,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
@@ -381,7 +381,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
     ///     .returning_all()
     ///     .to_owned();
@@ -481,7 +481,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .or_default_values()
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .values_panic(vec!["ABC".into()])
     ///     .to_owned();
     ///
@@ -533,7 +533,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .or_default_values_many(3)
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .values_panic(vec!["ABC".into()])
     ///     .to_owned();
     ///
@@ -581,7 +581,7 @@ impl QueryStatementWriter for InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic(vec![3.1415.into(), "041080".into()])
     ///     .to_owned();
     ///

@@ -79,7 +79,7 @@ fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
-        .columns(vec![
+        .columns([
             Document::Uuid,
             Document::JsonField,
             Document::Timestamp,
@@ -115,7 +115,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Document::Id,
             Document::Uuid,
             Document::JsonField,

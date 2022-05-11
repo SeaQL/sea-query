@@ -84,7 +84,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(1))
     ///     .to_owned();
@@ -114,7 +114,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::SizeW).eq(1))
     ///     .to_owned();
@@ -137,7 +137,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(1))
     ///     .to_owned();
@@ -170,7 +170,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::tuple([Expr::col(Char::SizeW).into_simple_expr(), Expr::value(100)])
@@ -263,7 +263,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).eq(1))
     ///     .to_owned();
@@ -297,7 +297,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::val(1).into())
     ///     .and_where(Expr::val(2.5).into())
@@ -332,7 +332,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::expr(Expr::col(Char::SizeW).if_null(0)).gt(2))
     ///     .to_owned();
@@ -363,7 +363,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::value(1).into())
     ///     .and_where(Expr::value(2.5).into())
@@ -398,7 +398,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::cust("1 = 1").into())
     ///     .to_owned();
@@ -428,7 +428,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
     ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]).into())
@@ -499,7 +499,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::val("What!").eq("Nothing"))
     ///     .and_where(Expr::col(Char::Id).eq(1))
@@ -533,7 +533,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::val("Morning").ne("Good"))
     ///     .and_where(Expr::col(Char::Id).ne(1))
@@ -568,7 +568,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///     .to_owned();
@@ -605,7 +605,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).gt(2))
     ///     .to_owned();
@@ -638,7 +638,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::tbl(Char::Table, Char::SizeW)
@@ -673,7 +673,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).gte(2))
     ///     .to_owned();
@@ -706,7 +706,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::tbl(Char::Table, Char::SizeW)
@@ -742,7 +742,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).lt(2))
     ///     .to_owned();
@@ -775,7 +775,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::tbl(Char::Table, Char::SizeW)
@@ -811,7 +811,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).lte(2))
     ///     .to_owned();
@@ -844,7 +844,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::tbl(Char::Table, Char::SizeW)
@@ -880,7 +880,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::val(1).add(1).equals(Expr::value(2)))
     ///     .to_owned();
@@ -914,7 +914,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::val(1).sub(1).equals(Expr::value(2)))
     ///     .to_owned();
@@ -948,7 +948,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::val(1).mul(1).equals(Expr::value(2)))
     ///     .to_owned();
@@ -982,7 +982,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::val(1).div(1).equals(Expr::value(2)))
     ///     .to_owned();
@@ -1016,7 +1016,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).between(1, 10))
     ///     .to_owned();
@@ -1049,7 +1049,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).not_between(1, 10))
     ///     .to_owned();
@@ -1096,7 +1096,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::Character).like("Ours'%"))
     ///     .to_owned();
@@ -1136,7 +1136,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_null())
     ///     .to_owned();
@@ -1167,7 +1167,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_null())
     ///     .to_owned();
@@ -1197,7 +1197,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .cond_where(all![
     ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, Expr::value(10)),
@@ -1232,7 +1232,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::expr(Expr::tbl(Char::Table, Char::SizeW).is_null()).not())
     ///     .to_owned();
@@ -1419,7 +1419,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Id])
+    ///     .columns([Char::Id])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in(vec![1, 2, 3]))
     ///     .to_owned();
@@ -1442,7 +1442,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Id])
+    ///     .columns([Char::Id])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in(Vec::<u8>::new()))
     ///     .to_owned();
@@ -1481,7 +1481,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Id])
+    ///     .columns([Char::Id])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in(vec![1, 2, 3]))
     ///     .to_owned();
@@ -1504,7 +1504,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Id])
+    ///     .columns([Char::Id])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in(Vec::<u8>::new()))
     ///     .to_owned();
@@ -1543,7 +1543,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::SizeW).in_subquery(
     ///         Query::select()
@@ -1582,7 +1582,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::SizeW).not_in_subquery(
     ///         Query::select()
@@ -1621,7 +1621,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
     ///     .and_where(Expr::val("a & b").matches(Expr::val("a b")))
     ///     .and_where(Expr::col(Font::Name).matches(Expr::val("a b")))
@@ -1648,7 +1648,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
     ///     .and_where(Expr::val("a & b").contains(Expr::val("a b")))
     ///     .and_where(Expr::col(Font::Name).contains(Expr::val("a b")))
@@ -1675,7 +1675,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
     ///     .and_where(Expr::val("a & b").contained(Expr::val("a b")))
     ///     .and_where(Expr::col(Font::Name).contained(Expr::val("a b")))
@@ -1702,7 +1702,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
     ///     .and_where(Expr::val("a").concatenate(Expr::val("b")))
     ///     .and_where(Expr::val("c").concat(Expr::val("d")))
@@ -1780,7 +1780,7 @@ impl Expr {
     ///
     /// let query = Query::insert()
     ///     .into_table(Char::Table)
-    ///     .columns(vec![Char::FontSize])
+    ///     .columns([Char::FontSize])
     ///     .exprs_panic(vec![Expr::val("large").as_enum(Alias::new("FontSizeEnum"))])
     ///     .to_owned();
     ///
@@ -1896,7 +1896,7 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .or_where(Expr::col(Char::SizeW).eq(1).and(Expr::col(Char::SizeH).eq(2)))
     ///     .or_where(Expr::col(Char::SizeW).eq(3).and(Expr::col(Char::SizeH).eq(4)))
@@ -1927,7 +1927,7 @@ impl SimpleExpr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::SizeW).eq(1).or(Expr::col(Char::SizeH).eq(2)))
     ///     .and_where(Expr::col(Char::SizeW).eq(3).or(Expr::col(Char::SizeH).eq(4)))
@@ -2172,7 +2172,7 @@ impl SimpleExpr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Font::Name, Font::Variant, Font::Language])
+    ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
     ///     .and_where(
     ///         Expr::val("a")

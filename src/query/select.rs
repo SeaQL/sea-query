@@ -475,7 +475,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -497,7 +497,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .columns(vec![
+    ///     .columns([
     ///         (Char::Table, Char::Character),
     ///         (Char::Table, Char::SizeW),
     ///         (Char::Table, Char::SizeH),
@@ -996,10 +996,10 @@ impl SelectStatement {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .from_subquery(
     ///         Query::select()
-    ///             .columns(vec![Glyph::Image, Glyph::Aspect])
+    ///             .columns([Glyph::Image, Glyph::Aspect])
     ///             .from(Glyph::Table)
     ///             .take(),
     ///         Alias::new("subglyph"),
@@ -2113,7 +2113,7 @@ impl SelectStatement {
     ///             .query(
     ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
     ///             )
-    ///             .columns(vec![Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
+    ///             .columns([Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
     ///             .table_name(Alias::new("cte_traversal"))
     ///             .to_owned();
     ///

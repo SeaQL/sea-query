@@ -382,7 +382,7 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::insert()
 //!     .into_table(Glyph::Table)
-//!     .columns(vec![Glyph::Aspect, Glyph::Image])
+//!     .columns([Glyph::Aspect, Glyph::Image])
 //!     .values_panic(vec![5.15.into(), "12A".into()])
 //!     .values_panic(vec![4.21.into(), "123".into()])
 //!     .to_owned();

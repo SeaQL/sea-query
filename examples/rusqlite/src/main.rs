@@ -45,7 +45,7 @@ fn main() -> Result<()> {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![
+        .columns([
             Character::Uuid,
             Character::FontSize,
             Character::Character,
@@ -104,7 +104,7 @@ fn main() -> Result<()> {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Uuid,
             Character::FontSize,
@@ -146,7 +146,7 @@ fn main() -> Result<()> {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Uuid,
             Character::FontSize,

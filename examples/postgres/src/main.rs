@@ -36,7 +36,7 @@ fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![Character::Character, Character::FontSize])
+        .columns([Character::Character, Character::FontSize])
         .values_panic(vec!["A".into(), 12.into()])
         .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
@@ -48,7 +48,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Character,
             Character::FontSize,
@@ -80,7 +80,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Character,
             Character::FontSize,
