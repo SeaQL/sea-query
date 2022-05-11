@@ -317,7 +317,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns(vec![Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
-    ///     .returning(Query::returning().columns(vec![Glyph::Id.into_column_ref()]))
+    ///     .returning(Query::returning().column(Glyph::Id))
     ///     .to_owned();
     ///
     /// assert_eq!(

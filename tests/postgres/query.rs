@@ -1337,7 +1337,7 @@ fn insert_returning_specific_columns() {
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .returning(Query::returning().columns(vec![Glyph::Id, Glyph::Image,]))
+            .returning(Query::returning().columns([Glyph::Id, Glyph::Image,]))
             .to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415) RETURNING "id", "image""#
     );
@@ -1405,7 +1405,7 @@ fn update_returning_specified_columns() {
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])
             .and_where(Expr::col(Glyph::Id).eq(1))
-            .returning(Query::returning().columns(vec![Glyph::Id, Glyph::Image]))
+            .returning(Query::returning().columns([Glyph::Id, Glyph::Image]))
             .to_string(PostgresQueryBuilder),
         r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1 RETURNING "id", "image""#
     );
@@ -1440,7 +1440,7 @@ fn delete_returning_specific_columns() {
         Query::delete()
             .from_table(Glyph::Table)
             .and_where(Expr::col(Glyph::Id).eq(1))
-            .returning(Query::returning().columns(vec![Glyph::Id, Glyph::Image]))
+            .returning(Query::returning().columns([Glyph::Id, Glyph::Image]))
             .to_string(PostgresQueryBuilder),
         r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     );

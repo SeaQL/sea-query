@@ -111,7 +111,7 @@ impl DeleteStatement {
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Query::returning().columns(vec![Glyph::Id.into_column_ref()]))
+    ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
     /// assert_eq!(
