@@ -1,6 +1,6 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict, Query,
-    QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr,
     SubQueryStatement, WithClause, WithQuery,
 };
 
@@ -48,7 +48,7 @@ pub struct InsertStatement {
     pub(crate) columns: Vec<DynIden>,
     pub(crate) source: Option<InsertValueSource>,
     pub(crate) on_conflict: Option<OnConflict>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Option<ReturningClause>,
     pub(crate) default_values: Option<u32>,
 }
 
@@ -308,12 +308,7 @@ impl InsertStatement {
 
     /// RETURNING expressions.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -322,7 +317,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns(vec![Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -338,20 +333,14 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning: ReturningClause) -> &mut Self {
+        self.returning = Some(returning);
         self
     }
 
-    /// RETURNING a column after insertion. This is equivalent to MySQL's LAST_INSERT_ID.
-    /// Wrapper over [`InsertStatement::returning()`].
+    /// RETURNING expressions for a column.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -378,9 +367,40 @@ impl InsertStatement {
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
-        C: IntoIden,
+        C: IntoColumnRef,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(ReturningClause::Columns(vec![col.into_column_ref()]))
+    }
+
+    /// RETURNING expressions all columns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns(vec![Glyph::Image])
+    ///     .values_panic(vec!["12A".into()])
+    ///     .returning_all()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// ```
+    pub fn returning_all(&mut self) -> &mut Self {
+        self.returning(ReturningClause::All)
     }
 
     /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.

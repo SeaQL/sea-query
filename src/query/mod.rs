@@ -13,6 +13,7 @@ mod delete;
 mod insert;
 mod on_conflict;
 mod ordered;
+mod returning;
 mod select;
 mod shim;
 mod traits;
@@ -26,6 +27,7 @@ pub use delete::*;
 pub use insert::*;
 pub use on_conflict::*;
 pub use ordered::*;
+pub use returning::*;
 pub use select::*;
 pub use traits::*;
 pub use update::*;
@@ -78,5 +80,10 @@ impl Query {
     /// Construct [`WithClause`]
     pub fn with() -> WithClause {
         WithClause::new()
+    }
+
+    /// Construct [`Returning`]
+    pub fn returning() -> Returning {
+        Returning::new()
     }
 }
