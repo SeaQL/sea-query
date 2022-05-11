@@ -236,7 +236,7 @@ impl UpdateStatement {
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Query::returning().column(Glyph::Id))
+    ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
     /// assert_eq!(
