@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.24.6 - 2022-05-12
+
+* Make `sea-query-driver` an optional dependency https://github.com/SeaQL/sea-query/pull/324
+
 ## 0.24.5 - 2022-05-09
 
 * Insert `or_default_values` https://github.com/SeaQL/sea-query/pull/266
