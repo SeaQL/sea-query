@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Insert Default https://github.com/SeaQL/sea-query/pull/266
 
+## 0.24.6 - 2022-05-12
+
+* Make `sea-query-driver` an optional dependency https://github.com/SeaQL/sea-query/pull/324
+
+## 0.24.5 - 2022-05-09
+
+* Insert `or_default_values` https://github.com/SeaQL/sea-query/pull/266
+
 ## 0.24.4 - 2022-04-26
 
 * update sea-query-driver
