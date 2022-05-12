@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * Insert Default https://github.com/SeaQL/sea-query/pull/266
+* Make `sea-query-driver` an optional dependency https://github.com/SeaQL/sea-query/pull/324
+
+### Breaking Changes
+
+* Introducing a dedicated `ReturningClause` instead of reusing `Select` on `returning`: https://github.com/SeaQL/sea-query/pull/317
+
+```rust
+.returning(Query::select().column(Glyph::Id).take()) // before
+.returning(Query::returning().columns([Glyph::Id])) // now
+```
 
 ## 0.24.6 - 2022-05-12
 
