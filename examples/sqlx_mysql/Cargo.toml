@@ -17,7 +17,7 @@ sea-query = { path = "../../", features = [
     "with-json",
     "with-rust_decimal",
     "with-bigdecimal",
-    "with-uuid",
+    "with-uuid-0",
     "with-time",
 ] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
@@ -27,7 +27,7 @@ sea-query = { path = "../../", features = [
 #     "with-json",
 #     "with-rust_decimal",
 #     "with-bigdecimal",
-#     "with-uuid",
+#     "with-uuid-0",
 #     "with-time",
 # ] }
 

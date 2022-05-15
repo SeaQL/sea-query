@@ -38,8 +38,8 @@ pub fn bind_params_sqlx_mysql_impl(input: TokenStream) -> TokenStream {
         quote! {}
     };
 
-    let with_uuid = if cfg!(feature = "with-uuid") {
-        quote! { Value::Uuid(v) => bind_box!(v), }
+    let with_uuid = if cfg!(feature = "with-uuid-0") {
+        quote! { Value::Uuid0(v) => bind_box!(v), }
     } else {
         quote! {}
     };

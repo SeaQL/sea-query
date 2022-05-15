@@ -46,7 +46,7 @@ chrono = { version = "^0", optional = true }
 postgres-types = { version = "^0", optional = true }
 rust_decimal = { version = "^1", optional = true }
 bigdecimal = { version = "^0.2", optional = true }
-uuid = { version = "^0", optional = true }
+uuid-0 = { version = "^0", package = "uuid", optional = true }
 proc-macro2 = { version = "1", optional = true }
 quote = { version = "^1", optional = true }
 time = { version = "^0.2", optional = true }
@@ -67,7 +67,7 @@ postgres-chrono = ["with-chrono", "postgres-types/with-chrono-0_4"]
 postgres-json = ["with-json", "postgres-types/with-serde_json-1"]
 postgres-rust_decimal = ["with-rust_decimal", "rust_decimal/db-postgres"]
 postgres-bigdecimal = ["with-bigdecimal"]
-postgres-uuid = ["with-uuid", "postgres-types/with-uuid-0_8"]
+postgres-uuid-0 = ["with-uuid-0", "postgres-types/with-uuid-0_8"]
 postgres-array = ["postgres-types/array-impls", "sea-query-driver?/postgres-array"]
 postgres-interval = ["proc-macro2", "quote"]
 postgres-time = ["with-time", "postgres-types/with-time-0_2"]
@@ -80,7 +80,7 @@ with-chrono = ["chrono", "sea-query-driver?/with-chrono"]
 with-json = ["serde_json", "sea-query-driver?/with-json"]
 with-rust_decimal = ["rust_decimal", "sea-query-driver?/with-rust_decimal"]
 with-bigdecimal = ["bigdecimal", "sea-query-driver?/with-bigdecimal"]
-with-uuid = ["uuid", "sea-query-driver?/with-uuid"]
+with-uuid-0 = ["uuid-0", "sea-query-driver?/with-uuid-0"]
 with-time = ["time", "sea-query-driver?/with-time"]
 
 [[test]]

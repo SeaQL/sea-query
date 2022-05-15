@@ -38,7 +38,7 @@ pub enum ColumnType {
     Money(Option<(u32, u32)>),
     Json,
     JsonBinary,
-    Uuid,
+    Uuid0,
     Custom(DynIden),
     Enum(String, Vec<String>),
     Array(Option<String>),
@@ -463,9 +463,9 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as uuid
-    pub fn uuid(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Uuid);
+    /// Set column type as uuid 0.x
+    pub fn uuid_0(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::Uuid0);
         self
     }
 

@@ -12,7 +12,7 @@ sea-query = { path = "../../", features = [
     "rusqlite",
     "with-chrono",
     "with-json",
-    "with-uuid",
+    "with-uuid-0",
     "with-time",
 ] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
@@ -20,7 +20,7 @@ sea-query = { path = "../../", features = [
 #     "rusqlite",
 #     "with-chrono",
 #     "with-json",
-#     "with-uuid",
+#     "with-uuid-0",
 #     "with-time",
 # ] }
 

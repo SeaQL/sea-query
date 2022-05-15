@@ -108,7 +108,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 },
                 ColumnType::Json => "text".into(),
                 ColumnType::JsonBinary => "text".into(),
-                ColumnType::Uuid => "text(36)".into(),
+                ColumnType::Uuid0 => "text(36)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(_, _) => "text".into(),
                 ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),

@@ -15,7 +15,7 @@ sea-query = { path = "../../", features = [
     "postgres-chrono",
     "postgres-json",
     "postgres-rust_decimal",
-    "postgres-uuid",
+    "postgres-uuid-0",
     "postgres-array",
     "postgres-time",
 ] }
@@ -25,6 +25,6 @@ sea-query = { path = "../../", features = [
 #     "postgres-chrono",
 #     "postgres-json",
 #     "postgres-rust_decimal",
-#     "postgres-uuid",
+#     "postgres-uuid-0",
 #     "postgres-time",
 # ] }

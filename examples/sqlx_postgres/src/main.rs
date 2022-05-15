@@ -31,7 +31,7 @@ async fn main() {
                 .auto_increment()
                 .primary_key(),
         )
-        .col(ColumnDef::new(Character::Uuid).uuid())
+        .col(ColumnDef::new(Character::Uuid).uuid_0())
         .col(ColumnDef::new(Character::FontSize).integer())
         .col(ColumnDef::new(Character::Character).string())
         .col(ColumnDef::new(Character::Meta).json())

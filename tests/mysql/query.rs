@@ -1069,13 +1069,13 @@ fn insert_8() {
 }
 
 #[test]
-#[cfg(feature = "with-uuid")]
+#[cfg(feature = "with-uuid-0")]
 fn insert_5() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic(vec![uuid::Uuid::nil().into()])
+            .values_panic(vec![uuid_0::Uuid::nil().into()])
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` (`image`) VALUES ('00000000-0000-0000-0000-000000000000')"
     );

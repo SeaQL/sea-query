@@ -38,9 +38,9 @@ pub fn sea_query_driver_rusqlite_impl(input: TokenStream) -> TokenStream {
         quote! {}
     };
 
-    let with_uuid = if cfg!(feature = "with-uuid") {
+    let with_uuid = if cfg!(feature = "with-uuid-0") {
         quote! {
-            Value::Uuid(v) => box_to_sql!(v),
+            Value::Uuid0(v) => box_to_sql!(v),
         }
     } else {
         quote! {}
