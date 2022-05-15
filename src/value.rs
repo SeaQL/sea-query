@@ -21,6 +21,9 @@ use bigdecimal::BigDecimal;
 #[cfg(feature = "with-uuid-0")]
 use uuid_0::Uuid as Uuid0;
 
+#[cfg(feature = "with-uuid")]
+use uuid::Uuid;
+
 #[cfg(feature = "with-ipnetwork")]
 use ipnetwork::{Ipv4Network, Ipv6Network};
 
@@ -100,6 +103,10 @@ pub enum Value {
     #[cfg(feature = "with-uuid-0")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid-0")))]
     Uuid0(Option<Box<Uuid0>>),
+
+    #[cfg(feature = "with-uuid")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    Uuid(Option<Box<Uuid>>),
 
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
@@ -490,6 +497,14 @@ mod with_uuid_0 {
     type_to_box_value!(Uuid0, Uuid0, Uuid0);
 }
 
+#[cfg(feature = "with-uuid")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+mod with_uuid {
+    use super::*;
+
+    type_to_box_value!(Uuid, Uuid, Uuid);
+}
+
 #[cfg(feature = "postgres-array")]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 mod with_array {
@@ -547,6 +562,9 @@ mod with_array {
 
     #[cfg(feature = "with-uuid-0")]
     impl NotU8 for Uuid0 {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for Uuid {}
 
     impl<T> From<Vec<T>> for Value
     where
@@ -830,6 +848,19 @@ impl Value {
         match self {
             Self::Uuid0(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Uuid0"),
+        }
+    }
+}
+
+#[cfg(feature = "with-uuid")]
+impl Value {
+    pub fn is_uuid(&self) -> bool {
+        matches!(self, Self::Uuid(_))
+    }
+    pub fn as_ref_uuid(&self) -> Option<&Uuid> {
+        match self {
+            Self::Uuid(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Uuid"),
         }
     }
 }
@@ -1199,6 +1230,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid-0")]
         Value::Uuid0(None) => Json::Null,
+        #[cfg(feature = "with-uuid")]
+        Value::Uuid(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
@@ -1253,6 +1286,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid-0")]
         Value::Uuid0(Some(v)) => Json::String(v.to_string()),
+        #[cfg(feature = "with-uuid")]
+        Value::Uuid(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
         Value::Array(Some(v)) => {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
@@ -1671,6 +1706,15 @@ mod tests {
         let uuid = uuid_0::Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
         let value: Value = uuid.into();
         let out: uuid_0::Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+    }
+
+    #[test]
+    #[cfg(feature = "with-uuid")]
+    fn test_uuid_value() {
+        let uuid = uuid::Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
+        let value: Value = uuid.into();
+        let out: uuid::Uuid = value.unwrap();
         assert_eq!(out, uuid);
     }
 

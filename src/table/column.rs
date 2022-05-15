@@ -39,6 +39,7 @@ pub enum ColumnType {
     Json,
     JsonBinary,
     Uuid0,
+    Uuid,
     Custom(DynIden),
     Enum(String, Vec<String>),
     Array(Option<String>),
@@ -466,6 +467,12 @@ impl ColumnDef {
     /// Set column type as uuid 0.x
     pub fn uuid_0(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Uuid0);
+        self
+    }
+
+    /// Set column type as uuid
+    pub fn uuid(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::Uuid);
         self
     }
 
