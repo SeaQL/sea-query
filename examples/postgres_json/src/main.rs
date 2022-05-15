@@ -25,7 +25,7 @@ fn main() {
                     .auto_increment()
                     .primary_key(),
             )
-            .col(ColumnDef::new(Document::Uuid).uuid_0())
+            .col(ColumnDef::new(Document::Uuid).uuid())
             .col(ColumnDef::new(Document::JsonField).json_binary())
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
