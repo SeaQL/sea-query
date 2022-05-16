@@ -1400,6 +1400,7 @@ fn delete_returning_all_columns() {
     );
 }
 
+#[test]
 fn delete_returning_specific_columns() {
     assert_eq!(
         Query::delete()
