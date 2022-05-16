@@ -1432,18 +1432,7 @@ fn escape_1() {
     assert_eq!(
         PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
         test
-
-#[test]
-fn delete_returning_all_columns() {
-    assert_eq!(
-        Query::delete()
-            .from_table(Glyph::Table)
-            .and_where(Expr::col(Glyph::Id).eq(1))
-            .returning(Query::returning().all())
-            .to_string(PostgresQueryBuilder),
-        r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING *"#
->>>>>>> origin/master
-    );
+    )
 }
 
 #[test]
@@ -1475,10 +1464,27 @@ fn escape_3() {
 #[test]
 fn escape_4() {
     let test = "a\"b";
-    assert_eq!(PostgresQueryBuilder.escape_string(test), "a\\\"b".to_owned());
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        "a\\\"b".to_owned()
+    );
     assert_eq!(
         PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
         test
+    )
+}
+
+#[test]
+fn delete_returning_all_columns() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Query::returning().all())
+            .to_string(PostgresQueryBuilder),
+        r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING *"#
+    );
+}
 
 #[test]
 fn delete_returning_specific_columns() {
