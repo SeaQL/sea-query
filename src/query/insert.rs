@@ -1,6 +1,6 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict, Query,
-    QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr,
     SubQueryStatement, WithClause, WithQuery,
 };
 
@@ -23,7 +23,7 @@ pub(crate) enum InsertValueSource {
 ///
 /// let query = Query::insert()
 ///     .into_table(Glyph::Table)
-///     .columns(vec![Glyph::Aspect, Glyph::Image])
+///     .columns([Glyph::Aspect, Glyph::Image])
 ///     .values_panic(vec![5.15.into(), "12A".into()])
 ///     .values_panic(vec![4.21.into(), "123".into()])
 ///     .to_owned();
@@ -48,7 +48,8 @@ pub struct InsertStatement {
     pub(crate) columns: Vec<DynIden>,
     pub(crate) source: Option<InsertValueSource>,
     pub(crate) on_conflict: Option<OnConflict>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Option<ReturningClause>,
+    pub(crate) default_values: Option<u32>,
 }
 
 impl InsertStatement {
@@ -67,7 +68,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .replace()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic(vec![5.15.into(), "12A".into()])
     ///     .to_owned();
     ///
@@ -122,7 +123,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values(vec![2.1345.into(), "24B".into()])
     ///     .unwrap()
     ///     .values_panic(vec![5.15.into(), "12A".into()])
@@ -179,7 +180,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .select_from(Query::select()
     ///         .column(Glyph::Aspect)
     ///         .column(Glyph::Image)
@@ -229,7 +230,7 @@ impl InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .exprs(vec![
     ///         Expr::val(2).into(),
     ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")),
@@ -261,17 +262,19 @@ impl InsertStatement {
                 val_len: values.len(),
             });
         }
-        let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
-            values
-        } else {
-            self.source = Some(InsertValueSource::Values(Default::default()));
-            if let Some(InsertValueSource::Values(values)) = &mut self.source {
+        if !values.is_empty() {
+            let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
                 values
             } else {
-                unreachable!();
-            }
-        };
-        values_source.push(values);
+                self.source = Some(InsertValueSource::Values(Default::default()));
+                if let Some(InsertValueSource::Values(values)) = &mut self.source {
+                    values
+                } else {
+                    unreachable!();
+                }
+            };
+            values_source.push(values);
+        }
         Ok(self)
     }
 
@@ -305,21 +308,16 @@ impl InsertStatement {
 
     /// RETURNING expressions.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -335,27 +333,21 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning: ReturningClause) -> &mut Self {
+        self.returning = Some(returning);
         self
     }
 
-    /// RETURNING a column after insertion. This is equivalent to MySQL's LAST_INSERT_ID.
-    /// Wrapper over [`InsertStatement::returning()`].
+    /// RETURNING expressions for a column.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .values_panic(vec!["12A".into()])
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
@@ -375,9 +367,40 @@ impl InsertStatement {
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
-        C: IntoIden,
+        C: IntoColumnRef,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(ReturningClause::Columns(vec![col.into_column_ref()]))
+    }
+
+    /// RETURNING expressions all columns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Image])
+    ///     .values_panic(vec!["12A".into()])
+    ///     .returning_all()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// ```
+    pub fn returning_all(&mut self) -> &mut Self {
+        self.returning(ReturningClause::All)
     }
 
     /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
@@ -427,6 +450,110 @@ impl InsertStatement {
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
+
+    /// Insert with default values if columns and values are not supplied.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// // Insert default
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .or_default_values()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` VALUES ()"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" DEFAULT VALUES"#
+    /// );
+    ///
+    /// // Ordinary insert as columns and values are supplied
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .or_default_values()
+    ///     .columns([Glyph::Image])
+    ///     .values_panic(vec!["ABC".into()])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`image`) VALUES ('ABC')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
+    /// );
+    /// ```
+    pub fn or_default_values(&mut self) -> &mut Self {
+        self.default_values = Some(1);
+        self
+    }
+
+    /// Insert multiple rows with default values if columns and values are not supplied.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// // Insert default
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .or_default_values_many(3)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` VALUES (), (), ()"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" VALUES (DEFAULT), (DEFAULT), (DEFAULT)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" DEFAULT VALUES"#
+    /// );
+    ///
+    /// // Ordinary insert as columns and values are supplied
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .or_default_values_many(3)
+    ///     .columns([Glyph::Image])
+    ///     .values_panic(vec!["ABC".into()])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`image`) VALUES ('ABC')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
+    /// );
+    /// ```
+    pub fn or_default_values_many(&mut self, num_rows: u32) -> &mut Self {
+        self.default_values = Some(num_rows);
+        self
+    }
 }
 
 impl QueryStatementBuilder for InsertStatement {
@@ -454,7 +581,7 @@ impl QueryStatementWriter for InsertStatement {
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
-    ///     .columns(vec![Glyph::Aspect, Glyph::Image])
+    ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic(vec![3.1415.into(), "041080".into()])
     ///     .to_owned();
     ///

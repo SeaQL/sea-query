@@ -5,7 +5,7 @@ fn insert_values_1() {
     let mut insert = Query::insert();
     let result = insert
         .into_table(Glyph::Table)
-        .columns(vec![Glyph::Image, Glyph::Aspect])
+        .columns([Glyph::Image, Glyph::Aspect])
         .values(vec![String::from("").into()]);
 
     assert!(result.is_err());

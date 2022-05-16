@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use heck::SnakeCase;
+use heck::ToSnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};

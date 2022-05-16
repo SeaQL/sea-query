@@ -20,6 +20,15 @@ use bigdecimal::BigDecimal;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
+#[cfg(feature = "with-ipnetwork")]
+use ipnetwork::{Ipv4Network, Ipv6Network};
+
+#[cfg(feature = "with-ipnetwork")]
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+#[cfg(feature = "with-mac_address")]
+use mac_address::MacAddress;
+
 use crate::ColumnType;
 
 /// Value variants
@@ -102,6 +111,18 @@ pub enum Value {
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
     Array(Option<Box<Vec<Value>>>),
+
+    #[cfg(feature = "with-ipnetwork")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+    Ipv4Network(Option<Box<Ipv4Network>>),
+
+    #[cfg(feature = "with-ipnetwork")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+    Ipv6Network(Option<Box<Ipv6Network>>),
+
+    #[cfg(feature = "with-mac_address")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+    MacAddress(Option<Box<MacAddress>>),
 }
 
 pub trait ValueType: Sized {
@@ -579,7 +600,7 @@ macro_rules! box_to_opt_ref {
 #[cfg(feature = "with-json")]
 impl Value {
     pub fn is_json(&self) -> bool {
-        return matches!(self, Self::Json(_));
+        matches!(self, Self::Json(_))
     }
 
     pub fn as_ref_json(&self) -> Option<&Json> {
@@ -593,7 +614,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date(&self) -> bool {
-        return matches!(self, Self::ChronoDate(_));
+        matches!(self, Self::ChronoDate(_))
     }
 
     pub fn as_ref_chrono_date(&self) -> Option<&NaiveDate> {
@@ -607,7 +628,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_date(&self) -> bool {
-        return matches!(self, Self::TimeDate(_));
+        matches!(self, Self::TimeDate(_))
     }
 
     pub fn as_ref_time_date(&self) -> Option<&time::Date> {
@@ -621,7 +642,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_time(&self) -> bool {
-        return matches!(self, Self::ChronoTime(_));
+        matches!(self, Self::ChronoTime(_))
     }
 
     pub fn as_ref_chrono_time(&self) -> Option<&NaiveTime> {
@@ -635,7 +656,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_time(&self) -> bool {
-        return matches!(self, Self::TimeTime(_));
+        matches!(self, Self::TimeTime(_))
     }
 
     pub fn as_ref_time_time(&self) -> Option<&time::Time> {
@@ -649,7 +670,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time(&self) -> bool {
-        return matches!(self, Self::ChronoDateTime(_));
+        matches!(self, Self::ChronoDateTime(_))
     }
 
     pub fn as_ref_chrono_date_time(&self) -> Option<&NaiveDateTime> {
@@ -663,7 +684,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_date_time(&self) -> bool {
-        return matches!(self, Self::TimeDateTime(_));
+        matches!(self, Self::TimeDateTime(_))
     }
 
     pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
@@ -677,7 +698,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time_utc(&self) -> bool {
-        return matches!(self, Self::ChronoDateTimeUtc(_));
+        matches!(self, Self::ChronoDateTimeUtc(_))
     }
 
     pub fn as_ref_chrono_date_time_utc(&self) -> Option<&DateTime<Utc>> {
@@ -691,7 +712,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time_local(&self) -> bool {
-        return matches!(self, Self::ChronoDateTimeLocal(_));
+        matches!(self, Self::ChronoDateTimeLocal(_))
     }
 
     pub fn as_ref_chrono_date_time_local(&self) -> Option<&DateTime<Local>> {
@@ -705,7 +726,7 @@ impl Value {
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn is_chrono_date_time_with_time_zone(&self) -> bool {
-        return matches!(self, Self::ChronoDateTimeWithTimeZone(_));
+        matches!(self, Self::ChronoDateTimeWithTimeZone(_))
     }
 
     pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
@@ -719,7 +740,7 @@ impl Value {
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn is_time_date_time_with_time_zone(&self) -> bool {
-        return matches!(self, Self::TimeDateTimeWithTimeZone(_));
+        matches!(self, Self::TimeDateTimeWithTimeZone(_))
     }
 
     pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
@@ -763,16 +784,19 @@ impl Value {
 #[cfg(feature = "with-rust_decimal")]
 impl Value {
     pub fn is_decimal(&self) -> bool {
-        return matches!(self, Self::Decimal(_));
+        matches!(self, Self::Decimal(_))
     }
+
     pub fn as_ref_decimal(&self) -> Option<&Decimal> {
         match self {
             Self::Decimal(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Decimal"),
         }
     }
+
     pub fn decimal_to_f64(&self) -> Option<f64> {
         use rust_decimal::prelude::ToPrimitive;
+
         self.as_ref_decimal().map(|d| d.to_f64().unwrap())
     }
 }
@@ -780,14 +804,16 @@ impl Value {
 #[cfg(feature = "with-bigdecimal")]
 impl Value {
     pub fn is_big_decimal(&self) -> bool {
-        return matches!(self, Self::BigDecimal(_));
+        matches!(self, Self::BigDecimal(_))
     }
+
     pub fn as_ref_big_decimal(&self) -> Option<&BigDecimal> {
         match self {
             Self::BigDecimal(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::BigDecimal"),
         }
     }
+
     pub fn big_decimal_to_f64(&self) -> Option<f64> {
         use bigdecimal::ToPrimitive;
         self.as_ref_big_decimal().map(|d| d.to_f64().unwrap())
@@ -797,7 +823,7 @@ impl Value {
 #[cfg(feature = "with-uuid")]
 impl Value {
     pub fn is_uuid(&self) -> bool {
-        return matches!(self, Self::Uuid(_));
+        matches!(self, Self::Uuid(_))
     }
     pub fn as_ref_uuid(&self) -> Option<&Uuid> {
         match self {
@@ -810,13 +836,74 @@ impl Value {
 #[cfg(feature = "postgres-array")]
 impl Value {
     pub fn is_array(&self) -> bool {
-        return matches!(self, Self::Array(_));
+        matches!(self, Self::Array(_))
     }
 
     pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
         match self {
             Self::Array(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Array"),
+        }
+    }
+}
+
+#[cfg(feature = "with-ipnetwork")]
+impl Value {
+    pub fn is_ipv4network(&self) -> bool {
+        matches!(self, Self::Ipv4Network(_))
+    }
+
+    pub fn is_ipv6network(&self) -> bool {
+        matches!(self, Self::Ipv6Network(_))
+    }
+
+    pub fn as_ref_ipv4network(&self) -> Option<&Ipv4Network> {
+        match self {
+            Self::Ipv4Network(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Ipv4Network"),
+        }
+    }
+
+    pub fn as_ref_ipv6network(&self) -> Option<&Ipv6Network> {
+        match self {
+            Self::Ipv6Network(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Ipv6Network"),
+        }
+    }
+
+    pub fn as_ipv4addr(&self) -> Option<Ipv4Addr> {
+        match self {
+            Self::Ipv4Network(v) => v.clone().map(|v| v.network()),
+            _ => panic!("not Value::Ipv6Network"),
+        }
+    }
+
+    pub fn as_ipv6addr(&self) -> Option<Ipv6Addr> {
+        match self {
+            Self::Ipv6Network(v) => v.clone().map(|v| v.network()),
+            _ => panic!("not Value::Ipv6Network"),
+        }
+    }
+
+    pub fn as_ipaddr(&self) -> Option<IpAddr> {
+        match self {
+            Self::Ipv4Network(v) => v.clone().map(|v| IpAddr::V4(v.network())),
+            Self::Ipv6Network(v) => v.clone().map(|v| IpAddr::V6(v.network())),
+            _ => panic!("not Value::Ipv6Network or Value::Ipv4Network"),
+        }
+    }
+}
+
+#[cfg(feature = "with-mac_address")]
+impl Value {
+    pub fn is_mac_address(&self) -> bool {
+        matches!(self, Self::MacAddress(_))
+    }
+
+    pub fn as_ref_mac_address(&self) -> Option<&MacAddress> {
+        match self {
+            Self::MacAddress(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::MacAddress"),
         }
     }
 }
@@ -1069,6 +1156,12 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Uuid(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
+        #[cfg(feature = "with-ipnetwork")]
+        Value::Ipv4Network(None) => Json::Null,
+        #[cfg(feature = "with-ipnetwork")]
+        Value::Ipv6Network(None) => Json::Null,
+        #[cfg(feature = "with-mac_address")]
+        Value::MacAddress(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -1119,6 +1212,12 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Array(Some(v)) => {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
         }
+        #[cfg(feature = "with-ipnetwork")]
+        Value::Ipv4Network(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-ipnetwork")]
+        Value::Ipv6Network(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-mac_address")]
+        Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
 

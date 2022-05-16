@@ -32,7 +32,7 @@ pub trait OrderedStatement {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Glyph::Aspect])
+    ///     .columns([Glyph::Aspect])
     ///     .from(Glyph::Table)
     ///     .order_by(
     ///         Glyph::Id,

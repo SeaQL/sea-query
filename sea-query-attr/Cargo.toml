@@ -1,9 +1,9 @@
 [package]
-name = "sea-query-derive"
-version = "0.2.0"
-authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>" ]
+name = "sea-query-attr"
+version = "0.1.1"
+authors = [ "Pedro Henrique <hello@exst.fun>" ]
 edition = "2021"
-description = "Derive macro for sea-query's Iden trait"
+description = "Proc macros for useful features in Sea Query"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
@@ -14,11 +14,10 @@ keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
 proc-macro = true
 
 [dependencies]
-syn = { version = "1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
-quote = "1"
-heck = "0.4"
-proc-macro2 = "1"
-thiserror = "^1.0"
+syn = { version = "^1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
+quote = "^1"
+heck = "^0.4"
+darling = "^0.14"
 
 [dev-dependencies]
 trybuild = "^1.0"

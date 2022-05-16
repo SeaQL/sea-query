@@ -60,7 +60,7 @@ fn main() {
     };
     let (sql, values) = Query::insert()
         .into_table(Document::Table)
-        .columns(vec![Document::JsonField, Document::Timestamp])
+        .columns([Document::JsonField, Document::Timestamp])
         .values_panic(vec![
             serde_json::to_value(document_chrono.json_field)
                 .unwrap()
@@ -81,7 +81,7 @@ fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![Document::Id, Document::JsonField, Document::Timestamp])
+        .columns([Document::Id, Document::JsonField, Document::Timestamp])
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
         .limit(1)

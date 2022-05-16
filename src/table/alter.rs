@@ -1,4 +1,7 @@
-use crate::{backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaStatementBuilder};
+use crate::{
+    backend::SchemaBuilder, prepare::*, types::*, ColumnDef, SchemaStatementBuilder,
+    TableForeignKey,
+};
 
 /// Alter a table
 ///
@@ -50,6 +53,8 @@ pub enum TableAlterOption {
     ModifyColumn(ColumnDef),
     RenameColumn(DynIden, DynIden),
     DropColumn(DynIden),
+    AddForeignKey(TableForeignKey),
+    DropForeignKey(DynIden),
 }
 
 impl Default for TableAlterStatement {
@@ -252,6 +257,117 @@ impl TableAlterStatement {
         T: Iden,
     {
         self.add_alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
+    }
+
+    /// Add a foreign key to existing table
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let foreign_key_char = TableForeignKey::new()
+    ///     .name("FK_character_glyph")
+    ///     .from_tbl(Char::Table)
+    ///     .from_col(Char::FontId)
+    ///     .from_col(Char::Id)
+    ///     .to_tbl(Glyph::Table)
+    ///     .to_col(Char::FontId)
+    ///     .to_col(Char::Id)
+    ///     .on_delete(ForeignKeyAction::Cascade)
+    ///     .on_update(ForeignKeyAction::Cascade)
+    ///     .to_owned();
+    ///
+    /// let foreign_key_font = TableForeignKey::new()
+    ///     .name("FK_character_font")
+    ///     .from_tbl(Char::Table)
+    ///     .from_col(Char::FontId)
+    ///     .to_tbl(Font::Table)
+    ///     .to_col(Font::Id)
+    ///     .on_delete(ForeignKeyAction::Cascade)
+    ///     .on_update(ForeignKeyAction::Cascade)
+    ///     .to_owned();
+    ///
+    /// let table = Table::alter()
+    ///     .table(Character::Table)
+    ///     .add_foreign_key(&foreign_key_char)
+    ///     .add_foreign_key(&foreign_key_font)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     vec![
+    ///         r#"ALTER TABLE `character`"#,
+    ///         r#"ADD CONSTRAINT `FK_character_glyph`"#,
+    ///         r#"FOREIGN KEY (`font_id`, `id`) REFERENCES `glyph` (`font_id`, `id`)"#,
+    ///         r#"ON DELETE CASCADE ON UPDATE CASCADE,"#,
+    ///         r#"ADD CONSTRAINT `FK_character_font`"#,
+    ///         r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
+    ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     vec![
+    ///         r#"ALTER TABLE "character""#,
+    ///         r#"ADD CONSTRAINT "FK_character_glyph""#,
+    ///         r#"FOREIGN KEY ("font_id", "id") REFERENCES "glyph" ("font_id", "id")"#,
+    ///         r#"ON DELETE CASCADE ON UPDATE CASCADE,"#,
+    ///         r#"ADD CONSTRAINT "FK_character_font""#,
+    ///         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
+    ///         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// // Sqlite not support modifying table column
+    /// ```
+    pub fn add_foreign_key(&mut self, foreign_key: &TableForeignKey) -> &mut Self {
+        self.add_alter_option(TableAlterOption::AddForeignKey(foreign_key.to_owned()))
+    }
+
+    /// Drop a foreign key from existing table
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Character::Table)
+    ///     .drop_foreign_key(Alias::new("FK_character_glyph"))
+    ///     .drop_foreign_key(Alias::new("FK_character_font"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     vec![
+    ///         r#"ALTER TABLE `character`"#,
+    ///         r#"DROP FOREIGN KEY `FK_character_glyph`,"#,
+    ///         r#"DROP FOREIGN KEY `FK_character_font`"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     vec![
+    ///         r#"ALTER TABLE "character""#,
+    ///         r#"DROP CONSTRAINT "FK_character_glyph","#,
+    ///         r#"DROP CONSTRAINT "FK_character_font""#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// // Sqlite not support modifying table column
+    /// ```
+    pub fn drop_foreign_key<T>(&mut self, name: T) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.add_alter_option(TableAlterOption::DropForeignKey(name.into_iden()))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {

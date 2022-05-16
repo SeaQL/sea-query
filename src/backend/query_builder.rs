@@ -22,39 +22,44 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             write!(sql, " ").unwrap();
         }
 
-        write!(sql, "(").unwrap();
-        insert.columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap()
-            }
-            col.prepare(sql, self.quote());
-            false
-        });
-        write!(sql, ")").unwrap();
+        if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
+            let num_rows = insert.default_values.unwrap();
+            self.insert_default_values(num_rows, sql);
+        } else {
+            write!(sql, "(").unwrap();
+            insert.columns.iter().fold(true, |first, col| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                col.prepare(sql, self.quote());
+                false
+            });
+            write!(sql, ")").unwrap();
 
-        if let Some(source) = &insert.source {
-            write!(sql, " ").unwrap();
-            match source {
-                InsertValueSource::Values(values) => {
-                    write!(sql, "VALUES ").unwrap();
-                    values.iter().fold(true, |first, row| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
-                        }
-                        write!(sql, "(").unwrap();
-                        row.iter().fold(true, |first, col| {
+            if let Some(source) = &insert.source {
+                write!(sql, " ").unwrap();
+                match source {
+                    InsertValueSource::Values(values) => {
+                        write!(sql, "VALUES ").unwrap();
+                        values.iter().fold(true, |first, row| {
                             if !first {
                                 write!(sql, ", ").unwrap()
                             }
-                            self.prepare_simple_expr(col, sql, collector);
+                            write!(sql, "(").unwrap();
+                            row.iter().fold(true, |first, col| {
+                                if !first {
+                                    write!(sql, ", ").unwrap()
+                                }
+                                self.prepare_simple_expr(col, sql, collector);
+                                false
+                            });
+                            write!(sql, ")").unwrap();
                             false
                         });
-                        write!(sql, ")").unwrap();
-                        false
-                    });
-                }
-                InsertValueSource::Select(select_query) => {
-                    self.prepare_select_statement(select_query.deref(), sql, collector);
+                    }
+                    InsertValueSource::Select(select_query) => {
+                        self.prepare_select_statement(select_query.deref(), sql, collector);
+                    }
                 }
             }
         }
@@ -263,28 +268,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
     ) {
         match simple_expr {
             SimpleExpr::Column(column_ref) => {
-                match column_ref {
-                    ColumnRef::Column(column) => column.prepare(sql, self.quote()),
-                    ColumnRef::TableColumn(table, column) => {
-                        table.prepare(sql, self.quote());
-                        write!(sql, ".").unwrap();
-                        column.prepare(sql, self.quote());
-                    }
-                    ColumnRef::SchemaTableColumn(schema, table, column) => {
-                        schema.prepare(sql, self.quote());
-                        write!(sql, ".").unwrap();
-                        table.prepare(sql, self.quote());
-                        write!(sql, ".").unwrap();
-                        column.prepare(sql, self.quote());
-                    }
-                    ColumnRef::Asterisk => {
-                        write!(sql, "*").unwrap();
-                    }
-                    ColumnRef::TableAsterisk(table) => {
-                        table.prepare(sql, self.quote());
-                        write!(sql, ".*").unwrap();
-                    }
-                };
+                self.prepare_column_ref(column_ref, sql);
             }
             SimpleExpr::Tuple(exprs) => {
                 self.prepare_tuple(exprs, sql, collector);
@@ -414,16 +398,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-        write!(
-            sql,
-            "{}",
-            match select_distinct {
-                SelectDistinct::All => "ALL",
-                SelectDistinct::Distinct => "DISTINCT",
-                SelectDistinct::DistinctRow => "DISTINCTROW",
-            }
-        )
-        .unwrap();
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            _ => {}
+        }
     }
 
     /// Translate [`LockType`] into SQL statement.
@@ -582,6 +561,31 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 alias.prepare(sql, self.quote());
             }
         }
+    }
+
+    fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut SqlWriter) {
+        match column_ref {
+            ColumnRef::Column(column) => column.prepare(sql, self.quote()),
+            ColumnRef::TableColumn(table, column) => {
+                table.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                column.prepare(sql, self.quote());
+            }
+            ColumnRef::SchemaTableColumn(schema, table, column) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                column.prepare(sql, self.quote());
+            }
+            ColumnRef::Asterisk => {
+                write!(sql, "*").unwrap();
+            }
+            ColumnRef::TableAsterisk(table) => {
+                table.prepare(sql, self.quote());
+                write!(sql, ".*").unwrap();
+            }
+        };
     }
 
     /// Translate [`UnOper`] into SQL statement.
@@ -1076,6 +1080,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv4Network(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv6Network(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-mac_address")]
+            Value::MacAddress(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -1146,6 +1156,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                     .join(",")
             )
             .unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv4Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::Ipv6Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            #[cfg(feature = "with-mac_address")]
+            Value::MacAddress(Some(v)) => write!(s, "{}", v).unwrap(),
         };
         s
     }
@@ -1264,19 +1280,24 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(
         &self,
-        returning: &[SelectExpr],
+        returning: &Option<ReturningClause>,
         sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        _collector: &mut dyn FnMut(Value),
     ) {
-        if !returning.is_empty() {
-            write!(sql, " RETURNING ").unwrap();
-            returning.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
+        if let Some(returning) = returning {
+            match &returning {
+                ReturningClause::All => write!(sql, " RETURNING *").unwrap(),
+                ReturningClause::Columns(cols) => {
+                    write!(sql, " RETURNING ").unwrap();
+                    cols.iter().fold(true, |first, column_ref| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        self.prepare_column_ref(column_ref, sql);
+                        false
+                    });
                 }
-                self.prepare_select_expr(expr, sql, collector);
-                false
-            });
+            }
         }
     }
 
@@ -1477,6 +1498,23 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
+    }
+
+    /// The keywords for insert default row.
+    fn insert_default_keyword(&self) -> &str {
+        "(DEFAULT)"
+    }
+
+    /// Write insert default rows expression.
+    fn insert_default_values(&self, num_rows: u32, sql: &mut SqlWriter) {
+        write!(sql, "VALUES ").unwrap();
+        (0..num_rows).fold(true, |first, _| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+            write!(sql, "{}", self.insert_default_keyword()).unwrap();
+            false
+        });
     }
 }
 

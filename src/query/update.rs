@@ -5,8 +5,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    Query, QueryStatementBuilder, QueryStatementWriter, SelectExpr, SelectStatement,
-    SubQueryStatement, WithClause, WithQuery,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
+    WithQuery,
 };
 
 /// Update existing rows in the table
@@ -45,7 +45,7 @@ pub struct UpdateStatement {
     pub(crate) wherei: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
-    pub(crate) returning: Vec<SelectExpr>,
+    pub(crate) returning: Option<ReturningClause>,
 }
 
 impl Default for UpdateStatement {
@@ -63,7 +63,7 @@ impl UpdateStatement {
             wherei: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
-            returning: Vec::new(),
+            returning: None,
         }
     }
 
@@ -226,12 +226,7 @@ impl UpdateStatement {
 
     /// RETURNING expressions.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -241,7 +236,7 @@ impl UpdateStatement {
     ///     .value(Glyph::Aspect, 2.1345.into())
     ///     .value(Glyph::Image, "235m".into())
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .returning(Query::select().column(Glyph::Id).take())
+    ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -257,20 +252,14 @@ impl UpdateStatement {
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
-    pub fn returning(&mut self, select: SelectStatement) -> &mut Self {
-        self.returning = select.selects;
+    pub fn returning(&mut self, returning: ReturningClause) -> &mut Self {
+        self.returning = Some(returning);
         self
     }
 
-    /// RETURNING a column after update.
-    /// Wrapper over [`UpdateStatement::returning()`].
+    /// RETURNING expressions for a column.
     ///
-    /// ## Note:
-    /// Works on
-    /// * PostgreSQL
-    /// * SQLite
-    ///     - SQLite version >= 3.35.0
-    ///     - **Note that sea-query won't try to enforce either of these constraints**
+    /// # Examples
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -299,9 +288,40 @@ impl UpdateStatement {
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
     where
-        C: IntoIden,
+        C: IntoColumnRef,
     {
-        self.returning(Query::select().column(col.into_iden()).take())
+        self.returning(ReturningClause::Columns(vec![col.into_column_ref()]))
+    }
+
+    /// RETURNING expressions all columns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Image])
+    ///     .values_panic(vec!["12A".into()])
+    ///     .returning_all()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    /// );
+    /// ```
+    pub fn returning_all(&mut self) -> &mut Self {
+        self.returning(ReturningClause::All)
     }
 
     /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.

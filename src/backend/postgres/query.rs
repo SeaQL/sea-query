@@ -107,4 +107,28 @@ impl QueryBuilder for PostgresQueryBuilder {
     ) {
         query.prepare_statement(self, sql, collector);
     }
+
+    fn prepare_select_distinct(
+        &self,
+        select_distinct: &SelectDistinct,
+        sql: &mut SqlWriter,
+        _collector: &mut dyn FnMut(Value),
+    ) {
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::DistinctOn(cols) => {
+                write!(sql, "DISTINCT ON (").unwrap();
+                cols.iter().fold(true, |first, c| {
+                    if !first {
+                        write!(sql, ", ").unwrap();
+                    }
+                    c.prepare(sql, self.quote());
+                    false
+                });
+                write!(sql, ")").unwrap();
+            }
+            _ => {}
+        };
+    }
 }

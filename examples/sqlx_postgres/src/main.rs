@@ -47,7 +47,7 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![
+        .columns([
             Character::Uuid,
             Character::FontSize,
             Character::Character,
@@ -99,7 +99,7 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Uuid,
             Character::Character,
@@ -150,7 +150,7 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Uuid,
             Character::Character,
@@ -205,11 +205,7 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![
-            Character::Id,
-            Character::FontSize,
-            Character::Character,
-        ])
+        .columns([Character::Id, Character::FontSize, Character::Character])
         .values_panic(vec![1.into(), 16.into(), "B".into()])
         .values_panic(vec![2.into(), 24.into(), "C".into()])
         .on_conflict(
@@ -227,7 +223,7 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Uuid,
             Character::Character,

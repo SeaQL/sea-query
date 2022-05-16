@@ -56,11 +56,12 @@ pub struct SelectStatement {
 }
 
 /// List of distinct keywords that can be used in select statement
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum SelectDistinct {
     All,
     Distinct,
     DistinctRow,
+    DistinctOn(Vec<DynIden>),
 }
 
 /// Window type in [`SelectExpr`]
@@ -316,6 +317,64 @@ impl SelectStatement {
         self
     }
 
+    /// Select distinct on for *POSTGRES ONLY*
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .distinct_on(vec![Char::Character])
+    ///     .column(Char::Character)
+    ///     .column(Char::SizeW)
+    ///     .column(Char::SizeH)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DISTINCT ON ("character") "character", "size_w", "size_h" FROM "character""#
+    /// )
+    /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let distinct_cols: Vec<Character> = vec![];
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .distinct_on(distinct_cols)
+    ///     .column(Char::Character)
+    ///     .column(Char::SizeW)
+    ///     .column(Char::SizeH)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
+    /// )
+    /// ```
+    pub fn distinct_on<T, I>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
+    {
+        let cols = cols
+            .into_iter()
+            .filter_map(|col| match col.into_column_ref() {
+                ColumnRef::Column(c) => Some(c),
+                _ => None,
+            })
+            .collect::<Vec<DynIden>>();
+        self.distinct = if !cols.is_empty() {
+            Some(SelectDistinct::DistinctOn(cols))
+        } else {
+            None
+        };
+        self
+    }
+
     /// Add a column to the select expression list.
     ///
     /// # Examples
@@ -415,7 +474,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -437,7 +496,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .columns(vec![
+    ///     .columns([
     ///         (Char::Table, Char::Character),
     ///         (Char::Table, Char::SizeW),
     ///         (Char::Table, Char::SizeH),
@@ -936,10 +995,10 @@ impl SelectStatement {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Glyph::Image])
+    ///     .columns([Glyph::Image])
     ///     .from_subquery(
     ///         Query::select()
-    ///             .columns(vec![Glyph::Image, Glyph::Aspect])
+    ///             .columns([Glyph::Image, Glyph::Aspect])
     ///             .from(Glyph::Table)
     ///             .take(),
     ///         Alias::new("subglyph"),
@@ -2053,7 +2112,7 @@ impl SelectStatement {
     ///             .query(
     ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
     ///             )
-    ///             .columns(vec![Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
+    ///             .columns([Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
     ///             .table_name(Alias::new("cte_traversal"))
     ///             .to_owned();
     ///
