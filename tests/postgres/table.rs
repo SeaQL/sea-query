@@ -253,6 +253,26 @@ fn create_11() {
 }
 
 #[test]
+fn create_12() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::Character).binary())
+            .col(ColumnDef::new(Char::FontSize).binary_len(10))
+            .col(ColumnDef::new(Char::SizeW).var_binary(10))
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "character" ("#,
+            r#""character" bytea,"#,
+            r#""font_size" bytea,"#,
+            r#""size_w" bit varying(10)"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
