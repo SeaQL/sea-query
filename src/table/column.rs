@@ -34,6 +34,7 @@ pub enum ColumnType {
     Date,
     Interval(Option<PgInterval>, Option<u32>),
     Binary(Option<u32>),
+    VarBinary(u32),
     Boolean,
     Money(Option<(u32, u32)>),
     Json,
@@ -426,6 +427,12 @@ impl ColumnDef {
     /// Set column type as binary
     pub fn binary(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Binary(None));
+        self
+    }
+
+    /// Set column type as binary with variable length
+    pub fn var_binary(&mut self, length: u32) -> &mut Self {
+        self.types = Some(ColumnType::VarBinary(length));
         self
     }
 
