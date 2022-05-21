@@ -103,6 +103,7 @@ pub struct IndexCreateStatement {
     pub(crate) primary: bool,
     pub(crate) unique: bool,
     pub(crate) index_type: Option<IndexType>,
+    pub(crate) if_not_exists: bool,
 }
 
 /// Specification of a table index
@@ -129,7 +130,14 @@ impl IndexCreateStatement {
             primary: false,
             unique: false,
             index_type: None,
+            if_not_exists: false,
         }
+    }
+
+    /// Create index if index not exists
+    pub fn if_not_exists(&mut self) -> &mut Self {
+        self.if_not_exists = true;
+        self
     }
 
     /// Set index name
@@ -200,6 +208,7 @@ impl IndexCreateStatement {
             primary: self.primary,
             unique: self.unique,
             index_type: self.index_type.take(),
+            if_not_exists: self.if_not_exists
         }
     }
 }
