@@ -12,6 +12,7 @@ pub enum Function {
     Min,
     Sum,
     Avg,
+    Abs,
     Count,
     IfNull,
     CharLength,
@@ -194,6 +195,38 @@ impl Func {
         T: Into<SimpleExpr>,
     {
         Expr::func(Function::Avg).arg(expr)
+    }
+
+    /// Call `ABS` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::abs(Expr::tbl(Char::Table, Char::SizeH)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT ABS(`character`.`size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT ABS("character"."size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT ABS("character"."size_h") FROM "character""#
+    /// );
+    /// ```
+    pub fn abs<T>(expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        Expr::func(Function::Abs).arg(expr)
     }
 
     /// Call `COUNT` function.
