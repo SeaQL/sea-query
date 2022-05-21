@@ -330,36 +330,28 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::CustomWithValues(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
-                if numbered {
-                    let mut tokenizer = Tokenizer::new(expr).iter().peekable();
-                    while let Some(tok) = tokenizer.next() {
-                        match tok {
-                            Token::Punctuation(mark) if mark == placeholder => {
-                                if let Some(tok) = tokenizer.next() {
-                                    match tok {
-                                        Token::Unquoted(t) | Token::Quoted(t) => {
-                                            if let Ok(idx) = t.parse::<usize>() {
-                                                self.prepare_value(
-                                                    &values[idx - 1],
-                                                    sql,
-                                                    collector,
-                                                );
-                                            } else {
-                                                write!(sql, "{}", t).unwrap();
-                                            }
-                                        }
-                                        _ => write!(sql, "{}", tok).unwrap(),
-                                    }
-                                }
+                let mut tokenizer = Tokenizer::new(expr).iter().peekable();
+                let mut count = 0;
+                while let Some(token) = tokenizer.next() {
+                    match token {
+                        Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
+                            Some(Token::Punctuation(mark)) if mark == placeholder => {
+                                write!(sql, "{}", mark).unwrap();
+                                tokenizer.next();
                             }
-                            _ => write!(sql, "{}", tok).unwrap(),
-                        };
-                    }
-                } else {
-                    write!(sql, "{}", expr).unwrap();
-                    for value in values {
-                        self.prepare_value(value, sql, collector);
-                    }
+                            Some(Token::Unquoted(tok)) if numbered => {
+                                if let Ok(num) = tok.parse::<usize>() {
+                                    self.prepare_value(&values[num - 1], sql, collector);
+                                }
+                                tokenizer.next();
+                            }
+                            _ => {
+                                self.prepare_value(&values[count], sql, collector);
+                                count += 1;
+                            }
+                        },
+                        _ => write!(sql, "{}", token).unwrap(),
+                    };
                 }
             }
             SimpleExpr::Keyword(keyword) => {
