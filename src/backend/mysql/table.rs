@@ -78,14 +78,13 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Date => "date".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Default(length) => {
+                    BlobSize::Tiny => "tinyblob".into(),
+                    BlobSize::Blob(length) => {
                         match length {
                             Some(length) => format!("binary({})", length),
-                            None => "blob".into(),  // todo already need? or keep for compatible
+                            None => "blob".into(),
                         }
-                    },
-                    BlobSize::Tiny => "tinyblob".into(),
-                    BlobSize::Blob => "blob".into(),
+                    }
                     BlobSize::Medium => "mediumblob".into(),
                     BlobSize::Long => "longblob".into(),
                 },

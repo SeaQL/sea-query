@@ -76,9 +76,8 @@ pub enum PgInterval {
 
 #[derive(Debug, Clone)]
 pub enum BlobSize {
-    Default(Option<u32>), // Backward compatibility: MySQL & SQLite support `binary(length)` column type
     Tiny,
-    Blob,  //default blob, maybe need a better name
+    Blob(Option<u32>), /* Backward compatibility: MySQL & SQLite support `binary(length)` column type */
     Medium,
     Long,
 }
@@ -428,19 +427,18 @@ impl ColumnDef {
 
     /// Set column type as binary with custom length
     pub fn binary_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::Binary(BlobSize::Default(Some(length))));
+        self.types = Some(ColumnType::Binary(BlobSize::Blob(Some(length))));
         self
     }
 
     /// Set column type as binary
     pub fn binary(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Binary(BlobSize::Default(None)));
+        self.types = Some(ColumnType::Binary(BlobSize::Blob(None)));
         self
     }
 
-    /// Set column type as binary
+    /// Set column type as blob, but when given BlobSize::Blob(size) argument, this column map to binary(size) type instead.
     pub fn blob(&mut self, size: BlobSize) -> &mut Self {
-        //todo need to check set default size? or convert to correct blob type
         self.types = Some(ColumnType::Binary(size));
         self
     }

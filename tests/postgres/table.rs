@@ -252,40 +252,18 @@ fn create_11() {
     );
 }
 
-
 #[test]
 fn create_12() {
     assert_eq!(
         Table::create()
             .table(BinaryType::Table)
-            .col(
-                ColumnDef::new(BinaryType::BinaryLen)
-                    .binary_len(32)
-            )
-            .col(
-                ColumnDef::new(BinaryType::Binary)
-                    .binary()
-            )
-            .col(
-                ColumnDef::new(BinaryType::BlobDefault)
-                    .blob(BlobSize::Default(Some(32)))
-            )
-            .col(
-                ColumnDef::new(BinaryType::TinyBlob)
-                    .blob(BlobSize::Tiny)
-            )
-            .col(
-                ColumnDef::new(BinaryType::Blob)
-                    .blob(BlobSize::Blob)
-            )
-            .col(
-                ColumnDef::new(BinaryType::MediumBlob)
-                    .blob(BlobSize::Medium)
-            )
-            .col(
-                ColumnDef::new(BinaryType::LongBlob)
-                    .blob(BlobSize::Long)
-            )
+            .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
+            .col(ColumnDef::new(BinaryType::Binary).binary())
+            .col(ColumnDef::new(BinaryType::BlobSize).blob(BlobSize::Blob(Some(32))))
+            .col(ColumnDef::new(BinaryType::TinyBlob).blob(BlobSize::Tiny))
+            .col(ColumnDef::new(BinaryType::Blob).blob(BlobSize::Blob(None)))
+            .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
+            .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
             .to_string(PostgresQueryBuilder),
         vec![
             r#"CREATE TABLE "binary_type" ("#,
@@ -298,7 +276,7 @@ fn create_12() {
             r#""lb" bytea"#,
             r#")"#,
         ]
-            .join(" ")
+        .join(" ")
     );
 }
 

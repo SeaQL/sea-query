@@ -98,8 +98,8 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Date => "text".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Default(Some(length)) => format!("binary({})", length),
-                    _ =>  "blob".into()
+                    BlobSize::Blob(Some(length)) => format!("binary({})", length),
+                    _ => "blob".into(),
                 },
                 ColumnType::Boolean => "integer".into(),
                 ColumnType::Money(precision) => match precision {

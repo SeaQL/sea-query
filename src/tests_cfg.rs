@@ -107,8 +107,6 @@ impl Iden for Glyph {
     }
 }
 
-
-
 /// Representation of a database table named `BloB`.
 ///
 /// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
@@ -119,7 +117,7 @@ pub enum BinaryType {
     Table,
     BinaryLen,
     Binary,
-    BlobDefault,
+    BlobSize,
     TinyBlob,
     Blob,
     MediumBlob,
@@ -135,13 +133,13 @@ impl Iden for BinaryType {
                 Self::Table => "binary_type",
                 Self::BinaryLen => "binlen",
                 Self::Binary => "bin",
-                Self::BlobDefault => "defb",
+                Self::BlobSize => "defb",
                 Self::TinyBlob => "tb",
                 Self::Blob => "b",
                 Self::MediumBlob => "mb",
                 Self::LongBlob => "lb",
             }
         )
-            .unwrap();
+        .unwrap();
     }
 }

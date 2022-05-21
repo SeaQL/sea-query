@@ -317,7 +317,7 @@ where
     }
 }
 
-type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Default(None)));
+type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
 type_to_box_value!(String, String, String(None));
 
 #[cfg(feature = "with-json")]
