@@ -99,6 +99,56 @@ fn create_3() {
     );
 }
 
+
+#[test]
+fn create_4() {
+    assert_eq!(
+        Table::create()
+            .table(BinaryType::Table)
+            .col(
+                ColumnDef::new(BinaryType::BinaryLen)
+                    .binary_len(32)
+            )
+            .col(
+                ColumnDef::new(BinaryType::Binary)
+                    .binary()
+            )
+            .col(
+                ColumnDef::new(BinaryType::BlobDefault)
+                    .blob(BlobSize::Default(Some(32)))
+            )
+            .col(
+                ColumnDef::new(BinaryType::TinyBlob)
+                    .blob(BlobSize::Tiny)
+            )
+            .col(
+                ColumnDef::new(BinaryType::Blob)
+                    .blob(BlobSize::Blob)
+            )
+            .col(
+                ColumnDef::new(BinaryType::MediumBlob)
+                    .blob(BlobSize::Medium)
+            )
+            .col(
+                ColumnDef::new(BinaryType::LongBlob)
+                    .blob(BlobSize::Long)
+            )
+            .to_string(SqliteQueryBuilder),
+        vec![
+            r#"CREATE TABLE "binary_type" ("#,
+            r#""binlen" binary(32),"#,
+            r#""bin" blob,"#,
+            r#""defb" binary(32),"#,
+            r#""tb" blob,"#,
+            r#""b" blob,"#,
+            r#""mb" blob,"#,
+            r#""lb" blob"#,
+            r#")"#,
+        ]
+            .join(" ")
+    );
+}
+
 #[test]
 fn create_with_unique_index() {
     assert_eq!(
