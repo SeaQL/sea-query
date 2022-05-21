@@ -329,27 +329,36 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, "{}", s).unwrap();
             }
             SimpleExpr::CustomWithValues(expr, values) => {
-                let mut tokenizer = Tokenizer::new(expr).iter().peekable();
-                let mut count = 0;
-                while let Some(tok) = tokenizer.next() {
-                    match tok {
-                        Token::Punctuation(mark) => {
-                            if mark == "?" {
-                                if let Some(Token::Punctuation(mark)) = tokenizer.peek() {
-                                    // escape '??'
-                                    if mark == "?" {
-                                        write!(sql, "{}", mark).unwrap();
-                                        tokenizer.next();
-                                        continue;
+                let (placeholder, numbered) = self.placeholder();
+                if numbered {
+                    let mut tokenizer = Tokenizer::new(expr).iter().peekable();
+                    while let Some(tok) = tokenizer.next() {
+                        match tok {
+                            Token::Punctuation(mark) if mark == placeholder => {
+                                if let Some(tok) = tokenizer.next() {
+                                    match tok {
+                                        Token::Unquoted(t) | Token::Quoted(t) => {
+                                            if let Ok(idx) = t.parse::<usize>() {
+                                                self.prepare_value(
+                                                    &values[idx - 1],
+                                                    sql,
+                                                    collector,
+                                                );
+                                            } else {
+                                                write!(sql, "{}", t).unwrap();
+                                            }
+                                        }
+                                        _ => write!(sql, "{}", tok).unwrap(),
                                     }
                                 }
-                                self.prepare_value(&values[count], sql, collector);
-                                count += 1;
-                            } else {
-                                write!(sql, "{}", mark).unwrap();
                             }
-                        }
-                        _ => write!(sql, "{}", tok).unwrap(),
+                            _ => write!(sql, "{}", tok).unwrap(),
+                        };
+                    }
+                } else {
+                    write!(sql, "{}", expr).unwrap();
+                    for value in values {
+                        self.prepare_value(value, sql, collector);
                     }
                 }
             }
