@@ -1283,18 +1283,27 @@ pub trait QueryBuilder: QuotedBuilder {
         &self,
         returning: &Option<ReturningClause>,
         sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        collector: &mut dyn FnMut(Value),
     ) {
         if let Some(returning) = returning {
+            write!(sql, " RETURNING ").unwrap();
             match &returning {
-                ReturningClause::All => write!(sql, " RETURNING *").unwrap(),
+                ReturningClause::All => write!(sql, "*").unwrap(),
                 ReturningClause::Columns(cols) => {
-                    write!(sql, " RETURNING ").unwrap();
                     cols.iter().fold(true, |first, column_ref| {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
                         self.prepare_column_ref(column_ref, sql);
+                        false
+                    });
+                }
+                ReturningClause::Exprs(exprs) => {
+                    exprs.iter().fold(true, |first, expr| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        self.prepare_simple_expr(expr, sql, collector);
                         false
                     });
                 }

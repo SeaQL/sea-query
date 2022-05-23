@@ -1355,3 +1355,15 @@ fn delete_returning_specific_columns() {
         r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     );
 }
+
+#[test]
+fn delete_returning_specific_exprs() {
+    assert_eq!(
+        Query::delete()
+            .from_table(Glyph::Table)
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .returning(Query::returning().exprs([Expr::col(Glyph::Id), Expr::col(Glyph::Image)]))
+            .to_string(SqliteQueryBuilder),
+        r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
+    );
+}
