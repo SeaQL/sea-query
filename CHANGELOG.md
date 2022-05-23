@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Insert Default https://github.com/SeaQL/sea-query/pull/266
 * Make `sea-query-driver` an optional dependency https://github.com/SeaQL/sea-query/pull/324
 * Add `ABS` function https://github.com/SeaQL/sea-query/pull/334
+* Support `IF NOT EXISTS` when create index https://github.com/SeaQL/sea-query/pull/332
 
 ### Breaking Changes
 
