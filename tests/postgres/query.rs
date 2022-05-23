@@ -1057,6 +1057,7 @@ fn select_60() {
         statement,
         r#"SELECT "id" FROM "character" WHERE "font_size" = $1 LIMIT $2"#
     );
+    assert_eq!(values.0.len(), 2);
 }
 
 #[test]
