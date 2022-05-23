@@ -40,6 +40,20 @@ fn create_3() {
 }
 
 #[test]
+fn create_4() {
+    assert_eq!(
+        Index::create()
+            .if_not_exists()
+            .full_text()
+            .name("idx-glyph-image")
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX IF NOT EXISTS "idx-glyph-image" ON "glyph" USING GIN ("image")"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

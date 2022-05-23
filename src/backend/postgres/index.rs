@@ -18,6 +18,10 @@ impl IndexBuilder for PostgresQueryBuilder {
         self.prepare_index_prefix(create, sql);
         write!(sql, "INDEX ").unwrap();
 
+        if create.if_not_exists {
+            write!(sql, "IF NOT EXISTS ").unwrap();
+        }
+
         self.prepare_index_name(&create.index.name, sql);
 
         write!(sql, " ON ").unwrap();
