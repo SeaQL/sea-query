@@ -85,19 +85,12 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
             for value in #params.iter() {
                 macro_rules! bind {
                     ( $v: expr, $ty: ty ) => {
-                        match $v {
-                            Some(v) => query.bind(*v as $ty),
-                            None => query.bind(None::<$ty>),
-                        }
+                        query.bind($v.map(|v| v as $ty))
                     };
                 }
                 macro_rules! bind_box {
                     ( $v: expr ) => {{
-                        let v = match $v {
-                            Some(v) => Some(v.as_ref()),
-                            None => None,
-                        };
-                        query.bind(v)
+                        query.bind($v.as_ref().map(|v| v.as_ref()))
                     }};
                 }
                 query = match value {
