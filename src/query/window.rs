@@ -226,4 +226,11 @@ impl OrderedStatement for WindowStatement {
         self.order_by.push(order);
         self
     }
+
+    fn orders_mut_for_each<F>(&mut self, func: F)
+    where
+        F: FnMut(&mut OrderExpr),
+    {
+        self.order_by.iter_mut().for_each(func);
+    }
 }

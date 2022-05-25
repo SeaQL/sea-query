@@ -166,6 +166,17 @@ pub struct OrderExpr {
     pub(crate) nulls: Option<NullOrdering>,
 }
 
+impl OrderExpr {
+    pub fn reverse_ordering(&mut self) -> &mut Self {
+        match &self.order {
+            Order::Asc => self.order = Order::Desc,
+            Order::Desc => self.order = Order::Asc,
+            Order::Field(_) => {}
+        }
+        self
+    }
+}
+
 /// Join on types
 #[derive(Debug, Clone)]
 pub enum JoinOn {

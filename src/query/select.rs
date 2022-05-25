@@ -2186,6 +2186,13 @@ impl OrderedStatement for SelectStatement {
         self.orders.push(order);
         self
     }
+
+    fn orders_mut_for_each<F>(&mut self, func: F)
+    where
+        F: FnMut(&mut OrderExpr),
+    {
+        self.orders.iter_mut().for_each(func);
+    }
 }
 
 impl ConditionalStatement for SelectStatement {

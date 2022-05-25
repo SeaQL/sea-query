@@ -5,6 +5,11 @@ pub trait OrderedStatement {
     // Implementation for the trait.
     fn add_order_by(&mut self, order: OrderExpr) -> &mut Self;
 
+    /// Call a closure on each [`OrderExpr`]
+    fn orders_mut_for_each<F>(&mut self, func: F)
+    where
+        F: FnMut(&mut OrderExpr);
+
     /// Order by column.
     ///
     /// # Examples
