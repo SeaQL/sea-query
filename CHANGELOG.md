@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add `ABS` function https://github.com/SeaQL/sea-query/pull/334
 * Support `IF NOT EXISTS` when create index https://github.com/SeaQL/sea-query/pull/332
 
+### Bug fixes
+
+* Fix arguments when nesting custom expressions https://github.com/SeaQL/sea-query/pull/333
+
 ### Breaking Changes
 
 * Introducing a dedicated `ReturningClause` instead of reusing `Select` on `returning`: https://github.com/SeaQL/sea-query/pull/317
@@ -29,6 +33,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ```rust
 .returning(Query::select().column(Glyph::Id).take()) // before
 .returning(Query::returning().columns([Glyph::Id])) // now
+```
+
+* In #333, the custom expression API changed for Postgres, users should change their placeholder from `?` to Postgres's `$N`
+
+```rust
+let query = Query::select()
+    .columns([Char::Character, Char::SizeW, Char::SizeH])
+    .from(Char::Table)
+    .and_where(Expr::col(Char::Id).eq(1))
+    .and_where(Expr::cust_with_values("6 = $2 * $1", vec![3, 2]).into())
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
+);
+```
+
+As a side effect, `??` is no longer needed for escaping `?`
+
+```rust
+let query = Query::select()
+    .expr(Expr::cust_with_values(
+        "data @? ($1::JSONPATH)",
+        vec!["hello"],
+    ))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT data @? ('hello'::JSONPATH)"#
+);
 ```
 
 ## 0.24.6 - 2022-05-12
