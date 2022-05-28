@@ -34,6 +34,7 @@ pub enum ColumnType {
     Date,
     Interval(Option<PgInterval>, Option<u32>),
     Binary(BlobSize),
+    VarBinary(u32),
     Boolean,
     Money(Option<(u32, u32)>),
     Json,
@@ -441,6 +442,12 @@ impl ColumnDef {
     /// Set column type as blob, but when given BlobSize::Blob(size) argument, this column map to binary(size) type instead.
     pub fn blob(&mut self, size: BlobSize) -> &mut Self {
         self.types = Some(ColumnType::Binary(size));
+        self
+    }
+
+    /// Set column type as binary with variable length
+    pub fn var_binary(&mut self, length: u32) -> &mut Self {
+        self.types = Some(ColumnType::VarBinary(length));
         self
     }
 

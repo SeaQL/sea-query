@@ -88,6 +88,7 @@ impl TableBuilder for MysqlQueryBuilder {
                     BlobSize::Medium => "mediumblob".into(),
                     BlobSize::Long => "longblob".into(),
                 },
+                ColumnType::VarBinary(length) => format!("varbinary({})", length),
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
                     Some((precision, scale)) => format!("money({}, {})", precision, scale),

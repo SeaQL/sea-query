@@ -101,6 +101,7 @@ impl TableBuilder for SqliteQueryBuilder {
                     BlobSize::Blob(Some(length)) => format!("binary({})", length),
                     _ => "blob".into(),
                 },
+                ColumnType::VarBinary(length) => format!("binary({})", length),
                 ColumnType::Boolean => "integer".into(),
                 ColumnType::Money(precision) => match precision {
                     Some((precision, scale)) => format!("integer({}, {})", precision, scale),

@@ -128,6 +128,26 @@ fn create_4() {
 }
 
 #[test]
+fn create_5() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::Character).binary())
+            .col(ColumnDef::new(Char::FontSize).binary_len(10))
+            .col(ColumnDef::new(Char::SizeW).var_binary(10))
+            .to_string(SqliteQueryBuilder),
+        vec![
+            r#"CREATE TABLE "character" ("#,
+            r#""character" binary,"#,
+            r#""font_size" binary(10),"#,
+            r#""size_w" binary(10)"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn create_with_unique_index() {
     assert_eq!(
         Table::create()

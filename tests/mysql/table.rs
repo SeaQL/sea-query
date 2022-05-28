@@ -178,6 +178,26 @@ fn create_6() {
 }
 
 #[test]
+fn create_7() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::Character).binary())
+            .col(ColumnDef::new(Char::FontSize).binary_len(10))
+            .col(ColumnDef::new(Char::SizeW).var_binary(10))
+            .to_string(MysqlQueryBuilder),
+        vec![
+            "CREATE TABLE `character` (",
+            "`character` blob,",
+            "`font_size` binary(10),",
+            "`size_w` varbinary(10)",
+            ")",
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
