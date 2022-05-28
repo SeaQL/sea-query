@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add `ABS` function https://github.com/SeaQL/sea-query/pull/334
 * Support `IF NOT EXISTS` when create index https://github.com/SeaQL/sea-query/pull/332
 * Support different `blob` types in MySQL https://github.com/SeaQL/sea-query/pull/314
+* Add `VarBinary` column type https://github.com/SeaQL/sea-query/pull/331
 
 ### Bug fixes
 
