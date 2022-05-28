@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug fixes
 
 * Fix arguments when nesting custom expressions https://github.com/SeaQL/sea-query/pull/333
+* Fix clippy warnings for manual map https://github.com/SeaQL/sea-query/pull/337
 
 ### Breaking Changes
 
