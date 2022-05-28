@@ -447,6 +447,21 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Id).eq(1))
+    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", vec![3, 2]).into())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
+    /// );
+    /// ```
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
     ///     .expr(Expr::cust_with_values("6 = ? * ?", vec![2, 3]))
     ///     .to_owned();
     ///

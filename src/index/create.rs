@@ -232,7 +232,7 @@ impl IndexCreateStatement {
             primary: self.primary,
             unique: self.unique,
             index_type: self.index_type.take(),
-            if_not_exists: self.if_not_exists
+            if_not_exists: self.if_not_exists,
         }
     }
 }
