@@ -538,11 +538,11 @@ fn select_34b() {
 
 #[test]
 fn select_35() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .and_where(Expr::col(Glyph::Aspect).is_null())
-        .build(sea_query::PostgresQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
@@ -553,11 +553,11 @@ fn select_35() {
 
 #[test]
 fn select_36() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::any().add(Expr::col(Glyph::Aspect).is_null()))
-        .build(sea_query::PostgresQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
@@ -568,11 +568,11 @@ fn select_36() {
 
 #[test]
 fn select_37() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
-        .build(sea_query::PostgresQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     assert_eq!(statement, r#"SELECT "id" FROM "glyph""#);
     assert_eq!(values.0, vec![]);
@@ -580,7 +580,7 @@ fn select_37() {
 
 #[test]
 fn select_38() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -618,7 +618,7 @@ fn select_39() {
 
 #[test]
 fn select_40() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(any![
@@ -628,7 +628,7 @@ fn select_40() {
                 Expr::col(Glyph::Aspect).lt(8)
             ]
         ])
-        .to_string(sea_query::PostgresQueryBuilder);
+        .to_string(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
@@ -652,7 +652,7 @@ fn select_41() {
 
 #[test]
 fn select_42() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -670,7 +670,7 @@ fn select_42() {
 
 #[test]
 fn select_43() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::all().add_option::<SimpleExpr>(None))
@@ -681,7 +681,7 @@ fn select_43() {
 
 #[test]
 fn select_44() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -699,7 +699,7 @@ fn select_44() {
 
 #[test]
 fn select_45() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -718,7 +718,7 @@ fn select_45() {
 
 #[test]
 fn select_46() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -736,7 +736,7 @@ fn select_46() {
 
 #[test]
 fn select_47() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -755,7 +755,7 @@ fn select_47() {
 
 #[test]
 fn select_48() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -777,7 +777,7 @@ fn select_48() {
 
 #[test]
 fn select_49() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
         .to_string(PostgresQueryBuilder);
@@ -787,7 +787,7 @@ fn select_49() {
 
 #[test]
 fn select_50() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::table_asterisk(Char::Table))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
@@ -908,7 +908,7 @@ fn select_54() {
 
 #[test]
 fn select_55() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
         .from(Font::Table)
@@ -1038,6 +1038,26 @@ fn select_59() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
     );
+}
+
+#[test]
+fn select_60() {
+    let (cust_query, cust_values) = Query::select()
+        .column(Character::Id)
+        .from(Character::Table)
+        .and_where(Expr::col(Character::FontSize).eq(3))
+        .build(PostgresQueryBuilder);
+
+    let (statement, values) = Query::select()
+        .expr(Expr::cust_with_values(&cust_query[6..], cust_values.0))
+        .limit(5)
+        .build(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "character" WHERE "font_size" = $1 LIMIT $2"#
+    );
+    assert_eq!(values.0.len(), 2);
 }
 
 #[test]

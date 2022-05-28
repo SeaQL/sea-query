@@ -1025,6 +1025,7 @@ impl SelectStatement {
         self.from_from(TableRef::SubQuery(query, alias.into_iden()))
     }
 
+    #[allow(clippy::wrong_self_convention)]
     fn from_from(&mut self, select: TableRef) -> &mut Self {
         self.from.push(select);
         self

@@ -249,7 +249,7 @@
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(
 //!                 Query::select()
-//!                     .expr(Expr::cust_with_values("ln(? ^ ?)", vec![2.4, 1.2]))
+//!                     .expr(Expr::cust_with_values("ln($1 ^ $2)", vec![2.4, 1.2]))
 //!                     .take()
 //!             )
 //!         )
