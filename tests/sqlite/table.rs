@@ -138,7 +138,7 @@ fn create_5() {
             .to_string(SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE "character" ("#,
-            r#""character" binary,"#,
+            r#""character" blob,"#,
             r#""font_size" binary(10),"#,
             r#""size_w" binary(10)"#,
             r#")"#,
