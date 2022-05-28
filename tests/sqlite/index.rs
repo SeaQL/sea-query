@@ -27,6 +27,21 @@ fn create_2() {
 }
 
 #[test]
+fn create_3() {
+    assert_eq!(
+        Index::create()
+            .if_not_exists()
+            .unique()
+            .name("idx-glyph-aspect-image")
+            .table(Glyph::Table)
+            .col(Glyph::Aspect)
+            .col(Glyph::Image)
+            .to_string(SqliteQueryBuilder),
+        r#"CREATE UNIQUE INDEX IF NOT EXISTS "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

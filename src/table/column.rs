@@ -33,7 +33,7 @@ pub enum ColumnType {
     Time(Option<u32>),
     Date,
     Interval(Option<PgInterval>, Option<u32>),
-    Binary(Option<u32>),
+    Binary(BlobSize),
     VarBinary(u32),
     Boolean,
     Money(Option<(u32, u32)>),
@@ -73,6 +73,15 @@ pub enum PgInterval {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
+}
+
+#[derive(Debug, Clone)]
+pub enum BlobSize {
+    Tiny,
+    /// MySQL & SQLite support `binary(length)` column type
+    Blob(Option<u32>),
+    Medium,
+    Long,
 }
 
 #[cfg(feature = "postgres-interval")]
@@ -420,13 +429,19 @@ impl ColumnDef {
 
     /// Set column type as binary with custom length
     pub fn binary_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::Binary(Some(length)));
+        self.types = Some(ColumnType::Binary(BlobSize::Blob(Some(length))));
         self
     }
 
     /// Set column type as binary
     pub fn binary(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Binary(None));
+        self.types = Some(ColumnType::Binary(BlobSize::Blob(None)));
+        self
+    }
+
+    /// Set column type as blob, but when given BlobSize::Blob(size) argument, this column map to binary(size) type instead.
+    pub fn blob(&mut self, size: BlobSize) -> &mut Self {
+        self.types = Some(ColumnType::Binary(size));
         self
     }
 

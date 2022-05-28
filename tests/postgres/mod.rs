@@ -8,3 +8,7 @@ mod interval;
 mod query;
 mod table;
 mod types;
+
+#[path = "../common.rs"]
+mod common;
+use common::*;

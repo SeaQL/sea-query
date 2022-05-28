@@ -86,9 +86,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     }
                     typ
                 }
-                ColumnType::Binary(length) => match length {
-                    Some(_) | None => "bytea".into(),
-                },
+                ColumnType::Binary(_) => "bytea".into(),
                 ColumnType::VarBinary(length) => format!("bit varying({})", length),
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {

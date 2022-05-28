@@ -126,6 +126,7 @@ impl CaseStatement {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<SimpleExpr> for CaseStatement {
     fn into(self) -> SimpleExpr {
         SimpleExpr::Case(Box::new(self))

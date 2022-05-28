@@ -154,6 +154,33 @@ fn create_5() {
 fn create_6() {
     assert_eq!(
         Table::create()
+            .table(BinaryType::Table)
+            .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
+            .col(ColumnDef::new(BinaryType::Binary).binary())
+            .col(ColumnDef::new(BinaryType::BlobSize).blob(BlobSize::Blob(Some(32))))
+            .col(ColumnDef::new(BinaryType::TinyBlob).blob(BlobSize::Tiny))
+            .col(ColumnDef::new(BinaryType::Blob).blob(BlobSize::Blob(None)))
+            .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
+            .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
+            .to_string(MysqlQueryBuilder),
+        vec![
+            "CREATE TABLE `binary_type` (",
+            "`binlen` binary(32),",
+            "`bin` blob, `defb` binary(32),",
+            "`tb` tinyblob,",
+            "`b` blob,",
+            "`mb` mediumblob,",
+            "`lb` longblob",
+            ")",
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_7() {
+    assert_eq!(
+        Table::create()
             .table(Char::Table)
             .col(ColumnDef::new(Char::Character).binary())
             .col(ColumnDef::new(Char::FontSize).binary_len(10))

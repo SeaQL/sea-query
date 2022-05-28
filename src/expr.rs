@@ -439,11 +439,22 @@ impl Expr {
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
     /// );
+    /// ```
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Id).eq(1))
+    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", vec![3, 2]).into())
+    ///     .to_owned();
+    ///
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
@@ -455,25 +466,24 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 6 = 2 * 3"#);
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT 6 = 2 * 3"#);
     /// ```
-    /// Postgres only: use `??` to escape `?`
+    /// Postgres only: use `$$` to escape `$`
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::cust_with_values("? ?? ?", vec!["a", "b"]))
+    ///     .expr(Expr::cust_with_values("$1 $$ $2", vec!["a", "b"]))
     ///     .to_owned();
     ///
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' ? 'b'"#);
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' $ 'b'"#);
     /// ```
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .expr(Expr::cust_with_values(
-    ///         "data @?? (?::JSONPATH)",
+    ///         "data @? ($1::JSONPATH)",
     ///         vec!["hello"],
     ///     ))
     ///     .to_owned();

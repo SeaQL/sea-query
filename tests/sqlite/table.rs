@@ -103,6 +103,34 @@ fn create_3() {
 fn create_4() {
     assert_eq!(
         Table::create()
+            .table(BinaryType::Table)
+            .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
+            .col(ColumnDef::new(BinaryType::Binary).binary())
+            .col(ColumnDef::new(BinaryType::BlobSize).blob(BlobSize::Blob(Some(32))))
+            .col(ColumnDef::new(BinaryType::TinyBlob).blob(BlobSize::Tiny))
+            .col(ColumnDef::new(BinaryType::Blob).blob(BlobSize::Blob(None)))
+            .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
+            .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
+            .to_string(SqliteQueryBuilder),
+        vec![
+            r#"CREATE TABLE "binary_type" ("#,
+            r#""binlen" binary(32),"#,
+            r#""bin" blob,"#,
+            r#""defb" binary(32),"#,
+            r#""tb" blob,"#,
+            r#""b" blob,"#,
+            r#""mb" blob,"#,
+            r#""lb" blob"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_5() {
+    assert_eq!(
+        Table::create()
             .table(Char::Table)
             .col(ColumnDef::new(Char::Character).binary())
             .col(ColumnDef::new(Char::FontSize).binary_len(10))

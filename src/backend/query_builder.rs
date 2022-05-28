@@ -329,28 +329,29 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, "{}", s).unwrap();
             }
             SimpleExpr::CustomWithValues(expr, values) => {
+                let (placeholder, numbered) = self.placeholder();
                 let mut tokenizer = Tokenizer::new(expr).iter().peekable();
                 let mut count = 0;
-                while let Some(tok) = tokenizer.next() {
-                    match tok {
-                        Token::Punctuation(mark) => {
-                            if mark == "?" {
-                                if let Some(Token::Punctuation(mark)) = tokenizer.peek() {
-                                    // escape '??'
-                                    if mark == "?" {
-                                        write!(sql, "{}", mark).unwrap();
-                                        tokenizer.next();
-                                        continue;
-                                    }
+                while let Some(token) = tokenizer.next() {
+                    match token {
+                        Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
+                            Some(Token::Punctuation(mark)) if mark == placeholder => {
+                                write!(sql, "{}", mark).unwrap();
+                                tokenizer.next();
+                            }
+                            Some(Token::Unquoted(tok)) if numbered => {
+                                if let Ok(num) = tok.parse::<usize>() {
+                                    self.prepare_value(&values[num - 1], sql, collector);
                                 }
+                                tokenizer.next();
+                            }
+                            _ => {
                                 self.prepare_value(&values[count], sql, collector);
                                 count += 1;
-                            } else {
-                                write!(sql, "{}", mark).unwrap();
                             }
-                        }
-                        _ => write!(sql, "{}", tok).unwrap(),
-                    }
+                        },
+                        _ => write!(sql, "{}", token).unwrap(),
+                    };
                 }
             }
             SimpleExpr::Keyword(keyword) => {
@@ -703,6 +704,7 @@ pub trait QueryBuilder: QuotedBuilder {
                     Function::Min => "MIN",
                     Function::Sum => "SUM",
                     Function::Avg => "AVG",
+                    Function::Abs => "ABS",
                     Function::Coalesce => "COALESCE",
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),

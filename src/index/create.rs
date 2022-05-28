@@ -27,6 +27,30 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// ```
+/// Create index if not exists
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let index = Index::create()
+///     .if_not_exists()
+///     .name("idx-glyph-aspect")
+///     .table(Glyph::Table)
+///     .col(Glyph::Aspect)
+///     .to_owned();
+///
+/// assert_eq!(
+///     index.to_string(MysqlQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
+/// );
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX IF NOT EXISTS "idx-glyph-aspect" ON "glyph" ("aspect")"#
+/// );
+/// assert_eq!(
+///     index.to_string(SqliteQueryBuilder),
+///     r#"CREATE INDEX IF NOT EXISTS "idx-glyph-aspect" ON "glyph" ("aspect")"#
+/// );
+/// ```
 /// Index with prefix
 /// ```
 /// use sea_query::{tests_cfg::*, *};
@@ -103,6 +127,7 @@ pub struct IndexCreateStatement {
     pub(crate) primary: bool,
     pub(crate) unique: bool,
     pub(crate) index_type: Option<IndexType>,
+    pub(crate) if_not_exists: bool,
 }
 
 /// Specification of a table index
@@ -129,7 +154,14 @@ impl IndexCreateStatement {
             primary: false,
             unique: false,
             index_type: None,
+            if_not_exists: false,
         }
+    }
+
+    /// Create index if index not exists
+    pub fn if_not_exists(&mut self) -> &mut Self {
+        self.if_not_exists = true;
+        self
     }
 
     /// Set index name
@@ -200,6 +232,7 @@ impl IndexCreateStatement {
             primary: self.primary,
             unique: self.unique,
             index_type: self.index_type.take(),
+            if_not_exists: self.if_not_exists,
         }
     }
 }
