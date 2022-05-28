@@ -30,7 +30,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
-use crate::ColumnType;
+use crate::{BlobSize, ColumnType};
 
 /// Value variants
 ///
@@ -317,7 +317,7 @@ where
     }
 }
 
-type_to_box_value!(Vec<u8>, Bytes, Binary(None));
+type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
 type_to_box_value!(String, String, String(None));
 
 #[cfg(feature = "with-json")]
