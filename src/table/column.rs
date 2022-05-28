@@ -77,7 +77,8 @@ pub enum PgInterval {
 #[derive(Debug, Clone)]
 pub enum BlobSize {
     Tiny,
-    Blob(Option<u32>), /* Backward compatibility: MySQL & SQLite support `binary(length)` column type */
+    /// MySQL & SQLite support `binary(length)` column type
+    Blob(Option<u32>),
     Medium,
     Long,
 }

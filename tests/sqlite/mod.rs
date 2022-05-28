@@ -5,3 +5,7 @@ mod index;
 #[allow(deprecated)]
 mod query;
 mod table;
+
+#[path = "../common.rs"]
+mod common;
+use common::*;
