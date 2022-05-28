@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Make `sea-query-driver` an optional dependency https://github.com/SeaQL/sea-query/pull/324
 * Add `ABS` function https://github.com/SeaQL/sea-query/pull/334
 * Support `IF NOT EXISTS` when create index https://github.com/SeaQL/sea-query/pull/332
+* Support different `blob` types in MySQL https://github.com/SeaQL/sea-query/pull/314
 
 ### Bug fixes
 
@@ -66,6 +67,8 @@ assert_eq!(
     r#"SELECT data @? ('hello'::JSONPATH)"#
 );
 ```
+
+* In #314, `ColumnType`'s `Binary(Option<u32>)` changed to `Binary(BlobSize)`, so if you used `Binary(None)` before, you should change to `Binary(BlobSize::Blob(None))`
 
 ## 0.24.6 - 2022-05-12
 
