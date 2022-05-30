@@ -10,7 +10,7 @@ use std::str::from_utf8;
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-time")]
-use time::{offset, OffsetDateTime, PrimitiveDateTime};
+use time::{OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -771,12 +771,20 @@ impl Value {
 impl Value {
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::TimeDate(v) => v.as_ref().map(|v| v.format("%Y-%m-%d")),
-            Self::TimeTime(v) => v.as_ref().map(|v| v.format("%H:%M:%S")),
-            Self::TimeDateTime(v) => v.as_ref().map(|v| v.format("%Y-%m-%d %H:%M:%S")),
-            Self::TimeDateTimeWithTimeZone(v) => v
+            Self::TimeDate(v) => v
                 .as_ref()
-                .map(|v| v.to_offset(offset!(+0)).format("%Y-%m-%d %H:%M:%S")),
+                .and_then(|v| v.format(crate::backend::FORMAT_DATE).ok()),
+            Self::TimeTime(v) => v
+                .as_ref()
+                .and_then(|v| v.format(crate::backend::FORMAT_TIME).ok()),
+            Self::TimeDateTime(v) => v
+                .as_ref()
+                .and_then(|v| v.format(crate::backend::FORMAT_DATETIME).ok()),
+            Self::TimeDateTimeWithTimeZone(v) => v.as_ref().and_then(|v| {
+                v.to_offset(time::macros::offset!(+0))
+                    .format(crate::backend::FORMAT_DATETIME)
+                    .ok()
+            }),
             _ => panic!("not time Value"),
         }
     }
@@ -1599,7 +1607,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-time")]
     fn test_time_value() {
-        use time::{date, time};
+        use time::macros::{date, time};
         let timestamp = date!(2020 - 01 - 01).with_time(time!(2:2:2));
         let value: Value = timestamp.into();
         let out: PrimitiveDateTime = value.unwrap();
@@ -1609,7 +1617,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-time")]
     fn test_time_utc_value() {
-        use time::{date, time};
+        use time::macros::{date, time};
         let timestamp = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
         let value: Value = timestamp.into();
         let out: OffsetDateTime = value.unwrap();
@@ -1619,7 +1627,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-time")]
     fn test_time_local_value() {
-        use time::{date, offset, time};
+        use time::macros::{date, offset, time};
         let timestamp_utc = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
         let timestamp_local: OffsetDateTime = timestamp_utc.to_offset(offset!(+3));
         let value: Value = timestamp_local.into();
@@ -1630,7 +1638,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-time")]
     fn test_time_timezone_value() {
-        use time::{date, offset, time};
+        use time::macros::{date, offset, time};
         let timestamp = date!(2022 - 01 - 02)
             .with_time(time!(3:04:05))
             .assume_offset(offset!(+8));
@@ -1645,7 +1653,7 @@ mod tests {
         use crate::*;
 
         let string = "2020-01-01 02:02:02 +0800";
-        let timestamp = OffsetDateTime::parse(string, "%Y-%m-%d %H:%M:%S %z").unwrap();
+        let timestamp = OffsetDateTime::parse(string, crate::backend::FORMAT_DATETIME_TZ).unwrap();
 
         let query = Query::select().expr(Expr::val(timestamp)).to_owned();
 

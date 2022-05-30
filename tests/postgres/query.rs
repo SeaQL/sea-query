@@ -1109,7 +1109,7 @@ fn insert_4() {
 #[test]
 #[cfg(feature = "with-time")]
 fn insert_9() {
-    use time::{date, time};
+    use time::macros::{date, time};
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
