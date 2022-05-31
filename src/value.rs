@@ -9,9 +9,6 @@ use std::str::from_utf8;
 #[cfg(feature = "with-chrono")]
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
-#[cfg(feature = "with-time")]
-use time::{OffsetDateTime, PrimitiveDateTime};
-
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
 
@@ -81,21 +78,32 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
 
-    #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDate(Option<Box<time::Date>>),
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "with-time-0_3", feature = "with-time-0_2")))
+    )]
+    TimeDate(Option<Box<crate::deps::time::Date>>),
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "with-time-0_3", feature = "with-time-0_2")))
+    )]
+    TimeTime(Option<Box<crate::deps::time::Time>>),
 
-    #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeTime(Option<Box<time::Time>>),
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "with-time-0_3", feature = "with-time-0_2")))
+    )]
+    TimeDateTime(Option<Box<crate::deps::time::PrimitiveDateTime>>),
 
-    #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDateTime(Option<Box<PrimitiveDateTime>>),
-
-    #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "with-time-0_3", feature = "with-time-0_2")))
+    )]
+    TimeDateTimeWithTimeZone(Option<Box<crate::deps::time::OffsetDateTime>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -427,28 +435,35 @@ mod with_chrono {
     }
 }
 
-#[cfg(feature = "with-time")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "with-time-0_3", feature = "with-time-0_2")))
+)]
 mod with_time {
     use super::*;
 
-    type_to_box_value!(time::Date, TimeDate, Date);
-    type_to_box_value!(time::Time, TimeTime, Time(None));
-    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime(None));
+    type_to_box_value!(crate::deps::time::Date, TimeDate, Date);
+    type_to_box_value!(crate::deps::time::Time, TimeTime, Time(None));
+    type_to_box_value!(
+        crate::deps::time::PrimitiveDateTime,
+        TimeDateTime,
+        DateTime(None)
+    );
 
-    impl From<OffsetDateTime> for Value {
-        fn from(v: OffsetDateTime) -> Value {
+    impl From<crate::deps::time::OffsetDateTime> for Value {
+        fn from(v: crate::deps::time::OffsetDateTime) -> Value {
             Value::TimeDateTimeWithTimeZone(Some(Box::new(v)))
         }
     }
 
-    impl Nullable for OffsetDateTime {
+    impl Nullable for crate::deps::time::OffsetDateTime {
         fn null() -> Value {
             Value::TimeDateTimeWithTimeZone(None)
         }
     }
 
-    impl ValueType for OffsetDateTime {
+    impl ValueType for crate::deps::time::OffsetDateTime {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
                 Value::TimeDateTimeWithTimeZone(Some(x)) => Ok(*x),
@@ -457,7 +472,7 @@ mod with_time {
         }
 
         fn type_name() -> String {
-            stringify!(OffsetDateTime).to_owned()
+            stringify!(crate::deps::time::OffsetDateTime).to_owned()
         }
 
         fn column_type() -> ColumnType {
@@ -527,17 +542,17 @@ mod with_array {
     #[cfg(feature = "with-chrono")]
     impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
 
-    #[cfg(feature = "with-time")]
-    impl NotU8 for time::Date {}
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+    impl NotU8 for crate::deps::time::Date {}
 
-    #[cfg(feature = "with-time")]
-    impl NotU8 for time::Time {}
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+    impl NotU8 for crate::deps::time::Time {}
 
-    #[cfg(feature = "with-time")]
-    impl NotU8 for PrimitiveDateTime {}
+    #[cfg(any(feature = "with-time_0_3", feature = "with-time-0_2"))]
+    impl NotU8 for crate::deps::time::PrimitiveDateTime {}
 
-    #[cfg(feature = "with-time")]
-    impl NotU8 for OffsetDateTime {}
+    #[cfg(any(feature = "with-time_0_3", feature = "with-time-0_2"))]
+    impl NotU8 for crate::deps::time::OffsetDateTime {}
 
     #[cfg(feature = "with-rust_decimal")]
     impl NotU8 for Decimal {}
@@ -626,13 +641,13 @@ impl Value {
     }
 }
 
-#[cfg(feature = "with-time")]
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
 impl Value {
     pub fn is_time_date(&self) -> bool {
         matches!(self, Self::TimeDate(_))
     }
 
-    pub fn as_ref_time_date(&self) -> Option<&time::Date> {
+    pub fn as_ref_time_date(&self) -> Option<&crate::deps::time::Date> {
         match self {
             Self::TimeDate(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::TimeDate"),
@@ -654,13 +669,13 @@ impl Value {
     }
 }
 
-#[cfg(feature = "with-time")]
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
 impl Value {
     pub fn is_time_time(&self) -> bool {
         matches!(self, Self::TimeTime(_))
     }
 
-    pub fn as_ref_time_time(&self) -> Option<&time::Time> {
+    pub fn as_ref_time_time(&self) -> Option<&crate::deps::time::Time> {
         match self {
             Self::TimeTime(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::TimeTime"),
@@ -682,13 +697,13 @@ impl Value {
     }
 }
 
-#[cfg(feature = "with-time")]
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
 impl Value {
     pub fn is_time_date_time(&self) -> bool {
         matches!(self, Self::TimeDateTime(_))
     }
 
-    pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
+    pub fn as_ref_time_date_time(&self) -> Option<&crate::deps::time::PrimitiveDateTime> {
         match self {
             Self::TimeDateTime(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::TimeDateTime"),
@@ -738,13 +753,15 @@ impl Value {
     }
 }
 
-#[cfg(feature = "with-time")]
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
 impl Value {
     pub fn is_time_date_time_with_time_zone(&self) -> bool {
         matches!(self, Self::TimeDateTimeWithTimeZone(_))
     }
 
-    pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
+    pub fn as_ref_time_date_time_with_time_zone(
+        &self,
+    ) -> Option<&crate::deps::time::OffsetDateTime> {
         match self {
             Self::TimeDateTimeWithTimeZone(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::TimeDateTimeWithTimeZone"),
@@ -767,23 +784,41 @@ impl Value {
     }
 }
 
-#[cfg(feature = "with-time")]
+#[cfg(feature = "with-time-0_3")]
 impl Value {
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
             Self::TimeDate(v) => v
                 .as_ref()
-                .and_then(|v| v.format(crate::backend::FORMAT_DATE).ok()),
+                .and_then(|v| v.format(crate::deps::time::FORMAT_DATE).ok()),
             Self::TimeTime(v) => v
                 .as_ref()
-                .and_then(|v| v.format(crate::backend::FORMAT_TIME).ok()),
+                .and_then(|v| v.format(crate::deps::time::FORMAT_TIME).ok()),
             Self::TimeDateTime(v) => v
                 .as_ref()
-                .and_then(|v| v.format(crate::backend::FORMAT_DATETIME).ok()),
+                .and_then(|v| v.format(crate::deps::time::FORMAT_DATETIME).ok()),
             Self::TimeDateTimeWithTimeZone(v) => v.as_ref().and_then(|v| {
-                v.to_offset(time::macros::offset!(+0))
-                    .format(crate::backend::FORMAT_DATETIME)
+                v.to_offset(crate::deps::time::UtcOffset::UTC)
+                    .format(crate::deps::time::FORMAT_DATETIME)
                     .ok()
+            }),
+            _ => panic!("not time Value"),
+        }
+    }
+}
+
+#[cfg(feature = "with-time-0_2")]
+impl Value {
+    pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
+        match self {
+            Self::TimeDate(v) => v.as_ref().map(|v| v.format(crate::deps::time::FORMAT_DATE)),
+            Self::TimeTime(v) => v.as_ref().map(|v| v.format(crate::deps::time::FORMAT_TIME)),
+            Self::TimeDateTime(v) => v
+                .as_ref()
+                .map(|v| v.format(crate::deps::time::FORMAT_DATETIME)),
+            Self::TimeDateTimeWithTimeZone(v) => v.as_ref().map(|v| {
+                v.to_offset(crate::deps::time::UtcOffset::UTC)
+                    .format(crate::deps::time::FORMAT_DATETIME)
             }),
             _ => panic!("not time Value"),
         }
@@ -1605,55 +1640,58 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "with-time")]
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
     fn test_time_value() {
-        use time::macros::{date, time};
-        let timestamp = date!(2020 - 01 - 01).with_time(time!(2:2:2));
+        use crate::deps::time::{datetime, PrimitiveDateTime};
+
+        let timestamp = datetime(2020, 1, 1, 2, 2, 2);
         let value: Value = timestamp.into();
         let out: PrimitiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);
     }
 
     #[test]
-    #[cfg(feature = "with-time")]
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
     fn test_time_utc_value() {
-        use time::macros::{date, time};
-        let timestamp = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
+        use crate::deps::time::{datetime, OffsetDateTime};
+
+        let timestamp = datetime(2022, 1, 2, 3, 4, 5).assume_utc();
         let value: Value = timestamp.into();
         let out: OffsetDateTime = value.unwrap();
         assert_eq!(out, timestamp);
     }
 
     #[test]
-    #[cfg(feature = "with-time")]
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
     fn test_time_local_value() {
-        use time::macros::{date, offset, time};
-        let timestamp_utc = date!(2022 - 01 - 02).with_time(time!(3:04:05)).assume_utc();
-        let timestamp_local: OffsetDateTime = timestamp_utc.to_offset(offset!(+3));
+        use crate::deps::time::{datetime, offset, OffsetDateTime};
+
+        let timestamp_utc = datetime(2022, 1, 2, 3, 4, 5).assume_utc();
+        let timestamp_local: OffsetDateTime = timestamp_utc.to_offset(offset(3));
         let value: Value = timestamp_local.into();
         let out: OffsetDateTime = value.unwrap();
         assert_eq!(out, timestamp_local);
     }
 
     #[test]
-    #[cfg(feature = "with-time")]
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
     fn test_time_timezone_value() {
-        use time::macros::{date, offset, time};
-        let timestamp = date!(2022 - 01 - 02)
-            .with_time(time!(3:04:05))
-            .assume_offset(offset!(+8));
+        use crate::deps::time::{datetimetz, OffsetDateTime};
+
+        let timestamp = datetimetz(2022, 1, 2, 3, 4, 5, 8);
         let value: Value = timestamp.into();
         let out: OffsetDateTime = value.unwrap();
         assert_eq!(out, timestamp);
     }
 
     #[test]
-    #[cfg(feature = "with-time")]
+    #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
     fn test_time_query() {
+        use crate::deps::time::{OffsetDateTime, FORMAT_DATETIME_TZ};
         use crate::*;
 
         let string = "2020-01-01 02:02:02 +0800";
-        let timestamp = OffsetDateTime::parse(string, crate::backend::FORMAT_DATETIME_TZ).unwrap();
+        let timestamp = OffsetDateTime::parse(string, FORMAT_DATETIME_TZ).unwrap();
 
         let query = Query::select().expr(Expr::val(timestamp)).to_owned();
 

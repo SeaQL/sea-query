@@ -1107,16 +1107,15 @@ fn insert_4() {
 }
 
 #[test]
-#[cfg(feature = "with-time")]
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
 fn insert_9() {
-    use time::macros::{date, time};
+    use crate::deps::time::datetime;
+
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic(vec![date!(1970 - 01 - 01)
-                .with_time(time!(00:00:00))
-                .into()])
+            .values_panic(vec![datetime(1970, 1, 1, 0, 0, 0).into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00')"
     );

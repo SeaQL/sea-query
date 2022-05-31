@@ -1,21 +1,7 @@
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+use crate::deps::time::{FORMAT_DATE, FORMAT_DATETIME, FORMAT_DATETIME_TZ, FORMAT_TIME};
 use crate::*;
 use std::ops::Deref;
-#[cfg(feature = "with-time")]
-use time::macros::format_description;
-
-#[cfg(feature = "with-time")]
-pub static FORMAT_TIME: &'static [time::format_description::FormatItem<'static>] =
-    format_description!("[year]-[month]-[day]");
-#[cfg(feature = "with-time")]
-pub static FORMAT_DATE: &'static [time::format_description::FormatItem<'static>] =
-    format_description!("[hour]:[minute]:[second]");
-#[cfg(feature = "with-time")]
-pub static FORMAT_DATETIME: &'static [time::format_description::FormatItem<'static>] =
-    format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
-#[cfg(feature = "with-time")]
-pub static FORMAT_DATETIME_TZ: &'static [time::format_description::FormatItem<'static>] = format_description!(
-    "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]"
-);
 
 pub trait QueryBuilder: QuotedBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
@@ -1084,13 +1070,13 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
+            #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
             Value::TimeDate(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
+            #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
             Value::TimeTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
+            #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
             Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
+            #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
             Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
@@ -1146,21 +1132,31 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
                 write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
-            #[cfg(feature = "with-time")]
+            #[cfg(feature = "with-time-0_3")]
             Value::TimeDate(Some(v)) => {
                 write!(s, "\'{}\'", v.format(FORMAT_TIME).unwrap()).unwrap()
             }
-            #[cfg(feature = "with-time")]
+            #[cfg(feature = "with-time-0_3")]
             Value::TimeTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format(FORMAT_DATE).unwrap()).unwrap()
             }
-            #[cfg(feature = "with-time")]
+            #[cfg(feature = "with-time-0_3")]
             Value::TimeDateTime(Some(v)) => {
                 write!(s, "\'{}\'", v.format(FORMAT_DATETIME).unwrap()).unwrap()
             }
-            #[cfg(feature = "with-time")]
+            #[cfg(feature = "with-time-0_3")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => {
                 write!(s, "\'{}\'", v.format(FORMAT_DATETIME_TZ).unwrap()).unwrap()
+            }
+            #[cfg(feature = "with-time-0_2")]
+            Value::TimeDate(Some(v)) => write!(s, "\'{}\'", v.format(FORMAT_TIME)).unwrap(),
+            #[cfg(feature = "with-time-0_2")]
+            Value::TimeTime(Some(v)) => write!(s, "\'{}\'", v.format(FORMAT_DATE)).unwrap(),
+            #[cfg(feature = "with-time-0_2")]
+            Value::TimeDateTime(Some(v)) => write!(s, "\'{}\'", v.format(FORMAT_DATETIME)).unwrap(),
+            #[cfg(feature = "with-time-0_2")]
+            Value::TimeDateTimeWithTimeZone(Some(v)) => {
+                write!(s, "\'{}\'", v.format(FORMAT_DATETIME_TZ)).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
