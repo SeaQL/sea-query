@@ -22,13 +22,20 @@ jobs:
           toolchain: stable
           components: clippy
           override: true
-          
+
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: >
             --all-targets
-            --all
+            --features backend-mysql,backend-postgres,backend-sqlite,derive,attr,postgres,postgres-chrono,postgres-json,postgres-rust_decimal,postgres-bigdecimal,postgres-uuid,postgres-array,postgres-interval,postgres-time-0_2,rusqlite,sqlx-mysql,sqlx-postgres,sqlx-sqlite,thread-safe,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time-0_2
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: >
+            --all-targets
+            --features backend-mysql,backend-postgres,backend-sqlite,derive,attr,postgres,postgres-chrono,postgres-json,postgres-rust_decimal,postgres-bigdecimal,postgres-uuid,postgres-array,postgres-interval,postgres-time-0_3,rusqlite,sqlx-mysql,sqlx-postgres,sqlx-sqlite,thread-safe,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time-0_3
 
   build:
     name: Build
@@ -44,38 +51,21 @@ jobs:
 
       - uses: actions-rs/cargo@v1
         with:
-          command: build
-          args: --no-default-features
+          command: install
+          args: cargo-hack
+
+      # By default, when using --each-feature, cargo hack will run with --all-features which is not possible
+      # considering with-time-0_2 and with-time-0_3 are exclusive. Excluding with-time-0_2 solves this but we
+      # need to check it afterward.
+      - uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: build --each-feature --exclude-features with-time-0_2
 
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=thread-safe
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-chrono
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-json
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-rust_decimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-uuid
+          args: --features with-time-0_3
 
   test:
     name: Unit Test
@@ -92,7 +82,12 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features
+          args: --features backend-mysql,backend-postgres,backend-sqlite,derive,attr,postgres,postgres-chrono,postgres-json,postgres-rust_decimal,postgres-bigdecimal,postgres-uuid,postgres-array,postgres-interval,postgres-time-0_2,rusqlite,sqlx-mysql,sqlx-postgres,sqlx-sqlite,thread-safe,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time-0_2
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features backend-mysql,backend-postgres,backend-sqlite,derive,attr,postgres,postgres-chrono,postgres-json,postgres-rust_decimal,postgres-bigdecimal,postgres-uuid,postgres-array,postgres-interval,postgres-time-0_3,rusqlite,sqlx-mysql,sqlx-postgres,sqlx-sqlite,thread-safe,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time-0_3
 
   derive-test:
     name: Derive Tests
