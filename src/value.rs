@@ -18,8 +18,8 @@ use rust_decimal::Decimal;
 #[cfg(feature = "with-bigdecimal")]
 use bigdecimal::BigDecimal;
 
-#[cfg(feature = "with-uuid")]
-use uuid::Uuid;
+#[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
+use crate::deps::uuid::Uuid;
 
 #[cfg(feature = "with-ipnetwork")]
 use ipnetwork::{Ipv4Network, Ipv6Network};
@@ -97,8 +97,11 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
 
-    #[cfg(feature = "with-uuid")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    #[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1")))
+    )]
     Uuid(Option<Box<Uuid>>),
 
     #[cfg(feature = "with-rust_decimal")]
@@ -482,8 +485,11 @@ mod with_bigdecimal {
     type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 }
 
-#[cfg(feature = "with-uuid")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+#[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1")))
+)]
 mod with_uuid {
     use super::*;
 
@@ -545,7 +551,7 @@ mod with_array {
     #[cfg(feature = "with-bigdecimal")]
     impl NotU8 for BigDecimal {}
 
-    #[cfg(feature = "with-uuid")]
+    #[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
     impl NotU8 for Uuid {}
 
     impl<T> From<Vec<T>> for Value
@@ -821,7 +827,7 @@ impl Value {
     }
 }
 
-#[cfg(feature = "with-uuid")]
+#[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
 impl Value {
     pub fn is_uuid(&self) -> bool {
         matches!(self, Self::Uuid(_))
@@ -1197,7 +1203,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Decimal(None) => Json::Null,
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(None) => Json::Null,
-        #[cfg(feature = "with-uuid")]
+        #[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
         Value::Uuid(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
@@ -1251,7 +1257,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             use bigdecimal::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
-        #[cfg(feature = "with-uuid")]
+        #[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
         Value::Array(Some(v)) => {
@@ -1666,11 +1672,11 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "with-uuid")]
+    #[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
     fn test_uuid_value() {
-        let uuid = uuid::Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
+        let uuid = crate::deps::uuid::Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
         let value: Value = uuid.into();
-        let out: uuid::Uuid = value.unwrap();
+        let out: crate::deps::uuid::Uuid = value.unwrap();
         assert_eq!(out, uuid);
     }
 

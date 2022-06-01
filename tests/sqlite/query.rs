@@ -1077,13 +1077,13 @@ fn insert_from_select() {
 }
 
 #[test]
-#[cfg(feature = "with-uuid")]
+#[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
 fn insert_5() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic(vec![uuid::Uuid::nil().into()])
+            .values_panic(vec![crate::tests_cfg::uuid::Uuid::nil().into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image") VALUES ('00000000-0000-0000-0000-000000000000')"#
     );

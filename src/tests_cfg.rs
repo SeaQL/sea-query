@@ -5,6 +5,9 @@ pub use std::fmt::Write as FmtWrite;
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
+#[cfg(any(feature = "with-uuid-0_8", feature = "with-uuid-1"))]
+pub use crate::deps::uuid;
+
 use crate::Iden;
 
 /// Representation of a database table named `Character`.
