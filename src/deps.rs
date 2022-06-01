@@ -8,13 +8,12 @@ pub mod time {
     use time::format_description::FormatItem;
     use time::macros::format_description;
 
-    pub static FORMAT_TIME: &'static [FormatItem<'static>] =
-        format_description!("[year]-[month]-[day]");
-    pub static FORMAT_DATE: &'static [FormatItem<'static>] =
+    pub static FORMAT_TIME: &[FormatItem<'static>] = format_description!("[year]-[month]-[day]");
+    pub static FORMAT_DATE: &[FormatItem<'static>] =
         format_description!("[hour]:[minute]:[second]");
-    pub static FORMAT_DATETIME: &'static [FormatItem<'static>] =
+    pub static FORMAT_DATETIME: &[FormatItem<'static>] =
         format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
-    pub static FORMAT_DATETIME_TZ: &'static [FormatItem<'static>] = format_description!(
+    pub static FORMAT_DATETIME_TZ: &[FormatItem<'static>] = format_description!(
         "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]"
     );
 
@@ -59,10 +58,10 @@ pub mod time {
 pub mod time {
     pub use time_0_2::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
-    pub static FORMAT_TIME: &'static str = "%Y-%m-%d";
-    pub static FORMAT_DATE: &'static str = "%H:%M:%S";
-    pub static FORMAT_DATETIME: &'static str = "%Y-%m-%d %H:%M:%S";
-    pub static FORMAT_DATETIME_TZ: &'static str = "%Y-%m-%d %H:%M:%S %z";
+    pub static FORMAT_TIME: &str = "%Y-%m-%d";
+    pub static FORMAT_DATE: &str = "%H:%M:%S";
+    pub static FORMAT_DATETIME: &str = "%Y-%m-%d %H:%M:%S";
+    pub static FORMAT_DATETIME_TZ: &str = "%Y-%m-%d %H:%M:%S %z";
 
     pub fn offset(hours: i8) -> UtcOffset {
         UtcOffset::hours(hours)
