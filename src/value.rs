@@ -1276,13 +1276,13 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
         Value::TimeTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-time")]
+        #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
