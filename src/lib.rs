@@ -741,7 +741,7 @@
 )]
 
 pub mod backend;
-pub mod deps;
+mod deps;
 pub mod driver;
 pub mod error;
 pub mod expr;

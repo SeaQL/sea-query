@@ -1109,7 +1109,7 @@ fn insert_4() {
 #[test]
 #[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
 fn insert_9() {
-    use crate::deps::time::datetime;
+    use crate::tests_cfg::time::datetime;
 
     assert_eq!(
         Query::insert()

@@ -5,6 +5,9 @@ pub use std::fmt::Write as FmtWrite;
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
+#[cfg(any(feature = "with-time-0_3", feature = "with-time-0_2"))]
+pub use crate::deps::time;
+
 use crate::Iden;
 
 /// Representation of a database table named `Character`.
