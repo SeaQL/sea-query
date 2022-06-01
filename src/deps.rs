@@ -1,3 +1,6 @@
+#[cfg(all(feature = "with-time-0_3", feature = "with-time-0_2"))]
+compile_error!("features `with-time-0_3` and `with-time-0_2` are mutually exclusive");
+
 #[cfg(feature = "with-time-0_3")]
 pub mod time {
     pub use time::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
