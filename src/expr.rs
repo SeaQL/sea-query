@@ -1483,6 +1483,63 @@ impl Expr {
         self.into()
     }
 
+    /// Express a `IN` sub expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::FontId])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::tuple([
+    ///             Expr::col(Char::Character).into_simple_expr(),
+    ///             Expr::col(Char::FontId).into_simple_expr(),
+    ///         ])
+    ///         .in_tuples(vec![[1,1], [2,2]])
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font_id` FROM `character` WHERE (`character`, `font_id`) IN ((1, 1), (2, 2))"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, 1), (2, 2))"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, 1), (2, 2))"#
+    /// );
+    ///
+    /// ```
+    #[allow(clippy::wrong_self_convention)]
+    pub fn in_tuples<K, V, I>(mut self, v: I) -> SimpleExpr
+    where
+        K: Into<Value>,
+        V: IntoIterator<Item = K>,
+        I: IntoIterator<Item = V>,
+    {
+        self.bopr = Some(BinOper::In);
+        self.right = Some(SimpleExpr::Tuple(
+            v
+                .into_iter()
+                .map(|m| SimpleExpr::Values(
+                    m
+                        .into_iter()
+                        .map(|k| k.into())
+                        .collect()
+                ))
+                .collect()
+        ));
+        self.into()
+    }
+
     /// Express a `NOT IN` expression.
     ///
     /// # Examples
@@ -1859,7 +1916,7 @@ impl Expr {
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
-    /// );    
+    /// );
     /// ```
     pub fn case<C, T>(cond: C, then: T) -> CaseStatement
     where
