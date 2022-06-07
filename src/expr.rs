@@ -1169,6 +1169,40 @@ impl Expr {
         self.bin_oper(BinOper::Is, SimpleExpr::Keyword(Keyword::Null))
     }
 
+    /// Express a `IS` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::Id).is(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`id` IS 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."id" IS 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."id" IS 1"#
+    /// );
+    /// ```
+    #[cfg(feature = "backend-sqlite")]
+    pub fn is<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::Is, SimpleExpr::Value(v.into()))
+    }
+
     /// Express a `IS NOT NULL` expression.
     ///
     /// # Examples
@@ -1198,6 +1232,40 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_null(self) -> SimpleExpr {
         self.bin_oper(BinOper::IsNot, SimpleExpr::Keyword(Keyword::Null))
+    }
+
+    /// Express a `IS NOT` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::Id).is_not(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`id` IS NOT 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."id" IS NOT 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."id" IS NOT 1"#
+    /// );
+    /// ```
+    #[cfg(feature = "backend-sqlite")]
+    pub fn is_not<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::IsNot, SimpleExpr::Value(v.into()))
     }
 
     /// Create any binary operation
