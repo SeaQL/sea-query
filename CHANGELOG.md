@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.26.0 - Pending
+
+### Enhancements
+
+* Move escape and unescape string to backend (#306)
+
+### Breaking changes
+
+As part of #306, the standalone functions `escape_string` and `unescape_string` are removed, and becomes backend specific. So now, you have to:
+
+```rust
+use sea_query::EscapeBuilder;
+
+let string: String = MySqlQueryBuilder.escape_string(r#" "abc" "#);
+let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
+```
+
 ## 0.25.0 - 2022-05-28
 
 ### New Features
