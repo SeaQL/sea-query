@@ -24,3 +24,13 @@ impl QuotedBuilder for SqliteQueryBuilder {
         '"'
     }
 }
+
+impl EscapeBuilder for SqliteQueryBuilder {
+    fn escape_string(&self, string: &str) -> String {
+        string.replace('\'', "''")
+    }
+
+    fn unescape_string(&self, string: &str) -> String {
+        string.replace("''", "'")
+    }
+}

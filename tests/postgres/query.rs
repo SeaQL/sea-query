@@ -1443,6 +1443,58 @@ fn delete_1() {
 }
 
 #[test]
+fn escape_1() {
+    let test = r#" "abc" "#;
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        r#" \"abc\" "#.to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    )
+}
+
+#[test]
+fn escape_2() {
+    let test = "a\nb\tc";
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        "a\\nb\\tc".to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_3() {
+    let test = "a\\b";
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        "a\\\\b".to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_4() {
+    let test = "a\"b";
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        "a\\\"b".to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    )
+}
+
+#[test]
 fn delete_returning_all_columns() {
     assert_eq!(
         Query::delete()

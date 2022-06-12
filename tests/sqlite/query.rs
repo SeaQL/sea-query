@@ -1333,6 +1333,64 @@ fn delete_1() {
 }
 
 #[test]
+fn escape_1() {
+    let test = r#" "abc" "#;
+    assert_eq!(
+        SqliteQueryBuilder.escape_string(test),
+        r#" "abc" "#.to_owned()
+    );
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    )
+}
+
+#[test]
+fn escape_2() {
+    let test = "a\nb\tc";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\nb\tc".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_3() {
+    let test = "a\\b";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\\b".to_owned());
+    println!("{}", SqliteQueryBuilder.escape_string(test));
+    println!(
+        "{}",
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str())
+    );
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_4() {
+    let test = "a\"b";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\"b".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_5() {
+    let test = "a'c";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a''c".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
 fn delete_returning_all_columns() {
     assert_eq!(
         Query::delete()

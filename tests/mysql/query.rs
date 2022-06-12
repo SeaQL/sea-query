@@ -1312,3 +1312,49 @@ fn delete_1() {
         "DELETE FROM `glyph` WHERE `id` = 1 ORDER BY `id` ASC LIMIT 1"
     );
 }
+
+#[test]
+fn escape_1() {
+    let test = r#" "abc" "#;
+    assert_eq!(
+        MysqlQueryBuilder.escape_string(test),
+        r#" \"abc\" "#.to_owned()
+    );
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_2() {
+    let test = "a\nb\tc";
+    assert_eq!(
+        MysqlQueryBuilder.escape_string(test),
+        "a\\nb\\tc".to_owned()
+    );
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_3() {
+    let test = "a\\b";
+    assert_eq!(MysqlQueryBuilder.escape_string(test), "a\\\\b".to_owned());
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_4() {
+    let test = "a\"b";
+    assert_eq!(MysqlQueryBuilder.escape_string(test), "a\\\"b".to_owned());
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}

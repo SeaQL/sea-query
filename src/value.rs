@@ -1,5 +1,4 @@
 //! Container for all SQL value types.
-use std::fmt::Write;
 
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
@@ -1127,50 +1126,6 @@ where
     }
 }
 
-/// Escape a SQL string literal
-pub fn escape_string(string: &str) -> String {
-    string
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\'', "\\'")
-        .replace('\0', "\\0")
-        .replace('\x08', "\\b")
-        .replace('\x09', "\\t")
-        .replace('\x1a', "\\z")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-}
-
-/// Unescape a SQL string literal
-pub fn unescape_string(input: &str) -> String {
-    let mut escape = false;
-    let mut output = String::new();
-    for c in input.chars() {
-        if !escape && c == '\\' {
-            escape = true;
-        } else if escape {
-            write!(
-                output,
-                "{}",
-                match c {
-                    '0' => '\0',
-                    'b' => '\x08',
-                    't' => '\x09',
-                    'z' => '\x1a',
-                    'n' => '\n',
-                    'r' => '\r',
-                    c => c,
-                }
-            )
-            .unwrap();
-            escape = false;
-        } else {
-            write!(output, "{}", c).unwrap();
-        }
-    }
-    output
-}
-
 /// Convert value to json value
 #[allow(clippy::many_single_char_names)]
 #[cfg(feature = "with-json")]
@@ -1275,34 +1230,6 @@ impl Values {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_escape_1() {
-        let test = r#" "abc" "#;
-        assert_eq!(escape_string(test), r#" \"abc\" "#.to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
-
-    #[test]
-    fn test_escape_2() {
-        let test = "a\nb\tc";
-        assert_eq!(escape_string(test), "a\\nb\\tc".to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
-
-    #[test]
-    fn test_escape_3() {
-        let test = "a\\b";
-        assert_eq!(escape_string(test), "a\\\\b".to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
-
-    #[test]
-    fn test_escape_4() {
-        let test = "a\"b";
-        assert_eq!(escape_string(test), "a\\\"b".to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
 
     #[test]
     fn test_value() {

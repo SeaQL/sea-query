@@ -1121,7 +1121,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours\'%'"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
     /// );
     /// ```
     pub fn like(self, v: &str) -> SimpleExpr {
