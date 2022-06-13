@@ -20,6 +20,7 @@ pub enum Function {
     Coalesce,
     Lower,
     Upper,
+    CurrentTimestamp,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -432,5 +433,34 @@ impl Func {
         T: Into<SimpleExpr>,
     {
         Expr::func(Function::Upper).arg(expr)
+    }
+
+    /// Call `CURRENT_TIMESTAMP` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::current_timestamp())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// ```
+    pub fn current_timestamp() -> SimpleExpr {
+        Expr::func(Function::CurrentTimestamp).into()
     }
 }
