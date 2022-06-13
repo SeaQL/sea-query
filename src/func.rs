@@ -476,9 +476,7 @@ impl Func {
     /// use sea_query::tests_cfg::Character::Character;
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(Func::current_timestamp())
-    ///     .to_owned();
+    /// let query = Query::select().expr(Func::current_timestamp()).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
