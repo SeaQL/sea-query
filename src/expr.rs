@@ -1179,23 +1179,22 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Id).is(1))
+    ///     .and_where(Expr::tbl(Char::Table, Char::Ascii).is(true))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`id` IS 1"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`ascii` IS TRUE"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."id" IS 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."id" IS 1"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
     /// );
     /// ```
-    #[cfg(feature = "backend-sqlite")]
     pub fn is<V>(self, v: V) -> SimpleExpr
     where
         V: Into<Value>,
@@ -1260,7 +1259,6 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."id" IS NOT 1"#
     /// );
     /// ```
-    #[cfg(feature = "backend-sqlite")]
     pub fn is_not<V>(self, v: V) -> SimpleExpr
     where
         V: Into<Value>,
