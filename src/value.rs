@@ -151,7 +151,7 @@ impl std::fmt::Display for ValueTypeErr {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Values(pub Vec<Value>);
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ValueTuple {
     One(Value),
     Two(Value, Value),

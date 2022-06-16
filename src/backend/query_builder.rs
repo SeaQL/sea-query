@@ -7,6 +7,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         ("?", false)
     }
 
+    /// Prefix for tuples in VALUES list (e.g. ROW for Mysql)
+    fn values_list_tuple_prefix(&self) -> &str {
+        ""
+    }
+
     /// Translate [`InsertStatement`] into SQL statement.
     fn prepare_insert_statement(
         &self,
@@ -561,6 +566,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
+            TableRef::ValuesList(values, alias) => {
+                write!(sql, "(").unwrap();
+                self.prepare_values_list(values, sql, collector);
+                write!(sql, ")").unwrap();
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
         }
     }
 
@@ -995,6 +1007,35 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
         collector(value.clone());
+    }
+
+    /// Translate a `&[ValueTuple]` into a VALUES list.
+    fn prepare_values_list(
+        &self,
+        value_tuples: &[ValueTuple],
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        let (placeholder, numbered) = self.placeholder();
+        write!(sql, "VALUES ").unwrap();
+        value_tuples.iter().fold(true, |first, value_tuple| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            write!(sql, "{}", self.values_list_tuple_prefix()).unwrap();
+            write!(sql, "(").unwrap();
+            value_tuple.clone().into_iter().fold(true, |first, value| {
+                if !first {
+                    write!(sql, ", ").unwrap();
+                }
+                sql.push_param(placeholder, numbered);
+                collector(value);
+                false
+            });
+
+            write!(sql, ")").unwrap();
+            false
+        });
     }
 
     /// Translate [`SimpleExpr::Tuple`] into SQL statement.

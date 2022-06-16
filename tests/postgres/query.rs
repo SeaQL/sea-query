@@ -1061,6 +1061,33 @@ fn select_60() {
 }
 
 #[test]
+fn select_61() {
+    let select = SelectStatement::new()
+        .expr(Expr::asterisk())
+        .from_values(vec![(1i32, "hello"), (2, "world")], Alias::new("x"))
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Alias::new("column1"), Alias::new("column2")])
+        .from(Alias::new("cte"))
+        .to_owned();
+    assert_eq!(
+        select.with(with_clause).to_string(PostgresQueryBuilder),
+        [
+            r#"WITH "cte" AS"#,
+            r#"(SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x")"#,
+            r#"SELECT "column1", "column2""#,
+            r#"FROM "cte""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
