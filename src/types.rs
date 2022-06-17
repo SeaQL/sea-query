@@ -125,6 +125,7 @@ pub enum BinOper {
     Mul,
     Div,
     As,
+    Escape,
     #[cfg(feature = "backend-postgres")]
     Matches,
     #[cfg(feature = "backend-postgres")]

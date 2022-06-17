@@ -2108,6 +2108,36 @@ impl SimpleExpr {
         self.binary(BinOper::Sub, right.into())
     }
 
+    /// Select an espace character in a LIKE.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like(r"|_Our|_").escape('|'))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// ```
+    pub fn escape(self, character: char) -> Self {
+        self.binary(BinOper::Escape, Self::Custom(format!("\'{character}\'")))
+    }
+
     pub(crate) fn binary(self, op: BinOper, right: SimpleExpr) -> Self {
         SimpleExpr::Binary(Box::new(self), op, Box::new(right))
     }
