@@ -110,10 +110,9 @@
 //!         .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
 //!         .build(PostgresQueryBuilder),
 //!     (
-//!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
+//!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE 'A' AND "id" IN ($1, $2, $3)"#
 //!             .to_owned(),
 //!         Values(vec![
-//!             Value::String(Some(Box::new("A".to_owned()))),
 //!             Value::Int(Some(1)),
 //!             Value::Int(Some(2)),
 //!             Value::Int(Some(3))
@@ -263,7 +262,7 @@
 //!         r#"SELECT "character" FROM "character""#,
 //!         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
 //!         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
-//!         r#"AND (("character" LIKE 'D') AND ("character" LIKE 'E'))"#,
+//!         r#"AND ("character" LIKE 'D' AND "character" LIKE 'E')"#,
 //!     ]
 //!     .join(" ")
 //! );

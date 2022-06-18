@@ -1149,7 +1149,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Double(None)
         | Value::String(None)
         | Value::Char(None)
-        | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
