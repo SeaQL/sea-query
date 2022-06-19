@@ -1165,7 +1165,9 @@ impl Expr {
                 Some(escape) => SimpleExpr::Binary(
                     Box::new(value),
                     BinOper::Escape,
-                    Box::new(SimpleExpr::Value(Value::Char(Some(escape)))),
+                    Box::new(SimpleExpr::Value(Value::String(Some(Box::new(
+                        escape.to_string(),
+                    ))))),
                 ),
                 None => value,
             },

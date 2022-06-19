@@ -1095,7 +1095,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             | Value::Float(None)
             | Value::Double(None)
             | Value::String(None)
-            | Value::Char(None)
             | Value::Bytes(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
@@ -1145,9 +1144,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
-            Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
-            }
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x\'{}\'",
