@@ -1482,7 +1482,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         write!(sql, " ").unwrap();
         self.prepare_bin_oper(op, sql, collector);
         write!(sql, " ").unwrap();
-        let no_right_paren = matches!(op, BinOper::Between | BinOper::NotBetween);
+        let no_right_paren = matches!(
+            op,
+            BinOper::Between | BinOper::NotBetween | BinOper::Like | BinOper::NotLike
+        );
         let right_paren = (right.need_parentheses()
             || right.is_binary() && *op != left.get_bin_oper().unwrap())
             && !no_right_paren

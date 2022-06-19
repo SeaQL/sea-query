@@ -388,7 +388,14 @@ impl Iden for NullAlias {
 }
 
 impl LikeExpr {
-    pub fn new(pattern: &str) -> Self {
+    pub fn new(pattern: String) -> Self {
+        Self {
+            pattern,
+            escape: None,
+        }
+    }
+
+    pub fn str(pattern: &str) -> Self {
         Self {
             pattern: pattern.to_owned(),
             escape: None,
@@ -411,13 +418,13 @@ impl IntoLikeExpr for LikeExpr {
 
 impl IntoLikeExpr for &str {
     fn into_like_expr(self) -> LikeExpr {
-        LikeExpr::new(self)
+        LikeExpr::str(self)
     }
 }
 
 impl IntoLikeExpr for String {
     fn into_like_expr(self) -> LikeExpr {
-        LikeExpr::new(&self)
+        LikeExpr::new(self)
     }
 }
 

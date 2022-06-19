@@ -759,17 +759,13 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(
-                Some(
-                    ConditionExpression::SimpleExpr(
-                        Expr::tuple([
-                            Expr::col(Glyph::Aspect).into_simple_expr(),
-                            Expr::value(100),
-                        ])
-                        .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
-                    ),
-                ),
-            ),
+            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+                Expr::tuple([
+                    Expr::col(Glyph::Aspect).into_simple_expr(),
+                    Expr::value(100),
+                ])
+                .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
+            ))),
         )
         .to_string(SqliteQueryBuilder);
 
@@ -986,6 +982,18 @@ fn select_57() {
     assert_eq!(
         query.to_string(SqliteQueryBuilder),
         r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
+    );
+}
+
+#[test]
+fn select_58() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A' ESCAPE '\'"#
     );
 }
 
