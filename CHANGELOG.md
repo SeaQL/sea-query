@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * Move escape and unescape string to backend (#306)
+* `LIKE ESCAPE` support (#352, #353)
 
 ### Breaking changes
 

@@ -759,13 +759,17 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
-                Expr::tuple([
-                    Expr::col(Glyph::Aspect).into_simple_expr(),
-                    Expr::value(100),
-                ])
-                .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
-            ))),
+            Cond::all().add_option(
+                Some(
+                    ConditionExpression::SimpleExpr(
+                        Expr::tuple([
+                            Expr::col(Glyph::Aspect).into_simple_expr(),
+                            Expr::value(100),
+                        ])
+                        .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
+                    ),
+                ),
+            ),
         )
         .to_string(PostgresQueryBuilder);
 
@@ -1062,6 +1066,18 @@ fn select_60() {
 
 #[test]
 fn select_61() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A' ESCAPE E'\\'"#
+    );
+}
+
+#[test]
+fn select_62() {
     let select = SelectStatement::new()
         .expr(Expr::asterisk())
         .from_values(vec![(1i32, "hello"), (2, "world")], Alias::new("x"))
@@ -1084,7 +1100,6 @@ fn select_61() {
             r#"FROM "cte""#,
         ]
         .join(" ")
-    );
 }
 
 #[test]
