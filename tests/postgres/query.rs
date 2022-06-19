@@ -1100,6 +1100,7 @@ fn select_62() {
             r#"FROM "cte""#,
         ]
         .join(" ")
+    );
 }
 
 #[test]
