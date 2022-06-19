@@ -36,6 +36,8 @@ pub enum SimpleExpr {
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
+    Like(Box<SimpleExpr>, LikeExpr),
+    NotLike(Box<SimpleExpr>, LikeExpr),
 }
 
 impl Expr {
@@ -1124,18 +1126,12 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
     /// );
     /// ```
-    pub fn like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::Like,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+    pub fn like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
+        SimpleExpr::Like(Box::new(self.left.unwrap()), like.into_like_expr())
     }
 
-    pub fn not_like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::NotLike,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+    pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
+        SimpleExpr::NotLike(Box::new(self.left.unwrap()), like.into_like_expr())
     }
 
     /// Express a `IS NULL` expression.
