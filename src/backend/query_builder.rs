@@ -406,32 +406,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         }
     }
 
-    /// Translate [`LikeExpr`] into SQL statement.
-    fn prepare_like_statement(
-        &self,
-        negative: bool,
-        expr: &SimpleExpr,
-        like: &LikeExpr,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        self.prepare_simple_expr(expr, sql, collector);
-        if negative {
-            write!(sql, " NOT LIKE ").unwrap();
-        } else {
-            write!(sql, " LIKE ").unwrap();
-        }
-        let mut s = String::new();
-        self.write_string_quoted(&like.pattern, &mut s);
-        write!(sql, "{}", s).unwrap();
-
-        if let Some(escape) = like.escape {
-            let mut s = String::new();
-            self.write_char_quoted(escape, &mut s);
-            write!(sql, "ESCAPE {}", s).unwrap();
-        }
-    }
-
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(
         &self,
