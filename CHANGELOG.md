@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.26.0 - Pending
 
+### New Features
+
+* Add support for `VALUES` lists (#351)
+
 ### Enhancements
 
 * Move escape and unescape string to backend (#306)
