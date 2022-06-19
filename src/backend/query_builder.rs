@@ -285,9 +285,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(2.into()),
+                        &SimpleExpr::Value(2i32.into()),
                         sql,
                         collector,
                     );
@@ -296,9 +296,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                     && right.get_values().is_empty()
                 {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         sql,
                         collector,
                     );
@@ -362,12 +362,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             }
             SimpleExpr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql, collector);
-            }
-            SimpleExpr::Like(expr, like_stmt) => {
-                self.prepare_like_statement(false, expr, like_stmt, sql, collector)
-            }
-            SimpleExpr::NotLike(expr, like_stmt) => {
-                self.prepare_like_statement(true, expr, like_stmt, sql, collector)
             }
         }
     }
@@ -650,6 +644,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             match bin_oper {
                 BinOper::And => "AND",
                 BinOper::Or => "OR",
+                BinOper::Like => "LIKE",
+                BinOper::NotLike => "NOT LIKE",
                 BinOper::Is => "IS",
                 BinOper::IsNot => "IS NOT",
                 BinOper::In => "IN",
@@ -667,6 +663,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
+                BinOper::Escape => "ESCAPE",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }

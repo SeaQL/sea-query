@@ -106,6 +106,8 @@ pub enum UnOper {
 pub enum BinOper {
     And,
     Or,
+    Like,
+    NotLike,
     Is,
     IsNot,
     In,
@@ -123,6 +125,7 @@ pub enum BinOper {
     Mul,
     Div,
     As,
+    Escape,
     #[cfg(feature = "backend-postgres")]
     Matches,
     #[cfg(feature = "backend-postgres")]

@@ -36,8 +36,6 @@ pub enum SimpleExpr {
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
-    Like(Box<SimpleExpr>, LikeExpr),
-    NotLike(Box<SimpleExpr>, LikeExpr),
 }
 
 impl Expr {
@@ -1127,11 +1125,26 @@ impl Expr {
     /// );
     /// ```
     pub fn like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        SimpleExpr::Like(Box::new(self.left.unwrap()), like.into_like_expr())
+        self.like_like(BinOper::Like, like.into_like_expr())
     }
 
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        SimpleExpr::NotLike(Box::new(self.left.unwrap()), like.into_like_expr())
+        self.like_like(BinOper::NotLike, like.into_like_expr())
+    }
+
+    fn like_like(self, op: BinOper, like: LikeExpr) -> SimpleExpr {
+        let value = SimpleExpr::Value(Value::String(Some(Box::new(like.pattern))));
+        self.bin_oper(
+            op,
+            match like.escape {
+                Some(escape) => SimpleExpr::Binary(
+                    Box::new(value),
+                    BinOper::Escape,
+                    Box::new(SimpleExpr::Value(Value::Char(Some(escape)))),
+                ),
+                None => value,
+            },
+        )
     }
 
     /// Express a `IS NULL` expression.

@@ -315,7 +315,7 @@ fn select_22() {
                     )
             )
             .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR ("character" LIKE 'D' AND "character" LIKE 'E')) AND ("character" LIKE 'F' OR "character" LIKE 'G')"#
+        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
     );
 }
 
@@ -759,13 +759,17 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
-                Expr::tuple([
-                    Expr::col(Glyph::Aspect).into_simple_expr(),
-                    Expr::value(100),
-                ])
-                .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
-            ))),
+            Cond::all().add_option(
+                Some(
+                    ConditionExpression::SimpleExpr(
+                        Expr::tuple([
+                            Expr::col(Glyph::Aspect).into_simple_expr(),
+                            Expr::value(100),
+                        ])
+                        .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
+                    ),
+                ),
+            ),
         )
         .to_string(PostgresQueryBuilder);
 
