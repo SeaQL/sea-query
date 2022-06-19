@@ -48,6 +48,7 @@ pub enum Value {
     Float(Option<f32>),
     Double(Option<f64>),
     String(Option<Box<String>>),
+    Char(Option<char>),
 
     #[allow(clippy::box_collection)]
     Bytes(Option<Box<Vec<u8>>>),
@@ -263,6 +264,7 @@ type_to_value!(u32, Unsigned, Unsigned(None));
 type_to_value!(u64, BigUnsigned, BigUnsigned(None));
 type_to_value!(f32, Float, Float(None));
 type_to_value!(f64, Double, Double(None));
+type_to_value!(char, Char, Char(None));
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
@@ -1146,6 +1148,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Float(None)
         | Value::Double(None)
         | Value::String(None)
+        | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
@@ -1174,6 +1177,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Float(Some(v)) => (*v).into(),
         Value::Double(Some(v)) => (*v).into(),
         Value::String(Some(s)) => Json::String(s.as_ref().clone()),
+        Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]

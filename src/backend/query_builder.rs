@@ -285,9 +285,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(2.into()),
+                        &SimpleExpr::Value(2i32.into()),
                         sql,
                         collector,
                     );
@@ -296,9 +296,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                     && right.get_values().is_empty()
                 {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         sql,
                         collector,
                     );
@@ -637,6 +637,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
+                BinOper::Escape => "ESCAPE",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }
@@ -1053,6 +1054,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             | Value::Float(None)
             | Value::Double(None)
             | Value::String(None)
+            | Value::Char(None)
             | Value::Bytes(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
@@ -1102,6 +1104,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
+            Value::Char(Some(v)) => {
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
+            }
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x\'{}\'",
@@ -1479,7 +1484,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         write!(sql, " ").unwrap();
         self.prepare_bin_oper(op, sql, collector);
         write!(sql, " ").unwrap();
-        let no_right_paren = matches!(op, BinOper::Between | BinOper::NotBetween);
+        let no_right_paren = matches!(
+            op,
+            BinOper::Between | BinOper::NotBetween | BinOper::Like | BinOper::NotLike
+        );
         let right_paren = (right.need_parentheses()
             || right.is_binary() && *op != left.get_bin_oper().unwrap())
             && !no_right_paren
