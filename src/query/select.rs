@@ -2186,6 +2186,11 @@ impl OrderedStatement for SelectStatement {
         self.orders.push(order);
         self
     }
+
+    fn clear_order_by(&mut self) -> &mut Self {
+        self.orders = Vec::new();
+        self
+    }
 }
 
 impl ConditionalStatement for SelectStatement {

@@ -226,4 +226,9 @@ impl OrderedStatement for WindowStatement {
         self.order_by.push(order);
         self
     }
+
+    fn clear_order_by(&mut self) -> &mut Self {
+        self.order_by = Vec::new();
+        self
+    }
 }
