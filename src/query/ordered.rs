@@ -5,6 +5,9 @@ pub trait OrderedStatement {
     // Implementation for the trait.
     fn add_order_by(&mut self, order: OrderExpr) -> &mut Self;
 
+    /// Clear order expressions
+    fn clear_order_by(&mut self) -> &mut Self;
+
     /// Order by column.
     ///
     /// # Examples
