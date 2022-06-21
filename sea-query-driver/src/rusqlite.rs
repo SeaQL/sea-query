@@ -106,6 +106,7 @@ pub fn sea_query_driver_rusqlite_impl(input: TokenStream) -> TokenStream {
                         Value::Float(v) => v.to_sql(),
                         Value::Double(v) => v.to_sql(),
                         Value::String(v) => box_to_sql!(v),
+                        Value::Char(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
                         Value::Bytes(v) => box_to_sql!(v),
                         #with_json
                         #with_chrono
