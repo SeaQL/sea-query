@@ -106,6 +106,7 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
                     Value::Float(v) => bind!(v, f32),
                     Value::Double(v) => bind!(v, f64),
                     Value::String(v) => bind_box!(v),
+                    Value::Char(v) => query.bind(v.map(|v|v.to_string())),
                     Value::Bytes(v) => bind_box!(v),
                     #with_json
                     #with_chrono

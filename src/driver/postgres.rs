@@ -16,8 +16,14 @@ impl ToSql for Value {
         macro_rules! to_sql {
             ( $v: expr, $ty: ty ) => {
                 match $v {
-                    Some(v) => (*v as $ty).to_sql(ty, out),
+                    Some(v) => (v as $ty).to_sql(ty, out),
                     None => None::<$ty>.to_sql(ty, out),
+                }
+            };
+            ( $v: expr ) => {
+                match $v {
+                    Some(v) => v.to_sql(ty, out),
+                    None => None.to_sql(ty, out),
                 }
             };
         }
@@ -30,18 +36,19 @@ impl ToSql for Value {
             };
         }
         match self {
-            Value::Bool(v) => to_sql!(v, bool),
-            Value::TinyInt(v) => to_sql!(v, i8),
-            Value::SmallInt(v) => to_sql!(v, i16),
-            Value::Int(v) => to_sql!(v, i32),
-            Value::BigInt(v) => to_sql!(v, i64),
-            Value::TinyUnsigned(v) => to_sql!(v, u32),
-            Value::SmallUnsigned(v) => to_sql!(v, u32),
-            Value::Unsigned(v) => to_sql!(v, u32),
-            Value::BigUnsigned(v) => to_sql!(v, i64),
-            Value::Float(v) => to_sql!(v, f32),
-            Value::Double(v) => to_sql!(v, f64),
+            Value::Bool(v) => to_sql!(*v, bool),
+            Value::TinyInt(v) => to_sql!(*v, i8),
+            Value::SmallInt(v) => to_sql!(*v, i16),
+            Value::Int(v) => to_sql!(*v, i32),
+            Value::BigInt(v) => to_sql!(*v, i64),
+            Value::TinyUnsigned(v) => to_sql!(*v, u32),
+            Value::SmallUnsigned(v) => to_sql!(*v, u32),
+            Value::Unsigned(v) => to_sql!(*v, u32),
+            Value::BigUnsigned(v) => to_sql!(*v, i64),
+            Value::Float(v) => to_sql!(*v, f32),
+            Value::Double(v) => to_sql!(*v, f64),
             Value::String(v) => box_to_sql!(v, String),
+            Value::Char(v) => to_sql!(v.map(|v| v.to_string()), String),
             Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
             #[cfg(feature = "postgres-json")]
             Value::Json(v) => box_to_sql!(v, serde_json::Value),
