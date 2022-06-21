@@ -1071,8 +1071,12 @@ fn select_61() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
-            .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A' ESCAPE E'\\'"#
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" LIKE $1 ESCAPE E'\\'"#
+                .to_owned(),
+            Values(vec!["A".into()])
+        )
     );
 }
 

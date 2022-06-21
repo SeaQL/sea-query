@@ -36,6 +36,7 @@ pub enum SimpleExpr {
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
+    Constant(Value),
 }
 
 impl Expr {
@@ -1165,7 +1166,7 @@ impl Expr {
                 Some(escape) => SimpleExpr::Binary(
                     Box::new(value),
                     BinOper::Escape,
-                    Box::new(SimpleExpr::Value(Value::Char(Some(escape)))),
+                    Box::new(SimpleExpr::Constant(Value::Char(Some(escape)))),
                 ),
                 None => value,
             },

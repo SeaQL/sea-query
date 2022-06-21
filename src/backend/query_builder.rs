@@ -368,6 +368,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             SimpleExpr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql, collector);
             }
+            SimpleExpr::Constant(val) => {
+                self.prepare_constant(val, sql);
+            }
         }
     }
 
@@ -1003,11 +1006,17 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         write!(sql, "ELSE {} END", i).unwrap();
     }
 
-    /// Translate [`Value`] into SQL statement.
+    /// Write [`Value`] into SQL statement as parameter.
     fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
         collector(value.clone());
+    }
+
+    /// Write [`Value`] inline.
+    fn prepare_constant(&self, value: &Value, sql: &mut SqlWriter) {
+        let string = self.value_to_string(value);
+        write!(sql, "{}", string).unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
