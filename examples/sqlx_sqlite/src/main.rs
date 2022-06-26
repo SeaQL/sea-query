@@ -3,7 +3,8 @@ use sea_query::{ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQue
 use sqlx::{sqlite::SqliteRow, Row, SqlitePool};
 use time::{date, time, PrimitiveDateTime};
 
-use sea_query_binders::SqlxBinder;
+sea_query::sea_query_driver_sqlite!();
+use sea_query_driver_sqlite::{bind_query, bind_query_as};
 use serde_json::{json, Value as Json};
 use uuid::Uuid;
 
@@ -60,15 +61,15 @@ async fn main() {
                 "notes": "some notes here",
             })
             .into(),
-            date!(2020 - 8 - 20)
-                .with_time(time!(0:0:0))
-                .format("%Y-%m-%d %H:%M:%S")
-                .into(),
+            date!(2020 - 8 - 20).with_time(time!(0:0:0)).into(),
         ])
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     //TODO: Implement RETURNING (returning_col) for the Sqlite driver.
-    let row = sqlx::query_with(&sql, values).execute(&pool).await.unwrap();
+    let row = bind_query(sqlx::query(&sql), &values)
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let id: i64 = row.last_insert_rowid();
     println!("Insert into character: last_insert_id = {}\n", id);
@@ -86,9 +87,9 @@ async fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -98,7 +99,7 @@ async fn main() {
     }
     println!();
 
-    let rows = sqlx::query_with(&sql, values)
+    let rows = bind_query(sqlx::query(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -114,9 +115,9 @@ async fn main() {
         .table(Character::Table)
         .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&pool).await;
+    let result = bind_query(sqlx::query(&sql), &values).execute(&pool).await;
     println!("Update character: {:?}\n", result);
 
     // Read
@@ -132,9 +133,9 @@ async fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -143,7 +144,7 @@ async fn main() {
         println!("{:?}\n", row);
     }
 
-    let rows = sqlx::query_with(&sql, values)
+    let rows = bind_query(sqlx::query(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -158,9 +159,9 @@ async fn main() {
     let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let row = sqlx::query_with(&sql, values)
+    let row = bind_query(sqlx::query(&sql), &values)
         .fetch_one(&pool)
         .await
         .unwrap();
@@ -179,9 +180,9 @@ async fn main() {
                 .update_columns([Character::FontSize, Character::Character])
                 .to_owned(),
         )
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&pool).await;
+    let result = bind_query(sqlx::query(&sql), &values).execute(&pool).await;
     println!("Insert into character (with upsert): {:?}\n", result);
 
     // Read
@@ -196,9 +197,9 @@ async fn main() {
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
+    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -207,7 +208,7 @@ async fn main() {
         println!("{:?}\n", row);
     }
 
-    let rows = sqlx::query_with(&sql, values)
+    let rows = bind_query(sqlx::query(&sql), &values)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -222,9 +223,9 @@ async fn main() {
     let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
-        .build_sqlx(SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&pool).await;
+    let result = bind_query(sqlx::query(&sql), &values).execute(&pool).await;
 
     println!("Delete character: {:?}", result);
 }
