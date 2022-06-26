@@ -1,3 +1,7 @@
+#[cfg(feature = "sqlx-any")]
+mod sqlx_any;
+#[cfg(feature = "sqlx-mysql")]
+mod sqlx_mysql;
 ///! Binder traits for connecting sea-query with various SQL engines.
 ///
 /// This library introduces various traits that add methods to the query types from `sea-query`.
@@ -7,12 +11,8 @@
 
 #[cfg(feature = "sqlx-postgres")]
 mod sqlx_postgres;
-#[cfg(feature = "sqlx-mysql")]
-mod sqlx_mysql;
 #[cfg(feature = "sqlx-sqlite")]
 mod sqlx_sqlite;
-#[cfg(feature = "sqlx-any")]
-mod sqlx_any;
 
 mod values;
 pub use crate::values::SqlxValues;

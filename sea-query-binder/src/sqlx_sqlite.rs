@@ -43,6 +43,9 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::String(s) => {
                     args.add(s.map(|s| *s));
                 }
+                Value::Char(c) => {
+                    args.add(c.map(|c| c.to_string()));
+                }
                 Value::Bytes(b) => {
                     args.add(b.map(|b| *b));
                 }

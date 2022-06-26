@@ -43,6 +43,9 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::mysql::MySql> for SqlxValues {
                 Value::String(s) => {
                     args.add(s.as_deref());
                 }
+                Value::Char(c) => {
+                    args.add(c.map(|c| c.to_string()));
+                }
                 Value::Bytes(b) => {
                     args.add(b.as_deref());
                 }

@@ -25,6 +25,7 @@ sea-query-binder = { path = "../../sea-query-binder", features = [
     "with-bigdecimal",
     "with-uuid",
     "with-time",
+    "postgres-array",
 ] }
 
 [dependencies.sqlx]
