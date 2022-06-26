@@ -3,7 +3,7 @@ members = [
     ".",
     "sea-query-derive",
     "sea-query-driver",
-    "sea-query-binders",
+    "sea-query-binder",
     "examples/postgres",
     "examples/postgres_json",
     "examples/cockroach",

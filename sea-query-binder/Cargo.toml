@@ -1,5 +1,5 @@
 [package]
-name = "sea-query-binders"
+name = "sea-query-binder"
 version = "0.1.0"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>" ]
 edition = "2021"
