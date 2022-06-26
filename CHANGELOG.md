@@ -29,6 +29,12 @@ let string: String = MySqlQueryBuilder.escape_string(r#" "abc" "#);
 let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 ```
 
+## 0.25.1 - 2022-06-26
+
+### Enhancements
+
+* `clear_order_by` for `OrderedStatement`
+
 ## 0.25.0 - 2022-05-28
 
 ### New Features
