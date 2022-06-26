@@ -105,6 +105,14 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Json(j) => {
                     args.add(j.map(|j| *j));
                 }
+                #[cfg(feature = "with-ipnetwork")]
+                Value::IpNetwork(_) => {
+                    panic!("Sqlite doesn't support IpNetwork arguments");
+                }
+                #[cfg(feature = "with-mac_address")]
+                Value::MacAddress(_) => {
+                    panic!("Sqlite doesn't support MacAddress arguments");
+                }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(_) => {
                     panic!("Sqlite doesn't support array arguments");
