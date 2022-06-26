@@ -1,12 +1,9 @@
 use chrono::{NaiveDate, NaiveDateTime};
-use sea_query::{
-    ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, PostgresQueryBuilder, Query,
-    QueryBuilder, SchemaBuilder, SqliteQueryBuilder, Table,
-};
+use sea_query::{ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, Table};
 use sqlx::{AnyPool, Row};
 use std::env;
 
-use sea_query_binder::SqlxBinder;
+use sea_query_binder::{query_builder_from_kind, schema_builder_from_kind, SqlxBinder};
 
 #[async_std::main]
 async fn main() {
@@ -18,35 +15,21 @@ async fn main() {
         );
         return;
     }
-    let (url, box_query_builder, box_schema_builder): (
-        &str,
-        Box<dyn QueryBuilder>,
-        Box<dyn SchemaBuilder>,
-    ) = if args[1] == "postgres" {
-        (
-            "postgres://sea:sea@127.0.0.1/query",
-            Box::new(PostgresQueryBuilder {}),
-            Box::new(PostgresQueryBuilder {}),
-        )
+    let url: &str = if args[1] == "postgres" {
+        "postgres://sea:sea@127.0.0.1/query"
     } else if args[1] == "sqlite" {
-        (
-            "sqlite::memory:",
-            Box::new(SqliteQueryBuilder {}),
-            Box::new(SqliteQueryBuilder {}),
-        )
+        "sqlite::memory:"
     } else if args[1] == "mysql" {
-        (
-            "mysql://sea:sea@127.0.0.1/query",
-            Box::new(MysqlQueryBuilder {}),
-            Box::new(MysqlQueryBuilder {}),
-        )
+        "mysql://sea:sea@127.0.0.1/query"
     } else {
-        panic!()
+        unreachable!()
     };
-    let query_builder = &*box_query_builder;
-    let schema_builder = &*box_schema_builder;
     let connection = AnyPool::connect(url).await.unwrap();
     let mut pool = connection.try_acquire().unwrap();
+    let box_query_builder = query_builder_from_kind(pool.kind());
+    let query_builder = &*box_query_builder;
+    let box_schema_builder = schema_builder_from_kind(pool.kind());
+    let schema_builder = &*box_schema_builder;
 
     // Schema
 

@@ -21,6 +21,28 @@ macro_rules! impl_sqlx_binder {
     };
 }
 
+pub fn query_builder_from_kind(kind: sqlx::any::AnyKind) -> Box<dyn sea_query::QueryBuilder> {
+    match kind {
+        #[cfg(feature = "sqlx-postgres")]
+        sqlx::any::AnyKind::Postgres => Box::new(sea_query::PostgresQueryBuilder),
+        #[cfg(feature = "sqlx-mysql")]
+        sqlx::any::AnyKind::MySql => Box::new(sea_query::MysqlQueryBuilder),
+        #[cfg(feature = "sqlx-sqlite")]
+        sqlx::any::AnyKind::Sqlite => Box::new(sea_query::SqliteQueryBuilder),
+    }
+}
+
+pub fn schema_builder_from_kind(kind: sqlx::any::AnyKind) -> Box<dyn sea_query::SchemaBuilder> {
+    match kind {
+        #[cfg(feature = "sqlx-postgres")]
+        sqlx::any::AnyKind::Postgres => Box::new(sea_query::PostgresQueryBuilder),
+        #[cfg(feature = "sqlx-mysql")]
+        sqlx::any::AnyKind::MySql => Box::new(sea_query::MysqlQueryBuilder),
+        #[cfg(feature = "sqlx-sqlite")]
+        sqlx::any::AnyKind::Sqlite => Box::new(sea_query::SqliteQueryBuilder),
+    }
+}
+
 impl_sqlx_binder!(SelectStatement);
 impl_sqlx_binder!(UpdateStatement);
 impl_sqlx_binder!(InsertStatement);

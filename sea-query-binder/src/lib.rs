@@ -30,4 +30,4 @@ mod sqlx;
     feature = "sqlx-sqlite",
     feature = "sqlx-any"
 ))]
-pub use crate::sqlx::SqlxBinder;
+pub use crate::sqlx::{schema_builder_from_kind, query_builder_from_kind, SqlxBinder};

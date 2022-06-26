@@ -25,7 +25,7 @@ sea-query = { path = "../../", features = [
 # ] }
 
 [dependencies.rusqlite]
-version = "^0.25"
+version = "^0.26"
 features = [
     "bundled",
     "chrono",
