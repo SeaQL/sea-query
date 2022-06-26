@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 * Add support for `VALUES` lists (#351)
+* Introduce `sea-query-binder` (#275)
 
 ### Enhancements
 
