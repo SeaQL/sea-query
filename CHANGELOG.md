@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Move escape and unescape string to backend (#306)
 * `LIKE ESCAPE` support (#352, #353)
+* `clear_order_by` for `OrderedStatement`
 
 ### Breaking changes
 
