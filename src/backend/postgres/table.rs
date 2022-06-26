@@ -99,6 +99,9 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Array(elem_type) => format!("{}[]", elem_type.as_ref().unwrap()),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(name, _) => name.into(),
+                ColumnType::Cidr => "cidr".into(),
+                ColumnType::Inet => "inet".into(),
+                ColumnType::MacAddr => "macaddr".into(),
             }
         )
         .unwrap()

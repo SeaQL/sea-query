@@ -28,7 +28,8 @@ jobs:
           command: clippy
           args: >
             --all-targets
-            --all
+            --all-features
+            --workspace
 
   build:
     name: Build

@@ -64,8 +64,7 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
 
     let with_ipnetwork = if cfg!(feature = "with-ipnetwork") {
         quote! {
-            Value::Ipv4Network(v) => query.bind(v.as_deref()),
-            Value::Ipv6Network(v) => query.bind(v.as_deref()),
+            Value::IpNetwork(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}

@@ -105,9 +105,17 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::Json(_) => {
                     panic!("Json support not implemented for Any");
                 }
+                #[cfg(feature = "with-ipnetwork")]
+                Value::IpNetwork(_) => {
+                    panic!("SeaQuery doesn't support IpNetwork arguments for Any");
+                }
+                #[cfg(feature = "with-mac_address")]
+                Value::MacAddress(_) => {
+                    panic!("SeaQuery doesn't support MacAddress arguments for Any");
+                }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(_) => {
-                    panic!("SeaQuery doesn't support array arguments for Postgresql");
+                    panic!("SeaQuery doesn't support array arguments for Any");
                 }
             }
         }

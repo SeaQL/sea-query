@@ -109,6 +109,14 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::mysql::MySql> for SqlxValues {
                 Value::Array(_) => {
                     panic!("Mysql doesn't support array arguments");
                 }
+                #[cfg(feature = "with-ipnetwork")]
+                Value::IpNetwork(_) => {
+                    panic!("Mysql doesn't support IpNetwork arguments");
+                }
+                #[cfg(feature = "with-mac_address")]
+                Value::MacAddress(_) => {
+                    panic!("Mysql doesn't support MacAddress arguments");
+                }
             }
         }
         args
