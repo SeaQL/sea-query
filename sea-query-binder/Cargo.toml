@@ -1,0 +1,30 @@
+[package]
+name = "sea-query-binder"
+version = "0.1.0"
+authors = [ "Valentin Tolmer <valentin@tolmer.fr>" ]
+edition = "2021"
+description = "Binder traits for connecting sea-query with SQL engines"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = [ "database" ]
+keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
+
+[lib]
+
+[dependencies]
+sea-query = { version = "^0.25", path = "../" }
+sqlx = { version = "^0.5.6", optional = true }
+
+[features]
+sqlx-mysql = ["sqlx/mysql", "sea-query/sqlx-mysql"]
+sqlx-postgres = ["sqlx/postgres", "sea-query/sqlx-postgres"]
+sqlx-sqlite = ["sqlx/sqlite", "sea-query/sqlx-sqlite"]
+sqlx-any = ["sqlx/any"]
+with-chrono = ["sqlx/chrono", "sea-query/with-chrono"]
+with-json = ["sqlx/json", "sea-query/with-json"]
+with-rust_decimal = ["sqlx/decimal", "sea-query/with-rust_decimal"]
+with-bigdecimal = ["sqlx/bigdecimal", "sea-query/with-bigdecimal"]
+with-uuid = ["sqlx/uuid", "sea-query/with-uuid"]
+with-time = ["sqlx/time", "sea-query/with-time"]
+postgres-array = ["sea-query/postgres-array"]

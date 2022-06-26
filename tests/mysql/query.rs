@@ -775,17 +775,13 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(
-                Some(
-                    ConditionExpression::SimpleExpr(
-                        Expr::tuple([
-                            Expr::col(Glyph::Aspect).into_simple_expr(),
-                            Expr::value(100),
-                        ])
-                        .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
-                    ),
-                ),
-            ),
+            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+                Expr::tuple([
+                    Expr::col(Glyph::Aspect).into_simple_expr(),
+                    Expr::value(100),
+                ])
+                .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
+            ))),
         )
         .to_string(MysqlQueryBuilder);
 
