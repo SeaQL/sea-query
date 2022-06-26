@@ -21,10 +21,10 @@ use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
 #[cfg(feature = "with-ipnetwork")]
-use ipnetwork::{Ipv4Network, Ipv6Network};
+use ipnetwork::IpNetwork;
 
 #[cfg(feature = "with-ipnetwork")]
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::IpAddr;
 
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
@@ -115,11 +115,7 @@ pub enum Value {
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
-    Ipv4Network(Option<Box<Ipv4Network>>),
-
-    #[cfg(feature = "with-ipnetwork")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
-    Ipv6Network(Option<Box<Ipv6Network>>),
+    IpNetwork(Option<Box<IpNetwork>>),
 
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
@@ -491,6 +487,22 @@ mod with_uuid {
     type_to_box_value!(Uuid, Uuid, Uuid);
 }
 
+#[cfg(feature = "with-ipnetwork")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+mod with_ipnetwork {
+    use super::*;
+
+    type_to_box_value!(IpNetwork, IpNetwork, Inet);
+}
+
+#[cfg(feature = "with-mac_address")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+mod with_mac_address {
+    use super::*;
+
+    type_to_box_value!(MacAddress, MacAddress, MacAddr);
+}
+
 #[cfg(feature = "postgres-array")]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 mod with_array {
@@ -851,47 +863,21 @@ impl Value {
 
 #[cfg(feature = "with-ipnetwork")]
 impl Value {
-    pub fn is_ipv4network(&self) -> bool {
-        matches!(self, Self::Ipv4Network(_))
+    pub fn is_ipnetwork(&self) -> bool {
+        matches!(self, Self::IpNetwork(_))
     }
 
-    pub fn is_ipv6network(&self) -> bool {
-        matches!(self, Self::Ipv6Network(_))
-    }
-
-    pub fn as_ref_ipv4network(&self) -> Option<&Ipv4Network> {
+    pub fn as_ref_ipnetwork(&self) -> Option<&IpNetwork> {
         match self {
-            Self::Ipv4Network(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::Ipv4Network"),
-        }
-    }
-
-    pub fn as_ref_ipv6network(&self) -> Option<&Ipv6Network> {
-        match self {
-            Self::Ipv6Network(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::Ipv6Network"),
-        }
-    }
-
-    pub fn as_ipv4addr(&self) -> Option<Ipv4Addr> {
-        match self {
-            Self::Ipv4Network(v) => v.clone().map(|v| v.network()),
-            _ => panic!("not Value::Ipv6Network"),
-        }
-    }
-
-    pub fn as_ipv6addr(&self) -> Option<Ipv6Addr> {
-        match self {
-            Self::Ipv6Network(v) => v.clone().map(|v| v.network()),
-            _ => panic!("not Value::Ipv6Network"),
+            Self::IpNetwork(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::IpNetwork"),
         }
     }
 
     pub fn as_ipaddr(&self) -> Option<IpAddr> {
         match self {
-            Self::Ipv4Network(v) => v.clone().map(|v| IpAddr::V4(v.network())),
-            Self::Ipv6Network(v) => v.clone().map(|v| IpAddr::V6(v.network())),
-            _ => panic!("not Value::Ipv6Network or Value::Ipv4Network"),
+            Self::IpNetwork(v) => v.clone().map(|v| v.network()),
+            _ => panic!("not Value::IpNetwork"),
         }
     }
 }
@@ -1160,9 +1146,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "postgres-array")]
         Value::Array(None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
-        Value::Ipv4Network(None) => Json::Null,
-        #[cfg(feature = "with-ipnetwork")]
-        Value::Ipv6Network(None) => Json::Null,
+        Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
@@ -1217,9 +1201,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
         }
         #[cfg(feature = "with-ipnetwork")]
-        Value::Ipv4Network(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "with-ipnetwork")]
-        Value::Ipv6Network(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }

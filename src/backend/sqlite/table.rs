@@ -113,6 +113,9 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum(_, _) => "text".into(),
                 ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
+                ColumnType::Cidr => unimplemented!("Cidr is not available in Sqlite."),
+                ColumnType::Inet => unimplemented!("Inet is not available in Sqlite."),
+                ColumnType::MacAddr => unimplemented!("MacAddr is not available in Sqlite."),
             }
         )
         .unwrap()

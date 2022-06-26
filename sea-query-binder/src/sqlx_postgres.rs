@@ -110,11 +110,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                     panic!("SeaQuery doesn't support array arguments for Postgresql");
                 }
                 #[cfg(feature = "with-ipnetwork")]
-                Value::Ipv4Network(ip) => {
-                    args.add(ip.as_deref());
-                }
-                #[cfg(feature = "with-ipnetwork")]
-                Value::Ipv6Network(ip) => {
+                Value::IpNetwork(ip) => {
                     args.add(ip.as_deref());
                 }
                 #[cfg(feature = "with-mac_address")]

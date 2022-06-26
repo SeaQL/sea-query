@@ -1,3 +1,4 @@
+use std::net::{IpAddr, Ipv4Addr};
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
 use rust_decimal::Decimal;
@@ -11,6 +12,8 @@ sea_query::sea_query_driver_postgres!();
 use sea_query_driver_postgres::{bind_query, bind_query_as};
 use serde_json::{json, Value as Json};
 use uuid::Uuid;
+use ipnetwork::IpNetwork;
+use mac_address::{get_mac_address, MacAddress};
 
 #[async_std::main]
 async fn main() {
@@ -38,6 +41,8 @@ async fn main() {
         .col(ColumnDef::new(Character::Decimal).decimal())
         .col(ColumnDef::new(Character::BigDecimal).decimal())
         .col(ColumnDef::new(Character::Created).date_time())
+        .col(ColumnDef::new(Character::Inet).inet())
+        .col(ColumnDef::new(Character::MacAddress).mac_address())
         .build(PostgresQueryBuilder);
 
     let result = sqlx::query(&sql).execute(&mut pool).await;
@@ -55,6 +60,8 @@ async fn main() {
             Character::Decimal,
             Character::BigDecimal,
             Character::Created,
+            Character::Inet,
+            Character::MacAddress,
         ])
         .values_panic(vec![
             Uuid::new_v4().into(),
@@ -70,6 +77,8 @@ async fn main() {
                 .with_scale(3)
                 .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+            IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127,0,0,1)), 8).unwrap().into(),
+            get_mac_address().unwrap().unwrap().into(),
         ])
         .values_panic(vec![
             Uuid::new_v4().into(),
@@ -85,6 +94,8 @@ async fn main() {
                 .with_scale(3)
                 .into(),
             date!(2020 - 8 - 20).with_time(time!(0:0:0)).into(),
+            IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127,0,0,1)), 8).unwrap().into(),
+            get_mac_address().unwrap().unwrap().into(),
         ])
         .returning_col(Character::Id)
         .build(PostgresQueryBuilder);
@@ -108,6 +119,8 @@ async fn main() {
             Character::Decimal,
             Character::BigDecimal,
             Character::Created,
+            Character::Inet,
+            Character::MacAddress,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -159,6 +172,8 @@ async fn main() {
             Character::Decimal,
             Character::BigDecimal,
             Character::Created,
+            Character::Inet,
+            Character::MacAddress,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -232,6 +247,8 @@ async fn main() {
             Character::Decimal,
             Character::BigDecimal,
             Character::Created,
+            Character::Inet,
+            Character::MacAddress,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -281,6 +298,8 @@ enum Character {
     Decimal,
     BigDecimal,
     Created,
+    Inet,
+    MacAddress,
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -294,6 +313,8 @@ struct CharacterStructChrono {
     decimal: Decimal,
     big_decimal: BigDecimal,
     created: NaiveDateTime,
+    inet: IpNetwork,
+    mac_address: MacAddress,
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -307,4 +328,6 @@ struct CharacterStructTime {
     decimal: Decimal,
     big_decimal: BigDecimal,
     created: PrimitiveDateTime,
+    inet: IpNetwork,
+    mac_address: MacAddress,
 }

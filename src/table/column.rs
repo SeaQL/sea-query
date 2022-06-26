@@ -43,6 +43,9 @@ pub enum ColumnType {
     Custom(DynIden),
     Enum(String, Vec<String>),
     Array(Option<String>),
+    Cidr,
+    Inet,
+    MacAddr,
 }
 
 /// All column specification keywords
@@ -518,6 +521,27 @@ impl ColumnDef {
     /// This is only supported on Postgres.
     pub fn array(&mut self, elem_type: String) -> &mut Self {
         self.types = Some(ColumnType::Array(Some(elem_type)));
+        self
+    }
+
+    /// Set columnt type as cidr.
+    /// This is only supported on Postgres.
+    pub fn cidr(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::Cidr);
+        self
+    }
+
+    /// Set columnt type as inet.
+    /// This is only supported on Postgres.
+    pub fn inet(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::Inet);
+        self
+    }
+
+    /// Set columnt type as macaddr.
+    /// This is only supported on Postgres.
+    pub fn mac_address(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::MacAddr);
         self
     }
 
