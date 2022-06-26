@@ -1159,54 +1159,54 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             }
             Value::Bytes(Some(v)) => write!(
                 s,
-                "x\'{}\'",
+                "x'{}'",
                 v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
             )
             .unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
+            Value::ChronoDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S")).unwrap(),
+            Value::ChronoTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDate(Some(v)) => write!(s, "\'{}\'", v.format("%Y-%m-%d")).unwrap(),
+            Value::TimeDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => write!(s, "\'{}\'", v.format("%H:%M:%S")).unwrap(),
+            Value::TimeTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "\'{}\'", v.format("%Y-%m-%d %H:%M:%S %z")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %z")).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "\'{}\'", v).unwrap(),
+            Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(Some(v)) => write!(
                 s,
-                "\'{{{}}}\'",
+                "'{{{}}}'",
                 v.iter()
                     .map(|element| self.value_to_string(element))
                     .collect::<Vec<String>>()
@@ -1214,11 +1214,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             )
             .unwrap(),
             #[cfg(feature = "with-ipnetwork")]
-            Value::Ipv4Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Ipv4Network(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(feature = "with-ipnetwork")]
-            Value::Ipv6Network(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Ipv6Network(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
         };
         s
     }
@@ -1554,7 +1554,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        write!(buffer, "\'{}\'", self.escape_string(string)).unwrap()
+        write!(buffer, "'{}'", self.escape_string(string)).unwrap()
     }
 
     #[doc(hidden)]
