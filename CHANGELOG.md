@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `LIKE ESCAPE` support (#352, #353)
 * `clear_order_by` for `OrderedStatement`
 * Add method to make a column nullable (#365)
+* Add `is` & `is_not` to Expr (#348)
+* Add `CURRENT_TIMESTAMP` function (#349)
 
 ### Breaking changes
 
