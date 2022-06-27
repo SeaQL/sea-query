@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add method to make a column nullable (#365)
 * Add `is` & `is_not` to Expr (#348)
 * Add `CURRENT_TIMESTAMP` function (#349)
+* Add `in_tuples` method to Expr (#345)
 
 ### Breaking changes
 
