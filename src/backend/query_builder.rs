@@ -285,7 +285,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             }
             SimpleExpr::FunctionCall(func, exprs) => {
                 self.prepare_function(func, sql, collector);
-                self.prepare_tuple(exprs, sql, collector);
+                if !exprs.is_empty() {
+                    self.prepare_tuple(exprs, sql, collector);
+                }
             }
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
@@ -729,6 +731,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                     Function::Lower => "LOWER",
                     Function::Upper => "UPPER",
                     Function::Custom(_) => "",
+                    Function::CurrentTimestamp => "CURRENT_TIMESTAMP",
                     #[cfg(feature = "backend-postgres")]
                     Function::PgFunction(_) => unimplemented!(),
                 }
