@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * Add method to make a column nullable (#365)
+* Add `is` & `is_not` to Expr (#348)
+* Add `CURRENT_TIMESTAMP` function (#349)
 
 ## 0.25.1 - 2022-06-26
 
