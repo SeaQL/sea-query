@@ -139,6 +139,12 @@ impl ColumnDef {
         self
     }
 
+    /// Set column null
+    pub fn null(&mut self) -> &mut Self {
+        self.spec.push(ColumnSpec::Null);
+        self
+    }
+
     /// Set default value of a column
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
