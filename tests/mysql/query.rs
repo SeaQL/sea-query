@@ -1317,6 +1317,23 @@ fn update_3() {
 }
 
 #[test]
+fn update_4() {
+    assert_eq!(
+        Query::update()
+            .table(Glyph::Table)
+            .value_expr(Glyph::Aspect, Expr::col(Glyph::Aspect).add(1))
+            .values(vec![
+                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
+            ])
+            .and_where(Expr::col(Glyph::Id).eq(1))
+            .order_by(Glyph::Id, Order::Asc)
+            .limit(1)
+            .to_string(MysqlQueryBuilder),
+        "UPDATE `glyph` SET `aspect` = `aspect` + 1, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1 ORDER BY `id` ASC LIMIT 1"
+    );
+}
+
+#[test]
 fn delete_1() {
     assert_eq!(
         Query::delete()
