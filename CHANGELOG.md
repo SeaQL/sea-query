@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Add support for `VALUES` lists (#351)
 * Introduce `sea-query-binder` (#275)
+* Convert from `IpNetwork` and `MacAddress` to `Value` (#364)
 
 ### Enhancements
 
@@ -24,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Breaking changes
 
-As part of #306, the standalone functions `escape_string` and `unescape_string` are removed, and becomes backend specific. So now, you have to:
+* As part of #306, the standalone functions `escape_string` and `unescape_string` are removed, and becomes backend specific. So now, you have to:
 
 ```rust
 use sea_query::EscapeBuilder;
@@ -32,6 +33,8 @@ use sea_query::EscapeBuilder;
 let string: String = MySqlQueryBuilder.escape_string(r#" "abc" "#);
 let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 ```
+
+* Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` (#364)
 
 ## 0.25.1 - 2022-06-26
 
