@@ -29,6 +29,7 @@ documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = ["database"]
 keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
+rust-version = "1.60"
 
 [package.metadata.docs.rs]
 all-features = true
