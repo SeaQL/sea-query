@@ -32,7 +32,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     args.add(i);
                 }
                 Value::BigUnsigned(i) => {
-                    args.add(i as i64);
+                    args.add(i.map(|u| u as i64));
                 }
                 Value::Float(f) => {
                     args.add(f);
