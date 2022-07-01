@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add `CURRENT_TIMESTAMP` function (#349)
 * Add `in_tuples` method to Expr (#345)
 
+### Upgrades
+
+* Upgrade `uuid` to 1.0
+
 ### Breaking changes
 
 * As part of #306, the standalone functions `escape_string` and `unescape_string` are removed, and becomes backend specific. So now, you have to:
