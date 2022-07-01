@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Enhancements
 
-* Move escape and unescape string to backend (#306)
+* Move `escape` and `unescape` string to backend (#306)
 * `LIKE ESCAPE` support (#352, #353)
 * `clear_order_by` for `OrderedStatement`
 * Add method to make a column nullable (#365)
@@ -45,6 +45,8 @@ let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 * Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` (#364)
 
 * Remove some redundant feature flags `postgres-chrono`, `postgres-json`, `postgres-uuid`, `postgres-time`. Use the `with-*` equivalence
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.25.0...0.26.0
 
 ## 0.25.2 - 2022-07-01
 
