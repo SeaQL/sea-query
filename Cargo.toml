@@ -6,8 +6,6 @@ members = [
     "sea-query-binder",
     "examples/postgres",
     "examples/postgres_json",
-    "examples/cockroach",
-    "examples/cockroach_json",
     "examples/rusqlite",
     "examples/sqlx_any",
     "examples/sqlx_mysql",
