@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Upgrade `uuid` to 1.0
 * Upgrade `time` to 0.3
+* Upgrade `ipnetwork` to 0.19
+* Upgrade `bigdecimal` to 0.3
+* Upgrade `sqlx` driver to 0.6
 
 ### Breaking changes
 
