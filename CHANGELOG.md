@@ -87,6 +87,8 @@ assert_eq!(
 
 * In #314, `ColumnType`'s `Binary(Option<u32>)` changed to `Binary(BlobSize)`, so if you used `Binary(None)` before, you should change to `Binary(BlobSize::Blob(None))`
 
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.24.0...0.25.0
+
 ## 0.24.6 - 2022-05-12
 
 * Make `sea-query-driver` an optional dependency https://github.com/SeaQL/sea-query/pull/324
@@ -159,6 +161,8 @@ Notes: 0.24.0 & 0.24.1 were yanked
     5. Remove methods `Value::is_big_decimal`, `Value::as_ref_big_decimal` and `Value::big_decimal_to_f64` when feature: **with-bigdecimal** is disabled
     6. Remove methods `Value::is_uuid` and `Value::as_ref_uuid` when feature: **with-uuid** is disabled
     7. Remove methods `Value::is_array` and `Value::as_ref_array` when feature: **postgres-array** is disabled
+
+**Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.23.0...0.24.0
 
 ## 0.23.0 - 2022-03-15
 

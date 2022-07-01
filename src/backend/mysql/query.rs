@@ -108,4 +108,8 @@ impl QueryBuilder for MysqlQueryBuilder {
             _ => {}
         };
     }
+
+    fn values_list_tuple_prefix(&self) -> &str {
+        "ROW"
+    }
 }

@@ -1061,6 +1061,49 @@ fn select_60() {
 }
 
 #[test]
+fn select_61() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" LIKE $1 ESCAPE E'\\'"#
+                .to_owned(),
+            Values(vec!["A".into()])
+        )
+    );
+}
+
+#[test]
+fn select_62() {
+    let select = SelectStatement::new()
+        .expr(Expr::asterisk())
+        .from_values(vec![(1i32, "hello"), (2, "world")], Alias::new("x"))
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Alias::new("column1"), Alias::new("column2")])
+        .from(Alias::new("cte"))
+        .to_owned();
+    assert_eq!(
+        select.with(with_clause).to_string(PostgresQueryBuilder),
+        [
+            r#"WITH "cte" AS"#,
+            r#"(SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x")"#,
+            r#"SELECT "column1", "column2""#,
+            r#"FROM "cte""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -1440,6 +1483,58 @@ fn delete_1() {
             .to_string(PostgresQueryBuilder),
         r#"DELETE FROM "glyph" WHERE "id" = 1"#
     );
+}
+
+#[test]
+fn escape_1() {
+    let test = r#" "abc" "#;
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        r#" \"abc\" "#.to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    )
+}
+
+#[test]
+fn escape_2() {
+    let test = "a\nb\tc";
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        "a\\nb\\tc".to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_3() {
+    let test = "a\\b";
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        "a\\\\b".to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_4() {
+    let test = "a\"b";
+    assert_eq!(
+        PostgresQueryBuilder.escape_string(test),
+        "a\\\"b".to_owned()
+    );
+    assert_eq!(
+        PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
+        test
+    )
 }
 
 #[test]

@@ -1,5 +1,4 @@
 //! Container for all SQL value types.
-use std::fmt::Write;
 
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
@@ -49,6 +48,7 @@ pub enum Value {
     Float(Option<f32>),
     Double(Option<f64>),
     String(Option<Box<String>>),
+    Char(Option<char>),
 
     #[allow(clippy::box_collection)]
     Bytes(Option<Box<Vec<u8>>>),
@@ -152,7 +152,7 @@ impl std::fmt::Display for ValueTypeErr {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Values(pub Vec<Value>);
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
@@ -264,6 +264,7 @@ type_to_value!(u32, Unsigned, Unsigned(None));
 type_to_value!(u64, BigUnsigned, BigUnsigned(None));
 type_to_value!(f32, Float, Float(None));
 type_to_value!(f64, Double, Double(None));
+type_to_value!(char, Char, Char(None));
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
@@ -1127,50 +1128,6 @@ where
     }
 }
 
-/// Escape a SQL string literal
-pub fn escape_string(string: &str) -> String {
-    string
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\'', "\\'")
-        .replace('\0', "\\0")
-        .replace('\x08', "\\b")
-        .replace('\x09', "\\t")
-        .replace('\x1a', "\\z")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-}
-
-/// Unescape a SQL string literal
-pub fn unescape_string(input: &str) -> String {
-    let mut escape = false;
-    let mut output = String::new();
-    for c in input.chars() {
-        if !escape && c == '\\' {
-            escape = true;
-        } else if escape {
-            write!(
-                output,
-                "{}",
-                match c {
-                    '0' => '\0',
-                    'b' => '\x08',
-                    't' => '\x09',
-                    'z' => '\x1a',
-                    'n' => '\n',
-                    'r' => '\r',
-                    c => c,
-                }
-            )
-            .unwrap();
-            escape = false;
-        } else {
-            write!(output, "{}", c).unwrap();
-        }
-    }
-    output
-}
-
 /// Convert value to json value
 #[allow(clippy::many_single_char_names)]
 #[cfg(feature = "with-json")]
@@ -1191,6 +1148,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Float(None)
         | Value::Double(None)
         | Value::String(None)
+        | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
@@ -1219,6 +1177,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Float(Some(v)) => (*v).into(),
         Value::Double(Some(v)) => (*v).into(),
         Value::String(Some(s)) => Json::String(s.as_ref().clone()),
+        Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
         #[cfg(feature = "with-chrono")]
@@ -1272,37 +1231,18 @@ impl Values {
     }
 }
 
+impl IntoIterator for Values {
+    type Item = Value;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_escape_1() {
-        let test = r#" "abc" "#;
-        assert_eq!(escape_string(test), r#" \"abc\" "#.to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
-
-    #[test]
-    fn test_escape_2() {
-        let test = "a\nb\tc";
-        assert_eq!(escape_string(test), "a\\nb\\tc".to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
-
-    #[test]
-    fn test_escape_3() {
-        let test = "a\\b";
-        assert_eq!(escape_string(test), "a\\\\b".to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
-
-    #[test]
-    fn test_escape_4() {
-        let test = "a\"b";
-        assert_eq!(escape_string(test), "a\\\"b".to_owned());
-        assert_eq!(unescape_string(escape_string(test).as_str()), test);
-    }
 
     #[test]
     fn test_value() {

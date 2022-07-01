@@ -9,19 +9,19 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
     let params = args.params;
 
     let with_json = if cfg!(feature = "with-json") {
-        quote! { Value::Json(v) => bind_box!(v), }
+        quote! { Value::Json(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
 
     let with_chrono = if cfg!(feature = "with-chrono") {
         quote! {
-            Value::ChronoDate(v) => bind_box!(v),
-            Value::ChronoTime(v) => bind_box!(v),
-            Value::ChronoDateTime(v) => bind_box!(v),
-            Value::ChronoDateTimeUtc(v) => bind_box!(v),
-            Value::ChronoDateTimeLocal(v) => bind_box!(v),
-            Value::ChronoDateTimeWithTimeZone(v) => bind_box!(v),
+            Value::ChronoDate(v) => query.bind(v.as_deref()),
+            Value::ChronoTime(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTime(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeUtc(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeLocal(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeWithTimeZone(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}
@@ -39,7 +39,7 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
     };
 
     let with_uuid = if cfg!(feature = "with-uuid") {
-        quote! { Value::Uuid(v) => bind_box!(v), }
+        quote! { Value::Uuid(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
@@ -62,20 +62,8 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
             for value in #params.iter() {
                 macro_rules! bind {
                     ( $v: expr, $ty: ty ) => {
-                        match $v {
-                            Some(v) => query.bind(*v as $ty),
-                            None => query.bind(None::<$ty>),
-                        }
+                        query.bind($v.map(|v| v as $ty))
                     };
-                }
-                macro_rules! bind_box {
-                    ( $v: expr ) => {{
-                        let v = match $v {
-                            Some(v) => Some(v.as_ref()),
-                            None => None,
-                        };
-                        query.bind(v)
-                    }};
                 }
                 query = match value {
                     Value::Bool(v) => bind!(v, bool),
@@ -89,8 +77,9 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
                     Value::BigUnsigned(v) => bind!(v, i64),
                     Value::Float(v) => bind!(v, f32),
                     Value::Double(v) => bind!(v, f64),
-                    Value::String(v) => bind_box!(v),
-                    Value::Bytes(v) => bind_box!(v),
+                    Value::String(v) => query.bind(v.as_deref()),
+                    Value::Char(v) => query.bind(v.map(|v|v.to_string())),
+                    Value::Bytes(v) => query.bind(v.as_deref()),
                     #with_json
                     #with_chrono
                     #with_time

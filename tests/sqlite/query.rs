@@ -986,6 +986,21 @@ fn select_57() {
 }
 
 #[test]
+fn select_58() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .build(SqliteQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" LIKE ? ESCAPE '\'"#.to_owned(),
+            Values(vec!["A".into()])
+        )
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -1329,6 +1344,64 @@ fn delete_1() {
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(SqliteQueryBuilder),
         r#"DELETE FROM "glyph" WHERE "id" = 1"#
+    );
+}
+
+#[test]
+fn escape_1() {
+    let test = r#" "abc" "#;
+    assert_eq!(
+        SqliteQueryBuilder.escape_string(test),
+        r#" "abc" "#.to_owned()
+    );
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    )
+}
+
+#[test]
+fn escape_2() {
+    let test = "a\nb\tc";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\nb\tc".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_3() {
+    let test = "a\\b";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\\b".to_owned());
+    println!("{}", SqliteQueryBuilder.escape_string(test));
+    println!(
+        "{}",
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str())
+    );
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_4() {
+    let test = "a\"b";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a\"b".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_5() {
+    let test = "a'c";
+    assert_eq!(SqliteQueryBuilder.escape_string(test), "a''c".to_owned());
+    assert_eq!(
+        SqliteQueryBuilder.unescape_string(SqliteQueryBuilder.escape_string(test).as_str()),
+        test
     );
 }
 

@@ -998,6 +998,22 @@ fn select_57() {
 }
 
 #[test]
+fn select_58() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .build(MysqlQueryBuilder),
+        (
+            r#"SELECT `character` FROM `character` WHERE `character` LIKE ? ESCAPE '\\'"#
+                .to_owned(),
+            Values(vec!["A".into()])
+        )
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -1310,5 +1326,51 @@ fn delete_1() {
             .limit(1)
             .to_string(MysqlQueryBuilder),
         "DELETE FROM `glyph` WHERE `id` = 1 ORDER BY `id` ASC LIMIT 1"
+    );
+}
+
+#[test]
+fn escape_1() {
+    let test = r#" "abc" "#;
+    assert_eq!(
+        MysqlQueryBuilder.escape_string(test),
+        r#" \"abc\" "#.to_owned()
+    );
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_2() {
+    let test = "a\nb\tc";
+    assert_eq!(
+        MysqlQueryBuilder.escape_string(test),
+        "a\\nb\\tc".to_owned()
+    );
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_3() {
+    let test = "a\\b";
+    assert_eq!(MysqlQueryBuilder.escape_string(test), "a\\\\b".to_owned());
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
+    );
+}
+
+#[test]
+fn escape_4() {
+    let test = "a\"b";
+    assert_eq!(MysqlQueryBuilder.escape_string(test), "a\\\"b".to_owned());
+    assert_eq!(
+        MysqlQueryBuilder.unescape_string(MysqlQueryBuilder.escape_string(test).as_str()),
+        test
     );
 }

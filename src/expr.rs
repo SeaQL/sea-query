@@ -36,6 +36,7 @@ pub enum SimpleExpr {
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
+    Constant(Value),
 }
 
 impl Expr {
@@ -1121,20 +1122,54 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours\'%'"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
     /// );
     /// ```
-    pub fn like(self, v: &str) -> SimpleExpr {
-        self.bin_oper(
-            BinOper::Like,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
-        )
+    ///
+    /// Like with ESCAPE
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like(LikeExpr::str(r"|_Our|_").escape('|')))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// ```
+    pub fn like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
+        self.like_like(BinOper::Like, like.into_like_expr())
     }
 
-    pub fn not_like(self, v: &str) -> SimpleExpr {
+    pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
+        self.like_like(BinOper::NotLike, like.into_like_expr())
+    }
+
+    fn like_like(self, op: BinOper, like: LikeExpr) -> SimpleExpr {
+        let value = SimpleExpr::Value(Value::String(Some(Box::new(like.pattern))));
         self.bin_oper(
-            BinOper::NotLike,
-            SimpleExpr::Value(Value::String(Some(Box::new(v.to_owned())))),
+            op,
+            match like.escape {
+                Some(escape) => SimpleExpr::Binary(
+                    Box::new(value),
+                    BinOper::Escape,
+                    Box::new(SimpleExpr::Constant(Value::Char(Some(escape)))),
+                ),
+                None => value,
+            },
         )
     }
 

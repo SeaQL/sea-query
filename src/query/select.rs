@@ -861,6 +861,44 @@ impl SelectStatement {
         self.from_from(tbl_ref.into_table_ref())
     }
 
+    /// Shorthand for selecting from a constant value list.
+    /// Panics on an empty values list.
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = sea_query::Query::select()
+    ///     .expr(Expr::asterisk())
+    ///     .from_values(vec![(1, "hello"), (2, "world")], Alias::new("x"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT * FROM (VALUES ROW(1, 'hello'), ROW(2, 'world')) AS `x`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x""#
+    /// );
+    /// ```
+    pub fn from_values<I, V, A>(&mut self, value_tuples: I, alias: A) -> &mut Self
+    where
+        I: IntoIterator<Item = V>,
+        V: IntoValueTuple,
+        A: IntoIden,
+    {
+        let value_tuples: Vec<ValueTuple> = value_tuples
+            .into_iter()
+            .map(|vt| vt.into_value_tuple())
+            .collect();
+        assert!(!value_tuples.is_empty());
+        self.from_from(TableRef::ValuesList(value_tuples, alias.into_iden()))
+    }
+
     #[deprecated(
         since = "0.9.0",
         note = "Please use the [`SelectStatement::from`] with a tuple as [`TableRef`]"

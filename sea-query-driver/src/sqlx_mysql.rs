@@ -9,18 +9,18 @@ pub fn bind_params_sqlx_mysql_impl(input: TokenStream) -> TokenStream {
     let params = args.params;
 
     let with_json = if cfg!(feature = "with-json") {
-        quote! { Value::Json(v) => bind_box!(v), }
+        quote! { Value::Json(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
 
     let with_chrono = if cfg!(feature = "with-chrono") {
         quote! {
-            Value::ChronoDate(v) => bind_box!(v),
-            Value::ChronoTime(v) => bind_box!(v),
-            Value::ChronoDateTime(v) => bind_box!(v),
-            Value::ChronoDateTimeUtc(v) => bind_box!(v),
-            Value::ChronoDateTimeLocal(v) => bind_box!(v),
+            Value::ChronoDate(v) => query.bind(v.as_deref()),
+            Value::ChronoTime(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTime(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeUtc(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeLocal(v) => query.bind(v.as_deref()),
             v @ Value::ChronoDateTimeWithTimeZone(_) => query.bind(v.chrono_as_naive_utc_in_string()),
         }
     } else {
@@ -29,29 +29,29 @@ pub fn bind_params_sqlx_mysql_impl(input: TokenStream) -> TokenStream {
 
     let with_time = if cfg!(feature = "with-time") {
         quote! {
-            Value::TimeDate(v) => bind_box!(v),
-            Value::TimeTime(v) => bind_box!(v),
-            Value::TimeDateTime(v) => bind_box!(v),
-            Value::TimeDateTimeWithTimeZone(v) => bind_box!(v),
+            Value::TimeDate(v) => query.bind(v.as_deref()),
+            Value::TimeTime(v) => query.bind(v.as_deref()),
+            Value::TimeDateTime(v) => query.bind(v.as_deref()),
+            Value::TimeDateTimeWithTimeZone(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}
     };
 
     let with_uuid = if cfg!(feature = "with-uuid") {
-        quote! { Value::Uuid(v) => bind_box!(v), }
+        quote! { Value::Uuid(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
 
     let with_rust_decimal = if cfg!(feature = "with-rust_decimal") {
-        quote! { Value::Decimal(v) => bind_box!(v), }
+        quote! { Value::Decimal(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
 
     let with_big_decimal = if cfg!(feature = "with-bigdecimal") {
-        quote! { Value::BigDecimal(v) => bind_box!(v), }
+        quote! { Value::BigDecimal(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
@@ -60,37 +60,21 @@ pub fn bind_params_sqlx_mysql_impl(input: TokenStream) -> TokenStream {
         {
             let mut query = #query;
             for value in #params.iter() {
-                macro_rules! bind {
-                    ( $v: expr, $ty: ty ) => {
-                        match $v {
-                            Some(v) => query.bind(*v as $ty),
-                            None => query.bind(None::<$ty>),
-                        }
-                    };
-                }
-                macro_rules! bind_box {
-                    ( $v: expr ) => {{
-                        let v = match $v {
-                            Some(v) => Some(v.as_ref()),
-                            None => None,
-                        };
-                        query.bind(v)
-                    }};
-                }
                 query = match value {
-                    Value::Bool(v) => bind!(v, bool),
-                    Value::TinyInt(v) => bind!(v, i8),
-                    Value::SmallInt(v) => bind!(v, i16),
-                    Value::Int(v) => bind!(v, i32),
-                    Value::BigInt(v) => bind!(v, i64),
-                    Value::TinyUnsigned(v) => bind!(v, u32),
-                    Value::SmallUnsigned(v) => bind!(v, u32),
-                    Value::Unsigned(v) => bind!(v, u32),
-                    Value::BigUnsigned(v) => bind!(v, i64),
-                    Value::Float(v) => bind!(v, f32),
-                    Value::Double(v) => bind!(v, f64),
-                    Value::String(v) => bind_box!(v),
-                    Value::Bytes(v) => bind_box!(v),
+                    Value::Bool(v) => query.bind(v.as_ref()),
+                    Value::TinyInt(v) => query.bind(v.as_ref()),
+                    Value::SmallInt(v) => query.bind(v.as_ref()),
+                    Value::Int(v) => query.bind(v.as_ref()),
+                    Value::BigInt(v) => query.bind(v.as_ref()),
+                    Value::TinyUnsigned(v) => query.bind(v.as_ref()),
+                    Value::SmallUnsigned(v) => query.bind(v.as_ref()),
+                    Value::Unsigned(v) => query.bind(v.as_ref()),
+                    Value::BigUnsigned(v) => query.bind(v.as_ref()),
+                    Value::Float(v) => query.bind(v.as_ref()),
+                    Value::Double(v) => query.bind(v.as_ref()),
+                    Value::String(v) => query.bind(v.as_deref()),
+                    Value::Char(v) => query.bind(v.map(|v| v.to_string())),
+                    Value::Bytes(v) => query.bind(v.as_deref()),
                     #with_json
                     #with_chrono
                     #with_time

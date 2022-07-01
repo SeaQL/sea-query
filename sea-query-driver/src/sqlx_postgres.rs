@@ -9,19 +9,19 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
     let params = args.params;
 
     let with_json = if cfg!(feature = "with-json") {
-        quote! { Value::Json(v) => bind_box!(v), }
+        quote! { Value::Json(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
 
     let with_chrono = if cfg!(feature = "with-chrono") {
         quote! {
-            Value::ChronoDate(v) => bind_box!(v),
-            Value::ChronoTime(v) => bind_box!(v),
-            Value::ChronoDateTime(v) => bind_box!(v),
-            Value::ChronoDateTimeUtc(v) => bind_box!(v),
-            Value::ChronoDateTimeLocal(v) => bind_box!(v),
-            Value::ChronoDateTimeWithTimeZone(v) => bind_box!(v),
+            Value::ChronoDate(v) => query.bind(v.as_deref()),
+            Value::ChronoTime(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTime(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeUtc(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeLocal(v) => query.bind(v.as_deref()),
+            Value::ChronoDateTimeWithTimeZone(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}
@@ -29,29 +29,29 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
 
     let with_time = if cfg!(feature = "with-time") {
         quote! {
-            Value::TimeDate(v) => bind_box!(v),
-            Value::TimeTime(v) => bind_box!(v),
-            Value::TimeDateTime(v) => bind_box!(v),
-            Value::TimeDateTimeWithTimeZone(v) => bind_box!(v),
+            Value::TimeDate(v) => query.bind(v.as_deref()),
+            Value::TimeTime(v) => query.bind(v.as_deref()),
+            Value::TimeDateTime(v) => query.bind(v.as_deref()),
+            Value::TimeDateTimeWithTimeZone(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}
     };
 
     let with_uuid = if cfg!(feature = "with-uuid") {
-        quote! { Value::Uuid(v) => bind_box!(v), }
+        quote! { Value::Uuid(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
 
     let with_rust_decimal = if cfg!(feature = "with-rust_decimal") {
-        quote! { Value::Decimal(v) => bind_box!(v), }
+        quote! { Value::Decimal(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
 
     let with_big_decimal = if cfg!(feature = "with-bigdecimal") {
-        quote! { Value::BigDecimal(v) => bind_box!(v), }
+        quote! { Value::BigDecimal(v) => query.bind(v.as_deref()), }
     } else {
         quote! {}
     };
@@ -64,8 +64,8 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
 
     let with_ipnetwork = if cfg!(feature = "with-ipnetwork") {
         quote! {
-            Value::Ipv4Network(v) => bind_box!(v),
-            Value::Ipv6Network(v) => bind_box!(v),
+            Value::Ipv4Network(v) => query.bind(v.as_deref()),
+            Value::Ipv6Network(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}
@@ -73,7 +73,7 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
 
     let with_mac_address = if cfg!(feature = "with-mac_address") {
         quote! {
-            Value::MacAddress(v) => bind_box!(v),
+            Value::MacAddress(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}
@@ -88,11 +88,6 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
                         query.bind($v.map(|v| v as $ty))
                     };
                 }
-                macro_rules! bind_box {
-                    ( $v: expr ) => {{
-                        query.bind($v.as_ref().map(|v| v.as_ref()))
-                    }};
-                }
                 query = match value {
                     Value::Bool(v) => bind!(v, bool),
                     Value::TinyInt(v) => bind!(v, i8),
@@ -105,8 +100,9 @@ pub fn bind_params_sqlx_postgres_impl(input: TokenStream) -> TokenStream {
                     Value::BigUnsigned(v) => bind!(v, i64),
                     Value::Float(v) => bind!(v, f32),
                     Value::Double(v) => bind!(v, f64),
-                    Value::String(v) => bind_box!(v),
-                    Value::Bytes(v) => bind_box!(v),
+                    Value::String(v) => query.bind(v.as_deref()),
+                    Value::Char(v) => query.bind(v.map(|v|v.to_string())),
+                    Value::Bytes(v) => query.bind(v.as_deref()),
                     #with_json
                     #with_chrono
                     #with_time

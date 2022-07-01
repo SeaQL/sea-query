@@ -15,18 +15,7 @@ impl ToSql for Value {
     ) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
         macro_rules! to_sql {
             ( $v: expr, $ty: ty ) => {
-                match $v {
-                    Some(v) => (*v as $ty).to_sql(ty, out),
-                    None => None::<$ty>.to_sql(ty, out),
-                }
-            };
-        }
-        macro_rules! box_to_sql {
-            ( $v: expr, $ty: ty ) => {
-                match $v {
-                    Some(v) => v.as_ref().to_sql(ty, out),
-                    None => None::<$ty>.to_sql(ty, out),
-                }
+                $v.map(|v| v as $ty).as_ref().to_sql(ty, out)
             };
         }
         match self {
@@ -41,40 +30,39 @@ impl ToSql for Value {
             Value::BigUnsigned(v) => to_sql!(v, i64),
             Value::Float(v) => to_sql!(v, f32),
             Value::Double(v) => to_sql!(v, f64),
-            Value::String(v) => box_to_sql!(v, String),
-            Value::Bytes(v) => box_to_sql!(v, Vec<u8>),
+            Value::String(v) => v.as_deref().to_sql(ty, out),
+            Value::Char(v) => v.map(|v| v.to_string()).to_sql(ty, out),
+            Value::Bytes(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-json")]
-            Value::Json(v) => box_to_sql!(v, serde_json::Value),
+            Value::Json(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-chrono")]
-            Value::ChronoDate(v) => box_to_sql!(v, chrono::NaiveDate),
+            Value::ChronoDate(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-chrono")]
-            Value::ChronoTime(v) => box_to_sql!(v, chrono::NaiveTime),
+            Value::ChronoTime(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-chrono")]
-            Value::ChronoDateTime(v) => box_to_sql!(v, chrono::NaiveDateTime),
+            Value::ChronoDateTime(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-chrono")]
-            Value::ChronoDateTimeUtc(v) => box_to_sql!(v, chrono::DateTime<chrono::Utc>),
+            Value::ChronoDateTimeUtc(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-chrono")]
-            Value::ChronoDateTimeLocal(v) => box_to_sql!(v, chrono::DateTime<chrono::Local>),
+            Value::ChronoDateTimeLocal(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-chrono")]
-            Value::ChronoDateTimeWithTimeZone(v) => {
-                box_to_sql!(v, chrono::DateTime<chrono::FixedOffset>)
-            }
+            Value::ChronoDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-time")]
-            Value::TimeDate(v) => box_to_sql!(v, time::Date),
+            Value::TimeDate(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-time")]
-            Value::TimeTime(v) => box_to_sql!(v, time::Time),
+            Value::TimeTime(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-time")]
-            Value::TimeDateTime(v) => box_to_sql!(v, time::PrimitiveDateTime),
+            Value::TimeDateTime(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-time")]
-            Value::TimeDateTimeWithTimeZone(v) => box_to_sql!(v, time::OffsetDateTime),
+            Value::TimeDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-rust_decimal")]
-            Value::Decimal(v) => box_to_sql!(v, rust_decimal::Decimal),
+            Value::Decimal(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-bigdecimal")]
             Value::BigDecimal(_) => unimplemented!("Not supported"),
             #[cfg(feature = "postgres-uuid")]
-            Value::Uuid(v) => box_to_sql!(v, uuid::Uuid),
+            Value::Uuid(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
-            Value::Array(v) => box_to_sql!(v, Vec<Value>),
+            Value::Array(v) => v.as_deref().to_sql(ty, out),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }

@@ -11,7 +11,7 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        let escaped = escape_string(string);
+        let escaped = self.escape_string(string);
         let string = if escaped.find('\\').is_some() {
             "E'".to_owned() + &escaped + "'"
         } else {

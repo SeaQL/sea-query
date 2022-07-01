@@ -1,10 +1,15 @@
 use crate::*;
 use std::ops::Deref;
 
-pub trait QueryBuilder: QuotedBuilder {
+pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
         ("?", false)
+    }
+
+    /// Prefix for tuples in VALUES list (e.g. ROW for Mysql)
+    fn values_list_tuple_prefix(&self) -> &str {
+        ""
     }
 
     /// Translate [`InsertStatement`] into SQL statement.
@@ -287,9 +292,9 @@ pub trait QueryBuilder: QuotedBuilder {
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(2.into()),
+                        &SimpleExpr::Value(2i32.into()),
                         sql,
                         collector,
                     );
@@ -298,9 +303,9 @@ pub trait QueryBuilder: QuotedBuilder {
                     && right.get_values().is_empty()
                 {
                     self.binary_expr(
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         &BinOper::Equal,
-                        &SimpleExpr::Value(1.into()),
+                        &SimpleExpr::Value(1i32.into()),
                         sql,
                         collector,
                     );
@@ -364,6 +369,9 @@ pub trait QueryBuilder: QuotedBuilder {
             }
             SimpleExpr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql, collector);
+            }
+            SimpleExpr::Constant(val) => {
+                self.prepare_constant(val, sql);
             }
         }
     }
@@ -563,6 +571,13 @@ pub trait QueryBuilder: QuotedBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
+            TableRef::ValuesList(values, alias) => {
+                write!(sql, "(").unwrap();
+                self.prepare_values_list(values, sql, collector);
+                write!(sql, ")").unwrap();
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql, self.quote());
+            }
         }
     }
 
@@ -639,6 +654,7 @@ pub trait QueryBuilder: QuotedBuilder {
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
                 BinOper::As => "AS",
+                BinOper::Escape => "ESCAPE",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }
@@ -993,11 +1009,46 @@ pub trait QueryBuilder: QuotedBuilder {
         write!(sql, "ELSE {} END", i).unwrap();
     }
 
-    /// Translate [`Value`] into SQL statement.
+    /// Write [`Value`] into SQL statement as parameter.
     fn prepare_value(&self, value: &Value, sql: &mut SqlWriter, collector: &mut dyn FnMut(Value)) {
         let (placeholder, numbered) = self.placeholder();
         sql.push_param(placeholder, numbered);
         collector(value.clone());
+    }
+
+    /// Write [`Value`] inline.
+    fn prepare_constant(&self, value: &Value, sql: &mut SqlWriter) {
+        let string = self.value_to_string(value);
+        write!(sql, "{}", string).unwrap();
+    }
+
+    /// Translate a `&[ValueTuple]` into a VALUES list.
+    fn prepare_values_list(
+        &self,
+        value_tuples: &[ValueTuple],
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        let (placeholder, numbered) = self.placeholder();
+        write!(sql, "VALUES ").unwrap();
+        value_tuples.iter().fold(true, |first, value_tuple| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            write!(sql, "{}", self.values_list_tuple_prefix()).unwrap();
+            write!(sql, "(").unwrap();
+            value_tuple.clone().into_iter().fold(true, |first, value| {
+                if !first {
+                    write!(sql, ", ").unwrap();
+                }
+                sql.push_param(placeholder, numbered);
+                collector(value);
+                false
+            });
+
+            write!(sql, ")").unwrap();
+            false
+        });
     }
 
     /// Translate [`SimpleExpr::Tuple`] into SQL statement.
@@ -1056,6 +1107,7 @@ pub trait QueryBuilder: QuotedBuilder {
             | Value::Float(None)
             | Value::Double(None)
             | Value::String(None)
+            | Value::Char(None)
             | Value::Bytes(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
@@ -1105,6 +1157,9 @@ pub trait QueryBuilder: QuotedBuilder {
             Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
+            Value::Char(Some(v)) => {
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
+            }
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x\'{}\'",
@@ -1482,7 +1537,10 @@ pub trait QueryBuilder: QuotedBuilder {
         write!(sql, " ").unwrap();
         self.prepare_bin_oper(op, sql, collector);
         write!(sql, " ").unwrap();
-        let no_right_paren = matches!(op, BinOper::Between | BinOper::NotBetween);
+        let no_right_paren = matches!(
+            op,
+            BinOper::Between | BinOper::NotBetween | BinOper::Like | BinOper::NotLike
+        );
         let right_paren = (right.need_parentheses()
             || right.is_binary() && *op != left.get_bin_oper().unwrap())
             && !no_right_paren
@@ -1499,7 +1557,7 @@ pub trait QueryBuilder: QuotedBuilder {
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        write!(buffer, "\'{}\'", escape_string(string)).unwrap()
+        write!(buffer, "\'{}\'", self.escape_string(string)).unwrap()
     }
 
     #[doc(hidden)]
@@ -1568,3 +1626,5 @@ impl QuotedBuilder for CommonSqlQueryBuilder {
         '"'
     }
 }
+
+impl EscapeBuilder for CommonSqlQueryBuilder {}

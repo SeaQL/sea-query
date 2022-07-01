@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, query::*, Values};
+use crate::{expr::*, query::*, ValueTuple, Values};
 use std::fmt;
 
 #[cfg(not(feature = "thread-safe"))]
@@ -89,6 +89,8 @@ pub enum TableRef {
     DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
     /// Subquery with alias
     SubQuery(SelectStatement, DynIden),
+    /// Values list with alias
+    ValuesList(Vec<ValueTuple>, DynIden),
 }
 
 pub trait IntoTableRef {
@@ -125,6 +127,7 @@ pub enum BinOper {
     Mul,
     Div,
     As,
+    Escape,
     #[cfg(feature = "backend-postgres")]
     Matches,
     #[cfg(feature = "backend-postgres")]
@@ -194,6 +197,17 @@ pub struct NullAlias;
 pub enum Keyword {
     Null,
     Custom(DynIden),
+}
+
+/// Like Expression
+#[derive(Debug, Clone)]
+pub struct LikeExpr {
+    pub(crate) pattern: String,
+    pub(crate) escape: Option<char>,
+}
+
+pub trait IntoLikeExpr {
+    fn into_like_expr(self) -> LikeExpr;
 }
 
 // Impl begins
@@ -343,6 +357,7 @@ impl TableRef {
                 Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden())
             }
             Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
+            Self::ValuesList(values, _) => Self::ValuesList(values, alias.into_iden()),
         }
     }
 }
@@ -373,6 +388,47 @@ impl Default for NullAlias {
 
 impl Iden for NullAlias {
     fn unquoted(&self, _s: &mut dyn fmt::Write) {}
+}
+
+impl LikeExpr {
+    pub fn new(pattern: String) -> Self {
+        Self {
+            pattern,
+            escape: None,
+        }
+    }
+
+    pub fn str(pattern: &str) -> Self {
+        Self {
+            pattern: pattern.to_owned(),
+            escape: None,
+        }
+    }
+
+    pub fn escape(self, c: char) -> Self {
+        Self {
+            pattern: self.pattern,
+            escape: Some(c),
+        }
+    }
+}
+
+impl IntoLikeExpr for LikeExpr {
+    fn into_like_expr(self) -> LikeExpr {
+        self
+    }
+}
+
+impl IntoLikeExpr for &str {
+    fn into_like_expr(self) -> LikeExpr {
+        LikeExpr::str(self)
+    }
+}
+
+impl IntoLikeExpr for String {
+    fn into_like_expr(self) -> LikeExpr {
+        LikeExpr::new(self)
+    }
 }
 
 #[cfg(test)]
