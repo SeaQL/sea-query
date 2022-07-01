@@ -12,11 +12,11 @@ rust_decimal = { version = "^1" }
 postgres = "^0.19"
 sea-query = { path = "../../", features = [
     "postgres",
-    "postgres-chrono",
-    "postgres-json",
     "postgres-rust_decimal",
-    "postgres-uuid",
     "postgres-array",
-    "postgres-time",
+    "with-uuid",
+    "with-chrono",
+    "with-json",
+    "with-time",
 ] }
 # NOTE: if you are copying this example into your own project, replace `path = ` with `version = "^0"`
