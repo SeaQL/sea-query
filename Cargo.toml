@@ -17,7 +17,7 @@ members = [
 
 [package]
 name = "sea-query"
-version = "0.25.0"
+version = "0.25.2"
 authors = [
     "Chris Tsang <tyt2y7@gmail.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",

@@ -5,28 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.26.0 - Pending
+## 0.25.2 - 2022-07-01
 
-### New Features
+### New features
 
-* Add support for `VALUES` lists (#351)
 * Introduce `sea-query-binder` (#275)
 
 ### Enhancements
 
-* Move escape and unescape string to backend (#306)
-* `LIKE ESCAPE` support (#352, #353)
+* Add method to make a column nullable (#365)
+* Add `is` & `is_not` to Expr (#348)
+* Add `CURRENT_TIMESTAMP` function (#349)
 
-### Breaking changes
+## 0.25.1 - 2022-06-26
 
-As part of #306, the standalone functions `escape_string` and `unescape_string` are removed, and becomes backend specific. So now, you have to:
+### Enhancements
 
-```rust
-use sea_query::EscapeBuilder;
-
-let string: String = MySqlQueryBuilder.escape_string(r#" "abc" "#);
-let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
-```
+* `clear_order_by` for `OrderedStatement`
 
 ## 0.25.0 - 2022-05-28
 
