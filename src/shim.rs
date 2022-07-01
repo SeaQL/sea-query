@@ -27,7 +27,7 @@ macro_rules! impl_query_statement_builder {
     ( $mod_name: ident, $struct_name: ident ) => {
         mod $mod_name {
 
-            use crate::{
+            use $crate::{
                 $struct_name, QueryBuilder, QueryStatementBuilder, QueryStatementWriter, Values,
             };
 
@@ -54,7 +54,7 @@ macro_rules! impl_conditional_statement {
         #[allow(deprecated)]
         mod $mod_name {
 
-            use crate::{ConditionalStatement, SimpleExpr, IntoCondition, $struct_name};
+            use $crate::{ConditionalStatement, SimpleExpr, IntoCondition, $struct_name};
 
             impl $struct_name {
                 pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
@@ -87,7 +87,7 @@ macro_rules! impl_ordered_statement {
         #[allow(deprecated)]
         mod $mod_name {
 
-            use crate::{OrderedStatement, IntoColumnRef, IntoIden, Order, SimpleExpr, $struct_name};
+            use $crate::{OrderedStatement, IntoColumnRef, IntoIden, Order, SimpleExpr, $struct_name};
 
             impl $struct_name {
                 pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self

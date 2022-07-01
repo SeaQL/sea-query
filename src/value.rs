@@ -1589,13 +1589,10 @@ mod tests {
     #[cfg(feature = "with-time")]
     fn test_time_query() {
         use crate::*;
+        use time::macros::datetime;
 
-        let timestamp = OffsetDateTime::from_unix_timestamp(1577815322)
-            .unwrap()
-            .to_offset(time::macros::offset!(+8));
-
+        let timestamp = datetime!(2020-01-01 02:02:02 +8);
         let query = Query::select().expr(Expr::val(timestamp)).to_owned();
-
         let formatted = "2020-01-01 02:02:02 +0800";
 
         assert_eq!(
