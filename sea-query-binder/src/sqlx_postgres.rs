@@ -32,7 +32,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                     args.add(i.map(|i| i as i64));
                 }
                 Value::BigUnsigned(i) => {
-                    args.add(i.map(|i| <i64 as std::convert::TryFrom<u64>>::try_from(i).unwrap()));
+                    args.add(i as i64);
                 }
                 Value::Float(f) => {
                     args.add(f);
