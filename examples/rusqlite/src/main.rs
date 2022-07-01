@@ -1,13 +1,13 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rusqlite::{Connection, Result, Row};
-use serde_json::{json, Value as Json};
-use time::{macros::{date, time}, PrimitiveDateTime};
-use uuid::Uuid;
-
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table, time_format};
-use sea_query_driver_rusqlite::RusqliteValues;
+use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
 
 sea_query::sea_query_driver_rusqlite!();
+use sea_query_driver_rusqlite::RusqliteValues;
+use serde_json::{json, Value as Json};
+use time::{date, time, PrimitiveDateTime};
+use uuid::Uuid;
+
 fn main() -> Result<()> {
     let conn = Connection::open_in_memory()?;
 
@@ -254,7 +254,7 @@ impl From<&Row<'_>> for CharacterStructChrono {
 impl From<&Row<'_>> for CharacterStructTime {
     fn from(row: &Row) -> Self {
         let created: String = row.get_unwrap("created");
-        let created = PrimitiveDateTime::parse(&created, time_format::FORMAT_DATETIME).ok();
+        let created = PrimitiveDateTime::parse(created, "%Y-%m-%d %H:%M:%S").ok();
         Self {
             id: row.get_unwrap("id"),
             uuid: row.get_unwrap("uuid"),
