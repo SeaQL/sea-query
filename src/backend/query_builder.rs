@@ -1190,28 +1190,28 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             Value::TimeDate(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(crate::time_format::FORMAT_DATE).unwrap()
+                v.format(time_format::FORMAT_DATE).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(crate::time_format::FORMAT_TIME).unwrap()
+                v.format(time_format::FORMAT_TIME).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(crate::time_format::FORMAT_DATETIME).unwrap()
+                v.format(time_format::FORMAT_DATETIME).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(crate::time_format::FORMAT_DATETIME_TZ).unwrap()
+                v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-rust_decimal")]

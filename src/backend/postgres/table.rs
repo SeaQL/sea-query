@@ -79,7 +79,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Interval(fields, precision) => {
                     let mut typ = "interval".to_string();
                     if let Some(fields) = fields {
-                        write!(typ, "{}", fields).unwrap();
+                        write!(typ, " {}", fields).unwrap();
                     }
                     if let Some(precision) = precision {
                         write!(typ, "({})", precision).unwrap();
