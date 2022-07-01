@@ -1,20 +1,21 @@
+use std::net::{IpAddr, Ipv4Addr};
+
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
+use ipnetwork::IpNetwork;
+use mac_address::{get_mac_address, MacAddress};
 use rust_decimal::Decimal;
+use serde_json::{json, Value as Json};
+use sqlx::{PgPool, Row};
+use time::{macros::{date, time}, PrimitiveDateTime};
+use uuid::Uuid;
+
 use sea_query::{
     ColumnDef, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
 };
-use sqlx::{PgPool, Row};
-use std::net::{IpAddr, Ipv4Addr};
-use time::{date, time, PrimitiveDateTime};
+use sea_query_driver_postgres::{bind_query, bind_query_as};
 
 sea_query::sea_query_driver_postgres!();
-use ipnetwork::IpNetwork;
-use mac_address::{get_mac_address, MacAddress};
-use sea_query_driver_postgres::{bind_query, bind_query_as};
-use serde_json::{json, Value as Json};
-use uuid::Uuid;
-
 #[async_std::main]
 async fn main() {
     let connection = PgPool::connect("postgres://sea:sea@127.0.0.1/query")

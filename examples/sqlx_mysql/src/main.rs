@@ -1,15 +1,15 @@
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
-use sqlx::{types::chrono::NaiveDateTime, MySqlPool, Row};
-use time::{date, time, PrimitiveDateTime};
-
-sea_query::sea_query_driver_mysql!();
-use sea_query_driver_mysql::{bind_query, bind_query_as};
 use serde_json::{json, Value as Json};
+use sqlx::{MySqlPool, Row, types::chrono::NaiveDateTime};
+use time::{macros::{date, time}, PrimitiveDateTime};
 use uuid::Uuid;
 
+use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
+use sea_query_driver_mysql::{bind_query, bind_query_as};
+
+sea_query::sea_query_driver_mysql!();
 #[async_std::main]
 async fn main() {
     let connection = MySqlPool::connect("mysql://sea:sea@127.0.0.1/query")

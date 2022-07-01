@@ -1,7 +1,8 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
+use time::{macros::{date, time}, PrimitiveDateTime};
+
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
-use time::{date, time, PrimitiveDateTime};
 
 fn main() {
     let mut client = Client::connect("postgresql://root:@localhost/query", NoTls).unwrap();

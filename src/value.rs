@@ -1,33 +1,26 @@
 //! Container for all SQL value types.
 
-#[cfg(feature = "with-json")]
-use serde_json::Value as Json;
+#[cfg(feature = "with-ipnetwork")]
+use std::net::IpAddr;
 #[cfg(feature = "with-json")]
 use std::str::from_utf8;
 
-#[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
-
-#[cfg(feature = "with-time")]
-use time::{OffsetDateTime, PrimitiveDateTime};
-
-#[cfg(feature = "with-rust_decimal")]
-use rust_decimal::Decimal;
-
 #[cfg(feature = "with-bigdecimal")]
 use bigdecimal::BigDecimal;
-
-#[cfg(feature = "with-uuid")]
-use uuid::Uuid;
-
+#[cfg(feature = "with-chrono")]
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 #[cfg(feature = "with-ipnetwork")]
 use ipnetwork::IpNetwork;
-
-#[cfg(feature = "with-ipnetwork")]
-use std::net::IpAddr;
-
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
+#[cfg(feature = "with-rust_decimal")]
+use rust_decimal::Decimal;
+#[cfg(feature = "with-json")]
+use serde_json::Value as Json;
+#[cfg(feature = "with-time")]
+use time::{OffsetDateTime, PrimitiveDateTime, macros::offset};
+#[cfg(feature = "with-uuid")]
+use uuid::Uuid;
 
 use crate::{BlobSize, ColumnType};
 
@@ -328,8 +321,9 @@ mod with_json {
 #[cfg(feature = "with-chrono")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
 mod with_chrono {
-    use super::*;
     use chrono::{Local, Offset, Utc};
+
+    use super::*;
 
     type_to_box_value!(NaiveDate, ChronoDate, Date);
     type_to_box_value!(NaiveTime, ChronoTime, Time(None));
@@ -422,6 +416,19 @@ mod with_chrono {
             ColumnType::TimestampWithTimeZone(None)
         }
     }
+}
+
+#[cfg(feature = "with-time")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+pub mod time_format {
+    use time::format_description::FormatItem;
+    use time::macros::format_description;
+
+    pub static FORMAT_DATE: &[FormatItem<'static>] = format_description!("[year]-[month]-[day]");
+    pub static FORMAT_TIME: &[FormatItem<'static>] = format_description!("[hour]:[minute]:[second]");
+    pub static FORMAT_DATETIME: &[FormatItem<'static>] = format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
+    pub static FORMAT_DATETIME_TZ: &[FormatItem<'static>] = format_description!("[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]");
+
 }
 
 #[cfg(feature = "with-time")]
@@ -784,23 +791,12 @@ impl Value {
 impl Value {
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::TimeDate(v) => v.as_ref().map(|v| {
-                v.format(time::macros::format_description!("%Y-%m-%d"))
-                    .unwrap()
-            }),
-            Self::TimeTime(v) => v.as_ref().map(|v| {
-                v.format(time::macros::format_description!("%H:%M:%S"))
-                    .unwrap()
-            }),
-            Self::TimeDateTime(v) => v.as_ref().map(|v| {
-                v.format(time::macros::format_description!("%Y-%m-%d %H:%M:%S"))
-                    .unwrap()
-            }),
-            Self::TimeDateTimeWithTimeZone(v) => v.as_ref().map(|v| {
-                v.to_offset(::time::macros::offset!(+0))
-                    .format(time::macros::format_description!("%Y-%m-%d %H:%M:%S"))
-                    .unwrap()
-            }),
+            Self::TimeDate(v) => v.as_ref().and_then(|v| v.format(time_format::FORMAT_DATE).ok()),
+            Self::TimeTime(v) => v.as_ref().and_then(|v| v.format(time_format::FORMAT_TIME).ok()),
+            Self::TimeDateTime(v) => v.as_ref().and_then(|v| v.format(time_format::FORMAT_DATETIME).ok()),
+            Self::TimeDateTimeWithTimeZone(v) => v
+                .as_ref()
+                .and_then(|v| v.to_offset(offset!(UTC)).format(time_format::FORMAT_DATETIME_TZ).ok()),
             _ => panic!("not time Value"),
         }
     }

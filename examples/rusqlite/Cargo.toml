@@ -5,12 +5,12 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "^0" }
-time = { version = "^0.2" }
+time = { version = "^0.3" }
 serde_json = { version = "^1" }
 # rusqlite only supports uuid 0
 uuid = { version = "^0", features = ["serde", "v4"] }
 # that's why we can only use an older version of sea-query
-sea-query = { version = "^0.25", features = [
+sea-query = { path = "../../", features = [
     "rusqlite",
     "with-chrono",
     "with-json",
