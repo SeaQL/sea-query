@@ -17,7 +17,7 @@ members = [
 
 [package]
 name = "sea-query"
-version = "0.25.0"
+version = "0.26.0"
 authors = [
     "Chris Tsang <tyt2y7@gmail.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
@@ -52,7 +52,7 @@ bigdecimal = { version = "^0.2", optional = true }
 uuid = { version = "^1", optional = true }
 proc-macro2 = { version = "1", optional = true }
 quote = { version = "^1", optional = true }
-time = { version = "^0.2", optional = true }
+time = { version = "^0.3", optional = true, features = ["macros", "formatting"] }
 ipnetwork = { version = "^0.17", optional = true }
 mac_address = { version = "^1.1", optional = true }
 
@@ -75,7 +75,7 @@ postgres-bigdecimal = ["with-bigdecimal"]
 postgres-uuid = ["with-uuid", "postgres-types/with-uuid-1"]
 postgres-array = ["postgres-types/array-impls", "sea-query-driver?/postgres-array"]
 postgres-interval = ["proc-macro2", "quote"]
-postgres-time = ["with-time", "postgres-types/with-time-0_2"]
+postgres-time = ["with-time", "postgres-types/with-time-0_3"]
 rusqlite = ["sea-query-driver/rusqlite"]
 sqlx-mysql = ["sea-query-driver/sqlx-mysql"]
 sqlx-postgres = ["sea-query-driver/sqlx-postgres"]

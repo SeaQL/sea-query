@@ -1187,16 +1187,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
+            Value::TimeDate(Some(v)) => write!(s, "'{}'", v.format(time::macros::format_description!("%Y-%m-%d")).unwrap()).unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
+            Value::TimeTime(Some(v)) => write!(s, "'{}'", v.format(time::macros::format_description!("%H:%M:%S")).unwrap()).unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
+                write!(s, "'{}'", v.format(time::macros::format_description!("%Y-%m-%d %H:%M:%S")).unwrap()).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %z")).unwrap()
+                write!(s, "'{}'", v.format(time::macros::format_description!("%Y-%m-%d %H:%M:%S %z")).unwrap()).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),

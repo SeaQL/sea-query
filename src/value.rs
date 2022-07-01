@@ -9,7 +9,7 @@ use std::str::from_utf8;
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-time")]
-use time::{offset, OffsetDateTime, PrimitiveDateTime};
+use time::{OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -784,12 +784,12 @@ impl Value {
 impl Value {
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::TimeDate(v) => v.as_ref().map(|v| v.format("%Y-%m-%d")),
-            Self::TimeTime(v) => v.as_ref().map(|v| v.format("%H:%M:%S")),
-            Self::TimeDateTime(v) => v.as_ref().map(|v| v.format("%Y-%m-%d %H:%M:%S")),
+            Self::TimeDate(v) => v.as_ref().map(|v| v.format(time::macros::format_description!("%Y-%m-%d")).unwrap()),
+            Self::TimeTime(v) => v.as_ref().map(|v| v.format(time::macros::format_description!("%H:%M:%S")).unwrap()),
+            Self::TimeDateTime(v) => v.as_ref().map(|v| v.format(time::macros::format_description!("%Y-%m-%d %H:%M:%S")).unwrap()),
             Self::TimeDateTimeWithTimeZone(v) => v
                 .as_ref()
-                .map(|v| v.to_offset(offset!(+0)).format("%Y-%m-%d %H:%M:%S")),
+                .map(|v| v.to_offset(::time::macros::offset!(+0)).format(time::macros::format_description!("%Y-%m-%d %H:%M:%S")).unwrap()),
             _ => panic!("not time Value"),
         }
     }

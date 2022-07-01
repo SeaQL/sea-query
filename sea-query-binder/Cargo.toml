@@ -14,7 +14,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "^0.25", path = "../" }
+sea-query = { version = "^0.25.1" }
 sqlx = { version = "^0.5.6", optional = true }
 
 [features]
@@ -28,6 +28,6 @@ with-rust_decimal = ["sqlx/decimal", "sea-query/with-rust_decimal"]
 with-bigdecimal = ["sqlx/bigdecimal", "sea-query/with-bigdecimal"]
 with-uuid = ["sqlx/uuid", "sea-query/with-uuid"]
 with-time = ["sqlx/time", "sea-query/with-time"]
-with-ipnetwork = ["sqlx/ipnetwork", "sea-query/with-ipnetwork"]
-with-mac_address = ["sqlx/mac_address", "sea-query/with-mac_address"]
+# with-ipnetwork = ["sqlx/ipnetwork", "sea-query/with-ipnetwork"]
+# with-mac_address = ["sqlx/mac_address", "sea-query/with-mac_address"]
 postgres-array = ["sea-query/postgres-array"]
