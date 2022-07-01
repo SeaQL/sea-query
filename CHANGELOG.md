@@ -44,6 +44,18 @@ let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 
 * Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` (#364)
 
+## 0.25.2 - 2022-07-01
+
+### New features
+
+* Introduce `sea-query-binder` (#275)
+
+### Enhancements
+
+* Add method to make a column nullable (#365)
+* Add `is` & `is_not` to Expr (#348)
+* Add `CURRENT_TIMESTAMP` function (#349)
+
 ## 0.25.1 - 2022-06-26
 
 ### Enhancements
