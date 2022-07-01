@@ -6,7 +6,10 @@ use sea_query::{
 };
 use sqlx::{PgPool, Row};
 use std::net::{IpAddr, Ipv4Addr};
-use time::{macros::{date, time}, PrimitiveDateTime};
+use time::{
+    macros::{date, time},
+    PrimitiveDateTime,
+};
 
 sea_query::sea_query_driver_postgres!();
 use ipnetwork::IpNetwork;

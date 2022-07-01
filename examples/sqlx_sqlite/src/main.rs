@@ -1,7 +1,10 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use sea_query::{ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table};
 use sqlx::{sqlite::SqliteRow, Row, SqlitePool};
-use time::{macros::{date, time}, PrimitiveDateTime};
+use time::{
+    macros::{date, time},
+    PrimitiveDateTime,
+};
 
 sea_query::sea_query_driver_sqlite!();
 use sea_query_driver_sqlite::{bind_query, bind_query_as};
@@ -268,7 +271,11 @@ impl TryFrom<&SqliteRow> for CharacterStructTime {
 
     fn try_from(row: &SqliteRow) -> Result<Self, Self::Error> {
         let created: String = dbg!(row.try_get("created")?);
-        let created = PrimitiveDateTime::parse(&created, time::macros::format_description!("%Y-%m-%d %H:%M:%S")).unwrap();
+        let created = PrimitiveDateTime::parse(
+            &created,
+            time::macros::format_description!("%Y-%m-%d %H:%M:%S"),
+        )
+        .unwrap();
         Ok(Self {
             id: row.try_get("id")?,
             uuid: row.try_get("uuid")?,

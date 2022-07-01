@@ -3,7 +3,10 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
 use sqlx::{types::chrono::NaiveDateTime, MySqlPool, Row};
-use time::{macros::{date, time}, PrimitiveDateTime};
+use time::{
+    macros::{date, time},
+    PrimitiveDateTime,
+};
 
 sea_query::sea_query_driver_mysql!();
 use sea_query_driver_mysql::{bind_query, bind_query_as};
