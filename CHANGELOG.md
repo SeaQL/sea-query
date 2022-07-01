@@ -44,6 +44,8 @@ let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 
 * Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` (#364)
 
+* Remove some redundant feature flags `postgres-chrono`, `postgres-json`, `postgres-uuid`, `postgres-time`. Use the `with-*` equivalence
+
 ## 0.25.2 - 2022-07-01
 
 ### New features
