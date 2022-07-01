@@ -1,5 +1,3 @@
-[workspace]
-
 [package]
 name = "sea-query-binder"
 version = "0.1.0"
