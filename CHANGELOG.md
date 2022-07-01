@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.25.2 - Pending
+## 0.25.2 - 2022-07-01
+
+### New features
+
+* Introduce `sea-query-binder` (#275)
 
 ### Enhancements
 
