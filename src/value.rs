@@ -426,6 +426,22 @@ mod with_chrono {
 
 #[cfg(feature = "with-time")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+pub mod time_format {
+    use time::format_description::FormatItem;
+    use time::macros::format_description;
+
+    pub static FORMAT_DATE: &[FormatItem<'static>] = format_description!("[year]-[month]-[day]");
+    pub static FORMAT_TIME: &[FormatItem<'static>] =
+        format_description!("[hour]:[minute]:[second]");
+    pub static FORMAT_DATETIME: &[FormatItem<'static>] =
+        format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
+    pub static FORMAT_DATETIME_TZ: &[FormatItem<'static>] = format_description!(
+        "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]"
+    );
+}
+
+#[cfg(feature = "with-time")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
 mod with_time {
     use super::*;
 
@@ -784,22 +800,19 @@ impl Value {
 impl Value {
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::TimeDate(v) => v.as_ref().map(|v| {
-                v.format(time::macros::format_description!("%Y-%m-%d"))
-                    .unwrap()
-            }),
-            Self::TimeTime(v) => v.as_ref().map(|v| {
-                v.format(time::macros::format_description!("%H:%M:%S"))
-                    .unwrap()
-            }),
-            Self::TimeDateTime(v) => v.as_ref().map(|v| {
-                v.format(time::macros::format_description!("%Y-%m-%d %H:%M:%S"))
-                    .unwrap()
-            }),
-            Self::TimeDateTimeWithTimeZone(v) => v.as_ref().map(|v| {
-                v.to_offset(::time::macros::offset!(+0))
-                    .format(time::macros::format_description!("%Y-%m-%d %H:%M:%S"))
-                    .unwrap()
+            Self::TimeDate(v) => v
+                .as_ref()
+                .and_then(|v| v.format(time_format::FORMAT_DATE).ok()),
+            Self::TimeTime(v) => v
+                .as_ref()
+                .and_then(|v| v.format(time_format::FORMAT_TIME).ok()),
+            Self::TimeDateTime(v) => v
+                .as_ref()
+                .and_then(|v| v.format(time_format::FORMAT_DATETIME).ok()),
+            Self::TimeDateTimeWithTimeZone(v) => v.as_ref().and_then(|v| {
+                v.to_offset(time::macros::offset!(UTC))
+                    .format(time_format::FORMAT_DATETIME_TZ)
+                    .ok()
             }),
             _ => panic!("not time Value"),
         }

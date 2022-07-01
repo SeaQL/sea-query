@@ -1190,32 +1190,28 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             Value::TimeDate(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(time::macros::format_description!("%Y-%m-%d"))
-                    .unwrap()
+                v.format(crate::time_format::FORMAT_DATE).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(time::macros::format_description!("%H:%M:%S"))
-                    .unwrap()
+                v.format(crate::time_format::FORMAT_TIME).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(time::macros::format_description!("%Y-%m-%d %H:%M:%S"))
-                    .unwrap()
+                v.format(crate::time_format::FORMAT_DATETIME).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
                 s,
                 "'{}'",
-                v.format(time::macros::format_description!("%Y-%m-%d %H:%M:%S %z"))
-                    .unwrap()
+                v.format(crate::time_format::FORMAT_DATETIME_TZ).unwrap()
             )
             .unwrap(),
             #[cfg(feature = "with-rust_decimal")]
