@@ -191,7 +191,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        version: [10.6, 10.5, 10.4, 10.3, 10.2]
+        version: [10.6]
         example: [sqlx_mysql]
     services:
       mariadb:
@@ -233,7 +233,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        version: [13.3, 12.7, 11.12, 10.17, 9.6.22]
+        version: [14.4, 13.7, 12.11]
         example: [postgres, postgres_json, sqlx_postgres]
     services:
       postgres:
