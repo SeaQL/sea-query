@@ -1617,7 +1617,6 @@ impl Expr {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, 1), (2, 2))"#
     /// );
-    ///
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn in_tuples<K, V, I>(mut self, v: I) -> SimpleExpr
@@ -1628,15 +1627,9 @@ impl Expr {
     {
         self.bopr = Some(BinOper::In);
         self.right = Some(SimpleExpr::Tuple(
-            v
-                .into_iter()
-                .map(|m| SimpleExpr::Values(
-                    m
-                        .into_iter()
-                        .map(|k| k.into())
-                        .collect()
-                ))
-                .collect()
+            v.into_iter()
+                .map(|m| SimpleExpr::Values(m.into_iter().map(|k| k.into()).collect()))
+                .collect(),
         ));
         self.into()
     }

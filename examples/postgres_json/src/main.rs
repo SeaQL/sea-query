@@ -2,7 +2,10 @@ use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
-use time::{macros::{date, time, offset}, OffsetDateTime, PrimitiveDateTime};
+use time::{
+    macros::{date, offset, time},
+    OffsetDateTime, PrimitiveDateTime,
+};
 use uuid::Uuid;
 
 fn main() {

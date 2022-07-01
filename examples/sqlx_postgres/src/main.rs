@@ -1,4 +1,3 @@
-use std::net::{IpAddr, Ipv4Addr};
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
 use rust_decimal::Decimal;
@@ -6,14 +5,15 @@ use sea_query::{
     ColumnDef, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
 };
 use sqlx::{PgPool, Row};
+use std::net::{IpAddr, Ipv4Addr};
 use time::{date, time, PrimitiveDateTime};
 
 sea_query::sea_query_driver_postgres!();
+use ipnetwork::IpNetwork;
+use mac_address::{get_mac_address, MacAddress};
 use sea_query_driver_postgres::{bind_query, bind_query_as};
 use serde_json::{json, Value as Json};
 use uuid::Uuid;
-use ipnetwork::IpNetwork;
-use mac_address::{get_mac_address, MacAddress};
 
 #[async_std::main]
 async fn main() {
@@ -77,7 +77,9 @@ async fn main() {
                 .with_scale(3)
                 .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
-            IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127,0,0,1)), 8).unwrap().into(),
+            IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8)
+                .unwrap()
+                .into(),
             get_mac_address().unwrap().unwrap().into(),
         ])
         .values_panic(vec![
@@ -94,7 +96,9 @@ async fn main() {
                 .with_scale(3)
                 .into(),
             date!(2020 - 8 - 20).with_time(time!(0:0:0)).into(),
-            IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127,0,0,1)), 8).unwrap().into(),
+            IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8)
+                .unwrap()
+                .into(),
             get_mac_address().unwrap().unwrap().into(),
         ])
         .returning_col(Character::Id)

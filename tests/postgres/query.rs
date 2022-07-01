@@ -1446,9 +1446,10 @@ fn update_4() {
         Query::update()
             .table(Glyph::Table)
             .value_expr(Glyph::Aspect, Expr::col(Glyph::Aspect).add(1))
-            .values(vec![
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
-            ])
+            .values(vec![(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .order_by(Glyph::Id, Order::Asc)
             .limit(1)
