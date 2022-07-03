@@ -938,6 +938,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             "{}",
             match join_type {
                 JoinType::Join => "JOIN",
+                JoinType::CrossJoin => "CROSS JOIN",
                 JoinType::InnerJoin => "INNER JOIN",
                 JoinType::LeftJoin => "LEFT JOIN",
                 JoinType::RightJoin => "RIGHT JOIN",
@@ -1187,26 +1188,17 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDate(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_DATE).unwrap()
-            )
-            .unwrap(),
+            Value::TimeDate(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
+            }
             #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_TIME).unwrap()
-            )
-            .unwrap(),
+            Value::TimeTime(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
+            }
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME).unwrap()
-            )
-            .unwrap(),
+            Value::TimeDateTime(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
+            }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
                 s,
