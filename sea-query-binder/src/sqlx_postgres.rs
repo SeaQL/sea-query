@@ -117,6 +117,18 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                 Value::MacAddress(mac) => {
                     args.add(mac.as_deref());
                 }
+                #[cfg(feature = "postgres-cidr")]
+                Value::IpInet(_) => {
+                    panic!("SeaQuery doesn't support IpInet arguments for Postgresql");
+                }
+                #[cfg(feature = "postgres-cidr")]
+                Value::IpCidr(_) => {
+                    panic!("SeaQuery doesn't support IpCird arguments for Postgresql");
+                }
+                #[cfg(feature = "postgres-eui48")]
+                Value::Eui48MacAddress(_) => {
+                    panic!("SeaQuery doesn't support MacAddress arguments for Postgresql");
+                }
             }
         }
         args

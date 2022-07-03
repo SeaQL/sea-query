@@ -117,6 +117,14 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Array(_) => {
                     panic!("Sqlite doesn't support array arguments");
                 }
+                #[cfg(feature = "postgres-cidr")]
+                Value::IpInet(_) => panic!("Sqlite doesn't support IpInet arguments"),
+                #[cfg(feature = "postgres-cidr")]
+                Value::IpCidr(_) => panic!("Sqlite doesn't support IpCird arguments"),
+                #[cfg(feature = "postgres-eui48")]
+                Value::Eui48MacAddress(_) => {
+                    panic!("Sqlite doesn't support MacAddress arguments");
+                }
             }
         }
         args

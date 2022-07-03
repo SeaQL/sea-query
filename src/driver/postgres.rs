@@ -61,6 +61,14 @@ impl ToSql for Value {
             Value::Uuid(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => v.as_deref().to_sql(ty, out),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::IpNetwork(v) => v.as_deref().map(|v| v.network()).to_sql(ty, out),
+            #[cfg(feature = "postgres-cidr")]
+            Value::IpInet(v) => v.as_deref().to_sql(ty, out),
+            #[cfg(feature = "postgres-cidr")]
+            Value::IpCidr(v) => v.as_deref().to_sql(ty, out),
+            #[cfg(feature = "postgres-eui48")]
+            Value::Eui48MacAddress(v) => v.as_deref().to_sql(ty, out),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }

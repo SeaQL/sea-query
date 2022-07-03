@@ -1,7 +1,7 @@
 [package]
 name = "sea-query-binder"
 version = "0.1.0"
-authors = [ "Valentin Tolmer <valentin@tolmer.fr>" ]
+authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail>" ]
 edition = "2021"
 description = "Binder traits for connecting sea-query with SQL engines"
 license = "MIT OR Apache-2.0"
@@ -31,3 +31,5 @@ with-time = ["sqlx/time", "sea-query/with-time"]
 with-ipnetwork = ["sqlx/ipnetwork", "sea-query/with-ipnetwork"]
 with-mac_address = ["sqlx/mac_address", "sea-query/with-mac_address"]
 postgres-array = ["sea-query/postgres-array"]
+postgres-cidr = ["sea-query/postgres-cidr"]
+postgres-eui48 = ["sea-query/postgres-eui48"]

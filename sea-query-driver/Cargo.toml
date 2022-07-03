@@ -33,6 +33,8 @@ with-time = []
 with-ipnetwork = []
 with-mac_address = []
 postgres-array = []
+postgres-cidr = []
+postgres-eui48 = []
 
 [dev-dependencies]
 sea-query = { path = ".." }

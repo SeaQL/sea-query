@@ -117,6 +117,14 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::mysql::MySql> for SqlxValues {
                 Value::MacAddress(_) => {
                     panic!("Mysql doesn't support MacAddress arguments");
                 }
+                #[cfg(feature = "postgres-cidr")]
+                Value::IpInet(_) => panic!("Mysql doesn't support IpInet arguments"),
+                #[cfg(feature = "postgres-cidr")]
+                Value::IpCidr(_) => panic!("Mysql doesn't support IpCird arguments"),
+                #[cfg(feature = "postgres-eui48")]
+                Value::Eui48MacAddress(_) => {
+                    panic!("Mysql doesn't support MacAddress arguments");
+                }
             }
         }
         args

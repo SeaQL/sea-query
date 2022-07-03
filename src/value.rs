@@ -29,6 +29,12 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
+#[cfg(feature = "postgres-cidr")]
+use cidr::{IpCidr, IpInet};
+
+#[cfg(feature = "postgres-eui48")]
+use eui48::MacAddress as Eui48MacAddress;
+
 use crate::{BlobSize, ColumnType};
 
 /// Value variants
@@ -120,6 +126,17 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<Box<MacAddress>>),
+
+    #[cfg(feature = "postgres-cidr")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-cidr")))]
+    IpInet(Option<Box<IpInet>>),
+    #[cfg(feature = "postgres-cidr")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-cidr")))]
+    IpCidr(Option<Box<IpCidr>>),
+
+    #[cfg(feature = "postgres-eui48")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-eui48")))]
+    Eui48MacAddress(Option<Box<Eui48MacAddress>>),
 }
 
 pub trait ValueType: Sized {
@@ -517,6 +534,23 @@ mod with_mac_address {
     use super::*;
 
     type_to_box_value!(MacAddress, MacAddress, MacAddr);
+}
+
+#[cfg(feature = "postgres-cidr")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-cidr")))]
+mod with_postgres_cidr {
+    use super::*;
+
+    type_to_box_value!(IpInet, IpInet, Inet);
+    type_to_box_value!(IpCidr, IpCidr, Cidr);
+}
+
+#[cfg(feature = "postgres-eui48")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-eui48")))]
+mod with_postgres_eui48 {
+    use super::*;
+
+    type_to_box_value!(Eui48MacAddress, Eui48MacAddress, MacAddr);
 }
 
 #[cfg(feature = "postgres-array")]
@@ -1173,6 +1207,12 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
+        #[cfg(feature = "postgres-cidr")]
+        Value::IpInet(None) => Json::Null,
+        #[cfg(feature = "postgres-cidr")]
+        Value::IpCidr(None) => Json::Null,
+        #[cfg(feature = "postgres-eui48")]
+        Value::Eui48MacAddress(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -1228,6 +1268,12 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "postgres-cidr")]
+        Value::IpInet(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "postgres-cidr")]
+        Value::IpCidr(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "postgres-eui48")]
+        Value::Eui48MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
 

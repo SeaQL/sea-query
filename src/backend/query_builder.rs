@@ -1141,6 +1141,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "postgres-cidr")]
+            Value::IpInet(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "postgres-cidr")]
+            Value::IpCidr(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "postgres-eui48")]
+            Value::Eui48MacAddress(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -1187,26 +1193,17 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDate(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_DATE).unwrap()
-            )
-            .unwrap(),
+            Value::TimeDate(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
+            }
             #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_TIME).unwrap()
-            )
-            .unwrap(),
+            Value::TimeTime(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
+            }
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME).unwrap()
-            )
-            .unwrap(),
+            Value::TimeDateTime(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
+            }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
                 s,
@@ -1234,6 +1231,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
             Value::IpNetwork(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            #[cfg(feature = "postgres-cidr")]
+            Value::IpInet(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            #[cfg(feature = "postgres-cidr")]
+            Value::IpCidr(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            #[cfg(feature = "postgres-eui48")]
+            Value::Eui48MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
         };
         s
     }

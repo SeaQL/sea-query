@@ -53,6 +53,8 @@ quote = { version = "^1", optional = true }
 time = { version = "^0.3", optional = true, features = ["macros", "formatting"] }
 ipnetwork = { version = "^0.19", optional = true }
 mac_address = { version = "^1.1", optional = true }
+cidr = { version = "^0.2", optional = true }
+eui48 = { version = "^1", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
@@ -69,6 +71,8 @@ postgres = ["bytes", "postgres-types"]
 postgres-rust_decimal = ["with-rust_decimal", "rust_decimal/db-postgres"]
 postgres-array = ["postgres-types?/array-impls", "sea-query-driver?/postgres-array"]
 postgres-interval = ["proc-macro2", "quote"]
+postgres-cidr = ["cidr" ,"postgres-types?/with-cidr-0_2", "sea-query-driver?/postgres-cidr"]
+postgres-eui48 = ["eui48" ,"postgres-types?/with-eui48-1", "sea-query-driver?/postgres-eui48"]
 rusqlite = ["sea-query-driver/rusqlite"]
 sqlx-mysql = ["sea-query-driver/sqlx-mysql"]
 sqlx-postgres = ["sea-query-driver/sqlx-postgres"]
