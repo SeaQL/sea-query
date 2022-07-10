@@ -149,6 +149,7 @@ pub enum LogicalChainOper {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum JoinType {
     Join,
+    CrossJoin,
     InnerJoin,
     LeftJoin,
     RightJoin,
