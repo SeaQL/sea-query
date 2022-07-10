@@ -230,7 +230,7 @@ impl TableAlterStatement {
         ))
     }
 
-    /// Add a column to existing table
+    /// Drop a column from an existing table
     ///
     /// # Examples
     ///
