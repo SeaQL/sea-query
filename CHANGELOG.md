@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.27.0 - 2022-07-02
+
+### New Features
+
+* Support `CROSS JOIN` (#376)
+
+### Breaking changes
+
+* Removed `join_alias`
+
 ## 0.26.0 - 2022-07-02
 
 ### New Features
