@@ -1598,7 +1598,7 @@ impl Expr {
     ///             Expr::col(Char::Character).into_simple_expr(),
     ///             Expr::col(Char::FontId).into_simple_expr(),
     ///         ])
-    ///         .in_tuples(vec![[1.into(),String::from("1").into()], [2.into(),String::from("1").into()]])
+    ///         .in_tuples(vec![[1.into(),String::from("1").into()], [2.into(),String::from("2").into()]])
     ///     )
     ///     .to_owned();
     ///
