@@ -146,7 +146,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
         write!(sql, "TRUNCATE TABLE ").unwrap();
 
         if let Some(table) = &truncate.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref(table, sql);
         }
     }
 
