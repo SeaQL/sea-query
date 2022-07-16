@@ -10,7 +10,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
         }
 
         if let Some(table_ref) = &create.table {
-            self.prepare_table_ref(table_ref, sql);
+            backend::table_builder::TableBuilder::prepare_table_ref(self, table_ref, sql);
         }
 
         write!(sql, " ( ").unwrap();
@@ -50,7 +50,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
 
     /// Translate [`TableRef`] into SQL statement.
     fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
-        self.prepare_table_ref_common(table_ref, sql);
+        backend::table_builder::TableBuilder::prepare_table_ref_common(self, table_ref, sql);
     }
 
     fn prepare_table_ref_common(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
@@ -112,7 +112,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_table_ref(table, sql);
+            backend::table_builder::TableBuilder::prepare_table_ref(self, table, sql);
             false
         });
 
@@ -146,7 +146,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
         write!(sql, "TRUNCATE TABLE ").unwrap();
 
         if let Some(table) = &truncate.table {
-            self.prepare_table_ref(table, sql);
+            backend::table_builder::TableBuilder::prepare_table_ref(self, table, sql);
         }
     }
 

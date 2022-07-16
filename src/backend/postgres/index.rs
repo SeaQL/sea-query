@@ -26,7 +26,7 @@ impl IndexBuilder for PostgresQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            table.prepare(sql, self.quote());
+            index_builder::IndexBuilder::prepare_table_ref(self, table, sql);
         }
 
         self.prepare_index_type(&create.index_type, sql);

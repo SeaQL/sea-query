@@ -27,7 +27,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// ```
 #[derive(Debug, Clone)]
 pub struct IndexDropStatement {
-    pub(crate) table: Option<DynIden>,
+    pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
 }
 
@@ -55,9 +55,9 @@ impl IndexDropStatement {
     /// Set target table
     pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoTableRef,
     {
-        self.table = Some(SeaRc::new(table));
+        self.table = Some(table.into_table_ref());
         self
     }
 }
