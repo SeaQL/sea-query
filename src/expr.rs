@@ -1599,36 +1599,35 @@ impl Expr {
     ///             Expr::col(Char::Character).into_simple_expr(),
     ///             Expr::col(Char::FontId).into_simple_expr(),
     ///         ])
-    ///         .in_tuples(vec![[1,1], [2,2]])
+    ///         .in_tuples([(1, String::from("1")), (2, String::from("2"))])
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font_id` FROM `character` WHERE (`character`, `font_id`) IN ((1, 1), (2, 2))"#
+    ///     r#"SELECT `character`, `font_id` FROM `character` WHERE (`character`, `font_id`) IN ((1, '1'), (2, '2'))"#
     /// );
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, 1), (2, 2))"#
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
     /// );
     ///
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, 1), (2, 2))"#
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn in_tuples<K, V, I>(mut self, v: I) -> SimpleExpr
+    pub fn in_tuples<V, I>(mut self, v: I) -> SimpleExpr
     where
-        K: Into<Value>,
-        V: IntoIterator<Item = K>,
+        V: IntoValueTuple,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::In);
         self.right = Some(SimpleExpr::Tuple(
             v.into_iter()
-                .map(|m| SimpleExpr::Values(m.into_iter().map(|k| k.into()).collect()))
+                .map(|m| SimpleExpr::Values(m.into_value_tuple().into_iter().collect()))
                 .collect(),
         ));
         self.into()

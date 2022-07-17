@@ -776,6 +776,28 @@ fn select_48() {
 }
 
 #[test]
+fn select_48a() {
+    let statement = Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+                Expr::tuple([
+                    Expr::col(Glyph::Aspect).into_simple_expr(),
+                    Expr::value(String::from("100")),
+                ])
+                .in_tuples([(8, String::from("100"))]),
+            ))),
+        )
+        .to_string(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE ("aspect", '100') IN ((8, '100'))"#
+    );
+}
+
+#[test]
 fn select_49() {
     let statement = Query::select()
         .expr(Expr::asterisk())
