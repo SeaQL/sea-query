@@ -775,7 +775,6 @@ fn select_48() {
     );
 }
 
-
 #[test]
 fn select_48a() {
     let statement = sea_query::Query::select()
@@ -787,7 +786,7 @@ fn select_48a() {
                     Expr::col(Glyph::Aspect).into_simple_expr(),
                     Expr::value(String::from("100")),
                 ])
-                    .in_tuples(vec![[8.into(), String::from("100").into()]]),
+                .in_tuples([(8, String::from("100"))]),
             ))),
         )
         .to_string(SqliteQueryBuilder);
