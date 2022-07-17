@@ -10,11 +10,10 @@ use time::{
     macros::{date, time},
     PrimitiveDateTime,
 };
+use sea_query_binder::SqlxBinder;
 
-sea_query::sea_query_driver_postgres!();
 use ipnetwork::IpNetwork;
 use mac_address::{get_mac_address, MacAddress};
-use sea_query_driver_postgres::{bind_query, bind_query_as};
 use serde_json::{json, Value as Json};
 use uuid::Uuid;
 
@@ -105,9 +104,9 @@ async fn main() {
             get_mac_address().unwrap().unwrap().into(),
         ])
         .returning_col(Character::Id)
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let row = bind_query(sqlx::query(&sql), &values)
+    let row = sqlx::query_with(&sql, values)
         .fetch_one(&mut pool)
         .await
         .unwrap();
@@ -132,9 +131,9 @@ async fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -144,7 +143,7 @@ async fn main() {
     }
     println!();
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructTime>(&sql), &values)
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -160,9 +159,9 @@ async fn main() {
         .table(Character::Table)
         .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let result = bind_query(sqlx::query(&sql), &values)
+    let result = sqlx::query_with(&sql, values)
         .execute(&mut pool)
         .await;
     println!("Update character: {:?}\n", result);
@@ -185,9 +184,9 @@ async fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -197,7 +196,7 @@ async fn main() {
     }
     println!();
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructTime>(&sql), &values)
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -212,9 +211,9 @@ async fn main() {
     let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let row = bind_query(sqlx::query(&sql), &values)
+    let row = sqlx::query_with(&sql, values)
         .fetch_one(&mut pool)
         .await
         .unwrap();
@@ -235,9 +234,9 @@ async fn main() {
                 .update_columns([Character::FontSize, Character::Character])
                 .to_owned(),
         )
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let result = bind_query(sqlx::query(&sql), &values)
+    let result = sqlx::query_with(&sql, values)
         .execute(&mut pool)
         .await;
     println!("Insert into character (with upsert): {:?}\n", result);
@@ -259,9 +258,9 @@ async fn main() {
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -271,7 +270,7 @@ async fn main() {
     }
     println!();
 
-    let rows = bind_query_as(sqlx::query_as::<_, CharacterStructTime>(&sql), &values)
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
         .fetch_all(&mut pool)
         .await
         .unwrap();
@@ -286,9 +285,9 @@ async fn main() {
     let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(PostgresQueryBuilder);
+        .build_sqlx(PostgresQueryBuilder);
 
-    let result = bind_query(sqlx::query(&sql), &values)
+    let result = sqlx::query_with(&sql, values)
         .execute(&mut pool)
         .await;
     println!("Delete character: {:?}", result);
