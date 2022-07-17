@@ -1,9 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rusqlite::{Connection, Result, Row};
 use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
-
-sea_query::sea_query_driver_rusqlite!();
-use sea_query_driver_rusqlite::RusqliteValues;
+use sea_query_rusqlite::RusqliteBinder;
 use serde_json::{json, Value as Json};
 use time::{date, time, PrimitiveDateTime};
 use uuid::Uuid;
@@ -92,12 +90,9 @@ fn main() -> Result<()> {
             .into(),
             Some(date!(2020 - 1 - 1).with_time(time!(2:2:2))).into(),
         ])
-        .build(SqliteQueryBuilder);
+        .build_rusqlite(SqliteQueryBuilder);
 
-    let result = conn.execute(
-        sql.as_str(),
-        RusqliteValues::from(values).as_params().as_slice(),
-    );
+    let result = conn.execute(sql.as_str(), &values.as_params());
     println!("Insert into character: {:?}\n", result);
     let id = conn.last_insert_rowid();
 
@@ -115,11 +110,11 @@ fn main() -> Result<()> {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(SqliteQueryBuilder);
+        .build_rusqlite(SqliteQueryBuilder);
 
     println!("Select one from character:");
     let mut stmt = conn.prepare(sql.as_str())?;
-    let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
+    let mut rows = stmt.query(&values.as_params())?;
     while let Some(row) = rows.next()? {
         let item = CharacterStructChrono::from(row);
         println!("{:?}", item);
@@ -135,12 +130,9 @@ fn main() -> Result<()> {
         .table(Character::Table)
         .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(SqliteQueryBuilder);
+        .build_rusqlite(SqliteQueryBuilder);
 
-    let result = conn.execute(
-        sql.as_str(),
-        RusqliteValues::from(values).as_params().as_slice(),
-    );
+    let result = conn.execute(sql.as_str(), &values.as_params);
     println!("Update character: {:?}\n", result);
 
     // Read
@@ -157,11 +149,11 @@ fn main() -> Result<()> {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(SqliteQueryBuilder);
+        .build_rusqlite(SqliteQueryBuilder);
 
     println!("Select one from character:");
     let mut stmt = conn.prepare(sql.as_str())?;
-    let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
+    let mut rows = stmt.query(&values.as_params)?;
     while let Some(row) = rows.next()? {
         let item = CharacterStructChrono::from(row);
         println!("{:?}", item);
@@ -176,11 +168,11 @@ fn main() -> Result<()> {
     let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
-        .build(SqliteQueryBuilder);
+        .build_rusqlite(SqliteQueryBuilder);
 
     print!("Count character: ");
     let mut stmt = conn.prepare(sql.as_str())?;
-    let mut rows = stmt.query(RusqliteValues::from(values).as_params().as_slice())?;
+    let mut rows = stmt.query(&values.as_params())?;
     let count: i64 = if let Some(row) = rows.next()? {
         row.get_unwrap(0)
     } else {
@@ -194,12 +186,9 @@ fn main() -> Result<()> {
     let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(SqliteQueryBuilder);
+        .build_rusqlite(SqliteQueryBuilder);
 
-    let result = conn.execute(
-        sql.as_str(),
-        RusqliteValues::from(values).as_params().as_slice(),
-    );
+    let result = conn.execute(sql.as_str(), &values.as_params());
     println!("Delete character: {:?}", result);
 
     Ok(())

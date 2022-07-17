@@ -1,0 +1,29 @@
+[package]
+name = "sea-query-rusqlite"
+version = "0.1.0"
+authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
+edition = "2021"
+description = "Binder traits for connecting sea-query with Rusqlite"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = [ "database" ]
+keywords = [ "database", "sql", "sqlite" ]
+rust-version = "1.60"
+
+[lib]
+
+[dependencies]
+sea-query = { version = "^0", path = ".." }
+rusqlite = { package = "rusqlite", version = "^0.28", features = ["bundled"] }
+
+[features]
+with-chrono = ["rusqlite/chrono", "sea-query/with-chrono"]
+with-json = ["rusqlite/serde_json", "sea-query/with-json"]
+with-rust_decimal = ["sea-query/with-rust_decimal"]
+with-bigdecimal = ["sea-query/with-bigdecimal"]
+with-uuid = ["rusqlite/uuid", "sea-query/with-uuid"]
+with-time = ["rusqlite/time", "sea-query/with-time"]
+with-ipnetwork = ["sea-query/with-ipnetwork"]
+with-mac_address = ["sea-query/with-mac_address"]
+postgres-array = ["sea-query/postgres-array"]
