@@ -10,7 +10,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &drop.table {
-                table.prepare(sql, self.quote());
+                foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, table, sql);
             }
             write!(sql, " ").unwrap();
         }
@@ -30,7 +30,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
-                table.prepare(sql, self.quote());
+                foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, table, sql);
             }
             write!(sql, " ").unwrap();
         }
@@ -56,7 +56,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            ref_table.prepare(sql, self.quote());
+            foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, ref_table, sql);
         }
         write!(sql, " ").unwrap();
 

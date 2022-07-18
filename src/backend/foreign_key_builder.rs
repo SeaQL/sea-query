@@ -46,6 +46,32 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         .unwrap()
     }
 
+    /// Translate [`TableRef`] into SQL statement.
+    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        self.prepare_table_ref_common(table_ref, sql);
+    }
+
+    fn prepare_table_ref_common(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::Table(table) => {
+                table.prepare(sql, self.quote());
+            }
+            TableRef::SchemaTable(schema, table) => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            TableRef::DatabaseSchemaTable(database, schema, table) => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                table.prepare(sql, self.quote());
+            }
+            _ => panic!("Not supported"),
+        }
+    }
+
     #[doc(hidden)]
     /// Internal function to factor foreign key drop in table and outside.
     fn prepare_foreign_key_drop_statement_internal(

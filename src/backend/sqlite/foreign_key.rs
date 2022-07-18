@@ -39,7 +39,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            ref_table.prepare(sql, self.quote());
+            foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, ref_table, sql);
         }
         write!(sql, " (").unwrap();
         create

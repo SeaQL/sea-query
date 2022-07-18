@@ -4,8 +4,8 @@ use crate::types::*;
 #[derive(Debug, Clone)]
 pub struct TableForeignKey {
     pub(crate) name: Option<String>,
-    pub(crate) table: Option<DynIden>,
-    pub(crate) ref_table: Option<DynIden>,
+    pub(crate) table: Option<TableRef>,
+    pub(crate) ref_table: Option<TableRef>,
     pub(crate) columns: Vec<DynIden>,
     pub(crate) ref_columns: Vec<DynIden>,
     pub(crate) on_delete: Option<ForeignKeyAction>,
@@ -51,18 +51,18 @@ impl TableForeignKey {
     /// Set key table
     pub fn from_tbl<T>(&mut self, table: T) -> &mut Self
     where
-        T: IntoIden,
+        T: IntoTableRef,
     {
-        self.table = Some(table.into_iden());
+        self.table = Some(table.into_table_ref());
         self
     }
 
     /// Set referencing table
     pub fn to_tbl<R>(&mut self, ref_table: R) -> &mut Self
     where
-        R: IntoIden,
+        R: IntoTableRef,
     {
-        self.ref_table = Some(ref_table.into_iden());
+        self.ref_table = Some(ref_table.into_table_ref());
         self
     }
 
@@ -96,8 +96,8 @@ impl TableForeignKey {
         self
     }
 
-    pub fn get_ref_table(&self) -> Option<String> {
-        self.ref_table.as_ref().map(|ref_tbl| ref_tbl.to_string())
+    pub fn get_ref_table(&self) -> Option<&TableRef> {
+        self.ref_table.as_ref()
     }
 
     pub fn get_columns(&self) -> Vec<String> {
