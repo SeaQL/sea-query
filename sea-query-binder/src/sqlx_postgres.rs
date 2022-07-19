@@ -49,6 +49,41 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                 Value::Bytes(b) => {
                     args.add(b.as_deref());
                 }
+                #[cfg(feature = "with-array")]
+                Value::BoolArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::TinyIntArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::SmallIntArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::IntArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::BigIntArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::SmallUnsignedArray(v) => {
+                    args.add(v.map(|v| v.iter().map(|&i| i as i32).collect::<Vec<i32>>()))
+                }
+                #[cfg(feature = "with-array")]
+                Value::UnsignedArray(v) => {
+                    args.add(v.map(|v| v.iter().map(|&i| i as i64).collect::<Vec<i64>>()))
+                }
+                #[cfg(feature = "with-array")]
+                Value::BigUnsignedArray(v) => args.add(v.map(|v| {
+                    v.iter()
+                        .map(|&i| <i64 as std::convert::TryFrom<u64>>::try_from(i).unwrap())
+                        .collect::<Vec<i64>>()
+                })),
+                #[cfg(feature = "with-array")]
+                Value::FloatArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::DoubleArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::StringArray(v) => args.add(v.as_deref()),
+                #[cfg(feature = "with-array")]
+                Value::CharArray(v) => {
+                    args.add(v.map(|v| v.iter().map(|c| c.to_string()).collect::<Vec<String>>()))
+                }
+
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
                     args.add(d.as_deref());
@@ -104,10 +139,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
                     args.add(j.as_deref());
-                }
-                #[cfg(feature = "postgres-array")]
-                Value::Array(_) => {
-                    panic!("SeaQuery doesn't support array arguments for Postgresql");
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(ip) => {

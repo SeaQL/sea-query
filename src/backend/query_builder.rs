@@ -933,6 +933,19 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             | Value::String(None)
             | Value::Char(None)
             | Value::Bytes(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-array")]
+            Value::BoolArray(None)
+            | Value::TinyIntArray(None)
+            | Value::SmallIntArray(None)
+            | Value::IntArray(None)
+            | Value::BigIntArray(None)
+            | Value::SmallUnsignedArray(None)
+            | Value::UnsignedArray(None)
+            | Value::BigUnsignedArray(None)
+            | Value::FloatArray(None)
+            | Value::DoubleArray(None)
+            | Value::StringArray(None)
+            | Value::CharArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
@@ -965,8 +978,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "postgres-array")]
-            Value::Array(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
             Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
@@ -988,6 +999,31 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
             )
             .unwrap(),
+            #[cfg(feature = "with-array")]
+            Value::BoolArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::TinyIntArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::SmallIntArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::IntArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::BigIntArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::SmallUnsignedArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::UnsignedArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::BigUnsignedArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::FloatArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::DoubleArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::StringArray(Some(_)) => {}
+            #[cfg(feature = "with-array")]
+            Value::CharArray(Some(_)) => {}
+
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
@@ -1035,16 +1071,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
-            #[cfg(feature = "postgres-array")]
-            Value::Array(Some(v)) => write!(
-                s,
-                "'{{{}}}'",
-                v.iter()
-                    .map(|element| self.value_to_string(element))
-                    .collect::<Vec<String>>()
-                    .join(",")
-            )
-            .unwrap(),
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(feature = "with-mac_address")]

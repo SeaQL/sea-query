@@ -49,6 +49,19 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Bytes(b) => {
                     args.add(b.map(|b| *b));
                 }
+                #[cfg(feature = "with-array")]
+                Value::BoolArray(_)
+                | Value::TinyIntArray(_)
+                | Value::SmallIntArray(_)
+                | Value::IntArray(_)
+                | Value::BigIntArray(_)
+                | Value::SmallUnsignedArray(_)
+                | Value::UnsignedArray(_)
+                | Value::BigUnsignedArray(_)
+                | Value::FloatArray(_)
+                | Value::DoubleArray(_)
+                | Value::StringArray(_)
+                | Value::CharArray(_) => panic!("Sqlite doesn't support array arguments"),
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
                     args.add(d.map(|d| *d));
@@ -112,10 +125,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(_) => {
                     panic!("Sqlite doesn't support MacAddress arguments");
-                }
-                #[cfg(feature = "postgres-array")]
-                Value::Array(_) => {
-                    panic!("Sqlite doesn't support array arguments");
                 }
             }
         }

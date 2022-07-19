@@ -49,6 +49,20 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::Bytes(b) => {
                     args.add(b.map(|b| *b));
                 }
+                #[cfg(feature = "with-array")]
+                Value::BoolArray(_)
+                | Value::TinyIntArray(_)
+                | Value::SmallIntArray(_)
+                | Value::IntArray(_)
+                | Value::BigIntArray(_)
+                | Value::SmallUnsignedArray(_)
+                | Value::UnsignedArray(_)
+                | Value::BigUnsignedArray(_)
+                | Value::FloatArray(_)
+                | Value::DoubleArray(_)
+                | Value::StringArray(_)
+                | Value::CharArray(_) => panic!("Array support not implemented for Any"),
+
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
                     args.add(d.map(|d| *d));

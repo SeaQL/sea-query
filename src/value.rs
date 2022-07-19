@@ -50,6 +50,31 @@ pub enum Value {
     String(Option<Box<String>>),
     Char(Option<char>),
 
+    #[cfg(feature = "with-array")]
+    BoolArray(Option<Vec<bool>>),
+    #[cfg(feature = "with-array")]
+    TinyIntArray(Option<Vec<i8>>),
+    #[cfg(feature = "with-array")]
+    SmallIntArray(Option<Vec<i16>>),
+    #[cfg(feature = "with-array")]
+    IntArray(Option<Vec<i32>>),
+    #[cfg(feature = "with-array")]
+    BigIntArray(Option<Vec<i64>>),
+    #[cfg(feature = "with-array")]
+    SmallUnsignedArray(Option<Vec<u16>>),
+    #[cfg(feature = "with-array")]
+    UnsignedArray(Option<Vec<u32>>),
+    #[cfg(feature = "with-array")]
+    BigUnsignedArray(Option<Vec<u64>>),
+    #[cfg(feature = "with-array")]
+    FloatArray(Option<Vec<f32>>),
+    #[cfg(feature = "with-array")]
+    DoubleArray(Option<Vec<f64>>),
+    #[cfg(feature = "with-array")]
+    StringArray(Option<Vec<String>>),
+    #[cfg(feature = "with-array")]
+    CharArray(Option<Vec<char>>),
+
     #[allow(clippy::box_collection)]
     Bytes(Option<Box<Vec<u8>>>),
 
@@ -108,10 +133,6 @@ pub enum Value {
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
-
-    #[cfg(feature = "postgres-array")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(Option<Box<Vec<Value>>>),
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
@@ -525,102 +546,56 @@ mod with_mac_address {
     type_to_box_value!(MacAddress, MacAddress, MacAddr);
 }
 
-#[cfg(feature = "postgres-array")]
-#[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+#[cfg(feature = "with-array")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
 mod with_array {
     use super::*;
 
-    // We only imlement conversion from Vec<T> to Array when T is not u8.
-    // This is because for u8's case, there is already conversion to Byte defined above.
-    // TODO When negative trait becomes a stable feature, following code can be much shorter.
-    pub trait NotU8 {}
-
-    impl NotU8 for bool {}
-    impl NotU8 for i8 {}
-    impl NotU8 for i16 {}
-    impl NotU8 for i32 {}
-    impl NotU8 for i64 {}
-    impl NotU8 for u16 {}
-    impl NotU8 for u32 {}
-    impl NotU8 for u64 {}
-    impl NotU8 for f32 {}
-    impl NotU8 for f64 {}
-    impl NotU8 for String {}
-
-    #[cfg(feature = "with-json")]
-    impl NotU8 for Json {}
-
-    #[cfg(feature = "with-chrono")]
-    impl NotU8 for NaiveDate {}
-
-    #[cfg(feature = "with-chrono")]
-    impl NotU8 for NaiveTime {}
-
-    #[cfg(feature = "with-chrono")]
-    impl NotU8 for NaiveDateTime {}
-
-    #[cfg(feature = "with-chrono")]
-    impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
-
-    #[cfg(feature = "with-time")]
-    impl NotU8 for time::Date {}
-
-    #[cfg(feature = "with-time")]
-    impl NotU8 for time::Time {}
-
-    #[cfg(feature = "with-time")]
-    impl NotU8 for PrimitiveDateTime {}
-
-    #[cfg(feature = "with-time")]
-    impl NotU8 for OffsetDateTime {}
-
-    #[cfg(feature = "with-rust_decimal")]
-    impl NotU8 for Decimal {}
-
-    #[cfg(feature = "with-bigdecimal")]
-    impl NotU8 for BigDecimal {}
-
-    #[cfg(feature = "with-uuid")]
-    impl NotU8 for Uuid {}
-
-    impl<T> From<Vec<T>> for Value
-    where
-        T: Into<Value> + NotU8,
-    {
-        fn from(x: Vec<T>) -> Value {
-            Value::Array(Some(Box::new(x.into_iter().map(|e| e.into()).collect())))
-        }
-    }
-
-    impl<T> Nullable for Vec<T>
-    where
-        T: Into<Value> + NotU8,
-    {
-        fn null() -> Value {
-            Value::Array(None)
-        }
-    }
-
-    impl<T> ValueType for Vec<T>
-    where
-        T: NotU8 + ValueType,
-    {
-        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-            match v {
-                Value::Array(Some(v)) => Ok(v.into_iter().map(|e| e.unwrap()).collect()),
-                _ => Err(ValueTypeErr),
+    macro_rules! impl_array {
+        ( $type: ty, $name: ident) => {
+            impl From<Vec<$type>> for Value {
+                fn from(x: Vec<$type>) -> Value {
+                    Value::$name(Some(x))
+                }
             }
-        }
 
-        fn type_name() -> String {
-            stringify!(Vec<T>).to_owned()
-        }
+            impl Nullable for Vec<$type> {
+                fn null() -> Value {
+                    Value::$name(None)
+                }
+            }
 
-        fn column_type() -> ColumnType {
-            use ColumnType::*;
-            Array(None)
-        }
+            impl ValueType for Vec<$type> {
+                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                    match v {
+                        Value::$name(Some(v)) => Ok(v.into_iter().collect()),
+                        _ => Err(ValueTypeErr),
+                    }
+                }
+
+                fn type_name() -> String {
+                    stringify!(Vec<$type>).to_owned()
+                }
+
+                fn column_type() -> ColumnType {
+                    ColumnType::Array(Box::new(<$type as ValueType>::column_type()))
+                }
+            }
+        };
     }
+
+    impl_array!(bool, BoolArray);
+    impl_array!(i8, TinyIntArray);
+    impl_array!(i16, SmallIntArray);
+    impl_array!(i32, IntArray);
+    impl_array!(i64, BigIntArray);
+    impl_array!(u16, SmallUnsignedArray);
+    impl_array!(u32, UnsignedArray);
+    impl_array!(u64, BigUnsignedArray);
+    impl_array!(f32, FloatArray);
+    impl_array!(f64, DoubleArray);
+    impl_array!(String, StringArray);
+    impl_array!(char, CharArray);
 }
 
 #[allow(unused_macros)]
@@ -873,20 +848,6 @@ impl Value {
         match self {
             Self::Uuid(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Uuid"),
-        }
-    }
-}
-
-#[cfg(feature = "postgres-array")]
-impl Value {
-    pub fn is_array(&self) -> bool {
-        matches!(self, Self::Array(_))
-    }
-
-    pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
-        match self {
-            Self::Array(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::Array"),
         }
     }
 }
@@ -1165,14 +1126,26 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
+        #[cfg(feature = "with-array")]
+        Value::BoolArray(None)
+        | Value::TinyIntArray(None)
+        | Value::SmallIntArray(None)
+        | Value::IntArray(None)
+        | Value::BigIntArray(None)
+        | Value::SmallUnsignedArray(None)
+        | Value::UnsignedArray(None)
+        | Value::BigUnsignedArray(None)
+        | Value::FloatArray(None)
+        | Value::DoubleArray(None)
+        | Value::StringArray(None)
+        | Value::CharArray(None) => Json::Null,
+
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
-        #[cfg(feature = "postgres-array")]
-        Value::Array(None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
@@ -1192,6 +1165,34 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
+        #[cfg(feature = "with-array")]
+        Value::BoolArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::TinyIntArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::SmallIntArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::IntArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::BigIntArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::SmallUnsignedArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::UnsignedArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::BigUnsignedArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::FloatArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::DoubleArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::StringArray(Some(v)) => v.as_slice().into(),
+        #[cfg(feature = "with-array")]
+        Value::CharArray(Some(v)) => v
+            .iter()
+            .map(|c| c.to_string())
+            .collect::<Vec<String>>()
+            .into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
@@ -1224,10 +1225,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
-        #[cfg(feature = "postgres-array")]
-        Value::Array(Some(v)) => {
-            Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
-        }
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
@@ -1632,14 +1629,5 @@ mod tests {
         let v: Value = val.into();
         let out: Decimal = v.unwrap();
         assert_eq!(out.to_string(), num);
-    }
-
-    #[test]
-    #[cfg(feature = "postgres-array")]
-    fn test_array_value() {
-        let array = vec![1, 2, 3, 4, 5];
-        let v: Value = array.into();
-        let out: Vec<i32> = v.unwrap();
-        assert_eq!(out, vec![1, 2, 3, 4, 5]);
     }
 }
