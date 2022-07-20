@@ -9,30 +9,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-* Support `CROSS JOIN` (#376)
+* Support `CROSS JOIN` https://github.com/SeaQL/sea-query/pull/376
 
 ### Breaking changes
 
 * Removed `join_alias`
-* Change `in_tuples` interface to accept `IntoValueTuple` (#386)
+* Change `in_tuples` interface to accept `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/386
 
 ## 0.26.0 - 2022-07-02
 
 ### New Features
 
-* Add support for `VALUES` lists (#351)
-* Introduce `sea-query-binder` (#275)
-* Convert from `IpNetwork` and `MacAddress` to `Value` (#364)
+* Add support for `VALUES` lists https://github.com/SeaQL/sea-query/pull/351
+* Introduce `sea-query-binder` https://github.com/SeaQL/sea-query/pull/275
+* Convert from `IpNetwork` and `MacAddress` to `Value` https://github.com/SeaQL/sea-query/pull/364
 
 ### Enhancements
 
-* Move `escape` and `unescape` string to backend (#306)
-* `LIKE ESCAPE` support (#352, #353)
+* Move `escape` and `unescape` string to backend https://github.com/SeaQL/sea-query/pull/306
+* `LIKE ESCAPE` support https://github.com/SeaQL/sea-query/pull/352 #353)
 * `clear_order_by` for `OrderedStatement`
-* Add method to make a column nullable (#365)
-* Add `is` & `is_not` to Expr (#348)
-* Add `CURRENT_TIMESTAMP` function (#349)
-* Add `in_tuples` method to Expr (#345)
+* Add method to make a column nullable https://github.com/SeaQL/sea-query/pull/365
+* Add `is` & `is_not` to Expr https://github.com/SeaQL/sea-query/pull/348
+* Add `CURRENT_TIMESTAMP` function https://github.com/SeaQL/sea-query/pull/349
+* Add `in_tuples` method to Expr https://github.com/SeaQL/sea-query/pull/345
 
 ### Upgrades
 
@@ -53,7 +53,7 @@ let string: String = MySqlQueryBuilder.escape_string(r#" "abc" "#);
 let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 ```
 
-* Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` (#364)
+* Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` https://github.com/SeaQL/sea-query/pull/364
 
 * Remove some redundant feature flags `postgres-chrono`, `postgres-json`, `postgres-uuid`, `postgres-time`. Use the `with-*` equivalence
 
@@ -63,13 +63,13 @@ let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 
 ### New features
 
-* Introduce `sea-query-binder` (#275)
+* Introduce `sea-query-binder` https://github.com/SeaQL/sea-query/pull/275
 
 ### Enhancements
 
-* Add method to make a column nullable (#365)
-* Add `is` & `is_not` to Expr (#348)
-* Add `CURRENT_TIMESTAMP` function (#349)
+* Add method to make a column nullable https://github.com/SeaQL/sea-query/pull/365
+* Add `is` & `is_not` to Expr https://github.com/SeaQL/sea-query/pull/348
+* Add `CURRENT_TIMESTAMP` function https://github.com/SeaQL/sea-query/pull/349
 
 ## 0.25.1 - 2022-06-26
 
