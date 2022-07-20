@@ -1,4 +1,4 @@
-use crate::{backend::QueryBuilder, prepare::*, types::*, value::*};
+use crate::{backend::QueryBuilder, prepare::*, types::*, value::*, QuotedBuilder};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
@@ -6,7 +6,7 @@ pub struct Type;
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeCreateStatement {
-    pub(crate) name: Option<DynIden>,
+    pub(crate) name: Option<TypeRef>,
     pub(crate) as_type: Option<TypeAs>,
     pub(crate) values: Vec<DynIden>,
 }
@@ -22,14 +22,14 @@ pub enum TypeAs {
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeDropStatement {
-    pub(crate) names: Vec<DynIden>,
+    pub(crate) names: Vec<TypeRef>,
     pub(crate) option: Option<TypeDropOpt>,
     pub(crate) if_exists: bool,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeAlterStatement {
-    pub(crate) name: Option<DynIden>,
+    pub(crate) name: Option<TypeRef>,
     pub(crate) option: Option<TypeAlterOpt>,
 }
 
@@ -52,7 +52,7 @@ pub enum TypeAlterAddOpt {
     After(DynIden),
 }
 
-pub trait TypeBuilder {
+pub trait TypeBuilder: QuotedBuilder {
     /// Translate [`TypeCreateStatement`] into database specific SQL statement.
     fn prepare_type_create_statement(
         &self,
@@ -76,6 +76,40 @@ pub trait TypeBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     );
+
+    /// Translate [`TypeRef`] into SQL statement.
+    fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut SqlWriter) {
+        match type_ref {
+            TypeRef {
+                database: None,
+                schema: None,
+                name,
+            } => {
+                name.prepare(sql, self.quote());
+            }
+            TypeRef {
+                database: None,
+                schema: Some(schema),
+                name,
+            } => {
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                name.prepare(sql, self.quote());
+            }
+            TypeRef {
+                database: Some(database),
+                schema: Some(schema),
+                name,
+            } => {
+                database.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                schema.prepare(sql, self.quote());
+                write!(sql, ".").unwrap();
+                name.prepare(sql, self.quote());
+            }
+            _ => panic!("Not supported"),
+        }
+    }
 }
 
 impl Type {
@@ -142,9 +176,9 @@ impl TypeCreateStatement {
     /// ```
     pub fn as_enum<T: 'static>(&mut self, name: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoTypeRef,
     {
-        self.name = Some(SeaRc::new(name));
+        self.name = Some(name.into_type_ref());
         self.as_type = Some(TypeAs::Enum);
         self
     }
@@ -230,19 +264,19 @@ impl TypeDropStatement {
     /// ```
     pub fn name<T>(&mut self, name: T) -> &mut Self
     where
-        T: IntoIden,
+        T: IntoTypeRef,
     {
-        self.names.push(name.into_iden());
+        self.names.push(name.into_type_ref());
         self
     }
 
     pub fn names<T, I>(&mut self, names: I) -> &mut Self
     where
-        T: IntoIden,
+        T: IntoTypeRef,
         I: IntoIterator<Item = T>,
     {
         for n in names.into_iter() {
-            self.names.push(n.into_iden());
+            self.names.push(n.into_type_ref());
         }
         self
     }
@@ -349,9 +383,9 @@ impl TypeAlterStatement {
     /// ```
     pub fn name<T>(mut self, name: T) -> Self
     where
-        T: IntoIden,
+        T: IntoTypeRef,
     {
-        self.name = Some(name.into_iden());
+        self.name = Some(name.into_type_ref());
         self
     }
 
