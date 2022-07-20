@@ -36,6 +36,16 @@ impl IndexBuilder for PostgresQueryBuilder {
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
+        if let Some(table) = &drop.table {
+            match table {
+                TableRef::Table(_) => {}
+                TableRef::SchemaTable(schema, _) => {
+                    schema.prepare(sql, self.quote());
+                    write!(sql, ".").unwrap();
+                }
+                _ => panic!("Not supported"),
+            }
+        }
         if let Some(name) = &drop.index.name {
             write!(sql, "\"{}\"", name).unwrap();
         }
