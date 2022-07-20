@@ -14,6 +14,17 @@ fn create_1() {
 }
 
 #[test]
+fn create_2() {
+    assert_eq!(
+        Type::create()
+            .as_enum((Alias::new("schema"), Font::Table))
+            .values(vec![Font::Name, Font::Variant, Font::Language])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "schema"."font" AS ENUM ('name', 'variant', 'language')"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Type::drop()
@@ -44,6 +55,16 @@ fn drop_3() {
             .cascade()
             .to_string(PostgresQueryBuilder),
         r#"DROP TYPE IF EXISTS "font" CASCADE"#
+    );
+}
+
+#[test]
+fn drop_4() {
+    assert_eq!(
+        Type::drop()
+            .name((Alias::new("schema"), Font::Table))
+            .to_string(PostgresQueryBuilder),
+        r#"DROP TYPE "schema"."font""#
     );
 }
 
@@ -100,5 +121,16 @@ fn alter_5() {
             .rename_value(Font::Variant, Font::Language)
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
+    )
+}
+
+#[test]
+fn alter_6() {
+    assert_eq!(
+        Type::alter()
+            .name((Alias::new("schema"), Font::Table))
+            .rename_to(Alias::new("typeface"))
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TYPE "schema"."font" RENAME TO 'typeface'"#
     )
 }
