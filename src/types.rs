@@ -432,6 +432,29 @@ impl IntoLikeExpr for String {
     }
 }
 
+#[derive(Debug)]
+pub enum AnyStatement<'a> {
+    Insert(&'a super::InsertStatement),
+    Select(&'a super::SelectStatement),
+    Update(&'a super::UpdateStatement),
+    Delete(&'a super::DeleteStatement),
+    TableCreate(&'a super::TableCreateStatement),
+    TableDrop(&'a super::TableDropStatement),
+    TableAlter(&'a super::TableAlterStatement),
+    TableRename(&'a super::TableRenameStatement),
+    TableTruncate(&'a super::TableTruncateStatement),
+    IndexCreate(&'a super::IndexCreateStatement),
+    IndexDrop(&'a super::IndexDropStatement),
+    ForeignKeyCreate(&'a super::ForeignKeyCreateStatement),
+    ForeignKeyDrop(&'a super::ForeignKeyDropStatement),
+    #[cfg(feature = "postgres")]
+    TypeAlter(&'a super::extension::postgres::TypeAlterStatement),
+    #[cfg(feature = "postgres")]
+    TypeCreate(&'a super::extension::postgres::TypeCreateStatement),
+    #[cfg(feature = "postgres")]
+    TypeDrop(&'a super::extension::postgres::TypeDropStatement),
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
