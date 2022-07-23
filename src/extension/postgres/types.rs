@@ -4,6 +4,53 @@ use crate::{backend::QueryBuilder, prepare::*, types::*, value::*, QuotedBuilder
 #[derive(Debug)]
 pub struct Type;
 
+#[derive(Clone, Debug)]
+pub enum TypeRef {
+    Type(DynIden),
+    SchemaType(DynIden, DynIden),
+    DatabaseSchemaType(DynIden, DynIden, DynIden),
+}
+
+pub trait IntoTypeRef {
+    fn into_type_ref(self) -> TypeRef;
+}
+
+impl IntoTypeRef for TypeRef {
+    fn into_type_ref(self) -> TypeRef {
+        self
+    }
+}
+
+impl<I> IntoTypeRef for I
+where
+    I: IntoIden,
+{
+    fn into_type_ref(self) -> TypeRef {
+        TypeRef::Type(self.into_iden())
+    }
+}
+
+impl<A, B> IntoTypeRef for (A, B)
+where
+    A: IntoIden,
+    B: IntoIden,
+{
+    fn into_type_ref(self) -> TypeRef {
+        TypeRef::SchemaType(self.0.into_iden(), self.1.into_iden())
+    }
+}
+
+impl<A, B, C> IntoTypeRef for (A, B, C)
+where
+    A: IntoIden,
+    B: IntoIden,
+    C: IntoIden,
+{
+    fn into_type_ref(self) -> TypeRef {
+        TypeRef::DatabaseSchemaType(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct TypeCreateStatement {
     pub(crate) name: Option<TypeRef>,
@@ -80,34 +127,21 @@ pub trait TypeBuilder: QuotedBuilder {
     /// Translate [`TypeRef`] into SQL statement.
     fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut SqlWriter) {
         match type_ref {
-            TypeRef {
-                database: None,
-                schema: None,
-                name,
-            } => {
+            TypeRef::Type(name) => {
                 name.prepare(sql, self.quote());
             }
-            TypeRef {
-                database: None,
-                schema: Some(schema),
-                name,
-            } => {
+            TypeRef::SchemaType(schema, name) => {
                 schema.prepare(sql, self.quote());
                 write!(sql, ".").unwrap();
                 name.prepare(sql, self.quote());
             }
-            TypeRef {
-                database: Some(database),
-                schema: Some(schema),
-                name,
-            } => {
+            TypeRef::DatabaseSchemaType(database, schema, name) => {
                 database.prepare(sql, self.quote());
                 write!(sql, ".").unwrap();
                 schema.prepare(sql, self.quote());
                 write!(sql, ".").unwrap();
                 name.prepare(sql, self.quote());
             }
-            _ => panic!("Not supported"),
         }
     }
 }

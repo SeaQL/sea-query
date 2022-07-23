@@ -97,59 +97,6 @@ pub trait IntoTableRef {
     fn into_table_ref(self) -> TableRef;
 }
 
-#[derive(Clone, Debug)]
-pub struct TypeRef {
-    pub database: Option<DynIden>,
-    pub schema: Option<DynIden>,
-    pub name: DynIden,
-}
-
-pub trait IntoTypeRef {
-    fn into_type_ref(self) -> TypeRef;
-}
-
-impl<I> IntoTypeRef for I
-where
-    I: IntoIden,
-{
-    fn into_type_ref(self) -> TypeRef {
-        TypeRef {
-            schema: None,
-            database: None,
-            name: self.into_iden(),
-        }
-    }
-}
-
-impl<A, B> IntoTypeRef for (A, B)
-where
-    A: IntoIden,
-    B: IntoIden,
-{
-    fn into_type_ref(self) -> TypeRef {
-        TypeRef {
-            database: None,
-            schema: Some(self.0.into_iden()),
-            name: self.1.into_iden(),
-        }
-    }
-}
-
-impl<A, B, C> IntoTypeRef for (A, B, C)
-where
-    A: IntoIden,
-    B: IntoIden,
-    C: IntoIden,
-{
-    fn into_type_ref(self) -> TypeRef {
-        TypeRef {
-            database: Some(self.0.into_iden()),
-            schema: Some(self.1.into_iden()),
-            name: self.2.into_iden(),
-        }
-    }
-}
-
 /// Unary operator
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnOper {
