@@ -81,66 +81,126 @@ pub enum Value {
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     Json(Option<Box<Json>>),
+    #[cfg(all(feature = "with-json", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-json", feature = "with-array"))))]
+    JsonArray(Option<Vec<Json>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDate(Option<Box<NaiveDate>>),
+    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    ChronoDateArray(Option<Vec<NaiveDate>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoTime(Option<Box<NaiveTime>>),
+    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    ChronoTimeArray(Option<Vec<NaiveTime>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTime(Option<Box<NaiveDateTime>>),
+    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    ChronoDateTimeArray(Option<Vec<NaiveDateTime>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeUtc(Option<Box<DateTime<Utc>>>),
+    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    ChronoDateTimeUtcArray(Option<Vec<DateTime<Utc>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeLocal(Option<Box<DateTime<Local>>>),
+    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    ChronoDateTimeLocalArray(Option<Vec<DateTime<Local>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    ChronoDateTimeWithTimeZoneArray(Option<Vec<DateTime<FixedOffset>>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDate(Option<Box<time::Date>>),
+    #[cfg(all(feature = "with-time", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    TimeDateArray(Option<Vec<time::Date>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeTime(Option<Box<time::Time>>),
+    #[cfg(all(feature = "with-time", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    TimeTimeArray(Option<Vec<time::Time>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTime(Option<Box<PrimitiveDateTime>>),
+    #[cfg(all(feature = "with-time", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    TimeDateTimeArray(Option<Vec<PrimitiveDateTime>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
+    #[cfg(all(feature = "with-time", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    TimeDateTimeWithTimeZoneArray(Option<Vec<OffsetDateTime>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Option<Box<Uuid>>),
+    #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-uuid", feature = "with-array"))))]
+    UuidArray(Option<Vec<Uuid>>),
 
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
     Decimal(Option<Box<Decimal>>),
+    #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-rust_decimal", feature = "with-array")))
+    )]
+    DecimalArray(Option<Vec<Decimal>>),
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
+    #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-bigdecimal", feature = "with-array")))
+    )]
+    BigDecimalArray(Option<Vec<BigDecimal>>),
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
     IpNetwork(Option<Box<IpNetwork>>),
+    #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-ipnetwork", feature = "with-array")))
+    )]
+    IpNetworkArray(Option<Vec<IpNetwork>>),
 
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<Box<MacAddress>>),
+    #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-mac_address", feature = "with-array")))
+    )]
+    MacAddressArray(Option<Box<MacAddress>>),
 }
 
 impl std::fmt::Display for Value {
@@ -350,6 +410,9 @@ mod with_json {
     use super::*;
 
     type_to_box_value!(Json, Json, Json);
+
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<Json>, JsonArray, Array(Box::new(Json)));
 }
 
 #[cfg(feature = "with-chrono")]
@@ -449,6 +512,35 @@ mod with_chrono {
             ColumnType::TimestampWithTimeZone(None)
         }
     }
+
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<NaiveDate>, ChronoDateArray, Array(Box::new(Date)));
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<NaiveTime>, ChronoTimeArray, Array(Box::new(Time(None))));
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<NaiveDateTime>,
+        ChronoDateTimeArray,
+        Array(Box::new(DateTime(None)))
+    );
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<DateTime<Local>>,
+        ChronoDateTimeLocalArray,
+        Array(Box::new(TimestampWithTimeZone(None)))
+    );
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<DateTime<Utc>>,
+        ChronoDateTimeUtcArray,
+        Array(Box::new(TimestampWithTimeZone(None)))
+    );
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<DateTime<FixedOffset>>,
+        ChronoDateTimeWithTimeZoneArray,
+        Array(Box::new(TimestampWithTimeZone(None)))
+    );
 }
 
 #[cfg(feature = "with-time")]
@@ -504,6 +596,23 @@ mod with_time {
             ColumnType::TimestampWithTimeZone(None)
         }
     }
+
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<time::Date>, TimeDateArray, Array(Box::new(Date)));
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<time::Time>, TimeTimeArray, Array(Box::new(Time(None))));
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<PrimitiveDateTime>,
+        TimeDateTimeArray,
+        Array(Box::new(DateTime(None)))
+    );
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<OffsetDateTime>,
+        TimeDateTimeWithTimeZoneArray,
+        Array(Box::new(TimestampWithTimeZone(None)))
+    );
 }
 
 #[cfg(feature = "with-rust_decimal")]
@@ -512,6 +621,9 @@ mod with_rust_decimal {
     use super::*;
 
     type_to_box_value!(Decimal, Decimal, Decimal(None));
+
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<Decimal>, DecimalArray, Array(Box::new(Decimal(None))));
 }
 
 #[cfg(feature = "with-bigdecimal")]
@@ -520,6 +632,13 @@ mod with_bigdecimal {
     use super::*;
 
     type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
+
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<BigDecimal>,
+        BigDecimalArray,
+        Array(Box::new(Decimal(None)))
+    );
 }
 
 #[cfg(feature = "with-uuid")]
@@ -536,6 +655,9 @@ mod with_ipnetwork {
     use super::*;
 
     type_to_box_value!(IpNetwork, IpNetwork, Inet);
+
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<IpNetwork>, IpNetwork, Array(Box::new(Inet)));
 }
 
 #[cfg(feature = "with-mac_address")]
@@ -544,6 +666,9 @@ mod with_mac_address {
     use super::*;
 
     type_to_box_value!(MacAddress, MacAddress, MacAddr);
+
+    #[cfg(feature = "with-array")]
+    type_to_value!(Vec<MacAddress>, MacAddressArray, Array(Box::new(MacAddr)));
 }
 
 #[cfg(feature = "with-array")]
@@ -551,61 +676,26 @@ mod with_mac_address {
 mod with_array {
     use super::*;
 
-    macro_rules! impl_array {
-        ( $type: ty, $name: ident) => {
-            impl From<Vec<$type>> for Value {
-                fn from(x: Vec<$type>) -> Value {
-                    Value::$name(Some(x))
-                }
-            }
-
-            impl Nullable for Vec<$type> {
-                fn null() -> Value {
-                    Value::$name(None)
-                }
-            }
-
-            impl ValueType for Vec<$type> {
-                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-                    match v {
-                        Value::$name(Some(v)) => Ok(v.into_iter().collect()),
-                        _ => Err(ValueTypeErr),
-                    }
-                }
-
-                fn type_name() -> String {
-                    stringify!(Vec<$type>).to_owned()
-                }
-
-                fn column_type() -> ColumnType {
-                    ColumnType::Array(Box::new(<$type as ValueType>::column_type()))
-                }
-            }
-        };
-    }
-
-    impl_array!(bool, BoolArray);
-    impl_array!(i8, TinyIntArray);
-    impl_array!(i16, SmallIntArray);
-    impl_array!(i32, IntArray);
-    impl_array!(i64, BigIntArray);
-    impl_array!(u16, SmallUnsignedArray);
-    impl_array!(u32, UnsignedArray);
-    impl_array!(u64, BigUnsignedArray);
-    impl_array!(f32, FloatArray);
-    impl_array!(f64, DoubleArray);
-    impl_array!(String, StringArray);
-    impl_array!(char, CharArray);
-}
-
-#[allow(unused_macros)]
-macro_rules! box_to_opt_ref {
-    ( $v: expr ) => {
-        match $v {
-            Some(v) => Some(v.as_ref()),
-            None => None,
-        }
-    };
+    type_to_value!(Vec<bool>, BoolArray, Array(Box::new(Boolean)));
+    type_to_value!(Vec<i8>, TinyIntArray, Array(Box::new(TinyInteger(None))));
+    type_to_value!(Vec<i16>, SmallIntArray, Array(Box::new(SmallInteger(None))));
+    type_to_value!(Vec<i32>, IntArray, Array(Box::new(Integer(None))));
+    type_to_value!(Vec<i64>, BigIntArray, Array(Box::new(BigInteger(None))));
+    type_to_value!(
+        Vec<u16>,
+        SmallUnsignedArray,
+        Array(Box::new(SmallUnsigned(None)))
+    );
+    type_to_value!(Vec<u32>, UnsignedArray, Array(Box::new(Unsigned(None))));
+    type_to_value!(
+        Vec<u64>,
+        BigUnsignedArray,
+        Array(Box::new(BigUnsigned(None)))
+    );
+    type_to_value!(Vec<f32>, FloatArray, Array(Box::new(Float(None))));
+    type_to_value!(Vec<f64>, DoubleArray, Array(Box::new(Double(None))));
+    type_to_value!(Vec<String>, StringArray, Array(Box::new(String(None))));
+    type_to_value!(Vec<char>, CharArray, Array(Box::new(Char(None))));
 }
 
 #[cfg(feature = "with-json")]
@@ -616,7 +706,7 @@ impl Value {
 
     pub fn as_ref_json(&self) -> Option<&Json> {
         match self {
-            Self::Json(v) => box_to_opt_ref!(v),
+            Self::Json(v) => v.as_deref(),
             _ => panic!("not Value::Json"),
         }
     }
@@ -630,140 +720,66 @@ impl Value {
 
     pub fn as_ref_chrono_date(&self) -> Option<&NaiveDate> {
         match self {
-            Self::ChronoDate(v) => box_to_opt_ref!(v),
+            Self::ChronoDate(v) => v.as_deref(),
             _ => panic!("not Value::ChronoDate"),
         }
     }
-}
 
-#[cfg(feature = "with-time")]
-impl Value {
-    pub fn is_time_date(&self) -> bool {
-        matches!(self, Self::TimeDate(_))
-    }
-
-    pub fn as_ref_time_date(&self) -> Option<&time::Date> {
-        match self {
-            Self::TimeDate(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::TimeDate"),
-        }
-    }
-}
-
-#[cfg(feature = "with-chrono")]
-impl Value {
-    pub fn is_chrono_time(&self) -> bool {
-        matches!(self, Self::ChronoTime(_))
-    }
-
-    pub fn as_ref_chrono_time(&self) -> Option<&NaiveTime> {
-        match self {
-            Self::ChronoTime(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::ChronoTime"),
-        }
-    }
-}
-
-#[cfg(feature = "with-time")]
-impl Value {
-    pub fn is_time_time(&self) -> bool {
-        matches!(self, Self::TimeTime(_))
-    }
-
-    pub fn as_ref_time_time(&self) -> Option<&time::Time> {
-        match self {
-            Self::TimeTime(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::TimeTime"),
-        }
-    }
-}
-
-#[cfg(feature = "with-chrono")]
-impl Value {
     pub fn is_chrono_date_time(&self) -> bool {
         matches!(self, Self::ChronoDateTime(_))
     }
 
     pub fn as_ref_chrono_date_time(&self) -> Option<&NaiveDateTime> {
         match self {
-            Self::ChronoDateTime(v) => box_to_opt_ref!(v),
+            Self::ChronoDateTime(v) => v.as_deref(),
             _ => panic!("not Value::ChronoDateTime"),
         }
     }
-}
 
-#[cfg(feature = "with-time")]
-impl Value {
-    pub fn is_time_date_time(&self) -> bool {
-        matches!(self, Self::TimeDateTime(_))
+    pub fn is_chrono_time(&self) -> bool {
+        matches!(self, Self::ChronoTime(_))
     }
 
-    pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
+    pub fn as_ref_chrono_time(&self) -> Option<&NaiveTime> {
         match self {
-            Self::TimeDateTime(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::TimeDateTime"),
+            Self::ChronoTime(v) => v.as_deref(),
+            _ => panic!("not Value::ChronoTime"),
         }
     }
-}
 
-#[cfg(feature = "with-chrono")]
-impl Value {
     pub fn is_chrono_date_time_utc(&self) -> bool {
         matches!(self, Self::ChronoDateTimeUtc(_))
     }
 
     pub fn as_ref_chrono_date_time_utc(&self) -> Option<&DateTime<Utc>> {
         match self {
-            Self::ChronoDateTimeUtc(v) => box_to_opt_ref!(v),
+            Self::ChronoDateTimeUtc(v) => v.as_deref(),
             _ => panic!("not Value::ChronoDateTimeUtc"),
         }
     }
-}
 
-#[cfg(feature = "with-chrono")]
-impl Value {
     pub fn is_chrono_date_time_local(&self) -> bool {
         matches!(self, Self::ChronoDateTimeLocal(_))
     }
 
     pub fn as_ref_chrono_date_time_local(&self) -> Option<&DateTime<Local>> {
         match self {
-            Self::ChronoDateTimeLocal(v) => box_to_opt_ref!(v),
+            Self::ChronoDateTimeLocal(v) => v.as_deref(),
             _ => panic!("not Value::ChronoDateTimeLocal"),
         }
     }
-}
 
-#[cfg(feature = "with-chrono")]
-impl Value {
     pub fn is_chrono_date_time_with_time_zone(&self) -> bool {
         matches!(self, Self::ChronoDateTimeWithTimeZone(_))
     }
 
     pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
-            Self::ChronoDateTimeWithTimeZone(v) => box_to_opt_ref!(v),
+            Self::ChronoDateTimeWithTimeZone(v) => v.as_deref(),
             _ => panic!("not Value::ChronoDateTimeWithTimeZone"),
         }
     }
-}
 
-#[cfg(feature = "with-time")]
-impl Value {
-    pub fn is_time_date_time_with_time_zone(&self) -> bool {
-        matches!(self, Self::TimeDateTimeWithTimeZone(_))
-    }
-
-    pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
-        match self {
-            Self::TimeDateTimeWithTimeZone(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::TimeDateTimeWithTimeZone"),
-        }
-    }
-}
-
-#[cfg(feature = "with-chrono")]
-impl Value {
     pub fn chrono_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
             Self::ChronoDate(v) => v.as_ref().map(|v| v.to_string()),
@@ -779,6 +795,50 @@ impl Value {
 
 #[cfg(feature = "with-time")]
 impl Value {
+    pub fn is_time_date(&self) -> bool {
+        matches!(self, Self::TimeDate(_))
+    }
+
+    pub fn as_ref_time_date(&self) -> Option<&time::Date> {
+        match self {
+            Self::TimeDate(v) => v.as_deref(),
+            _ => panic!("not Value::TimeDate"),
+        }
+    }
+
+    pub fn is_time_time(&self) -> bool {
+        matches!(self, Self::TimeTime(_))
+    }
+
+    pub fn as_ref_time_time(&self) -> Option<&time::Time> {
+        match self {
+            Self::TimeTime(v) => v.as_deref(),
+            _ => panic!("not Value::TimeTime"),
+        }
+    }
+
+    pub fn is_time_date_time(&self) -> bool {
+        matches!(self, Self::TimeDateTime(_))
+    }
+
+    pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
+        match self {
+            Self::TimeDateTime(v) => v.as_deref(),
+            _ => panic!("not Value::TimeDateTime"),
+        }
+    }
+
+    pub fn is_time_date_time_with_time_zone(&self) -> bool {
+        matches!(self, Self::TimeDateTimeWithTimeZone(_))
+    }
+
+    pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
+        match self {
+            Self::TimeDateTimeWithTimeZone(v) => v.as_deref(),
+            _ => panic!("not Value::TimeDateTimeWithTimeZone"),
+        }
+    }
+
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
             Self::TimeDate(v) => v
@@ -808,7 +868,7 @@ impl Value {
 
     pub fn as_ref_decimal(&self) -> Option<&Decimal> {
         match self {
-            Self::Decimal(v) => box_to_opt_ref!(v),
+            Self::Decimal(v) => v.as_deref(),
             _ => panic!("not Value::Decimal"),
         }
     }
@@ -828,7 +888,7 @@ impl Value {
 
     pub fn as_ref_big_decimal(&self) -> Option<&BigDecimal> {
         match self {
-            Self::BigDecimal(v) => box_to_opt_ref!(v),
+            Self::BigDecimal(v) => v.as_deref(),
             _ => panic!("not Value::BigDecimal"),
         }
     }
@@ -846,7 +906,7 @@ impl Value {
     }
     pub fn as_ref_uuid(&self) -> Option<&Uuid> {
         match self {
-            Self::Uuid(v) => box_to_opt_ref!(v),
+            Self::Uuid(v) => v.as_deref(),
             _ => panic!("not Value::Uuid"),
         }
     }
@@ -860,7 +920,7 @@ impl Value {
 
     pub fn as_ref_ipnetwork(&self) -> Option<&IpNetwork> {
         match self {
-            Self::IpNetwork(v) => box_to_opt_ref!(v),
+            Self::IpNetwork(v) => v.as_deref(),
             _ => panic!("not Value::IpNetwork"),
         }
     }
@@ -881,7 +941,7 @@ impl Value {
 
     pub fn as_ref_mac_address(&self) -> Option<&MacAddress> {
         match self {
-            Self::MacAddress(v) => box_to_opt_ref!(v),
+            Self::MacAddress(v) => v.as_deref(),
             _ => panic!("not Value::MacAddress"),
         }
     }
@@ -1138,18 +1198,34 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::FloatArray(None)
         | Value::DoubleArray(None)
         | Value::StringArray(None)
-        | Value::CharArray(None) => Json::Null,
+        | Value::CharArray(None)
+        | Value::JsonArray(None) => Json::Null,
 
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
+        #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+        Value::DecimalArray(None) => Json::Null,
+
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(None) => Json::Null,
+        #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+        Value::BigDecimalArray(None) => Json::Null,
+
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
+        #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+        Value::UuidArray(None) => Json::Null,
+
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(None) => Json::Null,
+        #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+        Value::IpNetworkArray(None) => Json::Null,
+
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
+        #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+        Value::MacAddressArray(None) => Json::Null,
+
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -1165,6 +1241,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
+        Value::JsonArray(Some(v)) => todo!(),
         #[cfg(feature = "with-array")]
         Value::BoolArray(Some(v)) => v.as_slice().into(),
         #[cfg(feature = "with-array")]
@@ -1195,40 +1272,75 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             .into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        Value::ChronoDateArray(_) => todo!(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        Value::ChronoTimeArray(_) => todo!(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        Value::ChronoDateTimeArray(_) => todo!(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        Value::ChronoDateTimeWithTimeZoneArray(_) => todo!(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        Value::ChronoDateTimeUtcArray(_) => todo!(),
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoDateTimeUtc(_) => todo!(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        Value::ChronoDateTimeLocalArray(_) => todo!(),
+
         #[cfg(feature = "with-time")]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        Value::TimeDateArray(_) => todo!(),
         #[cfg(feature = "with-time")]
         Value::TimeTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        Value::TimeTimeArray(_) => todo!(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        Value::TimeDateTimeArray(_) => todo!(),
+
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        Value::TimeDateTimeWithTimeZoneArray(_) => todo!(),
+
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
+        #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+        Value::DecimalArray(Some(v)) => todo!(),
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(Some(v)) => {
             use bigdecimal::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
+        #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+        Value::BigDecimalArray(Some(v)) => todo!(),
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
+        #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+        Value::UuidArray(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+        Value::IpNetworkArray(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+        Value::MacAddressArray(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
 

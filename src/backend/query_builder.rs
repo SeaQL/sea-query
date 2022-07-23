@@ -978,6 +978,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(None) => write!(s, "NULL").unwrap(),
+
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
             Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
@@ -1000,29 +1001,29 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             )
             .unwrap(),
             #[cfg(feature = "with-array")]
-            Value::BoolArray(Some(_)) => {}
+            Value::BoolArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::TinyIntArray(Some(_)) => {}
+            Value::TinyIntArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::SmallIntArray(Some(_)) => {}
+            Value::SmallIntArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::IntArray(Some(_)) => {}
+            Value::IntArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::BigIntArray(Some(_)) => {}
+            Value::BigIntArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::SmallUnsignedArray(Some(_)) => {}
+            Value::SmallUnsignedArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::UnsignedArray(Some(_)) => {}
+            Value::UnsignedArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::BigUnsignedArray(Some(_)) => {}
+            Value::BigUnsignedArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::FloatArray(Some(_)) => {}
+            Value::FloatArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::DoubleArray(Some(_)) => {}
+            Value::DoubleArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::StringArray(Some(_)) => {}
+            Value::StringArray(Some(_)) => todo!(),
             #[cfg(feature = "with-array")]
-            Value::CharArray(Some(_)) => {}
+            Value::CharArray(Some(_)) => todo!(),
 
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
