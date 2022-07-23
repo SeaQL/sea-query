@@ -53,4 +53,13 @@ impl IndexBuilder for SqliteQueryBuilder {
             write!(sql, "UNIQUE ").unwrap();
         }
     }
+
+    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::Table(table) => {
+                table.prepare(sql, self.quote());
+            }
+            _ => panic!("Not supported"),
+        }
+    }
 }

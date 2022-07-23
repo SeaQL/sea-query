@@ -65,4 +65,13 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             self.prepare_foreign_key_action(foreign_key_action, sql);
         }
     }
+
+    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::Table(table) => {
+                table.prepare(sql, self.quote());
+            }
+            _ => panic!("Not supported"),
+        }
+    }
 }
