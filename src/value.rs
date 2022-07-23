@@ -1309,7 +1309,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-time", feature = "with-array"))]
         Value::TimeDateTimeArray(_) => todo!(),
-
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-time", feature = "with-array"))]
@@ -1327,7 +1326,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             use bigdecimal::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
-        #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+        #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
         Value::BigDecimalArray(Some(v)) => todo!(),
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
