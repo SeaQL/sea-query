@@ -29,7 +29,7 @@ fn main() {
     ]
     .join("; ");
 
-    let result = client.batch_execute(&sql).unwrap();
+    let result = client.batch_execute(&sql);
     println!("Create table character: {:?}\n", result);
 
     // Create

@@ -33,13 +33,13 @@ fn main() {
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
-            .col(ColumnDef::new(Document::Array).array("integer".to_string()))
+            .col(ColumnDef::new(Document::Array).array("integer".into()))
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
 
     println!("{}", sql);
-    let result = client.batch_execute(&sql).unwrap();
+    let result = client.batch_execute(&sql);
     println!("Create table document: {:?}\n", result);
 
     // Create
