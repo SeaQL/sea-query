@@ -159,6 +159,71 @@ impl SelectStatement {
         }
     }
 
+    #[inline(always)]
+    pub fn get_distinct(&self) -> Option<&SelectDistinct> {
+        self.distinct.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_selects(&self) -> &[SelectExpr] {
+        &self.selects
+    }
+
+    #[inline(always)]
+    pub fn get_from(&self) -> &[TableRef] {
+        &self.from
+    }
+
+    #[inline(always)]
+    pub fn get_join(&self) -> &[JoinExpr] {
+        &self.join
+    }
+
+    #[inline(always)]
+    pub fn get_where(&self) -> &ConditionHolder {
+        &self.r#where
+    }
+
+    #[inline(always)]
+    pub fn get_groups(&self) -> &[SimpleExpr] {
+        &self.groups
+    }
+
+    #[inline(always)]
+    pub fn get_having(&self) -> &ConditionHolder {
+        &self.having
+    }
+
+    #[inline(always)]
+    pub fn get_unions(&self) -> &[(UnionType, SelectStatement)] {
+        &self.unions
+    }
+
+    #[inline(always)]
+    pub fn get_orders(&self) -> &[OrderExpr] {
+        &self.orders
+    }
+
+    #[inline(always)]
+    pub fn get_limit(&self) -> Option<&Value> {
+        self.limit.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_offset(&self) -> Option<&Value> {
+        self.offset.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_lock(&self) -> Option<&LockClause> {
+        self.lock.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_window(&self) -> Option<&(DynIden, WindowStatement)> {
+        self.window.as_ref()
+    }
+
     /// Take the ownership of data in the current [`SelectStatement`]
     pub fn take(&mut self) -> Self {
         Self {
