@@ -86,13 +86,6 @@ impl IndexBuilder for PostgresQueryBuilder {
                 write!(sql, ".").unwrap();
                 table.prepare(sql, self.quote());
             }
-            TableRef::DatabaseSchemaTable(database, schema, table) => {
-                database.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-            }
             _ => panic!("Not supported"),
         }
     }
