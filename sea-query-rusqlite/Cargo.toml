@@ -1,3 +1,5 @@
+[workspace]
+
 [package]
 name = "sea-query-rusqlite"
 version = "0.1.0"
