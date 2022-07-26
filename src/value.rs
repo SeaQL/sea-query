@@ -200,7 +200,7 @@ pub enum Value {
         docsrs,
         doc(cfg(all(feature = "with-mac_address", feature = "with-array")))
     )]
-    MacAddressArray(Option<Box<MacAddress>>),
+    MacAddressArray(Option<Vec<MacAddress>>),
 }
 
 impl std::fmt::Display for Value {
@@ -657,7 +657,7 @@ mod with_ipnetwork {
     type_to_box_value!(IpNetwork, IpNetwork, Inet);
 
     #[cfg(feature = "with-array")]
-    type_to_value!(Vec<IpNetwork>, IpNetwork, Array(Box::new(Inet)));
+    type_to_value!(Vec<IpNetwork>, IpNetworkArray, Array(Box::new(Inet)));
 }
 
 #[cfg(feature = "with-mac_address")]
@@ -1200,31 +1200,18 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::StringArray(None)
         | Value::CharArray(None)
         | Value::JsonArray(None) => Json::Null,
-
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
-        #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
-        Value::DecimalArray(None) => Json::Null,
-
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(None) => Json::Null,
-        #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
-        Value::BigDecimalArray(None) => Json::Null,
-
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
-        #[cfg(all(feature = "with-uuid", feature = "with-array"))]
-        Value::UuidArray(None) => Json::Null,
-
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(None) => Json::Null,
-        #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
-        Value::IpNetworkArray(None) => Json::Null,
-
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
-        #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
-        Value::MacAddressArray(None) => Json::Null,
+        #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+        Value::UuidArray(None) => Json::Null,
 
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
@@ -1241,7 +1228,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
-        Value::JsonArray(Some(v)) => todo!(),
+        Value::JsonArray(Some(v)) => v.as_slice().into(),
         #[cfg(feature = "with-array")]
         Value::BoolArray(Some(v)) => v.as_slice().into(),
         #[cfg(feature = "with-array")]
@@ -1273,46 +1260,48 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-chrono")]
         Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-        Value::ChronoDateArray(_) => todo!(),
+        Value::ChronoDateArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-        Value::ChronoTimeArray(_) => todo!(),
+        Value::ChronoTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-        Value::ChronoDateTimeArray(_) => todo!(),
+        Value::ChronoDateTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-        Value::ChronoDateTimeWithTimeZoneArray(_) => todo!(),
+        Value::ChronoDateTimeWithTimeZoneArray(_) => {
+            CommonSqlQueryBuilder.value_to_string(value).into()
+        }
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-        Value::ChronoDateTimeUtcArray(_) => todo!(),
-        #[cfg(feature = "with-chrono")]
-        Value::ChronoDateTimeUtc(_) => todo!(),
+        Value::ChronoDateTimeUtcArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-        Value::ChronoDateTimeLocalArray(_) => todo!(),
+        Value::ChronoDateTimeLocalArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
 
         #[cfg(feature = "with-time")]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-time", feature = "with-array"))]
-        Value::TimeDateArray(_) => todo!(),
+        Value::TimeDateArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-time", feature = "with-array"))]
-        Value::TimeTimeArray(_) => todo!(),
+        Value::TimeTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-time", feature = "with-array"))]
-        Value::TimeDateTimeArray(_) => todo!(),
+        Value::TimeDateTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-time", feature = "with-array"))]
-        Value::TimeDateTimeWithTimeZoneArray(_) => todo!(),
+        Value::TimeDateTimeWithTimeZoneArray(_) => {
+            CommonSqlQueryBuilder.value_to_string(value).into()
+        }
 
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
@@ -1320,26 +1309,30 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             v.as_ref().to_f64().unwrap().into()
         }
         #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
-        Value::DecimalArray(Some(v)) => todo!(),
+        Value::DecimalArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(Some(v)) => {
             use bigdecimal::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
         #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
-        Value::BigDecimalArray(Some(v)) => todo!(),
+        Value::BigDecimalArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
         #[cfg(all(feature = "with-uuid", feature = "with-array"))]
-        Value::UuidArray(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::UuidArray(Some(v)) => v
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<String>>()
+            .into(),
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
-        Value::IpNetworkArray(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::IpNetworkArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
-        Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::MacAddress(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
-        Value::MacAddressArray(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        Value::MacAddressArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
 

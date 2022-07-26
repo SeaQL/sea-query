@@ -948,6 +948,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             | Value::CharArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
+            #[cfg(all(feature = "with-json", feature = "with-array"))]
+            Value::JsonArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(None) => write!(s, "NULL").unwrap(),
             #[cfg(all(feature = "with-chrono", feature = "with-array"))]
@@ -1058,7 +1060,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(all(feature = "with-json", feature = "with-array"))]
-            Value::JsonArray(Some(v)) => todo!(),
+            Value::JsonArray(Some(_)) => todo!(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(all(feature = "with-chrono", feature = "with-array"))]
@@ -1121,11 +1123,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
-            Value::DecimalArray(Some(v)) => todo!(),
+            Value::DecimalArray(Some(_)) => todo!(),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
-            Value::BigDecimalArray(Some(v)) => todo!(),
+            Value::BigDecimalArray(Some(_)) => todo!(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(all(feature = "with-uuid", feature = "with-array"))]

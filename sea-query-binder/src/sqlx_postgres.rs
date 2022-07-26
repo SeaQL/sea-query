@@ -83,71 +83,82 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                 Value::CharArray(v) => {
                     args.add(v.map(|v| v.iter().map(|c| c.to_string()).collect::<Vec<String>>()))
                 }
-
                 #[cfg(feature = "with-chrono")]
-                Value::ChronoDate(d) => {
-                    args.add(d.as_deref());
-                }
+                Value::ChronoDate(d) => args.add(d.as_deref()),
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-chrono")]
-                Value::ChronoTime(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::ChronoTime(d) => args.add(d.as_deref()),
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoTimeArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-chrono")]
-                Value::ChronoDateTime(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::ChronoDateTime(d) => args.add(d.as_deref()),
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-chrono")]
-                Value::ChronoDateTimeUtc(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::ChronoDateTimeUtc(d) => args.add(d.as_deref()),
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeUtcArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-chrono")]
-                Value::ChronoDateTimeLocal(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::ChronoDateTimeLocal(d) => args.add(d.as_deref()),
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeLocalArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-chrono")]
-                Value::ChronoDateTimeWithTimeZone(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::ChronoDateTimeWithTimeZone(d) => args.add(d.as_deref()),
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeWithTimeZoneArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-time")]
-                Value::TimeDate(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::TimeDate(t) => args.add(t.as_deref()),
+                #[cfg(all(feature = "with-time", feature = "with-array"))]
+                Value::TimeDateArray(t) => args.add(t.as_deref()),
                 #[cfg(feature = "with-time")]
-                Value::TimeTime(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::TimeTime(t) => args.add(t.as_deref()),
+                #[cfg(all(feature = "with-time", feature = "with-array"))]
+                Value::TimeTimeArray(t) => args.add(t.as_deref()),
                 #[cfg(feature = "with-time")]
-                Value::TimeDateTime(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::TimeDateTime(t) => args.add(t.as_deref()),
+                #[cfg(all(feature = "with-time", feature = "with-array"))]
+                Value::TimeDateTimeArray(t) => args.add(t.as_deref()),
                 #[cfg(feature = "with-time")]
-                Value::TimeDateTimeWithTimeZone(t) => {
-                    args.add(t.as_deref());
-                }
+                Value::TimeDateTimeWithTimeZone(t) => args.add(t.as_deref()),
+                #[cfg(all(feature = "with-time", feature = "with-array"))]
+                Value::TimeDateTimeWithTimeZoneArray(t) => args.add(t.as_deref()),
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     args.add(uuid.as_deref());
                 }
+                #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+                Value::UuidArray(uuid) => args.add(uuid.as_deref()),
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(d) => {
                     args.add(d.as_deref());
                 }
+                #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+                Value::DecimalArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(d) => {
                     args.add(d.as_deref());
                 }
+                #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+                Value::BigDecimalArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
                     args.add(j.as_deref());
                 }
+                #[cfg(all(feature = "with-json", feature = "with-array"))]
+                Value::JsonArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(ip) => {
                     args.add(ip.as_deref());
                 }
+                #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+                Value::IpNetworkArray(d) => args.add(d.as_deref()),
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(mac) => {
                     args.add(mac.as_deref());
                 }
+                #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+                Value::MacAddressArray(d) => args.add(d.as_deref()),
             }
         }
         args
