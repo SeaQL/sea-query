@@ -61,6 +61,31 @@ impl DeleteStatement {
         }
     }
 
+    #[inline(always)]
+    pub fn get_table(&self) -> Option<&Box<TableRef>> {
+        self.table.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_where(&self) -> &ConditionHolder {
+        &self.wherei
+    }
+
+    #[inline(always)]
+    pub fn get_orders(&self) -> &[OrderExpr] {
+        &self.orders
+    }
+
+    #[inline(always)]
+    pub fn get_limit(&self) -> Option<&Value> {
+        self.limit.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_returning(&self) -> Option<&ReturningClause> {
+        self.returning.as_ref()
+    }
+
     /// Specify which table to delete from.
     ///
     /// # Examples
