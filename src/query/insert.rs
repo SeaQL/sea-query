@@ -58,6 +58,36 @@ impl InsertStatement {
         Self::default()
     }
 
+    #[inline(always)]
+    pub fn get_replace(&self) -> bool {
+        self.replace
+    }
+
+    #[inline(always)]
+    pub fn get_table(&self) -> Option<&Box<TableRef>> {
+        self.table.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_columns(&self) -> &[DynIden] {
+        &self.columns
+    }
+
+    #[inline(always)]
+    pub fn get_on_conflict(&self) -> Option<&OnConflict> {
+        self.on_conflict.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_returning(&self) -> Option<&ReturningClause> {
+        self.returning.as_ref()
+    }
+
+    #[inline(always)]
+    pub fn get_default_values(&self) -> Option<u32> {
+        self.default_values
+    }
+
     /// Use REPLACE instead of INSERT
     ///
     /// # Examples
