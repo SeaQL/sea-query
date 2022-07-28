@@ -99,7 +99,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Array(elem_type) => {
                     let mut inner = SqlWriter::new();
                     self.prepare_column_type(elem_type, &mut inner);
-                    format!("{}[]", inner.result()).into()
+                    format!("{}[]", inner.result())
                 }
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { name, .. } => name.to_string(),

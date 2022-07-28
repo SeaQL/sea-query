@@ -62,70 +62,103 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 | Value::DoubleArray(_)
                 | Value::StringArray(_)
                 | Value::CharArray(_) => panic!("Sqlite doesn't support array arguments"),
+
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
                     args.add(d.map(|d| *d));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
                     args.add(t.map(|t| *t));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoTimeArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
                     args.add(t.map(|t| *t));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
                     args.add(t.map(|t| *t));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeUtcArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
                     args.add(t.map(|t| *t));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeLocalArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
                     args.add(t.map(|t| *t));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::ChronoDateTimeWithTimeZoneArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
                     args.add(Value::TimeDate(t).time_as_naive_utc_in_string());
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::TimeDateArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
                     args.add(Value::TimeTime(t).time_as_naive_utc_in_string());
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::TimeTimeArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
                     args.add(Value::TimeDateTime(t).time_as_naive_utc_in_string());
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::TimeDateTimeArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
                     args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::TimeDateTimeWithTimeZoneArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     args.add(uuid.map(|uuid| *uuid));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::UuidArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(_) => {
                     panic!("Sqlite doesn't support decimal arguments");
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::DecimalArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(_) => {
                     panic!("Sqlite doesn't support bigdecimal arguments");
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::BigDecimalArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
                     args.add(j.map(|j| *j));
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::JsonArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(_) => {
                     panic!("Sqlite doesn't support IpNetwork arguments");
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::IpNetworkArray(_) => panic!("Sqlite doesn't support array"),
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(_) => {
                     panic!("Sqlite doesn't support MacAddress arguments");
                 }
+                #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+                Value::MacAddressArray(_) => panic!("Sqlite doesn't support array"),
             }
         }
         args
