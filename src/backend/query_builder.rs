@@ -1008,7 +1008,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::IpNetworkArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-mac_address")]
+            #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
             Value::MacAddressArray(None) => write!(s, "NULL").unwrap(),
 
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
