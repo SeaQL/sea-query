@@ -404,6 +404,33 @@ where
 type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
 type_to_box_value!(String, String, String(None));
 
+#[cfg(feature = "with-array")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
+mod with_array {
+    use super::*;
+
+    type_to_value!(Vec<bool>, BoolArray, Array(Box::new(Boolean)));
+    type_to_value!(Vec<i8>, TinyIntArray, Array(Box::new(TinyInteger(None))));
+    type_to_value!(Vec<i16>, SmallIntArray, Array(Box::new(SmallInteger(None))));
+    type_to_value!(Vec<i32>, IntArray, Array(Box::new(Integer(None))));
+    type_to_value!(Vec<i64>, BigIntArray, Array(Box::new(BigInteger(None))));
+    type_to_value!(
+        Vec<u16>,
+        SmallUnsignedArray,
+        Array(Box::new(SmallUnsigned(None)))
+    );
+    type_to_value!(Vec<u32>, UnsignedArray, Array(Box::new(Unsigned(None))));
+    type_to_value!(
+        Vec<u64>,
+        BigUnsignedArray,
+        Array(Box::new(BigUnsigned(None)))
+    );
+    type_to_value!(Vec<f32>, FloatArray, Array(Box::new(Float(None))));
+    type_to_value!(Vec<f64>, DoubleArray, Array(Box::new(Double(None))));
+    type_to_value!(Vec<String>, StringArray, Array(Box::new(String(None))));
+    type_to_value!(Vec<char>, CharArray, Array(Box::new(Char(None))));
+}
+
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
@@ -647,6 +674,12 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid, Uuid);
+    #[cfg(feature = "with-array")]
+    type_to_value!(
+        Vec<Uuid>,
+        UuidArray,
+        Array(Box::new(Uuid))
+    );
 }
 
 #[cfg(feature = "with-ipnetwork")]
@@ -671,115 +704,41 @@ mod with_mac_address {
     type_to_value!(Vec<MacAddress>, MacAddressArray, Array(Box::new(MacAddr)));
 }
 
-#[cfg(feature = "with-array")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
-mod with_array {
-    use super::*;
-
-    type_to_value!(Vec<bool>, BoolArray, Array(Box::new(Boolean)));
-    type_to_value!(Vec<i8>, TinyIntArray, Array(Box::new(TinyInteger(None))));
-    type_to_value!(Vec<i16>, SmallIntArray, Array(Box::new(SmallInteger(None))));
-    type_to_value!(Vec<i32>, IntArray, Array(Box::new(Integer(None))));
-    type_to_value!(Vec<i64>, BigIntArray, Array(Box::new(BigInteger(None))));
-    type_to_value!(
-        Vec<u16>,
-        SmallUnsignedArray,
-        Array(Box::new(SmallUnsigned(None)))
-    );
-    type_to_value!(Vec<u32>, UnsignedArray, Array(Box::new(Unsigned(None))));
-    type_to_value!(
-        Vec<u64>,
-        BigUnsignedArray,
-        Array(Box::new(BigUnsigned(None)))
-    );
-    type_to_value!(Vec<f32>, FloatArray, Array(Box::new(Float(None))));
-    type_to_value!(Vec<f64>, DoubleArray, Array(Box::new(Double(None))));
-    type_to_value!(Vec<String>, StringArray, Array(Box::new(String(None))));
-    type_to_value!(Vec<char>, CharArray, Array(Box::new(Char(None))));
+macro_rules! impl_value_methods {
+    ($name:ident, $is_fn:ident, $as_ref_fn:ident, $as_ref_ty:ty) => {
+        impl Value {
+            pub fn $is_fn(&self) -> bool {
+                matches!(self, Self::$name(_))
+            }
+            pub fn $as_ref_fn(&self) -> Option<&$as_ref_ty> {
+                match self {
+                    Self::$name(v) => v.as_deref(),
+                    _ => panic!("is not Value::{}", stringify!($name)),
+                }
+            }
+        }
+    };
 }
 
 #[cfg(feature = "with-json")]
-impl Value {
-    pub fn is_json(&self) -> bool {
-        matches!(self, Self::Json(_))
-    }
+impl_value_methods!(Json, is_json, as_ref_json, Json);
+#[cfg(all(feature = "with-json", feature = "with-array"))]
+impl_value_methods!(JsonArray, is_json_array, as_ref_json_array, [Json]);
 
-    pub fn as_ref_json(&self) -> Option<&Json> {
-        match self {
-            Self::Json(v) => v.as_deref(),
-            _ => panic!("not Value::Json"),
-        }
-    }
-}
-
+#[cfg(feature = "with-time")]
+impl_value_methods!(ChronoDate, is_chrono_date, as_ref_chrono_date, NaiveDate);
+#[cfg(feature = "with-time")]
+impl_value_methods!(ChronoDateTime, is_chrono_date_time, as_ref_chrono_date_time, NaiveDateTime);
+#[cfg(feature = "with-time")]
+impl_value_methods!(ChronoTime, is_chrono_time, as_ref_chrono_time, NaiveTime);
+#[cfg(feature = "with-time")]
+impl_value_methods!(ChronoDateTimeUtc, is_chrono_date_time_utc, as_ref_chrono_date_time_utc, DateTime<Utc>);
+#[cfg(feature = "with-time")]
+impl_value_methods!(ChronoDateTimeLocal, is_chrono_date_time_local, as_ref_chrono_date_time_local, DateTime<Local>);
+#[cfg(feature = "with-time")]
+impl_value_methods!(ChronoDateTimeWithTimeZone, is_chrono_date_time_with_time_zone, as_ref_chrono_date_time_with_time_zone, DateTime<FixedOffset>);
 #[cfg(feature = "with-chrono")]
 impl Value {
-    pub fn is_chrono_date(&self) -> bool {
-        matches!(self, Self::ChronoDate(_))
-    }
-
-    pub fn as_ref_chrono_date(&self) -> Option<&NaiveDate> {
-        match self {
-            Self::ChronoDate(v) => v.as_deref(),
-            _ => panic!("not Value::ChronoDate"),
-        }
-    }
-
-    pub fn is_chrono_date_time(&self) -> bool {
-        matches!(self, Self::ChronoDateTime(_))
-    }
-
-    pub fn as_ref_chrono_date_time(&self) -> Option<&NaiveDateTime> {
-        match self {
-            Self::ChronoDateTime(v) => v.as_deref(),
-            _ => panic!("not Value::ChronoDateTime"),
-        }
-    }
-
-    pub fn is_chrono_time(&self) -> bool {
-        matches!(self, Self::ChronoTime(_))
-    }
-
-    pub fn as_ref_chrono_time(&self) -> Option<&NaiveTime> {
-        match self {
-            Self::ChronoTime(v) => v.as_deref(),
-            _ => panic!("not Value::ChronoTime"),
-        }
-    }
-
-    pub fn is_chrono_date_time_utc(&self) -> bool {
-        matches!(self, Self::ChronoDateTimeUtc(_))
-    }
-
-    pub fn as_ref_chrono_date_time_utc(&self) -> Option<&DateTime<Utc>> {
-        match self {
-            Self::ChronoDateTimeUtc(v) => v.as_deref(),
-            _ => panic!("not Value::ChronoDateTimeUtc"),
-        }
-    }
-
-    pub fn is_chrono_date_time_local(&self) -> bool {
-        matches!(self, Self::ChronoDateTimeLocal(_))
-    }
-
-    pub fn as_ref_chrono_date_time_local(&self) -> Option<&DateTime<Local>> {
-        match self {
-            Self::ChronoDateTimeLocal(v) => v.as_deref(),
-            _ => panic!("not Value::ChronoDateTimeLocal"),
-        }
-    }
-
-    pub fn is_chrono_date_time_with_time_zone(&self) -> bool {
-        matches!(self, Self::ChronoDateTimeWithTimeZone(_))
-    }
-
-    pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
-        match self {
-            Self::ChronoDateTimeWithTimeZone(v) => v.as_deref(),
-            _ => panic!("not Value::ChronoDateTimeWithTimeZone"),
-        }
-    }
-
     pub fn chrono_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
             Self::ChronoDate(v) => v.as_ref().map(|v| v.to_string()),
@@ -792,53 +751,29 @@ impl Value {
         }
     }
 }
+#[cfg(all(feature = "with-chrono", feature = "with-array"))]
+impl_value_methods!(ChronoDateArray, is_chrono_date_array, as_ref_chrono_date_array, [NaiveDate]);
+#[cfg(all(feature = "with-chrono", feature = "with-array"))]
+impl_value_methods!(ChronoDateTimeArray, is_chrono_date_time_array, as_ref_chrono_date_time_array, [NaiveDateTime]);
+#[cfg(all(feature = "with-chrono", feature = "with-array"))]
+impl_value_methods!(ChronoTimeArray, is_chrono_time_array, as_ref_chrono_time_array, [NaiveTime]);
+#[cfg(all(feature = "with-chrono", feature = "with-array"))]
+impl_value_methods!(ChronoDateTimeUtcArray, is_chrono_date_time_utc_array, as_ref_chrono_date_time_utc_array, [DateTime<Utc>]);
+#[cfg(all(feature = "with-chrono", feature = "with-array"))]
+impl_value_methods!(ChronoDateTimeLocalArray, is_chrono_date_time_local_array, as_ref_chrono_date_time_local_array, [DateTime<Local>]);
+#[cfg(all(feature = "with-chrono", feature = "with-array"))]
+impl_value_methods!(ChronoDateTimeWithTimeZoneArray, is_chrono_date_time_with_time_zone_array, as_ref_chrono_date_time_with_time_zone_array, [DateTime<FixedOffset>]);
 
 #[cfg(feature = "with-time")]
+impl_value_methods!(TimeDate, is_time_date, as_ref_time_date, time::Date);
+#[cfg(feature = "with-time")]
+impl_value_methods!(TimeTime, is_time_time, as_ref_time_time, time::Time);
+#[cfg(feature = "with-time")]
+impl_value_methods!(TimeDateTime, is_time_date_time, as_ref_time_date_time, PrimitiveDateTime);
+#[cfg(feature = "with-time")]
+impl_value_methods!(TimeDateTimeWithTimeZone, is_time_date_time_with_time_zone, as_ref_time_date_time_with_time_zone, OffsetDateTime);
+#[cfg(feature = "with-time")]
 impl Value {
-    pub fn is_time_date(&self) -> bool {
-        matches!(self, Self::TimeDate(_))
-    }
-
-    pub fn as_ref_time_date(&self) -> Option<&time::Date> {
-        match self {
-            Self::TimeDate(v) => v.as_deref(),
-            _ => panic!("not Value::TimeDate"),
-        }
-    }
-
-    pub fn is_time_time(&self) -> bool {
-        matches!(self, Self::TimeTime(_))
-    }
-
-    pub fn as_ref_time_time(&self) -> Option<&time::Time> {
-        match self {
-            Self::TimeTime(v) => v.as_deref(),
-            _ => panic!("not Value::TimeTime"),
-        }
-    }
-
-    pub fn is_time_date_time(&self) -> bool {
-        matches!(self, Self::TimeDateTime(_))
-    }
-
-    pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
-        match self {
-            Self::TimeDateTime(v) => v.as_deref(),
-            _ => panic!("not Value::TimeDateTime"),
-        }
-    }
-
-    pub fn is_time_date_time_with_time_zone(&self) -> bool {
-        matches!(self, Self::TimeDateTimeWithTimeZone(_))
-    }
-
-    pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
-        match self {
-            Self::TimeDateTimeWithTimeZone(v) => v.as_deref(),
-            _ => panic!("not Value::TimeDateTimeWithTimeZone"),
-        }
-    }
-
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
             Self::TimeDate(v) => v
@@ -859,93 +794,61 @@ impl Value {
         }
     }
 }
+#[cfg(all(feature = "with-time", feature = "with-array"))]
+impl_value_methods!(TimeDateArray, is_time_date_array, as_ref_time_date_array, [time::Date]);
+#[cfg(all(feature = "with-time", feature = "with-array"))]
+impl_value_methods!(TimeTimeArray, is_time_time_array, as_ref_time_time_array, [time::Time]);
+#[cfg(all(feature = "with-time", feature = "with-array"))]
+impl_value_methods!(TimeDateTimeArray, is_time_date_time_array, as_ref_time_date_time_array, [PrimitiveDateTime]);
+#[cfg(all(feature = "with-time", feature = "with-array"))]
+impl_value_methods!(TimeDateTimeWithTimeZoneArray, is_time_date_time_with_time_zone_array, as_ref_time_date_time_with_time_zone_array, [OffsetDateTime]);
 
 #[cfg(feature = "with-rust_decimal")]
+impl_value_methods!(Decimal, is_decimal, as_ref_decimal, Decimal);
+#[cfg(feature = "with-rust_decimal")]
 impl Value {
-    pub fn is_decimal(&self) -> bool {
-        matches!(self, Self::Decimal(_))
-    }
-
-    pub fn as_ref_decimal(&self) -> Option<&Decimal> {
-        match self {
-            Self::Decimal(v) => v.as_deref(),
-            _ => panic!("not Value::Decimal"),
-        }
-    }
-
     pub fn decimal_to_f64(&self) -> Option<f64> {
         use rust_decimal::prelude::ToPrimitive;
 
-        self.as_ref_decimal().map(|d| d.to_f64().unwrap())
+        self.as_ref_decimal().and_then(|d| d.to_f64())
     }
 }
+#[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+impl_value_methods!(DecimalArray, is_decimal_array, as_ref_decimal_array, [Decimal]);
 
 #[cfg(feature = "with-bigdecimal")]
+impl_value_methods!(BigDecimal, is_big_decimal, as_ref_big_decimal, BigDecimal);
+#[cfg(feature = "with-bigdecimal")]
 impl Value {
-    pub fn is_big_decimal(&self) -> bool {
-        matches!(self, Self::BigDecimal(_))
-    }
-
-    pub fn as_ref_big_decimal(&self) -> Option<&BigDecimal> {
-        match self {
-            Self::BigDecimal(v) => v.as_deref(),
-            _ => panic!("not Value::BigDecimal"),
-        }
-    }
-
     pub fn big_decimal_to_f64(&self) -> Option<f64> {
         use bigdecimal::ToPrimitive;
         self.as_ref_big_decimal().map(|d| d.to_f64().unwrap())
     }
 }
+#[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+impl_value_methods!(BigDecimalArray, is_big_decimal_array, as_ref_big_decimal_array, [BigDecimal]);
 
 #[cfg(feature = "with-uuid")]
-impl Value {
-    pub fn is_uuid(&self) -> bool {
-        matches!(self, Self::Uuid(_))
-    }
-    pub fn as_ref_uuid(&self) -> Option<&Uuid> {
-        match self {
-            Self::Uuid(v) => v.as_deref(),
-            _ => panic!("not Value::Uuid"),
-        }
-    }
-}
+impl_value_methods!(Uuid, is_uuid, as_ref_uuid, Uuid);
+#[cfg(all(feature = "with-uuid", feature = "with-array"))]
+impl_value_methods!(UuidArray, is_uuid_array, as_ref_uuid_array, [Uuid]);
 
 #[cfg(feature = "with-ipnetwork")]
+impl_value_methods!(IpNetwork, is_ipnetwork, as_ref_ipnetwork, IpNetwork);
+#[cfg(feature = "with-ipnetwork")]
 impl Value {
-    pub fn is_ipnetwork(&self) -> bool {
-        matches!(self, Self::IpNetwork(_))
-    }
-
-    pub fn as_ref_ipnetwork(&self) -> Option<&IpNetwork> {
-        match self {
-            Self::IpNetwork(v) => v.as_deref(),
-            _ => panic!("not Value::IpNetwork"),
-        }
-    }
-
     pub fn as_ipaddr(&self) -> Option<IpAddr> {
-        match self {
-            Self::IpNetwork(v) => v.clone().map(|v| v.network()),
-            _ => panic!("not Value::IpNetwork"),
-        }
+        self.as_ref_ipnetwork().map(|v|v.network())
     }
 }
+#[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+impl_value_methods!(IpNetworkArray, is_ipnetwork_array, as_ref_ipnetwork_array, [IpNetwork]);
 
 #[cfg(feature = "with-mac_address")]
-impl Value {
-    pub fn is_mac_address(&self) -> bool {
-        matches!(self, Self::MacAddress(_))
-    }
+impl_value_methods!(MacAddress, is_mac_address, as_ref_mac_address, MacAddress);
+#[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+impl_value_methods!(MacAddressArray, is_mac_address_array, as_ref_mac_address_array, [MacAddress]);
 
-    pub fn as_ref_mac_address(&self) -> Option<&MacAddress> {
-        match self {
-            Self::MacAddress(v) => v.as_deref(),
-            _ => panic!("not Value::MacAddress"),
-        }
-    }
-}
 
 impl IntoIterator for ValueTuple {
     type Item = Value;
