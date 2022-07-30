@@ -148,6 +148,30 @@ fn create_5() {
 }
 
 #[test]
+fn create_6() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(
+                ColumnDef::new(Task::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .col(ColumnDef::new(Task::IsDone).boolean().not_null())
+            .to_string(SqliteQueryBuilder),
+        vec![
+            r#"CREATE TABLE "task" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""is_done" bool NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn create_with_unique_index() {
     assert_eq!(
         Table::create()

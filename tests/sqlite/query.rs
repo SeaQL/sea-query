@@ -1085,6 +1085,36 @@ fn insert_8() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
+fn insert_9() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Task::Table)
+            .columns([Task::IsDone])
+            .values_panic(vec![
+                true.into(),
+            ])
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "task" ("is_done") VALUES (TRUE)"#
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_10() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Task::Table)
+            .columns([Task::IsDone])
+            .values_panic(vec![
+                false.into(),
+            ])
+            .to_string(SqliteQueryBuilder),
+        r#"INSERT INTO "task" ("is_done") VALUES (FALSE)"#
+    );
+}
+
+#[test]
 fn insert_from_select() {
     assert_eq!(
         Query::insert()
