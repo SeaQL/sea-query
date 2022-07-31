@@ -22,6 +22,7 @@ pub enum Function {
     Lower,
     Upper,
     CurrentTimestamp,
+    Mod,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -400,6 +401,40 @@ impl Func {
         I: IntoIterator<Item = T>,
     {
         Expr::func(Function::Coalesce).args(args)
+    }
+
+    /// Call `MOD` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::modulo(Expr::col(Char::FontSize), Expr::value(2)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT MOD(`font_size`, 2) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT MOD("font_size", 2) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MOD("font_size", 2) FROM "character""#
+    /// );
+    /// ```
+    pub fn modulo<A, B>(a: A, b: B) -> SimpleExpr
+    where
+        A: Into<SimpleExpr>,
+        B: Into<SimpleExpr>,
+    {
+        Expr::func(Function::Mod).args(vec![a.into(), b.into()])
     }
 
     /// Call `LOWER` function.

@@ -732,6 +732,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                     Function::Upper => "UPPER",
                     Function::Custom(_) => "",
                     Function::CurrentTimestamp => "CURRENT_TIMESTAMP",
+                    Function::Mod => "MOD",
                     #[cfg(feature = "backend-postgres")]
                     Function::PgFunction(_) => unimplemented!(),
                 }
