@@ -29,6 +29,8 @@ impl IndexBuilder for SqliteQueryBuilder {
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
+
+        self.prepare_filter(&create.r#where, sql);
     }
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
@@ -45,6 +47,12 @@ impl IndexBuilder for SqliteQueryBuilder {
     }
 
     fn write_column_index_prefix(&self, _col_prefix: &Option<u32>, _sql: &mut SqlWriter) {}
+
+    fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut SqlWriter) {
+        let mut _params: Vec<Value> = Vec::new();
+        let mut _collector = |v| _params.push(v);
+        self.prepare_condition(condition, "WHERE", sql, &mut _collector);
+    }
 
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         if create.primary {

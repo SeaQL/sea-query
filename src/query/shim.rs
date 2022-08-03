@@ -12,3 +12,4 @@ impl_ordered_statement!(delete_statement_ordered, DeleteStatement);
 impl_conditional_statement!(select_statement_conditional, SelectStatement);
 impl_conditional_statement!(update_statement_conditional, UpdateStatement);
 impl_conditional_statement!(delete_statement_conditional, DeleteStatement);
+impl_conditional_statement!(index_create_conditional, IndexCreateStatement);

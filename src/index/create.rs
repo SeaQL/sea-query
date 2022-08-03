@@ -1,5 +1,7 @@
 use super::common::*;
+use crate::query::IntoCondition;
 use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
+use crate::{ConditionHolder, ConditionalStatement};
 
 /// Create an index for an existing table
 ///
@@ -120,6 +122,28 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" ASC)"#
 /// );
 /// ```
+///
+/// Partial Index with prefix and order
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let index = Index::create()
+///     .name("idx-glyph-aspect")
+///     .table(Glyph::Table)
+///     .col((Glyph::Aspect, 64, IndexOrder::Asc))
+///     .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+///     .to_owned();
+///
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" (64) ASC) WHERE "glyph"."aspect" IN ($1, $2)"#
+/// );
+/// assert_eq!(
+///     index.to_string(SqliteQueryBuilder),
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" ASC) WHERE "glyph"."aspect" IN (?, ?)"#
+/// );
+/// ```
+
 #[derive(Debug, Clone)]
 pub struct IndexCreateStatement {
     pub(crate) table: Option<DynIden>,
@@ -128,6 +152,7 @@ pub struct IndexCreateStatement {
     pub(crate) unique: bool,
     pub(crate) index_type: Option<IndexType>,
     pub(crate) if_not_exists: bool,
+    pub(crate) r#where: ConditionHolder,
 }
 
 /// Specification of a table index
@@ -155,6 +180,7 @@ impl IndexCreateStatement {
             unique: false,
             index_type: None,
             if_not_exists: false,
+            r#where: ConditionHolder::new(),
         }
     }
 
@@ -233,6 +259,7 @@ impl IndexCreateStatement {
             unique: self.unique,
             index_type: self.index_type.take(),
             if_not_exists: self.if_not_exists,
+            r#where: self.r#where.clone(),
         }
     }
 }
@@ -248,5 +275,20 @@ impl SchemaStatementBuilder for IndexCreateStatement {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_index_create_statement(self, &mut sql);
         sql.result()
+    }
+}
+
+impl ConditionalStatement for IndexCreateStatement {
+    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+        self.r#where.add_and_or(condition);
+        self
+    }
+
+    fn cond_where<C>(&mut self, condition: C) -> &mut Self
+    where
+        C: IntoCondition,
+    {
+        self.r#where.add_condition(condition.into_condition());
+        self
     }
 }
