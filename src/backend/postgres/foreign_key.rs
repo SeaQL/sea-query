@@ -10,7 +10,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &drop.table {
-                foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, table, sql);
+                self.prepare_table_ref_fk_stmt(table, sql);
             }
             write!(sql, " ").unwrap();
         }
@@ -30,7 +30,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
-                foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, table, sql);
+                self.prepare_table_ref_fk_stmt(table, sql);
             }
             write!(sql, " ").unwrap();
         }
@@ -56,7 +56,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, ref_table, sql);
+            self.prepare_table_ref_fk_stmt(ref_table, sql);
         }
         write!(sql, " ").unwrap();
 
@@ -85,23 +85,11 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
         match table_ref {
-            TableRef::Table(table) => {
-                table.prepare(sql, self.quote());
-            }
-            TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-            }
-            TableRef::DatabaseSchemaTable(database, schema, table) => {
-                database.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-            }
+            TableRef::Table(_)
+            | TableRef::SchemaTable(_, _)
+            | TableRef::DatabaseSchemaTable(_, _, _) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),
         }
     }
