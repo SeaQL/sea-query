@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Removed `join_alias`
 * Change `in_tuples` interface to accept `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/386
 
+### Bug Fixes
+
+* `DROP NOT NULL` for Postgres `ALTER COLUMN` https://github.com/SeaQL/sea-query/pull/394
+
 ## 0.26.2 - 2022-07-21
 
 ### Bug Fixes
