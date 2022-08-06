@@ -448,6 +448,21 @@ fn alter_7() {
 }
 
 #[test]
+fn alter_8() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .modify_column(ColumnDef::new(Font::Language).null())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"ALTER TABLE "font""#,
+            r#"ALTER COLUMN "language" DROP NOT NULL"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn rename_1() {
     assert_eq!(
         Table::rename()

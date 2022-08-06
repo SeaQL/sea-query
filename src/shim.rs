@@ -3,7 +3,7 @@ macro_rules! impl_schema_statement_builder {
     ( $mod_name: ident, $struct_name: ident ) => {
         mod $mod_name {
 
-            use crate::{$struct_name, SchemaBuilder, SchemaStatementBuilder};
+            use $crate::{$struct_name, SchemaBuilder, SchemaStatementBuilder};
 
             impl $struct_name {
                 pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
