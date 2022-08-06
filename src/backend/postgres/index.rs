@@ -26,7 +26,7 @@ impl IndexBuilder for PostgresQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            index_builder::IndexBuilder::prepare_table_ref(self, table, sql);
+            self.prepare_table_ref_index_stmt(table, sql);
         }
 
         self.prepare_index_type(&create.index_type, sql);
@@ -76,15 +76,10 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
         match table_ref {
-            TableRef::Table(table) => {
-                table.prepare(sql, self.quote());
-            }
-            TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
+            TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
+                self.prepare_table_ref_iden(table_ref, sql)
             }
             _ => panic!("Not supported"),
         }

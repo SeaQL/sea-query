@@ -126,7 +126,7 @@ impl TableBuilder for PostgresQueryBuilder {
         };
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
-            table_builder::TableBuilder::prepare_table_ref(self, table, sql);
+            self.prepare_table_ref_table_stmt(table, sql);
             write!(sql, " ").unwrap();
         }
 
@@ -198,11 +198,11 @@ impl TableBuilder for PostgresQueryBuilder {
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
-            table_builder::TableBuilder::prepare_table_ref(self, from_name, sql);
+            self.prepare_table_ref_table_stmt(from_name, sql);
         }
         write!(sql, " RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
-            table_builder::TableBuilder::prepare_table_ref(self, to_name, sql);
+            self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
 }

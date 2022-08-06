@@ -21,7 +21,7 @@ impl IndexBuilder for MysqlQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            index_builder::IndexBuilder::prepare_table_ref(self, table, sql);
+            self.prepare_table_ref_index_stmt(table, sql);
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
@@ -37,7 +37,7 @@ impl IndexBuilder for MysqlQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &drop.table {
-            index_builder::IndexBuilder::prepare_table_ref(self, table, sql);
+            self.prepare_table_ref_index_stmt(table, sql);
         }
     }
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut SqlWriter) {
@@ -70,11 +70,9 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
         match table_ref {
-            TableRef::Table(table) => {
-                table.prepare(sql, self.quote());
-            }
+            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),
         }
     }

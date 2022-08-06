@@ -39,7 +39,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            foreign_key_builder::ForeignKeyBuilder::prepare_table_ref(self, ref_table, sql);
+            self.prepare_table_ref_fk_stmt(ref_table, sql);
         }
         write!(sql, " (").unwrap();
         create
@@ -66,11 +66,9 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
         match table_ref {
-            TableRef::Table(table) => {
-                table.prepare(sql, self.quote());
-            }
+            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),
         }
     }
