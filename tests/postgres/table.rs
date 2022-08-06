@@ -407,3 +407,18 @@ fn alter_7() {
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer, RENAME COLUMN "name" TO "name_new""#
     );
 }
+
+#[test]
+fn alter_8() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .modify_column(ColumnDef::new(Font::Language).null())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"ALTER TABLE "font""#,
+            r#"ALTER COLUMN "language" DROP NOT NULL"#,
+        ]
+        .join(" ")
+    );
+}
