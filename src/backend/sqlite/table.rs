@@ -80,8 +80,8 @@ impl TableBuilder for SqliteQueryBuilder {
                     None => "real".into(),
                 },
                 ColumnType::DateTime(precision) => match precision {
-                    Some(precision) => format!("datetime({})", precision),
-                    None => "datetime".into(),
+                    Some(precision) => format!("text({})", precision),
+                    None => "text".into(),
                 },
                 ColumnType::Timestamp(precision) => match precision {
                     Some(precision) => format!("text({})", precision),
@@ -95,7 +95,7 @@ impl TableBuilder for SqliteQueryBuilder {
                     Some(precision) => format!("text({})", precision),
                     None => "text".into(),
                 },
-                ColumnType::Date => "date".into(),
+                ColumnType::Date => "text".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
                     BlobSize::Blob(Some(length)) => format!("binary({})", length),
