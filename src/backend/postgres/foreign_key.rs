@@ -10,7 +10,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &drop.table {
-                table.prepare(sql, self.quote());
+                self.prepare_table_ref_fk_stmt(table, sql);
             }
             write!(sql, " ").unwrap();
         }
@@ -30,7 +30,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if mode == Mode::Alter {
             write!(sql, "ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
-                table.prepare(sql, self.quote());
+                self.prepare_table_ref_fk_stmt(table, sql);
             }
             write!(sql, " ").unwrap();
         }
@@ -56,7 +56,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
 
         write!(sql, " REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
-            ref_table.prepare(sql, self.quote());
+            self.prepare_table_ref_fk_stmt(ref_table, sql);
         }
         write!(sql, " ").unwrap();
 
@@ -82,6 +82,15 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         if let Some(foreign_key_action) = &create.foreign_key.on_update {
             write!(sql, " ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
+        }
+    }
+
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::Table(_)
+            | TableRef::SchemaTable(_, _)
+            | TableRef::DatabaseSchemaTable(_, _, _) => self.prepare_table_ref_iden(table_ref, sql),
+            _ => panic!("Not supported"),
         }
     }
 }

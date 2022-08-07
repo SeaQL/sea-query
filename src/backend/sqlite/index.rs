@@ -25,7 +25,7 @@ impl IndexBuilder for SqliteQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref_index_stmt(table, sql);
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
@@ -40,7 +40,7 @@ impl IndexBuilder for SqliteQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &drop.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref_index_stmt(table, sql);
         }
     }
 
@@ -51,6 +51,13 @@ impl IndexBuilder for SqliteQueryBuilder {
             write!(sql, "PRIMARY KEY ").unwrap();
         } else if create.unique {
             write!(sql, "UNIQUE ").unwrap();
+        }
+    }
+
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            _ => panic!("Not supported"),
         }
     }
 }

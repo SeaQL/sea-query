@@ -27,7 +27,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct ForeignKeyDropStatement {
     pub(crate) foreign_key: TableForeignKey,
-    pub(crate) table: Option<DynIden>,
+    pub(crate) table: Option<TableRef>,
 }
 
 impl Default for ForeignKeyDropStatement {
@@ -54,9 +54,9 @@ impl ForeignKeyDropStatement {
     /// Set key table and referencing table
     pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoTableRef,
     {
-        self.table = Some(SeaRc::new(table));
+        self.table = Some(table.into_table_ref());
         self
     }
 }

@@ -28,3 +28,5 @@ impl QuotedBuilder for MysqlQueryBuilder {
 }
 
 impl EscapeBuilder for MysqlQueryBuilder {}
+
+impl TableRefBuilder for MysqlQueryBuilder {}

@@ -26,7 +26,7 @@ impl IndexBuilder for PostgresQueryBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref_index_stmt(table, sql);
         }
 
         self.prepare_index_type(&create.index_type, sql);
@@ -36,6 +36,16 @@ impl IndexBuilder for PostgresQueryBuilder {
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
+        if let Some(table) = &drop.table {
+            match table {
+                TableRef::Table(_) => {}
+                TableRef::SchemaTable(schema, _) => {
+                    schema.prepare(sql, self.quote());
+                    write!(sql, ".").unwrap();
+                }
+                _ => panic!("Not supported"),
+            }
+        }
         if let Some(name) = &drop.index.name {
             write!(sql, "\"{}\"", name).unwrap();
         }
@@ -63,6 +73,15 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
         if create.unique {
             write!(sql, "UNIQUE ").unwrap();
+        }
+    }
+
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+        match table_ref {
+            TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
+            _ => panic!("Not supported"),
         }
     }
 }

@@ -144,7 +144,7 @@ impl TableBuilder for SqliteQueryBuilder {
         };
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref_table_stmt(table, sql);
             write!(sql, " ").unwrap();
         }
         match &alter.options[0] {
@@ -179,11 +179,11 @@ impl TableBuilder for SqliteQueryBuilder {
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
-            from_name.prepare(sql, self.quote());
+            self.prepare_table_ref_table_stmt(from_name, sql);
         }
         write!(sql, " RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
-            to_name.prepare(sql, self.quote());
+            self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
 }

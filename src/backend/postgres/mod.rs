@@ -27,3 +27,5 @@ impl QuotedBuilder for PostgresQueryBuilder {
 }
 
 impl EscapeBuilder for PostgresQueryBuilder {}
+
+impl TableRefBuilder for PostgresQueryBuilder {}

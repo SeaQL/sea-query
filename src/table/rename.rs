@@ -26,8 +26,8 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// ```
 #[derive(Debug, Clone)]
 pub struct TableRenameStatement {
-    pub(crate) from_name: Option<DynIden>,
-    pub(crate) to_name: Option<DynIden>,
+    pub(crate) from_name: Option<TableRef>,
+    pub(crate) to_name: Option<TableRef>,
 }
 
 impl Default for TableRenameStatement {
@@ -48,11 +48,11 @@ impl TableRenameStatement {
     /// Set old and new table name
     pub fn table<T: 'static, R: 'static>(&mut self, from_name: T, to_name: R) -> &mut Self
     where
-        T: Iden,
-        R: Iden,
+        T: IntoTableRef,
+        R: IntoTableRef,
     {
-        self.from_name = Some(SeaRc::new(from_name));
-        self.to_name = Some(SeaRc::new(to_name));
+        self.from_name = Some(from_name.into_table_ref());
+        self.to_name = Some(to_name.into_table_ref());
         self
     }
 

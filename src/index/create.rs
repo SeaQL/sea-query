@@ -122,7 +122,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// ```
 #[derive(Debug, Clone)]
 pub struct IndexCreateStatement {
-    pub(crate) table: Option<DynIden>,
+    pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
     pub(crate) primary: bool,
     pub(crate) unique: bool,
@@ -173,9 +173,9 @@ impl IndexCreateStatement {
     /// Set target table
     pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoTableRef,
     {
-        self.table = Some(SeaRc::new(table));
+        self.table = Some(table.into_table_ref());
         self
     }
 

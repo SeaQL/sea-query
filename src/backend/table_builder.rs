@@ -1,6 +1,6 @@
 use crate::*;
 
-pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
+pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + TableRefBuilder {
     /// Translate [`TableCreateStatement`] into SQL statement.
     fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut SqlWriter) {
         write!(sql, "CREATE TABLE ").unwrap();
@@ -10,7 +10,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
         }
 
         if let Some(table_ref) = &create.table {
-            self.prepare_table_ref(table_ref, sql);
+            self.prepare_table_ref_table_stmt(table_ref, sql);
         }
 
         write!(sql, " ( ").unwrap();
@@ -49,27 +49,11 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
     }
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
-        self.prepare_table_ref_common(table_ref, sql);
-    }
-
-    fn prepare_table_ref_common(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_table_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
         match table_ref {
-            TableRef::Table(table) => {
-                table.prepare(sql, self.quote());
-            }
-            TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-            }
-            TableRef::DatabaseSchemaTable(database, schema, table) => {
-                database.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-            }
+            TableRef::Table(_)
+            | TableRef::SchemaTable(_, _)
+            | TableRef::DatabaseSchemaTable(_, _, _) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),
         }
     }
@@ -112,7 +96,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_table_ref(table, sql);
+            self.prepare_table_ref_table_stmt(table, sql);
             false
         });
 
@@ -146,7 +130,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder {
         write!(sql, "TRUNCATE TABLE ").unwrap();
 
         if let Some(table) = &truncate.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref_table_stmt(table, sql);
         }
     }
 
