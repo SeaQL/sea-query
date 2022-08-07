@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Support `CROSS JOIN` https://github.com/SeaQL/sea-query/pull/376
 
+### Enhancements
+
+* Handle Postgres schema name for schema statements https://github.com/SeaQL/sea-query/pull/385
+
 ### Breaking changes
 
 * Removed `join_alias`
