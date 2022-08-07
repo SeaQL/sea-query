@@ -186,7 +186,7 @@ impl UpdateStatement {
 
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
-        self.limit = Some(Value::BigUnsigned(Some(limit)));
+        self.limit = Some(limit.into());
         self
     }
 

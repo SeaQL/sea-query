@@ -852,8 +852,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             write!(sql, "WHEN ").unwrap();
             self.prepare_simple_expr(&order_expr.expr, sql);
             write!(sql, "=").unwrap();
-            let value = self.value_to_string(value);
-            write!(sql, "{}", value).unwrap();
+            write!(sql, "{}", value.to_sql_string()).unwrap();
             write!(sql, " THEN {} ", i).unwrap();
             i += 1;
         }
@@ -865,8 +864,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        let string = self.value_to_string(value);
-        write!(sql, "{}", string).unwrap();
+        write!(sql, "{}", value.to_sql_string()).unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
@@ -913,144 +911,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Keyword::CurrentTimestamp => write!(sql, "CURRENT_TIMESTAMP").unwrap(),
             Keyword::Custom(iden) => iden.unquoted(sql.as_writer()),
         }
-    }
-
-    /// Convert a SQL value into syntax-specific string
-    fn value_to_string(&self, v: &Value) -> String {
-        let mut s = String::new();
-        match v {
-            Value::Bool(None)
-            | Value::TinyInt(None)
-            | Value::SmallInt(None)
-            | Value::Int(None)
-            | Value::BigInt(None)
-            | Value::TinyUnsigned(None)
-            | Value::SmallUnsigned(None)
-            | Value::Unsigned(None)
-            | Value::BigUnsigned(None)
-            | Value::Float(None)
-            | Value::Double(None)
-            | Value::String(None)
-            | Value::Char(None)
-            | Value::Bytes(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-json")]
-            Value::Json(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
-            Value::TimeDate(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
-            Value::TimeTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
-            Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "postgres-array")]
-            Value::Array(None) => write!(s, "NULL").unwrap(),
-            Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Int(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
-            Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
-            }
-            Value::Bytes(Some(v)) => write!(
-                s,
-                "x'{}'",
-                v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
-            )
-            .unwrap(),
-            #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
-            }
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
-            }
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
-            }
-            #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
-            }
-            #[cfg(feature = "with-time")]
-            Value::TimeDate(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
-            }
-            #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
-            }
-            #[cfg(feature = "with-time")]
-            Value::TimeDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
-            }
-            #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
-            )
-            .unwrap(),
-            #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
-            #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
-            #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
-            #[cfg(feature = "postgres-array")]
-            Value::Array(Some(v)) => write!(
-                s,
-                "'{{{}}}'",
-                v.iter()
-                    .map(|element| self.value_to_string(element))
-                    .collect::<Vec<String>>()
-                    .join(",")
-            )
-            .unwrap(),
-            #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(Some(v)) => write!(s, "'{}'", v).unwrap(),
-            #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
-        };
-        s
     }
 
     #[doc(hidden)]
@@ -1260,13 +1120,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         match *frame {
             Frame::UnboundedPreceding => write!(sql, "UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
-                self.prepare_value(&Some(v).into(), sql);
-                write!(sql, "PRECEDING").unwrap();
+                self.prepare_value(&v.into(), sql);
+                write!(sql, " PRECEDING ").unwrap();
             }
             Frame::CurrentRow => write!(sql, "CURRENT ROW").unwrap(),
             Frame::Following(v) => {
-                self.prepare_value(&Some(v).into(), sql);
-                write!(sql, "FOLLOWING").unwrap();
+                self.prepare_value(&v.into(), sql);
+                write!(sql, " FOLLOWING ").unwrap();
             }
             Frame::UnboundedFollowing => write!(sql, "UNBOUNDED FOLLOWING").unwrap(),
         }

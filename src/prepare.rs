@@ -11,7 +11,7 @@ pub trait SqlWriter: Write + ToString {
 
 impl SqlWriter for String {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
-        self.push_str(&query_builder.value_to_string(&value))
+        self.push_str(&value.to_sql_string())
     }
 
     fn as_writer(&mut self) -> &mut dyn Write {
@@ -89,7 +89,7 @@ where
         match token {
             Token::Punctuation(mark) => {
                 if (mark.as_ref(), false) == query_builder.placeholder() {
-                    output.push(query_builder.value_to_string(&params[counter]));
+                    output.push(params[counter].to_sql_string());
                     counter += 1;
                     i += 1;
                     continue;
@@ -98,7 +98,7 @@ where
                 {
                     if let Token::Unquoted(next) = &tokens[i + 1] {
                         if let Ok(num) = next.parse::<usize>() {
-                            output.push(query_builder.value_to_string(&params[num - 1]));
+                            output.push(params[num - 1].to_sql_string());
                             i += 2;
                             continue;
                         }
@@ -116,7 +116,7 @@ where
 #[cfg(test)]
 #[cfg(feature = "backend-mysql")]
 mod tests {
-    use super::*;
+    use crate::*;
 
     #[test]
     fn inject_parameters_1() {
