@@ -6,6 +6,7 @@ impl IndexBuilder for SqliteQueryBuilder {
             write!(sql, "CONSTRAINT ").unwrap();
         }
         self.prepare_index_name(&create.index.name, sql);
+        write!(sql, " ").unwrap();
 
         self.prepare_index_prefix(create, sql);
 
