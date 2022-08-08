@@ -164,7 +164,7 @@ fn create_6() {
         vec![
             r#"CREATE TABLE "task" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-            r#""is_done" bool NOT NULL"#,
+            r#""is_done" boolean NOT NULL"#,
             r#")"#,
         ]
         .join(" ")
