@@ -1,10 +1,10 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use sea_query::{
-    time_format, ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
+    ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
 };
 use sea_query_binder::SqlxBinder;
 use serde_json::{json, Value as Json};
-use sqlx::{sqlite::SqliteRow, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use time::{
     macros::{date, time},
     PrimitiveDateTime,
@@ -99,14 +99,13 @@ async fn main() {
     }
     println!();
 
-    let rows = sqlx::query_with(&sql, values)
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
         .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        let item = CharacterStructTime::try_from(row).unwrap();
-        println!("{:?}", item);
+        println!("{:?}", row);
     }
     println!();
 
@@ -143,15 +142,13 @@ async fn main() {
     for row in rows.iter() {
         println!("{:?}\n", row);
     }
-
-    let rows = sqlx::query_with(&sql, values)
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
         .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        let item = CharacterStructTime::try_from(row).unwrap();
-        println!("{:?}", item);
+        println!("{:?}", row);
     }
     println!();
 
@@ -208,14 +205,13 @@ async fn main() {
         println!("{:?}\n", row);
     }
 
-    let rows = sqlx::query_with(&sql, values)
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
         .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        let item = CharacterStructTime::try_from(row).unwrap();
-        println!("{:?}", item);
+        println!("{:?}", row);
     }
     println!();
 
@@ -252,7 +248,7 @@ struct CharacterStructChrono {
     created: NaiveDateTime,
 }
 
-#[derive(Debug)]
+#[derive(sqlx::FromRow, Debug)]
 #[allow(dead_code)]
 struct CharacterStructTime {
     id: i32,
@@ -261,21 +257,4 @@ struct CharacterStructTime {
     font_size: i32,
     meta: Json,
     created: PrimitiveDateTime,
-}
-
-impl TryFrom<&SqliteRow> for CharacterStructTime {
-    type Error = sqlx::Error;
-
-    fn try_from(row: &SqliteRow) -> Result<Self, Self::Error> {
-        let created: String = dbg!(row.try_get("created")?);
-        let created = PrimitiveDateTime::parse(&created, time_format::FORMAT_DATETIME).unwrap();
-        Ok(Self {
-            id: row.try_get("id")?,
-            uuid: row.try_get("uuid")?,
-            character: row.try_get("character")?,
-            font_size: row.try_get("font_size")?,
-            meta: row.try_get("meta")?,
-            created,
-        })
-    }
 }
