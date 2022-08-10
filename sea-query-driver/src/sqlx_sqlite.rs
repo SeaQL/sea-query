@@ -29,10 +29,10 @@ pub fn bind_params_sqlx_sqlite(input: TokenStream) -> TokenStream {
 
     let with_time = if cfg!(feature = "with-time") {
         quote! {
-            v @ Value::TimeDate(_) => query.bind(v.as_deref()),
-            v @ Value::TimeTime(_) => query.bind(v.as_deref()),
-            v @ Value::TimeDateTime(_) => query.bind(v.as_deref()),
-            v @ Value::TimeDateTimeWithTimeZone(_) => query.bind(v.as_deref()),
+            Value::TimeDate(v) => query.bind(v.as_deref()),
+            Value::TimeTime(v) => query.bind(v.as_deref()),
+            Value::TimeDateTime(v) => query.bind(v.as_deref()),
+            Value::TimeDateTimeWithTimeZone(v) => query.bind(v.as_deref()),
         }
     } else {
         quote! {}
