@@ -703,3 +703,9 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
+
+SeaQuery is a community driven project. We welcome you to participate, contribute and together build for Rust's future.
+
+A big shout out to our contributors:
+
+[![Contributors](https://opencollective.com/sea-query/contributors.svg?width=1000)](https://github.com/SeaQL/sea-query/graphs/contributors)
