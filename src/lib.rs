@@ -741,7 +741,7 @@
 //!
 //! A big shout out to our contributors:
 //!
-//! [![Contributors](https://opencollective.com/sea-query/contributors.svg?width=1000)](https://github.com/SeaQL/sea-query/graphs/contributors)
+//! [![Contributors](https://opencollective.com/sea-query/contributors.svg?width=1000&button=false)](https://github.com/SeaQL/sea-query/graphs/contributors)
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL icon dark.png"
 )]

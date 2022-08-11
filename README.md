@@ -708,4 +708,4 @@ SeaQuery is a community driven project. We welcome you to participate, contribut
 
 A big shout out to our contributors:
 
-[![Contributors](https://opencollective.com/sea-query/contributors.svg?width=1000)](https://github.com/SeaQL/sea-query/graphs/contributors)
+[![Contributors](https://opencollective.com/sea-query/contributors.svg?width=1000&button=false)](https://github.com/SeaQL/sea-query/graphs/contributors)
