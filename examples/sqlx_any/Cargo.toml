@@ -26,13 +26,13 @@ sea-query-binder = { path = "../../sea-query-binder", features = [
     "with-uuid",
     "with-time",
     "postgres-array",
+    "runtime-async-std-native-tls",
 ] }
 
 [dependencies.sqlx]
 version = "^0.6"
 default-features = false
 features = [
-    "runtime-async-std-native-tls",
     "macros",
     "any",
     "tls",
