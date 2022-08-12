@@ -63,6 +63,10 @@ impl TableBuilder for PostgresQueryBuilder {
                     Some(precision) => format!("timestamp({}) without time zone", precision),
                     None => "timestamp without time zone".into(),
                 },
+                ColumnType::DateTimeUTC(precision) => match precision {
+                    Some(precision) => format!("timestamp({}) without time zone", precision),
+                    None => "timestamp without time zone".into(),
+                },
                 ColumnType::Timestamp(precision) => match precision {
                     Some(precision) => format!("timestamp({})", precision),
                     None => "timestamp".into(),
@@ -76,6 +80,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "time".into(),
                 },
                 ColumnType::Date => "date".into(),
+                ColumnType::DateUTC => "date".into(),
                 ColumnType::Interval(fields, precision) => {
                     let mut typ = "interval".to_string();
                     if let Some(fields) = fields {

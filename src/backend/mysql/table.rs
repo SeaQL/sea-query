@@ -63,6 +63,10 @@ impl TableBuilder for MysqlQueryBuilder {
                     Some(precision) => format!("datetime({})", precision),
                     None => "datetime".into(),
                 },
+                ColumnType::DateTimeUTC(precision) => match precision {
+                    Some(precision) => format!("datetime({})", precision),
+                    None => "datetime".into(),
+                },
                 ColumnType::Timestamp(precision) => match precision {
                     Some(precision) => format!("timestamp({})", precision),
                     None => "timestamp".into(),
@@ -76,6 +80,7 @@ impl TableBuilder for MysqlQueryBuilder {
                     None => "time".into(),
                 },
                 ColumnType::Date => "date".into(),
+                ColumnType::DateUTC => "date".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
                     BlobSize::Tiny => "tinyblob".into(),
