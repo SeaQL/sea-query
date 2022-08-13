@@ -463,13 +463,15 @@ pub trait ConditionalStatement {
     ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
     /// );
     /// ```
-    /// Calling multiple times
+    ///
+    /// Calling multiple times; the following two are equivalent:
+    ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// assert_eq!(
     ///     Query::select()
-    ///         .cond_where(Cond::all().add(Expr::col(Glyph::Id).eq(1)))
+    ///         .cond_where(Expr::col(Glyph::Id).eq(1))
     ///         .cond_where(
     ///             Cond::any()
     ///                 .add(Expr::col(Glyph::Id).eq(2))
@@ -479,8 +481,23 @@ pub trait ConditionalStatement {
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
     /// );
+    ///
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .cond_where(
+    ///             Cond::any()
+    ///                 .add(Expr::col(Glyph::Id).eq(2))
+    ///                 .add(Expr::col(Glyph::Id).eq(3)),
+    ///         )
+    ///         .cond_where(Expr::col(Glyph::Id).eq(1))
+    ///         .to_owned()
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
+    /// );
     /// ```
-    /// Calling multiple times
+    ///
+    /// Calling multiple times; will be ANDed togother
+    ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
@@ -491,11 +508,31 @@ pub trait ConditionalStatement {
     ///                 .add(Expr::col(Glyph::Id).eq(1))
     ///                 .add(Expr::col(Glyph::Id).eq(2)),
     ///         )
-    ///         .cond_where(Expr::col(Glyph::Id).eq(3))
-    ///         .cond_where(Expr::col(Glyph::Id).eq(4))
+    ///         .cond_where(
+    ///             Cond::any()
+    ///                 .add(Expr::col(Glyph::Id).eq(3))
+    ///                 .add(Expr::col(Glyph::Id).eq(4)),
+    ///         )
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE "id" = 1 OR "id" = 2 OR "id" = 3 OR "id" = 4"#
+    ///     r#"SELECT WHERE ("id" = 1 OR "id" = 2) AND ("id" = 3 OR "id" = 4)"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .cond_where(
+    ///             Cond::all()
+    ///                 .add(Expr::col(Glyph::Id).eq(1))
+    ///                 .add(Expr::col(Glyph::Id).eq(2)),
+    ///         )
+    ///         .cond_where(
+    ///             Cond::all()
+    ///                 .add(Expr::col(Glyph::Id).eq(3))
+    ///                 .add(Expr::col(Glyph::Id).eq(4)),
+    ///         )
+    ///         .to_owned()
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"SELECT WHERE "id" = 1 AND "id" = 2 AND "id" = 3 AND "id" = 4"#
     /// );
     /// ```
     fn cond_where<C>(&mut self, condition: C) -> &mut Self
@@ -568,13 +605,24 @@ impl ConditionHolder {
         }
     }
 
-    pub fn add_condition(&mut self, condition: Condition) {
+    pub fn add_condition(&mut self, mut addition: Condition) {
         match std::mem::take(&mut self.contents) {
             ConditionHolderContents::Empty => {
-                self.contents = ConditionHolderContents::Condition(condition);
+                self.contents = ConditionHolderContents::Condition(addition);
             }
-            ConditionHolderContents::Condition(current) => {
-                self.contents = ConditionHolderContents::Condition(current.add(condition));
+            ConditionHolderContents::Condition(mut current) => {
+                if current.condition_type == ConditionType::All && !current.negate {
+                    if addition.condition_type == ConditionType::All && !addition.negate {
+                        current.conditions.append(&mut addition.conditions);
+                        self.contents = ConditionHolderContents::Condition(current);
+                    } else {
+                        self.contents = ConditionHolderContents::Condition(current.add(addition));
+                    }
+                } else {
+                    self.contents = ConditionHolderContents::Condition(
+                        Condition::all().add(current).add(addition),
+                    );
+                }
             }
             ConditionHolderContents::Chain(_) => {
                 panic!("Cannot mix `and_where`/`or_where` and `cond_where` in statements")
