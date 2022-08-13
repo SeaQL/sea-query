@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Removed `join_alias`
 * Changed `in_tuples` interface to accept `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/386
-* **Changed `cond_where` semantics**
+* **Changed `cond_where` chaining semantics** https://github.com/SeaQL/sea-query/pull/417
 ```rust
 // Before: will extend current Condition
 assert_eq!(
@@ -62,6 +62,10 @@ assert_eq!(
 ### Bug Fixes
 
 * `DROP NOT NULL` for Postgres `ALTER COLUMN` https://github.com/SeaQL/sea-query/pull/394
+
+### House keeping
+
+Exclude `chrono` default-features https://github.com/SeaQL/sea-query/pull/410
 
 ## 0.26.2 - 2022-07-21
 
