@@ -535,6 +535,48 @@ pub trait ConditionalStatement {
     ///     r#"SELECT WHERE "id" = 1 AND "id" = 2 AND "id" = 3 AND "id" = 4"#
     /// );
     /// ```
+    ///
+    /// Some more test cases involving negation
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .cond_where(
+    ///             Cond::all()
+    ///                 .not()
+    ///                 .add(Expr::col(Glyph::Id).eq(1))
+    ///                 .add(Expr::col(Glyph::Id).eq(2)),
+    ///         )
+    ///         .cond_where(
+    ///             Cond::all()
+    ///                 .add(Expr::col(Glyph::Id).eq(3))
+    ///                 .add(Expr::col(Glyph::Id).eq(4)),
+    ///         )
+    ///         .to_owned()
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"SELECT WHERE (NOT ("id" = 1 AND "id" = 2)) AND ("id" = 3 AND "id" = 4)"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     Query::select()
+    ///         .cond_where(
+    ///             Cond::all()
+    ///                 .add(Expr::col(Glyph::Id).eq(3))
+    ///                 .add(Expr::col(Glyph::Id).eq(4)),
+    ///         )
+    ///         .cond_where(
+    ///             Cond::all()
+    ///                 .not()
+    ///                 .add(Expr::col(Glyph::Id).eq(1))
+    ///                 .add(Expr::col(Glyph::Id).eq(2)),
+    ///         )
+    ///         .to_owned()
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"SELECT WHERE "id" = 3 AND "id" = 4 AND (NOT ("id" = 1 AND "id" = 2))"#
+    /// );
+    /// ```
     fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
         C: IntoCondition;
