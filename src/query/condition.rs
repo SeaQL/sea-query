@@ -453,7 +453,7 @@ pub trait ConditionalStatement {
     ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
     ///             any![
     ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
+    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%"),
     ///             ]
     ///         ])
     ///     .to_owned();
@@ -472,11 +472,7 @@ pub trait ConditionalStatement {
     /// assert_eq!(
     ///     Query::select()
     ///         .cond_where(Expr::col(Glyph::Id).eq(1))
-    ///         .cond_where(
-    ///             Cond::any()
-    ///                 .add(Expr::col(Glyph::Id).eq(2))
-    ///                 .add(Expr::col(Glyph::Id).eq(3)),
-    ///         )
+    ///         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
@@ -484,11 +480,7 @@ pub trait ConditionalStatement {
     ///
     /// assert_eq!(
     ///     Query::select()
-    ///         .cond_where(
-    ///             Cond::any()
-    ///                 .add(Expr::col(Glyph::Id).eq(2))
-    ///                 .add(Expr::col(Glyph::Id).eq(3)),
-    ///         )
+    ///         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
     ///         .cond_where(Expr::col(Glyph::Id).eq(1))
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
@@ -503,16 +495,8 @@ pub trait ConditionalStatement {
     ///
     /// assert_eq!(
     ///     Query::select()
-    ///         .cond_where(
-    ///             Cond::any()
-    ///                 .add(Expr::col(Glyph::Id).eq(1))
-    ///                 .add(Expr::col(Glyph::Id).eq(2)),
-    ///         )
-    ///         .cond_where(
-    ///             Cond::any()
-    ///                 .add(Expr::col(Glyph::Id).eq(3))
-    ///                 .add(Expr::col(Glyph::Id).eq(4)),
-    ///         )
+    ///         .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
+    ///         .cond_where(any![Expr::col(Glyph::Id).eq(3), Expr::col(Glyph::Id).eq(4)])
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"SELECT WHERE ("id" = 1 OR "id" = 2) AND ("id" = 3 OR "id" = 4)"#
@@ -520,16 +504,8 @@ pub trait ConditionalStatement {
     ///
     /// assert_eq!(
     ///     Query::select()
-    ///         .cond_where(
-    ///             Cond::all()
-    ///                 .add(Expr::col(Glyph::Id).eq(1))
-    ///                 .add(Expr::col(Glyph::Id).eq(2)),
-    ///         )
-    ///         .cond_where(
-    ///             Cond::all()
-    ///                 .add(Expr::col(Glyph::Id).eq(3))
-    ///                 .add(Expr::col(Glyph::Id).eq(4)),
-    ///         )
+    ///         .cond_where(all![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
+    ///         .cond_where(all![Expr::col(Glyph::Id).eq(3), Expr::col(Glyph::Id).eq(4)])
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"SELECT WHERE "id" = 1 AND "id" = 2 AND "id" = 3 AND "id" = 4"#

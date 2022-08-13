@@ -20,11 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 // Before: will extend current Condition
 assert_eq!(
     Query::select()
-        .cond_where(
-            Cond::any()
-                .add(Expr::col(Glyph::Id).eq(1))
-                .add(Expr::col(Glyph::Id).eq(2)),
-        )
+        .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
         .cond_where(Expr::col(Glyph::Id).eq(3))
         .to_owned()
         .to_string(PostgresQueryBuilder),
@@ -34,11 +30,7 @@ assert_eq!(
 assert_eq!(
     Query::select()
         .cond_where(Expr::col(Glyph::Id).eq(3))
-        .cond_where(
-            Cond::any()
-                .add(Expr::col(Glyph::Id).eq(1))
-                .add(Expr::col(Glyph::Id).eq(2)),
-        )
+        .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
         .to_owned()
         .to_string(PostgresQueryBuilder),
     r#"SELECT WHERE "id" = 3 AND ("id" = 1 OR "id" = 2)"#
@@ -47,11 +39,7 @@ assert_eq!(
 assert_eq!(
     Query::select()
         .cond_where(Expr::col(Glyph::Id).eq(1))
-        .cond_where(
-            Cond::any()
-                .add(Expr::col(Glyph::Id).eq(2))
-                .add(Expr::col(Glyph::Id).eq(3)),
-        )
+        .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
         .to_owned()
         .to_string(PostgresQueryBuilder),
     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
@@ -59,11 +47,7 @@ assert_eq!(
 // Now: so they are now equivalent
 assert_eq!(
     Query::select()
-        .cond_where(
-            Cond::any()
-                .add(Expr::col(Glyph::Id).eq(2))
-                .add(Expr::col(Glyph::Id).eq(3)),
-        )
+        .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
         .cond_where(Expr::col(Glyph::Id).eq(1))
         .to_owned()
         .to_string(PostgresQueryBuilder),
