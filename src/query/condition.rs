@@ -648,3 +648,24 @@ impl ConditionHolder {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{tests_cfg::*, *};
+
+    #[test]
+    fn test_blank_condition() {
+        let query = Query::select()
+            .column(Glyph::Image)
+            .from(Glyph::Table)
+            .cond_where(Cond::all())
+            .cond_where(Expr::val(1).eq(1))
+            .cond_where(Expr::val(2).eq(2))
+            .to_owned();
+
+        assert_eq!(
+            query.to_string(MysqlQueryBuilder),
+            "SELECT `image` FROM `glyph` WHERE 1 = 1 AND 2 = 2"
+        );
+    }
+}
