@@ -661,11 +661,12 @@ mod test {
             .cond_where(Cond::all())
             .cond_where(Expr::val(1).eq(1))
             .cond_where(Expr::val(2).eq(2))
+            .cond_where(Cond::any().add(Expr::val(3).eq(3)).add(Expr::val(4).eq(4)))
             .to_owned();
 
         assert_eq!(
             query.to_string(MysqlQueryBuilder),
-            "SELECT `image` FROM `glyph` WHERE 1 = 1 AND 2 = 2"
+            "SELECT `image` FROM `glyph` WHERE 1 = 1 AND 2 = 2 AND (3 = 3 OR 4 = 4)"
         );
     }
 }
