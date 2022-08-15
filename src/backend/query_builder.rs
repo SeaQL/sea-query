@@ -609,6 +609,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 BinOper::Sub => "-",
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
+                BinOper::Mod => "%",
+                BinOper::LShift => "<<",
+                BinOper::RShift => ">>",
                 BinOper::As => "AS",
                 BinOper::Escape => "ESCAPE",
                 #[allow(unreachable_patterns)]
