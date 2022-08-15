@@ -1053,7 +1053,7 @@ impl Expr {
         self.bin_oper(BinOper::Mod, SimpleExpr::Value(v.into()))
     }
 
-    /// Express an bitwise left shift.
+    /// Express a bitwise left shift.
     ///
     /// # Examples
     ///
@@ -1087,7 +1087,7 @@ impl Expr {
         self.bin_oper(BinOper::LShift, SimpleExpr::Value(v.into()))
     }
 
-    /// Express an bitwise right shift.
+    /// Express a bitwise right shift.
     ///
     /// # Examples
     ///
