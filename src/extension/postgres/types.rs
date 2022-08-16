@@ -230,26 +230,26 @@ impl TypeCreateStatement {
 
     // below are boiler plates
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
+    pub fn build<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> (String, Vec<Value>) {
+        self.build_ref(type_builder)
     }
 
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build_ref<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> (String, Vec<Value>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
         let sql = self.build_collect_ref(type_builder, &mut collector);
         (sql, params)
     }
 
-    pub fn build_collect<T: TypeBuilder>(
+    pub fn build_collect<T: TypeBuilder + ?Sized>(
         &self,
-        type_builder: T,
+        type_builder: &T,
         collector: &mut dyn FnMut(Value),
     ) -> String {
-        self.build_collect_ref(&type_builder, collector)
+        self.build_collect_ref(type_builder, collector)
     }
 
-    pub fn build_collect_ref<T: TypeBuilder>(
+    pub fn build_collect_ref<T: TypeBuilder + ?Sized>(
         &self,
         type_builder: &T,
         collector: &mut dyn FnMut(Value),
@@ -260,7 +260,7 @@ impl TypeCreateStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T: TypeBuilder>(&self, type_builder: &T) -> String {
+    pub fn to_string<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> String {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
     }
@@ -332,26 +332,26 @@ impl TypeDropStatement {
 
     // below are boiler plates
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
+    pub fn build<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> (String, Vec<Value>) {
+        self.build_ref(type_builder)
     }
 
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build_ref<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> (String, Vec<Value>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
         let sql = self.build_collect_ref(type_builder, &mut collector);
         (sql, params)
     }
 
-    pub fn build_collect<T: TypeBuilder>(
+    pub fn build_collect<T: TypeBuilder + ?Sized>(
         &self,
-        type_builder: T,
+        type_builder: &T,
         collector: &mut dyn FnMut(Value),
     ) -> String {
-        self.build_collect_ref(&type_builder, collector)
+        self.build_collect_ref(type_builder, collector)
     }
 
-    pub fn build_collect_ref<T: TypeBuilder>(
+    pub fn build_collect_ref<T: TypeBuilder + ?Sized>(
         &self,
         type_builder: &T,
         collector: &mut dyn FnMut(Value),
@@ -362,7 +362,7 @@ impl TypeDropStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T: TypeBuilder>(&self, type_builder: &T) -> String {
+    pub fn to_string<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> String {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
     }
@@ -496,26 +496,26 @@ impl TypeAlterStatement {
 
     // below are boilerplate
 
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
+    pub fn build<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> (String, Vec<Value>) {
+        self.build_ref(type_builder)
     }
 
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
+    pub fn build_ref<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> (String, Vec<Value>) {
         let mut params = Vec::new();
         let mut collector = |v| params.push(v);
         let sql = self.build_collect_ref(type_builder, &mut collector);
         (sql, params)
     }
 
-    pub fn build_collect<T: TypeBuilder>(
+    pub fn build_collect<T: TypeBuilder + ?Sized>(
         &self,
-        type_builder: T,
+        type_builder: &T,
         collector: &mut dyn FnMut(Value),
     ) -> String {
-        self.build_collect_ref(&type_builder, collector)
+        self.build_collect_ref(type_builder, collector)
     }
 
-    pub fn build_collect_ref<T: TypeBuilder>(
+    pub fn build_collect_ref<T: TypeBuilder + ?Sized>(
         &self,
         type_builder: &T,
         collector: &mut dyn FnMut(Value),
@@ -526,7 +526,7 @@ impl TypeAlterStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T: TypeBuilder>(&self, type_builder: &T) -> String {
+    pub fn to_string<T: TypeBuilder + ?Sized>(&self, type_builder: &T) -> String {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
     }
