@@ -32,7 +32,7 @@ macro_rules! impl_query_statement_builder {
             };
 
             impl $struct_name {
-                pub fn to_string(&self, query_builder: &dyn QueryBuilder) -> String {
+                pub fn to_string<T: QueryBuilder + ?Sized>(&self, query_builder: &T) -> String {
                     <Self as QueryStatementWriter>::to_string(self, query_builder)
                 }
 
@@ -40,7 +40,10 @@ macro_rules! impl_query_statement_builder {
                     <Self as QueryStatementWriter>::build(self, query_builder)
                 }
 
-                pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+                pub fn build_any<T: QueryBuilder + ?Sized>(
+                    &self,
+                    query_builder: &T,
+                ) -> (String, Values) {
                     <Self as QueryStatementBuilder>::build_any(self, query_builder)
                 }
             }
