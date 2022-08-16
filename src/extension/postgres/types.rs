@@ -22,8 +22,8 @@ impl IntoTypeRef for TypeRef {
 }
 
 impl<I> IntoTypeRef for I
-where
-    I: IntoIden,
+    where
+        I: IntoIden,
 {
     fn into_type_ref(self) -> TypeRef {
         TypeRef::Type(self.into_iden())
@@ -31,9 +31,9 @@ where
 }
 
 impl<A, B> IntoTypeRef for (A, B)
-where
-    A: IntoIden,
-    B: IntoIden,
+    where
+        A: IntoIden,
+        B: IntoIden,
 {
     fn into_type_ref(self) -> TypeRef {
         TypeRef::SchemaType(self.0.into_iden(), self.1.into_iden())
@@ -41,10 +41,10 @@ where
 }
 
 impl<A, B, C> IntoTypeRef for (A, B, C)
-where
-    A: IntoIden,
-    B: IntoIden,
-    C: IntoIden,
+    where
+        A: IntoIden,
+        B: IntoIden,
+        C: IntoIden,
 {
     fn into_type_ref(self) -> TypeRef {
         TypeRef::DatabaseSchemaType(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
@@ -99,7 +99,7 @@ pub enum TypeAlterAddOpt {
     After(DynIden),
 }
 
-pub trait TypeBuilder: QuotedBuilder {
+pub trait TypeBuilder: QuotedBuilder + QueryBuilder {
     /// Translate [`TypeCreateStatement`] into database specific SQL statement.
     fn prepare_type_create_statement(
         &self,
@@ -209,8 +209,8 @@ impl TypeCreateStatement {
     /// );
     /// ```
     pub fn as_enum<T: 'static>(&mut self, name: T) -> &mut Self
-    where
-        T: IntoTypeRef,
+        where
+            T: IntoTypeRef,
     {
         self.name = Some(name.into_type_ref());
         self.as_type = Some(TypeAs::Enum);
@@ -218,9 +218,9 @@ impl TypeCreateStatement {
     }
 
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
-    where
-        T: IntoIden,
-        I: IntoIterator<Item = T>,
+        where
+            T: IntoIden,
+            I: IntoIterator<Item=T>,
     {
         for v in values.into_iter() {
             self.values.push(v.into_iden());
@@ -261,8 +261,8 @@ impl TypeCreateStatement {
 
     /// Build corresponding SQL statement and return SQL string
     pub fn to_string<T>(&self, type_builder: &T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
+        where
+            T: TypeBuilder + QueryBuilder,
     {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
@@ -297,17 +297,17 @@ impl TypeDropStatement {
     /// );
     /// ```
     pub fn name<T>(&mut self, name: T) -> &mut Self
-    where
-        T: IntoTypeRef,
+        where
+            T: IntoTypeRef,
     {
         self.names.push(name.into_type_ref());
         self
     }
 
     pub fn names<T, I>(&mut self, names: I) -> &mut Self
-    where
-        T: IntoTypeRef,
-        I: IntoIterator<Item = T>,
+        where
+            T: IntoTypeRef,
+            I: IntoIterator<Item=T>,
     {
         for n in names.into_iter() {
             self.names.push(n.into_type_ref());
@@ -366,8 +366,8 @@ impl TypeDropStatement {
 
     /// Build corresponding SQL statement and return SQL string
     pub fn to_string<T>(&self, type_builder: &T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
+        where
+            T: TypeBuilder + QueryBuilder,
     {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
@@ -416,16 +416,16 @@ impl TypeAlterStatement {
     /// );
     /// ```
     pub fn name<T>(mut self, name: T) -> Self
-    where
-        T: IntoTypeRef,
+        where
+            T: IntoTypeRef,
     {
         self.name = Some(name.into_type_ref());
         self
     }
 
     pub fn add_value<T>(self, value: T) -> Self
-    where
-        T: IntoIden,
+        where
+            T: IntoIden,
     {
         self.alter_option(TypeAlterOpt::Add(value.into_iden(), None))
     }
@@ -445,8 +445,8 @@ impl TypeAlterStatement {
     /// )
     /// ```
     pub fn before<T>(mut self, value: T) -> Self
-    where
-        T: IntoIden,
+        where
+            T: IntoIden,
     {
         if let Some(option) = self.option {
             self.option = Some(option.before(value));
@@ -455,8 +455,8 @@ impl TypeAlterStatement {
     }
 
     pub fn after<T>(mut self, value: T) -> Self
-    where
-        T: IntoIden,
+        where
+            T: IntoIden,
     {
         if let Some(option) = self.option {
             self.option = Some(option.after(value));
@@ -465,8 +465,8 @@ impl TypeAlterStatement {
     }
 
     pub fn rename_to<T>(self, name: T) -> Self
-    where
-        T: IntoIden,
+        where
+            T: IntoIden,
     {
         self.alter_option(TypeAlterOpt::Rename(name.into_iden()))
     }
@@ -485,9 +485,9 @@ impl TypeAlterStatement {
     /// )
     /// ```
     pub fn rename_value<T, V>(self, existing: T, new_name: V) -> Self
-    where
-        T: IntoIden,
-        V: IntoIden,
+        where
+            T: IntoIden,
+            V: IntoIden,
     {
         self.alter_option(TypeAlterOpt::RenameValue(
             existing.into_iden(),
@@ -533,8 +533,8 @@ impl TypeAlterStatement {
 
     /// Build corresponding SQL statement and return SQL string
     pub fn to_string<T>(&self, type_builder: &T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
+        where
+            T: TypeBuilder + QueryBuilder,
     {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
@@ -544,8 +544,8 @@ impl TypeAlterStatement {
 impl TypeAlterOpt {
     /// Changes only `ADD VALUE x` options into `ADD VALUE x BEFORE` options, does nothing otherwise
     pub fn before<T>(self, value: T) -> Self
-    where
-        T: IntoIden,
+        where
+            T: IntoIden,
     {
         match self {
             TypeAlterOpt::Add(iden, _) => {
@@ -557,8 +557,8 @@ impl TypeAlterOpt {
 
     /// Changes only `ADD VALUE x` options into `ADD VALUE x AFTER` options, does nothing otherwise
     pub fn after<T>(self, value: T) -> Self
-    where
-        T: IntoIden,
+        where
+            T: IntoIden,
     {
         match self {
             TypeAlterOpt::Add(iden, _) => {
