@@ -9,7 +9,11 @@ pub struct SqlWriter {
     pub(crate) string: String,
 }
 
-pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
+pub fn inject_parameters<I, T: QueryBuilder + ?Sized>(
+    sql: &str,
+    params: I,
+    query_builder: &T,
+) -> String
 where
     I: IntoIterator<Item = Value>,
 {

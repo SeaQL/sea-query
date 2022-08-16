@@ -557,9 +557,9 @@ impl InsertStatement {
 }
 
 impl QueryStatementBuilder for InsertStatement {
-    fn build_collect_any_into(
+    fn build_collect_any_into<T: QueryBuilder + ?Sized>(
         &self,
-        query_builder: &dyn QueryBuilder,
+        query_builder: &T,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {

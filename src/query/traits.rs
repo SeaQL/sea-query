@@ -8,7 +8,7 @@ use std::fmt::Debug;
 
 pub trait QueryStatementBuilder: Debug {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
+    fn build_any<T: QueryBuilder + ?Sized>(&self, query_builder: &T) -> (String, Values) {
         let mut values = Vec::new();
         let mut collector = |v| values.push(v);
         let sql = self.build_collect_any(query_builder, &mut collector);
@@ -16,9 +16,9 @@ pub trait QueryStatementBuilder: Debug {
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters
-    fn build_collect_any(
+    fn build_collect_any<T: QueryBuilder + ?Sized>(
         &self,
-        query_builder: &dyn QueryBuilder,
+        query_builder: &T,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();
@@ -27,9 +27,9 @@ pub trait QueryStatementBuilder: Debug {
     }
 
     /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
-    fn build_collect_any_into(
+    fn build_collect_any_into<T: QueryBuilder + ?Sized>(
         &self,
-        query_builder: &dyn QueryBuilder,
+        query_builder: &T,
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     );
@@ -58,7 +58,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```
-    fn to_string(&self, query_builder: &dyn QueryBuilder) -> String {
+    fn to_string<T: QueryBuilder + ?Sized>(&self, query_builder: &T) -> String {
         let (sql, values) = self.build_any(query_builder);
         inject_parameters(&sql, values.0, query_builder)
     }
