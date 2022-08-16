@@ -260,10 +260,7 @@ impl TypeCreateStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: &T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
+    pub fn to_string<T: TypeBuilder>(&self, type_builder: &T) -> String {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
     }
@@ -365,10 +362,7 @@ impl TypeDropStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: &T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
+    pub fn to_string<T: TypeBuilder>(&self, type_builder: &T) -> String {
         let (sql, values) = self.build_ref(type_builder);
         inject_parameters(&sql, values, type_builder)
     }
