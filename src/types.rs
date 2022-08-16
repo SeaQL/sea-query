@@ -471,7 +471,10 @@ mod tests {
         let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
 
         #[cfg(feature = "backend-postgres")]
-        assert_eq!(query.to_string(&PostgresQueryBuilder), r#"SELECT "hel""lo""#);
+        assert_eq!(
+            query.to_string(&PostgresQueryBuilder),
+            r#"SELECT "hel""lo""#
+        );
     }
 
     #[test]
