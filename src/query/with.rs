@@ -426,15 +426,15 @@ impl Cycle {
 /// let query = select.with(with_clause).to_owned();
 ///
 /// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
+///     query.to_string(&MysqlQueryBuilder),
 ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `table` UNION ALL SELECT `id`, `depth` + 1, `next`, `value` FROM `table` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `table`.`id`) SELECT * FROM `cte_traversal`"#
 /// );
 /// assert_eq!(
-///     query.to_string(PostgresQueryBuilder),
+///     query.to_string(&PostgresQueryBuilder),
 ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
 /// );
 /// assert_eq!(
-///     query.to_string(SqliteQueryBuilder),
+///     query.to_string(&SqliteQueryBuilder),
 ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
 /// );
 /// ```
@@ -606,9 +606,9 @@ impl QueryStatementBuilder for WithQuery {
 }
 
 impl QueryStatementWriter for WithQuery {
-    fn build_collect<T: crate::QueryBuilder>(
+    fn build_collect(
         &self,
-        query_builder: T,
+        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

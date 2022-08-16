@@ -13,15 +13,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     index.to_string(MysqlQueryBuilder),
+///     index.to_string(&MysqlQueryBuilder),
 ///     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(&PostgresQueryBuilder),
 ///     r#"DROP INDEX "idx-glyph-aspect""#
 /// );
 /// assert_eq!(
-///     index.to_string(SqliteQueryBuilder),
+///     index.to_string(&SqliteQueryBuilder),
 ///     r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
 /// );
 /// ```
@@ -63,7 +63,7 @@ impl IndexDropStatement {
 }
 
 impl SchemaStatementBuilder for IndexDropStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql.result()

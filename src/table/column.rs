@@ -376,7 +376,7 @@ impl ColumnDef {
     ///                 .interval(Some(PgInterval::Hour), Some(43))
     ///                 .not_null()
     ///         )
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     vec![
     ///         r#"CREATE TABLE "glyph" ("#,
     ///         r#""I1" interval NOT NULL,"#,

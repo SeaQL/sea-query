@@ -11,13 +11,13 @@ pub enum SchemaStatement {
 
 pub trait SchemaStatementBuilder {
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String;
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String;
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String;
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn to_string(&self, schema_builder: &dyn SchemaBuilder) -> String {
         self.build(schema_builder)
     }
 }

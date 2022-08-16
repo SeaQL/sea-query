@@ -17,7 +17,7 @@ fn main() {
         Table::drop()
             .table(Document::Table)
             .if_exists()
-            .build(PostgresQueryBuilder),
+            .build(&PostgresQueryBuilder),
         Table::create()
             .table(Document::Table)
             .if_not_exists()
@@ -34,7 +34,7 @@ fn main() {
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
             .col(ColumnDef::new(Document::Array).array("integer".into()))
-            .build(PostgresQueryBuilder),
+            .build(&PostgresQueryBuilder),
     ]
     .join("; ");
 
@@ -110,7 +110,7 @@ fn main() {
             document_time.decimal.into(),
             document_time.array.into(),
         ])
-        .build(PostgresQueryBuilder);
+        .build(&PostgresQueryBuilder);
 
     let result = client.execute(sql.as_str(), &values.as_params());
     println!("Insert into document: {:?}\n", result);
@@ -130,7 +130,7 @@ fn main() {
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
         .limit(1)
-        .build(PostgresQueryBuilder);
+        .build(&PostgresQueryBuilder);
 
     let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from document:");

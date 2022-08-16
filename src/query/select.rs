@@ -26,15 +26,15 @@ use crate::{
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
+///     query.to_string(&MysqlQueryBuilder),
 ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
 /// );
 /// assert_eq!(
-///     query.to_string(PostgresQueryBuilder),
+///     query.to_string(&PostgresQueryBuilder),
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// assert_eq!(
-///     query.to_string(SqliteQueryBuilder),
+///     query.to_string(&SqliteQueryBuilder),
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// ```
@@ -200,15 +200,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
     /// );
     /// ```
@@ -246,15 +246,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT 42, MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT 42, MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT 42, MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// ```
@@ -282,15 +282,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT MAX(`id`), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT MAX("id"), 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 FROM "character""#
     /// );
     /// ```
@@ -333,7 +333,7 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT DISTINCT ON ("character") "character", "size_w", "size_h" FROM "character""#
     /// )
     /// ```
@@ -351,7 +351,7 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// )
     /// ```
@@ -390,15 +390,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// ```
@@ -412,15 +412,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`.`character` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character"."character" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character"."character" FROM "character""#
     /// );
     /// ```
@@ -434,15 +434,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `schema`.`character`.`character` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "schema"."character"."character" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "schema"."character"."character" FROM "character""#
     /// );
     /// ```
@@ -478,15 +478,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character""#
     /// );
     /// ```
@@ -504,15 +504,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`.`character`, `character`.`size_w`, `character`.`size_h` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character"."character", "character"."size_w", "character"."size_h" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character"."character", "character"."size_w", "character"."size_h" FROM "character""#
     /// );
     /// ```
@@ -557,15 +557,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` AS `C` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" AS "C" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" AS "C" FROM "character""#
     /// );
     /// ```
@@ -610,15 +610,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
     /// );
     /// ```
@@ -651,15 +651,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) AS `C` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
     /// );
     /// ```
@@ -693,15 +693,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// ```
@@ -732,15 +732,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// ```
@@ -771,15 +771,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     /// ```
@@ -793,15 +793,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// ```
@@ -815,15 +815,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `database`.`character`.`glyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "font_size" FROM "database"."character"."glyph""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "font_size" FROM "database"."character"."glyph""#
     /// );
     /// ```
@@ -842,15 +842,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT * FROM `character`, `font` WHERE `font`.`id` = `character`.`font_id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
     /// );
     /// ```
@@ -873,15 +873,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT * FROM (VALUES ROW(1, 'hello'), ROW(2, 'world')) AS `x`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x""#
     /// );
     /// ```
@@ -916,15 +916,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "font_size" FROM "character"."glyph""#
     /// );
     /// ```
@@ -951,15 +951,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `char`.`character` FROM `character` AS `char`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "char"."character" FROM "character" AS "char""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "char"."character" FROM "character" AS "char""#
     /// );
     /// ```
@@ -975,15 +975,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `alias`.`character` FROM `font`.`character` AS `alias`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "alias"."character" FROM "font"."character" AS "alias""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "alias"."character" FROM "font"."character" AS "alias""#
     /// );
     /// ```
@@ -1044,15 +1044,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     /// );
     /// ```
@@ -1084,15 +1084,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
@@ -1111,15 +1111,15 @@ impl SelectStatement {
     ///         .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// ```
@@ -1146,15 +1146,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
@@ -1173,15 +1173,15 @@ impl SelectStatement {
     ///         .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// ```
@@ -1208,15 +1208,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
@@ -1235,15 +1235,15 @@ impl SelectStatement {
     ///         .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// ```
@@ -1270,15 +1270,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
@@ -1297,15 +1297,15 @@ impl SelectStatement {
     ///         .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// ```
@@ -1332,15 +1332,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     ///
@@ -1360,15 +1360,15 @@ impl SelectStatement {
     ///         .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// ```
@@ -1407,15 +1407,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
     /// );
     ///
@@ -1433,7 +1433,7 @@ impl SelectStatement {
     ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
     ///         )
-    ///         .to_string(MysqlQueryBuilder),
+    ///         .to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
@@ -1479,15 +1479,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "name" FROM "font" LEFT JOIN (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "name" FROM "font" LEFT JOIN (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
     ///
@@ -1504,7 +1504,7 @@ impl SelectStatement {
     ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
     ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
     ///         )
-    ///         .to_string(MysqlQueryBuilder),
+    ///         .to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// ```
@@ -1549,11 +1549,11 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "name" FROM "font" LEFT JOIN LATERAL (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
     ///
@@ -1570,7 +1570,7 @@ impl SelectStatement {
     ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
     ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
     ///         )
-    ///         .to_string(MysqlQueryBuilder),
+    ///         .to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// ```
@@ -1629,15 +1629,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character""#
     /// );
     /// ```
@@ -1656,15 +1656,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// ```
@@ -1694,15 +1694,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` ON `character`.`font_id` = `font`.`id` GROUP BY `character`.`character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" GROUP BY "character"."character""#
     /// );
     /// ```
@@ -1746,15 +1746,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` GROUP BY `size_w`, `size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" GROUP BY "size_w", "size_h""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" GROUP BY "size_w", "size_h""#
     /// );
     /// ```
@@ -1792,7 +1792,7 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `glyph`.`aspect` IN (3, 4) AND (`glyph`.`image` LIKE 'A%' OR `glyph`.`image` LIKE 'B%')"#
     /// );
     /// ```
@@ -1823,15 +1823,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 AND `aspect` < 8"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 AND "aspect" < 8"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 AND "aspect" < 8"#
     /// );
     /// ```
@@ -1863,15 +1863,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 OR `aspect` < 8"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 OR "aspect" < 8"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 OR "aspect" < 8"#
     /// );
     /// ```
@@ -1894,15 +1894,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10"#
     /// );
     /// ```
@@ -1932,15 +1932,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` LIMIT 10 OFFSET 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10 OFFSET 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "aspect" FROM "glyph" LIMIT 10 OFFSET 10"#
     /// );
     /// ```
@@ -1970,15 +1970,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
@@ -2006,15 +2006,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE OF `glyph`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE OF "glyph""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
@@ -2046,15 +2046,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE NOWAIT"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE NOWAIT"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
@@ -2082,15 +2082,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE OF `glyph` NOWAIT"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE OF "glyph" NOWAIT"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
@@ -2127,15 +2127,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR SHARE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR SHARE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
@@ -2158,15 +2158,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 FOR UPDATE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 "#
     /// );
     /// ```
@@ -2194,15 +2194,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
     /// ```
@@ -2237,15 +2237,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL SELECT `character` FROM `character` WHERE `font_id` = 4 UNION SELECT `character` FROM `character` WHERE `font_id` = 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "character" FROM "character" WHERE "font_id" = 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "character" FROM "character" WHERE "font_id" = 3"#
     /// );
     /// ```
@@ -2307,15 +2307,15 @@ impl SelectStatement {
     /// let query = select.with(with_clause).to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `table` UNION ALL SELECT `id`, `depth` + 1, `next`, `value` FROM `table` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `table`.`id`) SELECT * FROM `cte_traversal`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
     /// );
     /// ```
@@ -2337,15 +2337,15 @@ impl SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
     /// );
     /// ```
@@ -2390,7 +2390,7 @@ impl QueryStatementWriter for SelectStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     ///
@@ -2398,7 +2398,7 @@ impl QueryStatementWriter for SelectStatement {
     /// let mut collector = |v| params.push(v);
     ///
     /// assert_eq!(
-    ///     query.build_collect(MysqlQueryBuilder, &mut collector),
+    ///     query.build_collect(&MysqlQueryBuilder, &mut collector),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, ?) > ? ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// assert_eq!(
@@ -2406,9 +2406,9 @@ impl QueryStatementWriter for SelectStatement {
     ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(
+    fn build_collect(
         &self,
-        query_builder: T,
+        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

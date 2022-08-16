@@ -27,7 +27,7 @@ assert_eq!(
         .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
         .cond_where(Expr::col(Glyph::Id).eq(3))
         .to_owned()
-        .to_string(PostgresQueryBuilder),
+        .to_string(&PostgresQueryBuilder),
     r#"SELECT WHERE "id" = 1 OR "id" = 2 OR "id" = 3"#
 );
 // Before: confusing, since it depends on the order of invocation:
@@ -36,7 +36,7 @@ assert_eq!(
         .cond_where(Expr::col(Glyph::Id).eq(3))
         .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
         .to_owned()
-        .to_string(PostgresQueryBuilder),
+        .to_string(&PostgresQueryBuilder),
     r#"SELECT WHERE "id" = 3 AND ("id" = 1 OR "id" = 2)"#
 );
 // Now: will always conjoin with `AND`
@@ -45,7 +45,7 @@ assert_eq!(
         .cond_where(Expr::col(Glyph::Id).eq(1))
         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
         .to_owned()
-        .to_string(PostgresQueryBuilder),
+        .to_string(&PostgresQueryBuilder),
     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
 );
 // Now: so they are now equivalent
@@ -54,7 +54,7 @@ assert_eq!(
         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
         .cond_where(Expr::col(Glyph::Id).eq(1))
         .to_owned()
-        .to_string(PostgresQueryBuilder),
+        .to_string(&PostgresQueryBuilder),
     r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
 );
 ```
@@ -179,7 +179,7 @@ let query = Query::select()
     .to_owned();
 
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(&PostgresQueryBuilder),
     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
 );
 ```
@@ -195,7 +195,7 @@ let query = Query::select()
     .to_owned();
 
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(&PostgresQueryBuilder),
     r#"SELECT data @? ('hello'::JSONPATH)"#
 );
 ```
@@ -548,7 +548,7 @@ In addition, if you constructed `Value` manually before (instead of using `into(
 Before:
 
 ```rust
-let (sql, values) = query.build(PostgresQueryBuilder);
+let (sql, values) = query.build(&PostgresQueryBuilder);
 assert_eq!(
 	values,
 	Values(vec![Value::String(Box::new("A".to_owned())), Value::Int(1), Value::Int(2), Value::Int(3)]))
@@ -558,7 +558,7 @@ assert_eq!(
 After:
 
 ```rust
-let (sql, values) = query.build(PostgresQueryBuilder);
+let (sql, values) = query.build(&PostgresQueryBuilder);
 assert_eq!(
 	values,
 	Values(vec![Value::String(Some(Box::new("A".to_owned()))), Value::Int(Some(1)), Value::Int(Some(2)), Value::Int(Some(3))]))

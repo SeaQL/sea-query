@@ -38,11 +38,11 @@ impl Returning {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING *"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING *"#
     /// );
     /// ```
@@ -64,11 +64,11 @@ impl Returning {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
@@ -93,11 +93,11 @@ impl Returning {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     /// );
     /// ```
@@ -124,11 +124,11 @@ impl Returning {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
@@ -153,11 +153,11 @@ impl Returning {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     /// );
     /// ```

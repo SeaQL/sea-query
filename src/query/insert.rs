@@ -29,15 +29,15 @@ pub(crate) enum InsertValueSource {
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
+///     query.to_string(&MysqlQueryBuilder),
 ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// assert_eq!(
-///     query.to_string(PostgresQueryBuilder),
+///     query.to_string(&PostgresQueryBuilder),
 ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// assert_eq!(
-///     query.to_string(SqliteQueryBuilder),
+///     query.to_string(&SqliteQueryBuilder),
 ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// ```
@@ -73,11 +73,11 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"REPLACE INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"REPLACE INTO "glyph" ("aspect", "image") VALUES (5.15, '12A')"#
     /// );
     /// ```
@@ -130,15 +130,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// ```
@@ -192,15 +192,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) SELECT `aspect`, `image` FROM `glyph` WHERE `image` LIKE '0%'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
     /// );
     /// ```
@@ -239,15 +239,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
     /// );
     /// ```
@@ -321,15 +321,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
@@ -353,15 +353,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING "id""#
     /// );
     /// ```
@@ -387,15 +387,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
     /// );
     /// ```
@@ -435,15 +435,15 @@ impl InsertStatement {
     ///     let query = insert.with(with_clause);
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"WITH `cte` (`id`, `image`, `aspect`) AS (SELECT `id`, `image`, `aspect` FROM `glyph`) INSERT INTO `glyph` (`id`, `image`, `aspect`) SELECT `id`, `image`, `aspect` FROM `cte`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
     /// );
     /// ```
@@ -465,15 +465,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` VALUES ()"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" DEFAULT VALUES"#
     /// );
     ///
@@ -486,15 +486,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` (`image`) VALUES ('ABC')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
     /// );
     /// ```
@@ -517,15 +517,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` VALUES (), (), ()"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" VALUES (DEFAULT), (DEFAULT), (DEFAULT)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" DEFAULT VALUES"#
     /// );
     ///
@@ -538,15 +538,15 @@ impl InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` (`image`) VALUES ('ABC')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
     /// );
     /// ```
@@ -586,7 +586,7 @@ impl QueryStatementWriter for InsertStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (3.1415, '041080')"#
     /// );
     ///
@@ -594,7 +594,7 @@ impl QueryStatementWriter for InsertStatement {
     /// let mut collector = |v| params.push(v);
     ///
     /// assert_eq!(
-    ///     query.build_collect(MysqlQueryBuilder, &mut collector),
+    ///     query.build_collect(&MysqlQueryBuilder, &mut collector),
     ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (?, ?)"#
     /// );
     /// assert_eq!(
@@ -605,9 +605,9 @@ impl QueryStatementWriter for InsertStatement {
     ///     ]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(
+    fn build_collect(
         &self,
-        query_builder: T,
+        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();

@@ -12,15 +12,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     table.to_string(MysqlQueryBuilder),
+///     table.to_string(&MysqlQueryBuilder),
 ///     r#"RENAME TABLE `font` TO `font_new`"#
 /// );
 /// assert_eq!(
-///     table.to_string(PostgresQueryBuilder),
+///     table.to_string(&PostgresQueryBuilder),
 ///     r#"ALTER TABLE "font" RENAME TO "font_new""#
 /// );
 /// assert_eq!(
-///     table.to_string(SqliteQueryBuilder),
+///     table.to_string(&SqliteQueryBuilder),
 ///     r#"ALTER TABLE "font" RENAME TO "font_new""#
 /// );
 /// ```
@@ -65,7 +65,7 @@ impl TableRenameStatement {
 }
 
 impl SchemaStatementBuilder for TableRenameStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_rename_statement(self, &mut sql);
         sql.result()

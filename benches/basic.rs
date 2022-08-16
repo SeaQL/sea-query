@@ -19,11 +19,11 @@ fn select() -> SelectStatement {
 }
 
 fn select_and_build() {
-    select().build(MysqlQueryBuilder);
+    select().build(&MysqlQueryBuilder);
 }
 
 fn select_and_to_string() {
-    select().to_string(MysqlQueryBuilder);
+    select().to_string(&MysqlQueryBuilder);
 }
 
 fn criterion_benchmark(c: &mut Criterion) {

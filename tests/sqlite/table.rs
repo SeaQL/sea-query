@@ -14,7 +14,7 @@ fn create_1() {
             )
             .col(ColumnDef::new(Glyph::Aspect).double().not_null())
             .col(ColumnDef::new(Glyph::Image).text())
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE "glyph" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -41,7 +41,7 @@ fn create_2() {
             .col(ColumnDef::new(Font::Name).string().not_null())
             .col(ColumnDef::new(Font::Variant).string().not_null())
             .col(ColumnDef::new(Font::Language).string().not_null())
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE "font" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -83,7 +83,7 @@ fn create_3() {
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade)
             )
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -111,7 +111,7 @@ fn create_4() {
             .col(ColumnDef::new(BinaryType::Blob).blob(BlobSize::Blob(None)))
             .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
             .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE "binary_type" ("#,
             r#""binlen" binary(32),"#,
@@ -135,7 +135,7 @@ fn create_5() {
             .col(ColumnDef::new(Char::Character).binary())
             .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE "character" ("#,
             r#""character" blob,"#,
@@ -177,7 +177,7 @@ fn create_with_unique_index() {
                     .on_update(ForeignKeyAction::Cascade)
             )
             .index(Index::create().unique().col(Char::SizeH).col(Char::SizeW))
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -222,7 +222,7 @@ fn create_with_primary_unique_index() {
                     .on_update(ForeignKeyAction::Cascade)
             )
             .index(Index::create().unique().primary().col(Char::SizeH).col(Char::SizeW))
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         vec![
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL,"#,
@@ -246,7 +246,7 @@ fn drop_1() {
             .table(Glyph::Table)
             .table(Char::Table)
             .cascade()
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         r#"DROP TABLE "glyph", "character""#
     );
 }
@@ -256,7 +256,7 @@ fn truncate_1() {
     assert_eq!(
         Table::truncate()
             .table(Font::Table)
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         r#"TRUNCATE TABLE "font""#
     );
 }
@@ -272,7 +272,7 @@ fn alter_1() {
                     .not_null()
                     .default(99)
             )
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 99"#
     );
 }
@@ -283,7 +283,7 @@ fn alter_2() {
     Table::alter()
         .table(Font::Table)
         .modify_column(ColumnDef::new(Alias::new("new_col")).double())
-        .to_string(SqliteQueryBuilder);
+        .to_string(&SqliteQueryBuilder);
 }
 
 #[test]
@@ -292,7 +292,7 @@ fn alter_3() {
         Table::alter()
             .table(Font::Table)
             .rename_column(Alias::new("new_col"), Alias::new("new_column"))
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     );
 }
@@ -303,7 +303,7 @@ fn alter_4() {
     Table::alter()
         .table(Font::Table)
         .drop_column(Alias::new("new_column"))
-        .to_string(SqliteQueryBuilder);
+        .to_string(&SqliteQueryBuilder);
 }
 
 #[test]
@@ -311,7 +311,7 @@ fn alter_5() {
     assert_eq!(
         Table::rename()
             .table(Font::Table, Alias::new("font_new"))
-            .to_string(SqliteQueryBuilder),
+            .to_string(&SqliteQueryBuilder),
         r#"ALTER TABLE "font" RENAME TO "font_new""#
     );
 }
@@ -319,7 +319,7 @@ fn alter_5() {
 #[test]
 #[should_panic(expected = "No alter option found")]
 fn alter_6() {
-    Table::alter().to_string(SqliteQueryBuilder);
+    Table::alter().to_string(&SqliteQueryBuilder);
 }
 
 #[test]
@@ -328,5 +328,5 @@ fn alter_7() {
         .table(Font::Table)
         .add_column(ColumnDef::new(Alias::new("new_col")).integer())
         .rename_column(Font::Name, Alias::new("name_new"))
-        .to_string(SqliteQueryBuilder);
+        .to_string(&SqliteQueryBuilder);
 }

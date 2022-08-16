@@ -7,7 +7,7 @@ fn create_1() {
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
             .col(Glyph::Aspect)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
     );
 }
@@ -21,7 +21,7 @@ fn create_2() {
             .table(Glyph::Table)
             .col(Glyph::Aspect)
             .col(Glyph::Image)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"CREATE UNIQUE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image")"#
     );
 }
@@ -34,7 +34,7 @@ fn create_3() {
             .name("idx-glyph-image")
             .table(Glyph::Table)
             .col(Glyph::Image)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"CREATE INDEX "idx-glyph-image" ON "glyph" USING GIN ("image")"#
     );
 }
@@ -48,7 +48,7 @@ fn create_4() {
             .name("idx-glyph-image")
             .table(Glyph::Table)
             .col(Glyph::Image)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"CREATE INDEX IF NOT EXISTS "idx-glyph-image" ON "glyph" USING GIN ("image")"#
     );
 }
@@ -62,7 +62,7 @@ fn create_5() {
             .table((Alias::new("schema"), Glyph::Table))
             .col(Glyph::Aspect)
             .col(Glyph::Image)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"CREATE UNIQUE INDEX "idx-glyph-aspect-image" ON "schema"."glyph" ("aspect", "image")"#
     );
 }
@@ -72,7 +72,7 @@ fn drop_1() {
     assert_eq!(
         Index::drop()
             .name("idx-glyph-aspect")
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"DROP INDEX "idx-glyph-aspect""#
     );
 }
@@ -83,7 +83,7 @@ fn drop_2() {
         Index::drop()
             .name("idx-glyph-aspect")
             .table((Alias::new("schema"), Glyph::Table))
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"DROP INDEX "schema"."idx-glyph-aspect""#
     );
 }
@@ -94,7 +94,7 @@ fn drop_3() {
         Index::drop()
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"DROP INDEX "idx-glyph-aspect""#
     );
 }
@@ -105,5 +105,5 @@ fn drop_4() {
     Index::drop()
         .name("idx-glyph-aspect")
         .table((Alias::new("database"), Alias::new("schema"), Glyph::Table))
-        .to_string(PostgresQueryBuilder);
+        .to_string(&PostgresQueryBuilder);
 }

@@ -6,11 +6,11 @@ macro_rules! impl_schema_statement_builder {
             use $crate::{$struct_name, SchemaBuilder, SchemaStatementBuilder};
 
             impl $struct_name {
-                pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+                pub fn to_string(&self, schema_builder: &dyn SchemaBuilder) -> String {
                     <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
                 }
 
-                pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+                pub fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
                     <Self as SchemaStatementBuilder>::build(self, schema_builder)
                 }
 
@@ -32,11 +32,11 @@ macro_rules! impl_query_statement_builder {
             };
 
             impl $struct_name {
-                pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+                pub fn to_string(&self, query_builder: &dyn QueryBuilder) -> String {
                     <Self as QueryStatementWriter>::to_string(self, query_builder)
                 }
 
-                pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+                pub fn build(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
                     <Self as QueryStatementWriter>::build(self, query_builder)
                 }
 

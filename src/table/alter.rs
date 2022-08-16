@@ -21,15 +21,15 @@ use crate::{
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     table.to_string(MysqlQueryBuilder),
+///     table.to_string(&MysqlQueryBuilder),
 ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
 /// );
 /// assert_eq!(
-///     table.to_string(PostgresQueryBuilder),
+///     table.to_string(&PostgresQueryBuilder),
 ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
 /// );
 /// assert_eq!(
-///     table.to_string(SqliteQueryBuilder),
+///     table.to_string(&SqliteQueryBuilder),
 ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
 /// );
 /// ```
@@ -99,15 +99,15 @@ impl TableAlterStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     table.to_string(MysqlQueryBuilder),
+    ///     table.to_string(&MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(&PostgresQueryBuilder),
     ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(SqliteQueryBuilder),
+    ///     table.to_string(&SqliteQueryBuilder),
     ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
     /// );
     /// ```
@@ -138,15 +138,15 @@ impl TableAlterStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     table.to_string(MysqlQueryBuilder),
+    ///     table.to_string(&MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` ADD COLUMN IF NOT EXISTS `new_col` int NOT NULL DEFAULT 100"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(&PostgresQueryBuilder),
     ///     r#"ALTER TABLE "font" ADD COLUMN IF NOT EXISTS "new_col" integer NOT NULL DEFAULT 100"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(SqliteQueryBuilder),
+    ///     table.to_string(&SqliteQueryBuilder),
     ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
     /// );
     /// ```
@@ -176,11 +176,11 @@ impl TableAlterStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     table.to_string(MysqlQueryBuilder),
+    ///     table.to_string(&MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` MODIFY COLUMN `new_col` bigint DEFAULT 999"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(&PostgresQueryBuilder),
     ///     vec![
     ///         r#"ALTER TABLE "font""#,
     ///         r#"ALTER COLUMN "new_col" TYPE bigint,"#,
@@ -207,15 +207,15 @@ impl TableAlterStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     table.to_string(MysqlQueryBuilder),
+    ///     table.to_string(&MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(&PostgresQueryBuilder),
     ///     r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     /// );
     /// assert_eq!(
-    ///     table.to_string(SqliteQueryBuilder),
+    ///     table.to_string(&SqliteQueryBuilder),
     ///     r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     /// );
     /// ```
@@ -243,11 +243,11 @@ impl TableAlterStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     table.to_string(MysqlQueryBuilder),
+    ///     table.to_string(&MysqlQueryBuilder),
     ///     r#"ALTER TABLE `font` DROP COLUMN `new_column`"#
     /// );
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(&PostgresQueryBuilder),
     ///     r#"ALTER TABLE "font" DROP COLUMN "new_column""#
     /// );
     /// // Sqlite not support modifying table column
@@ -295,7 +295,7 @@ impl TableAlterStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     table.to_string(MysqlQueryBuilder),
+    ///     table.to_string(&MysqlQueryBuilder),
     ///     vec![
     ///         r#"ALTER TABLE `character`"#,
     ///         r#"ADD CONSTRAINT `FK_character_glyph`"#,
@@ -309,7 +309,7 @@ impl TableAlterStatement {
     /// );
     ///
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(&PostgresQueryBuilder),
     ///     vec![
     ///         r#"ALTER TABLE "character""#,
     ///         r#"ADD CONSTRAINT "FK_character_glyph""#,
@@ -342,7 +342,7 @@ impl TableAlterStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     table.to_string(MysqlQueryBuilder),
+    ///     table.to_string(&MysqlQueryBuilder),
     ///     vec![
     ///         r#"ALTER TABLE `character`"#,
     ///         r#"DROP FOREIGN KEY `FK_character_glyph`,"#,
@@ -352,7 +352,7 @@ impl TableAlterStatement {
     /// );
     ///
     /// assert_eq!(
-    ///     table.to_string(PostgresQueryBuilder),
+    ///     table.to_string(&PostgresQueryBuilder),
     ///     vec![
     ///         r#"ALTER TABLE "character""#,
     ///         r#"DROP CONSTRAINT "FK_character_glyph","#,
@@ -384,7 +384,7 @@ impl TableAlterStatement {
 }
 
 impl SchemaStatementBuilder for TableAlterStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_alter_statement(self, &mut sql);
         sql.result()

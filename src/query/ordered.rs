@@ -25,7 +25,7 @@ pub trait OrderedStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```
@@ -44,7 +44,7 @@ pub trait OrderedStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     [
     ///         r#"SELECT `aspect`"#,
     ///         r#"FROM `glyph`"#,
@@ -59,7 +59,7 @@ pub trait OrderedStatement {
     /// );
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     [
     ///         r#"SELECT "aspect""#,
     ///         r#"FROM "glyph""#,
@@ -74,7 +74,7 @@ pub trait OrderedStatement {
     /// );
     ///
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     [
     ///         r#"SELECT "aspect""#,
     ///         r#"FROM "glyph""#,
@@ -181,11 +181,11 @@ pub trait OrderedStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "aspect" FROM "glyph" ORDER BY "image" DESC NULLS LAST, "glyph"."aspect" ASC NULLS FIRST"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` ORDER BY `image` IS NULL ASC, `image` DESC, `glyph`.`aspect` IS NULL DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```

@@ -1529,15 +1529,15 @@ mod tests {
         let formatted = "2020-01-01 02:02:02 +08:00";
 
         assert_eq!(
-            query.to_string(MysqlQueryBuilder),
+            query.to_string(&MysqlQueryBuilder),
             format!("SELECT '{}'", formatted)
         );
         assert_eq!(
-            query.to_string(PostgresQueryBuilder),
+            query.to_string(&PostgresQueryBuilder),
             format!("SELECT '{}'", formatted)
         );
         assert_eq!(
-            query.to_string(SqliteQueryBuilder),
+            query.to_string(&SqliteQueryBuilder),
             format!("SELECT '{}'", formatted)
         );
     }
@@ -1596,15 +1596,15 @@ mod tests {
         let formatted = "2020-01-01 02:02:02 +0800";
 
         assert_eq!(
-            query.to_string(MysqlQueryBuilder),
+            query.to_string(&MysqlQueryBuilder),
             format!("SELECT '{}'", formatted)
         );
         assert_eq!(
-            query.to_string(PostgresQueryBuilder),
+            query.to_string(&PostgresQueryBuilder),
             format!("SELECT '{}'", formatted)
         );
         assert_eq!(
-            query.to_string(SqliteQueryBuilder),
+            query.to_string(&SqliteQueryBuilder),
             format!("SELECT '{}'", formatted)
         );
     }

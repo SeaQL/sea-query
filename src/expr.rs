@@ -68,15 +68,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT * FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT * FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT * FROM "character""#
     /// );
     /// ```
@@ -91,15 +91,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// ```
@@ -121,15 +121,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
     /// );
     /// ```
@@ -144,15 +144,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// ```
@@ -179,15 +179,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w`, 100) < (500, 100)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w", 100) < (500, 100)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w", 100) < (500, 100)"#
     /// );
     /// ```
@@ -213,15 +213,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT * FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT * FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT * FROM "character""#
     /// );
     /// ```
@@ -237,15 +237,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// ```
@@ -270,15 +270,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// ```
@@ -306,15 +306,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// ```
@@ -339,15 +339,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE IFNULL(`size_w`, 0) > 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE COALESCE("size_w", 0) > 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE IFNULL("size_w", 0) > 2"#
     /// );
     /// ```
@@ -372,15 +372,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// ```
@@ -405,15 +405,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// ```
@@ -436,11 +436,11 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
@@ -455,7 +455,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
     /// );
     /// ```
@@ -466,8 +466,8 @@ impl Expr {
     ///     .expr(Expr::cust_with_values("6 = ? * ?", vec![2, 3]))
     ///     .to_owned();
     ///
-    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
-    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT 6 = 2 * 3"#);
+    /// assert_eq!(query.to_string(&MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
+    /// assert_eq!(query.to_string(&SqliteQueryBuilder), r#"SELECT 6 = 2 * 3"#);
     /// ```
     /// Postgres only: use `$$` to escape `$`
     /// ```
@@ -477,7 +477,7 @@ impl Expr {
     ///     .expr(Expr::cust_with_values("$1 $$ $2", vec!["a", "b"]))
     ///     .to_owned();
     ///
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' $ 'b'"#);
+    /// assert_eq!(query.to_string(&PostgresQueryBuilder), r#"SELECT 'a' $ 'b'"#);
     /// ```
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -490,7 +490,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT data @? ('hello'::JSONPATH)"#
     /// );
     /// ```
@@ -517,15 +517,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'What!' = 'Nothing' AND `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
     /// );
     /// ```
@@ -551,15 +551,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
     /// );
     /// ```
@@ -585,15 +585,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
     /// );
     /// ```
@@ -622,15 +622,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
     /// );
     /// ```
@@ -658,15 +658,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > `character`.`size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > "character"."size_h""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > "character"."size_h""#
     /// );
     /// ```
@@ -690,15 +690,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
     /// );
     /// ```
@@ -726,15 +726,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= `character`.`size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= "character"."size_h""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= "character"."size_h""#
     /// );
     /// ```
@@ -759,15 +759,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
     /// );
     /// ```
@@ -795,15 +795,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < `character`.`size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < "character"."size_h""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < "character"."size_h""#
     /// );
     /// ```
@@ -828,15 +828,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
     /// );
     /// ```
@@ -864,15 +864,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= `character`.`size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= "character"."size_h""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= "character"."size_h""#
     /// );
     /// ```
@@ -897,15 +897,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 + 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
     /// );
     /// ```
@@ -931,15 +931,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 - 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
     /// );
     /// ```
@@ -965,15 +965,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 * 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
     /// );
     /// ```
@@ -999,15 +999,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 / 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
     /// );
     /// ```
@@ -1033,15 +1033,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
     /// );
     /// ```
@@ -1066,15 +1066,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` NOT BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
     /// );
     /// ```
@@ -1113,15 +1113,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE E'Ours\'%'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
     /// );
     /// ```
@@ -1138,15 +1138,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
     /// );
     /// ```
@@ -1187,15 +1187,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NULL"#
     /// );
     /// ```
@@ -1218,15 +1218,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`ascii` IS TRUE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
     /// );
     /// ```
@@ -1251,15 +1251,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NOT NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NOT NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NOT NULL"#
     /// );
     /// ```
@@ -1282,15 +1282,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`ascii` IS NOT TRUE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS NOT TRUE"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS NOT TRUE"#
     /// );
     /// ```
@@ -1316,15 +1316,15 @@ impl Expr {
     ///     ])
     ///     .to_owned();
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` < 10 AND `size_w` > `size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// ```
@@ -1349,15 +1349,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
     /// );
     /// ```
@@ -1379,15 +1379,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
@@ -1409,15 +1409,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// ```
@@ -1439,15 +1439,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// ```
@@ -1469,15 +1469,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// ```
@@ -1499,15 +1499,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT COALESCE("character"."size_w", 0) FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT IFNULL("character"."size_w", 0) FROM "character""#
     /// );
     /// ```
@@ -1536,15 +1536,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
     /// );
     /// ```
@@ -1559,15 +1559,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `id` FROM `character` WHERE 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE 1 = 2"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE 1 = 2"#
     /// );
     /// ```
@@ -1604,17 +1604,17 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font_id` FROM `character` WHERE (`character`, `font_id`) IN ((1, '1'), (2, '2'))"#
     /// );
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
     /// );
     ///
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
     /// );
     /// ```
@@ -1647,15 +1647,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
     /// );
     /// ```
@@ -1670,15 +1670,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `id` FROM `character` WHERE 1 = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE 1 = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "id" FROM "character" WHERE 1 = 1"#
     /// );
     /// ```
@@ -1713,15 +1713,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" IN (SELECT 3 + 2 * 2)"#
     /// );
     /// ```
@@ -1752,15 +1752,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` NOT IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
     /// );
     /// ```
@@ -1788,7 +1788,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @@ 'a b' AND "name" @@ 'a b'"#
     /// );
     /// ```
@@ -1815,7 +1815,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @> 'a b' AND "name" @> 'a b'"#
     /// );
     /// ```
@@ -1842,7 +1842,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' <@ 'a b' AND "name" <@ 'a b'"#
     /// );
     /// ```
@@ -1869,7 +1869,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' AND 'c' || 'd'"#
     /// );
     /// ```
@@ -1926,15 +1926,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `font_size` FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT CAST("font_size" AS text) FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     ///
@@ -1945,15 +1945,15 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"INSERT INTO `character` (`font_size`) VALUES ('large')"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "character" ("font_size") VALUES ('large')"#
     /// );
     /// ```
@@ -2007,7 +2007,7 @@ impl Expr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
     /// );
     /// ```
@@ -2063,15 +2063,15 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) AND (`size_h` = 2)) OR ((`size_w` = 3) AND (`size_h` = 4))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) AND ("size_h" = 2)) OR (("size_w" = 3) AND ("size_h" = 4))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) AND ("size_h" = 2)) OR (("size_w" = 3) AND ("size_h" = 4))"#
     /// );
     /// ```
@@ -2094,15 +2094,15 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) OR (`size_h` = 2)) AND ((`size_w` = 3) OR (`size_h` = 4))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) OR ("size_h" = 2)) AND (("size_w" = 3) OR ("size_h" = 4))"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) OR ("size_h" = 2)) AND (("size_w" = 3) OR ("size_h" = 4))"#
     /// );
     /// ```
@@ -2128,15 +2128,15 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` * 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" * 3"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" * 3"#
     /// );
     /// ```
@@ -2165,15 +2165,15 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `character` FROM `character` WHERE `size_w` * 2 <> `size_h`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 <> "size_h""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "size_w" * 2 <> "size_h""#
     /// );
     /// ```
@@ -2201,15 +2201,15 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT MAX(`size_w`) + MAX(`size_h`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT MAX("size_w") + MAX("size_h") FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT MAX("size_w") + MAX("size_h") FROM "character""#
     /// );
     /// ```
@@ -2238,15 +2238,15 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT MAX(`size_w`) - MIN(`size_w`) FROM `character`"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT MAX("size_w") - MIN("size_w") FROM "character""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT MAX("size_w") - MIN("size_w") FROM "character""#
     /// );
     /// ```
@@ -2343,7 +2343,7 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
     /// );
     /// ```
@@ -2376,15 +2376,15 @@ impl SimpleExpr {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT CAST('1' AS integer)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT CAST('1' AS integer)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"SELECT CAST('1' AS integer)"#
     /// );
     /// ```

@@ -51,16 +51,16 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
-    ///     .to_string(MysqlQueryBuilder);
+    ///     .to_string(&MysqlQueryBuilder);
     ///
     /// assert_eq!(
     ///     query,
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// ```
-    fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
+    fn to_string(&self, query_builder: &dyn QueryBuilder) -> String {
+        let (sql, values) = self.build_any(query_builder);
+        inject_parameters(&sql, values.0, query_builder)
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
@@ -76,7 +76,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
-    ///     .build(MysqlQueryBuilder);
+    ///     .build(&MysqlQueryBuilder);
     ///
     /// assert_eq!(
     ///     query,
@@ -87,7 +87,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     Values(vec![Value::Int(Some(0)), Value::Int(Some(2))])
     /// );
     /// ```
-    fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+    fn build(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
         let mut values = Vec::new();
         let mut collector = |v| values.push(v);
         let sql = self.build_collect(query_builder, &mut collector);
@@ -110,7 +110,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     ///
@@ -118,7 +118,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// let mut collector = |v| params.push(v);
     ///
     /// assert_eq!(
-    ///     query.build_collect(MysqlQueryBuilder, &mut collector),
+    ///     query.build_collect(&MysqlQueryBuilder, &mut collector),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, ?) > ? ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     /// assert_eq!(
@@ -126,9 +126,9 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(
+    fn build_collect(
         &self,
-        query_builder: T,
+        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String;
 }

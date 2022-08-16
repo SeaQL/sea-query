@@ -58,7 +58,7 @@ impl Condition {
     ///             .add(Expr::col(Glyph::Aspect).eq(0).into_condition().not())
     ///             .add(Expr::col(Glyph::Id).eq(0).into_condition().not()),
     ///     )
-    ///     .to_string(PostgresQueryBuilder);
+    ///     .to_string(&PostgresQueryBuilder);
     /// assert_eq!(
     ///     statement,
     ///     r#"SELECT "id" FROM "glyph" WHERE (NOT ("aspect" = 0)) AND (NOT ("id" = 0))"#
@@ -104,7 +104,7 @@ impl Condition {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
@@ -138,7 +138,7 @@ impl Condition {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
@@ -168,7 +168,7 @@ impl Condition {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
@@ -199,7 +199,7 @@ impl Condition {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM `glyph` WHERE NOT (`glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%')"#
     /// );
     /// ```
@@ -224,7 +224,7 @@ impl Condition {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `id` WHERE (NOT (1 = 1 AND 2 = 2)) AND (3 = 3 OR 4 = 4)"#
     /// );
     /// ```
@@ -296,7 +296,7 @@ impl std::convert::From<SimpleExpr> for ConditionExpression {
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
+///     query.to_string(&MysqlQueryBuilder),
 ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
 /// );
 /// ```
@@ -332,7 +332,7 @@ macro_rules! any {
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
+///     query.to_string(&MysqlQueryBuilder),
 ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
 /// );
 #[macro_export]
@@ -365,7 +365,7 @@ pub trait ConditionalStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
@@ -387,7 +387,7 @@ pub trait ConditionalStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"SELECT `image` FROM `glyph` WHERE `aspect` IN (3, 4) AND `image` LIKE 'A%'"#
     /// );
     /// ```
@@ -435,7 +435,7 @@ pub trait ConditionalStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
     /// );
     /// ```
@@ -459,7 +459,7 @@ pub trait ConditionalStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT "image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4) AND ("glyph"."image" LIKE 'A%' OR "glyph"."image" LIKE 'B%')"#
     /// );
     /// ```
@@ -474,7 +474,7 @@ pub trait ConditionalStatement {
     ///         .cond_where(Expr::col(Glyph::Id).eq(1))
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
     /// );
     ///
@@ -483,7 +483,7 @@ pub trait ConditionalStatement {
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
     ///         .cond_where(Expr::col(Glyph::Id).eq(1))
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
     /// );
     /// ```
@@ -498,7 +498,7 @@ pub trait ConditionalStatement {
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(3), Expr::col(Glyph::Id).eq(4)])
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"SELECT WHERE ("id" = 1 OR "id" = 2) AND ("id" = 3 OR "id" = 4)"#
     /// );
     ///
@@ -507,7 +507,7 @@ pub trait ConditionalStatement {
     ///         .cond_where(all![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
     ///         .cond_where(all![Expr::col(Glyph::Id).eq(3), Expr::col(Glyph::Id).eq(4)])
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"SELECT WHERE "id" = 1 AND "id" = 2 AND "id" = 3 AND "id" = 4"#
     /// );
     /// ```
@@ -531,7 +531,7 @@ pub trait ConditionalStatement {
     ///                 .add(Expr::col(Glyph::Id).eq(4)),
     ///         )
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"SELECT WHERE (NOT ("id" = 1 AND "id" = 2)) AND ("id" = 3 AND "id" = 4)"#
     /// );
     ///
@@ -549,7 +549,7 @@ pub trait ConditionalStatement {
     ///                 .add(Expr::col(Glyph::Id).eq(2)),
     ///         )
     ///         .to_owned()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"SELECT WHERE "id" = 3 AND "id" = 4 AND (NOT ("id" = 1 AND "id" = 2))"#
     /// );
     /// ```
@@ -665,7 +665,7 @@ mod test {
             .to_owned();
 
         assert_eq!(
-            query.to_string(MysqlQueryBuilder),
+            query.to_string(&MysqlQueryBuilder),
             "SELECT `image` FROM `glyph` WHERE 1 = 1 AND 2 = 2 AND (3 = 3 OR 4 = 4)"
         );
     }

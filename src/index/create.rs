@@ -15,15 +15,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     index.to_string(MysqlQueryBuilder),
+///     index.to_string(&MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(&PostgresQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// assert_eq!(
-///     index.to_string(SqliteQueryBuilder),
+///     index.to_string(&SqliteQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// ```
@@ -39,15 +39,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     index.to_string(MysqlQueryBuilder),
+///     index.to_string(&MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(&PostgresQueryBuilder),
 ///     r#"CREATE INDEX IF NOT EXISTS "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// assert_eq!(
-///     index.to_string(SqliteQueryBuilder),
+///     index.to_string(&SqliteQueryBuilder),
 ///     r#"CREATE INDEX IF NOT EXISTS "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// ```
@@ -62,15 +62,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     index.to_string(MysqlQueryBuilder),
+///     index.to_string(&MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (128))"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(&PostgresQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" (128))"#
 /// );
 /// assert_eq!(
-///     index.to_string(SqliteQueryBuilder),
+///     index.to_string(&SqliteQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 /// );
 /// ```
@@ -85,15 +85,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     index.to_string(MysqlQueryBuilder),
+///     index.to_string(&MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` DESC)"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(&PostgresQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC)"#
 /// );
 /// assert_eq!(
-///     index.to_string(SqliteQueryBuilder),
+///     index.to_string(&SqliteQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC)"#
 /// );
 /// ```
@@ -108,15 +108,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     index.to_string(MysqlQueryBuilder),
+///     index.to_string(&MysqlQueryBuilder),
 ///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect` (64) ASC)"#
 /// );
 /// assert_eq!(
-///     index.to_string(PostgresQueryBuilder),
+///     index.to_string(&PostgresQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" (64) ASC)"#
 /// );
 /// assert_eq!(
-///     index.to_string(SqliteQueryBuilder),
+///     index.to_string(&SqliteQueryBuilder),
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" ASC)"#
 /// );
 /// ```
@@ -238,7 +238,7 @@ impl IndexCreateStatement {
 }
 
 impl SchemaStatementBuilder for IndexCreateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_index_create_statement(self, &mut sql);
         sql.result()

@@ -204,7 +204,7 @@ impl TypeCreateStatement {
     ///             FontFamily::Sans,
     ///             FontFamily::Monospace
     ///         ])
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"CREATE TYPE "font_family" AS ENUM ('serif', 'sans', 'monospace')"#
     /// );
     /// ```
@@ -260,12 +260,12 @@ impl TypeCreateStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
+    pub fn to_string<T>(&self, type_builder: &T) -> String
     where
         T: TypeBuilder + QueryBuilder,
     {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+        let (sql, values) = self.build_ref(type_builder);
+        inject_parameters(&sql, values, type_builder)
     }
 }
 
@@ -292,7 +292,7 @@ impl TypeDropStatement {
     ///         .if_exists()
     ///         .name(FontFamily)
     ///         .restrict()
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"DROP TYPE IF EXISTS "font_family" RESTRICT"#
     /// );
     /// ```
@@ -365,12 +365,12 @@ impl TypeDropStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
+    pub fn to_string<T>(&self, type_builder: &T) -> String
     where
         T: TypeBuilder + QueryBuilder,
     {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+        let (sql, values) = self.build_ref(type_builder);
+        inject_parameters(&sql, values, type_builder)
     }
 }
 
@@ -411,7 +411,7 @@ impl TypeAlterStatement {
     ///     Type::alter()
     ///         .name(FontFamily::Type)
     ///         .add_value(Alias::new("cursive"))
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive'"#
     /// );
     /// ```
@@ -440,7 +440,7 @@ impl TypeAlterStatement {
     ///         .name(Font::Table)
     ///         .add_value(Alias::new("weight"))
     ///         .before(Font::Variant)
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
     /// )
     /// ```
@@ -480,7 +480,7 @@ impl TypeAlterStatement {
     ///     Type::alter()
     ///         .name(Font::Table)
     ///         .rename_value(Alias::new("variant"), Alias::new("language"))
-    ///         .to_string(PostgresQueryBuilder),
+    ///         .to_string(&PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )
     /// ```
@@ -532,12 +532,12 @@ impl TypeAlterStatement {
     }
 
     /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
+    pub fn to_string<T>(&self, type_builder: &T) -> String
     where
         T: TypeBuilder + QueryBuilder,
     {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
+        let (sql, values) = self.build_ref(type_builder);
+        inject_parameters(&sql, values, type_builder)
     }
 }
 

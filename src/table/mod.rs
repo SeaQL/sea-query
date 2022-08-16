@@ -68,7 +68,7 @@ impl Table {
 
 impl TableStatement {
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T: SchemaBuilder>(&self, table_builder: T) -> String {
+    pub fn build(&self, table_builder: &dyn SchemaBuilder) -> String {
         match self {
             Self::Create(stat) => stat.build(table_builder),
             Self::Alter(stat) => stat.build(table_builder),
@@ -90,7 +90,7 @@ impl TableStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T: SchemaBuilder>(&self, table_builder: T) -> String {
+    pub fn to_string(&self, table_builder: &dyn SchemaBuilder) -> String {
         match self {
             Self::Create(stat) => stat.to_string(table_builder),
             Self::Alter(stat) => stat.to_string(table_builder),

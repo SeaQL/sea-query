@@ -19,7 +19,7 @@ use crate::{
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     foreign_key.to_string(MysqlQueryBuilder),
+///     foreign_key.to_string(&MysqlQueryBuilder),
 ///     vec![
 ///         r#"ALTER TABLE `character`"#,
 ///         r#"ADD CONSTRAINT `FK_character_font`"#,
@@ -29,7 +29,7 @@ use crate::{
 ///     .join(" ")
 /// );
 /// assert_eq!(
-///     foreign_key.to_string(PostgresQueryBuilder),
+///     foreign_key.to_string(&PostgresQueryBuilder),
 ///     vec![
 ///         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
 ///         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
@@ -52,7 +52,7 @@ use crate::{
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     foreign_key.to_string(MysqlQueryBuilder),
+///     foreign_key.to_string(&MysqlQueryBuilder),
 ///     vec![
 ///         r#"ALTER TABLE `character`"#,
 ///         r#"ADD CONSTRAINT `FK_character_glyph`"#,
@@ -62,7 +62,7 @@ use crate::{
 ///     .join(" ")
 /// );
 /// assert_eq!(
-///     foreign_key.to_string(PostgresQueryBuilder),
+///     foreign_key.to_string(&PostgresQueryBuilder),
 ///     vec![
 ///         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_glyph""#,
 ///         r#"FOREIGN KEY ("font_id", "id") REFERENCES "glyph" ("font_id", "id")"#,
@@ -212,7 +212,7 @@ impl ForeignKeyCreateStatement {
 }
 
 impl SchemaStatementBuilder for ForeignKeyCreateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
         sql.result()

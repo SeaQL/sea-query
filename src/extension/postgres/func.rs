@@ -40,7 +40,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT TO_TSQUERY('a & b')"#
     /// );
     /// ```
@@ -73,7 +73,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT TO_TSVECTOR('a b')"#
     /// );
     /// ```
@@ -106,7 +106,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT PHRASETO_TSQUERY('a b')"#
     /// );
     /// ```
@@ -139,7 +139,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT PLAINTO_TSQUERY('a b')"#
     /// );
     /// ```
@@ -172,7 +172,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT WEBSEARCH_TO_TSQUERY('a b')"#
     /// );
     /// ```
@@ -202,7 +202,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT TS_RANK('a b', 'a&b')"#
     /// );
     /// ```
@@ -225,7 +225,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT TS_RANK_CD('a b', 'a&b')"#
     /// );
     /// ```
@@ -248,7 +248,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT ANY('{0,1}')"#
     /// );
     /// ```
@@ -272,7 +272,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT SOME('{0,1}')"#
     /// );
     /// ```
@@ -296,7 +296,7 @@ impl PgFunc {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"SELECT ALL('{0,1}')"#
     /// );
     /// ```

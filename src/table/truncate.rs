@@ -10,15 +10,15 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 /// let table = Table::truncate().table(Font::Table).to_owned();
 ///
 /// assert_eq!(
-///     table.to_string(MysqlQueryBuilder),
+///     table.to_string(&MysqlQueryBuilder),
 ///     r#"TRUNCATE TABLE `font`"#
 /// );
 /// assert_eq!(
-///     table.to_string(PostgresQueryBuilder),
+///     table.to_string(&PostgresQueryBuilder),
 ///     r#"TRUNCATE TABLE "font""#
 /// );
 /// assert_eq!(
-///     table.to_string(SqliteQueryBuilder),
+///     table.to_string(&SqliteQueryBuilder),
 ///     r#"TRUNCATE TABLE "font""#
 /// );
 /// ```
@@ -56,7 +56,7 @@ impl TableTruncateStatement {
 }
 
 impl SchemaStatementBuilder for TableTruncateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_truncate_statement(self, &mut sql);
         sql.result()

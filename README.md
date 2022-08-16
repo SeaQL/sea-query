@@ -104,7 +104,7 @@ assert_eq!(
         .from(Glyph::Table)
         .and_where(Expr::col(Glyph::Image).like("A"))
         .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
-        .build(PostgresQueryBuilder),
+        .build(&PostgresQueryBuilder),
     (
         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
             .to_owned(),
@@ -246,7 +246,7 @@ assert_eq!(
                 .like("D")
                 .and(Expr::col(Char::Character).like("E"))
         )
-        .to_string(PostgresQueryBuilder),
+        .to_string(&PostgresQueryBuilder),
     [
         r#"SELECT "character" FROM "character""#,
         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
@@ -280,7 +280,7 @@ assert_eq!(
                         .add(Expr::col(Glyph::Image).like("A%"))
                 )
         )
-        .to_string(PostgresQueryBuilder),
+        .to_string(&PostgresQueryBuilder),
     [
         r#"SELECT "id" FROM "glyph""#,
         r#"WHERE"#,
@@ -342,15 +342,15 @@ let query = Query::select()
     .to_owned();
 
 assert_eq!(
-    query.to_string(MysqlQueryBuilder),
+    query.to_string(&MysqlQueryBuilder),
     r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(&PostgresQueryBuilder),
     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 );
 assert_eq!(
-    query.to_string(SqliteQueryBuilder),
+    query.to_string(&SqliteQueryBuilder),
     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 );
 ```
@@ -366,15 +366,15 @@ let query = Query::insert()
     .to_owned();
 
 assert_eq!(
-    query.to_string(MysqlQueryBuilder),
+    query.to_string(&MysqlQueryBuilder),
     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (5.15, '12A'), (4.21, '123')"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(&PostgresQueryBuilder),
     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 );
 assert_eq!(
-    query.to_string(SqliteQueryBuilder),
+    query.to_string(&SqliteQueryBuilder),
     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 );
 ```
@@ -392,15 +392,15 @@ let query = Query::update()
     .to_owned();
 
 assert_eq!(
-    query.to_string(MysqlQueryBuilder),
+    query.to_string(&MysqlQueryBuilder),
     r#"UPDATE `glyph` SET `aspect` = 1.23, `image` = '123' WHERE `id` = 1"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(&PostgresQueryBuilder),
     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 );
 assert_eq!(
-    query.to_string(SqliteQueryBuilder),
+    query.to_string(&SqliteQueryBuilder),
     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 );
 ```
@@ -418,15 +418,15 @@ let query = Query::delete()
     .to_owned();
 
 assert_eq!(
-    query.to_string(MysqlQueryBuilder),
+    query.to_string(&MysqlQueryBuilder),
     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 );
 assert_eq!(
-    query.to_string(PostgresQueryBuilder),
+    query.to_string(&PostgresQueryBuilder),
     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 );
 assert_eq!(
-    query.to_string(SqliteQueryBuilder),
+    query.to_string(&SqliteQueryBuilder),
     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 );
 ```
@@ -454,7 +454,7 @@ let table = Table::create()
     .to_owned();
 
 assert_eq!(
-    table.to_string(MysqlQueryBuilder),
+    table.to_string(&MysqlQueryBuilder),
     vec![
         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
@@ -470,7 +470,7 @@ assert_eq!(
     ].join(" ")
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(&PostgresQueryBuilder),
     vec![
         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -486,7 +486,7 @@ assert_eq!(
     ].join(" ")
 );
 assert_eq!(
-    table.to_string(SqliteQueryBuilder),
+    table.to_string(&SqliteQueryBuilder),
     vec![
        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -515,15 +515,15 @@ let table = Table::alter()
     .to_owned();
 
 assert_eq!(
-    table.to_string(MysqlQueryBuilder),
+    table.to_string(&MysqlQueryBuilder),
     r#"ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(&PostgresQueryBuilder),
     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
 );
 assert_eq!(
-    table.to_string(SqliteQueryBuilder),
+    table.to_string(&SqliteQueryBuilder),
     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
 );
 ```
@@ -537,15 +537,15 @@ let table = Table::drop()
     .to_owned();
 
 assert_eq!(
-    table.to_string(MysqlQueryBuilder),
+    table.to_string(&MysqlQueryBuilder),
     r#"DROP TABLE `glyph`, `character`"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(&PostgresQueryBuilder),
     r#"DROP TABLE "glyph", "character""#
 );
 assert_eq!(
-    table.to_string(SqliteQueryBuilder),
+    table.to_string(&SqliteQueryBuilder),
     r#"DROP TABLE "glyph", "character""#
 );
 ```
@@ -558,15 +558,15 @@ let table = Table::rename()
     .to_owned();
 
 assert_eq!(
-    table.to_string(MysqlQueryBuilder),
+    table.to_string(&MysqlQueryBuilder),
     r#"RENAME TABLE `font` TO `font_new`"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(&PostgresQueryBuilder),
     r#"ALTER TABLE "font" RENAME TO "font_new""#
 );
 assert_eq!(
-    table.to_string(SqliteQueryBuilder),
+    table.to_string(&SqliteQueryBuilder),
     r#"ALTER TABLE "font" RENAME TO "font_new""#
 );
 ```
@@ -577,15 +577,15 @@ assert_eq!(
 let table = Table::truncate().table(Font::Table).to_owned();
 
 assert_eq!(
-    table.to_string(MysqlQueryBuilder),
+    table.to_string(&MysqlQueryBuilder),
     r#"TRUNCATE TABLE `font`"#
 );
 assert_eq!(
-    table.to_string(PostgresQueryBuilder),
+    table.to_string(&PostgresQueryBuilder),
     r#"TRUNCATE TABLE "font""#
 );
 assert_eq!(
-    table.to_string(SqliteQueryBuilder),
+    table.to_string(&SqliteQueryBuilder),
     r#"TRUNCATE TABLE "font""#
 );
 ```
@@ -602,7 +602,7 @@ let foreign_key = ForeignKey::create()
     .to_owned();
 
 assert_eq!(
-    foreign_key.to_string(MysqlQueryBuilder),
+    foreign_key.to_string(&MysqlQueryBuilder),
     vec![
         r#"ALTER TABLE `character`"#,
         r#"ADD CONSTRAINT `FK_character_font`"#,
@@ -612,7 +612,7 @@ assert_eq!(
     .join(" ")
 );
 assert_eq!(
-    foreign_key.to_string(PostgresQueryBuilder),
+    foreign_key.to_string(&PostgresQueryBuilder),
     vec![
         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
@@ -632,11 +632,11 @@ let foreign_key = ForeignKey::drop()
     .to_owned();
 
 assert_eq!(
-    foreign_key.to_string(MysqlQueryBuilder),
+    foreign_key.to_string(&MysqlQueryBuilder),
     r#"ALTER TABLE `character` DROP FOREIGN KEY `FK_character_font`"#
 );
 assert_eq!(
-    foreign_key.to_string(PostgresQueryBuilder),
+    foreign_key.to_string(&PostgresQueryBuilder),
     r#"ALTER TABLE "character" DROP CONSTRAINT "FK_character_font""#
 );
 // Sqlite does not support modification of foreign key constraints to existing tables
@@ -652,15 +652,15 @@ let index = Index::create()
     .to_owned();
 
 assert_eq!(
-    index.to_string(MysqlQueryBuilder),
+    index.to_string(&MysqlQueryBuilder),
     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`aspect`)"#
 );
 assert_eq!(
-    index.to_string(PostgresQueryBuilder),
+    index.to_string(&PostgresQueryBuilder),
     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 );
 assert_eq!(
-    index.to_string(SqliteQueryBuilder),
+    index.to_string(&SqliteQueryBuilder),
     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect")"#
 );
 ```
@@ -674,15 +674,15 @@ let index = Index::drop()
     .to_owned();
 
 assert_eq!(
-    index.to_string(MysqlQueryBuilder),
+    index.to_string(&MysqlQueryBuilder),
     r#"DROP INDEX `idx-glyph-aspect` ON `glyph`"#
 );
 assert_eq!(
-    index.to_string(PostgresQueryBuilder),
+    index.to_string(&PostgresQueryBuilder),
     r#"DROP INDEX "idx-glyph-aspect""#
 );
 assert_eq!(
-    index.to_string(SqliteQueryBuilder),
+    index.to_string(&SqliteQueryBuilder),
     r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
 );
 ```

@@ -8,7 +8,7 @@ fn create_1() {
         Type::create()
             .as_enum(Font::Table)
             .values(vec![Font::Name, Font::Variant, Font::Language])
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"CREATE TYPE "font" AS ENUM ('name', 'variant', 'language')"#
     );
 }
@@ -19,7 +19,7 @@ fn create_2() {
         Type::create()
             .as_enum((Alias::new("schema"), Font::Table))
             .values(vec![Font::Name, Font::Variant, Font::Language])
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"CREATE TYPE "schema"."font" AS ENUM ('name', 'variant', 'language')"#
     );
 }
@@ -31,7 +31,7 @@ fn drop_1() {
             .if_exists()
             .name(Font::Table)
             .restrict()
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"DROP TYPE IF EXISTS "font" RESTRICT"#
     )
 }
@@ -41,7 +41,7 @@ fn drop_2() {
     assert_eq!(
         Type::drop()
             .name(Font::Table)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"DROP TYPE "font""#
     );
 }
@@ -53,7 +53,7 @@ fn drop_3() {
             .if_exists()
             .name(Font::Table)
             .cascade()
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"DROP TYPE IF EXISTS "font" CASCADE"#
     );
 }
@@ -63,7 +63,7 @@ fn drop_4() {
     assert_eq!(
         Type::drop()
             .name((Alias::new("schema"), Font::Table))
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"DROP TYPE "schema"."font""#
     );
 }
@@ -74,7 +74,7 @@ fn alter_1() {
         Type::alter()
             .name(Font::Table)
             .add_value(Alias::new("weight"))
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"ALTER TYPE "font" ADD VALUE 'weight'"#
     )
 }
@@ -85,7 +85,7 @@ fn alter_2() {
             .name(Font::Table)
             .add_value(Alias::new("weight"))
             .before(Font::Variant)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
     )
 }
@@ -97,7 +97,7 @@ fn alter_3() {
             .name(Font::Table)
             .add_value(Alias::new("weight"))
             .after(Font::Variant)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"ALTER TYPE "font" ADD VALUE 'weight' AFTER 'variant'"#
     )
 }
@@ -108,7 +108,7 @@ fn alter_4() {
         Type::alter()
             .name(Font::Table)
             .rename_to(Alias::new("typeface"))
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"ALTER TYPE "font" RENAME TO 'typeface'"#
     )
 }
@@ -119,7 +119,7 @@ fn alter_5() {
         Type::alter()
             .name(Font::Table)
             .rename_value(Font::Variant, Font::Language)
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     )
 }
@@ -130,7 +130,7 @@ fn alter_6() {
         Type::alter()
             .name((Alias::new("schema"), Font::Table))
             .rename_to(Alias::new("typeface"))
-            .to_string(PostgresQueryBuilder),
+            .to_string(&PostgresQueryBuilder),
         r#"ALTER TYPE "schema"."font" RENAME TO 'typeface'"#
     )
 }

@@ -39,7 +39,7 @@ async fn main() {
         .col(ColumnDef::new(Character::Decimal).decimal())
         .col(ColumnDef::new(Character::BigDecimal).decimal())
         .col(ColumnDef::new(Character::Created).date_time())
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let result = sqlx::query(&sql).execute(&mut pool).await;
     println!("Create table character: {:?}\n", result);
@@ -87,7 +87,7 @@ async fn main() {
                 .into(),
             date!(2020 - 8 - 20).with_time(time!(0:0:0)).into(),
         ])
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let result = bind_query(sqlx::query(&sql), &values)
         .execute(&mut pool)
@@ -111,7 +111,7 @@ async fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&mut pool)
@@ -139,7 +139,7 @@ async fn main() {
         .table(Character::Table)
         .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let result = bind_query(sqlx::query(&sql), &values)
         .execute(&mut pool)
@@ -162,7 +162,7 @@ async fn main() {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&mut pool)
@@ -196,7 +196,7 @@ async fn main() {
                 .update_columns([Character::FontSize, Character::Character])
                 .to_owned(),
         )
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let result = bind_query(sqlx::query(&sql), &values)
         .execute(&mut pool)
@@ -219,7 +219,7 @@ async fn main() {
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let rows = bind_query_as(sqlx::query_as::<_, CharacterStructChrono>(&sql), &values)
         .fetch_all(&mut pool)
@@ -246,7 +246,7 @@ async fn main() {
     let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let row = bind_query(sqlx::query(&sql), &values)
         .fetch_one(&mut pool)
@@ -262,7 +262,7 @@ async fn main() {
     let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(MysqlQueryBuilder);
+        .build(&MysqlQueryBuilder);
 
     let result = bind_query(sqlx::query(&sql), &values)
         .execute(&mut pool)

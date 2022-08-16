@@ -30,7 +30,7 @@ use crate::{
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     table.to_string(MysqlQueryBuilder),
+///     table.to_string(&MysqlQueryBuilder),
 ///     vec![
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 ///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
@@ -46,7 +46,7 @@ use crate::{
 ///     ].join(" ")
 /// );
 /// assert_eq!(
-///     table.to_string(PostgresQueryBuilder),
+///     table.to_string(&PostgresQueryBuilder),
 ///     vec![
 ///         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///             r#""id" serial NOT NULL PRIMARY KEY,"#,
@@ -62,7 +62,7 @@ use crate::{
 ///     ].join(" ")
 /// );
 /// assert_eq!(
-///     table.to_string(SqliteQueryBuilder),
+///     table.to_string(&SqliteQueryBuilder),
 ///     vec![
 ///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -163,7 +163,7 @@ impl TableCreateStatement {
     ///         .table(Glyph::Table)
     ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
     ///         .index(Index::create().unique().name("idx-glyph-id").col(Glyph::Id))
-    ///         .to_string(MysqlQueryBuilder),
+    ///         .to_string(&MysqlQueryBuilder),
     ///     vec![
     ///         "CREATE TABLE `glyph` (",
     ///         "`id` int NOT NULL,",
@@ -192,7 +192,7 @@ impl TableCreateStatement {
     ///     .col(ColumnDef::new(Glyph::Image).string().not_null())
     ///     .primary_key(Index::create().col(Glyph::Id).col(Glyph::Image));
     /// assert_eq!(
-    ///     statement.to_string(MysqlQueryBuilder),
+    ///     statement.to_string(&MysqlQueryBuilder),
     ///     vec![
     ///         "CREATE TABLE `glyph` (",
     ///         "`id` int NOT NULL,",
@@ -203,7 +203,7 @@ impl TableCreateStatement {
     ///     .join(" ")
     /// );
     /// assert_eq!(
-    ///     statement.to_string(PostgresQueryBuilder),
+    ///     statement.to_string(&PostgresQueryBuilder),
     ///     vec![
     ///         "CREATE TABLE \"glyph\" (",
     ///         "\"id\" integer NOT NULL,",
@@ -214,7 +214,7 @@ impl TableCreateStatement {
     ///     .join(" ")
     /// );
     /// assert_eq!(
-    ///     statement.to_string(SqliteQueryBuilder),
+    ///     statement.to_string(&SqliteQueryBuilder),
     ///     vec![
     ///         r#"CREATE TABLE "glyph" ("#,
     ///         r#""id" integer NOT NULL,"#,
@@ -297,7 +297,7 @@ impl TableCreateStatement {
 }
 
 impl SchemaStatementBuilder for TableCreateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    fn build(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = SqlWriter::new();
         schema_builder.prepare_table_create_statement(self, &mut sql);
         sql.result()

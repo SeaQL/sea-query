@@ -22,15 +22,15 @@ use crate::{
 ///     .to_owned();
 ///
 /// assert_eq!(
-///     query.to_string(MysqlQueryBuilder),
+///     query.to_string(&MysqlQueryBuilder),
 ///     r#"DELETE FROM `glyph` WHERE `id` < 1 OR `id` > 10"#
 /// );
 /// assert_eq!(
-///     query.to_string(PostgresQueryBuilder),
+///     query.to_string(&PostgresQueryBuilder),
 ///     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 /// );
 /// assert_eq!(
-///     query.to_string(SqliteQueryBuilder),
+///     query.to_string(&SqliteQueryBuilder),
 ///     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 /// );
 /// ```
@@ -74,15 +74,15 @@ impl DeleteStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1"#
     /// );
     /// ```
@@ -115,15 +115,15 @@ impl DeleteStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
@@ -146,15 +146,15 @@ impl DeleteStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
     /// );
     /// ```
@@ -180,15 +180,15 @@ impl DeleteStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
     /// );
     /// ```
@@ -221,15 +221,15 @@ impl DeleteStatement {
     ///     let query = update.with(with_clause);
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"WITH `cte` (`id`) AS (SELECT `id` FROM `glyph` WHERE `image` LIKE '0%') DELETE FROM `glyph` WHERE `id` IN (SELECT `id` FROM `cte`)"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
+    ///     query.to_string(&PostgresQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
     /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
+    ///     query.to_string(&SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
     /// ```
@@ -267,7 +267,7 @@ impl QueryStatementWriter for DeleteStatement {
     ///     .to_owned();
     ///
     /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
+    ///     query.to_string(&MysqlQueryBuilder),
     ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
     ///
@@ -275,14 +275,14 @@ impl QueryStatementWriter for DeleteStatement {
     /// let mut collector = |v| params.push(v);
     ///
     /// assert_eq!(
-    ///     query.build_collect(MysqlQueryBuilder, &mut collector),
+    ///     query.build_collect(&MysqlQueryBuilder, &mut collector),
     ///     r#"DELETE FROM `glyph` WHERE `id` = ?"#
     /// );
     /// assert_eq!(params, vec![Value::Int(Some(1)),]);
     /// ```
-    fn build_collect<T: QueryBuilder>(
+    fn build_collect(
         &self,
-        query_builder: T,
+        query_builder: &dyn QueryBuilder,
         collector: &mut dyn FnMut(Value),
     ) -> String {
         let mut sql = SqlWriter::new();
