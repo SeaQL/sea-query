@@ -17,7 +17,7 @@ fn main() -> Result<()> {
         Table::drop()
             .table(Character::Table)
             .if_exists()
-            .build(&SqliteQueryBuilder),
+            .build(SqliteQueryBuilder),
         Table::create()
             .table(Character::Table)
             .if_not_exists()
@@ -33,7 +33,7 @@ fn main() -> Result<()> {
             .col(ColumnDef::new(Character::Character).string())
             .col(ColumnDef::new(Character::Meta).json())
             .col(ColumnDef::new(Character::Created).date_time())
-            .build(&SqliteQueryBuilder),
+            .build(SqliteQueryBuilder),
     ]
     .join("; ");
 
@@ -92,7 +92,7 @@ fn main() -> Result<()> {
             .into(),
             Some(date!(2020 - 1 - 1).with_time(time!(2:2:2))).into(),
         ])
-        .build(&SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     let result = conn.execute(
         sql.as_str(),
@@ -115,7 +115,7 @@ fn main() -> Result<()> {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(&SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     println!("Select one from character:");
     let mut stmt = conn.prepare(sql.as_str())?;
@@ -135,7 +135,7 @@ fn main() -> Result<()> {
         .table(Character::Table)
         .values(vec![(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(&SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     let result = conn.execute(
         sql.as_str(),
@@ -157,7 +157,7 @@ fn main() -> Result<()> {
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
         .limit(1)
-        .build(&SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     println!("Select one from character:");
     let mut stmt = conn.prepare(sql.as_str())?;
@@ -176,7 +176,7 @@ fn main() -> Result<()> {
     let (sql, values) = Query::select()
         .from(Character::Table)
         .expr(Func::count(Expr::col(Character::Id)))
-        .build(&SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     print!("Count character: ");
     let mut stmt = conn.prepare(sql.as_str())?;
@@ -194,7 +194,7 @@ fn main() -> Result<()> {
     let (sql, values) = Query::delete()
         .from_table(Character::Table)
         .and_where(Expr::col(Character::Id).eq(id))
-        .build(&SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     let result = conn.execute(
         sql.as_str(),
