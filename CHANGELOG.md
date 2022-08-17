@@ -60,6 +60,8 @@ assert_eq!(
 );
 ```
 
+## 0.26.3 - 2022-08-18
+
 ### Bug Fixes
 
 * `DROP NOT NULL` for Postgres `ALTER COLUMN` https://github.com/SeaQL/sea-query/pull/394
