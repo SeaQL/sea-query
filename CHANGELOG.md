@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.26.3 - 2022-08-18
+
+### Bug Fixes
+
+* `DROP NOT NULL` for Postgres `ALTER COLUMN` https://github.com/SeaQL/sea-query/pull/394
+
+### House keeping
+
+* Exclude `chrono` default-features https://github.com/SeaQL/sea-query/pull/410
+* Fix clippy warnings https://github.com/SeaQL/sea-query/pull/415
+
 ## 0.26.2 - 2022-07-21
 
 ### Bug Fixes
