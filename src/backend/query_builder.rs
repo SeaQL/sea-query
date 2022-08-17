@@ -1200,7 +1200,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         if let Some(on_conflict) = on_conflict {
             self.prepare_on_conflict_keywords(sql, collector);
             self.prepare_on_conflict_target(&on_conflict.target, sql, collector);
+            self.prepare_on_conflict_condition(&on_conflict.target_where, sql, collector);
             self.prepare_on_conflict_action(&on_conflict.action, sql, collector);
+            self.prepare_on_conflict_condition(&on_conflict.action_where, sql, collector);
         }
     }
 
@@ -1297,6 +1299,17 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         write!(sql, "{0}excluded{0}", self.quote()).unwrap();
         write!(sql, ".").unwrap();
         col.prepare(sql, self.quote());
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT conditions
+    fn prepare_on_conflict_condition(
+        &self,
+        on_conflict_condition: &ConditionHolder,
+        sql: &mut SqlWriter,
+        collector: &mut dyn FnMut(Value),
+    ) {
+        self.prepare_condition(on_conflict_condition, "WHERE", sql, collector)
     }
 
     #[doc(hidden)]

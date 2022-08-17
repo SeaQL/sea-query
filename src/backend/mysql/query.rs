@@ -68,6 +68,15 @@ impl QueryBuilder for MysqlQueryBuilder {
         // MySQL doesn't support declaring ON CONFLICT target.
     }
 
+    fn prepare_on_conflict_condition(
+        &self,
+        _: &ConditionHolder,
+        _: &mut SqlWriter,
+        _: &mut dyn FnMut(Value),
+    ) {
+        // MySql doesnt't support declaring ON CONFLICT condition.
+    }
+
     fn prepare_on_conflict_keywords(&self, sql: &mut SqlWriter, _: &mut dyn FnMut(Value)) {
         write!(sql, " ON DUPLICATE KEY ").unwrap();
     }
