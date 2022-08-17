@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * Handle Postgres schema name for schema statements https://github.com/SeaQL/sea-query/pull/385
+* Add `%`, `<<` and `>>` binary operators https://github.com/SeaQL/sea-query/pull/419
 
 ### Breaking changes
 
@@ -65,7 +66,8 @@ assert_eq!(
 
 ### House keeping
 
-Exclude `chrono` default-features https://github.com/SeaQL/sea-query/pull/410
+* Exclude `chrono` default-features https://github.com/SeaQL/sea-query/pull/410
+* Fix clippy warnings https://github.com/SeaQL/sea-query/pull/415
 
 ## 0.26.2 - 2022-07-21
 
