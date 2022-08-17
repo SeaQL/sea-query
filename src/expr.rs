@@ -1019,6 +1019,108 @@ impl Expr {
         self.bin_oper(BinOper::Div, SimpleExpr::Value(v.into()))
     }
 
+    /// Express an arithmetic modulo operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::val(1).modulo(1).equals(Expr::value(2)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 % 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 % 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 % 1 = 2"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn modulo<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::Mod, SimpleExpr::Value(v.into()))
+    }
+
+    /// Express a bitwise left shift.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::val(1).left_shift(1).equals(Expr::value(2)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 << 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 << 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 << 1 = 2"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn left_shift<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::LShift, SimpleExpr::Value(v.into()))
+    }
+
+    /// Express a bitwise right shift.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::val(1).right_shift(1).equals(Expr::value(2)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 >> 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 >> 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 >> 1 = 2"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn right_shift<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::RShift, SimpleExpr::Value(v.into()))
+    }
+
     /// Express a `BETWEEN` expression.
     ///
     /// # Examples

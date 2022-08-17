@@ -126,6 +126,9 @@ pub enum BinOper {
     Sub,
     Mul,
     Div,
+    Mod,
+    LShift,
+    RShift,
     As,
     Escape,
     #[cfg(feature = "backend-postgres")]
