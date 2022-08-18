@@ -2,12 +2,12 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
+use sea_query_binder::SqlxBinder;
 use sqlx::{types::chrono::NaiveDateTime, MySqlPool, Row};
 use time::{
     macros::{date, time},
     PrimitiveDateTime,
 };
-use sea_query_binder::SqlxBinder;
 
 use serde_json::{json, Value as Json};
 use uuid::Uuid;
@@ -88,9 +88,7 @@ async fn main() {
         ])
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(&mut pool)
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Insert into character: {:?}\n", result);
     let id = result.unwrap().last_insert_id();
 
@@ -140,9 +138,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(&mut pool)
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Update character: {:?}\n", result);
 
     // Read
@@ -197,9 +193,7 @@ async fn main() {
         )
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(&mut pool)
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Insert into character (with upsert): {:?}\n", result);
     let id = result.unwrap().last_insert_id();
 
@@ -263,9 +257,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(&mut pool)
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Delete character: {:?}", result);
 }
 

@@ -4,13 +4,13 @@ use rust_decimal::Decimal;
 use sea_query::{
     ColumnDef, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
 };
+use sea_query_binder::SqlxBinder;
 use sqlx::{PgPool, Row};
 use std::net::{IpAddr, Ipv4Addr};
 use time::{
     macros::{date, time},
     PrimitiveDateTime,
 };
-use sea_query_binder::SqlxBinder;
 
 use ipnetwork::IpNetwork;
 use mac_address::{get_mac_address, MacAddress};
@@ -161,9 +161,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(&mut pool)
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Update character: {:?}\n", result);
 
     // Read
@@ -236,9 +234,7 @@ async fn main() {
         )
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(&mut pool)
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Insert into character (with upsert): {:?}\n", result);
 
     // Read
@@ -287,9 +283,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(&mut pool)
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
     println!("Delete character: {:?}", result);
 }
 

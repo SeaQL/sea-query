@@ -2,13 +2,13 @@ use chrono::{NaiveDate, NaiveDateTime};
 use sea_query::{
     time_format, ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
 };
+use sea_query_binder::SqlxBinder;
+use serde_json::{json, Value as Json};
 use sqlx::{sqlite::SqliteRow, Row, SqlitePool};
 use time::{
     macros::{date, time},
     PrimitiveDateTime,
 };
-use sea_query_binder::SqlxBinder;
-use serde_json::{json, Value as Json};
 use uuid::Uuid;
 
 #[async_std::main]
@@ -69,10 +69,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     //TODO: Implement RETURNING (returning_col) for the Sqlite driver.
-    let row = sqlx::query_with(&sql, values)
-        .execute(&pool)
-        .await
-        .unwrap();
+    let row = sqlx::query_with(&sql, values).execute(&pool).await.unwrap();
 
     let id: i64 = row.last_insert_rowid();
     println!("Insert into character: last_insert_id = {}\n", id);
@@ -91,9 +88,8 @@ async fn main() {
         .order_by(Character::Id, Order::Desc)
         .limit(1)
         .build_sqlx(SqliteQueryBuilder);
-    
 
-    let rows= sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -103,7 +99,7 @@ async fn main() {
     }
     println!();
 
-    let rows= sqlx::query_with(&sql, values)
+    let rows = sqlx::query_with(&sql, values)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -139,7 +135,7 @@ async fn main() {
         .limit(1)
         .build_sqlx(SqliteQueryBuilder);
 
-    let rows= sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
         .fetch_all(&pool)
         .await
         .unwrap();
