@@ -398,16 +398,6 @@ pub trait ConditionalStatement {
         self
     }
 
-    #[deprecated(
-        since = "0.12.0",
-        note = "Please use [`ConditionalStatement::cond_where`]. Calling `or_where` after `and_where` will panic."
-    )]
-    /// Or where condition. This cannot be mixed with [`ConditionalStatement::and_where`].
-    /// Calling `or_where` after `and_where` will panic.
-    fn or_where(&mut self, other: SimpleExpr) -> &mut Self {
-        self.and_or_where(LogicalChainOper::Or(other))
-    }
-
     #[doc(hidden)]
     // Trait implementation.
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self;

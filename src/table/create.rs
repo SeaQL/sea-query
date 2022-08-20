@@ -119,15 +119,6 @@ impl TableCreateStatement {
         }
     }
 
-    #[deprecated(
-        since = "0.9.6",
-        note = "Please use the [`TableCreateStatement::if_not_exists`]"
-    )]
-    pub fn create_if_not_exists(&mut self) -> &mut Self {
-        self.if_not_exists = true;
-        self
-    }
-
     /// Create table if table not exists
     pub fn if_not_exists(&mut self) -> &mut Self {
         self.if_not_exists = true;

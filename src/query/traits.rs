@@ -50,7 +50,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_string(MysqlQueryBuilder);
     ///
     /// assert_eq!(
@@ -75,7 +75,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .build(MysqlQueryBuilder);
     ///
     /// assert_eq!(
@@ -106,7 +106,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();
     ///
     /// assert_eq!(

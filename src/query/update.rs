@@ -81,18 +81,6 @@ impl UpdateStatement {
         self
     }
 
-    #[deprecated(
-        since = "0.5.0",
-        note = "Please use the UpdateStatement::table function instead"
-    )]
-    #[allow(clippy::wrong_self_convention)]
-    pub fn into_table<T>(&mut self, table: T) -> &mut Self
-    where
-        T: IntoTableRef,
-    {
-        self.table(table)
-    }
-
     /// Update column value by [`SimpleExpr`].
     ///
     /// # Examples
