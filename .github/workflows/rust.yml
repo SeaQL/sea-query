@@ -14,9 +14,9 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-20.04
+  linter:
+    name: Linter `sea-query`
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -24,20 +24,87 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          components: clippy
+          components: clippy,rustfmt
           override: true
           
       - uses: actions-rs/cargo@v1
+        name: Run rustfmt on `sea-query`
+        with:
+          command: fmt
+          args: >
+            --all
+            --
+            --check
+
+      - uses: actions-rs/cargo@v1
+        name: Run clippy on `sea-query`
         with:
           command: clippy
           args: >
-            --all-targets
             --all-features
             --workspace
 
+      
+  binder-linter:
+    name: Linter `sea-query-binder`
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [async-std]
+        tls: [rustls]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy,rustfmt
+          override: true
+          
+      - uses: actions-rs/cargo@v1
+        name: Run rustfmt on `sea-query`
+        with:
+          command: fmt
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --all
+            --
+            --check
+
+      - uses: actions-rs/cargo@v1
+        name: Run clippy on `sea-query`
+        with:
+          command: clippy
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace
+            --features runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+            --
+            -D warnings
+
   build:
-    name: Build
+    name: Build `sea-query`
     runs-on: ubuntu-20.04
+    needs: ["linter"]
+    strategy:
+      fail-fast: false
+      matrix:
+        features: 
+          - --no-default-features
+          - --all-features
+          - --features=with-chrono
+          - --features=with-json
+          - --features=with-rust_decimal
+          - --features=with-bigdecimal
+          - --features=with-uuid
+          - --features=with-time
+          - --features=with-ipnetwork
+          - --features=with-mac_address
+          - --features=postgres-array
+          - --features=thread-safe
     steps:
       - uses: actions/checkout@v2
 
@@ -50,41 +117,53 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --no-default-features
+          args: >
+            --workspace 
+            ${{ matrix.features }}
+
+  binder-build:
+    name: Build `sea-query-binder`
+    runs-on: ubuntu-20.04
+    needs: ["binder-linter"]
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [async-std]
+        tls: [rustls]
+        features: 
+          - --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+          - --features=with-chrono
+          - --features=with-json
+          - --features=with-rust_decimal
+          - --features=with-bigdecimal
+          - --features=with-uuid
+          - --features=with-time
+          - --features=with-ipnetwork
+          - --features=with-mac_address
+          - --features=postgres-array
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=thread-safe
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-chrono
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-json
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-rust_decimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --features=with-uuid
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            ${{ matrix.features }}
 
   test:
     name: Unit Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    needs: ["build"]
     steps:
       - uses: actions/checkout@v2
 
@@ -101,7 +180,8 @@ jobs:
 
   derive-test:
     name: Derive Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    needs: ["build"]
     steps:
       - uses: actions/checkout@v2
 
@@ -125,7 +205,8 @@ jobs:
 
   sqlite:
     name: SQLite
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    needs: ["test", "derive-test"]
     strategy:
       matrix:
         example: [rusqlite, sqlx_sqlite]
@@ -150,7 +231,8 @@ jobs:
 
   mysql:
     name: MySQL
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    needs: ["test", "derive-test"]
     strategy:
       matrix:
         version: [8.0, 5.7]
@@ -192,7 +274,8 @@ jobs:
 
   mariadb:
     name: MariaDB
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    needs: ["test", "derive-test"]
     strategy:
       matrix:
         version: [10.6]
@@ -234,7 +317,8 @@ jobs:
 
   postgres:
     name: PostgreSQL
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    needs: ["test", "derive-test"]
     strategy:
       matrix:
         version: [14.4, 13.7, 12.11]

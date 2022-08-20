@@ -1,3 +1,6 @@
+[workspace]
+# A separate workspace
+
 [package]
 name = "sea-query-sqlx-mysql-example"
 version = "0.1.0"
