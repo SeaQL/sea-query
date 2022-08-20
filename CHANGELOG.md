@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Removed `join_alias`
 * Changed `in_tuples` interface to accept `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/386
+* Removed deprecated methods (`or_where`, `or_having`, `table_column` etc) https://github.com/SeaQL/sea-query/pull/380
 * **Changed `cond_where` chaining semantics** https://github.com/SeaQL/sea-query/pull/417
 ```rust
 // Before: will extend current Condition
