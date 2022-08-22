@@ -1,7 +1,5 @@
 use chrono::{NaiveDate, NaiveDateTime};
-use sea_query::{
-    ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
-};
+use sea_query::{ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table};
 use sea_query_binder::SqlxBinder;
 use serde_json::{json, Value as Json};
 use sqlx::{Row, SqlitePool};
@@ -105,7 +103,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{:?}\n", row);
     }
     println!();
 
@@ -148,7 +146,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{:?}\n", row);
     }
     println!();
 
@@ -211,7 +209,7 @@ async fn main() {
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{:?}\n", row);
     }
     println!();
 
