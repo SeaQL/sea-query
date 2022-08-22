@@ -438,12 +438,11 @@ pub mod time_format {
 
     pub static FORMAT_DATE: &[FormatItem<'static>] = format_description!("[year]-[month]-[day]");
     pub static FORMAT_TIME: &[FormatItem<'static>] =
-        format_description!("[hour]:[minute]:[second]");
+        format_description!("[hour]:[minute]:[second].[subsecond]");
     pub static FORMAT_DATETIME: &[FormatItem<'static>] =
-        format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
-    pub static FORMAT_DATETIME_TZ: &[FormatItem<'static>] = format_description!(
-        "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]"
-    );
+        format_description!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]");
+    pub static FORMAT_DATETIME_TZ: &[FormatItem<'static>] =
+        format_description!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]Z");
 }
 
 #[cfg(feature = "with-time")]
