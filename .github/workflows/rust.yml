@@ -14,7 +14,36 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  linter:
+  rustfmt:
+    - uses: actions/checkout@v2
+
+    - uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        components: rustfmt
+        override: true
+
+    - uses: actions-rs/cargo@v1
+        name: Run rustfmt on `sea-query`
+        with:
+          command: fmt
+          args: >
+            --all
+            --
+            --check
+
+    - uses: actions-rs/cargo@v1
+        name: Run rustfmt on `sea-query-binder`
+        with:
+          command: fmt
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --all
+            --
+            --check
+
+  clippy:
     name: Linter `sea-query`
     runs-on: ubuntu-latest
     steps:
@@ -24,17 +53,8 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          components: clippy,rustfmt
+          components: clippy
           override: true
-          
-      - uses: actions-rs/cargo@v1
-        name: Run rustfmt on `sea-query`
-        with:
-          command: fmt
-          args: >
-            --all
-            --
-            --check
 
       - uses: actions-rs/cargo@v1
         name: Run clippy on `sea-query`
@@ -44,43 +64,14 @@ jobs:
             --all-features
             --workspace
 
-      
-  binder-linter:
-    name: Linter `sea-query-binder`
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        runtime: [async-std]
-        tls: [rustls]
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: clippy,rustfmt
-          override: true
-          
       - uses: actions-rs/cargo@v1
-        name: Run rustfmt on `sea-query`
-        with:
-          command: fmt
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --all
-            --
-            --check
-
-      - uses: actions-rs/cargo@v1
-        name: Run clippy on `sea-query`
+        name: Run clippy on `sea-query-binder`
         with:
           command: clippy
           args: >
             --manifest-path sea-query-binder/Cargo.toml
             --workspace
-            --features runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features runtime-async-std-rustls
             --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
             --
             -D warnings
@@ -88,7 +79,6 @@ jobs:
   build:
     name: Build `sea-query`
     runs-on: ubuntu-20.04
-    needs: ["linter"]
     strategy:
       fail-fast: false
       matrix:
@@ -113,6 +103,16 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }} 
 
       - uses: actions-rs/cargo@v1
         with:
@@ -124,7 +124,6 @@ jobs:
   binder-build:
     name: Build `sea-query-binder`
     runs-on: ubuntu-20.04
-    needs: ["binder-linter"]
     strategy:
       fail-fast: false
       matrix:
