@@ -82,22 +82,6 @@ jobs:
   build:
     name: Build `sea-query`
     runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        features: 
-          - --no-default-features
-          - --all-features
-          - --features=with-chrono
-          - --features=with-json
-          - --features=with-rust_decimal
-          - --features=with-bigdecimal
-          - --features=with-uuid
-          - --features=with-time
-          - --features=with-ipnetwork
-          - --features=with-mac_address
-          - --features=postgres-array
-          - --features=thread-safe
     steps:
       - uses: actions/checkout@v2
 
@@ -107,14 +91,90 @@ jobs:
           toolchain: stable
           override: true
       
-      - uses: Swatinem/rust-cache@v2
-      
       - uses: actions-rs/cargo@v1
         with:
           command: build
           args: >
             --workspace 
-            ${{ matrix.features }}
+            --no-default-features
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --all-features
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-chrono
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-json
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-rust_decimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-bigdecimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-uuid
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-time
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-ipnetwork
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=with-mac_address
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=postgres-array
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --workspace 
+            --features=thread-safe
+
 
   binder-build:
     name: Build `sea-query-binder`
@@ -124,17 +184,6 @@ jobs:
       matrix:
         runtime: [async-std]
         tls: [rustls]
-        features: 
-          - --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-          - --features=with-chrono
-          - --features=with-json
-          - --features=with-rust_decimal
-          - --features=with-bigdecimal
-          - --features=with-uuid
-          - --features=with-time
-          - --features=with-ipnetwork
-          - --features=with-mac_address
-          - --features=postgres-array
     steps:
       - uses: actions/checkout@v2
 
@@ -152,7 +201,97 @@ jobs:
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
             --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            ${{ matrix.features }}
+            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-chrono
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-json
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-rust_decimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-bigdecimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-uuid
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-time
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-ipnetwork
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=with-mac_address
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-binder/Cargo.toml
+            --workspace 
+            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=postgres-array
 
   test:
     name: Unit Test
