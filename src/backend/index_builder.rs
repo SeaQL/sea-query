@@ -2,34 +2,22 @@ use crate::*;
 
 pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     /// Translate [`IndexCreateStatement`] into SQL expression.
+    /// This is the default implementation for `PostgresQueryBuilder` and `SqliteQueryBuilder`.
+    /// `MysqlQueryBuilder` overrides this default implementation.
     fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+        if create.index.name.is_some() {
+            write!(sql, "CONSTRAINT ").unwrap();
+            self.prepare_index_name(&create.index.name, sql);
+            write!(sql, " ").unwrap();
+        }
+
         self.prepare_index_prefix(create, sql);
-        write!(sql, "KEY ").unwrap();
-
-        self.prepare_index_name(&create.index.name, sql);
-
-        self.prepare_index_type(&create.index_type, sql);
 
         self.prepare_index_columns(&create.index.columns, sql);
     }
 
     /// Translate [`IndexCreateStatement`] into SQL statement.
-    fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
-        write!(sql, "CREATE ").unwrap();
-        self.prepare_index_prefix(create, sql);
-        write!(sql, "INDEX ").unwrap();
-
-        self.prepare_index_name(&create.index.name, sql);
-
-        write!(sql, " ON ").unwrap();
-        if let Some(table) = &create.table {
-            self.prepare_table_ref_index_stmt(table, sql);
-        }
-
-        self.prepare_index_type(&create.index_type, sql);
-
-        self.prepare_index_columns(&create.index.columns, sql);
-    }
+    fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter);
 
     /// Translate [`TableRef`] into SQL statement.
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter);
