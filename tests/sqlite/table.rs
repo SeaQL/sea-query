@@ -74,7 +74,7 @@ fn create_3() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default_value(Value::Int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -167,7 +167,7 @@ fn create_with_unique_index() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default_value(Value::Int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -212,7 +212,7 @@ fn create_with_primary_unique_index() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default_value(Value::Int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -270,7 +270,7 @@ fn alter_1() {
                 ColumnDef::new(Alias::new("new_col"))
                     .integer()
                     .not_null()
-                    .default(99)
+                    .default_value(99)
             )
             .to_string(SqliteQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 99"#

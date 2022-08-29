@@ -121,19 +121,6 @@ impl TableBuilder for SqliteQueryBuilder {
         .unwrap()
     }
 
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter) {
-        match column_spec {
-            ColumnSpec::Null => write!(sql, "NULL"),
-            ColumnSpec::NotNull => write!(sql, "NOT NULL"),
-            ColumnSpec::Default(value) => write!(sql, "DEFAULT {}", self.value_to_string(value)),
-            ColumnSpec::AutoIncrement => write!(sql, "AUTOINCREMENT"),
-            ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
-            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
-            ColumnSpec::Extra(string) => write!(sql, "{}", string),
-        }
-        .unwrap()
-    }
-
     fn prepare_table_drop_opt(&self, _drop_opt: &TableDropOpt, _sql: &mut dyn std::fmt::Write) {
         // SQLite does not support table drop options
     }
@@ -185,5 +172,9 @@ impl TableBuilder for SqliteQueryBuilder {
         if let Some(to_name) = &rename.to_name {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
+    }
+
+    fn column_spec_auto_increment_keyword(&self) -> &str {
+        "AUTOINCREMENT"
     }
 }

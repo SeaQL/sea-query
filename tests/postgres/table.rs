@@ -74,7 +74,7 @@ fn create_3() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default_value(Value::Int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -369,7 +369,7 @@ fn alter_1() {
                 ColumnDef::new(Alias::new("new_col"))
                     .integer()
                     .not_null()
-                    .default(100)
+                    .default_value(100)
             )
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
@@ -384,7 +384,7 @@ fn alter_2() {
             .modify_column(
                 ColumnDef::new(Alias::new("new_col"))
                     .big_integer()
-                    .default(999)
+                    .default_value(999)
             )
             .to_string(PostgresQueryBuilder),
         vec![

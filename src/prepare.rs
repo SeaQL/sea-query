@@ -48,6 +48,17 @@ where
     output.into_iter().collect()
 }
 
+pub(crate) fn collect_parameters_as_string<F>(query_builder: &dyn QueryBuilder, f: F) -> String
+where
+    F: Fn(&mut SqlWriter, &mut dyn FnMut(Value)),
+{
+    let mut sql = SqlWriter::new();
+    let mut values = Vec::new();
+    let mut collector = |v| values.push(v);
+    f(&mut sql, &mut collector);
+    inject_parameters(&sql.string, values, query_builder)
+}
+
 impl SqlWriter {
     pub fn new() -> Self {
         Self {

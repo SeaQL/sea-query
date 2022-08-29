@@ -65,7 +65,31 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut SqlWriter);
 
     /// Translate [`ColumnSpec`] into SQL statement.
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter);
+    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter)
+    where
+        Self: QueryBuilder + Sized,
+    {
+        match column_spec {
+            ColumnSpec::Null => write!(sql, "NULL"),
+            ColumnSpec::NotNull => write!(sql, "NOT NULL"),
+            ColumnSpec::Default(expr) => {
+                write!(
+                    sql,
+                    "DEFAULT {}",
+                    collect_parameters_as_string(self, |sql, collector| {
+                        QueryBuilder::prepare_simple_expr(self, expr, sql, collector)
+                    })
+                )
+            }
+            ColumnSpec::AutoIncrement => {
+                write!(sql, "{}", self.column_spec_auto_increment_keyword())
+            }
+            ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
+            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
+            ColumnSpec::Extra(string) => write!(sql, "{}", string),
+        }
+        .unwrap()
+    }
 
     /// Translate [`TableOpt`] into SQL statement.
     fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut SqlWriter) {
@@ -139,4 +163,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
 
     /// Translate [`TableRenameStatement`] into SQL statement.
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter);
+
+    /// The keyword for setting a column to be auto increment.
+    fn column_spec_auto_increment_keyword(&self) -> &str;
 }

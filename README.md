@@ -442,7 +442,7 @@ let table = Table::create()
     .col(ColumnDef::new(Char::Character).string().not_null())
     .col(ColumnDef::new(Char::SizeW).integer().not_null())
     .col(ColumnDef::new(Char::SizeH).integer().not_null())
-    .col(ColumnDef::new(Char::FontId).integer().default(Value::Int(None)))
+    .col(ColumnDef::new(Char::FontId).integer().default_value(Value::Int(None)))
     .foreign_key(
         ForeignKey::create()
             .name("FK_2e303c3a712662f1fc2a4d0aad6")
@@ -510,7 +510,7 @@ let table = Table::alter()
         ColumnDef::new(Alias::new("new_col"))
             .integer()
             .not_null()
-            .default(100),
+            .default_value(100),
     )
     .to_owned();
 

@@ -16,7 +16,7 @@ use crate::{
 ///         ColumnDef::new(Alias::new("new_col"))
 ///             .integer()
 ///             .not_null()
-///             .default(100),
+///             .default_value(100),
 ///     )
 ///     .to_owned();
 ///
@@ -94,7 +94,7 @@ impl TableAlterStatement {
     ///         ColumnDef::new(Alias::new("new_col"))
     ///             .integer()
     ///             .not_null()
-    ///             .default(100),
+    ///             .default_value(100),
     ///     )
     ///     .to_owned();
     ///
@@ -133,7 +133,7 @@ impl TableAlterStatement {
     ///         ColumnDef::new(Alias::new("new_col"))
     ///             .integer()
     ///             .not_null()
-    ///             .default(100),
+    ///             .default_value(100),
     ///     )
     ///     .to_owned();
     ///
@@ -171,7 +171,7 @@ impl TableAlterStatement {
     ///     .modify_column(
     ///         ColumnDef::new(Alias::new("new_col"))
     ///             .big_integer()
-    ///             .default(999),
+    ///             .default_value(999),
     ///     )
     ///     .to_owned();
     ///
