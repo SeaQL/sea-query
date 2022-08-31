@@ -570,6 +570,79 @@ impl Expr {
         self.bin_oper(BinOper::NotEqual, v.into().into())
     }
 
+    /// Express a equal expression for [`SimpleExpr`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Id)
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::col(Char::Id)
+    ///             .eq_expr(
+    ///                 Expr::any(
+    ///                     Query::select().column(Char::Id).from(Char::Table).take()
+    ///                 )
+    ///             )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `id` = ANY(SELECT `id` FROM `character`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "id" = ANY(SELECT "id" FROM "character")"#
+    /// );
+    /// ```
+    pub fn eq_expr<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(BinOper::Equal, expr.into())
+    }
+
+    /// Express a not equal expression for [`SimpleExpr`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Id)
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::col(Char::Id)
+    ///             .neq_expr(
+    ///                 Expr::any(
+    ///                     Query::select().column(Char::Id).from(Char::Table).take()
+    ///                 )
+    ///             )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `id` <> ANY(SELECT `id` FROM `character`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "id" <> ANY(SELECT "id" FROM "character")"#
+    /// );
+    /// ```
+
+    pub fn neq_expr<T>(self, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_oper(BinOper::NotEqual, expr.into())
+    }
+
     /// Express a equal expression between two table columns,
     /// you will mainly use this to relate identical value between two table columns.
     ///
@@ -1910,35 +1983,6 @@ impl Expr {
     }
 
     /// Express a `ANY` sub-query expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Char::Id)
-    ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::col(Char::Id)
-    ///             .ne(
-    ///                 Expr::any(
-    ///                     Query::select().column(Char::Id).from(Char::Table).take()
-    ///                 )
-    ///             )
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE `id` <> ANY(SELECT `id` FROM `character`)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "id" FROM "character" WHERE "id" <> ANY(SELECT "id" FROM "character")"#
-    /// );
-    /// ```
-
     pub fn any(sel: SelectStatement) -> SimpleExpr {
         SimpleExpr::SubQuery(
             Some(SubQueryOper::Any),
