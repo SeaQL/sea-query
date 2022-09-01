@@ -691,6 +691,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     Function::Upper => "UPPER",
                     Function::Custom(_) => "",
                     Function::CurrentTimestamp => "CURRENT_TIMESTAMP",
+                    Function::Random => self.random_function(),
                     #[cfg(feature = "backend-postgres")]
                     Function::PgFunction(_) => unimplemented!(),
                 }
@@ -1533,6 +1534,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// The name of the function that returns the char length.
     fn char_length_function(&self) -> &str {
         "CHAR_LENGTH"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that returns a random number
+    fn random_function(&self) -> &str {
+        // Returning it with parens as part of the name because the tuple preparer can't deal with empty lists
+        "RANDOM()"
     }
 
     /// The keywords for insert default row.
