@@ -46,6 +46,16 @@ jobs:
             --
             --check
 
+      - uses: actions-rs/cargo@v1
+        name: Run rustfmt on `sea-query-rusqlite`
+        with:
+          command: fmt
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --all
+            --
+            --check
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
@@ -79,9 +89,20 @@ jobs:
             --
             -D warnings
 
+      - uses: actions-rs/cargo@v1
+        name: Run clippy on `sea-query-rusqlite`
+        with:
+          command: clippy
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --all-features
+            --workspace
+            --
+            -D warnings
+
   build:
     name: Build `sea-query`
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -90,7 +111,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      
+
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -175,15 +196,9 @@ jobs:
             --workspace 
             --features=thread-safe
 
-
   binder-build:
     name: Build `sea-query-binder`
     runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        runtime: [async-std]
-        tls: [rustls]
     steps:
       - uses: actions/checkout@v2
 
@@ -200,7 +215,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
 
       - uses: actions-rs/cargo@v1
@@ -210,7 +225,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-chrono
 
       - uses: actions-rs/cargo@v1
@@ -220,7 +235,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-json
 
       - uses: actions-rs/cargo@v1
@@ -230,7 +245,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-rust_decimal
 
       - uses: actions-rs/cargo@v1
@@ -240,7 +255,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-bigdecimal
 
       - uses: actions-rs/cargo@v1
@@ -250,7 +265,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-uuid
 
       - uses: actions-rs/cargo@v1
@@ -260,7 +275,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-time
 
       - uses: actions-rs/cargo@v1
@@ -270,7 +285,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-ipnetwork
 
       - uses: actions-rs/cargo@v1
@@ -280,7 +295,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=with-mac_address
 
       - uses: actions-rs/cargo@v1
@@ -290,7 +305,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=runtime-async-std-rustls
             --features=postgres-array
 
   test:
@@ -339,7 +354,7 @@ jobs:
   sqlite:
     name: SQLite
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test"]
+    needs: ["test", "derive-test", "rusqlite-build"]
     strategy:
       matrix:
         example: [rusqlite, sqlx_sqlite]
