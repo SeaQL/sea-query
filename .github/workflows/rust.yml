@@ -314,7 +314,7 @@ jobs:
             --features=postgres-array
 
   rusqlite-build:
-    name: Build `sea-query-binder`
+    name: Build `sea-query-rusqlite`
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

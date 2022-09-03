@@ -110,11 +110,11 @@ impl ToSql for RusqliteValue {
             #[cfg(feature = "with-json")]
             Value::Json(j) => box_to_sql!(j),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(d) => {
+            Value::Decimal(_) => {
                 panic!("Rusqlite doesn't support rust_decimal arguments");
             }
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(d) => {
+            Value::BigDecimal(_) => {
                 panic!("Rusqlite doesn't support bigdecimal arguments");
             }
             #[cfg(feature = "with-ipnetwork")]
