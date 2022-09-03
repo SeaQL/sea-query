@@ -125,6 +125,10 @@ impl ToSql for RusqliteValue {
             Value::MacAddress(_) => {
                 panic!("Rusqlite doesn't support MacAddress arguments");
             }
+            #[cfg(feature = "postgres-array")]
+            Value::Array(_) => {
+                panic!("Rusqlite doesn't support Array arguments");
+            }
         }
     }
 }

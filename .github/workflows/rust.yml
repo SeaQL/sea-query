@@ -198,7 +198,12 @@ jobs:
 
   binder-build:
     name: Build `sea-query-binder`
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [ async-std ]
+        tls: [ rustls ]
     steps:
       - uses: actions/checkout@v2
 
@@ -215,7 +220,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
 
       - uses: actions-rs/cargo@v1
@@ -225,7 +230,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-chrono
 
       - uses: actions-rs/cargo@v1
@@ -235,7 +240,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-json
 
       - uses: actions-rs/cargo@v1
@@ -245,7 +250,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-rust_decimal
 
       - uses: actions-rs/cargo@v1
@@ -255,7 +260,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-bigdecimal
 
       - uses: actions-rs/cargo@v1
@@ -265,7 +270,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-uuid
 
       - uses: actions-rs/cargo@v1
@@ -275,7 +280,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-time
 
       - uses: actions-rs/cargo@v1
@@ -285,7 +290,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-ipnetwork
 
       - uses: actions-rs/cargo@v1
@@ -295,7 +300,7 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
             --features=with-mac_address
 
       - uses: actions-rs/cargo@v1
@@ -305,7 +310,99 @@ jobs:
             --manifest-path sea-query-binder/Cargo.toml
             --workspace 
             --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-async-std-rustls
+            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
+            --features=postgres-array
+
+  rusqlite-build:
+    name: Build `sea-query-binder`
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-chrono
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-json
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-rust_decimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-bigdecimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-uuid
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-time
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-ipnetwork
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=with-mac_address
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
             --features=postgres-array
 
   test:
