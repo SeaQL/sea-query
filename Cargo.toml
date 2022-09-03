@@ -1,17 +1,5 @@
 [workspace]
-members = [
-    ".",
-    "sea-query-derive",
-    "sea-query-driver",
-    "sea-query-binder",
-    "examples/postgres",
-    "examples/postgres_json",
-    "examples/rusqlite",
-    "examples/sqlx_any",
-    "examples/sqlx_mysql",
-    "examples/sqlx_postgres",
-    "examples/sqlx_sqlite",
-]
+members = [".", "sea-query-derive", "sea-query-driver"]
 
 [package]
 name = "sea-query"

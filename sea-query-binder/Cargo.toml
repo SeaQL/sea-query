@@ -1,3 +1,6 @@
+[workspace]
+# A separate workspace
+
 [package]
 name = "sea-query-binder"
 version = "0.1.0"
@@ -31,3 +34,9 @@ with-time = ["sqlx/time", "sea-query/with-time"]
 with-ipnetwork = ["sqlx/ipnetwork", "sea-query/with-ipnetwork"]
 with-mac_address = ["sqlx/mac_address", "sea-query/with-mac_address"]
 postgres-array = ["sea-query/postgres-array"]
+runtime-async-std-native-tls = ["sqlx/runtime-async-std-native-tls"]
+runtime-async-std-rustls = ["sqlx/runtime-async-std-rustls", ]
+runtime-actix-native-tls = ["sqlx/runtime-actix-native-tls"]
+runtime-actix-rustls = ["sqlx/runtime-actix-rustls"]
+runtime-tokio-native-tls = ["sqlx/runtime-tokio-native-tls"]
+runtime-tokio-rustls = ["sqlx/runtime-tokio-rustls"]
