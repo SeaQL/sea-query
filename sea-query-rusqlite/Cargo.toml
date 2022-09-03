@@ -21,6 +21,7 @@ sea-query = { version = "^0", path = ".." }
 rusqlite = { package = "rusqlite", version = "^0.28", features = ["bundled"] }
 
 [features]
+thread-safe = ["sea-query/thread-safe"]
 with-chrono = ["rusqlite/chrono", "sea-query/with-chrono"]
 with-json = ["rusqlite/serde_json", "sea-query/with-json"]
 with-rust_decimal = ["sea-query/with-rust_decimal"]
