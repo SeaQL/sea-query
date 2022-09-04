@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use bytes::BytesMut;
-use postgres_types::{IsNull, to_sql_checked, ToSql, Type};
+use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
 
 use sea_query::{query::*, QueryBuilder, Value};
 
@@ -21,7 +21,6 @@ impl<'a> PostgresValues {
             .collect()
     }
 }
-
 
 pub trait PostgresBinder {
     fn build_postgres<T: QueryBuilder>(&self, query_builder: T) -> (String, PostgresValues);
@@ -113,10 +112,4 @@ impl ToSql for PostgresValue {
     }
 
     to_sql_checked!();
-}
-
-impl From<Vec<Value>> for PostgresValues {
-    fn from(v: Vec<Value>) -> PostgresValues {
-        PostgresValues(v.into_iter().map(|v|PostgresValue(v)).collect())
-    }
 }
