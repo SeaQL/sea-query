@@ -16,7 +16,8 @@ bigdecimal = { version = "^0.3" }
 ipnetwork = { version = "^0.19" }
 mac_address = { version = "^1.1" }
 async-std = { version = "1.8", features = [ "attributes" ] }
-sea-query = { path = "../../", features = [
+sea-query = { path = "../../" }
+sea-query-binder = { path = "../../sea-query-binder", features = [
     "sqlx-postgres",
     "with-chrono",
     "with-json",
@@ -26,6 +27,7 @@ sea-query = { path = "../../", features = [
     "with-time",
     "with-ipnetwork",
     "with-mac_address",
+    "runtime-async-std-native-tls",
 ] }
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "^0", features = [...] }
@@ -34,7 +36,6 @@ sea-query = { path = "../../", features = [
 version = "^0.6"
 default-features = false
 features = [
-    "runtime-async-std-native-tls",
     "macros",
     "postgres",
     "tls",
