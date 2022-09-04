@@ -56,6 +56,16 @@ jobs:
             --
             --check
 
+      - uses: actions-rs/cargo@v1
+        name: Run rustfmt on `sea-query-postgres`
+        with:
+          command: fmt
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --all
+            --
+            --check
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
@@ -95,6 +105,17 @@ jobs:
           command: clippy
           args: >
             --manifest-path sea-query-rusqlite/Cargo.toml
+            --all-features
+            --workspace
+            --
+            -D warnings
+
+      - uses: actions-rs/cargo@v1
+        name: Run clippy on `sea-query-postgres`
+        with:
+          command: clippy
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
             --all-features
             --workspace
             --
