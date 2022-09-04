@@ -331,15 +331,7 @@ jobs:
           args: >
             --manifest-path sea-query-rusqlite/Cargo.toml
             --workspace 
-            --features=thread-safe,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=thread-safe,
+            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
 
       - uses: actions-rs/cargo@v1
         with:
