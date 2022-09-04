@@ -12,17 +12,15 @@ time = { version = "^0.3", features = ["parsing", "macros"] }
 serde_json = { version = "^1" }
 # rusqlite only supports uuid 0
 uuid = { version = "^1", features = ["serde", "v4"] }
-# that's why we can only use an older version of sea-query
+rusqlite = "^0.28"
+sea-query = { path = "../.."}
 sea-query-rusqlite = { path = "../../sea-query-rusqlite", features = [
     "with-chrono",
     "with-json",
     "with-uuid",
     "with-time",
 ] }
-sea-query = { path = "../..", features = [
-    "with-chrono",
-    "with-json",
-    "with-uuid",
-    "with-time",
-] }
-rusqlite = "^0.28"
+
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0"}
+# sea-query-rusqlite = { version = "^0", features = [...] }
