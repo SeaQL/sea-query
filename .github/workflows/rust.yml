@@ -459,7 +459,7 @@ jobs:
   sqlite:
     name: SQLite
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test", "rusqlite-build"]
+    needs: ["test", "derive-test", "rusqlite-build", "binder-build"]
     strategy:
       matrix:
         example: [rusqlite, sqlx_sqlite]
@@ -485,7 +485,7 @@ jobs:
   mysql:
     name: MySQL
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test"]
+    needs: ["test", "derive-test", "binder-build"]
     strategy:
       matrix:
         version: [8.0, 5.7]
@@ -528,7 +528,7 @@ jobs:
   mariadb:
     name: MariaDB
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test"]
+    needs: ["test", "derive-test", "binder-build"]
     strategy:
       matrix:
         version: [10.6]
@@ -571,7 +571,7 @@ jobs:
   postgres:
     name: PostgreSQL
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test"]
+    needs: ["test", "derive-test", "binder-build"]
     strategy:
       matrix:
         version: [14.4, 13.7, 12.11]
