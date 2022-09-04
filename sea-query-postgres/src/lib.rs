@@ -1,13 +1,55 @@
-use crate::{Value, Values};
-use bytes::BytesMut;
-use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
 use std::error::Error;
 
-pub trait PostgresDriver<'a> {
-    fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)>;
+use bytes::BytesMut;
+use postgres_types::{IsNull, to_sql_checked, ToSql, Type};
+
+use sea_query::{query::*, QueryBuilder, Value};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PostgresValue(pub sea_query::Value);
+#[derive(Clone, Debug, PartialEq)]
+pub struct PostgresValues(pub Vec<PostgresValue>);
+
+impl<'a> PostgresValues {
+    pub fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)> {
+        self.0
+            .iter()
+            .map(|x| {
+                let y: &(dyn ToSql + Sync) = x;
+                y
+            })
+            .collect()
+    }
 }
 
-impl ToSql for Value {
+
+pub trait PostgresBinder {
+    fn build_postgres<T: QueryBuilder>(&self, query_builder: T) -> (String, PostgresValues);
+}
+
+macro_rules! impl_postgres_binder {
+    ($l:ident) => {
+        impl PostgresBinder for $l {
+            fn build_postgres<T: QueryBuilder>(
+                &self,
+                query_builder: T,
+            ) -> (String, PostgresValues) {
+                let (query, values) = self.build(query_builder);
+                (
+                    query,
+                    PostgresValues(values.into_iter().map(PostgresValue).collect()),
+                )
+            }
+        }
+    };
+}
+
+impl_postgres_binder!(SelectStatement);
+impl_postgres_binder!(UpdateStatement);
+impl_postgres_binder!(InsertStatement);
+impl_postgres_binder!(DeleteStatement);
+
+impl ToSql for PostgresValue {
     fn to_sql(
         &self,
         ty: &Type,
@@ -18,7 +60,7 @@ impl ToSql for Value {
                 $v.map(|v| v as $ty).as_ref().to_sql(ty, out)
             };
         }
-        match self {
+        match &self.0 {
             Value::Bool(v) => to_sql!(v, bool),
             Value::TinyInt(v) => to_sql!(v, i8),
             Value::SmallInt(v) => to_sql!(v, i16),
@@ -55,12 +97,12 @@ impl ToSql for Value {
             Value::TimeDateTime(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
-            #[cfg(feature = "postgres-rust_decimal")]
+            #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
-            Value::Array(v) => v.as_deref().to_sql(ty, out),
+            Value::Array(_v) => todo!(),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }
@@ -73,20 +115,8 @@ impl ToSql for Value {
     to_sql_checked!();
 }
 
-impl From<Vec<Value>> for Values {
-    fn from(v: Vec<Value>) -> Values {
-        Values(v)
-    }
-}
-
-impl<'a> PostgresDriver<'a> for Values {
-    fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)> {
-        self.0
-            .iter()
-            .map(|x| {
-                let y: &(dyn ToSql + Sync) = x;
-                y
-            })
-            .collect()
+impl From<Vec<Value>> for PostgresValues {
+    fn from(v: Vec<Value>) -> PostgresValues {
+        PostgresValues(v.into_iter().map(|v|PostgresValue(v)).collect())
     }
 }

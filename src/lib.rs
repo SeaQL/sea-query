@@ -747,7 +747,6 @@
 )]
 
 pub mod backend;
-pub mod driver;
 pub mod error;
 pub mod expr;
 pub mod extension;
@@ -765,7 +764,6 @@ pub mod types;
 pub mod value;
 
 pub use backend::*;
-pub use driver::*;
 //pub use extension::*;
 pub use foreign_key::*;
 pub use index::*;
