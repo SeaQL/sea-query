@@ -200,7 +200,7 @@ async fn main() {
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        println!("{:?}\n", row);
+        println!("{:?}", row);
     }
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
@@ -209,7 +209,7 @@ async fn main() {
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        println!("{:?}\n", row);
+        println!("{:?}", row);
     }
     println!();
 
