@@ -105,7 +105,7 @@ impl OnConflict {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image" WHERE "glyph"."aspect" IS NULL"#
     /// );
     /// ```
     pub fn update_columns<C, I>(&mut self, columns: I) -> &mut Self
@@ -163,7 +163,7 @@ impl OnConflict {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415 WHERE "glyph"."aspect" IS NULL"#
     /// );
     /// ```
     pub fn update_values<C, I>(&mut self, column_values: I) -> &mut Self
@@ -221,7 +221,7 @@ impl OnConflict {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "image" = 1 + 2"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "image" = 1 + 2 WHERE "glyph"."aspect" IS NULL"#
     /// );
     /// ```
     pub fn update_exprs<C, I>(&mut self, column_exprs: I) -> &mut Self
