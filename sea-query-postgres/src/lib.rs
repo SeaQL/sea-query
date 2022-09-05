@@ -106,6 +106,7 @@ impl ToSql for PostgresValue {
                 .map(|v| PostgresValue(v.clone()))
                 .collect::<Vec<PostgresValue>>()
                 .to_sql(ty, out),
+            #[cfg(feature = "postgres-array")]
             Value::Array(None) => Ok(IsNull::Yes),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
