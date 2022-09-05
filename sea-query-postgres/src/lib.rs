@@ -101,7 +101,12 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_v) => todo!(),
+            Value::Array(Some(v)) => v
+                .iter()
+                .map(|v| PostgresValue(v.clone()))
+                .collect::<Vec<PostgresValue>>()
+                .to_sql(ty, out),
+            Value::Array(None) => Ok(IsNull::Yes),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }
