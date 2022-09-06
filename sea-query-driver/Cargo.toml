@@ -1,6 +1,6 @@
 [package]
 name = "sea-query-driver"
-version = "0.2.1"
+version = "0.2.2"
 authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2021"
 description = "Proc macros for SeaQuery drivers"
