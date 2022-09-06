@@ -1,7 +1,8 @@
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table};
+use sea_query::{ColumnDef, Iden, Order, PostgresQueryBuilder, Query, Table};
+use sea_query_postgres::PostgresBinder;
 use time::{
     macros::{date, offset, time},
     OffsetDateTime, PrimitiveDateTime,
@@ -110,7 +111,7 @@ fn main() {
             document_time.decimal.into(),
             document_time.array.into(),
         ])
-        .build(PostgresQueryBuilder);
+        .build_postgres(PostgresQueryBuilder);
 
     let result = client.execute(sql.as_str(), &values.as_params());
     println!("Insert into document: {:?}\n", result);
@@ -130,7 +131,7 @@ fn main() {
         .from(Document::Table)
         .order_by(Document::Id, Order::Desc)
         .limit(1)
-        .build(PostgresQueryBuilder);
+        .build_postgres(PostgresQueryBuilder);
 
     let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
     println!("Select one from document:");

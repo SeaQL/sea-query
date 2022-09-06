@@ -13,13 +13,15 @@ uuid = { version = "^1", features = ["serde", "v4"] }
 serde_json = "^1"
 rust_decimal = { version = "^1" }
 postgres = "^0.19"
-sea-query = { path = "../../", features = [
-    "postgres",
-    "postgres-rust_decimal",
-    "postgres-array",
+sea-query = { path = "../../"}
+sea-query-postgres = { path = "../../sea-query-postgres", features = [
     "with-uuid",
     "with-chrono",
     "with-json",
     "with-time",
+    "postgres-array",
+    "with-rust_decimal"
 ] }
-# NOTE: if you are copying this example into your own project, replace `path = ` with `version = "^0"`
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0" }
+# sea-query-postgres = { version = "^0", features = [...] }
