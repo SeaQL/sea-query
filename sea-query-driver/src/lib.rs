@@ -1,3 +1,4 @@
+//! This crate is now deprecated. It is only compatible with sea-query up to 0.26
 #[allow(unused_imports)]
 use proc_macro::{self, TokenStream};
 
