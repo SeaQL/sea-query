@@ -56,6 +56,16 @@ jobs:
             --
             --check
 
+      - uses: actions-rs/cargo@v1
+        name: Run rustfmt on `sea-query-postgres`
+        with:
+          command: fmt
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --all
+            --
+            --check
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
@@ -95,6 +105,17 @@ jobs:
           command: clippy
           args: >
             --manifest-path sea-query-rusqlite/Cargo.toml
+            --all-features
+            --workspace
+            --
+            -D warnings
+
+      - uses: actions-rs/cargo@v1
+        name: Run clippy on `sea-query-postgres`
+        with:
+          command: clippy
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
             --all-features
             --workspace
             --
@@ -331,15 +352,7 @@ jobs:
           args: >
             --manifest-path sea-query-rusqlite/Cargo.toml
             --workspace 
-            --features=thread-safe,with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=thread-safe,
+            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
 
       - uses: actions-rs/cargo@v1
         with:
@@ -410,6 +423,98 @@ jobs:
           command: build
           args: >
             --manifest-path sea-query-rusqlite/Cargo.toml
+            --workspace 
+            --features=postgres-array
+
+  postgres-build:
+    name: Build `sea-query-postgres`
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-chrono
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-json
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-rust_decimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-bigdecimal
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-uuid
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-time
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-ipnetwork
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
+            --workspace 
+            --features=with-mac_address
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: >
+            --manifest-path sea-query-postgres/Cargo.toml
             --workspace 
             --features=postgres-array
 
@@ -571,11 +676,11 @@ jobs:
   postgres:
     name: PostgreSQL
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test", "binder-build"]
+    needs: ["test", "derive-test", "binder-build", "postgres-build"]
     strategy:
       matrix:
         version: [14.4, 13.7, 12.11]
-        example: [postgres, postgres_json, sqlx_postgres]
+        example: [postgres, sqlx_postgres]
     services:
       postgres:
         image: postgres:${{ matrix.version }}
