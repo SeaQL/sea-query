@@ -785,6 +785,3 @@ pub use sea_query_derive::Iden;
 
 #[cfg(feature = "attr")]
 pub use sea_query_attr::enum_def;
-
-#[cfg(feature = "sea-query-driver")]
-pub use sea_query_driver::*;

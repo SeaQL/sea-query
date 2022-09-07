@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "sea-query-derive", "sea-query-driver"]
+members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
@@ -28,7 +28,6 @@ path = "src/lib.rs"
 [dependencies]
 sea-query-attr = { version = "^0.1.1", path = "sea-query-attr", optional = true }
 sea-query-derive = { version = "^0.2.0", path = "sea-query-derive", optional = true }
-sea-query-driver = { version = "^0.2.0", path = "sea-query-driver", optional = true }
 serde_json = { version = "^1", optional = true }
 chrono = { version = "^0", default-features = false, features = ["clock"], optional = true }
 postgres-types = { version = "^0", optional = true }
@@ -52,21 +51,17 @@ backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
-postgres-array = ["sea-query-driver?/postgres-array"]
+postgres-array = []
 postgres-interval = ["proc-macro2", "quote"]
-rusqlite = ["sea-query-driver/rusqlite"]
-sqlx-mysql = ["sea-query-driver/sqlx-mysql"]
-sqlx-postgres = ["sea-query-driver/sqlx-postgres"]
-sqlx-sqlite = ["sea-query-driver/sqlx-sqlite"]
 thread-safe = []
-with-chrono = ["chrono", "sea-query-driver?/with-chrono"]
-with-json = ["serde_json", "sea-query-driver?/with-json"]
-with-rust_decimal = ["rust_decimal", "sea-query-driver?/with-rust_decimal"]
-with-bigdecimal = ["bigdecimal", "sea-query-driver?/with-bigdecimal"]
-with-uuid = ["uuid", "sea-query-driver?/with-uuid"]
-with-time = ["time", "sea-query-driver?/with-time"]
-with-ipnetwork = ["ipnetwork", "sea-query-driver?/with-ipnetwork"]
-with-mac_address = ["mac_address", "sea-query-driver?/with-mac_address"]
+with-chrono = ["chrono"]
+with-json = ["serde_json"]
+with-rust_decimal = ["rust_decimal"]
+with-bigdecimal = ["bigdecimal"]
+with-uuid = ["uuid"]
+with-time = ["time"]
+with-ipnetwork = ["ipnetwork"]
+with-mac_address = ["mac_address"]
 
 [[test]]
 name = "test-derive"
