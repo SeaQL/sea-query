@@ -680,7 +680,7 @@ jobs:
     strategy:
       matrix:
         version: [14.4, 13.7, 12.11]
-        example: [postgres, postgres_json, sqlx_postgres]
+        example: [postgres, sqlx_postgres]
     services:
       postgres:
         image: postgres:${{ matrix.version }}

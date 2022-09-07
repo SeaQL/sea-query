@@ -14,6 +14,7 @@ serde_json = "^1"
 rust_decimal = { version = "^1" }
 bigdecimal = { version = "^0.3" }
 async-std = { version = "1.8", features = [ "attributes" ] }
+sqlx = "^0.6"
 sea-query = { path = "../../" }
 sea-query-binder = { path = "../../sea-query-binder", features = [
     "sqlx-mysql",
@@ -25,28 +26,7 @@ sea-query-binder = { path = "../../sea-query-binder", features = [
     "with-time",
     "runtime-async-std-native-tls",
 ] }
-# NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "^0", features = [
-#     "sqlx-mysql",
-#     "with-chrono",
-#     "with-json",
-#     "with-rust_decimal",
-#     "with-bigdecimal",
-#     "with-uuid",
-#     "with-time",
-# ] }
 
-[dependencies.sqlx]
-version = "^0.6"
-default-features = false
-features = [
-    "macros",
-    "mysql",
-    "tls",
-    "chrono",
-    "json",
-    "decimal",
-    "bigdecimal",
-    "uuid",
-    "time",
-]
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0", features = [] }
+# # sea-query-binder = { version = "^0", features = [...] }

@@ -1,4 +1,4 @@
-# SeaQuery Postgres example
+# SeaQuery Postgres JSON with DateTime example
 
 Running:
 ```sh
@@ -7,19 +7,11 @@ cargo run
 
 Example output:
 ```
-Create table character: ()
+DROP TABLE IF EXISTS "document"; CREATE TABLE IF NOT EXISTS "document" ( "id" serial NOT NULL PRIMARY KEY, "json_field" jsonb, "timestamp" timestamp )
+Create table document: ()
 
-Insert into character: Ok(1)
+Insert into document: Ok(1)
 
-Select one from character:
-CharacterStruct { id: 1, character: "A", font_size: 12 }
-
-Update character: Ok(1)
-
-Select one from character:
-CharacterStruct { id: 1, character: "A", font_size: 24 }
-
-Count character: 1
-
-Delete character: Ok(1)
+Select one from document:
+DocumentStruct { id: 1, json_field: Object({"a": Number(25.0), "b": String("whatever"), "c": Object({"another": String("object"), "bla": Number(1)})}), timestamp: 2020-01-01T02:02:02 }
 ```
