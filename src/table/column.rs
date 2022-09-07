@@ -497,11 +497,11 @@ impl ColumnDef {
     }
 
     /// Use a custom type on this column.
-    pub fn custom<T: 'static>(&mut self, n: T) -> &mut Self
+    pub fn custom<T>(&mut self, name: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoIden,
     {
-        self.types = Some(ColumnType::Custom(SeaRc::new(n)));
+        self.types = Some(ColumnType::Custom(name.into_iden()));
         self
     }
 
