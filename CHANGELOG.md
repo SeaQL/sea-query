@@ -11,10 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Support `CROSS JOIN` https://github.com/SeaQL/sea-query/pull/376
 * We are going through series of changes to how database drivers work
-(https://github.com/SeaQL/sea-query/pull/416, https://github.com/SeaQL/sea-query/pull/423, https://github.com/SeaQL/sea-query/pull/422):
-	1. `sea-query-binder` will be the recommended way (trait based) of working with SQLx, replacing `sea-query-driver` (macro based)
-	2. `sea-query-binder` will be a separate dependency, instead of integrated with `sea-query`
-	3. `rusqlite` support will also be moved to a dedicated crate
+(https://github.com/SeaQL/sea-query/pull/416, https://github.com/SeaQL/sea-query/pull/423):
+	1. `sea-query-binder` is now the recommended way (trait based) of working with SQLx, replacing `sea-query-driver` (macro based)
+	2. `sea-query-binder` is now a separate dependency, instead of integrated with `sea-query`
+	3. `rusqlite` support is moved to `sea-query-rusqlite` https://github.com/SeaQL/sea-query/pull/422
+	4. `postgres` support is moved to `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/433
 
 ### Enhancements
 

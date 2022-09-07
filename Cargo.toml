@@ -9,7 +9,7 @@ authors = [
     "Billy Chan <ccw.billy.123@gmail.com>",
 ]
 edition = "2021"
-description = "🌊 A dynamic query builder for MySQL, Postgres and SQLite"
+description = "🔱 A dynamic query builder for MySQL, Postgres and SQLite"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
@@ -30,7 +30,6 @@ sea-query-attr = { version = "^0.1.1", path = "sea-query-attr", optional = true 
 sea-query-derive = { version = "^0.2.0", path = "sea-query-derive", optional = true }
 sea-query-driver = { version = "^0.2.0", path = "sea-query-driver", optional = true }
 serde_json = { version = "^1", optional = true }
-bytes = { version = "^1", optional = true }
 chrono = { version = "^0", default-features = false, features = ["clock"], optional = true }
 postgres-types = { version = "^0", optional = true }
 rust_decimal = { version = "^1", optional = true }
@@ -53,21 +52,19 @@ backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
-postgres = ["bytes", "postgres-types"]
-postgres-rust_decimal = ["with-rust_decimal", "rust_decimal/db-postgres"]
-postgres-array = ["postgres-types?/array-impls", "sea-query-driver?/postgres-array"]
+postgres-array = ["sea-query-driver?/postgres-array"]
 postgres-interval = ["proc-macro2", "quote"]
 rusqlite = ["sea-query-driver/rusqlite"]
 sqlx-mysql = ["sea-query-driver/sqlx-mysql"]
 sqlx-postgres = ["sea-query-driver/sqlx-postgres"]
 sqlx-sqlite = ["sea-query-driver/sqlx-sqlite"]
 thread-safe = []
-with-chrono = ["chrono", "sea-query-driver?/with-chrono", "postgres-types?/with-chrono-0_4"]
-with-json = ["serde_json", "sea-query-driver?/with-json", "postgres-types?/with-serde_json-1"]
+with-chrono = ["chrono", "sea-query-driver?/with-chrono"]
+with-json = ["serde_json", "sea-query-driver?/with-json"]
 with-rust_decimal = ["rust_decimal", "sea-query-driver?/with-rust_decimal"]
 with-bigdecimal = ["bigdecimal", "sea-query-driver?/with-bigdecimal"]
-with-uuid = ["uuid", "sea-query-driver?/with-uuid", "postgres-types?/with-uuid-1"]
-with-time = ["time", "sea-query-driver?/with-time", "postgres-types?/with-time-0_3"]
+with-uuid = ["uuid", "sea-query-driver?/with-uuid"]
+with-time = ["time", "sea-query-driver?/with-time"]
 with-ipnetwork = ["ipnetwork", "sea-query-driver?/with-ipnetwork"]
 with-mac_address = ["mac_address", "sea-query-driver?/with-mac_address"]
 

@@ -1,0 +1,1 @@
+This crate is now deprecated. It is only compatible with sea-query up to 0.26
