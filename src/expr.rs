@@ -1909,6 +1909,34 @@ impl Expr {
     }
 
     /// Express a `ANY` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Id)
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::col(Char::Id)
+    ///             .eq(
+    ///                 Expr::any(
+    ///                     Query::select().column(Char::Id).from(Char::Table).take()
+    ///                 )
+    ///             )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `id` = ANY(SELECT `id` FROM `character`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "id" = ANY(SELECT "id" FROM "character")"#
+    /// );
+    /// ```
     pub fn any(sel: SelectStatement) -> SimpleExpr {
         SimpleExpr::SubQuery(
             Some(SubQueryOper::Any),
@@ -1917,6 +1945,34 @@ impl Expr {
     }
 
     /// Express a `SOME` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Id)
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::col(Char::Id)
+    ///             .ne(
+    ///                 Expr::some(
+    ///                     Query::select().column(Char::Id).from(Char::Table).take()
+    ///                 )
+    ///             )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `id` <> ANY(SELECT `id` FROM `character`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "id" <> ANY(SELECT "id" FROM "character")"#
+    /// );
+    /// ```
     pub fn some(sel: SelectStatement) -> SimpleExpr {
         SimpleExpr::SubQuery(
             Some(SubQueryOper::Some),
