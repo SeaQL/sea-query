@@ -1,7 +1,11 @@
 use super::*;
 
 impl IndexBuilder for PostgresQueryBuilder {
-    fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_index_create_statement(
+        &self,
+        create: &IndexCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
         write!(sql, "CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
         write!(sql, "INDEX ").unwrap();
@@ -22,7 +26,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         self.prepare_index_columns(&create.index.columns, sql);
     }
 
-    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
+    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(table) = &drop.table {
             match table {
@@ -39,7 +43,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut SqlWriter) {
+    fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut dyn SqlWriter) {
         if let Some(index_type) = col_index_type {
             write!(
                 sql,
@@ -55,7 +59,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
         if create.primary {
             write!(sql, "PRIMARY KEY ").unwrap();
         }
@@ -64,7 +68,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
                 self.prepare_table_ref_iden(table_ref, sql)

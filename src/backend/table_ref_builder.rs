@@ -2,7 +2,7 @@ use crate::*;
 
 pub trait TableRefBuilder: QuotedBuilder {
     /// Translate [`TableRef`] that without values into SQL statement.
-    fn prepare_table_ref_iden(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_iden(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::Table(iden) => {
                 iden.prepare(sql, self.quote());

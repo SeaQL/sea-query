@@ -289,13 +289,13 @@ impl TableCreateStatement {
 
 impl SchemaStatementBuilder for TableCreateStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = SqlStringWriter::new();
         schema_builder.prepare_table_create_statement(self, &mut sql);
         sql.result()
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = SqlStringWriter::new();
         schema_builder.prepare_table_create_statement(self, &mut sql);
         sql.result()
     }

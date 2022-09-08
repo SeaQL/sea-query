@@ -356,13 +356,8 @@ impl UpdateStatement {
 }
 
 impl QueryStatementBuilder for UpdateStatement {
-    fn build_collect_any_into(
-        &self,
-        query_builder: &dyn QueryBuilder,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        query_builder.prepare_update_statement(self, sql, collector);
+    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
+        query_builder.prepare_update_statement(self, sql);
     }
 
     fn into_sub_query_statement(self) -> SubQueryStatement {
@@ -371,51 +366,8 @@ impl QueryStatementBuilder for UpdateStatement {
 }
 
 impl QueryStatementWriter for UpdateStatement {
-    /// Build corresponding SQL statement for certain database backend and collect query parameters
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .values(vec![
-    ///         (Glyph::Aspect, 2.1345.into()),
-    ///         (Glyph::Image, "235m".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
-    /// );
-    ///
-    /// let mut params = Vec::new();
-    /// let mut collector = |v| params.push(v);
-    ///
-    /// assert_eq!(
-    ///     query.build_collect(MysqlQueryBuilder, &mut collector),
-    ///     r#"UPDATE `glyph` SET `aspect` = ?, `image` = ? WHERE `id` = ?"#
-    /// );
-    /// assert_eq!(
-    ///     params,
-    ///     vec![
-    ///         Value::Double(Some(2.1345)),
-    ///         Value::String(Some(Box::new(String::from("235m")))),
-    ///         Value::Int(Some(1)),
-    ///     ]
-    /// );
-    /// ```
-    fn build_collect<T: QueryBuilder>(
-        &self,
-        query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_update_statement(self, &mut sql, collector);
-        sql.result()
+    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+        query_builder.prepare_update_statement(self, sql);
     }
 }
 

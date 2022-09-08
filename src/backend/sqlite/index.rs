@@ -1,7 +1,11 @@
 use super::*;
 
 impl IndexBuilder for SqliteQueryBuilder {
-    fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_index_create_statement(
+        &self,
+        create: &IndexCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
         write!(sql, "CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
         write!(sql, "INDEX ").unwrap();
@@ -20,7 +24,7 @@ impl IndexBuilder for SqliteQueryBuilder {
         self.prepare_index_columns(&create.index.columns, sql);
     }
 
-    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
+    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(name) = &drop.index.name {
             let quote = self.quote();
@@ -33,9 +37,9 @@ impl IndexBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn write_column_index_prefix(&self, _col_prefix: &Option<u32>, _sql: &mut SqlWriter) {}
+    fn write_column_index_prefix(&self, _col_prefix: &Option<u32>, _sql: &mut dyn SqlWriter) {}
 
-    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
         if create.primary {
             write!(sql, "PRIMARY KEY ").unwrap();
         } else if create.unique {
@@ -43,7 +47,7 @@ impl IndexBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),

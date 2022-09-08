@@ -3,10 +3,75 @@
 use crate::*;
 pub use std::fmt::Write;
 
-#[derive(Debug, Default)]
-pub struct SqlWriter {
-    pub(crate) counter: usize,
+pub trait SqlWriter: Write {
+    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder);
+    fn result(self) -> String;
+}
+
+pub struct SqlStringWriter {
     pub(crate) string: String,
+}
+
+impl SqlStringWriter {
+    pub fn new() -> Self {
+        Self {
+            string: String::with_capacity(256),
+        }
+    }
+}
+
+impl Write for SqlStringWriter {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        write!(self.string, "{}", s)
+    }
+}
+
+impl SqlWriter for SqlStringWriter {
+    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
+        self.string.push_str(&query_builder.value_to_string(&value));
+    }
+
+    fn result(self) -> String {
+        self.string
+    }
+}
+
+pub struct SqlWriterObj {
+    counter: usize,
+    placeholder: String,
+    numbered: bool,
+    string: String,
+    values: Vec<Value>,
+}
+
+impl SqlWriterObj {
+    pub fn new(placeholder: &str, numbered: bool) -> Self {
+        Self {
+            counter: 0,
+            placeholder: placeholder.to_owned(),
+            numbered,
+            string: String::with_capacity(256),
+            values: Vec::new(),
+        }
+    }
+
+    pub fn into_parts(self) -> (String, Values) {
+        (self.string, Values(self.values))
+    }
+}
+
+impl Write for SqlWriterObj {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        write!(self.string, "{}", s)
+    }
+}
+
+impl SqlWriter for SqlWriterObj {
+    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {}
+
+    fn result(self) -> String {
+        self.string
+    }
 }
 
 pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
@@ -46,51 +111,6 @@ where
         i += 1;
     }
     output.into_iter().collect()
-}
-
-impl SqlWriter {
-    pub fn new() -> Self {
-        Self {
-            counter: 0,
-            string: String::with_capacity(256),
-        }
-    }
-
-    pub fn push_param(&mut self, sign: &str, numbered: bool) {
-        self.counter += 1;
-        if numbered {
-            let counter = self.counter;
-            write!(self, "{}{}", sign, counter).unwrap();
-        } else {
-            write!(self, "{}", sign).unwrap();
-        }
-    }
-
-    pub fn result(self) -> String {
-        self.string
-    }
-
-    fn skip_str(s: &str, n: usize) -> &str {
-        let mut it = s.chars();
-        for _ in 0..n {
-            it.next();
-        }
-        it.as_str()
-    }
-}
-
-impl std::fmt::Write for SqlWriter {
-    fn write_str(&mut self, s: &str) -> std::result::Result<(), std::fmt::Error> {
-        write!(
-            self.string,
-            "{}",
-            if self.string.ends_with(' ') && s.starts_with(' ') {
-                Self::skip_str(s, 1)
-            } else {
-                s
-            }
-        )
-    }
 }
 
 #[cfg(test)]

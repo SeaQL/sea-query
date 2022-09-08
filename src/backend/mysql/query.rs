@@ -1,91 +1,56 @@
 use super::*;
 
 impl QueryBuilder for MysqlQueryBuilder {
-    fn prepare_returning(
-        &self,
-        _returning: &Option<ReturningClause>,
-        _sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
-    ) {
-    }
+    fn prepare_returning(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
 
-    fn prepare_order_expr(
-        &self,
-        order_expr: &OrderExpr,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         match order_expr.nulls {
             None => (),
             Some(NullOrdering::Last) => {
-                self.prepare_simple_expr(&order_expr.expr, sql, collector);
+                self.prepare_simple_expr(&order_expr.expr, sql);
                 write!(sql, " IS NULL ASC, ").unwrap()
             }
             Some(NullOrdering::First) => {
-                self.prepare_simple_expr(&order_expr.expr, sql, collector);
+                self.prepare_simple_expr(&order_expr.expr, sql);
                 write!(sql, " IS NULL DESC, ").unwrap()
             }
         }
         if !matches!(order_expr.order, Order::Field(_)) {
-            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+            self.prepare_simple_expr(&order_expr.expr, sql);
         }
         write!(sql, " ").unwrap();
-        self.prepare_order(order_expr, sql, collector);
+        self.prepare_order(order_expr, sql);
     }
 
-    fn prepare_query_statement(
-        &self,
-        query: &SubQueryStatement,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        query.prepare_statement(self, sql, collector);
+    fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
+        query.prepare_statement(self, sql);
     }
 
-    fn prepare_with_clause_recursive_options(
-        &self,
-        _: &WithClause,
-        _: &mut SqlWriter,
-        _: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut dyn SqlWriter) {
         // MySQL doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
     }
 
     fn prepare_with_query_clause_materialization(
         &self,
         _: &CommonTableExpression,
-        _: &mut SqlWriter,
+        _: &mut dyn SqlWriter,
     ) {
         // MySQL doesn't support declaring materialization in SQL for with query.
     }
 
-    fn prepare_on_conflict_target(
-        &self,
-        _: &Option<OnConflictTarget>,
-        _: &mut SqlWriter,
-        _: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_on_conflict_target(&self, _: &Option<OnConflictTarget>, _: &mut dyn SqlWriter) {
         // MySQL doesn't support declaring ON CONFLICT target.
     }
 
-    fn prepare_on_conflict_keywords(&self, sql: &mut SqlWriter, _: &mut dyn FnMut(Value)) {
+    fn prepare_on_conflict_keywords(&self, sql: &mut dyn SqlWriter) {
         write!(sql, " ON DUPLICATE KEY ").unwrap();
     }
 
-    fn prepare_on_conflict_do_update_keywords(
-        &self,
-        sql: &mut SqlWriter,
-        _: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_on_conflict_do_update_keywords(&self, sql: &mut dyn SqlWriter) {
         write!(sql, " UPDATE ").unwrap();
     }
 
-    fn prepare_on_conflict_excluded_table(
-        &self,
-        col: &DynIden,
-        sql: &mut SqlWriter,
-        _: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
         write!(sql, "VALUES(").unwrap();
         col.prepare(sql, self.quote());
         write!(sql, ")").unwrap();
@@ -94,17 +59,11 @@ impl QueryBuilder for MysqlQueryBuilder {
     fn insert_default_keyword(&self) -> &str {
         "()"
     }
-
     fn random_function(&self) -> &str {
         "RAND"
     }
 
-    fn prepare_select_distinct(
-        &self,
-        select_distinct: &SelectDistinct,
-        sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {
         match select_distinct {
             SelectDistinct::All => write!(sql, "ALL").unwrap(),
             SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),

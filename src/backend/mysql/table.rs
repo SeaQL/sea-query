@@ -1,7 +1,7 @@
 use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
-    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter) {
+    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
         column_def.name.prepare(sql, self.quote());
 
         if let Some(column_type) = &column_def.types {
@@ -15,7 +15,7 @@ impl TableBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut SqlWriter) {
+    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",
@@ -118,7 +118,7 @@ impl TableBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter) {
+    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter) {
         match column_spec {
             ColumnSpec::Null => write!(sql, "NULL"),
             ColumnSpec::NotNull => write!(sql, "NOT NULL"),
@@ -131,7 +131,7 @@ impl TableBuilder for MysqlQueryBuilder {
         .unwrap()
     }
 
-    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter) {
+    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
         };
@@ -193,7 +193,11 @@ impl TableBuilder for MysqlQueryBuilder {
         });
     }
 
-    fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
+    fn prepare_table_rename_statement(
+        &self,
+        rename: &TableRenameStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
         write!(sql, "RENAME TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
             self.prepare_table_ref_table_stmt(from_name, sql);
