@@ -531,9 +531,9 @@ impl Expr {
     /// ```
     pub fn eq<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Equal, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Equal, v.into())
     }
 
     /// Express a not equal (`<>`) expression.
@@ -565,84 +565,10 @@ impl Expr {
     /// ```
     pub fn ne<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::NotEqual, v.into().into())
+        self.bin_oper(BinOper::NotEqual, v.into())
     }
-
-    /// Express a equal expression for [`SimpleExpr`]
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Char::Id)
-    ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::col(Char::Id)
-    ///             .eq_expr(
-    ///                 Expr::any(
-    ///                     Query::select().column(Char::Id).from(Char::Table).take()
-    ///                 )
-    ///             )
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE `id` = ANY(SELECT `id` FROM `character`)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "id" FROM "character" WHERE "id" = ANY(SELECT "id" FROM "character")"#
-    /// );
-    /// ```
-    pub fn eq_expr<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.bin_oper(BinOper::Equal, expr.into())
-    }
-
-    /// Express a not equal expression for [`SimpleExpr`]
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Char::Id)
-    ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::col(Char::Id)
-    ///             .neq_expr(
-    ///                 Expr::any(
-    ///                     Query::select().column(Char::Id).from(Char::Table).take()
-    ///                 )
-    ///             )
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE `id` <> ANY(SELECT `id` FROM `character`)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "id" FROM "character" WHERE "id" <> ANY(SELECT "id" FROM "character")"#
-    /// );
-    /// ```
-
-    pub fn neq_expr<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.bin_oper(BinOper::NotEqual, expr.into())
-    }
-
     /// Express a equal expression between two table columns,
     /// you will mainly use this to relate identical value between two table columns.
     ///
@@ -2280,9 +2206,12 @@ impl From<Expr> for SelectExpr {
     }
 }
 
-impl From<Value> for SimpleExpr {
-    fn from(v: Value) -> Self {
-        SimpleExpr::Value(v)
+impl<T> From<T> for SimpleExpr
+where
+    T: Into<Value>,
+{
+    fn from(v: T) -> Self {
+        SimpleExpr::Value(v.into())
     }
 }
 
