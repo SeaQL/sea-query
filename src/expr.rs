@@ -1966,11 +1966,11 @@ impl Expr {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `id` FROM `character` WHERE `id` <> ANY(SELECT `id` FROM `character`)"#
+    ///     r#"SELECT `id` FROM `character` WHERE `id` <> SOME(SELECT `id` FROM `character`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "id" FROM "character" WHERE "id" <> ANY(SELECT "id" FROM "character")"#
+    ///     r#"SELECT "id" FROM "character" WHERE "id" <> SOME(SELECT "id" FROM "character")"#
     /// );
     /// ```
     pub fn some(sel: SelectStatement) -> SimpleExpr {
