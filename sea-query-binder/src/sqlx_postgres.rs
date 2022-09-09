@@ -117,6 +117,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                 Value::MacAddress(mac) => {
                     args.add(mac.as_deref());
                 }
+                #[cfg(feature = "sqlx-postgres")]
+                Value::SqlxPostgres(v) => {
+                    args = v.bind_arg(args);
+                }
             }
         }
         args

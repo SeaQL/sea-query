@@ -120,7 +120,79 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<Box<MacAddress>>),
+
+    #[cfg(feature = "sqlx-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "sqlx-postgres")))]
+    SqlxPostgres(Box<dyn SqlxPostgresValue>),
 }
+
+#[cfg(feature = "sqlx-postgres")]
+mod sqlx_postgres {
+    use crate::Value;
+    use sqlx::postgres::PgArguments;
+    use sqlx::{Arguments, Encode, Postgres, Type};
+    use std::fmt::{Debug, Display};
+
+    pub trait SqlxPostgresValue: SqlxPostgresValueClone + Send + Display + Debug {
+        fn bind_arg(self: Box<Self>, args: PgArguments) -> PgArguments;
+    }
+
+    /// Splitting `Clone` out of `SqlxPostgresValue` to bypass object safety rules
+    pub trait SqlxPostgresValueClone {
+        fn clone_box(&self) -> Box<dyn SqlxPostgresValue>;
+    }
+
+    /// Provide a blanket implementation for all types that implemented `SqlxPostgresValue` and `Clone`
+    impl<T> SqlxPostgresValueClone for T
+    where
+        T: SqlxPostgresValue + Clone + 'static,
+    {
+        fn clone_box(&self) -> Box<dyn SqlxPostgresValue> {
+            Box::new(self.clone())
+        }
+    }
+
+    /// Implement `Clone` through `clone_box` method
+    impl Clone for Box<dyn SqlxPostgresValue> {
+        fn clone(&self) -> Box<dyn SqlxPostgresValue> {
+            self.clone_box()
+        }
+    }
+
+    impl<T> SqlxPostgresValue for T
+    where
+        T: for<'q> Encode<'q, Postgres> + Type<Postgres> + Clone + Send + Display + Debug + 'static,
+    {
+        fn bind_arg(self: Box<Self>, mut args: PgArguments) -> PgArguments {
+            args.add(*self);
+            args
+        }
+    }
+
+    impl<T> From<Box<T>> for Value
+    where
+        T: for<'q> Encode<'q, Postgres> + Type<Postgres> + Clone + Send + Display + Debug + 'static,
+    {
+        fn from(v: Box<T>) -> Value {
+            Value::SqlxPostgres(v)
+        }
+    }
+
+    impl PartialEq for Box<dyn SqlxPostgresValue> {
+        fn eq(&self, other: &Self) -> bool {
+            self.to_string() == other.to_string()
+        }
+    }
+
+    impl PartialEq<&Self> for Box<dyn SqlxPostgresValue> {
+        fn eq(&self, other: &&Self) -> bool {
+            self.to_string() == other.to_string()
+        }
+    }
+}
+
+#[cfg(feature = "sqlx-postgres")]
+use sqlx_postgres::*;
 
 pub trait ValueType: Sized {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr>;
@@ -1173,6 +1245,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
+        // #[cfg(feature = "sqlx-postgres")]
+        // Value::SqlxPostgres(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -1228,6 +1302,10 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        // #[cfg(feature = "sqlx-postgres")]
+        // Value::SqlxPostgres(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "sqlx-postgres")]
+        Value::SqlxPostgres(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
 

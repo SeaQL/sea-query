@@ -1103,6 +1103,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::MacAddress(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => write!(s, "NULL").unwrap(),
+            // #[cfg(feature = "sqlx-postgres")]
+            // Value::SqlxPostgres(None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
             Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
             Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
@@ -1185,6 +1187,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::IpNetwork(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            // #[cfg(feature = "sqlx-postgres")]
+            // Value::SqlxPostgres(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            #[cfg(feature = "sqlx-postgres")]
+            Value::SqlxPostgres(v) => write!(s, "'{}'", v).unwrap(),
         };
         s
     }

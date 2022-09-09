@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 #[async_std::main]
 async fn main() {
-    let connection = PgPool::connect("postgres://sea:sea@127.0.0.1/query")
+    let connection = PgPool::connect("postgres://root:root@127.0.0.1/query")
         .await
         .unwrap();
     let mut pool = connection.try_acquire().unwrap();
@@ -45,12 +45,47 @@ async fn main() {
         .col(ColumnDef::new(Character::Created).date_time())
         .col(ColumnDef::new(Character::Inet).inet())
         .col(ColumnDef::new(Character::MacAddress).mac_address())
+        .col(ColumnDef::new(Character::Array).array("integer".into()))
         .build(PostgresQueryBuilder);
 
     let result = sqlx::query(&sql).execute(&mut pool).await;
     println!("Create table character: {:?}\n", result);
 
     // Create
+
+    #[derive(Clone, Debug)]
+    struct VecI32(Vec<i32>);
+
+    impl<'q> sqlx::Encode<'q, sqlx::Postgres> for VecI32 {
+        fn encode_by_ref(
+            &self,
+            buf: &mut sqlx::postgres::PgArgumentBuffer,
+        ) -> sqlx::encode::IsNull {
+            <Vec<i32> as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.0, buf)
+        }
+    }
+
+    impl<'q> sqlx::Type<sqlx::Postgres> for VecI32 {
+        fn type_info() -> sqlx::postgres::PgTypeInfo {
+            <i32 as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
+    }
+
+    impl std::fmt::Display for VecI32 {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+            write!(
+                f,
+                "{{{}}}",
+                self.0
+                    .iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            )
+        }
+    }
+
+    let array = VecI32(vec![3, 4, 5, 6]);
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
@@ -64,6 +99,7 @@ async fn main() {
             Character::Created,
             Character::Inet,
             Character::MacAddress,
+            Character::Array,
         ])
         .values_panic(vec![
             Uuid::new_v4().into(),
@@ -83,6 +119,7 @@ async fn main() {
                 .unwrap()
                 .into(),
             get_mac_address().unwrap().unwrap().into(),
+            Box::new(array.clone()).into(),
         ])
         .values_panic(vec![
             Uuid::new_v4().into(),
@@ -102,6 +139,7 @@ async fn main() {
                 .unwrap()
                 .into(),
             get_mac_address().unwrap().unwrap().into(),
+            Box::new(array).into(),
         ])
         .returning_col(Character::Id)
         .build_sqlx(PostgresQueryBuilder);
@@ -127,6 +165,7 @@ async fn main() {
             Character::Created,
             Character::Inet,
             Character::MacAddress,
+            Character::Array,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -178,6 +217,7 @@ async fn main() {
             Character::Created,
             Character::Inet,
             Character::MacAddress,
+            Character::Array,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -251,6 +291,7 @@ async fn main() {
             Character::Created,
             Character::Inet,
             Character::MacAddress,
+            Character::Array,
         ])
         .from(Character::Table)
         .order_by(Character::Id, Order::Desc)
@@ -300,6 +341,7 @@ enum Character {
     Created,
     Inet,
     MacAddress,
+    Array,
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -315,6 +357,7 @@ struct CharacterStructChrono {
     created: NaiveDateTime,
     inet: IpNetwork,
     mac_address: MacAddress,
+    array: Vec<i32>,
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -330,4 +373,5 @@ struct CharacterStructTime {
     created: PrimitiveDateTime,
     inet: IpNetwork,
     mac_address: MacAddress,
+    array: Vec<i32>,
 }
