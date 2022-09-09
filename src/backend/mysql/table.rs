@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
-        column_def.name.prepare(sql, self.quote());
+        column_def.name.prepare(sql.as_writer(), self.quote());
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
@@ -161,13 +161,13 @@ impl TableBuilder for MysqlQueryBuilder {
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
                     write!(sql, "RENAME COLUMN ").unwrap();
-                    from_name.prepare(sql, self.quote());
+                    from_name.prepare(sql.as_writer(), self.quote());
                     write!(sql, " TO ").unwrap();
-                    to_name.prepare(sql, self.quote());
+                    to_name.prepare(sql.as_writer(), self.quote());
                 }
                 TableAlterOption::DropColumn(column_name) => {
                     write!(sql, "DROP COLUMN ").unwrap();
-                    column_name.prepare(sql, self.quote());
+                    column_name.prepare(sql.as_writer(), self.quote());
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();

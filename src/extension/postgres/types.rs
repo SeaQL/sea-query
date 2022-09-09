@@ -113,19 +113,19 @@ pub trait TypeBuilder: QuotedBuilder {
     fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut dyn SqlWriter) {
         match type_ref {
             TypeRef::Type(name) => {
-                name.prepare(sql, self.quote());
+                name.prepare(sql.as_writer(), self.quote());
             }
             TypeRef::SchemaType(schema, name) => {
-                schema.prepare(sql, self.quote());
+                schema.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                name.prepare(sql, self.quote());
+                name.prepare(sql.as_writer(), self.quote());
             }
             TypeRef::DatabaseSchemaType(database, schema, name) => {
-                database.prepare(sql, self.quote());
+                database.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
+                schema.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                name.prepare(sql, self.quote());
+                name.prepare(sql.as_writer(), self.quote());
             }
         }
     }
@@ -137,7 +137,7 @@ pub trait TypeStatementBuilder {
     }
 
     fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         self.build_collect_ref(type_builder, &mut sql)
     }
 
@@ -250,7 +250,7 @@ impl TypeStatementBuilder for TypeCreateStatement {
         sql: &mut dyn SqlWriter,
     ) -> String {
         type_builder.prepare_type_create_statement(self, sql);
-        sql.result()
+        sql.to_string()
     }
 }
 
@@ -326,7 +326,7 @@ impl TypeStatementBuilder for TypeDropStatement {
         sql: &mut dyn SqlWriter,
     ) -> String {
         type_builder.prepare_type_drop_statement(self, sql);
-        sql.result()
+        sql.to_string()
     }
 }
 
@@ -464,7 +464,7 @@ impl TypeStatementBuilder for TypeAlterStatement {
         sql: &mut dyn SqlWriter,
     ) -> String {
         type_builder.prepare_type_alter_statement(self, sql);
-        sql.result()
+        sql.to_string()
     }
 }
 

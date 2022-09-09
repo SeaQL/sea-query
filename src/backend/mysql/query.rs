@@ -52,7 +52,7 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
         write!(sql, "VALUES(").unwrap();
-        col.prepare(sql, self.quote());
+        col.prepare(sql.as_writer(), self.quote());
         write!(sql, ")").unwrap();
     }
 

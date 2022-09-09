@@ -1,15 +1,12 @@
 use std::fmt::Debug;
 
-use crate::{
-    backend::QueryBuilder, value::Values, SqlStringWriter, SqlWriter, SqlWriterObj,
-    SubQueryStatement,
-};
+use crate::{backend::QueryBuilder, value::Values, SqlWriter, SqlWriterValues, SubQueryStatement};
 
 pub trait QueryStatementBuilder: Debug {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
     fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
         let (placeholder, numbered) = query_builder.placeholder();
-        let mut sql = SqlWriterObj::new(placeholder, numbered);
+        let mut sql = SqlWriterValues::new(placeholder, numbered);
         self.build_collect_any_into(query_builder, &mut sql);
         sql.into_parts()
     }
@@ -21,7 +18,7 @@ pub trait QueryStatementBuilder: Debug {
         sql: &mut dyn SqlWriter,
     ) -> String {
         self.build_collect_any_into(query_builder, sql);
-        sql.result()
+        sql.to_string()
     }
 
     /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
@@ -52,9 +49,9 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// );
     /// ```
     fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         self.build_collect_any_into(&query_builder, &mut sql);
-        sql.result()
+        sql
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
@@ -83,7 +80,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// ```
     fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
         let (placeholder, numbered) = query_builder.placeholder();
-        let mut sql = SqlWriterObj::new(placeholder, numbered);
+        let mut sql = SqlWriterValues::new(placeholder, numbered);
         self.build_collect_into(query_builder, &mut sql);
         sql.into_parts()
     }
@@ -122,9 +119,9 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// ```
     fn build_collect<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) -> String {
         let (placeholder, numbered) = query_builder.placeholder();
-        let mut sql = SqlWriterObj::new(placeholder, numbered);
+        let mut sql = SqlWriterValues::new(placeholder, numbered);
         self.build_collect_into(query_builder, &mut sql);
-        sql.result()
+        sql.to_string()
     }
 
     fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter);

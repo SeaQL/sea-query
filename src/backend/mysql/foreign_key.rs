@@ -50,7 +50,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql, self.quote());
+            col.prepare(sql.as_writer(), self.quote());
             false
         });
         write!(sql, ")").unwrap();
@@ -70,7 +70,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql, self.quote());
+                col.prepare(sql.as_writer(), self.quote());
                 false
             });
         write!(sql, ")").unwrap();

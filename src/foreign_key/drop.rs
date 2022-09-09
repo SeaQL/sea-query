@@ -1,6 +1,4 @@
-use crate::{
-    backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder, TableForeignKey,
-};
+use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder, TableForeignKey};
 
 /// Drop a foreign key constraint for an existing table
 ///
@@ -63,14 +61,14 @@ impl ForeignKeyDropStatement {
 
 impl SchemaStatementBuilder for ForeignKeyDropStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_foreign_key_drop_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_foreign_key_drop_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

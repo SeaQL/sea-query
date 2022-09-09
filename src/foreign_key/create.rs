@@ -1,6 +1,5 @@
 use crate::{
-    backend::SchemaBuilder, prepare::*, types::*, ForeignKeyAction, SchemaStatementBuilder,
-    TableForeignKey,
+    backend::SchemaBuilder, types::*, ForeignKeyAction, SchemaStatementBuilder, TableForeignKey,
 };
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite
@@ -183,14 +182,14 @@ impl ForeignKeyCreateStatement {
 
 impl SchemaStatementBuilder for ForeignKeyCreateStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, prepare::SqlWriter, query::*, ValueTuple, Values};
+use crate::{expr::*, query::*, ValueTuple, Values};
 use std::fmt;
 
 #[cfg(not(feature = "thread-safe"))]
@@ -12,7 +12,7 @@ macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
         pub trait Iden where $(Self: $bounds),* {
-            fn prepare(&self, s: &mut dyn SqlWriter, q: char) {
+            fn prepare(&self, s: &mut dyn fmt::Write, q: char) {
                 write!(s, "{}{}{}", q, self.quoted(q), q).unwrap();
             }
 
@@ -28,7 +28,7 @@ macro_rules! iden_trait {
                 s.to_owned()
             }
 
-            fn unquoted(&self, s: &mut dyn SqlWriter);
+            fn unquoted(&self, s: &mut dyn fmt::Write);
         }
     };
 }
@@ -373,7 +373,7 @@ impl Alias {
 }
 
 impl Iden for Alias {
-    fn unquoted(&self, s: &mut dyn SqlWriter) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(s, "{}", self.0).unwrap();
     }
 }
@@ -391,7 +391,7 @@ impl Default for NullAlias {
 }
 
 impl Iden for NullAlias {
-    fn unquoted(&self, _s: &mut dyn SqlWriter) {}
+    fn unquoted(&self, _s: &mut dyn fmt::Write) {}
 }
 
 impl LikeExpr {

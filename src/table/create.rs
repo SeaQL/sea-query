@@ -1,6 +1,5 @@
 use crate::{
-    backend::SchemaBuilder, foreign_key::*, index::*, prepare::*, types::*, ColumnDef,
-    SchemaStatementBuilder,
+    backend::SchemaBuilder, foreign_key::*, index::*, types::*, ColumnDef, SchemaStatementBuilder,
 };
 
 /// Create a table
@@ -289,14 +288,14 @@ impl TableCreateStatement {
 
 impl SchemaStatementBuilder for TableCreateStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

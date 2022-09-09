@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for SqliteQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
-        column_def.name.prepare(sql, self.quote());
+        column_def.name.prepare(sql.as_writer(), self.quote());
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
@@ -160,9 +160,9 @@ impl TableBuilder for SqliteQueryBuilder {
             }
             TableAlterOption::RenameColumn(from_name, to_name) => {
                 write!(sql, "RENAME COLUMN ").unwrap();
-                from_name.prepare(sql, self.quote());
+                from_name.prepare(sql.as_writer(), self.quote());
                 write!(sql, " TO ").unwrap();
-                to_name.prepare(sql, self.quote());
+                to_name.prepare(sql.as_writer(), self.quote());
             }
             TableAlterOption::DropColumn(_) => {
                 panic!("Sqlite not support dropping table column")

@@ -32,7 +32,7 @@ impl IndexBuilder for PostgresQueryBuilder {
             match table {
                 TableRef::Table(_) => {}
                 TableRef::SchemaTable(schema, _) => {
-                    schema.prepare(sql, self.quote());
+                    schema.prepare(sql.as_writer(), self.quote());
                     write!(sql, ".").unwrap();
                 }
                 _ => panic!("Not supported"),

@@ -3,40 +3,22 @@
 use crate::*;
 pub use std::fmt::Write;
 
-pub trait SqlWriter: Write {
+pub trait SqlWriter: Write + ToString {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder);
-    fn result(self) -> String;
-}
 
-pub struct SqlStringWriter {
-    pub(crate) string: String,
-}
-
-impl SqlStringWriter {
-    pub fn new() -> Self {
-        Self {
-            string: String::with_capacity(256),
-        }
+    fn as_writer(&mut self) -> &mut dyn Write {
+        &mut self as _
     }
 }
 
-impl Write for SqlStringWriter {
-    fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        write!(self.string, "{}", s)
-    }
-}
-
-impl SqlWriter for SqlStringWriter {
+impl SqlWriter for String {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
-        self.string.push_str(&query_builder.value_to_string(&value));
-    }
-
-    fn result(self) -> String {
-        self.string
+        self.push_str(&query_builder.value_to_string(&value))
     }
 }
 
-pub struct SqlWriterObj {
+#[derive(Debug, Clone)]
+pub struct SqlWriterValues {
     counter: usize,
     placeholder: String,
     numbered: bool,
@@ -44,11 +26,12 @@ pub struct SqlWriterObj {
     values: Vec<Value>,
 }
 
-impl SqlWriterObj {
+impl SqlWriterValues {
     pub fn new(placeholder: &str, numbered: bool) -> Self {
+        let placeholder = placeholder.to_owned();
         Self {
             counter: 0,
-            placeholder: placeholder.to_owned(),
+            placeholder,
             numbered,
             string: String::with_capacity(256),
             values: Vec::new(),
@@ -60,17 +43,28 @@ impl SqlWriterObj {
     }
 }
 
-impl Write for SqlWriterObj {
+impl Write for SqlWriterValues {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         write!(self.string, "{}", s)
     }
 }
 
-impl SqlWriter for SqlWriterObj {
-    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {}
+impl ToString for SqlWriterValues {
+    fn to_string(&self) -> String {
+        self.string.clone()
+    }
+}
 
-    fn result(self) -> String {
-        self.string
+impl SqlWriter for SqlWriterValues {
+    fn push_param(&mut self, value: Value, _: &dyn QueryBuilder) {
+        self.counter += 1;
+        if self.numbered {
+            let counter = self.counter;
+            write!(self, "{}{}", self.placeholder, counter).unwrap();
+        } else {
+            write!(self, "{}", self.placeholder).unwrap();
+        }
+        self.values.push(value)
     }
 }
 

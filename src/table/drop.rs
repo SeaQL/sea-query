@@ -1,4 +1,4 @@
-use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
+use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 
 /// Drop a table
 ///
@@ -93,14 +93,14 @@ impl TableDropStatement {
 
 impl SchemaStatementBuilder for TableDropStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_drop_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlStringWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_drop_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

@@ -57,7 +57,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.name.prepare(sql, self.quote());
+            col.name.prepare(sql.as_writer(), self.quote());
             self.write_column_index_prefix(&col.prefix, sql);
             if let Some(order) = &col.order {
                 match order {

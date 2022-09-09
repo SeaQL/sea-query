@@ -1,10 +1,11 @@
 //! Configurations for test cases and examples. Not intended for actual use.
 
+use std::fmt;
+
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
 use crate::Iden;
-use crate::SqlWriter;
 
 /// Representation of a database table named `Character`.
 ///
@@ -28,7 +29,7 @@ pub enum Character {
 pub type Char = Character;
 
 impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn SqlWriter) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
@@ -63,7 +64,7 @@ pub enum Font {
 }
 
 impl Iden for Font {
-    fn unquoted(&self, s: &mut dyn SqlWriter) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
@@ -93,7 +94,7 @@ pub enum Glyph {
 }
 
 impl Iden for Glyph {
-    fn unquoted(&self, s: &mut dyn SqlWriter) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",

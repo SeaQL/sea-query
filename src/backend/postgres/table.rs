@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for PostgresQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
-        column_def.name.prepare(sql, self.quote());
+        column_def.name.prepare(sql.as_writer(), self.quote());
 
         self.prepare_column_type_check_auto_increment(column_def, sql);
 
@@ -150,7 +150,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 TableAlterOption::ModifyColumn(column_def) => {
                     if column_def.types.is_some() {
                         write!(sql, "ALTER COLUMN ").unwrap();
-                        column_def.name.prepare(sql, self.quote());
+                        column_def.name.prepare(sql.as_writer(), self.quote());
                         write!(sql, " TYPE").unwrap();
                         self.prepare_column_type_check_auto_increment(column_def, sql);
                     }
@@ -163,7 +163,7 @@ impl TableBuilder for PostgresQueryBuilder {
                         } else {
                             write!(sql, " ALTER COLUMN ").unwrap();
                         }
-                        column_def.name.prepare(sql, self.quote());
+                        column_def.name.prepare(sql.as_writer(), self.quote());
                         match column_spec {
                             ColumnSpec::Null => write!(sql, " DROP NOT NULL").unwrap(),
                             _ => {
@@ -175,13 +175,13 @@ impl TableBuilder for PostgresQueryBuilder {
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
                     write!(sql, "RENAME COLUMN ").unwrap();
-                    from_name.prepare(sql, self.quote());
+                    from_name.prepare(sql.as_writer(), self.quote());
                     write!(sql, " TO ").unwrap();
-                    to_name.prepare(sql, self.quote());
+                    to_name.prepare(sql.as_writer(), self.quote());
                 }
                 TableAlterOption::DropColumn(column_name) => {
                     write!(sql, "DROP COLUMN ").unwrap();
-                    column_name.prepare(sql, self.quote());
+                    column_name.prepare(sql.as_writer(), self.quote());
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();

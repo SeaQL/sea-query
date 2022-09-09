@@ -31,7 +31,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 if !first {
                     write!(sql, ", ").unwrap()
                 }
-                col.prepare(sql, self.quote());
+                col.prepare(sql.as_writer(), self.quote());
                 false
             });
             write!(sql, ")").unwrap();
@@ -158,7 +158,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         if let Some((name, query)) = &select.window {
             write!(sql, " WINDOW ").unwrap();
-            name.prepare(sql, self.quote());
+            name.prepare(sql.as_writer(), self.quote());
             write!(sql, " AS ").unwrap();
             self.prepare_window_statement(query, sql);
         }
@@ -409,7 +409,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         match &select_expr.window {
             Some(WindowSelectType::Name(name)) => {
                 write!(sql, " OVER ").unwrap();
-                name.prepare(sql, self.quote())
+                name.prepare(sql.as_writer(), self.quote())
             }
             Some(WindowSelectType::Query(window)) => {
                 write!(sql, " OVER ").unwrap();
@@ -423,7 +423,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         match &select_expr.alias {
             Some(alias) => {
                 write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
+                alias.prepare(sql.as_writer(), self.quote());
             }
             None => {}
         };
@@ -455,14 +455,14 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 self.prepare_select_statement(query, sql);
                 write!(sql, ")").unwrap();
                 write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
+                alias.prepare(sql.as_writer(), self.quote());
             }
             TableRef::ValuesList(values, alias) => {
                 write!(sql, "(").unwrap();
                 self.prepare_values_list(values, sql);
                 write!(sql, ")").unwrap();
                 write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
+                alias.prepare(sql.as_writer(), self.quote());
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
         }
@@ -470,24 +470,24 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
     fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut dyn SqlWriter) {
         match column_ref {
-            ColumnRef::Column(column) => column.prepare(sql, self.quote()),
+            ColumnRef::Column(column) => column.prepare(sql.as_writer(), self.quote()),
             ColumnRef::TableColumn(table, column) => {
-                table.prepare(sql, self.quote());
+                table.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                column.prepare(sql, self.quote());
+                column.prepare(sql.as_writer(), self.quote());
             }
             ColumnRef::SchemaTableColumn(schema, table, column) => {
-                schema.prepare(sql, self.quote());
+                schema.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
+                table.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                column.prepare(sql, self.quote());
+                column.prepare(sql.as_writer(), self.quote());
             }
             ColumnRef::Asterisk => {
                 write!(sql, "*").unwrap();
             }
             ColumnRef::TableAsterisk(table) => {
-                table.prepare(sql, self.quote());
+                table.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".*").unwrap();
             }
         };
@@ -581,7 +581,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`Function`] into SQL statement.
     fn prepare_function_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
         if let Function::Custom(iden) = function {
-            iden.unquoted(sql);
+            iden.unquoted(sql.as_writer());
         } else {
             write!(
                 sql,
@@ -654,7 +654,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     .alias
                     .as_ref()
                     .unwrap()
-                    .prepare(sql, self.quote());
+                    .prepare(sql.as_writer(), self.quote());
                 write!(sql, " ").unwrap();
             }
             if let Some(cycle) = &with_clause.cycle {
@@ -664,9 +664,17 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
                 write!(sql, " SET ").unwrap();
 
-                cycle.set_as.as_ref().unwrap().prepare(sql, self.quote());
+                cycle
+                    .set_as
+                    .as_ref()
+                    .unwrap()
+                    .prepare(sql.as_writer(), self.quote());
                 write!(sql, " USING ").unwrap();
-                cycle.using.as_ref().unwrap().prepare(sql, self.quote());
+                cycle
+                    .using
+                    .as_ref()
+                    .unwrap()
+                    .prepare(sql.as_writer(), self.quote());
                 write!(sql, " ").unwrap();
             }
         }
@@ -704,7 +712,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         cte: &CommonTableExpression,
         sql: &mut dyn SqlWriter,
     ) {
-        cte.table_name.as_ref().unwrap().prepare(sql, self.quote());
+        cte.table_name
+            .as_ref()
+            .unwrap()
+            .prepare(sql.as_writer(), self.quote());
 
         if cte.cols.is_empty() {
             write!(sql, " ").unwrap();
@@ -717,7 +728,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     write!(sql, ", ").unwrap();
                 }
                 col_first = false;
-                col.prepare(sql, self.quote());
+                col.prepare(sql.as_writer(), self.quote());
             }
 
             write!(sql, ") ").unwrap();
@@ -882,7 +893,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`Keyword`] into SQL statement.
     fn prepare_keyword(&self, keyword: &Keyword, sql: &mut dyn SqlWriter) {
         if let Keyword::Custom(iden) = keyword {
-            iden.unquoted(sql);
+            iden.unquoted(sql.as_writer());
         } else {
             write!(
                 sql,
@@ -1059,7 +1070,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        col.prepare(sql, self.quote());
+                        col.prepare(sql.as_writer(), self.quote());
                         false
                     });
                     write!(sql, ")").unwrap();
@@ -1086,7 +1097,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        col.prepare(sql, self.quote());
+                        col.prepare(sql.as_writer(), self.quote());
                         write!(sql, " = ").unwrap();
                         self.prepare_on_conflict_excluded_table(col, sql);
                         false
@@ -1098,7 +1109,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        col.prepare(sql, self.quote());
+                        col.prepare(sql.as_writer(), self.quote());
                         write!(sql, " = ").unwrap();
                         self.prepare_simple_expr(expr, sql);
                         false
@@ -1125,7 +1136,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
         write!(sql, "{0}excluded{0}", self.quote()).unwrap();
         write!(sql, ".").unwrap();
-        col.prepare(sql, self.quote());
+        col.prepare(sql.as_writer(), self.quote());
     }
 
     #[doc(hidden)]

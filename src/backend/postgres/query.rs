@@ -93,7 +93,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                     if !first {
                         write!(sql, ", ").unwrap();
                     }
-                    c.prepare(sql, self.quote());
+                    c.prepare(sql.as_writer(), self.quote());
                     false
                 });
                 write!(sql, ")").unwrap();
