@@ -43,7 +43,7 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_on_conflict_keywords(&self, sql: &mut dyn SqlWriter) {
-        write!(sql, " ON DUPLICATE KEY ").unwrap();
+        write!(sql, " ON DUPLICATE KEY").unwrap();
     }
 
     fn prepare_on_conflict_do_update_keywords(&self, sql: &mut dyn SqlWriter) {
@@ -74,5 +74,9 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn values_list_tuple_prefix(&self) -> &str {
         "ROW"
+    }
+
+    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value.clone(), self as _);
     }
 }

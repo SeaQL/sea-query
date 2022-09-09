@@ -360,7 +360,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_simple_expr(&r#else.into(), sql);
         }
 
-        write!(sql, " END) ").unwrap();
+        write!(sql, " END)").unwrap();
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
@@ -435,7 +435,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         write!(sql, " ").unwrap();
         self.prepare_join_table_ref(join_expr, sql);
         if let Some(on) = &join_expr.on {
-            write!(sql, " ").unwrap();
             self.prepare_join_on(on, sql);
         }
     }
@@ -801,7 +800,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql);
         }
-        write!(sql, " ").unwrap();
         self.prepare_order(order_expr, sql);
     }
 
@@ -832,7 +830,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         write!(sql, "CASE ").unwrap();
         let mut i = 0;
         for value in &values.0 {
-            write!(sql, " WHEN ").unwrap();
+            write!(sql, "WHEN ").unwrap();
             self.prepare_simple_expr(&order_expr.expr, sql);
             write!(sql, "=").unwrap();
             let value = self.value_to_string(value);
@@ -844,9 +842,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     }
 
     /// Write [`Value`] into SQL statement as parameter.
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), &self);
-    }
+    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter);
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
@@ -856,7 +852,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
     fn prepare_values_list(&self, value_tuples: &[ValueTuple], sql: &mut dyn SqlWriter) {
-        let (placeholder, numbered) = self.placeholder();
         write!(sql, "VALUES ").unwrap();
         value_tuples.iter().fold(true, |first, value_tuple| {
             if !first {
@@ -868,7 +863,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                sql.push_param(value, &self);
+                self.prepare_value(&value, sql);
                 false
             });
 
@@ -1399,6 +1394,10 @@ pub(crate) struct CommonSqlQueryBuilder;
 impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
+    }
+
+    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value.clone(), self as _);
     }
 }
 

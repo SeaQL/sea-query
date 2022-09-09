@@ -52,7 +52,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     #[doc(hidden)]
     /// Write the column index prefix.
     fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
-        write!(sql, " (").unwrap();
+        write!(sql, "(").unwrap();
         columns.iter().fold(true, |first, col| {
             if !first {
                 write!(sql, ", ").unwrap();

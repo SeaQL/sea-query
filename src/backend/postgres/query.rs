@@ -101,4 +101,8 @@ impl QueryBuilder for PostgresQueryBuilder {
             _ => {}
         };
     }
+
+    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value.clone(), self as _);
+    }
 }

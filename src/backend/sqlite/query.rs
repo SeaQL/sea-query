@@ -34,4 +34,8 @@ impl QueryBuilder for SqliteQueryBuilder {
         // SQLite doesn't support inserting multiple rows with default values
         write!(sql, "DEFAULT VALUES").unwrap()
     }
+
+    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value.clone(), self as _);
+    }
 }

@@ -6,14 +6,16 @@ pub use std::fmt::Write;
 pub trait SqlWriter: Write + ToString {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder);
 
-    fn as_writer(&mut self) -> &mut dyn Write {
-        &mut self as _
-    }
+    fn as_writer(&mut self) -> &mut dyn Write;
 }
 
 impl SqlWriter for String {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
         self.push_str(&query_builder.value_to_string(&value))
+    }
+
+    fn as_writer(&mut self) -> &mut dyn Write {
+        self as _
     }
 }
 
@@ -60,11 +62,15 @@ impl SqlWriter for SqlWriterValues {
         self.counter += 1;
         if self.numbered {
             let counter = self.counter;
-            write!(self, "{}{}", self.placeholder, counter).unwrap();
+            write!(self.string, "{}{}", self.placeholder, counter).unwrap();
         } else {
-            write!(self, "{}", self.placeholder).unwrap();
+            write!(self.string, "{}", self.placeholder).unwrap();
         }
         self.values.push(value)
+    }
+
+    fn as_writer(&mut self) -> &mut dyn Write {
+        self as _
     }
 }
 

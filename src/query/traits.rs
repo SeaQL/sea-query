@@ -118,9 +118,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// );
     /// ```
     fn build_collect<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) -> String {
-        let (placeholder, numbered) = query_builder.placeholder();
-        let mut sql = SqlWriterValues::new(placeholder, numbered);
-        self.build_collect_into(query_builder, &mut sql);
+        self.build_collect_into(query_builder, sql);
         sql.to_string()
     }
 

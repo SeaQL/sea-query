@@ -45,7 +45,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         }
         write!(sql, " FOREIGN KEY ").unwrap();
 
-        write!(sql, " (").unwrap();
+        write!(sql, "(").unwrap();
         create.foreign_key.columns.iter().fold(true, |first, col| {
             if !first {
                 write!(sql, ", ").unwrap();
