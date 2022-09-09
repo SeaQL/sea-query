@@ -2149,6 +2149,15 @@ impl From<Expr> for SelectExpr {
     }
 }
 
+impl<T> From<T> for SimpleExpr
+where
+    T: Into<Value>,
+{
+    fn from(v: T) -> Self {
+        SimpleExpr::Value(v.into())
+    }
+}
+
 impl SimpleExpr {
     /// Express a logical `AND` operation.
     ///

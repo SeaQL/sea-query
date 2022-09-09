@@ -1,4 +1,4 @@
-use crate::{types::*, value::*};
+use crate::{expr::*, types::*};
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -53,7 +53,7 @@ pub enum ColumnType {
 pub enum ColumnSpec {
     Null,
     NotNull,
-    Default(Value),
+    Default(SimpleExpr),
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
@@ -151,7 +151,7 @@ impl ColumnDef {
     /// Set default value of a column
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
-        T: Into<Value>,
+        T: Into<SimpleExpr>,
     {
         self.spec.push(ColumnSpec::Default(value.into()));
         self

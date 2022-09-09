@@ -1,6 +1,13 @@
 use super::*;
 
 impl ForeignKeyBuilder for SqliteQueryBuilder {
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
+        match table_ref {
+            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            _ => panic!("Not supported"),
+        }
+    }
+
     fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
@@ -63,13 +70,6 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         if let Some(foreign_key_action) = &create.foreign_key.on_update {
             write!(sql, " ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
-        }
-    }
-
-    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
-        match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
-            _ => panic!("Not supported"),
         }
     }
 }

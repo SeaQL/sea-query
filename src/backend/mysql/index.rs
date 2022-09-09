@@ -31,12 +31,18 @@ impl IndexBuilder for MysqlQueryBuilder {
         if let Some(table) = &create.table {
             self.prepare_table_ref_index_stmt(table, sql);
         }
-
+        write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
 
         self.prepare_index_type(&create.index_type, sql);
     }
 
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
+        match table_ref {
+            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            _ => panic!("Not supported"),
+        }
+    }
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(name) = &drop.index.name {
@@ -48,6 +54,7 @@ impl IndexBuilder for MysqlQueryBuilder {
             self.prepare_table_ref_index_stmt(table, sql);
         }
     }
+
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut dyn SqlWriter) {
         if let Some(index_type) = col_index_type {
             if !matches!(index_type, IndexType::FullText) {
@@ -75,13 +82,6 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
         if matches!(create.index_type, Some(IndexType::FullText)) {
             write!(sql, "FULLTEXT ").unwrap();
-        }
-    }
-
-    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
-        match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
-            _ => panic!("Not supported"),
         }
     }
 }

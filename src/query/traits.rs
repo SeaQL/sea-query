@@ -105,16 +105,18 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     ///
-    /// let mut params = Vec::new();
-    /// let mut collector = |v| params.push(v);
+    /// let (placeholder, numbered) = MysqlQueryBuilder.placeholder();
+    /// let mut sql = SqlWriterValues::new(placeholder, numbered);
     ///
     /// assert_eq!(
-    ///     query.build_collect(MysqlQueryBuilder, &mut collector),
+    ///     query.build_collect(MysqlQueryBuilder, &mut sql),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, ?) > ? ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
+    ///
+    /// let (sql, values) = sql.into_parts();
     /// assert_eq!(
-    ///     params,
-    ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
+    ///     values,
+    ///     Values(vec![Value::Int(Some(0)), Value::Int(Some(2))])
     /// );
     /// ```
     fn build_collect<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) -> String {

@@ -22,8 +22,17 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
 
         self.prepare_index_type(&create.index_type, sql);
-
+        write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
+    }
+
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
+        match table_ref {
+            TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
+            _ => panic!("Not supported"),
+        }
     }
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
@@ -65,15 +74,6 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
         if create.unique {
             write!(sql, "UNIQUE ").unwrap();
-        }
-    }
-
-    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
-        match table_ref {
-            TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
-                self.prepare_table_ref_iden(table_ref, sql)
-            }
-            _ => panic!("Not supported"),
         }
     }
 }

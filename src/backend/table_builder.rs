@@ -69,7 +69,28 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter);
 
     /// Translate [`ColumnSpec`] into SQL statement.
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter);
+    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter)
+    where
+        Self: QueryBuilder + Sized,
+    {
+        match column_spec {
+            ColumnSpec::Null => write!(sql, "NULL").unwrap(),
+            ColumnSpec::NotNull => write!(sql, "NOT NULL").unwrap(),
+            ColumnSpec::Default(value) => {
+                write!(sql, "DEFAULT ").unwrap();
+                QueryBuilder::prepare_simple_expr(self, value, sql);
+            }
+            ColumnSpec::AutoIncrement => {
+                write!(sql, "{}", self.column_spec_auto_increment_keyword()).unwrap()
+            }
+            ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
+            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
+            ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
+        }
+    }
+
+    /// The keyword for setting a column to be auto increment.
+    fn column_spec_auto_increment_keyword(&self) -> &str;
 
     /// Translate [`TableOpt`] into SQL statement.
     fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut dyn SqlWriter) {
@@ -106,7 +127,6 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
         });
 
         for drop_opt in drop.options.iter() {
-            write!(sql, " ").unwrap();
             self.prepare_table_drop_opt(drop_opt, sql);
         }
     }
@@ -115,7 +135,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut dyn SqlWriter) {
         write!(
             sql,
-            "{}",
+            " {}",
             match drop_opt {
                 TableDropOpt::Restrict => "RESTRICT",
                 TableDropOpt::Cascade => "CASCADE",

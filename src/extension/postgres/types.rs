@@ -1,4 +1,4 @@
-use crate::{backend::QueryBuilder, prepare::*, types::*, QuotedBuilder};
+use crate::{prepare::*, types::*, QueryBuilder, QuotedBuilder};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
@@ -131,35 +131,6 @@ pub trait TypeBuilder: QuotedBuilder {
     }
 }
 
-pub trait TypeStatementBuilder {
-    fn build<T: TypeBuilder>(&self, type_builder: T) -> String {
-        self.build_ref(&type_builder)
-    }
-
-    fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> String {
-        let mut sql = String::with_capacity(256);
-        self.build_collect_ref(type_builder, &mut sql)
-    }
-
-    fn build_collect<T: TypeBuilder>(&self, type_builder: T, sql: &mut dyn SqlWriter) -> String {
-        self.build_collect_ref(&type_builder, sql)
-    }
-
-    fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        sql: &mut dyn SqlWriter,
-    ) -> String;
-
-    /// Build corresponding SQL statement and return SQL string
-    fn to_string<T>(&self, type_builder: T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
-        self.build_ref(&type_builder)
-    }
-}
-
 impl Type {
     /// Construct type [`TypeCreateStatement`]
     pub fn create() -> TypeCreateStatement {
@@ -243,17 +214,6 @@ impl TypeCreateStatement {
     }
 }
 
-impl TypeStatementBuilder for TypeCreateStatement {
-    fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        sql: &mut dyn SqlWriter,
-    ) -> String {
-        type_builder.prepare_type_create_statement(self, sql);
-        sql.to_string()
-    }
-}
-
 impl TypeDropStatement {
     pub fn new() -> Self {
         Self::default()
@@ -316,17 +276,6 @@ impl TypeDropStatement {
     pub fn restrict(&mut self) -> &mut Self {
         self.option = Some(TypeDropOpt::Restrict);
         self
-    }
-}
-
-impl TypeStatementBuilder for TypeDropStatement {
-    fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        sql: &mut dyn SqlWriter,
-    ) -> String {
-        type_builder.prepare_type_drop_statement(self, sql);
-        sql.to_string()
     }
 }
 
@@ -457,17 +406,6 @@ impl TypeAlterStatement {
     }
 }
 
-impl TypeStatementBuilder for TypeAlterStatement {
-    fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        sql: &mut dyn SqlWriter,
-    ) -> String {
-        type_builder.prepare_type_alter_statement(self, sql);
-        sql.to_string()
-    }
-}
-
 impl TypeAlterOpt {
     /// Changes only `ADD VALUE x` options into `ADD VALUE x BEFORE` options, does nothing otherwise
     pub fn before<T>(self, value: T) -> Self
@@ -495,3 +433,48 @@ impl TypeAlterOpt {
         }
     }
 }
+
+#[macro_export]
+macro_rules! impl_type_statement_builder {
+    ( $struct_name: ident, $func_name: ident ) => {
+        impl $struct_name {
+            fn build<T: TypeBuilder>(&self, type_builder: T) -> String {
+                self.build_ref(&type_builder)
+            }
+
+            pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> String {
+                let mut sql = String::with_capacity(256);
+                self.build_collect_ref(type_builder, &mut sql)
+            }
+
+            pub fn build_collect<T: TypeBuilder>(
+                &self,
+                type_builder: T,
+                sql: &mut dyn SqlWriter,
+            ) -> String {
+                self.build_collect_ref(&type_builder, sql)
+            }
+
+            pub fn build_collect_ref<T: TypeBuilder>(
+                &self,
+                type_builder: &T,
+                sql: &mut dyn SqlWriter,
+            ) -> String {
+                type_builder.$func_name(self, sql);
+                sql.to_string()
+            }
+
+            /// Build corresponding SQL statement and return SQL string
+            pub fn to_string<T>(&self, type_builder: T) -> String
+            where
+                T: TypeBuilder + QueryBuilder,
+            {
+                self.build_ref(&type_builder)
+            }
+        }
+    };
+}
+
+impl_type_statement_builder!(TypeCreateStatement, prepare_type_create_statement);
+impl_type_statement_builder!(TypeAlterStatement, prepare_type_alter_statement);
+impl_type_statement_builder!(TypeDropStatement, prepare_type_drop_statement);

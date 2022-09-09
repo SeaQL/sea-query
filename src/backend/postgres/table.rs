@@ -107,19 +107,8 @@ impl TableBuilder for PostgresQueryBuilder {
         .unwrap()
     }
 
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter) {
-        match column_spec {
-            ColumnSpec::Null => write!(sql, "NULL"),
-            ColumnSpec::NotNull => write!(sql, "NOT NULL"),
-            ColumnSpec::Default(value) => {
-                write!(sql, "DEFAULT {}", self.value_to_string(value))
-            }
-            ColumnSpec::AutoIncrement => write!(sql, ""),
-            ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
-            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
-            ColumnSpec::Extra(string) => write!(sql, "{}", string),
-        }
-        .unwrap()
+    fn column_spec_auto_increment_keyword(&self) -> &str {
+        ""
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
@@ -161,7 +150,7 @@ impl TableBuilder for PostgresQueryBuilder {
                         if column_def.types.is_some() {
                             write!(sql, ", ALTER COLUMN ").unwrap();
                         } else {
-                            write!(sql, " ALTER COLUMN ").unwrap();
+                            write!(sql, "ALTER COLUMN ").unwrap();
                         }
                         column_def.name.prepare(sql.as_writer(), self.quote());
                         match column_spec {

@@ -6,7 +6,7 @@ mod index;
 mod interval;
 mod query;
 mod table;
-// mod types;
+mod types;
 
 #[path = "../common.rs"]
 mod common;

@@ -74,7 +74,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         write!(sql, "SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
-            write!(sql, " ").unwrap();
             self.prepare_select_distinct(distinct, sql);
             write!(sql, " ").unwrap();
         }
@@ -415,7 +414,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 write!(sql, " OVER ").unwrap();
                 write!(sql, "( ").unwrap();
                 self.prepare_window_statement(window, sql);
-                write!(sql, " ) ").unwrap();
+                write!(sql, " )").unwrap();
             }
             None => {}
         };
@@ -1233,17 +1232,17 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`Frame`] into SQL statement.
     fn prepare_frame(&self, frame: &Frame, sql: &mut dyn SqlWriter) {
         match *frame {
-            Frame::UnboundedPreceding => write!(sql, " UNBOUNDED PRECEDING ").unwrap(),
+            Frame::UnboundedPreceding => write!(sql, "UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
                 self.prepare_value(&Some(v).into(), sql);
-                write!(sql, " PRECEDING ").unwrap();
+                write!(sql, "PRECEDING").unwrap();
             }
-            Frame::CurrentRow => write!(sql, " CURRENT ROW ").unwrap(),
+            Frame::CurrentRow => write!(sql, "CURRENT ROW").unwrap(),
             Frame::Following(v) => {
                 self.prepare_value(&Some(v).into(), sql);
-                write!(sql, " FOLLOWING ").unwrap();
+                write!(sql, "FOLLOWING").unwrap();
             }
-            Frame::UnboundedFollowing => write!(sql, " UNBOUNDED FOLLOWING ").unwrap(),
+            Frame::UnboundedFollowing => write!(sql, "UNBOUNDED FOLLOWING").unwrap(),
         }
     }
 
@@ -1251,7 +1250,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`WindowStatement`] into SQL statement.
     fn prepare_window_statement(&self, window: &WindowStatement, sql: &mut dyn SqlWriter) {
         if !window.partition_by.is_empty() {
-            write!(sql, " PARTITION BY ").unwrap();
+            write!(sql, "PARTITION BY ").unwrap();
             window.partition_by.iter().fold(true, |first, expr| {
                 if !first {
                     write!(sql, ", ").unwrap()
