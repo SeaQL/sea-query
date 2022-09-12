@@ -1,7 +1,7 @@
 use crate::*;
 use std::ops::Deref;
 
-pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
+pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
         ("?", false)
@@ -508,7 +508,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         if join_expr.lateral {
             write!(sql, "LATERAL ").unwrap();
         }
-        QueryBuilder::prepare_table_ref_common(self, &join_expr.table, sql, collector);
+        self.prepare_table_ref(&join_expr.table, sql, collector);
     }
 
     /// Translate [`TableRef`] into SQL statement.
@@ -518,52 +518,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
         sql: &mut SqlWriter,
         collector: &mut dyn FnMut(Value),
     ) {
-        QueryBuilder::prepare_table_ref_common(self, table_ref, sql, collector);
-    }
-
-    fn prepare_table_ref_common(
-        &self,
-        table_ref: &TableRef,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
         match table_ref {
-            TableRef::Table(iden) => {
-                iden.prepare(sql, self.quote());
-            }
-            TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-            }
-            TableRef::DatabaseSchemaTable(database, schema, table) => {
-                database.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-            }
-            TableRef::TableAlias(iden, alias) => {
-                iden.prepare(sql, self.quote());
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
-            }
-            TableRef::SchemaTableAlias(schema, table, alias) => {
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
-            }
-            TableRef::DatabaseSchemaTableAlias(database, schema, table, alias) => {
-                database.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
-                write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql, self.quote());
-            }
             TableRef::SubQuery(query, alias) => {
                 write!(sql, "(").unwrap();
                 self.prepare_select_statement(query, sql, collector);
@@ -578,6 +533,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql, self.quote());
             }
+            _ => self.prepare_table_ref_iden(table_ref, sql),
         }
     }
 
@@ -653,6 +609,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder {
                 BinOper::Sub => "-",
                 BinOper::Mul => "*",
                 BinOper::Div => "/",
+                BinOper::Mod => "%",
+                BinOper::LShift => "<<",
+                BinOper::RShift => ">>",
                 BinOper::As => "AS",
                 BinOper::Escape => "ESCAPE",
                 #[allow(unreachable_patterns)]
@@ -1632,3 +1591,5 @@ impl QuotedBuilder for CommonSqlQueryBuilder {
 }
 
 impl EscapeBuilder for CommonSqlQueryBuilder {}
+
+impl TableRefBuilder for CommonSqlQueryBuilder {}

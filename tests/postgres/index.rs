@@ -54,6 +54,20 @@ fn create_4() {
 }
 
 #[test]
+fn create_5() {
+    assert_eq!(
+        Index::create()
+            .unique()
+            .name("idx-glyph-aspect-image")
+            .table((Alias::new("schema"), Glyph::Table))
+            .col(Glyph::Aspect)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE UNIQUE INDEX "idx-glyph-aspect-image" ON "schema"."glyph" ("aspect", "image")"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()
@@ -61,4 +75,35 @@ fn drop_1() {
             .to_string(PostgresQueryBuilder),
         r#"DROP INDEX "idx-glyph-aspect""#
     );
+}
+
+#[test]
+fn drop_2() {
+    assert_eq!(
+        Index::drop()
+            .name("idx-glyph-aspect")
+            .table((Alias::new("schema"), Glyph::Table))
+            .to_string(PostgresQueryBuilder),
+        r#"DROP INDEX "schema"."idx-glyph-aspect""#
+    );
+}
+
+#[test]
+fn drop_3() {
+    assert_eq!(
+        Index::drop()
+            .name("idx-glyph-aspect")
+            .table(Glyph::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"DROP INDEX "idx-glyph-aspect""#
+    );
+}
+
+#[test]
+#[should_panic(expected = "Not supported")]
+fn drop_4() {
+    Index::drop()
+        .name("idx-glyph-aspect")
+        .table((Alias::new("database"), Alias::new("schema"), Glyph::Table))
+        .to_string(PostgresQueryBuilder);
 }

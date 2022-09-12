@@ -1,6 +1,6 @@
 use crate::*;
 
-pub trait IndexBuilder: QuotedBuilder {
+pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     /// Translate [`IndexCreateStatement`] into SQL expression.
     fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         self.prepare_index_prefix(create, sql);
@@ -23,13 +23,16 @@ pub trait IndexBuilder: QuotedBuilder {
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref_index_stmt(table, sql);
         }
 
         self.prepare_index_type(&create.index_type, sql);
 
         self.prepare_index_columns(&create.index.columns, sql);
     }
+
+    /// Translate [`TableRef`] into SQL statement.
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter);
 
     /// Translate [`IndexDropStatement`] into SQL statement.
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter);

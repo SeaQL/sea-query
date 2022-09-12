@@ -453,18 +453,6 @@ impl SelectStatement {
         self.expr(SimpleExpr::Column(col.into_column_ref()))
     }
 
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::column`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn table_column<T, C>(&mut self, t: T, c: C) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        self.column((t.into_iden(), c.into_iden()))
-    }
-
     /// Select columns.
     ///
     /// # Examples
@@ -528,22 +516,6 @@ impl SelectStatement {
         )
     }
 
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::columns`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        self.columns(
-            cols.into_iter()
-                .map(|(t, c)| (t.into_iden(), c.into_iden()))
-                .collect::<Vec<_>>(),
-        )
-    }
-
     /// Select column.
     ///
     /// # Examples
@@ -580,18 +552,6 @@ impl SelectStatement {
             window: None,
         });
         self
-    }
-
-    #[deprecated(
-        since = "0.6.1",
-        note = "Please use the [`SelectStatement::expr_as`] instead"
-    )]
-    pub fn expr_alias<T, A>(&mut self, expr: T, alias: A) -> &mut Self
-    where
-        T: Into<SimpleExpr>,
-        A: IntoIden,
-    {
-        self.expr_as(expr, alias)
     }
 
     /// Select column with window function.
@@ -899,43 +859,6 @@ impl SelectStatement {
         self.from_from(TableRef::ValuesList(value_tuples, alias.into_iden()))
     }
 
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::from`] with a tuple as [`TableRef`]"
-    )]
-    /// From schema.table.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .column(Char::FontSize)
-    ///     .from_schema(Char::Table, Glyph::Table)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `font_size` FROM `character`.`glyph`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "font_size" FROM "character"."glyph""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "font_size" FROM "character"."glyph""#
-    /// );
-    /// ```
-    pub fn from_schema<S: 'static, T: 'static>(&mut self, schema: S, table: T) -> &mut Self
-    where
-        S: IntoIden,
-        T: IntoIden,
-    {
-        self.from((schema, table))
-    }
-
     /// From table with alias.
     ///
     /// # Examples
@@ -993,36 +916,6 @@ impl SelectStatement {
         A: IntoIden,
     {
         self.from_from(tbl_ref.into_table_ref().alias(alias.into_iden()))
-    }
-
-    #[deprecated(
-        since = "0.6.1",
-        note = "Please use the [`SelectStatement::from_as`] instead"
-    )]
-    pub fn from_alias<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
-    where
-        R: IntoTableRef,
-        A: IntoIden,
-    {
-        self.from_as(tbl_ref, alias)
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::from_as`] with a tuple as [`TableRef`]"
-    )]
-    pub fn from_schema_as<S: 'static, T: 'static, A>(
-        &mut self,
-        schema: S,
-        table: T,
-        alias: A,
-    ) -> &mut Self
-    where
-        S: IntoIden,
-        T: IntoIden,
-        A: IntoIden,
-    {
-        self.from_as((schema, table), alias)
     }
 
     /// From sub-query.
@@ -1713,22 +1606,6 @@ impl SelectStatement {
         self.group_by_columns(vec![col])
     }
 
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`SelectStatement::group_by_columns`] with a tuple as [`ColumnRef`]"
-    )]
-    pub fn group_by_table_columns<T, C>(&mut self, cols: Vec<(T, C)>) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        self.group_by_columns(
-            cols.into_iter()
-                .map(|(t, c)| (t.into_iden(), c.into_iden()))
-                .collect::<Vec<_>>(),
-        )
-    }
-
     /// Add group by expressions from vector of [`SelectExpr`].
     ///
     /// # Examples
@@ -1766,7 +1643,7 @@ impl SelectStatement {
         self
     }
 
-    /// Having condition, expressed with [`any!`] and [`all!`].
+    /// Having condition, expressed with [`any!`](crate::any) and [`all!`](crate::all).
     ///
     /// # Examples
     ///
@@ -1837,47 +1714,6 @@ impl SelectStatement {
     /// ```
     pub fn and_having(&mut self, other: SimpleExpr) -> &mut Self {
         self.cond_having(other)
-    }
-
-    #[deprecated(
-        since = "0.12.0",
-        note = "Please use [`ConditionalStatement::cond_having`]. Calling `or_having` after `and_having` will panic."
-    )]
-    /// Or having condition. Please use `cond_having` instead.
-    /// Calling `or_having` after `and_having` will panic.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .column(Glyph::Aspect)
-    ///     .expr(Expr::col(Glyph::Image).max())
-    ///     .from(Glyph::Table)
-    ///     .group_by_columns(vec![
-    ///         Glyph::Aspect,
-    ///     ])
-    ///     .or_having(Expr::col(Glyph::Aspect).gt(2))
-    ///     .or_having(Expr::col(Glyph::Aspect).lt(8))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2 OR `aspect` < 8"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 OR "aspect" < 8"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 OR "aspect" < 8"#
-    /// );
-    /// ```
-    pub fn or_having(&mut self, other: SimpleExpr) -> &mut Self {
-        self.having.add_and_or(LogicalChainOper::Or(other));
-        self
     }
 
     /// Limit the number of returned rows.
@@ -2386,7 +2222,7 @@ impl QueryStatementWriter for SelectStatement {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();
     ///
     /// assert_eq!(

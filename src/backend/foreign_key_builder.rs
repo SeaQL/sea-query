@@ -1,13 +1,13 @@
 use crate::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Mode {
     Creation,
     Alter,
     TableAlter,
 }
 
-pub trait ForeignKeyBuilder: QuotedBuilder {
+pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
     /// Translate [`ForeignKeyCreateStatement`] into SQL statement.
     fn prepare_foreign_key_create_statement(
         &self,
@@ -45,6 +45,9 @@ pub trait ForeignKeyBuilder: QuotedBuilder {
         )
         .unwrap()
     }
+
+    /// Translate [`TableRef`] into SQL statement.
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter);
 
     #[doc(hidden)]
     /// Internal function to factor foreign key drop in table and outside.

@@ -34,3 +34,5 @@ impl EscapeBuilder for SqliteQueryBuilder {
         string.replace("''", "'")
     }
 }
+
+impl TableRefBuilder for SqliteQueryBuilder {}

@@ -1019,6 +1019,108 @@ impl Expr {
         self.bin_oper(BinOper::Div, SimpleExpr::Value(v.into()))
     }
 
+    /// Express an arithmetic modulo operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::val(1).modulo(1).equals(Expr::value(2)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 % 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 % 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 % 1 = 2"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn modulo<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::Mod, SimpleExpr::Value(v.into()))
+    }
+
+    /// Express a bitwise left shift.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::val(1).left_shift(1).equals(Expr::value(2)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 << 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 << 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 << 1 = 2"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn left_shift<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::LShift, SimpleExpr::Value(v.into()))
+    }
+
+    /// Express a bitwise right shift.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::val(1).right_shift(1).equals(Expr::value(2)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 >> 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 >> 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 >> 1 = 2"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn right_shift<V>(self, v: V) -> SimpleExpr
+    where
+        V: Into<Value>,
+    {
+        self.bin_oper(BinOper::RShift, SimpleExpr::Value(v.into()))
+    }
+
     /// Express a `BETWEEN` expression.
     ///
     /// # Examples
@@ -1599,36 +1701,35 @@ impl Expr {
     ///             Expr::col(Char::Character).into_simple_expr(),
     ///             Expr::col(Char::FontId).into_simple_expr(),
     ///         ])
-    ///         .in_tuples(vec![[1,1], [2,2]])
+    ///         .in_tuples([(1, String::from("1")), (2, String::from("2"))])
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font_id` FROM `character` WHERE (`character`, `font_id`) IN ((1, 1), (2, 2))"#
+    ///     r#"SELECT `character`, `font_id` FROM `character` WHERE (`character`, `font_id`) IN ((1, '1'), (2, '2'))"#
     /// );
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, 1), (2, 2))"#
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
     /// );
     ///
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, 1), (2, 2))"#
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn in_tuples<K, V, I>(mut self, v: I) -> SimpleExpr
+    pub fn in_tuples<V, I>(mut self, v: I) -> SimpleExpr
     where
-        K: Into<Value>,
-        V: IntoIterator<Item = K>,
+        V: IntoValueTuple,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::In);
         self.right = Some(SimpleExpr::Tuple(
             v.into_iter()
-                .map(|m| SimpleExpr::Values(m.into_iter().map(|k| k.into()).collect()))
+                .map(|m| SimpleExpr::Values(m.into_value_tuple().into_iter().collect()))
                 .collect(),
         ));
         self.into()
@@ -2059,8 +2160,10 @@ impl SimpleExpr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .or_where(Expr::col(Char::SizeW).eq(1).and(Expr::col(Char::SizeH).eq(2)))
-    ///     .or_where(Expr::col(Char::SizeW).eq(3).and(Expr::col(Char::SizeH).eq(4)))
+    ///     .cond_where(any![
+    ///         Expr::col(Char::SizeW).eq(1).and(Expr::col(Char::SizeH).eq(2)),
+    ///         Expr::col(Char::SizeW).eq(3).and(Expr::col(Char::SizeH).eq(4)),
+    ///     ])
     ///     .to_owned();
     ///
     /// assert_eq!(

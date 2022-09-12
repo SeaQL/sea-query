@@ -116,7 +116,9 @@ impl TableBuilder for PostgresQueryBuilder {
         match column_spec {
             ColumnSpec::Null => write!(sql, "NULL"),
             ColumnSpec::NotNull => write!(sql, "NOT NULL"),
-            ColumnSpec::Default(value) => write!(sql, "DEFAULT {}", self.value_to_string(value)),
+            ColumnSpec::Default(value) => {
+                write!(sql, "DEFAULT {}", self.value_to_string(value))
+            }
             ColumnSpec::AutoIncrement => write!(sql, ""),
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE"),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY"),
@@ -131,7 +133,7 @@ impl TableBuilder for PostgresQueryBuilder {
         };
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
-            table.prepare(sql, self.quote());
+            self.prepare_table_ref_table_stmt(table, sql);
             write!(sql, " ").unwrap();
         }
 
@@ -151,19 +153,29 @@ impl TableBuilder for PostgresQueryBuilder {
                     self.prepare_column_def(column, sql);
                 }
                 TableAlterOption::ModifyColumn(column_def) => {
-                    write!(sql, "ALTER COLUMN ").unwrap();
-                    column_def.name.prepare(sql, self.quote());
-                    write!(sql, " TYPE").unwrap();
-                    self.prepare_column_type_check_auto_increment(column_def, sql);
+                    if column_def.types.is_some() {
+                        write!(sql, "ALTER COLUMN ").unwrap();
+                        column_def.name.prepare(sql, self.quote());
+                        write!(sql, " TYPE").unwrap();
+                        self.prepare_column_type_check_auto_increment(column_def, sql);
+                    }
                     for column_spec in column_def.spec.iter() {
                         if let ColumnSpec::AutoIncrement = column_spec {
                             continue;
                         }
-                        write!(sql, ", ").unwrap();
-                        write!(sql, "ALTER COLUMN ").unwrap();
+                        if column_def.types.is_some() {
+                            write!(sql, ", ALTER COLUMN ").unwrap();
+                        } else {
+                            write!(sql, " ALTER COLUMN ").unwrap();
+                        }
                         column_def.name.prepare(sql, self.quote());
-                        write!(sql, " SET ").unwrap();
-                        self.prepare_column_spec(column_spec, sql);
+                        match column_spec {
+                            ColumnSpec::Null => write!(sql, " DROP NOT NULL").unwrap(),
+                            _ => {
+                                write!(sql, " SET ").unwrap();
+                                self.prepare_column_spec(column_spec, sql);
+                            }
+                        }
                     }
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
@@ -203,11 +215,11 @@ impl TableBuilder for PostgresQueryBuilder {
     fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter) {
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
-            from_name.prepare(sql, self.quote());
+            self.prepare_table_ref_table_stmt(from_name, sql);
         }
         write!(sql, " RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
-            to_name.prepare(sql, self.quote());
+            self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
 }

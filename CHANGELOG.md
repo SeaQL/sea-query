@@ -5,33 +5,102 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.27.0 - 2022-07-02
+## 0.27.0 - Pending
 
 ### New Features
 
-* Support `CROSS JOIN` (#376)
+* Support `CROSS JOIN` https://github.com/SeaQL/sea-query/pull/376
+* We are going through series of changes to how database drivers work
+(https://github.com/SeaQL/sea-query/pull/416, https://github.com/SeaQL/sea-query/pull/423):
+	1. `sea-query-binder` is now the recommended way (trait based) of working with SQLx, replacing `sea-query-driver` (macro based) https://github.com/SeaQL/sea-query/pull/434
+	2. `sea-query-binder` is now a separate dependency, instead of integrated with `sea-query` https://github.com/SeaQL/sea-query/pull/432
+	3. `rusqlite` support is moved to `sea-query-rusqlite` https://github.com/SeaQL/sea-query/pull/422
+	4. `postgres` support is moved to `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/433
+
+### Enhancements
+
+* Handle Postgres schema name for schema statements https://github.com/SeaQL/sea-query/pull/385
+* Add `%`, `<<` and `>>` binary operators https://github.com/SeaQL/sea-query/pull/419
 
 ### Breaking changes
 
 * Removed `join_alias`
+* Changed `in_tuples` interface to accept `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/386
+* Removed deprecated methods (`or_where`, `or_having`, `table_column` etc) https://github.com/SeaQL/sea-query/pull/380
+* **Changed `cond_where` chaining semantics** https://github.com/SeaQL/sea-query/pull/417
+```rust
+// Before: will extend current Condition
+assert_eq!(
+    Query::select()
+        .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
+        .cond_where(Expr::col(Glyph::Id).eq(3))
+        .to_owned()
+        .to_string(PostgresQueryBuilder),
+    r#"SELECT WHERE "id" = 1 OR "id" = 2 OR "id" = 3"#
+);
+// Before: confusing, since it depends on the order of invocation:
+assert_eq!(
+    Query::select()
+        .cond_where(Expr::col(Glyph::Id).eq(3))
+        .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
+        .to_owned()
+        .to_string(PostgresQueryBuilder),
+    r#"SELECT WHERE "id" = 3 AND ("id" = 1 OR "id" = 2)"#
+);
+// Now: will always conjoin with `AND`
+assert_eq!(
+    Query::select()
+        .cond_where(Expr::col(Glyph::Id).eq(1))
+        .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
+        .to_owned()
+        .to_string(PostgresQueryBuilder),
+    r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
+);
+// Now: so they are now equivalent
+assert_eq!(
+    Query::select()
+        .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
+        .cond_where(Expr::col(Glyph::Id).eq(1))
+        .to_owned()
+        .to_string(PostgresQueryBuilder),
+    r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
+);
+```
+
+## 0.26.3 - 2022-08-18
+
+### Bug Fixes
+
+* `DROP NOT NULL` for Postgres `ALTER COLUMN` https://github.com/SeaQL/sea-query/pull/394
+
+### House keeping
+
+* Exclude `chrono` default-features https://github.com/SeaQL/sea-query/pull/410
+* Fix clippy warnings https://github.com/SeaQL/sea-query/pull/415
+
+## 0.26.2 - 2022-07-21
+
+### Bug Fixes
+
+* Rename `postgres-*` features to `with-*` on `postgres` driver https://github.com/SeaQL/sea-query/pull/377
 
 ## 0.26.0 - 2022-07-02
 
 ### New Features
 
-* Add support for `VALUES` lists (#351)
-* Introduce `sea-query-binder` (#275)
-* Convert from `IpNetwork` and `MacAddress` to `Value` (#364)
+* Add support for `VALUES` lists https://github.com/SeaQL/sea-query/pull/351
+* Introduce `sea-query-binder` https://github.com/SeaQL/sea-query/pull/275
+* Convert from `IpNetwork` and `MacAddress` to `Value` https://github.com/SeaQL/sea-query/pull/364
 
 ### Enhancements
 
-* Move `escape` and `unescape` string to backend (#306)
-* `LIKE ESCAPE` support (#352, #353)
+* Move `escape` and `unescape` string to backend https://github.com/SeaQL/sea-query/pull/306
+* `LIKE ESCAPE` support https://github.com/SeaQL/sea-query/pull/352 #353)
 * `clear_order_by` for `OrderedStatement`
-* Add method to make a column nullable (#365)
-* Add `is` & `is_not` to Expr (#348)
-* Add `CURRENT_TIMESTAMP` function (#349)
-* Add `in_tuples` method to Expr (#345)
+* Add method to make a column nullable https://github.com/SeaQL/sea-query/pull/365
+* Add `is` & `is_not` to Expr https://github.com/SeaQL/sea-query/pull/348
+* Add `CURRENT_TIMESTAMP` function https://github.com/SeaQL/sea-query/pull/349
+* Add `in_tuples` method to Expr https://github.com/SeaQL/sea-query/pull/345
 
 ### Upgrades
 
@@ -52,7 +121,7 @@ let string: String = MySqlQueryBuilder.escape_string(r#" "abc" "#);
 let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 ```
 
-* Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` (#364)
+* Replace `Value::Ipv4Network` and `Value::Ipv6Network`  to `Value::IpNetwork` https://github.com/SeaQL/sea-query/pull/364
 
 * Remove some redundant feature flags `postgres-chrono`, `postgres-json`, `postgres-uuid`, `postgres-time`. Use the `with-*` equivalence
 
@@ -62,13 +131,13 @@ let string: String = MysqlQueryBuilder.unescape_string(r#" \"abc\" "#);
 
 ### New features
 
-* Introduce `sea-query-binder` (#275)
+* Introduce `sea-query-binder` https://github.com/SeaQL/sea-query/pull/275
 
 ### Enhancements
 
-* Add method to make a column nullable (#365)
-* Add `is` & `is_not` to Expr (#348)
-* Add `CURRENT_TIMESTAMP` function (#349)
+* Add method to make a column nullable https://github.com/SeaQL/sea-query/pull/365
+* Add `is` & `is_not` to Expr https://github.com/SeaQL/sea-query/pull/348
+* Add `CURRENT_TIMESTAMP` function https://github.com/SeaQL/sea-query/pull/349
 
 ## 0.25.1 - 2022-06-26
 

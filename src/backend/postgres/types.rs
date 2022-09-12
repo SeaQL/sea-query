@@ -11,7 +11,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         write!(sql, "CREATE TYPE ").unwrap();
 
         if let Some(name) = &create.name {
-            name.prepare(sql, self.quote());
+            self.prepare_type_ref(name, sql);
         }
 
         if let Some(as_type) = &create.as_type {
@@ -46,7 +46,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         }
 
         for name in drop.names.iter() {
-            name.prepare(sql, self.quote());
+            self.prepare_type_ref(name, sql);
         }
 
         if let Some(option) = &drop.option {
@@ -64,7 +64,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         write!(sql, "ALTER TYPE ").unwrap();
 
         if let Some(name) = &alter.name {
-            name.prepare(sql, self.quote());
+            self.prepare_type_ref(name, sql);
         }
 
         if let Some(option) = &alter.option {

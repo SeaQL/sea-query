@@ -9,7 +9,7 @@ pub struct Tokenizer {
     pub p: usize,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Token {
     Quoted(String),
     Unquoted(String),
@@ -188,7 +188,7 @@ impl Tokenizer {
     }
 
     fn is_alphanumeric(c: char) -> bool {
-        c.is_alphabetic() || c.is_digit(10)
+        c.is_alphabetic() || c.is_ascii_digit()
     }
 
     fn is_string_delimiter_start(c: char) -> bool {

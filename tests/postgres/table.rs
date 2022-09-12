@@ -301,6 +301,22 @@ fn create_13() {
 }
 
 #[test]
+fn create_14() {
+    assert_eq!(
+        Table::create()
+            .table((Alias::new("schema"), Glyph::Table))
+            .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"CREATE TABLE "schema"."glyph" ("#,
+            r#""image" aspect"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
@@ -313,12 +329,34 @@ fn drop_1() {
 }
 
 #[test]
+fn drop_2() {
+    assert_eq!(
+        Table::drop()
+            .table((Alias::new("schema1"), Glyph::Table))
+            .table((Alias::new("schema2"), Char::Table))
+            .cascade()
+            .to_string(PostgresQueryBuilder),
+        r#"DROP TABLE "schema1"."glyph", "schema2"."character" CASCADE"#
+    );
+}
+
+#[test]
 fn truncate_1() {
     assert_eq!(
         Table::truncate()
             .table(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"TRUNCATE TABLE "font""#
+    );
+}
+
+#[test]
+fn truncate_2() {
+    assert_eq!(
+        Table::truncate()
+            .table((Alias::new("schema"), Font::Table))
+            .to_string(PostgresQueryBuilder),
+        r#"TRUNCATE TABLE "schema"."font""#
     );
 }
 
@@ -383,10 +421,11 @@ fn alter_4() {
 #[test]
 fn alter_5() {
     assert_eq!(
-        Table::rename()
-            .table(Font::Table, Alias::new("font_new"))
+        Table::alter()
+            .table((Alias::new("schema"), Font::Table))
+            .rename_column(Alias::new("new_col"), Alias::new("new_column"))
             .to_string(PostgresQueryBuilder),
-        r#"ALTER TABLE "font" RENAME TO "font_new""#
+        r#"ALTER TABLE "schema"."font" RENAME COLUMN "new_col" TO "new_column""#
     );
 }
 
@@ -405,5 +444,43 @@ fn alter_7() {
             .rename_column(Font::Name, Alias::new("name_new"))
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer, RENAME COLUMN "name" TO "name_new""#
+    );
+}
+
+#[test]
+fn alter_8() {
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .modify_column(ColumnDef::new(Font::Language).null())
+            .to_string(PostgresQueryBuilder),
+        vec![
+            r#"ALTER TABLE "font""#,
+            r#"ALTER COLUMN "language" DROP NOT NULL"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn rename_1() {
+    assert_eq!(
+        Table::rename()
+            .table(Font::Table, Alias::new("font_new"))
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "font" RENAME TO "font_new""#
+    );
+}
+
+#[test]
+fn rename_2() {
+    assert_eq!(
+        Table::rename()
+            .table(
+                (Alias::new("schema"), Font::Table),
+                (Alias::new("schema"), Alias::new("font_new")),
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"ALTER TABLE "schema"."font" RENAME TO "schema"."font_new""#
     );
 }

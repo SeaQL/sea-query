@@ -202,11 +202,11 @@ assert_eq!(Glyph.to_string(), "glyph");
 
 ```rust
 #[cfg(feature = "attr")]
-use sea_query::{Iden, enum_def};
+use sea_query::{enum_def, Iden};
 
 #[enum_def]
 struct Character {
-  pub foo: u64,
+    pub foo: u64,
 }
 
 // It generates the following along with Iden impl
@@ -237,7 +237,7 @@ assert_eq!(
         .and_where(
             Expr::col(Char::SizeW).in_subquery(
                 Query::select()
-                    .expr(Expr::cust_with_values("ln(? ^ ?)", vec![2.4, 1.2]))
+                    .expr(Expr::cust_with_values("ln($1 ^ $2)", vec![2.4, 1.2]))
                     .take()
             )
         )
@@ -692,9 +692,9 @@ assert_eq!(
 Licensed under either of
 
 -   Apache License, Version 2.0
-    ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+    ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 -   MIT license
-    ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+    ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 
@@ -703,3 +703,9 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
+
+SeaQuery is a community driven project. We welcome you to participate, contribute and together build for Rust's future.
+
+A big shout out to our contributors:
+
+[![Contributors](https://opencollective.com/sea-query/contributors.svg?width=1000&button=false)](https://github.com/SeaQL/sea-query/graphs/contributors)
