@@ -53,12 +53,6 @@ SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 `postgres-array`
 
-Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
-`postgres`, `postgres-*`, `rusqlite`
-
-Postgres support: `postgres`, `postgres-chrono`, `postgres-json`, `postgres-rust_decimal`,
-`postgres-bigdecimal`, `postgres-uuid`, `postgres-array`, `postgres-interval`
-
 ## Usage
 
 Table of Content
