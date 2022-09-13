@@ -1,17 +1,6 @@
 use super::*;
 
 impl IndexBuilder for SqliteQueryBuilder {
-    fn prepare_table_index_expression(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
-        if create.index.name.is_some() {
-            write!(sql, "CONSTRAINT ").unwrap();
-        }
-        self.prepare_index_name(&create.index.name, sql);
-
-        self.prepare_index_prefix(create, sql);
-
-        self.prepare_index_columns(&create.index.columns, sql);
-    }
-
     fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
         write!(sql, "CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
