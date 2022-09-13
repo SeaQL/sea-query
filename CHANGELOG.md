@@ -67,6 +67,7 @@ assert_eq!(
     r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
 );
 ```
+* `CURRENT_TIMESTAMP()` is now a function instead of being a constant previously
 
 ## 0.26.3 - 2022-08-18
 
