@@ -69,6 +69,10 @@ assert_eq!(
 ```
 * `CURRENT_TIMESTAMP()` is now a function instead of being a constant previously
 
+### House keeping
+
+* Cleanup IndexBuilder trait methods https://github.com/SeaQL/sea-query/pull/426
+
 ## 0.26.3 - 2022-08-18
 
 ### Bug Fixes
