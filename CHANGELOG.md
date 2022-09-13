@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * Handle Postgres schema name for schema statements https://github.com/SeaQL/sea-query/pull/385
-* Add `%`, `<<` and `>>` binary operators https://github.com/SeaQL/sea-query/pull/419
+* Added `%`, `<<` and `>>` binary operators https://github.com/SeaQL/sea-query/pull/419
+* Added `RAND` function Random function https://github.com/SeaQL/sea-query/pull/430
 
 ### Breaking changes
 
