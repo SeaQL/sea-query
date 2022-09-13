@@ -22,6 +22,7 @@ pub enum Function {
     Lower,
     Upper,
     CurrentTimestamp,
+    Random,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -493,5 +494,25 @@ impl Func {
     /// ```
     pub fn current_timestamp() -> SimpleExpr {
         Expr::func(Function::CurrentTimestamp).into()
+    }
+
+    /// Call `RANDOM` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select().expr(Func::random()).to_owned();
+    ///
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT RAND()"#);
+    ///
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT RANDOM()"#);
+    ///
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
+    /// ```
+    pub fn random() -> SimpleExpr {
+        Expr::func(Function::Random).into()
     }
 }
