@@ -96,7 +96,7 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn random_function(&self) -> &str {
-        "RAND()"
+        "RAND"
     }
 
     fn prepare_select_distinct(

@@ -481,15 +481,15 @@ impl Func {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    ///     r#"SELECT CURRENT_TIMESTAMP()"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    ///     r#"SELECT CURRENT_TIMESTAMP()"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    ///     r#"SELECT CURRENT_TIMESTAMP()"#
     /// );
     /// ```
     pub fn current_timestamp() -> SimpleExpr {

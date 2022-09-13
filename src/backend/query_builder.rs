@@ -285,9 +285,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             }
             SimpleExpr::FunctionCall(func, exprs) => {
                 self.prepare_function(func, sql, collector);
-                if !exprs.is_empty() {
-                    self.prepare_tuple(exprs, sql, collector);
-                }
+                self.prepare_tuple(exprs, sql, collector);
             }
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
@@ -1540,7 +1538,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// The name of the function that returns a random number
     fn random_function(&self) -> &str {
         // Returning it with parens as part of the name because the tuple preparer can't deal with empty lists
-        "RANDOM()"
+        "RANDOM"
     }
 
     /// The keywords for insert default row.
