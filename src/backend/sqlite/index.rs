@@ -14,7 +14,9 @@ impl IndexBuilder for SqliteQueryBuilder {
             write!(sql, "IF NOT EXISTS ").unwrap();
         }
 
-        self.prepare_index_name(&create.index.name, sql);
+        if let Some(name) = &create.index.name {
+            write!(sql, "{}{}{}", self.quote(), name, self.quote()).unwrap();
+        }
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {

@@ -9,10 +9,8 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
         create: &IndexCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        if create.index.name.is_some() {
-            write!(sql, "CONSTRAINT ").unwrap();
-            self.prepare_index_name(&create.index.name, sql);
-            write!(sql, " ").unwrap();
+        if let Some(name) = &create.index.name {
+            write!(sql, "CONSTRAINT {}{}{} ", self.quote(), name, self.quote()).unwrap();
         }
 
         self.prepare_index_prefix(create, sql);
@@ -68,13 +66,5 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
             false
         });
         write!(sql, ")").unwrap();
-    }
-
-    #[doc(hidden)]
-    /// Write index name.
-    fn prepare_index_name(&self, name: &Option<String>, sql: &mut dyn SqlWriter) {
-        if let Some(name) = name {
-            write!(sql, "{}{}{}", self.quote(), name, self.quote()).unwrap();
-        }
     }
 }
