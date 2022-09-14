@@ -688,7 +688,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     Function::Lower => "LOWER",
                     Function::Upper => "UPPER",
                     Function::Custom(_) => "",
-                    Function::CurrentTimestamp => "CURRENT_TIMESTAMP",
                     Function::Random => self.random_function(),
                     #[cfg(feature = "backend-postgres")]
                     Function::PgFunction(_) => unimplemented!(),
@@ -1035,18 +1034,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         sql: &mut SqlWriter,
         _collector: &mut dyn FnMut(Value),
     ) {
-        if let Keyword::Custom(iden) = keyword {
-            iden.unquoted(sql);
-        } else {
-            write!(
-                sql,
-                "{}",
-                match keyword {
-                    Keyword::Null => "NULL",
-                    Keyword::Custom(_) => "",
-                }
-            )
-            .unwrap();
+        match keyword {
+            Keyword::Null => write!(sql, "NULL").unwrap(),
+            Keyword::CurrentDate => write!(sql, "CURRENT_DATE").unwrap(),
+            Keyword::CurrentTime => write!(sql, "CURRENT_TIME").unwrap(),
+            Keyword::CurrentTimestamp => write!(sql, "CURRENT_TIMESTAMP").unwrap(),
+            Keyword::Custom(iden) => iden.unquoted(sql),
         }
     }
 
