@@ -2120,6 +2120,84 @@ impl Expr {
     {
         CaseStatement::new().case(cond, then)
     }
+
+    /// Keyword `CURRENT_TIMESTAMP`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{Query, Expr, PostgresQueryBuilder, MysqlQueryBuilder, SqliteQueryBuilder};
+    ///
+    /// let query = Query::select().expr(Expr::current_date()).to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CURRENT_DATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CURRENT_DATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CURRENT_DATE"#
+    /// );
+    /// ```
+    pub fn current_date() -> SimpleExpr {
+        SimpleExpr::Keyword(Keyword::CurrentDate)
+    }
+
+    /// Keyword `CURRENT_TIMESTAMP`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{Query, Expr, PostgresQueryBuilder, MysqlQueryBuilder, SqliteQueryBuilder};
+    ///
+    /// let query = Query::select().expr(Expr::current_time()).to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CURRENT_TIME"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CURRENT_TIME"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CURRENT_TIME"#
+    /// );
+    /// ```
+    pub fn current_time() -> SimpleExpr {
+        SimpleExpr::Keyword(Keyword::CurrentTime)
+    }
+
+    /// Keyword `CURRENT_TIMESTAMP`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{Query, Expr, PostgresQueryBuilder, MysqlQueryBuilder, SqliteQueryBuilder};
+    ///
+    /// let query = Query::select().expr(Expr::current_timestamp()).to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// ```
+    pub fn current_timestamp() -> SimpleExpr {
+        SimpleExpr::Keyword(Keyword::CurrentTimestamp)
+    }
 }
 
 impl From<Expr> for SimpleExpr {
