@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `%`, `<<` and `>>` binary operators https://github.com/SeaQL/sea-query/pull/419
 * Added `RAND` function https://github.com/SeaQL/sea-query/pull/430
 * Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
+* Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
 
 ### Breaking changes
 
