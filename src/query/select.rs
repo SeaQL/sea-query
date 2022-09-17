@@ -118,7 +118,9 @@ pub struct LockClause {
 /// List of union types that can be used in union clause
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnionType {
+    Intersect,
     Distinct,
+    Except,
     All,
 }
 
