@@ -311,7 +311,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     self.binary_expr(left, op, right, sql, collector);
                 }
             }
-            SimpleExpr::SubQuery(sel) => {
+            SimpleExpr::SubQuery(oper, sel) => {
+                if let Some(oper) = oper {
+                    self.prepare_sub_query_oper(oper, sql);
+                }
                 write!(sql, "(").unwrap();
                 self.prepare_query_statement(sel.deref(), sql, collector);
                 write!(sql, ")").unwrap();
@@ -577,12 +580,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         .unwrap();
     }
 
-    fn prepare_bin_oper_common(
-        &self,
-        bin_oper: &BinOper,
-        sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_bin_oper_common(&self, bin_oper: &BinOper, sql: &mut SqlWriter) {
         write!(
             sql,
             "{}",
@@ -620,13 +618,23 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     }
 
     /// Translate [`BinOper`] into SQL statement.
-    fn prepare_bin_oper(
-        &self,
-        bin_oper: &BinOper,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        self.prepare_bin_oper_common(bin_oper, sql, collector);
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut SqlWriter) {
+        self.prepare_bin_oper_common(bin_oper, sql);
+    }
+
+    /// Translate [`SubQueryOper`] into SQL statement.
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut SqlWriter) {
+        write!(
+            sql,
+            "{}",
+            match oper {
+                SubQueryOper::Exists => "EXISTS",
+                SubQueryOper::Any => "ANY",
+                SubQueryOper::Some => "SOME",
+                SubQueryOper::All => "ALL",
+            }
+        )
+        .unwrap();
     }
 
     /// Translate [`LogicalChainOper`] into SQL statement.
@@ -1497,7 +1505,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             write!(sql, ")").unwrap();
         }
         write!(sql, " ").unwrap();
-        self.prepare_bin_oper(op, sql, collector);
+        self.prepare_bin_oper(op, sql);
         write!(sql, " ").unwrap();
         let no_right_paren = matches!(
             op,
