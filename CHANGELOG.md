@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 	2. `sea-query-binder` is now a separate dependency, instead of integrated with `sea-query` https://github.com/SeaQL/sea-query/pull/432
 	3. `rusqlite` support is moved to `sea-query-rusqlite` https://github.com/SeaQL/sea-query/pull/422
 	4. `postgres` support is moved to `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/433
+* Added sub-query operators: `EXISTS`, `ALL`, `ANY`, `SOME` https://github.com/SeaQL/sea-query/pull/379
 
 ### Enhancements
 
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `%`, `<<` and `>>` binary operators https://github.com/SeaQL/sea-query/pull/419
 * Added `RAND` function https://github.com/SeaQL/sea-query/pull/430
 * Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
+* Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
 
 ### Breaking changes
 
@@ -69,6 +71,7 @@ assert_eq!(
 );
 ```
 * `CURRENT_TIMESTAMP()` is now a function instead of being a constant previously
+* Update SQLite `boolean` type from `integer` to `boolean` https://github.com/SeaQL/sea-query/pull/400
 
 ### House keeping
 

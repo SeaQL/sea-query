@@ -38,4 +38,18 @@ impl QueryBuilder for SqliteQueryBuilder {
         // SQLite doesn't support inserting multiple rows with default values
         write!(sql, "DEFAULT VALUES").unwrap()
     }
+
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut SqlWriter) {
+        write!(
+            sql,
+            "{}",
+            match oper {
+                SubQueryOper::Exists => "EXISTS",
+                SubQueryOper::Any => panic!("Operator 'ANY' doesnot support"),
+                SubQueryOper::Some => panic!("Operator 'SOME' doesnot support"),
+                SubQueryOper::All => panic!("Operator 'ALL' doesnot support"),
+            }
+        )
+        .unwrap();
+    }
 }

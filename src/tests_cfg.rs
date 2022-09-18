@@ -108,3 +108,30 @@ impl Iden for Glyph {
         .unwrap();
     }
 }
+
+/// Representation of a database table named `Task`.
+///
+/// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
+///
+/// [`Iden`]: crate::types::Iden
+#[derive(Debug)]
+pub enum Task {
+    Table,
+    Id,
+    IsDone,
+}
+
+impl Iden for Task {
+    fn unquoted(&self, s: &mut dyn FmtWrite) {
+        write!(
+            s,
+            "{}",
+            match self {
+                Self::Table => "task",
+                Self::Id => "id",
+                Self::IsDone => "is_done",
+            }
+        )
+        .unwrap();
+    }
+}

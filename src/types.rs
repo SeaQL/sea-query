@@ -214,6 +214,15 @@ pub trait IntoLikeExpr {
     fn into_like_expr(self) -> LikeExpr;
 }
 
+/// SubQuery operators
+#[derive(Debug, Copy, Clone)]
+pub enum SubQueryOper {
+    Exists,
+    Any,
+    Some,
+    All,
+}
+
 // Impl begins
 
 impl<T: 'static> IntoIden for T

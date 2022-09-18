@@ -122,7 +122,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         if !select.unions.is_empty() {
             select.unions.iter().for_each(|(union_type, query)| {
                 match union_type {
+                    UnionType::Intersect => write!(sql, " INTERSECT ").unwrap(),
                     UnionType::Distinct => write!(sql, " UNION ").unwrap(),
+                    UnionType::Except => write!(sql, " EXCEPT ").unwrap(),
                     UnionType::All => write!(sql, " UNION ALL ").unwrap(),
                 }
                 self.prepare_select_statement(query, sql);
@@ -278,7 +280,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     self.binary_expr(left, op, right, sql);
                 }
             }
-            SimpleExpr::SubQuery(sel) => {
+            SimpleExpr::SubQuery(oper, sel) => {
+                if let Some(oper) = oper {
+                    self.prepare_sub_query_oper(oper, sql);
+                }
                 write!(sql, "(").unwrap();
                 self.prepare_query_statement(sel.deref(), sql);
                 write!(sql, ")").unwrap();
@@ -543,6 +548,21 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`BinOper`] into SQL statement.
     fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
         self.prepare_bin_oper_common(bin_oper, sql);
+    }
+
+    /// Translate [`SubQueryOper`] into SQL statement.
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut SqlWriter) {
+        write!(
+            sql,
+            "{}",
+            match oper {
+                SubQueryOper::Exists => "EXISTS",
+                SubQueryOper::Any => "ANY",
+                SubQueryOper::Some => "SOME",
+                SubQueryOper::All => "ALL",
+            }
+        )
+        .unwrap();
     }
 
     /// Translate [`LogicalChainOper`] into SQL statement.
