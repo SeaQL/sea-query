@@ -236,7 +236,7 @@ impl PostgresQueryBuilder {
                     ColumnType::SmallInteger(_) => write!(sql, "smallserial").unwrap(),
                     ColumnType::Integer(_) => write!(sql, "serial").unwrap(),
                     ColumnType::BigInteger(_) => write!(sql, "bigserial").unwrap(),
-                    _ => unimplemented!(),
+                    _ => unimplemented!("{:?} doesn't support auto increment", column_type),
                 }
             } else {
                 self.prepare_column_type(column_type, sql);
