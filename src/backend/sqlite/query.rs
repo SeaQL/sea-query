@@ -39,7 +39,7 @@ impl QueryBuilder for SqliteQueryBuilder {
         write!(sql, "DEFAULT VALUES").unwrap()
     }
 
-    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut SqlWriter) {
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",

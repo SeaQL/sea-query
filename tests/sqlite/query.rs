@@ -1049,9 +1049,7 @@ fn insert_9() {
         Query::insert()
             .into_table(Task::Table)
             .columns([Task::IsDone])
-            .values_panic(vec![
-                true.into(),
-            ])
+            .values_panic(vec![true.into(),])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "task" ("is_done") VALUES (TRUE)"#
     );
@@ -1064,9 +1062,7 @@ fn insert_10() {
         Query::insert()
             .into_table(Task::Table)
             .columns([Task::IsDone])
-            .values_panic(vec![
-                false.into(),
-            ])
+            .values_panic(vec![false.into(),])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "task" ("is_done") VALUES (FALSE)"#
     );

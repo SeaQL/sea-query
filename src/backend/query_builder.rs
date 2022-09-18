@@ -551,7 +551,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     }
 
     /// Translate [`SubQueryOper`] into SQL statement.
-    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut SqlWriter) {
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",

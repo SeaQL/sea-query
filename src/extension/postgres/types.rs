@@ -438,10 +438,6 @@ impl TypeAlterOpt {
 macro_rules! impl_type_statement_builder {
     ( $struct_name: ident, $func_name: ident ) => {
         impl $struct_name {
-            fn build<T: TypeBuilder>(&self, type_builder: T) -> String {
-                self.build_ref(&type_builder)
-            }
-
             pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> String {
                 let mut sql = String::with_capacity(256);
                 self.build_collect_ref(type_builder, &mut sql)

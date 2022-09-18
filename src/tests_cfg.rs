@@ -122,7 +122,7 @@ pub enum Task {
 }
 
 impl Iden for Task {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
