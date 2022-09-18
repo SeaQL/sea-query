@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `RAND` function https://github.com/SeaQL/sea-query/pull/430
 * Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
 * Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
+* `ColumnDef::default` now accepts both `Value` and `SimpleExpr` https://github.com/SeaQL/sea-query/pull/436
 
 ### Breaking changes
 
@@ -75,7 +76,8 @@ assert_eq!(
 
 ### House keeping
 
-* Cleanup IndexBuilder trait methods https://github.com/SeaQL/sea-query/pull/426
+* Cleanup `IndexBuilder` trait methods https://github.com/SeaQL/sea-query/pull/426
+* Introduce `SqlWriter` trait https://github.com/SeaQL/sea-query/pull/436
 
 ## 0.26.3 - 2022-08-18
 
