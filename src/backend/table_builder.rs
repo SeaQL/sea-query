@@ -2,7 +2,11 @@ use crate::*;
 
 pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + TableRefBuilder {
     /// Translate [`TableCreateStatement`] into SQL statement.
-    fn prepare_table_create_statement(&self, create: &TableCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_table_create_statement(
+        &self,
+        create: &TableCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
         write!(sql, "CREATE TABLE ").unwrap();
 
         if create.if_not_exists {
@@ -49,7 +53,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     }
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_table_ref_table_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_table_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::Table(_)
             | TableRef::SchemaTable(_, _)
@@ -59,16 +63,37 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     }
 
     /// Translate [`ColumnDef`] into SQL statement.
-    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut SqlWriter);
+    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter);
 
     /// Translate [`ColumnType`] into SQL statement.
-    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut SqlWriter);
+    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter);
 
     /// Translate [`ColumnSpec`] into SQL statement.
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut SqlWriter);
+    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter)
+    where
+        Self: QueryBuilder + Sized,
+    {
+        match column_spec {
+            ColumnSpec::Null => write!(sql, "NULL").unwrap(),
+            ColumnSpec::NotNull => write!(sql, "NOT NULL").unwrap(),
+            ColumnSpec::Default(value) => {
+                write!(sql, "DEFAULT ").unwrap();
+                QueryBuilder::prepare_simple_expr(self, value, sql);
+            }
+            ColumnSpec::AutoIncrement => {
+                write!(sql, "{}", self.column_spec_auto_increment_keyword()).unwrap()
+            }
+            ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
+            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
+            ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
+        }
+    }
+
+    /// The keyword for setting a column to be auto increment.
+    fn column_spec_auto_increment_keyword(&self) -> &str;
 
     /// Translate [`TableOpt`] into SQL statement.
-    fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut SqlWriter) {
+    fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",
@@ -82,10 +107,11 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     }
 
     /// Translate [`TablePartition`] into SQL statement.
-    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut SqlWriter) {}
+    fn prepare_table_partition(&self, _table_partition: &TablePartition, _sql: &mut dyn SqlWriter) {
+    }
 
     /// Translate [`TableDropStatement`] into SQL statement.
-    fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut SqlWriter) {
+    fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP TABLE ").unwrap();
 
         if drop.if_exists {
@@ -100,19 +126,16 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
             false
         });
 
-        let mut table_drop_opt = String::new();
         for drop_opt in drop.options.iter() {
-            write!(&mut table_drop_opt, " ").unwrap();
-            self.prepare_table_drop_opt(drop_opt, &mut table_drop_opt);
+            self.prepare_table_drop_opt(drop_opt, sql);
         }
-        write!(sql, "{}", table_drop_opt.trim_end()).unwrap();
     }
 
     /// Translate [`TableDropOpt`] into SQL statement.
-    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut dyn std::fmt::Write) {
+    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut dyn SqlWriter) {
         write!(
             sql,
-            "{}",
+            " {}",
             match drop_opt {
                 TableDropOpt::Restrict => "RESTRICT",
                 TableDropOpt::Cascade => "CASCADE",
@@ -125,7 +148,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     fn prepare_table_truncate_statement(
         &self,
         truncate: &TableTruncateStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
     ) {
         write!(sql, "TRUNCATE TABLE ").unwrap();
 
@@ -135,8 +158,12 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     }
 
     /// Translate [`TableAlterStatement`] into SQL statement.
-    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut SqlWriter);
+    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter);
 
     /// Translate [`TableRenameStatement`] into SQL statement.
-    fn prepare_table_rename_statement(&self, rename: &TableRenameStatement, sql: &mut SqlWriter);
+    fn prepare_table_rename_statement(
+        &self,
+        rename: &TableRenameStatement,
+        sql: &mut dyn SqlWriter,
+    );
 }

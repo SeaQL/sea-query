@@ -9,7 +9,6 @@ use crate::SimpleExpr;
 use crate::SqlWriter;
 use crate::SubQueryStatement;
 use crate::TableRef;
-use crate::Value;
 use crate::{Alias, QueryBuilder};
 use std::ops::Deref;
 
@@ -591,13 +590,8 @@ impl WithQuery {
 }
 
 impl QueryStatementBuilder for WithQuery {
-    fn build_collect_any_into(
-        &self,
-        query_builder: &dyn QueryBuilder,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        query_builder.prepare_with_query(self, sql, collector);
+    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
+        query_builder.prepare_with_query(self, sql);
     }
 
     fn into_sub_query_statement(self) -> SubQueryStatement {
@@ -606,13 +600,7 @@ impl QueryStatementBuilder for WithQuery {
 }
 
 impl QueryStatementWriter for WithQuery {
-    fn build_collect<T: crate::QueryBuilder>(
-        &self,
-        query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        query_builder.prepare_with_query(self, &mut sql, collector);
-        sql.result()
+    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+        query_builder.prepare_with_query(self, sql);
     }
 }

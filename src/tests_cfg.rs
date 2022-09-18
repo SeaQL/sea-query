@@ -1,6 +1,6 @@
 //! Configurations for test cases and examples. Not intended for actual use.
 
-pub use std::fmt::Write as FmtWrite;
+use std::fmt;
 
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
@@ -29,7 +29,7 @@ pub enum Character {
 pub type Char = Character;
 
 impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
@@ -64,7 +64,7 @@ pub enum Font {
 }
 
 impl Iden for Font {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
@@ -94,7 +94,7 @@ pub enum Glyph {
 }
 
 impl Iden for Glyph {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",

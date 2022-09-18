@@ -1029,7 +1029,7 @@ fn select_60() {
         .build(PostgresQueryBuilder);
 
     let (statement, values) = Query::select()
-        .expr(Expr::cust_with_values(&cust_query[6..], cust_values.0))
+        .expr(Expr::cust_with_values(&cust_query[7..], cust_values.0))
         .limit(5)
         .build(PostgresQueryBuilder);
 

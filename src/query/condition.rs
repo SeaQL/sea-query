@@ -461,20 +461,24 @@ pub trait ConditionalStatement {
     ///
     /// assert_eq!(
     ///     Query::select()
+    ///         .column(Glyph::Id)
+    ///         .from(Glyph::Table)
     ///         .cond_where(Expr::col(Glyph::Id).eq(1))
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
+    ///     r#"SELECT "id" FROM "glyph" WHERE "id" = 1 AND ("id" = 2 OR "id" = 3)"#
     /// );
     ///
     /// assert_eq!(
     ///     Query::select()
+    ///         .column(Glyph::Id)
+    ///         .from(Glyph::Table)
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(2), Expr::col(Glyph::Id).eq(3)])
     ///         .cond_where(Expr::col(Glyph::Id).eq(1))
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
+    ///     r#"SELECT "id" FROM "glyph" WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
     /// );
     /// ```
     ///
@@ -485,20 +489,24 @@ pub trait ConditionalStatement {
     ///
     /// assert_eq!(
     ///     Query::select()
+    ///         .column(Glyph::Id)
+    ///         .from(Glyph::Table)
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
     ///         .cond_where(any![Expr::col(Glyph::Id).eq(3), Expr::col(Glyph::Id).eq(4)])
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE ("id" = 1 OR "id" = 2) AND ("id" = 3 OR "id" = 4)"#
+    ///     r#"SELECT "id" FROM "glyph" WHERE ("id" = 1 OR "id" = 2) AND ("id" = 3 OR "id" = 4)"#
     /// );
     ///
     /// assert_eq!(
     ///     Query::select()
+    ///         .column(Glyph::Id)
+    ///         .from(Glyph::Table)
     ///         .cond_where(all![Expr::col(Glyph::Id).eq(1), Expr::col(Glyph::Id).eq(2)])
     ///         .cond_where(all![Expr::col(Glyph::Id).eq(3), Expr::col(Glyph::Id).eq(4)])
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE "id" = 1 AND "id" = 2 AND "id" = 3 AND "id" = 4"#
+    ///     r#"SELECT "id" FROM "glyph" WHERE "id" = 1 AND "id" = 2 AND "id" = 3 AND "id" = 4"#
     /// );
     /// ```
     ///
@@ -509,6 +517,8 @@ pub trait ConditionalStatement {
     ///
     /// assert_eq!(
     ///     Query::select()
+    ///         .column(Glyph::Id)
+    ///         .from(Glyph::Table)
     ///         .cond_where(
     ///             Cond::all()
     ///                 .not()
@@ -522,11 +532,13 @@ pub trait ConditionalStatement {
     ///         )
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE (NOT ("id" = 1 AND "id" = 2)) AND ("id" = 3 AND "id" = 4)"#
+    ///     r#"SELECT "id" FROM "glyph" WHERE (NOT ("id" = 1 AND "id" = 2)) AND ("id" = 3 AND "id" = 4)"#
     /// );
     ///
     /// assert_eq!(
     ///     Query::select()
+    ///         .column(Glyph::Id)
+    ///         .from(Glyph::Table)
     ///         .cond_where(
     ///             Cond::all()
     ///                 .add(Expr::col(Glyph::Id).eq(3))
@@ -540,7 +552,7 @@ pub trait ConditionalStatement {
     ///         )
     ///         .to_owned()
     ///         .to_string(PostgresQueryBuilder),
-    ///     r#"SELECT WHERE "id" = 3 AND "id" = 4 AND (NOT ("id" = 1 AND "id" = 2))"#
+    ///     r#"SELECT "id" FROM "glyph" WHERE "id" = 3 AND "id" = 4 AND (NOT ("id" = 1 AND "id" = 2))"#
     /// );
     /// ```
     fn cond_where<C>(&mut self, condition: C) -> &mut Self

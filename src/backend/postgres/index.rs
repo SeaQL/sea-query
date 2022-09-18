@@ -1,7 +1,11 @@
 use super::*;
 
 impl IndexBuilder for PostgresQueryBuilder {
-    fn prepare_index_create_statement(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_index_create_statement(
+        &self,
+        create: &IndexCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
         write!(sql, "CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
         write!(sql, "INDEX ").unwrap();
@@ -10,7 +14,9 @@ impl IndexBuilder for PostgresQueryBuilder {
             write!(sql, "IF NOT EXISTS ").unwrap();
         }
 
-        self.prepare_index_name(&create.index.name, sql);
+        if let Some(name) = &create.index.name {
+            write!(sql, "{}{}{}", self.quote(), name, self.quote()).unwrap();
+        }
 
         write!(sql, " ON ").unwrap();
         if let Some(table) = &create.table {
@@ -18,17 +24,26 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
 
         self.prepare_index_type(&create.index_type, sql);
-
+        write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
     }
 
-    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut SqlWriter) {
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
+        match table_ref {
+            TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
+            _ => panic!("Not supported"),
+        }
+    }
+
+    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(table) = &drop.table {
             match table {
                 TableRef::Table(_) => {}
                 TableRef::SchemaTable(schema, _) => {
-                    schema.prepare(sql, self.quote());
+                    schema.prepare(sql.as_writer(), self.quote());
                     write!(sql, ".").unwrap();
                 }
                 _ => panic!("Not supported"),
@@ -39,7 +54,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut SqlWriter) {
+    fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut dyn SqlWriter) {
         if let Some(index_type) = col_index_type {
             write!(
                 sql,
@@ -55,21 +70,12 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
         if create.primary {
             write!(sql, "PRIMARY KEY ").unwrap();
         }
         if create.unique {
             write!(sql, "UNIQUE ").unwrap();
-        }
-    }
-
-    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
-        match table_ref {
-            TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
-                self.prepare_table_ref_iden(table_ref, sql)
-            }
-            _ => panic!("Not supported"),
         }
     }
 }
