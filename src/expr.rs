@@ -28,7 +28,7 @@ pub enum SimpleExpr {
     Unary(UnOper, Box<SimpleExpr>),
     FunctionCall(Function, Vec<SimpleExpr>),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
-    SubQuery(Box<SubQueryStatement>),
+    SubQuery(Option<SubQueryOper>, Box<SubQueryStatement>),
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
@@ -531,9 +531,9 @@ impl Expr {
     /// ```
     pub fn eq<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Equal, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Equal, v.into())
     }
 
     /// Express a not equal (`<>`) expression.
@@ -565,11 +565,10 @@ impl Expr {
     /// ```
     pub fn ne<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::NotEqual, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::NotEqual, v.into())
     }
-
     /// Express a equal expression between two table columns,
     /// you will mainly use this to relate identical value between two table columns.
     ///
@@ -1830,9 +1829,10 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
         self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::SubQuery(Box::new(
-            sel.into_sub_query_statement(),
-        )));
+        self.right = Some(SimpleExpr::SubQuery(
+            None,
+            Box::new(sel.into_sub_query_statement()),
+        ));
         self.into()
     }
 
@@ -1869,10 +1869,123 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn not_in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
         self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::SubQuery(Box::new(
-            sel.into_sub_query_statement(),
-        )));
+        self.right = Some(SimpleExpr::SubQuery(
+            None,
+            Box::new(sel.into_sub_query_statement()),
+        ));
         self.into()
+    }
+
+    /// Express a `EXISTS` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr_as(Expr::exists(Query::select().column(Char::Id).from(Char::Table).take()), Alias::new("character_exists"))
+    ///     .expr_as(Expr::exists(Query::select().column(Glyph::Id).from(Glyph::Table).take()), Alias::new("glyph_exists"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT EXISTS(SELECT `id` FROM `character`) AS `character_exists`, EXISTS(SELECT `id` FROM `glyph`) AS `glyph_exists`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT EXISTS(SELECT "id" FROM "character") AS "character_exists", EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT EXISTS(SELECT "id" FROM "character") AS "character_exists", EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
+    /// );
+    /// ```
+    pub fn exists(sel: SelectStatement) -> SimpleExpr {
+        SimpleExpr::SubQuery(
+            Some(SubQueryOper::Exists),
+            Box::new(sel.into_sub_query_statement()),
+        )
+    }
+
+    /// Express a `ANY` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Id)
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::col(Char::Id)
+    ///             .eq(
+    ///                 Expr::any(
+    ///                     Query::select().column(Char::Id).from(Char::Table).take()
+    ///                 )
+    ///             )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `id` = ANY(SELECT `id` FROM `character`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "id" = ANY(SELECT "id" FROM "character")"#
+    /// );
+    /// ```
+    pub fn any(sel: SelectStatement) -> SimpleExpr {
+        SimpleExpr::SubQuery(
+            Some(SubQueryOper::Any),
+            Box::new(sel.into_sub_query_statement()),
+        )
+    }
+
+    /// Express a `SOME` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Id)
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::col(Char::Id)
+    ///             .ne(
+    ///                 Expr::some(
+    ///                     Query::select().column(Char::Id).from(Char::Table).take()
+    ///                 )
+    ///             )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `id` <> SOME(SELECT `id` FROM `character`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "id" <> SOME(SELECT "id" FROM "character")"#
+    /// );
+    /// ```
+    pub fn some(sel: SelectStatement) -> SimpleExpr {
+        SimpleExpr::SubQuery(
+            Some(SubQueryOper::Some),
+            Box::new(sel.into_sub_query_statement()),
+        )
+    }
+
+    /// Express a `ALL` sub-query expression.
+    pub fn all(sel: SelectStatement) -> SimpleExpr {
+        SimpleExpr::SubQuery(
+            Some(SubQueryOper::All),
+            Box::new(sel.into_sub_query_statement()),
+        )
     }
 
     /// Express an postgres fulltext search matches (`@@`) expression.
@@ -2224,6 +2337,15 @@ impl From<Expr> for SimpleExpr {
 impl From<Expr> for SelectExpr {
     fn from(src: Expr) -> Self {
         src.into_simple_expr().into()
+    }
+}
+
+impl<T> From<T> for SimpleExpr
+where
+    T: Into<Value>,
+{
+    fn from(v: T) -> Self {
+        SimpleExpr::Value(v.into())
     }
 }
 

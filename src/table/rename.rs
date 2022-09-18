@@ -1,4 +1,4 @@
-use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
+use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 
 /// Rename a table
 ///
@@ -66,14 +66,14 @@ impl TableRenameStatement {
 
 impl SchemaStatementBuilder for TableRenameStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_rename_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_rename_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

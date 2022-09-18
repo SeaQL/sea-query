@@ -1,4 +1,4 @@
-use crate::{backend::QueryBuilder, prepare::*, types::*, value::*, QuotedBuilder};
+use crate::{prepare::*, types::*, QueryBuilder, QuotedBuilder};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
@@ -101,46 +101,31 @@ pub enum TypeAlterAddOpt {
 
 pub trait TypeBuilder: QuotedBuilder {
     /// Translate [`TypeCreateStatement`] into database specific SQL statement.
-    fn prepare_type_create_statement(
-        &self,
-        create: &TypeCreateStatement,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    );
+    fn prepare_type_create_statement(&self, create: &TypeCreateStatement, sql: &mut dyn SqlWriter);
 
     /// Translate [`TypeDropStatement`] into database specific SQL statement.
-    fn prepare_type_drop_statement(
-        &self,
-        drop: &TypeDropStatement,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    );
+    fn prepare_type_drop_statement(&self, drop: &TypeDropStatement, sql: &mut dyn SqlWriter);
 
     /// Translate [`TypeAlterStatement`] into database specific SQL statement.
-    fn prepare_type_alter_statement(
-        &self,
-        alter: &TypeAlterStatement,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    );
+    fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut dyn SqlWriter);
 
     /// Translate [`TypeRef`] into SQL statement.
-    fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut SqlWriter) {
+    fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut dyn SqlWriter) {
         match type_ref {
             TypeRef::Type(name) => {
-                name.prepare(sql, self.quote());
+                name.prepare(sql.as_writer(), self.quote());
             }
             TypeRef::SchemaType(schema, name) => {
-                schema.prepare(sql, self.quote());
+                schema.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                name.prepare(sql, self.quote());
+                name.prepare(sql.as_writer(), self.quote());
             }
             TypeRef::DatabaseSchemaType(database, schema, name) => {
-                database.prepare(sql, self.quote());
+                database.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
+                schema.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                name.prepare(sql, self.quote());
+                name.prepare(sql.as_writer(), self.quote());
             }
         }
     }
@@ -227,46 +212,6 @@ impl TypeCreateStatement {
         }
         self
     }
-
-    // below are boiler plates
-
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
-    }
-
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
-        let mut params = Vec::new();
-        let mut collector = |v| params.push(v);
-        let sql = self.build_collect_ref(type_builder, &mut collector);
-        (sql, params)
-    }
-
-    pub fn build_collect<T: TypeBuilder>(
-        &self,
-        type_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        self.build_collect_ref(&type_builder, collector)
-    }
-
-    pub fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        type_builder.prepare_type_create_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
-    }
 }
 
 impl TypeDropStatement {
@@ -331,46 +276,6 @@ impl TypeDropStatement {
     pub fn restrict(&mut self) -> &mut Self {
         self.option = Some(TypeDropOpt::Restrict);
         self
-    }
-
-    // below are boiler plates
-
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
-    }
-
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
-        let mut params = Vec::new();
-        let mut collector = |v| params.push(v);
-        let sql = self.build_collect_ref(type_builder, &mut collector);
-        (sql, params)
-    }
-
-    pub fn build_collect<T: TypeBuilder>(
-        &self,
-        type_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        self.build_collect_ref(&type_builder, collector)
-    }
-
-    pub fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        type_builder.prepare_type_drop_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
     }
 }
 
@@ -499,46 +404,6 @@ impl TypeAlterStatement {
         self.option = Some(option);
         self
     }
-
-    // below are boilerplate
-
-    pub fn build<T: TypeBuilder>(&self, type_builder: T) -> (String, Vec<Value>) {
-        self.build_ref(&type_builder)
-    }
-
-    pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> (String, Vec<Value>) {
-        let mut params = Vec::new();
-        let mut collector = |v| params.push(v);
-        let sql = self.build_collect_ref(type_builder, &mut collector);
-        (sql, params)
-    }
-
-    pub fn build_collect<T: TypeBuilder>(
-        &self,
-        type_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        self.build_collect_ref(&type_builder, collector)
-    }
-
-    pub fn build_collect_ref<T: TypeBuilder>(
-        &self,
-        type_builder: &T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String {
-        let mut sql = SqlWriter::new();
-        type_builder.prepare_type_alter_statement(self, &mut sql, collector);
-        sql.result()
-    }
-
-    /// Build corresponding SQL statement and return SQL string
-    pub fn to_string<T>(&self, type_builder: T) -> String
-    where
-        T: TypeBuilder + QueryBuilder,
-    {
-        let (sql, values) = self.build_ref(&type_builder);
-        inject_parameters(&sql, values, &type_builder)
-    }
 }
 
 impl TypeAlterOpt {
@@ -568,3 +433,44 @@ impl TypeAlterOpt {
         }
     }
 }
+
+#[macro_export]
+macro_rules! impl_type_statement_builder {
+    ( $struct_name: ident, $func_name: ident ) => {
+        impl $struct_name {
+            pub fn build_ref<T: TypeBuilder>(&self, type_builder: &T) -> String {
+                let mut sql = String::with_capacity(256);
+                self.build_collect_ref(type_builder, &mut sql)
+            }
+
+            pub fn build_collect<T: TypeBuilder>(
+                &self,
+                type_builder: T,
+                sql: &mut dyn SqlWriter,
+            ) -> String {
+                self.build_collect_ref(&type_builder, sql)
+            }
+
+            pub fn build_collect_ref<T: TypeBuilder>(
+                &self,
+                type_builder: &T,
+                sql: &mut dyn SqlWriter,
+            ) -> String {
+                type_builder.$func_name(self, sql);
+                sql.to_string()
+            }
+
+            /// Build corresponding SQL statement and return SQL string
+            pub fn to_string<T>(&self, type_builder: T) -> String
+            where
+                T: TypeBuilder + QueryBuilder,
+            {
+                self.build_ref(&type_builder)
+            }
+        }
+    };
+}
+
+impl_type_statement_builder!(TypeCreateStatement, prepare_type_create_statement);
+impl_type_statement_builder!(TypeAlterStatement, prepare_type_alter_statement);
+impl_type_statement_builder!(TypeDropStatement, prepare_type_drop_statement);

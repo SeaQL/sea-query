@@ -6,41 +6,50 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn if_null_function(&self) -> &str {
-        "COALESCE"
+    fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
+        match simple_expr {
+            SimpleExpr::AsEnum(type_name, expr) => {
+                let simple_expr = expr.clone().cast_as(SeaRc::clone(type_name));
+                self.prepare_simple_expr_common(&simple_expr, sql);
+            }
+            _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql),
+        }
     }
 
-    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        let escaped = self.escape_string(string);
-        let string = if escaped.find('\\').is_some() {
-            "E'".to_owned() + &escaped + "'"
-        } else {
-            "'".to_owned() + &escaped + "'"
+    fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {
+        match select_distinct {
+            SelectDistinct::All => write!(sql, "ALL").unwrap(),
+            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::DistinctOn(cols) => {
+                write!(sql, "DISTINCT ON (").unwrap();
+                cols.iter().fold(true, |first, c| {
+                    if !first {
+                        write!(sql, ", ").unwrap();
+                    }
+                    c.prepare(sql.as_writer(), self.quote());
+                    false
+                });
+                write!(sql, ")").unwrap();
+            }
+            _ => {}
         };
-        write!(buffer, "{}", string).unwrap()
     }
 
-    fn prepare_bin_oper(
-        &self,
-        bin_oper: &BinOper,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
         match bin_oper {
             BinOper::Matches => write!(sql, "@@").unwrap(),
             BinOper::Contains => write!(sql, "@>").unwrap(),
             BinOper::Contained => write!(sql, "<@").unwrap(),
             BinOper::Concatenate => write!(sql, "||").unwrap(),
-            _ => self.prepare_bin_oper_common(bin_oper, sql, collector),
+            _ => self.prepare_bin_oper_common(bin_oper, sql),
         }
     }
 
-    fn prepare_function(
-        &self,
-        function: &Function,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
+        query.prepare_statement(self, sql);
+    }
+
+    fn prepare_function(&self, function: &Function, sql: &mut dyn SqlWriter) {
         match function {
             Function::PgFunction(function) => write!(
                 sql,
@@ -62,36 +71,16 @@ impl QueryBuilder for PostgresQueryBuilder {
                 }
             )
             .unwrap(),
-            _ => self.prepare_function_common(function, sql, collector),
+            _ => self.prepare_function_common(function, sql),
         }
     }
 
-    fn prepare_simple_expr(
-        &self,
-        simple_expr: &SimpleExpr,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        match simple_expr {
-            SimpleExpr::AsEnum(type_name, expr) => {
-                let simple_expr = expr.clone().cast_as(SeaRc::clone(type_name));
-                self.prepare_simple_expr_common(&simple_expr, sql, collector);
-            }
-            _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql, collector),
-        }
-    }
-
-    fn prepare_order_expr(
-        &self,
-        order_expr: &OrderExpr,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
+    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         if !matches!(order_expr.order, Order::Field(_)) {
-            self.prepare_simple_expr(&order_expr.expr, sql, collector);
+            self.prepare_simple_expr(&order_expr.expr, sql);
+            write!(sql, " ").unwrap();
         }
-        write!(sql, " ").unwrap();
-        self.prepare_order(order_expr, sql, collector);
+        self.prepare_order(order_expr, sql);
         match order_expr.nulls {
             None => (),
             Some(NullOrdering::Last) => write!(sql, " NULLS LAST").unwrap(),
@@ -99,36 +88,21 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_query_statement(
-        &self,
-        query: &SubQueryStatement,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    ) {
-        query.prepare_statement(self, sql, collector);
+    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value.clone(), self as _);
     }
 
-    fn prepare_select_distinct(
-        &self,
-        select_distinct: &SelectDistinct,
-        sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
-    ) {
-        match select_distinct {
-            SelectDistinct::All => write!(sql, "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
-            SelectDistinct::DistinctOn(cols) => {
-                write!(sql, "DISTINCT ON (").unwrap();
-                cols.iter().fold(true, |first, c| {
-                    if !first {
-                        write!(sql, ", ").unwrap();
-                    }
-                    c.prepare(sql, self.quote());
-                    false
-                });
-                write!(sql, ")").unwrap();
-            }
-            _ => {}
+    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
+        let escaped = self.escape_string(string);
+        let string = if escaped.find('\\').is_some() {
+            "E'".to_owned() + &escaped + "'"
+        } else {
+            "'".to_owned() + &escaped + "'"
         };
+        write!(buffer, "{}", string).unwrap()
+    }
+
+    fn if_null_function(&self) -> &str {
+        "COALESCE"
     }
 }
