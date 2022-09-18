@@ -71,6 +71,7 @@ assert_eq!(
 );
 ```
 * `CURRENT_TIMESTAMP()` is now a function instead of being a constant previously
+* Update SQLite `boolean` type from `integer` to `boolean` https://github.com/SeaQL/sea-query/pull/400
 
 ### House keeping
 
