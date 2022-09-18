@@ -18,7 +18,7 @@ rust-version = "1.60"
 
 [dependencies]
 sea-query = { version = "^0", path = ".." }
-postgres-types = { version = "^0"}
+postgres-types = { version = "^0.2" }
 bytes = { version = "^1" }
 rust_decimal = { version = "^1", optional = true }
 

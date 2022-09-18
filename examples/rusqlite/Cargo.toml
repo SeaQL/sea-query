@@ -7,7 +7,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chrono = { version = "^0", default-features = false, features = ["clock"] }
+chrono = { version = "^0.4", default-features = false, features = ["clock"] }
 time = { version = "^0.3", features = ["parsing", "macros"] }
 serde_json = { version = "^1" }
 # rusqlite only supports uuid 0
