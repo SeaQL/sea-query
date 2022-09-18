@@ -200,6 +200,9 @@ pub struct NullAlias;
 #[derive(Debug, Clone)]
 pub enum Keyword {
     Null,
+    CurrentDate,
+    CurrentTime,
+    CurrentTimestamp,
     Custom(DynIden),
 }
 
