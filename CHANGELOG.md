@@ -71,7 +71,7 @@ assert_eq!(
     r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
 );
 ```
-* `CURRENT_TIMESTAMP()` is now a function instead of being a constant previously
+* `CURRENT_TIMESTAMP` changed from being a function to keyword https://github.com/SeaQL/sea-query/pull/441
 * Update SQLite `boolean` type from `integer` to `boolean` https://github.com/SeaQL/sea-query/pull/400
 
 ### House keeping
