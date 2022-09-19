@@ -112,7 +112,7 @@ impl OnConflict {
     }
 
     /// Set ON CONFLICT update value
-    #[deprecated(since = "0.27", note = "Please use the [`OnConflict::update_expr`]")]
+    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::update_expr`]")]
     pub fn update_value<C>(&mut self, column_value: (C, Value)) -> &mut Self
     where
         C: IntoIden,
@@ -157,7 +157,7 @@ impl OnConflict {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#
     /// );
     /// ```
-    #[deprecated(since = "0.27", note = "Please use the [`OnConflict::update_exprs`]")]
+    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::update_exprs`]")]
     pub fn update_values<C, I>(&mut self, column_values: I) -> &mut Self
     where
         C: IntoIden,
