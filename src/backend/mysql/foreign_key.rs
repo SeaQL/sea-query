@@ -1,10 +1,17 @@
 use super::*;
 
 impl ForeignKeyBuilder for MysqlQueryBuilder {
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
+        match table_ref {
+            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            _ => panic!("Not supported"),
+        }
+    }
+
     fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
         mode: Mode,
     ) {
         if mode == Mode::Alter {
@@ -24,7 +31,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
     fn prepare_foreign_key_create_statement_internal(
         &self,
         create: &ForeignKeyCreateStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
         mode: Mode,
     ) {
         if mode == Mode::Alter {
@@ -45,12 +52,12 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         }
         write!(sql, " FOREIGN KEY ").unwrap();
 
-        write!(sql, " (").unwrap();
+        write!(sql, "(").unwrap();
         create.foreign_key.columns.iter().fold(true, |first, col| {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql, self.quote());
+            col.prepare(sql.as_writer(), self.quote());
             false
         });
         write!(sql, ")").unwrap();
@@ -70,7 +77,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql, self.quote());
+                col.prepare(sql.as_writer(), self.quote());
                 false
             });
         write!(sql, ")").unwrap();
@@ -83,13 +90,6 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         if let Some(foreign_key_action) = &create.foreign_key.on_update {
             write!(sql, " ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
-        }
-    }
-
-    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
-        match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
-            _ => panic!("Not supported"),
         }
     }
 }

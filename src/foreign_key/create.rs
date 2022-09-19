@@ -1,6 +1,5 @@
 use crate::{
-    backend::SchemaBuilder, prepare::*, types::*, ForeignKeyAction, SchemaStatementBuilder,
-    TableForeignKey,
+    backend::SchemaBuilder, types::*, ForeignKeyAction, SchemaStatementBuilder, TableForeignKey,
 };
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite
@@ -96,36 +95,6 @@ impl ForeignKeyCreateStatement {
         self
     }
 
-    /// Set key table and referencing table
-    #[deprecated(
-        since = "0.10.2",
-        note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
-    )]
-    pub fn table<T: 'static, R: 'static>(&mut self, table: T, ref_table: R) -> &mut Self
-    where
-        T: Iden,
-        R: Iden,
-    {
-        self.foreign_key.from_tbl(table);
-        self.foreign_key.to_tbl(ref_table);
-        self
-    }
-
-    /// Set key column and referencing column
-    #[deprecated(
-        since = "0.10.2",
-        note = "Please use the [`ForeignKeyCreateStatement::from`] and [`ForeignKeyCreateStatement::to`]"
-    )]
-    pub fn col<T: 'static, R: 'static>(&mut self, column: T, ref_column: R) -> &mut Self
-    where
-        T: Iden,
-        R: Iden,
-    {
-        self.foreign_key.from_col(column);
-        self.foreign_key.to_col(ref_column);
-        self
-    }
-
     /// Set key table and columns
     pub fn from<T, C>(&mut self, table: T, columns: C) -> &mut Self
     where
@@ -213,14 +182,14 @@ impl ForeignKeyCreateStatement {
 
 impl SchemaStatementBuilder for ForeignKeyCreateStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

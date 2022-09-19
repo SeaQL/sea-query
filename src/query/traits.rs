@@ -1,38 +1,28 @@
-use crate::{
-    backend::QueryBuilder,
-    prepare::inject_parameters,
-    value::{Value, Values},
-    SqlWriter, SubQueryStatement,
-};
 use std::fmt::Debug;
+
+use crate::{backend::QueryBuilder, value::Values, SqlWriter, SqlWriterValues, SubQueryStatement};
 
 pub trait QueryStatementBuilder: Debug {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
     fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect_any(query_builder, &mut collector);
-        (sql, Values(values))
+        let (placeholder, numbered) = query_builder.placeholder();
+        let mut sql = SqlWriterValues::new(placeholder, numbered);
+        self.build_collect_any_into(query_builder, &mut sql);
+        sql.into_parts()
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
-        collector: &mut dyn FnMut(Value),
+        sql: &mut dyn SqlWriter,
     ) -> String {
-        let mut sql = SqlWriter::new();
-        self.build_collect_any_into(query_builder, &mut sql, collector);
-        sql.result()
+        self.build_collect_any_into(query_builder, sql);
+        sql.to_string()
     }
 
     /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
-    fn build_collect_any_into(
-        &self,
-        query_builder: &dyn QueryBuilder,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
-    );
+    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter);
 
     fn into_sub_query_statement(self) -> SubQueryStatement;
 }
@@ -50,7 +40,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_string(MysqlQueryBuilder);
     ///
     /// assert_eq!(
@@ -59,8 +49,9 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// );
     /// ```
     fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
-        let (sql, values) = self.build_any(&query_builder);
-        inject_parameters(&sql, values.0, &query_builder)
+        let mut sql = String::with_capacity(256);
+        self.build_collect_any_into(&query_builder, &mut sql);
+        sql
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
@@ -75,7 +66,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .build(MysqlQueryBuilder);
     ///
     /// assert_eq!(
@@ -88,10 +79,10 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// );
     /// ```
     fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
-        let mut values = Vec::new();
-        let mut collector = |v| values.push(v);
-        let sql = self.build_collect(query_builder, &mut collector);
-        (sql, Values(values))
+        let (placeholder, numbered) = query_builder.placeholder();
+        let mut sql = SqlWriterValues::new(placeholder, numbered);
+        self.build_collect_into(query_builder, &mut sql);
+        sql.into_parts()
     }
 
     /// Build corresponding SQL statement for certain database backend and collect query parameters
@@ -106,7 +97,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     .from(Glyph::Table)
     ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
-    ///     .order_by_tbl(Glyph::Table, Glyph::Aspect, Order::Asc)
+    ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -114,21 +105,24 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
     ///
-    /// let mut params = Vec::new();
-    /// let mut collector = |v| params.push(v);
+    /// let (placeholder, numbered) = MysqlQueryBuilder.placeholder();
+    /// let mut sql = SqlWriterValues::new(placeholder, numbered);
     ///
     /// assert_eq!(
-    ///     query.build_collect(MysqlQueryBuilder, &mut collector),
+    ///     query.build_collect(MysqlQueryBuilder, &mut sql),
     ///     r#"SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, ?) > ? ORDER BY `image` DESC, `glyph`.`aspect` ASC"#
     /// );
+    ///
+    /// let (sql, values) = sql.into_parts();
     /// assert_eq!(
-    ///     params,
-    ///     vec![Value::Int(Some(0)), Value::Int(Some(2))]
+    ///     values,
+    ///     Values(vec![Value::Int(Some(0)), Value::Int(Some(2))])
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(
-        &self,
-        query_builder: T,
-        collector: &mut dyn FnMut(Value),
-    ) -> String;
+    fn build_collect<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) -> String {
+        self.build_collect_into(query_builder, sql);
+        sql.to_string()
+    }
+
+    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter);
 }

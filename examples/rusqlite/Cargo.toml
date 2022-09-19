@@ -1,29 +1,26 @@
+[workspace]
+# A separate workspace
+
 [package]
 name = "sea-query-rusqlite-example"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chrono = { version = "^0", default-features = false, features = ["clock"] }
-time = { version = "^0.2" }
+chrono = { version = "^0.4", default-features = false, features = ["clock"] }
+time = { version = "^0.3", features = ["parsing", "macros"] }
 serde_json = { version = "^1" }
 # rusqlite only supports uuid 0
-uuid = { version = "^0", features = ["serde", "v4"] }
-# that's why we can only use an older version of sea-query
-sea-query = { version = "^0.25", features = [
-    "rusqlite",
+uuid = { version = "^1", features = ["serde", "v4"] }
+rusqlite = "^0.28"
+sea-query = { path = "../.."}
+sea-query-rusqlite = { path = "../../sea-query-rusqlite", features = [
     "with-chrono",
     "with-json",
     "with-uuid",
     "with-time",
 ] }
 
-[dependencies.rusqlite]
-version = "^0.27"
-features = [
-    "bundled",
-    "chrono",
-    "serde_json",
-    "uuid",
-    "time",
-]
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "^0"}
+# sea-query-rusqlite = { version = "^0", features = [...] }

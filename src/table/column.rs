@@ -1,4 +1,4 @@
-use crate::{types::*, value::*};
+use crate::{expr::*, types::*};
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -53,7 +53,7 @@ pub enum ColumnType {
 pub enum ColumnSpec {
     Null,
     NotNull,
-    Default(Value),
+    Default(SimpleExpr),
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
@@ -151,7 +151,7 @@ impl ColumnDef {
     /// Set default value of a column
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
-        T: Into<Value>,
+        T: Into<SimpleExpr>,
     {
         self.spec.push(ColumnSpec::Default(value.into()));
         self
@@ -479,16 +479,12 @@ impl ColumnDef {
     }
 
     /// Set column type as json.
-    /// On MySQL, this is equivalent to `json_binary`. On MariaDB, this is equivalent to `text`.
-    /// On PgSQL, this is equivalent to `json`.
     pub fn json(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Json);
         self
     }
 
     /// Set column type as json binary.
-    /// On MySQL, this is equivalent to `json`. On MariaDB, this is equivalent to `text`.
-    /// On PgSQL, this is equivalent to `jsonb`.
     pub fn json_binary(&mut self) -> &mut Self {
         self.types = Some(ColumnType::JsonBinary);
         self

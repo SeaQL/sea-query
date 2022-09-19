@@ -53,12 +53,6 @@ SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 `postgres-array`
 
-Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
-`postgres`, `postgres-*`, `rusqlite`
-
-Postgres support: `postgres`, `postgres-chrono`, `postgres-json`, `postgres-rust_decimal`,
-`postgres-bigdecimal`, `postgres-uuid`, `postgres-array`, `postgres-interval`
-
 ## Usage
 
 Table of Content
@@ -202,11 +196,11 @@ assert_eq!(Glyph.to_string(), "glyph");
 
 ```rust
 #[cfg(feature = "attr")]
-use sea_query::{Iden, enum_def};
+use sea_query::{enum_def, Iden};
 
 #[enum_def]
 struct Character {
-  pub foo: u64,
+    pub foo: u64,
 }
 
 // It generates the following along with Iden impl
@@ -237,7 +231,7 @@ assert_eq!(
         .and_where(
             Expr::col(Char::SizeW).in_subquery(
                 Query::select()
-                    .expr(Expr::cust_with_values("ln(? ^ ?)", vec![2.4, 1.2]))
+                    .expr(Expr::cust_with_values("ln($1 ^ $2)", vec![2.4, 1.2]))
                     .take()
             )
         )
@@ -692,9 +686,9 @@ assert_eq!(
 Licensed under either of
 
 -   Apache License, Version 2.0
-    ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+    ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 -   MIT license
-    ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+    ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 

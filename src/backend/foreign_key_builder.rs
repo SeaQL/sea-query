@@ -12,7 +12,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
     fn prepare_foreign_key_create_statement(
         &self,
         create: &ForeignKeyCreateStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
     ) {
         self.prepare_foreign_key_create_statement_internal(create, sql, Mode::Alter)
     }
@@ -21,7 +21,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
     fn prepare_foreign_key_drop_statement(
         &self,
         drop: &ForeignKeyDropStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
     ) {
         self.prepare_foreign_key_drop_statement_internal(drop, sql, Mode::Alter)
     }
@@ -30,7 +30,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
     fn prepare_foreign_key_action(
         &self,
         foreign_key_action: &ForeignKeyAction,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
     ) {
         write!(
             sql,
@@ -47,14 +47,14 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
     }
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter);
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter);
 
     #[doc(hidden)]
     /// Internal function to factor foreign key drop in table and outside.
     fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
         mode: Mode,
     );
 
@@ -63,7 +63,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
     fn prepare_foreign_key_create_statement_internal(
         &self,
         create: &ForeignKeyCreateStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
         mode: Mode,
     );
 }

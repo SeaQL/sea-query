@@ -21,7 +21,7 @@ pub enum Function {
     Coalesce,
     Lower,
     Upper,
-    CurrentTimestamp,
+    Random,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -41,7 +41,7 @@ impl Func {
     /// struct MyFunction;
     ///
     /// impl Iden for MyFunction {
-    ///     fn unquoted(&self, s: &mut dyn FmtWrite) {
+    ///     fn unquoted(&self, s: &mut dyn Write) {
     ///         write!(s, "MY_FUNCTION").unwrap();
     ///     }
     /// }
@@ -468,7 +468,7 @@ impl Func {
         Expr::func(Function::Upper).arg(expr)
     }
 
-    /// Call `CURRENT_TIMESTAMP` function.
+    /// Call `RANDOM` function.
     ///
     /// # Examples
     ///
@@ -476,22 +476,15 @@ impl Func {
     /// use sea_query::tests_cfg::Character::Character;
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select().expr(Func::current_timestamp()).to_owned();
+    /// let query = Query::select().expr(Func::random()).to_owned();
     ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
-    /// );
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT RAND()"#);
+    ///
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT RANDOM()"#);
+    ///
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
     /// ```
-    pub fn current_timestamp() -> SimpleExpr {
-        Expr::func(Function::CurrentTimestamp).into()
+    pub fn random() -> SimpleExpr {
+        Expr::func(Function::Random).into()
     }
 }

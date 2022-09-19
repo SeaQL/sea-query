@@ -4,7 +4,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
     fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
         mode: Mode,
     ) {
         if mode == Mode::Alter {
@@ -24,7 +24,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
     fn prepare_foreign_key_create_statement_internal(
         &self,
         create: &ForeignKeyCreateStatement,
-        sql: &mut SqlWriter,
+        sql: &mut dyn SqlWriter,
         mode: Mode,
     ) {
         if mode == Mode::Alter {
@@ -49,7 +49,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql, self.quote());
+            col.prepare(sql.as_writer(), self.quote());
             false
         });
         write!(sql, ")").unwrap();
@@ -69,7 +69,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql, self.quote());
+                col.prepare(sql.as_writer(), self.quote());
                 false
             });
         write!(sql, ")").unwrap();
@@ -85,7 +85,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::Table(_)
             | TableRef::SchemaTable(_, _)

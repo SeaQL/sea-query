@@ -56,12 +56,6 @@
 //! Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
 //! `postgres-array`
 //!
-//! Driver support: `sqlx-mysql`, `sqlx-postgres`, `sqlx-sqlite`,
-//! `postgres`, `postgres-*`, `rusqlite`
-//!
-//! Postgres support: `postgres`, `postgres-chrono`, `postgres-json`, `postgres-rust_decimal`,
-//! `postgres-bigdecimal`, `postgres-uuid`, `postgres-array`, `postgres-interval`
-//!
 //! ## Usage
 //!
 //! Table of Content
@@ -725,9 +719,9 @@
 //! Licensed under either of
 //!
 //! -   Apache License, Version 2.0
-//!     ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+//!     ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 //! -   MIT license
-//!     ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+//!     ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 //!
 //! at your option.
 //!
@@ -747,7 +741,6 @@
 )]
 
 pub mod backend;
-pub mod driver;
 pub mod error;
 pub mod expr;
 pub mod extension;
@@ -765,7 +758,6 @@ pub mod types;
 pub mod value;
 
 pub use backend::*;
-pub use driver::*;
 //pub use extension::*;
 pub use foreign_key::*;
 pub use index::*;
@@ -787,6 +779,3 @@ pub use sea_query_derive::Iden;
 
 #[cfg(feature = "attr")]
 pub use sea_query_attr::enum_def;
-
-#[cfg(feature = "sea-query-driver")]
-pub use sea_query_driver::*;

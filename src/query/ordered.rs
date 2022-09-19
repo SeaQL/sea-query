@@ -99,18 +99,6 @@ pub trait OrderedStatement {
         })
     }
 
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`OrderedStatement::order_by`] with a tuple as [`ColumnRef`]"
-    )]
-    fn order_by_tbl<T, C>(&mut self, table: T, col: C, order: Order) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        self.order_by((table.into_iden(), col.into_iden()), order)
-    }
-
     /// Order by [`SimpleExpr`].
     fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
         self.add_order_by(OrderExpr {
@@ -148,22 +136,6 @@ pub trait OrderedStatement {
             });
         });
         self
-    }
-
-    #[deprecated(
-        since = "0.9.0",
-        note = "Please use the [`OrderedStatement::order_by_columns`] with a tuple as [`ColumnRef`]"
-    )]
-    fn order_by_table_columns<T, C>(&mut self, cols: Vec<(T, C, Order)>) -> &mut Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        self.order_by_columns(
-            cols.into_iter()
-                .map(|(t, c, o)| ((t.into_iden(), c.into_iden()), o))
-                .collect(),
-        )
     }
 
     /// Order by column with nulls order option.

@@ -10,15 +10,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 * Support `CROSS JOIN` https://github.com/SeaQL/sea-query/pull/376
+* We are going through series of changes to how database drivers work
+(https://github.com/SeaQL/sea-query/pull/416, https://github.com/SeaQL/sea-query/pull/423):
+	1. `sea-query-binder` is now the recommended way (trait based) of working with SQLx, replacing `sea-query-driver` (macro based) https://github.com/SeaQL/sea-query/pull/434
+	2. `sea-query-binder` is now a separate dependency, instead of integrated with `sea-query` https://github.com/SeaQL/sea-query/pull/432
+	3. `rusqlite` support is moved to `sea-query-rusqlite` https://github.com/SeaQL/sea-query/pull/422
+	4. `postgres` support is moved to `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/433
+* Added sub-query operators: `EXISTS`, `ALL`, `ANY`, `SOME` https://github.com/SeaQL/sea-query/pull/379
 
 ### Enhancements
 
 * Handle Postgres schema name for schema statements https://github.com/SeaQL/sea-query/pull/385
+* Added `%`, `<<` and `>>` binary operators https://github.com/SeaQL/sea-query/pull/419
+* Added `RAND` function https://github.com/SeaQL/sea-query/pull/430
+* Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
+* Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
+* `ColumnDef::default` now accepts both `Value` and `SimpleExpr` https://github.com/SeaQL/sea-query/pull/436
 
 ### Breaking changes
 
 * Removed `join_alias`
 * Changed `in_tuples` interface to accept `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/386
+* Removed deprecated methods (`or_where`, `or_having`, `table_column` etc) https://github.com/SeaQL/sea-query/pull/380
 * **Changed `cond_where` chaining semantics** https://github.com/SeaQL/sea-query/pull/417
 ```rust
 // Before: will extend current Condition
@@ -58,6 +71,15 @@ assert_eq!(
     r#"SELECT WHERE ("id" = 2 OR "id" = 3) AND "id" = 1"#
 );
 ```
+* `CURRENT_TIMESTAMP` changed from being a function to keyword https://github.com/SeaQL/sea-query/pull/441
+* Update SQLite `boolean` type from `integer` to `boolean` https://github.com/SeaQL/sea-query/pull/400
+
+### House keeping
+
+* Cleanup `IndexBuilder` trait methods https://github.com/SeaQL/sea-query/pull/426
+* Introduce `SqlWriter` trait https://github.com/SeaQL/sea-query/pull/436
+
+## 0.26.3 - 2022-08-18
 
 ### Bug Fixes
 
@@ -65,7 +87,8 @@ assert_eq!(
 
 ### House keeping
 
-Exclude `chrono` default-features https://github.com/SeaQL/sea-query/pull/410
+* Exclude `chrono` default-features https://github.com/SeaQL/sea-query/pull/410
+* Fix clippy warnings https://github.com/SeaQL/sea-query/pull/415
 
 ## 0.26.2 - 2022-07-21
 

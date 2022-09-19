@@ -1,6 +1,5 @@
 use crate::{
-    backend::SchemaBuilder, foreign_key::*, index::*, prepare::*, types::*, ColumnDef,
-    SchemaStatementBuilder,
+    backend::SchemaBuilder, foreign_key::*, index::*, types::*, ColumnDef, SchemaStatementBuilder,
 };
 
 /// Create a table
@@ -117,15 +116,6 @@ impl TableCreateStatement {
             foreign_keys: Vec::new(),
             if_not_exists: false,
         }
-    }
-
-    #[deprecated(
-        since = "0.9.6",
-        note = "Please use the [`TableCreateStatement::if_not_exists`]"
-    )]
-    pub fn create_if_not_exists(&mut self) -> &mut Self {
-        self.if_not_exists = true;
-        self
     }
 
     /// Create table if table not exists
@@ -298,14 +288,14 @@ impl TableCreateStatement {
 
 impl SchemaStatementBuilder for TableCreateStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

@@ -1,6 +1,6 @@
 //! Configurations for test cases and examples. Not intended for actual use.
 
-pub use std::fmt::Write as FmtWrite;
+use std::fmt;
 
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
@@ -29,7 +29,7 @@ pub enum Character {
 pub type Char = Character;
 
 impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
@@ -64,7 +64,7 @@ pub enum Font {
 }
 
 impl Iden for Font {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
@@ -94,7 +94,7 @@ pub enum Glyph {
 }
 
 impl Iden for Glyph {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(
             s,
             "{}",
@@ -103,6 +103,33 @@ impl Iden for Glyph {
                 Self::Id => "id",
                 Self::Image => "image",
                 Self::Aspect => "aspect",
+            }
+        )
+        .unwrap();
+    }
+}
+
+/// Representation of a database table named `Task`.
+///
+/// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
+///
+/// [`Iden`]: crate::types::Iden
+#[derive(Debug)]
+pub enum Task {
+    Table,
+    Id,
+    IsDone,
+}
+
+impl Iden for Task {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        write!(
+            s,
+            "{}",
+            match self {
+                Self::Table => "task",
+                Self::Id => "id",
+                Self::IsDone => "is_done",
             }
         )
         .unwrap();

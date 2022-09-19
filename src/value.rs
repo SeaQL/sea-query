@@ -29,7 +29,7 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
-use crate::{BlobSize, ColumnType};
+use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
 
 /// Value variants
 ///
@@ -120,6 +120,12 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<Box<MacAddress>>),
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", CommonSqlQueryBuilder.value_to_string(self))
+    }
 }
 
 pub trait ValueType: Sized {
@@ -1143,8 +1149,6 @@ where
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 pub fn sea_value_to_json_value(value: &Value) -> Json {
-    use crate::{CommonSqlQueryBuilder, QueryBuilder};
-
     match value {
         Value::Bool(None)
         | Value::TinyInt(None)

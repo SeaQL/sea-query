@@ -1,7 +1,13 @@
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 use postgres::{Client, NoTls, Row};
-use sea_query::{
-    ColumnDef, Expr, Func, Iden, Order, PostgresDriver, PostgresQueryBuilder, Query, Table,
+use rust_decimal::Decimal;
+use sea_query::{ColumnDef, Iden, Order, PostgresQueryBuilder, Query, Table};
+use sea_query_postgres::PostgresBinder;
+use time::{
+    macros::{date, offset, time},
+    OffsetDateTime, PrimitiveDateTime,
 };
+use uuid::Uuid;
 
 fn main() {
     let mut client = Client::connect("postgresql://sea:sea@localhost/query", NoTls).unwrap();
@@ -10,132 +16,194 @@ fn main() {
 
     let sql = [
         Table::drop()
-            .table(Character::Table)
+            .table(Document::Table)
             .if_exists()
             .build(PostgresQueryBuilder),
         Table::create()
-            .table(Character::Table)
+            .table(Document::Table)
             .if_not_exists()
             .col(
-                ColumnDef::new(Character::Id)
+                ColumnDef::new(Document::Id)
                     .integer()
                     .not_null()
                     .auto_increment()
                     .primary_key(),
             )
-            .col(ColumnDef::new(Character::FontSize).integer())
-            .col(ColumnDef::new(Character::Character).string())
+            .col(ColumnDef::new(Document::Uuid).uuid())
+            .col(ColumnDef::new(Document::JsonField).json_binary())
+            .col(ColumnDef::new(Document::Timestamp).timestamp())
+            .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
+            .col(ColumnDef::new(Document::Decimal).decimal())
+            .col(ColumnDef::new(Document::Array).array("integer".into()))
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
 
+    println!("{}", sql);
     let result = client.batch_execute(&sql);
-    println!("Create table character: {:?}\n", result);
+    println!("Create table document: {:?}\n", result);
 
     // Create
+    let document_chrono = DocumentStructChrono {
+        id: 1,
+        uuid: Uuid::new_v4(),
+        json_field: serde_json::json! {{
+            "a": 25.0,
+            "b": "whatever",
+            "c": {
+                "another": "object",
+                "bla": 1
+            }
+        }},
+        timestamp: NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2),
+        timestamp_with_time_zone: DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00")
+            .unwrap(),
+        decimal: Decimal::from_i128_with_scale(3141i128, 3),
+        array: vec![3, 4, 5, 6],
+    };
+    let document_time = DocumentStructTime {
+        id: 2,
+        uuid: Uuid::new_v4(),
+        json_field: serde_json::json! {{
+            "a": 25.0,
+            "b": "whatever",
+            "c": {
+                "another": "object",
+                "bla": 1
+            }
+        }},
+        timestamp: date!(2020 - 1 - 1).with_time(time!(2:2:2)),
+        timestamp_with_time_zone: date!(2020 - 01 - 01)
+            .with_time(time!(02:02:02))
+            .assume_utc()
+            .to_offset(offset!(+8)),
+        decimal: Decimal::from_i128_with_scale(3141i128, 3),
+        array: vec![3, 4, 5, 6],
+    };
 
     let (sql, values) = Query::insert()
-        .into_table(Character::Table)
-        .columns([Character::Character, Character::FontSize])
-        .values_panic(vec!["A".into(), 12.into()])
-        .returning_col(Character::Id)
-        .build(PostgresQueryBuilder);
+        .into_table(Document::Table)
+        .columns([
+            Document::Uuid,
+            Document::JsonField,
+            Document::Timestamp,
+            Document::TimestampWithTimeZone,
+            Document::Decimal,
+            Document::Array,
+        ])
+        .values_panic(vec![
+            document_chrono.uuid.into(),
+            serde_json::to_value(document_chrono.json_field)
+                .unwrap()
+                .into(),
+            document_chrono.timestamp.into(),
+            document_chrono.timestamp_with_time_zone.into(),
+            document_chrono.decimal.into(),
+            document_chrono.array.into(),
+        ])
+        .values_panic(vec![
+            document_time.uuid.into(),
+            serde_json::to_value(document_time.json_field)
+                .unwrap()
+                .into(),
+            document_time.timestamp.into(),
+            document_time.timestamp_with_time_zone.into(),
+            document_time.decimal.into(),
+            document_time.array.into(),
+        ])
+        .build_postgres(PostgresQueryBuilder);
 
-    let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
-    let id: i32 = row.try_get(0).unwrap();
-    println!("Insert into character: last_insert_id = {}\n", id);
+    let result = client.execute(sql.as_str(), &values.as_params());
+    println!("Insert into document: {:?}\n", result);
 
     // Read
 
     let (sql, values) = Query::select()
-        .columns([Character::Id, Character::Character, Character::FontSize])
-        .from(Character::Table)
-        .order_by(Character::Id, Order::Desc)
+        .columns([
+            Document::Id,
+            Document::Uuid,
+            Document::JsonField,
+            Document::Timestamp,
+            Document::TimestampWithTimeZone,
+            Document::Decimal,
+            Document::Array,
+        ])
+        .from(Document::Table)
+        .order_by(Document::Id, Order::Desc)
         .limit(1)
-        .build(PostgresQueryBuilder);
+        .build_postgres(PostgresQueryBuilder);
 
     let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
-    println!("Select one from character:");
-    for row in rows.into_iter() {
-        let item = CharacterStruct::from(row);
+    println!("Select one from document:");
+    for row in rows.iter() {
+        let item = DocumentStructChrono::from(row);
+        println!("{:?}", item);
+
+        let item = DocumentStructTime::from(row);
         println!("{:?}", item);
     }
     println!();
-
-    // Update
-
-    let (sql, values) = Query::update()
-        .table(Character::Table)
-        .values(vec![(Character::FontSize, 24.into())])
-        .and_where(Expr::col(Character::Id).eq(id))
-        .build(PostgresQueryBuilder);
-
-    let result = client.execute(sql.as_str(), &values.as_params());
-    println!("Update character: {:?}\n", result);
-
-    // Read
-
-    let (sql, values) = Query::select()
-        .columns([Character::Id, Character::Character, Character::FontSize])
-        .from(Character::Table)
-        .order_by(Character::Id, Order::Desc)
-        .limit(1)
-        .build(PostgresQueryBuilder);
-
-    let rows = client.query(sql.as_str(), &values.as_params()).unwrap();
-    println!("Select one from character:");
-    for row in rows.into_iter() {
-        let item = CharacterStruct::from(row);
-        println!("{:?}", item);
-    }
-    println!();
-
-    // Count
-
-    let (sql, values) = Query::select()
-        .from(Character::Table)
-        .expr(Func::count(Expr::col(Character::Id)))
-        .build(PostgresQueryBuilder);
-
-    let row = client.query_one(sql.as_str(), &values.as_params()).unwrap();
-    print!("Count character: ");
-    let count: i64 = row.try_get(0).unwrap();
-    println!("{}", count);
-    println!();
-
-    // Delete
-
-    let (sql, values) = Query::delete()
-        .from_table(Character::Table)
-        .and_where(Expr::col(Character::Id).eq(id))
-        .build(PostgresQueryBuilder);
-
-    let result = client.execute(sql.as_str(), &values.as_params());
-    println!("Delete character: {:?}", result);
 }
 
 #[derive(Iden)]
-enum Character {
+enum Document {
     Table,
     Id,
-    Character,
-    FontSize,
+    Uuid,
+    JsonField,
+    Timestamp,
+    TimestampWithTimeZone,
+    Decimal,
+    Array,
 }
 
 #[derive(Debug)]
 #[allow(dead_code)]
-struct CharacterStruct {
+struct DocumentStructChrono {
     id: i32,
-    character: String,
-    font_size: i32,
+    uuid: Uuid,
+    json_field: serde_json::Value,
+    timestamp: NaiveDateTime,
+    timestamp_with_time_zone: DateTime<FixedOffset>,
+    decimal: Decimal,
+    array: Vec<i32>,
 }
 
-impl From<Row> for CharacterStruct {
-    fn from(row: Row) -> Self {
+#[derive(Debug)]
+#[allow(dead_code)]
+struct DocumentStructTime {
+    id: i32,
+    uuid: Uuid,
+    json_field: serde_json::Value,
+    timestamp: PrimitiveDateTime,
+    timestamp_with_time_zone: OffsetDateTime,
+    decimal: Decimal,
+    array: Vec<i32>,
+}
+
+impl From<&Row> for DocumentStructChrono {
+    fn from(row: &Row) -> Self {
         Self {
             id: row.get("id"),
-            character: row.get("character"),
-            font_size: row.get("font_size"),
+            uuid: row.get("uuid"),
+            json_field: row.get("json_field"),
+            timestamp: row.get("timestamp"),
+            timestamp_with_time_zone: row.get("timestamp_with_time_zone"),
+            decimal: row.get("decimal"),
+            array: row.get("array"),
+        }
+    }
+}
+impl From<&Row> for DocumentStructTime {
+    fn from(row: &Row) -> Self {
+        Self {
+            id: row.get("id"),
+            uuid: row.get("uuid"),
+            json_field: row.get("json_field"),
+            timestamp: row.get("timestamp"),
+            timestamp_with_time_zone: row.get("timestamp_with_time_zone"),
+            decimal: row.get("decimal"),
+            array: row.get("array"),
         }
     }
 }

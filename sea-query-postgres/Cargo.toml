@@ -1,0 +1,34 @@
+[workspace]
+# A separate workspace
+
+[package]
+name = "sea-query-postgres"
+version = "0.1.0"
+authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
+edition = "2021"
+description = "Binder traits for connecting sea-query with postgres driver"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = [ "database" ]
+keywords = [ "database", "sql", "postgres" ]
+rust-version = "1.60"
+
+[lib]
+
+[dependencies]
+sea-query = { version = "^0", path = ".." }
+postgres-types = { version = "^0.2" }
+bytes = { version = "^1" }
+rust_decimal = { version = "^1", optional = true }
+
+[features]
+with-chrono = ["postgres-types/with-chrono-0_4", "sea-query/with-chrono"]
+with-json = ["postgres-types/with-serde_json-1", "sea-query/with-json"]
+with-rust_decimal = ["sea-query/with-rust_decimal", "rust_decimal/db-postgres"]
+with-bigdecimal = ["sea-query/with-bigdecimal"]
+with-uuid = ["postgres-types/with-uuid-1", "sea-query/with-uuid"]
+with-time = ["postgres-types/with-time-0_3", "sea-query/with-time"]
+postgres-array = ["postgres-types/array-impls", "sea-query/postgres-array"]
+with-ipnetwork = ["sea-query/with-ipnetwork"]
+with-mac_address = ["sea-query/with-mac_address"]

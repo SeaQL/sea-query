@@ -200,6 +200,9 @@ pub struct NullAlias;
 #[derive(Debug, Clone)]
 pub enum Keyword {
     Null,
+    CurrentDate,
+    CurrentTime,
+    CurrentTimestamp,
     Custom(DynIden),
 }
 
@@ -212,6 +215,15 @@ pub struct LikeExpr {
 
 pub trait IntoLikeExpr {
     fn into_like_expr(self) -> LikeExpr;
+}
+
+/// SubQuery operators
+#[derive(Debug, Copy, Clone)]
+pub enum SubQueryOper {
+    Exists,
+    Any,
+    Some,
+    All,
 }
 
 // Impl begins

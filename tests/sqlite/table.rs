@@ -148,6 +148,30 @@ fn create_5() {
 }
 
 #[test]
+fn create_6() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(
+                ColumnDef::new(Task::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .col(ColumnDef::new(Task::IsDone).boolean().not_null())
+            .to_string(SqliteQueryBuilder),
+        vec![
+            r#"CREATE TABLE "task" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""is_done" boolean NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn create_with_unique_index() {
     assert_eq!(
         Table::create()
@@ -236,6 +260,59 @@ fn create_with_primary_unique_index() {
             r#")"#,
         ]
         .join(" ")
+    );
+}
+
+#[test]
+fn create_with_unique_index_constraint() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Char::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Char::FontSize).integer().not_null())
+            .col(ColumnDef::new(Char::Character).string().not_null())
+            .col(ColumnDef::new(Char::SizeW).integer().not_null())
+            .col(ColumnDef::new(Char::SizeH).integer().not_null())
+            .col(
+                ColumnDef::new(Char::FontId)
+                    .integer()
+                    .default(Value::Int(None)),
+            )
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .on_delete(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
+            )
+            .index(
+                Index::create()
+                    .name("idx-sizehw")
+                    .table(Char::Table)
+                    .col(Char::SizeH)
+                    .col(Char::SizeW)
+                    .unique(),
+            )
+            .to_string(SqliteQueryBuilder),
+        vec![
+            r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""font_size" integer NOT NULL,"#,
+            r#""character" text NOT NULL,"#,
+            r#""size_w" integer NOT NULL,"#,
+            r#""size_h" integer NOT NULL,"#,
+            r#""font_id" integer DEFAULT NULL,"#,
+            r#"CONSTRAINT "idx-sizehw" UNIQUE ("size_h", "size_w"),"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+            r#")"#,
+        ].join(" ")
     );
 }
 

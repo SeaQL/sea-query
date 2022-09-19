@@ -285,9 +285,11 @@ fn select_21() {
         Query::select()
             .columns([Char::Character])
             .from(Char::Table)
-            .or_where(Expr::col(Char::Character).like("A%"))
-            .or_where(Expr::col(Char::Character).like("%B"))
-            .or_where(Expr::col(Char::Character).like("%C%"))
+            .cond_where(any![
+                Expr::col(Char::Character).like("A%"),
+                Expr::col(Char::Character).like("%B"),
+                Expr::col(Char::Character).like("%C%"),
+            ])
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "character" LIKE 'A%' OR "character" LIKE '%B' OR "character" LIKE '%C%'"#
     );
@@ -401,26 +403,13 @@ fn select_28() {
         Query::select()
             .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
-            .or_where(Expr::col(Char::SizeW).eq(3))
-            .or_where(Expr::col(Char::SizeH).eq(4))
-            .or_where(Expr::col(Char::SizeH).eq(5))
+            .cond_where(any![
+                Expr::col(Char::SizeW).eq(3),
+                Expr::col(Char::SizeH).eq(4),
+                Expr::col(Char::SizeH).eq(5),
+            ])
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3 OR "size_h" = 4 OR "size_h" = 5"#
-    );
-}
-
-#[test]
-#[should_panic]
-fn select_29() {
-    assert_eq!(
-        Query::select()
-            .columns([Char::Character, Char::SizeW, Char::SizeH])
-            .from(Char::Table)
-            .and_where(Expr::col(Char::SizeW).eq(3))
-            .or_where(Expr::col(Char::SizeH).eq(4))
-            .and_where(Expr::col(Char::SizeH).eq(5))
-            .to_string(PostgresQueryBuilder),
-        r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3 OR "size_h" = 4 AND "size_h" = 5"#
     );
 }
 
@@ -485,52 +474,21 @@ fn select_34a() {
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
             .group_by_columns(vec![Glyph::Aspect,])
-            .or_having(
+            .cond_having(any![
                 Expr::col(Glyph::Aspect)
                     .gt(2)
-                    .or(Expr::col(Glyph::Aspect).lt(8))
-            )
-            .or_having(
+                    .or(Expr::col(Glyph::Aspect).lt(8)),
                 Expr::col(Glyph::Aspect)
                     .gt(12)
-                    .and(Expr::col(Glyph::Aspect).lt(18))
-            )
-            .or_having(Expr::col(Glyph::Aspect).gt(32))
+                    .and(Expr::col(Glyph::Aspect).lt(18)),
+                Expr::col(Glyph::Aspect).gt(32),
+            ])
             .to_string(PostgresQueryBuilder),
         vec![
             r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
             r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
             r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
             r#"OR "aspect" > 32"#,
-        ]
-        .join(" ")
-    );
-}
-
-#[test]
-#[should_panic]
-fn select_34b() {
-    assert_eq!(
-        Query::select()
-            .column(Glyph::Aspect)
-            .expr(Expr::col(Glyph::Image).max())
-            .from(Glyph::Table)
-            .group_by_columns(vec![Glyph::Aspect,])
-            .or_having(
-                Expr::col(Glyph::Aspect)
-                    .gt(2)
-                    .or(Expr::col(Glyph::Aspect).lt(8))
-            )
-            .and_having(
-                Expr::col(Glyph::Aspect)
-                    .gt(22)
-                    .or(Expr::col(Glyph::Aspect).lt(28))
-            )
-            .to_string(PostgresQueryBuilder),
-        vec![
-            r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
-            r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
-            r#"AND (("aspect" > 22) OR ("aspect" < 28))"#,
         ]
         .join(" ")
     );
@@ -1071,7 +1029,7 @@ fn select_60() {
         .build(PostgresQueryBuilder);
 
     let (statement, values) = Query::select()
-        .expr(Expr::cust_with_values(&cust_query[6..], cust_values.0))
+        .expr(Expr::cust_with_values(&cust_query[7..], cust_values.0))
         .limit(5)
         .build(PostgresQueryBuilder);
 
