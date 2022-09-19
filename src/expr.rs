@@ -366,9 +366,9 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::value(1).into())
-    ///     .and_where(Expr::value(2.5).into())
-    ///     .and_where(Expr::value("3").into())
+    ///     .and_where(Expr::value(1))
+    ///     .and_where(Expr::value(2.5))
+    ///     .and_where(Expr::value("3"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -401,7 +401,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::cust("1 = 1").into())
+    ///     .and_where(Expr::cust("1 = 1"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -432,7 +432,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]).into())
+    ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -451,7 +451,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", vec![3, 2]).into())
+    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", vec![3, 2]))
     ///     .to_owned();
     ///
     /// assert_eq!(

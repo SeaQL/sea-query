@@ -76,6 +76,7 @@ impl QueryBuilder for MysqlQueryBuilder {
     fn random_function(&self) -> &str {
         "RAND"
     }
+
     fn insert_default_keyword(&self) -> &str {
         "()"
     }

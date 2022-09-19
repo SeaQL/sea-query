@@ -121,7 +121,7 @@ mod tests {
     #[test]
     fn inject_parameters_1() {
         assert_eq!(
-            inject_parameters("WHERE A = ?", vec!["B".into()], &MysqlQueryBuilder),
+            inject_parameters("WHERE A = ?", ["B".into()], &MysqlQueryBuilder),
             "WHERE A = 'B'"
         );
     }

@@ -51,8 +51,7 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PgFunction(PgFunction::ToTsquery))
-                    .args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::ToTsquery)).args([config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::ToTsquery)).arg(expr),
         }
@@ -84,8 +83,7 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
-                Expr::func(Function::PgFunction(PgFunction::ToTsvector))
-                    .args(vec![config, expr.into()])
+                Expr::func(Function::PgFunction(PgFunction::ToTsvector)).args([config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::ToTsvector)).arg(expr),
         }
@@ -118,7 +116,7 @@ impl PgFunc {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
                 Expr::func(Function::PgFunction(PgFunction::PhrasetoTsquery))
-                    .args(vec![config, expr.into()])
+                    .args([config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::PhrasetoTsquery)).arg(expr),
         }
@@ -151,7 +149,7 @@ impl PgFunc {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
                 Expr::func(Function::PgFunction(PgFunction::PlaintoTsquery))
-                    .args(vec![config, expr.into()])
+                    .args([config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::PlaintoTsquery)).arg(expr),
         }
@@ -184,7 +182,7 @@ impl PgFunc {
             Some(config) => {
                 let config = SimpleExpr::Value(config.into());
                 Expr::func(Function::PgFunction(PgFunction::WebsearchToTsquery))
-                    .args(vec![config, expr.into()])
+                    .args([config, expr.into()])
             }
             None => Expr::func(Function::PgFunction(PgFunction::WebsearchToTsquery)).arg(expr),
         }
@@ -210,7 +208,7 @@ impl PgFunc {
     where
         T: Into<SimpleExpr>,
     {
-        Expr::func(Function::PgFunction(PgFunction::TsRank)).args(vec![vector, query])
+        Expr::func(Function::PgFunction(PgFunction::TsRank)).args([vector, query])
     }
 
     /// Call `TS_RANK_CD` function. Postgres only.
@@ -233,7 +231,7 @@ impl PgFunc {
     where
         T: Into<SimpleExpr>,
     {
-        Expr::func(Function::PgFunction(PgFunction::TsRankCd)).args(vec![vector, query])
+        Expr::func(Function::PgFunction(PgFunction::TsRankCd)).args([vector, query])
     }
 
     /// Call `ANY` function. Postgres only.

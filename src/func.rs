@@ -327,7 +327,7 @@ impl Func {
         A: Into<SimpleExpr>,
         B: Into<SimpleExpr>,
     {
-        Expr::func(Function::IfNull).args(vec![a.into(), b.into()])
+        Expr::func(Function::IfNull).args([a.into(), b.into()])
     }
 
     /// Call `CAST` function with a custom type.

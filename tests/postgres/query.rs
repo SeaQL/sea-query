@@ -1310,7 +1310,7 @@ fn insert_on_conflict_3() {
             ])
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
-                    .update_values([
+                    .update_exprs([
                         (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
                         (Glyph::Image, 3.1415.into()),
                     ])

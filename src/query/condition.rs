@@ -50,7 +50,7 @@ impl Condition {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let statement = sea_query::Query::select()
+    /// let statement = Query::select()
     ///     .column(Glyph::Id)
     ///     .from(Glyph::Table)
     ///     .cond_where(
@@ -265,13 +265,13 @@ impl Condition {
     }
 }
 
-impl std::convert::From<Condition> for ConditionExpression {
+impl From<Condition> for ConditionExpression {
     fn from(condition: Condition) -> Self {
         ConditionExpression::Condition(condition)
     }
 }
 
-impl std::convert::From<SimpleExpr> for ConditionExpression {
+impl From<SimpleExpr> for ConditionExpression {
     fn from(condition: SimpleExpr) -> Self {
         ConditionExpression::SimpleExpr(condition)
     }
