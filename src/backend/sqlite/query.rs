@@ -5,6 +5,20 @@ impl QueryBuilder for SqliteQueryBuilder {
         // SQLite doesn't supports row locking
     }
 
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
+        write!(
+            sql,
+            "{}",
+            match oper {
+                SubQueryOper::Exists => "EXISTS",
+                SubQueryOper::Any => panic!("Operator 'ANY' doesnot support"),
+                SubQueryOper::Some => panic!("Operator 'SOME' doesnot support"),
+                SubQueryOper::All => panic!("Operator 'ALL' doesnot support"),
+            }
+        )
+        .unwrap();
+    }
+
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
     }
@@ -37,19 +51,5 @@ impl QueryBuilder for SqliteQueryBuilder {
     fn insert_default_values(&self, _: u32, sql: &mut dyn SqlWriter) {
         // SQLite doesn't support inserting multiple rows with default values
         write!(sql, "DEFAULT VALUES").unwrap()
-    }
-
-    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match oper {
-                SubQueryOper::Exists => "EXISTS",
-                SubQueryOper::Any => panic!("Operator 'ANY' doesnot support"),
-                SubQueryOper::Some => panic!("Operator 'SOME' doesnot support"),
-                SubQueryOper::All => panic!("Operator 'ALL' doesnot support"),
-            }
-        )
-        .unwrap();
     }
 }

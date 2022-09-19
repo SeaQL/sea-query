@@ -71,11 +71,14 @@ impl QueryBuilder for MysqlQueryBuilder {
         write!(sql, ")").unwrap();
     }
 
+    fn prepare_on_conflict_condition(&self, _: &ConditionHolder, _: &mut dyn SqlWriter) {}
+
     fn prepare_returning(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
 
     fn random_function(&self) -> &str {
         "RAND"
     }
+
     fn insert_default_keyword(&self) -> &str {
         "()"
     }
