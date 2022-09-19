@@ -1,6 +1,4 @@
-use crate::{
-    ConditionHolder, DynIden, Expr, IntoCondition, IntoIden, LogicalChainOper, SimpleExpr, Value,
-};
+use crate::{ConditionHolder, DynIden, Expr, IntoCondition, IntoIden, SimpleExpr, Value};
 
 #[derive(Debug, Clone, Default)]
 pub struct OnConflict {
@@ -89,8 +87,6 @@ impl OnConflict {
     ///     .on_conflict(
     ///         OnConflict::column(Glyph::Id)
     ///             .update_columns([Glyph::Aspect, Glyph::Image])
-    ///             .target_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
-    ///             .action_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
     ///             .to_owned(),
     ///     )
     ///     .to_owned();
@@ -101,11 +97,11 @@ impl OnConflict {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image" WHERE "glyph"."aspect" IS NULL"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image" WHERE "glyph"."aspect" IS NULL"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
     /// );
     /// ```
     pub fn update_columns<C, I>(&mut self, columns: I) -> &mut Self
@@ -147,8 +143,6 @@ impl OnConflict {
     ///                 (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
     ///                 (Glyph::Image, 3.1415.into()),
     ///             ])
-    ///             .target_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
-    ///             .action_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
     ///             .to_owned()
     ///     )
     ///     .to_owned();
@@ -159,11 +153,11 @@ impl OnConflict {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415 WHERE "glyph"."aspect" IS NULL"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415 WHERE "glyph"."aspect" IS NULL"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#
     /// );
     /// ```
     pub fn update_values<C, I>(&mut self, column_values: I) -> &mut Self
@@ -205,8 +199,6 @@ impl OnConflict {
     ///     .on_conflict(
     ///         OnConflict::column(Glyph::Id)
     ///             .update_expr((Glyph::Image, Expr::val(1).add(2)))
-    ///             .target_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
-    ///             .action_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
     ///             .to_owned()
     ///     )
     ///     .to_owned();
@@ -217,11 +209,11 @@ impl OnConflict {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "image" = 1 + 2 WHERE "glyph"."aspect" IS NULL"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "image" = 1 + 2"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "image" = 1 + 2 WHERE "glyph"."aspect" IS NULL"#
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "image" = 1 + 2"#
     /// );
     /// ```
     pub fn update_exprs<C, I>(&mut self, column_exprs: I) -> &mut Self
@@ -238,19 +230,15 @@ impl OnConflict {
         self
     }
 
+    /// Set ON CONFLICT update exprs
     pub fn target_and_where(&mut self, other: SimpleExpr) -> &mut Self {
         self.target_cond_where(other)
     }
 
     pub fn target_and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
         if let Some(other) = other {
-            self.target_and_where(other);
+            self.target_cond_where(other);
         }
-        self
-    }
-
-    pub fn target_and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
-        self.target_where.add_and_or(condition);
         self
     }
 
@@ -268,13 +256,8 @@ impl OnConflict {
 
     pub fn action_and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
         if let Some(other) = other {
-            self.action_and_where(other);
+            self.action_cond_where(other);
         }
-        self
-    }
-
-    pub fn action_and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
-        self.action_where.add_and_or(condition);
         self
     }
 
