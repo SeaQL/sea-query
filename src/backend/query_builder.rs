@@ -1056,7 +1056,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Write ON CONFLICT expression
     fn prepare_on_conflict(&self, on_conflict: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
         if let Some(on_conflict) = on_conflict {
-            self.prepare_on_conflict_keywords(sql, collector);
+            self.prepare_on_conflict_keywords(sql);
             self.prepare_on_conflict_target(&on_conflict.target, sql);
             self.prepare_on_conflict_condition(&on_conflict.target_where, sql);
             self.prepare_on_conflict_action(&on_conflict.action, sql);
@@ -1153,10 +1153,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     fn prepare_on_conflict_condition(
         &self,
         on_conflict_condition: &ConditionHolder,
-        sql: &mut SqlWriter,
-        collector: &mut dyn FnMut(Value),
+        sql: &mut dyn SqlWriter,
     ) {
-        self.prepare_condition(on_conflict_condition, "WHERE", sql, collector)
+        self.prepare_condition(on_conflict_condition, "WHERE", sql)
     }
 
     #[doc(hidden)]
