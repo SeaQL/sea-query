@@ -98,7 +98,14 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::JsonBinary => "json".into(),
                 ColumnType::Uuid => "binary(16)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
-                ColumnType::Enum(_, variants) => format!("ENUM('{}')", variants.join("', '")),
+                ColumnType::Enum { variants, .. } => format!(
+                    "ENUM('{}')",
+                    variants
+                        .iter()
+                        .map(|v| v.to_string())
+                        .collect::<Vec<_>>()
+                        .join("', '")
+                ),
                 ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in MySQL."),
                 ColumnType::Inet => unimplemented!("Inet is not available in MySQL."),

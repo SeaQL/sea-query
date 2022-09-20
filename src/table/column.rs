@@ -41,7 +41,10 @@ pub enum ColumnType {
     JsonBinary,
     Uuid,
     Custom(DynIden),
-    Enum(String, Vec<String>),
+    Enum {
+        name: DynIden,
+        variants: Vec<DynIden>,
+    },
     Array(Option<String>),
     Cidr,
     Inet,
@@ -497,25 +500,25 @@ impl ColumnDef {
     }
 
     /// Use a custom type on this column.
-    pub fn custom<T: 'static>(&mut self, n: T) -> &mut Self
+    pub fn custom<T>(&mut self, name: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoIden,
     {
-        self.types = Some(ColumnType::Custom(SeaRc::new(n)));
+        self.types = Some(ColumnType::Custom(name.into_iden()));
         self
     }
 
     /// Set column type as enum.
     pub fn enumeration<N, S, V>(&mut self, name: N, variants: V) -> &mut Self
     where
-        N: ToString,
-        S: ToString,
+        N: IntoIden,
+        S: IntoIden,
         V: IntoIterator<Item = S>,
     {
-        self.types = Some(ColumnType::Enum(
-            name.to_string(),
-            variants.into_iter().map(|v| v.to_string()).collect(),
-        ));
+        self.types = Some(ColumnType::Enum {
+            name: name.into_iden(),
+            variants: variants.into_iter().map(IntoIden::into_iden).collect(),
+        });
         self
     }
 
