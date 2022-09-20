@@ -73,6 +73,13 @@ assert_eq!(
 ```
 * `CURRENT_TIMESTAMP` changed from being a function to keyword https://github.com/SeaQL/sea-query/pull/441
 * Update SQLite `boolean` type from `integer` to `boolean` https://github.com/SeaQL/sea-query/pull/400
+* Changed type of `ColumnType::Enum` from `(String, Vec<String>)` to: https://github.com/SeaQL/sea-query/pull/435
+```rust
+Enum {
+    name: DynIden,
+    variants: Vec<DynIden>,
+}
+```
 
 ### House keeping
 
