@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 	3. `rusqlite` support is moved to `sea-query-rusqlite` https://github.com/SeaQL/sea-query/pull/422
 	4. `postgres` support is moved to `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/433
 * Added sub-query operators: `EXISTS`, `ALL`, `ANY`, `SOME` https://github.com/SeaQL/sea-query/pull/379
+* Added support to `ON CONFLICT WHERE` https://github.com/SeaQL/sea-query/pull/447
 
 ### Enhancements
 
