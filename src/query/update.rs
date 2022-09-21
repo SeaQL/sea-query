@@ -18,7 +18,7 @@ use crate::{
 ///
 /// let query = Query::update()
 ///     .table(Glyph::Table)
-///     .values(vec![
+///     .values([
 ///         (Glyph::Aspect, 1.23.into()),
 ///         (Glyph::Image, "123".into()),
 ///     ])
@@ -91,7 +91,7 @@ impl UpdateStatement {
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .col_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-    ///     .values(vec![
+    ///     .values([
     ///         (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
     ///     ])
     ///     .and_where(Expr::col(Glyph::Id).eq(1))
@@ -135,7 +135,7 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .values(vec![
+    ///     .values([
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
     ///     ])
@@ -291,7 +291,7 @@ impl UpdateStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
-    ///     .values_panic(vec!["12A".into()])
+    ///     .values_panic(["12A".into()])
     ///     .returning_all()
     ///     .to_owned();
     ///

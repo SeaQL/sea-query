@@ -7,7 +7,7 @@ fn create_1() {
     assert_eq!(
         Type::create()
             .as_enum(Font::Table)
-            .values(vec![Font::Name, Font::Variant, Font::Language])
+            .values([Font::Name, Font::Variant, Font::Language])
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "font" AS ENUM ('name', 'variant', 'language')"#
     );
@@ -18,7 +18,7 @@ fn create_2() {
     assert_eq!(
         Type::create()
             .as_enum((Alias::new("schema"), Font::Table))
-            .values(vec![Font::Name, Font::Variant, Font::Language])
+            .values([Font::Name, Font::Variant, Font::Language])
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "schema"."font" AS ENUM ('name', 'variant', 'language')"#
     );

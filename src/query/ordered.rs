@@ -109,9 +109,10 @@ pub trait OrderedStatement {
     }
 
     /// Order by custom string.
-    fn order_by_customs<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self
+    fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
+        I: IntoIterator<Item = (T, Order)>,
     {
         cols.into_iter().for_each(|(c, order)| {
             self.add_order_by(OrderExpr {
@@ -124,9 +125,10 @@ pub trait OrderedStatement {
     }
 
     /// Order by vector of columns.
-    fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self
+    fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>,
     {
         cols.into_iter().for_each(|(c, order)| {
             self.add_order_by(OrderExpr {
@@ -187,9 +189,10 @@ pub trait OrderedStatement {
     }
 
     /// Order by custom string with nulls order option.
-    fn order_by_customs_with_nulls<T>(&mut self, cols: Vec<(T, Order, NullOrdering)>) -> &mut Self
+    fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>,
     {
         cols.into_iter().for_each(|(c, order, nulls)| {
             self.add_order_by(OrderExpr {
@@ -202,9 +205,10 @@ pub trait OrderedStatement {
     }
 
     /// Order by vector of columns with nulls order option.
-    fn order_by_columns_with_nulls<T>(&mut self, cols: Vec<(T, Order, NullOrdering)>) -> &mut Self
+    fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>,
     {
         cols.into_iter().for_each(|(c, order, nulls)| {
             self.add_order_by(OrderExpr {

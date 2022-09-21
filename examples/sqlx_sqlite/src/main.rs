@@ -46,7 +46,7 @@ async fn main() {
             Character::Meta,
             Character::Created,
         ])
-        .values_panic(vec![
+        .values_panic([
             Uuid::new_v4().into(),
             12.into(),
             "A".into(),
@@ -56,7 +56,7 @@ async fn main() {
             .into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
         ])
-        .values_panic(vec![
+        .values_panic([
             Uuid::new_v4().into(),
             12.into(),
             "A".into(),
@@ -113,7 +113,7 @@ async fn main() {
     // Update
     let (sql, values) = Query::update()
         .table(Character::Table)
-        .values(vec![(Character::FontSize, 24.into())])
+        .values([(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(SqliteQueryBuilder);
 
@@ -173,8 +173,8 @@ async fn main() {
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
         .columns([Character::Id, Character::FontSize, Character::Character])
-        .values_panic(vec![1.into(), 16.into(), "B".into()])
-        .values_panic(vec![2.into(), 24.into(), "C".into()])
+        .values_panic([1.into(), 16.into(), "B".into()])
+        .values_panic([2.into(), 24.into(), "C".into()])
         .on_conflict(
             OnConflict::column(Character::Id)
                 .update_columns([Character::FontSize, Character::Character])

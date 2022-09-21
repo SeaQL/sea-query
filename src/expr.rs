@@ -432,7 +432,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_values("6 = ? * ?", vec![2, 3]))
+    ///     .and_where(Expr::cust_with_values("6 = ? * ?", [2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -451,7 +451,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", vec![3, 2]))
+    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", [3, 2]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -463,7 +463,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::cust_with_values("6 = ? * ?", vec![2, 3]))
+    ///     .expr(Expr::cust_with_values("6 = ? * ?", [2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
@@ -474,7 +474,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::cust_with_values("$1 $$ $2", vec!["a", "b"]))
+    ///     .expr(Expr::cust_with_values("$1 $$ $2", ["a", "b"]))
     ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' $ 'b'"#);
@@ -485,7 +485,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .expr(Expr::cust_with_values(
     ///         "data @? ($1::JSONPATH)",
-    ///         vec!["hello"],
+    ///         ["hello"],
     ///     ))
     ///     .to_owned();
     ///
@@ -1233,7 +1233,7 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .columns(vec![Char::Character, Char::SizeW, Char::SizeH])
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::tbl(Char::Table, Char::Character).like(LikeExpr::str(r"|_Our|_").escape('|')))
     ///     .to_owned();
@@ -1633,7 +1633,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in(vec![1, 2, 3]))
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in([1, 2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1744,7 +1744,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in(vec![1, 2, 3]))
+    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in([1, 2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -2156,7 +2156,7 @@ impl Expr {
     /// let query = Query::insert()
     ///     .into_table(Char::Table)
     ///     .columns([Char::FontSize])
-    ///     .exprs_panic(vec![Expr::val("large").as_enum(Alias::new("FontSizeEnum"))])
+    ///     .exprs_panic([Expr::val("large").as_enum(Alias::new("FontSizeEnum"))])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -2212,7 +2212,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .expr_as(
     ///         Expr::case(
-    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4]),
+    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([2, 4]),
     ///                 Expr::val(true)
     ///              )
     ///             .finally(Expr::val(false)),

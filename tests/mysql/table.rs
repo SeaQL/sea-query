@@ -18,7 +18,7 @@ fn create_1() {
             .character_set("utf8mb4")
             .collate("utf8mb4_unicode_ci")
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "CREATE TABLE `glyph` (",
             "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
             "`aspect` double NOT NULL,",
@@ -48,7 +48,7 @@ fn create_2() {
             .character_set("utf8mb4")
             .collate("utf8mb4_unicode_ci")
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "CREATE TABLE `font` (",
             "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
             "`name` varchar(255) NOT NULL,",
@@ -94,7 +94,7 @@ fn create_3() {
             .character_set("utf8mb4")
             .collate("utf8mb4_unicode_ci")
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "CREATE TABLE IF NOT EXISTS `character` (",
             "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
             "`font_size` int(11) NOT NULL,",
@@ -123,7 +123,7 @@ fn create_4() {
                     .extra("ANYTHING I WANT TO SAY".to_owned())
             )
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "CREATE TABLE `glyph` (",
             "`id` int NOT NULL ANYTHING I WANT TO SAY",
             ")",
@@ -140,7 +140,7 @@ fn create_5() {
             .col(ColumnDef::new(Glyph::Id).integer().not_null())
             .index(Index::create().unique().name("idx-glyph-id").col(Glyph::Id))
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "CREATE TABLE `glyph` (",
             "`id` int NOT NULL,",
             "UNIQUE KEY `idx-glyph-id` (`id`)",
@@ -163,7 +163,7 @@ fn create_6() {
             .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
             .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "CREATE TABLE `binary_type` (",
             "`binlen` binary(32),",
             "`bin` blob, `defb` binary(32),",
@@ -186,7 +186,7 @@ fn create_7() {
             .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "CREATE TABLE `character` (",
             "`character` blob,",
             "`font_size` binary(10),",

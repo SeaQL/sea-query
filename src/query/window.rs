@@ -14,9 +14,10 @@ pub trait OverStatement {
     }
 
     /// Partition by custom string.
-    fn partition_by_customs<T>(&mut self, cols: Vec<T>) -> &mut Self
+    fn partition_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
+        I: IntoIterator<Item = T>,
     {
         cols.into_iter().for_each(|c| {
             self.add_partition_by(SimpleExpr::Custom(c.to_string()));
@@ -25,9 +26,10 @@ pub trait OverStatement {
     }
 
     /// Partition by vector of columns.
-    fn partition_by_columns<T>(&mut self, cols: Vec<T>) -> &mut Self
+    fn partition_by_columns<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
+        I: IntoIterator<Item = T>,
     {
         cols.into_iter().for_each(|c| {
             self.add_partition_by(SimpleExpr::Column(c.into_column_ref()));

@@ -47,7 +47,7 @@ impl Func {
     /// }
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cust(MyFunction).args(vec![Expr::val("hello")]))
+    ///     .expr(Func::cust(MyFunction).args([Expr::val("hello")]))
     ///     .to_owned();
     ///
     /// assert_eq!(

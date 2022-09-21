@@ -94,16 +94,18 @@ macro_rules! impl_ordered_statement {
                     <Self as OrderedStatement>::order_by_expr(self, expr, order)
                 }
 
-                pub fn order_by_customs<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self
+                pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
                 where
                     T: ToString,
+                    I: IntoIterator<Item = (T, Order)>,
                 {
                     <Self as OrderedStatement>::order_by_customs(self, cols)
                 }
 
-                pub fn order_by_columns<T>(&mut self, cols: Vec<(T, Order)>) -> &mut Self
+                pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
                 where
                     T: IntoColumnRef,
+                    I: IntoIterator<Item = (T, Order)>,
                 {
                     <Self as OrderedStatement>::order_by_columns(self, cols)
                 }
