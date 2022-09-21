@@ -1,9 +1,11 @@
-use crate::{DynIden, IntoIden, SimpleExpr, Value};
+use crate::{ConditionHolder, DynIden, Expr, IntoCondition, IntoIden, SimpleExpr, Value};
 
 #[derive(Debug, Clone, Default)]
 pub struct OnConflict {
     pub(crate) target: Option<OnConflictTarget>,
+    pub(crate) target_where: ConditionHolder,
     pub(crate) action: Option<OnConflictAction>,
+    pub(crate) action_where: ConditionHolder,
 }
 
 /// Represents ON CONFLICT (upsert) targets
@@ -49,7 +51,9 @@ impl OnConflict {
             target: Some(OnConflictTarget::ConflictColumns(
                 columns.into_iter().map(IntoIden::into_iden).collect(),
             )),
+            target_where: ConditionHolder::new(),
             action: None,
+            action_where: ConditionHolder::new(),
         }
     }
 
@@ -220,6 +224,118 @@ impl OnConflict {
                 .map(|(c, e)| (c.into_iden(), e))
                 .collect(),
         ));
+        self
+    }
+
+    /// Set target WHERE
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_panic([
+    ///         2.into(),
+    ///         3.into(),
+    ///     ])
+    ///     .on_conflict(
+    ///         OnConflict::column(Glyph::Id)
+    ///             .update_expr((Glyph::Image, Expr::val(1).add(2)))
+    ///             .target_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
+    ///             .to_owned()
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `image` = 1 + 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "image" = 1 + 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "image" = 1 + 2"#
+    /// );
+    /// ```
+    pub fn target_and_where(&mut self, other: SimpleExpr) -> &mut Self {
+        self.target_cond_where(other)
+    }
+
+    /// Set target WHERE
+    pub fn target_and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
+        if let Some(other) = other {
+            self.target_cond_where(other);
+        }
+        self
+    }
+
+    /// Set target WHERE
+    pub fn target_cond_where<C>(&mut self, condition: C) -> &mut Self
+    where
+        C: IntoCondition,
+    {
+        self.target_where.add_condition(condition.into_condition());
+        self
+    }
+
+    /// Set action WHERE
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_panic([
+    ///         2.into(),
+    ///         3.into(),
+    ///     ])
+    ///     .on_conflict(
+    ///         OnConflict::column(Glyph::Id)
+    ///             .update_expr((Glyph::Image, Expr::val(1).add(2)))
+    ///             .action_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
+    ///             .to_owned()
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `image` = 1 + 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "image" = 1 + 2 WHERE "glyph"."aspect" IS NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "image" = 1 + 2 WHERE "glyph"."aspect" IS NULL"#
+    /// );
+    /// ```
+    pub fn action_and_where(&mut self, other: SimpleExpr) -> &mut Self {
+        self.action_cond_where(other)
+    }
+
+    /// Set action WHERE
+    pub fn action_and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
+        if let Some(other) = other {
+            self.action_cond_where(other);
+        }
+        self
+    }
+
+    /// Set action WHERE
+    pub fn action_cond_where<C>(&mut self, condition: C) -> &mut Self
+    where
+        C: IntoCondition,
+    {
+        self.action_where.add_condition(condition.into_condition());
         self
     }
 }
