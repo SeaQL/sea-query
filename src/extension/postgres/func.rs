@@ -242,7 +242,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::any(Expr::val([0, 1])))
+    ///     .expr(PgFunc::any(Expr::val(vec![0, 1])))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -266,7 +266,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::some(Expr::val([0, 1])))
+    ///     .expr(PgFunc::some(Expr::val(vec![0, 1])))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -290,7 +290,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::all(Expr::val([0, 1])))
+    ///     .expr(PgFunc::all(Expr::val(vec![0, 1])))
     ///     .to_owned();
     ///
     /// assert_eq!(
