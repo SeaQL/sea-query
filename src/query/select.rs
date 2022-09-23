@@ -339,7 +339,7 @@ impl SelectStatement {
     ///     r#"SELECT DISTINCT ON ("character") "character", "size_w", "size_h" FROM "character""#
     /// )
     /// ```
-    /// 
+    ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
@@ -381,7 +381,7 @@ impl SelectStatement {
     {
         let cols = cols
             .into_iter()
-            .map(|col|  col.into_column_ref() )
+            .map(|col| col.into_column_ref())
             .collect::<Vec<ColumnRef>>();
         self.distinct = if !cols.is_empty() {
             Some(SelectDistinct::DistinctOn(cols))
