@@ -19,8 +19,7 @@ impl QueryBuilder for PostgresQueryBuilder {
     fn prepare_select_distinct(
         &self,
         select_distinct: &SelectDistinct,
-        sql: &mut SqlWriter,
-        _collector: &mut dyn FnMut(Value),
+        sql: &mut dyn SqlWriter,
     ) {
         match select_distinct {
             SelectDistinct::All => write!(sql, "ALL").unwrap(),
