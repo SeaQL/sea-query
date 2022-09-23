@@ -339,6 +339,23 @@ impl SelectStatement {
     ///     r#"SELECT DISTINCT ON ("character") "character", "size_w", "size_h" FROM "character""#
     /// )
     /// ```
+    /// 
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .distinct_on(vec![(Char::Table, Char::Character)])
+    ///     .column(Char::Character)
+    ///     .column(Char::SizeW)
+    ///     .column(Char::SizeH)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DISTINCT ON ("character"."character") "character", "size_w", "size_h" FROM "character""#
+    /// )
+    /// ```
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
