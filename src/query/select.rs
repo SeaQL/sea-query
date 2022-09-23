@@ -61,7 +61,7 @@ pub enum SelectDistinct {
     All,
     Distinct,
     DistinctRow,
-    DistinctOn(Vec<DynIden>),
+    DistinctOn(Vec<ColumnRef>),
 }
 
 /// Window type in [`SelectExpr`]
@@ -364,11 +364,8 @@ impl SelectStatement {
     {
         let cols = cols
             .into_iter()
-            .filter_map(|col| match col.into_column_ref() {
-                ColumnRef::Column(c) => Some(c),
-                _ => None,
-            })
-            .collect::<Vec<DynIden>>();
+            .map(|col|  col.into_column_ref() )
+            .collect::<Vec<ColumnRef>>();
         self.distinct = if !cols.is_empty() {
             Some(SelectDistinct::DistinctOn(cols))
         } else {
