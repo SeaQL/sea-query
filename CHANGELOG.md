@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
 * Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
 * `ColumnDef::default` now accepts both `Value` and `SimpleExpr` https://github.com/SeaQL/sea-query/pull/436
+* Improve `OrderedStatement::order_by_customs`, `OrderedStatement::order_by_columns`, `OverStatement::partition_by_customs`, `OverStatement::partition_by_columns` (accepting `IntoIterator<Item = T>` instead of `Vec<T>`) https://github.com/SeaQL/sea-query/pull/448
 
 ### Breaking changes
 
@@ -81,11 +82,14 @@ Enum {
     variants: Vec<DynIden>,
 }
 ```
+* deprecated: `OnConflict::update_value`, we can now use `OnConflict::update_expr` https://github.com/SeaQL/sea-query/pull/448
+* deprecated: `OnConflict::update_values`, we can now use `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/448
 
 ### House keeping
 
 * Cleanup `IndexBuilder` trait methods https://github.com/SeaQL/sea-query/pull/426
 * Introduce `SqlWriter` trait https://github.com/SeaQL/sea-query/pull/436
+* Remove unneeded `vec!` from examples https://github.com/SeaQL/sea-query/pull/448
 
 ## 0.26.3 - 2022-08-18
 
