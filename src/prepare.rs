@@ -121,7 +121,7 @@ mod tests {
     #[test]
     fn inject_parameters_1() {
         assert_eq!(
-            inject_parameters("WHERE A = ?", vec!["B".into()], &MysqlQueryBuilder),
+            inject_parameters("WHERE A = ?", ["B".into()], &MysqlQueryBuilder),
             "WHERE A = 'B'"
         );
     }
@@ -129,11 +129,7 @@ mod tests {
     #[test]
     fn inject_parameters_2() {
         assert_eq!(
-            inject_parameters(
-                "WHERE A = '?' AND B = ?",
-                vec!["C".into()],
-                &MysqlQueryBuilder
-            ),
+            inject_parameters("WHERE A = '?' AND B = ?", ["C".into()], &MysqlQueryBuilder),
             "WHERE A = '?' AND B = 'C'"
         );
     }
@@ -143,7 +139,7 @@ mod tests {
         assert_eq!(
             inject_parameters(
                 "WHERE A = ? AND C = ?",
-                vec!["B".into(), "D".into()],
+                ["B".into(), "D".into()],
                 &MysqlQueryBuilder
             ),
             "WHERE A = 'B' AND C = 'D'"
@@ -155,7 +151,7 @@ mod tests {
         assert_eq!(
             inject_parameters(
                 "WHERE A = $1 AND C = $2",
-                vec!["B".into(), "D".into()],
+                ["B".into(), "D".into()],
                 &PostgresQueryBuilder
             ),
             "WHERE A = 'B' AND C = 'D'"
@@ -167,7 +163,7 @@ mod tests {
         assert_eq!(
             inject_parameters(
                 "WHERE A = $2 AND C = $1",
-                vec!["B".into(), "D".into()],
+                ["B".into(), "D".into()],
                 &PostgresQueryBuilder
             ),
             "WHERE A = 'D' AND C = 'B'"
@@ -177,7 +173,7 @@ mod tests {
     #[test]
     fn inject_parameters_6() {
         assert_eq!(
-            inject_parameters("WHERE A = $1", vec!["B'C".into()], &PostgresQueryBuilder),
+            inject_parameters("WHERE A = $1", ["B'C".into()], &PostgresQueryBuilder),
             "WHERE A = E'B\\'C'"
         );
     }
@@ -185,11 +181,7 @@ mod tests {
     #[test]
     fn inject_parameters_7() {
         assert_eq!(
-            inject_parameters(
-                "?",
-                vec![vec![0xABu8, 0xCD, 0xEF].into()],
-                &MysqlQueryBuilder
-            ),
+            inject_parameters("?", [vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
             "x'ABCDEF'"
         );
     }

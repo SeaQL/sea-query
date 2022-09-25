@@ -64,7 +64,7 @@ fn select_5() {
         Query::select()
             .column((Glyph::Table, Glyph::Image))
             .from(Glyph::Table)
-            .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]))
+            .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
             .to_string(MysqlQueryBuilder),
         "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4)"
     );
@@ -75,9 +75,9 @@ fn select_6() {
     assert_eq!(
         Query::select()
             .columns([Glyph::Aspect,])
-            .exprs(vec![Expr::col(Glyph::Image).max(),])
+            .exprs([Expr::col(Glyph::Image).max(),])
             .from(Glyph::Table)
-            .group_by_columns(vec![Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect,])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(MysqlQueryBuilder),
         "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2"
@@ -1218,7 +1218,7 @@ fn insert_on_conflict_3() {
             ])
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
-                    .update_values([
+                    .update_exprs([
                         (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
                         (Glyph::Image, 3.1415.into()),
                     ])

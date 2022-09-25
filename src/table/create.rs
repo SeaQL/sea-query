@@ -30,7 +30,7 @@ use crate::{
 ///
 /// assert_eq!(
 ///     table.to_string(MysqlQueryBuilder),
-///     vec![
+///     [
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 ///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
 ///             r#"`font_size` int NOT NULL,"#,
@@ -46,7 +46,7 @@ use crate::{
 /// );
 /// assert_eq!(
 ///     table.to_string(PostgresQueryBuilder),
-///     vec![
+///     [
 ///         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///             r#""id" serial NOT NULL PRIMARY KEY,"#,
 ///             r#""font_size" integer NOT NULL,"#,
@@ -62,7 +62,7 @@ use crate::{
 /// );
 /// assert_eq!(
 ///     table.to_string(SqliteQueryBuilder),
-///     vec![
+///     [
 ///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
 ///            r#""font_size" integer NOT NULL,"#,
@@ -154,7 +154,7 @@ impl TableCreateStatement {
     ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
     ///         .index(Index::create().unique().name("idx-glyph-id").col(Glyph::Id))
     ///         .to_string(MysqlQueryBuilder),
-    ///     vec![
+    ///     [
     ///         "CREATE TABLE `glyph` (",
     ///         "`id` int NOT NULL,",
     ///         "UNIQUE KEY `idx-glyph-id` (`id`)",
@@ -183,7 +183,7 @@ impl TableCreateStatement {
     ///     .primary_key(Index::create().col(Glyph::Id).col(Glyph::Image));
     /// assert_eq!(
     ///     statement.to_string(MysqlQueryBuilder),
-    ///     vec![
+    ///     [
     ///         "CREATE TABLE `glyph` (",
     ///         "`id` int NOT NULL,",
     ///         "`image` varchar(255) NOT NULL,",
@@ -194,7 +194,7 @@ impl TableCreateStatement {
     /// );
     /// assert_eq!(
     ///     statement.to_string(PostgresQueryBuilder),
-    ///     vec![
+    ///     [
     ///         "CREATE TABLE \"glyph\" (",
     ///         "\"id\" integer NOT NULL,",
     ///         "\"image\" varchar NOT NULL,",
@@ -205,7 +205,7 @@ impl TableCreateStatement {
     /// );
     /// assert_eq!(
     ///     statement.to_string(SqliteQueryBuilder),
-    ///     vec![
+    ///     [
     ///         r#"CREATE TABLE "glyph" ("#,
     ///         r#""id" integer NOT NULL,"#,
     ///         r#""image" text NOT NULL,"#,

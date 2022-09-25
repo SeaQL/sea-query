@@ -21,7 +21,7 @@ use crate::{
 ///     .column((Font::Table, Font::Name))
 ///     .from(Char::Table)
 ///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-///     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
+///     .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
 ///     .and_where(Expr::col(Char::Character).like("A%"))
 ///     .to_owned();
 ///
@@ -277,7 +277,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .exprs(vec![
+    ///     .exprs([
     ///         Expr::col(Char::Id).max(),
     ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))),
     ///     ])
@@ -328,7 +328,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .distinct_on(vec![Char::Character])
+    ///     .distinct_on([Char::Character])
     ///     .column(Char::Character)
     ///     .column(Char::SizeW)
     ///     .column(Char::SizeH)
@@ -831,7 +831,7 @@ impl SelectStatement {
     ///
     /// let query = sea_query::Query::select()
     ///     .expr(Expr::asterisk())
-    ///     .from_values(vec![(1, "hello"), (2, "world")], Alias::new("x"))
+    ///     .from_values([(1, "hello"), (2, "world")], Alias::new("x"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1518,7 +1518,7 @@ impl SelectStatement {
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-    ///     .group_by_columns(vec![
+    ///     .group_by_columns([
     ///         Char::Character,
     ///     ])
     ///     .to_owned();
@@ -1545,7 +1545,7 @@ impl SelectStatement {
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
     ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-    ///     .group_by_columns(vec![
+    ///     .group_by_columns([
     ///         (Char::Table, Char::Character),
     ///     ])
     ///     .to_owned();
@@ -1605,7 +1605,7 @@ impl SelectStatement {
     where
         T: IntoColumnRef,
     {
-        self.group_by_columns(vec![col])
+        self.group_by_columns([col])
     }
 
     /// Add group by expressions from vector of [`SelectExpr`].
@@ -1618,7 +1618,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column(Char::Character)
-    ///     .add_group_by(vec![
+    ///     .add_group_by([
     ///         Expr::col(Char::SizeW).into(),
     ///         Expr::col(Char::SizeH).into(),
     ///     ])
@@ -1656,12 +1656,12 @@ impl SelectStatement {
     ///     .column(Glyph::Aspect)
     ///     .expr(Expr::col(Glyph::Image).max())
     ///     .from(Glyph::Table)
-    ///     .group_by_columns(vec![
+    ///     .group_by_columns([
     ///         Glyph::Aspect,
     ///     ])
     ///     .cond_having(
     ///         all![
-    ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![3, 4]),
+    ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]),
     ///             any![
     ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
     ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
@@ -1694,7 +1694,7 @@ impl SelectStatement {
     ///     .column(Glyph::Aspect)
     ///     .expr(Expr::col(Glyph::Image).max())
     ///     .from(Glyph::Table)
-    ///     .group_by_columns(vec![
+    ///     .group_by_columns([
     ///         Glyph::Aspect,
     ///     ])
     ///     .and_having(Expr::col(Glyph::Aspect).gt(2))
@@ -1840,7 +1840,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::FontId).eq(5))
-    ///     .lock_with_tables(LockType::Update, vec![Glyph::Table])
+    ///     .lock_with_tables(LockType::Update, [Glyph::Table])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1916,7 +1916,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::FontId).eq(5))
-    ///     .lock_with_tables_behavior(LockType::Update, vec![Glyph::Table], LockBehavior::Nowait)
+    ///     .lock_with_tables_behavior(LockType::Update, [Glyph::Table], LockBehavior::Nowait)
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -2060,7 +2060,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::FontId).eq(5))
-    ///     .unions(vec![
+    ///     .unions([
     ///         (UnionType::All, Query::select()
     ///             .column(Char::Character)
     ///             .from(Char::Table)

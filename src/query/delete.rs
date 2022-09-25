@@ -177,7 +177,7 @@ impl DeleteStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
-    ///     .values_panic(vec!["12A".into()])
+    ///     .values_panic(["12A".into()])
     ///     .returning_all()
     ///     .to_owned();
     ///

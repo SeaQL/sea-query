@@ -10,7 +10,7 @@ fn create_1() {
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Cascade)
             .to_string(MysqlQueryBuilder),
-        vec![
+        [
             "ALTER TABLE `character`",
             "ADD CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",

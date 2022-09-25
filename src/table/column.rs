@@ -380,7 +380,7 @@ impl ColumnDef {
     ///                 .not_null()
     ///         )
     ///         .to_string(PostgresQueryBuilder),
-    ///     vec![
+    ///     [
     ///         r#"CREATE TABLE "glyph" ("#,
     ///         r#""I1" interval NOT NULL,"#,
     ///         r#""I2" interval YEAR TO MONTH NOT NULL,"#,

@@ -184,7 +184,7 @@ impl TypeCreateStatement {
     /// assert_eq!(
     ///     Type::create()
     ///         .as_enum(FontFamily::Type)
-    ///         .values(vec![
+    ///         .values([
     ///             FontFamily::Serif,
     ///             FontFamily::Sans,
     ///             FontFamily::Monospace

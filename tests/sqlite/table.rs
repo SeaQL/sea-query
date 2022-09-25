@@ -15,7 +15,7 @@ fn create_1() {
             .col(ColumnDef::new(Glyph::Aspect).double().not_null())
             .col(ColumnDef::new(Glyph::Image).text())
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""aspect" real NOT NULL,"#,
@@ -42,7 +42,7 @@ fn create_2() {
             .col(ColumnDef::new(Font::Variant).string().not_null())
             .col(ColumnDef::new(Font::Language).string().not_null())
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "font" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""name" text NOT NULL,"#,
@@ -84,7 +84,7 @@ fn create_3() {
                     .on_update(ForeignKeyAction::Cascade)
             )
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
@@ -112,7 +112,7 @@ fn create_4() {
             .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
             .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "binary_type" ("#,
             r#""binlen" binary(32),"#,
             r#""bin" blob,"#,
@@ -136,7 +136,7 @@ fn create_5() {
             .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "character" ("#,
             r#""character" blob,"#,
             r#""font_size" binary(10),"#,
@@ -161,7 +161,7 @@ fn create_6() {
             )
             .col(ColumnDef::new(Task::IsDone).boolean().not_null())
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "task" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""is_done" boolean NOT NULL"#,
@@ -202,7 +202,7 @@ fn create_with_unique_index() {
             )
             .index(Index::create().unique().col(Char::SizeH).col(Char::SizeW))
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
@@ -247,7 +247,7 @@ fn create_with_primary_unique_index() {
             )
             .index(Index::create().unique().primary().col(Char::SizeH).col(Char::SizeW))
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL,"#,
             r#""font_size" integer NOT NULL,"#,
@@ -301,7 +301,7 @@ fn create_with_unique_index_constraint() {
                     .unique(),
             )
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,

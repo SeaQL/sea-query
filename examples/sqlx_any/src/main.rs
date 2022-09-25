@@ -72,12 +72,12 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![
+        .columns([
             Character::FontSize,
             Character::Character,
             Character::Created,
         ])
-        .values_panic(vec![
+        .values_panic([
             12.into(),
             "A".into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
@@ -95,7 +95,7 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Character,
             Character::FontSize,
@@ -120,7 +120,7 @@ async fn main() {
 
     let (sql, values) = Query::update()
         .table(Character::Table)
-        .values(vec![(Character::FontSize, 24.into())])
+        .values([(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
         .build_any_sqlx(query_builder);
 

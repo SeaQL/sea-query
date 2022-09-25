@@ -15,7 +15,7 @@ fn create_1() {
             .col(ColumnDef::new(Glyph::Aspect).double().not_null())
             .col(ColumnDef::new(Glyph::Image).text())
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
             r#""aspect" double precision NOT NULL,"#,
@@ -42,7 +42,7 @@ fn create_2() {
             .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
             .col(ColumnDef::new(Font::Language).string_len(255).not_null())
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "font" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
             r#""name" varchar NOT NULL,"#,
@@ -85,7 +85,7 @@ fn create_3() {
                     .on_update(ForeignKeyAction::Cascade)
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
             r#""font_size" integer NOT NULL,"#,
@@ -109,7 +109,7 @@ fn create_4() {
             .table(Glyph::Table)
             .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
             .to_string(PostgresQueryBuilder),
-        vec![r#"CREATE TABLE "glyph" ("#, r#""image" aspect"#, r#")"#,].join(" ")
+        [r#"CREATE TABLE "glyph" ("#, r#""image" aspect"#, r#")"#,].join(" ")
     );
 }
 
@@ -121,7 +121,7 @@ fn create_5() {
             .col(ColumnDef::new(Glyph::Image).json())
             .col(ColumnDef::new(Glyph::Aspect).json_binary())
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""image" json,"#,
             r#""aspect" jsonb"#,
@@ -143,7 +143,7 @@ fn create_6() {
                     .extra("ANYTHING I WANT TO SAY".to_owned())
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""id" integer NOT NULL ANYTHING I WANT TO SAY"#,
             r#")"#,
@@ -163,7 +163,7 @@ fn create_7() {
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""aspect" interval NOT NULL"#,
             r#")"#,
@@ -183,7 +183,7 @@ fn create_8() {
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""aspect" interval YEAR TO MONTH NOT NULL"#,
             r#")"#,
@@ -203,7 +203,7 @@ fn create_9() {
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""aspect" interval(42) NOT NULL"#,
             r#")"#,
@@ -223,7 +223,7 @@ fn create_10() {
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "glyph" ("#,
             r#""aspect" interval HOUR(43) NOT NULL"#,
             r#")"#,
@@ -243,7 +243,7 @@ fn create_11() {
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "character" ("#,
             r#""created_at" timestamp(0) with time zone NOT NULL"#,
             r#")"#,
@@ -265,7 +265,7 @@ fn create_12() {
             .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
             .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "binary_type" ("#,
             r#""binlen" bytea,"#,
             r#""bin" bytea,"#,
@@ -289,7 +289,7 @@ fn create_13() {
             .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "character" ("#,
             r#""character" bytea,"#,
             r#""font_size" bytea,"#,
@@ -307,7 +307,7 @@ fn create_14() {
             .table((Alias::new("schema"), Glyph::Table))
             .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"CREATE TABLE "schema"."glyph" ("#,
             r#""image" aspect"#,
             r#")"#,
@@ -387,7 +387,7 @@ fn alter_2() {
                     .default(999)
             )
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"ALTER TABLE "font""#,
             r#"ALTER COLUMN "new_col" TYPE bigint,"#,
             r#"ALTER COLUMN "new_col" SET DEFAULT 999"#,
@@ -454,7 +454,7 @@ fn alter_8() {
             .table(Font::Table)
             .modify_column(ColumnDef::new(Font::Language).null())
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"ALTER TABLE "font""#,
             r#"ALTER COLUMN "language" DROP NOT NULL"#,
         ]

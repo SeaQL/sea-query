@@ -23,7 +23,7 @@ impl CaseStatement {
     /// let query = Query::select()
     ///     .expr_as(
     ///         CaseStatement::new()
-    ///             .case(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in(vec![2, 4]), Expr::val(true))
+    ///             .case(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([2, 4]), Expr::val(true))
     ///             .finally(Expr::val(false)),
     ///          Alias::new("is_even")
     ///     )

@@ -10,7 +10,7 @@ fn create_1() {
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Cascade)
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"ALTER TABLE "character" ADD CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
             r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
@@ -29,7 +29,7 @@ fn create_2() {
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Cascade)
             .to_string(PostgresQueryBuilder),
-        vec![
+        [
             r#"ALTER TABLE "schema"."character" ADD CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
             r#"ON DELETE CASCADE ON UPDATE CASCADE"#,

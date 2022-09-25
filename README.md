@@ -97,12 +97,12 @@ assert_eq!(
         .column(Glyph::Image)
         .from(Glyph::Table)
         .and_where(Expr::col(Glyph::Image).like("A"))
-        .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
+        .and_where(Expr::col(Glyph::Id).is_in([1, 2, 3]))
         .build(PostgresQueryBuilder),
     (
         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
             .to_owned(),
-        Values(vec![
+        Values([
             Value::String(Some(Box::new("A".to_owned()))),
             Value::Int(Some(1)),
             Value::Int(Some(2)),
@@ -231,7 +231,7 @@ assert_eq!(
         .and_where(
             Expr::col(Char::SizeW).in_subquery(
                 Query::select()
-                    .expr(Expr::cust_with_values("ln($1 ^ $2)", vec![2.4, 1.2]))
+                    .expr(Expr::cust_with_values("ln($1 ^ $2)", [2.4, 1.2]))
                     .take()
             )
         )
@@ -270,7 +270,7 @@ assert_eq!(
                 )
                 .add(
                     Cond::all()
-                        .add(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
+                        .add(Expr::col(Glyph::Aspect).is_in([3, 4]))
                         .add(Expr::col(Glyph::Image).like("A%"))
                 )
         )
@@ -290,7 +290,7 @@ There is also the [`any!`] and [`all!`] macro at your convenience:
 
 ```rust
 Query::select().cond_where(any![
-    Expr::col(Glyph::Aspect).is_in(vec![3, 4]),
+    Expr::col(Glyph::Aspect).is_in([3, 4]),
     all![
         Expr::col(Glyph::Aspect).is_null(),
         Expr::col(Glyph::Image).like("A%")

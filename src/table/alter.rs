@@ -178,7 +178,7 @@ impl TableAlterStatement {
     /// );
     /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
-    ///     vec![
+    ///     [
     ///         r#"ALTER TABLE "font""#,
     ///         r#"ALTER COLUMN "new_col" TYPE bigint,"#,
     ///         r#"ALTER COLUMN "new_col" SET DEFAULT 999"#,
@@ -293,7 +293,7 @@ impl TableAlterStatement {
     ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
-    ///     vec![
+    ///     [
     ///         r#"ALTER TABLE `character`"#,
     ///         r#"ADD CONSTRAINT `FK_character_glyph`"#,
     ///         r#"FOREIGN KEY (`font_id`, `id`) REFERENCES `glyph` (`font_id`, `id`)"#,
@@ -307,7 +307,7 @@ impl TableAlterStatement {
     ///
     /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
-    ///     vec![
+    ///     [
     ///         r#"ALTER TABLE "character""#,
     ///         r#"ADD CONSTRAINT "FK_character_glyph""#,
     ///         r#"FOREIGN KEY ("font_id", "id") REFERENCES "glyph" ("font_id", "id")"#,
@@ -340,7 +340,7 @@ impl TableAlterStatement {
     ///
     /// assert_eq!(
     ///     table.to_string(MysqlQueryBuilder),
-    ///     vec![
+    ///     [
     ///         r#"ALTER TABLE `character`"#,
     ///         r#"DROP FOREIGN KEY `FK_character_glyph`,"#,
     ///         r#"DROP FOREIGN KEY `FK_character_font`"#,
@@ -350,7 +350,7 @@ impl TableAlterStatement {
     ///
     /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
-    ///     vec![
+    ///     [
     ///         r#"ALTER TABLE "character""#,
     ///         r#"DROP CONSTRAINT "FK_character_glyph","#,
     ///         r#"DROP CONSTRAINT "FK_character_font""#,

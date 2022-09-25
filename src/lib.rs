@@ -101,7 +101,7 @@
 //!         .column(Glyph::Image)
 //!         .from(Glyph::Table)
 //!         .and_where(Expr::col(Glyph::Image).like("A"))
-//!         .and_where(Expr::col(Glyph::Id).is_in(vec![1, 2, 3]))
+//!         .and_where(Expr::col(Glyph::Id).is_in([1, 2, 3]))
 //!         .build(PostgresQueryBuilder),
 //!     (
 //!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
@@ -243,7 +243,7 @@
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(
 //!                 Query::select()
-//!                     .expr(Expr::cust_with_values("ln($1 ^ $2)", vec![2.4, 1.2]))
+//!                     .expr(Expr::cust_with_values("ln($1 ^ $2)", [2.4, 1.2]))
 //!                     .take()
 //!             )
 //!         )
@@ -283,7 +283,7 @@
 //!                 )
 //!                 .add(
 //!                     Cond::all()
-//!                         .add(Expr::col(Glyph::Aspect).is_in(vec![3, 4]))
+//!                         .add(Expr::col(Glyph::Aspect).is_in([3, 4]))
 //!                         .add(Expr::col(Glyph::Image).like("A%"))
 //!                 )
 //!         )
@@ -304,7 +304,7 @@
 //! ```
 //! # use sea_query::{*, tests_cfg::*};
 //! Query::select().cond_where(any![
-//!     Expr::col(Glyph::Aspect).is_in(vec![3, 4]),
+//!     Expr::col(Glyph::Aspect).is_in([3, 4]),
 //!     all![
 //!         Expr::col(Glyph::Aspect).is_null(),
 //!         Expr::col(Glyph::Image).like("A%")
@@ -352,7 +352,7 @@
 //!     .column((Font::Table, Font::Name))
 //!     .from(Char::Table)
 //!     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-//!     .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
+//!     .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
 //!     .and_where(Expr::col(Char::Character).like("A%"))
 //!     .to_owned();
 //!
@@ -377,8 +377,8 @@
 //! let query = Query::insert()
 //!     .into_table(Glyph::Table)
 //!     .columns([Glyph::Aspect, Glyph::Image])
-//!     .values_panic(vec![5.15.into(), "12A".into()])
-//!     .values_panic(vec![4.21.into(), "123".into()])
+//!     .values_panic([5.15.into(), "12A".into()])
+//!     .values_panic([4.21.into(), "123".into()])
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -401,7 +401,7 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::update()
 //!     .table(Glyph::Table)
-//!     .values(vec![
+//!     .values([
 //!         (Glyph::Aspect, 1.23.into()),
 //!         (Glyph::Image, "123".into()),
 //!     ])
@@ -474,7 +474,7 @@
 //!
 //! assert_eq!(
 //!     table.to_string(MysqlQueryBuilder),
-//!     vec![
+//!     [
 //!         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 //!             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
 //!             r#"`font_size` int NOT NULL,"#,
@@ -490,7 +490,7 @@
 //! );
 //! assert_eq!(
 //!     table.to_string(PostgresQueryBuilder),
-//!     vec![
+//!     [
 //!         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 //!             r#""id" serial NOT NULL PRIMARY KEY,"#,
 //!             r#""font_size" integer NOT NULL,"#,
@@ -506,7 +506,7 @@
 //! );
 //! assert_eq!(
 //!     table.to_string(SqliteQueryBuilder),
-//!     vec![
+//!     [
 //!        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 //!            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
 //!            r#""font_size" integer NOT NULL,"#,
@@ -627,7 +627,7 @@
 //!
 //! assert_eq!(
 //!     foreign_key.to_string(MysqlQueryBuilder),
-//!     vec![
+//!     [
 //!         r#"ALTER TABLE `character`"#,
 //!         r#"ADD CONSTRAINT `FK_character_font`"#,
 //!         r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
@@ -637,7 +637,7 @@
 //! );
 //! assert_eq!(
 //!     foreign_key.to_string(PostgresQueryBuilder),
-//!     vec![
+//!     [
 //!         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
 //!         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
 //!         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,

@@ -259,10 +259,10 @@ where
     A: IntoIden,
     B: IntoIden,
 {
-    type IntoIter = std::vec::IntoIter<DynIden>;
+    type IntoIter = std::array::IntoIter<DynIden, 2>;
 
     fn into_iter(self) -> Self::IntoIter {
-        vec![self.0.into_iden(), self.1.into_iden()].into_iter()
+        [self.0.into_iden(), self.1.into_iden()].into_iter()
     }
 }
 
@@ -272,10 +272,10 @@ where
     B: IntoIden,
     C: IntoIden,
 {
-    type IntoIter = std::vec::IntoIter<DynIden>;
+    type IntoIter = std::array::IntoIter<DynIden, 3>;
 
     fn into_iter(self) -> Self::IntoIter {
-        vec![self.0.into_iden(), self.1.into_iden(), self.2.into_iden()].into_iter()
+        [self.0.into_iden(), self.1.into_iden(), self.2.into_iden()].into_iter()
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::{ConditionHolder, DynIden, Expr, IntoCondition, IntoIden, SimpleExpr, Value};
+use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, SimpleExpr, Value};
 
 #[derive(Debug, Clone, Default)]
 pub struct OnConflict {
@@ -38,7 +38,7 @@ impl OnConflict {
     where
         C: IntoIden,
     {
-        Self::columns(vec![column])
+        Self::columns([column])
     }
 
     /// Set ON CONFLICT target columns
@@ -67,7 +67,7 @@ impl OnConflict {
     where
         C: IntoIden,
     {
-        self.update_columns(vec![column])
+        self.update_columns([column])
     }
 
     /// Set ON CONFLICT update columns
@@ -80,7 +80,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic(vec![
+    ///     .values_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
@@ -116,11 +116,12 @@ impl OnConflict {
     }
 
     /// Set ON CONFLICT update value
+    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::update_expr`]")]
     pub fn update_value<C>(&mut self, column_value: (C, Value)) -> &mut Self
     where
         C: IntoIden,
     {
-        self.update_values(vec![column_value])
+        self.update_exprs([(column_value.0, column_value.1.into())])
     }
 
     /// Set ON CONFLICT update values
@@ -133,13 +134,13 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic(vec![
+    ///     .values_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
     ///     .on_conflict(
     ///         OnConflict::column(Glyph::Id)
-    ///             .update_values([
+    ///             .update_exprs([
     ///                 (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
     ///                 (Glyph::Image, 3.1415.into()),
     ///             ])
@@ -160,26 +161,22 @@ impl OnConflict {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#
     /// );
     /// ```
+    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::update_exprs`]")]
     pub fn update_values<C, I>(&mut self, column_values: I) -> &mut Self
     where
         C: IntoIden,
         I: IntoIterator<Item = (C, Value)>,
     {
-        self.action = Some(OnConflictAction::UpdateExprs(
-            column_values
-                .into_iter()
-                .map(|(c, v)| (c.into_iden(), Expr::val(v).into()))
-                .collect(),
-        ));
-        self
+        self.update_exprs(column_values.into_iter().map(|(c, v)| (c, v.into())))
     }
 
     /// Set ON CONFLICT update expr
-    pub fn update_expr<C>(&mut self, column_expr: (C, SimpleExpr)) -> &mut Self
+    pub fn update_expr<C, E>(&mut self, column_expr: (C, E)) -> &mut Self
     where
         C: IntoIden,
+        E: Into<SimpleExpr>,
     {
-        self.update_exprs(vec![column_expr])
+        self.update_exprs([(column_expr.0, column_expr.1.into())])
     }
 
     /// Set ON CONFLICT update exprs
@@ -192,7 +189,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic(vec![
+    ///     .values_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
@@ -240,7 +237,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic(vec![
+    ///     .values_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
@@ -296,7 +293,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic(vec![
+    ///     .values_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])

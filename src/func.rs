@@ -47,7 +47,7 @@ impl Func {
     /// }
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cust(MyFunction).args(vec![Expr::val("hello")]))
+    ///     .expr(Func::cust(MyFunction).args([Expr::val("hello")]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -327,7 +327,7 @@ impl Func {
         A: Into<SimpleExpr>,
         B: Into<SimpleExpr>,
     {
-        Expr::func(Function::IfNull).args(vec![a.into(), b.into()])
+        Expr::func(Function::IfNull).args([a.into(), b.into()])
     }
 
     /// Call `CAST` function with a custom type.
