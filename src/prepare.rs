@@ -182,7 +182,7 @@ mod tests {
     fn inject_parameters_7() {
         assert_eq!(
             inject_parameters("?", [vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
-            "x'ABCDEF'"
+            "'ABCDEF'"
         );
     }
 }

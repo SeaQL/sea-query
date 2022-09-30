@@ -983,7 +983,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             }
             Value::Bytes(Some(v)) => write!(
                 s,
-                "x'{}'",
+                "'{}'",
                 v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
             )
             .unwrap(),
