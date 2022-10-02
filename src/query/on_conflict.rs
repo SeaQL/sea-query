@@ -80,7 +80,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic([
+    ///     .exprs_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
@@ -134,7 +134,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic([
+    ///     .exprs_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
@@ -189,7 +189,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic([
+    ///     .exprs_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
@@ -237,7 +237,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic([
+    ///     .exprs_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])
@@ -293,7 +293,7 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic([
+    ///     .exprs_panic([
     ///         2.into(),
     ///         3.into(),
     ///     ])

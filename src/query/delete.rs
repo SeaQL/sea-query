@@ -174,24 +174,23 @@ impl DeleteStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns([Glyph::Image])
-    ///     .values_panic(["12A".into()])
+    /// let query = Query::delete()
+    ///     .from_table(Glyph::Table)
+    ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .returning_all()
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     r#"DELETE FROM `glyph` WHERE `id` = 1"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING *"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING *"#
     /// );
     /// ```
     pub fn returning_all(&mut self) -> &mut Self {

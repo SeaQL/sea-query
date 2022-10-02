@@ -55,7 +55,7 @@ fn main() -> Result<()> {
             Character::Meta,
             Character::Created,
         ])
-        .values_panic(vec![
+        .exprs_panic([
             Uuid::new_v4().into(),
             12.into(),
             "A".into(),
@@ -65,7 +65,7 @@ fn main() -> Result<()> {
             .into(),
             None::<NaiveDate>.into(),
         ])
-        .values_panic(vec![
+        .exprs_panic([
             Uuid::new_v4().into(),
             12.into(),
             "A".into(),
@@ -75,7 +75,7 @@ fn main() -> Result<()> {
             .into(),
             Some(NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2)).into(),
         ])
-        .values_panic(vec![
+        .exprs_panic([
             Uuid::new_v4().into(),
             12.into(),
             "A".into(),
@@ -85,7 +85,7 @@ fn main() -> Result<()> {
             .into(),
             None::<PrimitiveDateTime>.into(),
         ])
-        .values_panic(vec![
+        .exprs_panic([
             Uuid::new_v4().into(),
             12.into(),
             "A".into(),
@@ -133,7 +133,7 @@ fn main() -> Result<()> {
 
     let (sql, values) = Query::update()
         .table(Character::Table)
-        .values(vec![(Character::FontSize, 24.into())])
+        .exprs([(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
         .build_rusqlite(SqliteQueryBuilder);
 

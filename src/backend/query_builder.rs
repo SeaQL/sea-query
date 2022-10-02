@@ -179,13 +179,14 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             if !first {
                 write!(sql, ", ").unwrap()
             }
-            let (k, v) = row;
-            write!(sql, "{}{}{} = ", self.quote(), k, self.quote()).unwrap();
+            let (col, v) = row;
+            col.prepare(sql.as_writer(), self.quote());
+            write!(sql, " = ").unwrap();
             self.prepare_simple_expr(v, sql);
             false
         });
 
-        self.prepare_condition(&update.wherei, "WHERE", sql);
+        self.prepare_condition(&update.r#where, "WHERE", sql);
 
         if !update.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();

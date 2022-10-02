@@ -1,5 +1,5 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, Expr, OnConflict,
+    backend::QueryBuilder, error::*, prepare::*, types::*, value::*, OnConflict,
     QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr,
     SubQueryStatement, WithClause, WithQuery,
 };
@@ -24,8 +24,8 @@ pub(crate) enum InsertValueSource {
 /// let query = Query::insert()
 ///     .into_table(Glyph::Table)
 ///     .columns([Glyph::Aspect, Glyph::Image])
-///     .values_panic([5.15.into(), "12A".into()])
-///     .values_panic([4.21.into(), "123".into()])
+///     .exprs_panic([5.15.into(), "12A".into()])
+///     .exprs_panic([4.21.into(), "123".into()])
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -69,7 +69,7 @@ impl InsertStatement {
     ///     .replace()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic([5.15.into(), "12A".into()])
+    ///     .exprs_panic([5.15.into(), "12A".into()])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -114,61 +114,12 @@ impl InsertStatement {
         self
     }
 
-    /// Specify a row of values to be inserted.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values([2.1345.into(), "24B".into()])
-    ///     .unwrap()
-    ///     .values_panic([5.15.into(), "12A".into()])
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
-    /// );
-    /// ```
+    #[deprecated(since = "0.27.0", note = "Please use the [`InsertStatement::exprs`]")]
     pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
     where
         I: IntoIterator<Item = Value>,
     {
-        let values = values
-            .into_iter()
-            .map(|v| Expr::val(v).into())
-            .collect::<Vec<SimpleExpr>>();
-        if self.columns.len() != values.len() {
-            return Err(Error::ColValNumMismatch {
-                col_len: self.columns.len(),
-                val_len: values.len(),
-            });
-        }
-
-        let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
-            values
-        } else {
-            self.source = Some(InsertValueSource::Values(Default::default()));
-            if let Some(InsertValueSource::Values(values)) = &mut self.source {
-                values
-            } else {
-                unreachable!();
-            }
-        };
-        values_source.push(values);
-        Ok(self)
+        self.exprs(values.into_iter().map(|v| v.into()))
     }
 
     /// Specify a select query whose values to be inserted.
@@ -232,7 +183,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .exprs([
-    ///         Expr::val(2).into(),
+    ///         2.into(),
     ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")),
     ///     ])
     ///     .unwrap()
@@ -255,7 +206,10 @@ impl InsertStatement {
     where
         I: IntoIterator<Item = SimpleExpr>,
     {
-        let values = values.into_iter().collect::<Vec<SimpleExpr>>();
+        let values = values
+            .into_iter()
+            .map(|v| v.into())
+            .collect::<Vec<SimpleExpr>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),
@@ -279,14 +233,45 @@ impl InsertStatement {
     }
 
     /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
-    pub fn values_panic<I>(&mut self, values: I) -> &mut Self
+    #[deprecated(
+        since = "0.27.0",
+        note = "Please use the [`InsertStatement::exprs_panic`]"
+    )]
+    pub fn values_panic<T, I>(&mut self, values: I) -> &mut Self
     where
-        I: IntoIterator<Item = Value>,
+        T: Into<SimpleExpr>,
+        I: IntoIterator<Item = T>,
     {
-        self.values(values).unwrap()
+        self.exprs(values.into_iter().map(|v| v.into())).unwrap()
     }
 
     /// Specify a row of values to be inserted, variation of [`InsertStatement::exprs`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .exprs_panic([2.1345.into(), "24B".into()])
+    ///     .exprs_panic([5.15.into(), "12A".into()])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
+    /// );
+    /// ```
     pub fn exprs_panic<I>(&mut self, values: I) -> &mut Self
     where
         I: IntoIterator<Item = SimpleExpr>,
@@ -316,7 +301,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
-    ///     .values_panic(["12A".into()])
+    ///     .exprs_panic(["12A".into()])
     ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
@@ -348,7 +333,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
-    ///     .values_panic(["12A".into()])
+    ///     .exprs_panic(["12A".into()])
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
     ///
@@ -382,7 +367,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
-    ///     .values_panic(["12A".into()])
+    ///     .exprs_panic(["12A".into()])
     ///     .returning_all()
     ///     .to_owned();
     ///
@@ -482,7 +467,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .or_default_values()
     ///     .columns([Glyph::Image])
-    ///     .values_panic(["ABC".into()])
+    ///     .exprs_panic(["ABC".into()])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -534,7 +519,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .or_default_values_many(3)
     ///     .columns([Glyph::Image])
-    ///     .values_panic(["ABC".into()])
+    ///     .exprs_panic(["ABC".into()])
     ///     .to_owned();
     ///
     /// assert_eq!(
