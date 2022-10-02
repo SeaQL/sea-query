@@ -237,12 +237,11 @@ impl InsertStatement {
         since = "0.27.0",
         note = "Please use the [`InsertStatement::exprs_panic`]"
     )]
-    pub fn values_panic<T, I>(&mut self, values: I) -> &mut Self
+    pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
-        T: Into<SimpleExpr>,
-        I: IntoIterator<Item = T>,
+        I: IntoIterator<Item = Value>,
     {
-        self.exprs(values.into_iter().map(|v| v.into())).unwrap()
+        self.exprs_panic(values.into_iter().map(|v| v.into()))
     }
 
     /// Specify a row of values to be inserted, variation of [`InsertStatement::exprs`].
