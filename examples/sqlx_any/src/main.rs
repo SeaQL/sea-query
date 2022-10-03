@@ -77,7 +77,7 @@ async fn main() {
             Character::Character,
             Character::Created,
         ])
-        .exprs_panic([
+        .values_panic([
             12.into(),
             "A".into(),
             NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
@@ -120,7 +120,7 @@ async fn main() {
 
     let (sql, values) = Query::update()
         .table(Character::Table)
-        .exprs([(Character::FontSize, 24.into())])
+        .values([(Character::FontSize, 24.into())])
         .and_where(Expr::col(Character::Id).eq(id))
         .build_any_sqlx(query_builder);
 
@@ -172,7 +172,7 @@ async fn main() {
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
         .columns([Character::Id, Character::FontSize, Character::Character])
-        .exprs_panic([1.into(), 16.into(), "B".into()])
+        .values_panic([1.into(), 16.into(), "B".into()])
         .on_conflict(
             OnConflict::column(Character::Id)
                 .update_columns([Character::FontSize, Character::Character])

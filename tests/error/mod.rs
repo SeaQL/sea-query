@@ -6,7 +6,7 @@ fn insert_values_1() {
     let result = insert
         .into_table(Glyph::Table)
         .columns([Glyph::Image, Glyph::Aspect])
-        .exprs([String::from("").into()]);
+        .values([String::from("").into()]);
 
     assert!(result.is_err());
     assert_eq!(

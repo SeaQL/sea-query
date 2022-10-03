@@ -91,7 +91,7 @@ fn main() {
             Document::Decimal,
             Document::Array,
         ])
-        .exprs_panic([
+        .values_panic([
             document_chrono.uuid.into(),
             serde_json::to_value(document_chrono.json_field)
                 .unwrap()
@@ -101,7 +101,7 @@ fn main() {
             document_chrono.decimal.into(),
             document_chrono.array.into(),
         ])
-        .exprs_panic([
+        .values_panic([
             document_time.uuid.into(),
             serde_json::to_value(document_time.json_field)
                 .unwrap()

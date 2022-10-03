@@ -1,15 +1,15 @@
-use crate::{Condition, Expr, IntoCondition, SimpleExpr};
+use crate::{Condition, IntoCondition, SimpleExpr};
 
 #[derive(Debug, Clone)]
 pub(crate) struct CaseStatementCondition {
     pub(crate) condition: Condition,
-    pub(crate) result: Expr,
+    pub(crate) result: SimpleExpr,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct CaseStatement {
     pub(crate) when: Vec<CaseStatementCondition>,
-    pub(crate) r#else: Option<Expr>,
+    pub(crate) r#else: Option<SimpleExpr>,
 }
 
 impl CaseStatement {
@@ -70,7 +70,7 @@ impl CaseStatement {
     pub fn case<C, T>(mut self, cond: C, then: T) -> Self
     where
         C: IntoCondition,
-        T: Into<Expr>,
+        T: Into<SimpleExpr>,
     {
         self.when.push(CaseStatementCondition {
             condition: cond.into_condition(),
@@ -119,7 +119,7 @@ impl CaseStatement {
     /// ```
     pub fn finally<E>(mut self, r#else: E) -> Self
     where
-        E: Into<Expr>,
+        E: Into<SimpleExpr>,
     {
         self.r#else = Some(r#else.into());
         self

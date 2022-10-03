@@ -1087,7 +1087,7 @@ fn insert_2() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect,])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1103,11 +1103,11 @@ fn insert_3() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect,])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .exprs_panic([Value::String(None).into(), 2.1345.into(),])
+            .values_panic([Value::String(None).into(), 2.1345.into(),])
             .to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"#
     );
@@ -1120,7 +1120,7 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .exprs_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .values_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00')"
     );
@@ -1134,7 +1134,7 @@ fn insert_9() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .exprs_panic([date!(1970 - 01 - 01).with_time(time!(00:00:00)).into()])
+            .values_panic([date!(1970 - 01 - 01).with_time(time!(00:00:00)).into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00')"
     );
@@ -1147,7 +1147,7 @@ fn insert_5() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .exprs_panic([uuid::Uuid::nil().into()])
+            .values_panic([uuid::Uuid::nil().into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('00000000-0000-0000-0000-000000000000')"
     );
@@ -1247,7 +1247,7 @@ fn insert_on_conflict_1() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1273,7 +1273,7 @@ fn insert_on_conflict_2() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1299,13 +1299,13 @@ fn insert_on_conflict_3() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
-                    .update_exprs([
+                    .values([
                         (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
                         (Glyph::Image, 3.1415.into()),
                     ])
@@ -1328,13 +1328,13 @@ fn insert_on_conflict_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
-                    .update_expr((Glyph::Image, Expr::val(1).add(2)))
+                    .value(Glyph::Image, Expr::val(1).add(2))
                     .to_owned()
             )
             .to_string(PostgresQueryBuilder),
@@ -1354,7 +1354,7 @@ fn insert_returning_all_columns() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect,])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1371,7 +1371,7 @@ fn insert_returning_specific_columns() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect,])
-            .exprs_panic([
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1386,7 +1386,7 @@ fn update_1() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .exprs([
+            .values([
                 (Glyph::Aspect, 2.1345.into()),
                 (
                     Glyph::Image,
@@ -1404,8 +1404,8 @@ fn update_3() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .exprs([(
+            .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])
@@ -1420,8 +1420,8 @@ fn update_4() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .expr(Glyph::Aspect, Expr::col(Glyph::Aspect).add(1))
-            .exprs([(
+            .value(Glyph::Aspect, Expr::col(Glyph::Aspect).add(1))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])
@@ -1438,8 +1438,8 @@ fn update_returning_all_columns() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .exprs([(
+            .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])
@@ -1455,8 +1455,8 @@ fn update_returning_specified_columns() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .exprs([(
+            .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])

@@ -18,7 +18,7 @@ use crate::{
 ///
 /// let query = Query::update()
 ///     .table(Glyph::Table)
-///     .exprs([
+///     .values([
 ///         (Glyph::Aspect, 1.23.into()),
 ///         (Glyph::Image, "123".into()),
 ///     ])
@@ -81,39 +81,6 @@ impl UpdateStatement {
         self
     }
 
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::expr`]")]
-    pub fn col_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
-    where
-        T: IntoIden,
-    {
-        self.expr(col, expr)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::expr`]")]
-    pub fn value_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
-    where
-        T: IntoIden,
-    {
-        self.expr(col, expr)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::exprs`]")]
-    pub fn values<T, I>(&mut self, values: I) -> &mut Self
-    where
-        T: IntoIden,
-        I: IntoIterator<Item = (T, Value)>,
-    {
-        self.exprs(values.into_iter().map(|(c, v)| (c, v.into())))
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::expr`]")]
-    pub fn value<T>(&mut self, col: T, value: Value) -> &mut Self
-    where
-        T: IntoIden,
-    {
-        self.expr(col, value)
-    }
-
     /// Update column values. To set multiple column-value pairs at once.
     ///
     /// # Examples
@@ -123,7 +90,7 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .exprs([
+    ///     .values([
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
     ///     ])
@@ -142,7 +109,7 @@ impl UpdateStatement {
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m'"#
     /// );
     /// ```
-    pub fn exprs<T, I>(&mut self, values: I) -> &mut Self
+    pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
         T: IntoIden,
         I: IntoIterator<Item = (T, SimpleExpr)>,
@@ -162,8 +129,8 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-    ///     .exprs([
+    ///     .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+    ///     .values([
     ///         (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
     ///     ])
     ///     .to_owned();
@@ -181,13 +148,40 @@ impl UpdateStatement {
     ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060'"#
     /// );
     /// ```
-    pub fn expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
+    pub fn value<C, T>(&mut self, col: C, value: T) -> &mut Self
     where
         C: IntoIden,
         T: Into<SimpleExpr>,
     {
-        self.values.push((col.into_iden(), Box::new(expr.into())));
+        self.values.push((col.into_iden(), Box::new(value.into())));
         self
+    }
+
+    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::values`]")]
+    pub fn exprs<T, I>(&mut self, values: I) -> &mut Self
+    where
+        T: IntoIden,
+        I: IntoIterator<Item = (T, SimpleExpr)>,
+    {
+        self.values(values)
+    }
+
+    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
+    pub fn col_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
+    where
+        C: IntoIden,
+        T: Into<SimpleExpr>,
+    {
+        self.value(col, expr)
+    }
+
+    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
+    pub fn value_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
+    where
+        C: IntoIden,
+        T: Into<SimpleExpr>,
+    {
+        self.value(col, expr)
     }
 
     /// Limit number of updated rows.
@@ -205,8 +199,8 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .expr(Glyph::Aspect, 2.1345)
-    ///     .expr(Glyph::Image, "235m")
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
@@ -238,8 +232,8 @@ impl UpdateStatement {
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .table(Glyph::Table)
-    ///     .expr(Glyph::Aspect, 2.1345)
-    ///     .expr(Glyph::Image, "235m")
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
     ///
@@ -273,8 +267,8 @@ impl UpdateStatement {
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .table(Glyph::Table)
-    ///     .expr(Glyph::Aspect, 2.1345)
-    ///     .expr(Glyph::Image, "235m")
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .returning_all()
     ///     .to_owned();
     ///
@@ -316,7 +310,7 @@ impl UpdateStatement {
     ///     let update = UpdateStatement::new()
     ///         .table(Glyph::Table)
     ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
-    ///         .expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+    ///         .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
     ///         .to_owned();
     ///     let query = update.with(with_clause);
     ///

@@ -358,11 +358,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_condition_where(&case.condition, sql);
             write!(sql, ") THEN ").unwrap();
 
-            self.prepare_simple_expr(&case.result.clone().into(), sql);
+            self.prepare_simple_expr(&case.result, sql);
         }
         if let Some(r#else) = r#else.clone() {
             write!(sql, " ELSE ").unwrap();
-            self.prepare_simple_expr(&r#else.into(), sql);
+            self.prepare_simple_expr(&r#else, sql);
         }
 
         write!(sql, " END)").unwrap();
