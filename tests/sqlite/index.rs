@@ -48,6 +48,6 @@ fn drop_1() {
             .name("idx-glyph-aspect")
             .table(Glyph::Table)
             .to_string(SqliteQueryBuilder),
-        r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
+        r#"DROP INDEX "idx-glyph-aspect""#
     );
 }
