@@ -41,8 +41,8 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) values: Vec<(String, Box<SimpleExpr>)>,
-    pub(crate) wherei: ConditionHolder,
+    pub(crate) values: Vec<(DynIden, Box<SimpleExpr>)>,
+    pub(crate) r#where: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) returning: Option<ReturningClause>,
@@ -60,7 +60,7 @@ impl UpdateStatement {
         Self {
             table: None,
             values: Vec::new(),
-            wherei: ConditionHolder::new(),
+            r#where: ConditionHolder::new(),
             orders: Vec::new(),
             limit: None,
             returning: None,
@@ -81,51 +81,6 @@ impl UpdateStatement {
         self
     }
 
-    /// Update column value by [`SimpleExpr`].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::update()
-    ///     .table(Glyph::Table)
-    ///     .col_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-    ///     .values([
-    ///         (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
-    ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE `id` = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#
-    /// );
-    /// ```
-    pub fn col_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
-    where
-        T: IntoIden,
-    {
-        self.push_boxed_value(col.into_iden().to_string(), expr);
-        self
-    }
-
-    /// Alias of [`UpdateStatement::col_expr`]
-    pub fn value_expr<T>(&mut self, col: T, expr: SimpleExpr) -> &mut Self
-    where
-        T: IntoIden,
-    {
-        self.col_expr(col, expr)
-    }
-
     /// Update column values. To set multiple column-value pairs at once.
     ///
     /// # Examples
@@ -139,71 +94,94 @@ impl UpdateStatement {
     ///         (Glyph::Aspect, 2.1345.into()),
     ///         (Glyph::Image, "235m".into()),
     ///     ])
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m'"#
     /// );
     /// ```
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
         T: IntoIden,
-        I: IntoIterator<Item = (T, Value)>,
+        I: IntoIterator<Item = (T, SimpleExpr)>,
     {
         for (k, v) in values.into_iter() {
-            self.push_boxed_value(k.into_iden().to_string(), SimpleExpr::Value(v));
+            self.values.push((k.into_iden(), Box::new(v)));
         }
         self
     }
 
-    /// Update column values.
+    /// Update column value by [`SimpleExpr`].
     ///
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .value(Glyph::Aspect, 2.1345.into())
-    ///     .value(Glyph::Image, "235m".into())
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+    ///     .values([
+    ///         (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
+    ///     ])
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 60 * 24 * 24, `image` = '24B0E11951B03B07F8300FD003983F03F0780060'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060'"#
     /// );
     /// ```
-    pub fn value<T>(&mut self, col: T, value: Value) -> &mut Self
+    pub fn value<C, T>(&mut self, col: C, value: T) -> &mut Self
     where
-        T: IntoIden,
+        C: IntoIden,
+        T: Into<SimpleExpr>,
     {
-        self.push_boxed_value(col.into_iden().to_string(), SimpleExpr::Value(value));
+        self.values.push((col.into_iden(), Box::new(value.into())));
         self
     }
 
-    fn push_boxed_value(&mut self, k: String, v: SimpleExpr) -> &mut Self {
-        self.values.push((k, Box::new(v)));
-        self
+    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::values`]")]
+    pub fn exprs<T, I>(&mut self, values: I) -> &mut Self
+    where
+        T: IntoIden,
+        I: IntoIterator<Item = (T, SimpleExpr)>,
+    {
+        self.values(values)
+    }
+
+    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
+    pub fn col_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
+    where
+        C: IntoIden,
+        T: Into<SimpleExpr>,
+    {
+        self.value(col, expr)
+    }
+
+    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
+    pub fn value_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
+    where
+        C: IntoIden,
+        T: Into<SimpleExpr>,
+    {
+        self.value(col, expr)
     }
 
     /// Limit number of updated rows.
@@ -221,23 +199,22 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .value(Glyph::Aspect, 2.1345.into())
-    ///     .value(Glyph::Image, "235m".into())
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .returning(Query::returning().columns([Glyph::Id]))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING "id""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING "id""#
     /// );
     /// ```
     pub fn returning(&mut self, returning: ReturningClause) -> &mut Self {
@@ -255,23 +232,22 @@ impl UpdateStatement {
     /// let query = Query::update()
     ///     .table(Glyph::Table)
     ///     .table(Glyph::Table)
-    ///     .value(Glyph::Aspect, 2.1345.into())
-    ///     .value(Glyph::Image, "235m".into())
-    ///     .and_where(Expr::col(Glyph::Id).eq(1))
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .returning_col(Glyph::Id)
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' WHERE `id` = 1"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING "id""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' WHERE "id" = 1 RETURNING "id""#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING "id""#
     /// );
     /// ```
     pub fn returning_col<C>(&mut self, col: C) -> &mut Self
@@ -288,24 +264,25 @@ impl UpdateStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::insert()
-    ///     .into_table(Glyph::Table)
-    ///     .columns([Glyph::Image])
-    ///     .values_panic(["12A".into()])
+    /// let query = Query::update()
+    ///     .table(Glyph::Table)
+    ///     .table(Glyph::Table)
+    ///     .value(Glyph::Aspect, 2.1345)
+    ///     .value(Glyph::Image, "235m")
     ///     .returning_all()
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "INSERT INTO `glyph` (`image`) VALUES ('12A')"
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m'"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING *"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"INSERT INTO "glyph" ("image") VALUES ('12A') RETURNING *"#
+    ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING *"#
     /// );
     /// ```
     pub fn returning_all(&mut self) -> &mut Self {
@@ -333,7 +310,7 @@ impl UpdateStatement {
     ///     let update = UpdateStatement::new()
     ///         .table(Glyph::Table)
     ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
-    ///         .col_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+    ///         .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
     ///         .to_owned();
     ///     let query = update.with(with_clause);
     ///
@@ -385,7 +362,7 @@ impl OrderedStatement for UpdateStatement {
 
 impl ConditionalStatement for UpdateStatement {
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
-        self.wherei.add_and_or(condition);
+        self.r#where.add_and_or(condition);
         self
     }
 
@@ -393,7 +370,7 @@ impl ConditionalStatement for UpdateStatement {
     where
         C: IntoCondition,
     {
-        self.wherei.add_condition(condition.into_condition());
+        self.r#where.add_condition(condition.into_condition());
         self
     }
 }

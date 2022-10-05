@@ -470,7 +470,7 @@ fn select_34a() {
             .column(Glyph::Aspect)
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_columns(vec![Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect,])
             .cond_having(any![
                 Expr::col(Glyph::Aspect)
                     .gt(2)
@@ -481,7 +481,7 @@ fn select_34a() {
                 Expr::col(Glyph::Aspect).gt(32),
             ])
             .to_string(SqliteQueryBuilder),
-        vec![
+        [
             r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
             r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
             r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
@@ -596,9 +596,9 @@ fn select_41() {
     assert_eq!(
         Query::select()
             .columns([Glyph::Aspect])
-            .exprs(vec![Expr::col(Glyph::Image).max()])
+            .exprs([Expr::col(Glyph::Image).max()])
             .from(Glyph::Table)
-            .group_by_columns(vec![Glyph::Aspect])
+            .group_by_columns([Glyph::Aspect])
             .cond_having(any![Expr::col(Glyph::Aspect).gt(2)])
             .to_string(SqliteQueryBuilder),
         r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
@@ -812,7 +812,7 @@ fn select_52() {
             .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-            .order_by_columns_with_nulls(vec![
+            .order_by_columns_with_nulls([
                 (Glyph::Id, Order::Asc, NullOrdering::First),
                 (Glyph::Aspect, Order::Desc, NullOrdering::Last),
             ])
@@ -835,7 +835,7 @@ fn select_53() {
             .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
-            .order_by_columns_with_nulls(vec![
+            .order_by_columns_with_nulls([
                 ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
                 (
                     (Glyph::Table, Glyph::Aspect),
@@ -984,7 +984,7 @@ fn insert_2() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1000,11 +1000,11 @@ fn insert_3() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .values_panic(vec![Value::Double(None), 2.1345.into()])
+            .values_panic([Value::Double(None).into(), 2.1345.into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"#
     );
@@ -1017,7 +1017,7 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic(vec![chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .values_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
     );
@@ -1031,9 +1031,7 @@ fn insert_8() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic(vec![date!(1970 - 01 - 01)
-                .with_time(time!(00:00:00))
-                .into()])
+            .values_panic([date!(1970 - 01 - 01).with_time(time!(00:00:00)).into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
     );
@@ -1046,7 +1044,7 @@ fn insert_9() {
         Query::insert()
             .into_table(Task::Table)
             .columns([Task::IsDone])
-            .values_panic(vec![true.into(),])
+            .values_panic([true.into(),])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "task" ("is_done") VALUES (TRUE)"#
     );
@@ -1059,7 +1057,7 @@ fn insert_10() {
         Query::insert()
             .into_table(Task::Table)
             .columns([Task::IsDone])
-            .values_panic(vec![false.into(),])
+            .values_panic([false.into(),])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "task" ("is_done") VALUES (FALSE)"#
     );
@@ -1101,7 +1099,7 @@ fn insert_5() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic(vec![uuid::Uuid::nil().into()])
+            .values_panic([uuid::Uuid::nil().into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image") VALUES ('00000000-0000-0000-0000-000000000000')"#
     );
@@ -1137,7 +1135,7 @@ fn insert_on_conflict_1() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1163,7 +1161,7 @@ fn insert_on_conflict_2() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1189,13 +1187,13 @@ fn insert_on_conflict_3() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
-                    .update_exprs([
+                    .values([
                         (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
                         (Glyph::Image, 3.1415.into()),
                     ])
@@ -1218,13 +1216,13 @@ fn insert_on_conflict_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
-                    .update_expr((Glyph::Image, Expr::val(1).add(2)))
+                    .value(Glyph::Image, Expr::val(1).add(2))
                     .to_owned()
             )
             .to_string(SqliteQueryBuilder),
@@ -1244,7 +1242,7 @@ fn insert_returning_all_columns() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect,])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1261,7 +1259,7 @@ fn insert_returning_specific_columns() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image, Glyph::Aspect,])
-            .values_panic(vec![
+            .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
@@ -1276,7 +1274,7 @@ fn update_1() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .values(vec![
+            .values([
                 (Glyph::Aspect, 2.1345.into()),
                 (
                     Glyph::Image,
@@ -1294,8 +1292,8 @@ fn update_3() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .values(vec![(
+            .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])
@@ -1310,8 +1308,8 @@ fn update_4() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .value_expr(Glyph::Aspect, Expr::col(Glyph::Aspect).add(1))
-            .values(vec![(
+            .value(Glyph::Aspect, Expr::col(Glyph::Aspect).add(1))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])
@@ -1328,8 +1326,8 @@ fn update_returning_all_columns() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .values(vec![(
+            .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])
@@ -1345,8 +1343,8 @@ fn update_returning_specified_columns() {
     assert_eq!(
         Query::update()
             .table(Glyph::Table)
-            .value_expr(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .values(vec![(
+            .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+            .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
             ),])

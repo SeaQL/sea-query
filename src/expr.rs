@@ -2156,7 +2156,7 @@ impl Expr {
     /// let query = Query::insert()
     ///     .into_table(Char::Table)
     ///     .columns([Char::FontSize])
-    ///     .exprs_panic([Expr::val("large").as_enum(Alias::new("FontSizeEnum"))])
+    ///     .values_panic([Expr::val("large").as_enum(Alias::new("FontSizeEnum"))])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -2229,7 +2229,7 @@ impl Expr {
     pub fn case<C, T>(cond: C, then: T) -> CaseStatement
     where
         C: IntoCondition,
-        T: Into<Expr>,
+        T: Into<SimpleExpr>,
     {
         CaseStatement::new().case(cond, then)
     }

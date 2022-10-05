@@ -130,7 +130,7 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Character,
             Character::FontSize,
@@ -171,12 +171,8 @@ async fn main() {
 
     let (sql, values) = Query::insert()
         .into_table(Character::Table)
-        .columns(vec![
-            Character::Id,
-            Character::FontSize,
-            Character::Character,
-        ])
-        .values_panic(vec![1.into(), 16.into(), "B".into()])
+        .columns([Character::Id, Character::FontSize, Character::Character])
+        .values_panic([1.into(), 16.into(), "B".into()])
         .on_conflict(
             OnConflict::column(Character::Id)
                 .update_columns([Character::FontSize, Character::Character])
@@ -190,7 +186,7 @@ async fn main() {
     // Read
 
     let (sql, values) = Query::select()
-        .columns(vec![
+        .columns([
             Character::Id,
             Character::Character,
             Character::FontSize,
