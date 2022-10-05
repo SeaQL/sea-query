@@ -27,7 +27,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
 * Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
 * `ColumnDef::default` now accepts both `Value` and `SimpleExpr` https://github.com/SeaQL/sea-query/pull/436
-* Improve `OrderedStatement::order_by_customs`, `OrderedStatement::order_by_columns`, `OverStatement::partition_by_customs`, `OverStatement::partition_by_columns` (accepting `IntoIterator<Item = T>` instead of `Vec<T>`) https://github.com/SeaQL/sea-query/pull/448
+* `OrderedStatement::order_by_customs`, `OrderedStatement::order_by_columns`, `OverStatement::partition_by_customs`, `OverStatement::partition_by_columns` now accepts `IntoIterator<Item = T>` instead of `Vec<T>` https://github.com/SeaQL/sea-query/pull/448
+* `Expr::case`, `CaseStatement::case` and `CaseStatement::finally` now accepts `Into<SimpleExpr>` instead of `Into<Expr>` https://github.com/SeaQL/sea-query/pull/460
+* `UpdateStatement::value` now accept `Into<SimpleExpr>` instead of `Into<Value>` https://github.com/SeaQL/sea-query/pull/460
 
 ### Breaking changes
 
@@ -82,8 +84,9 @@ Enum {
     variants: Vec<DynIden>,
 }
 ```
-* deprecated: `OnConflict::update_value`, we can now use `OnConflict::update_expr` https://github.com/SeaQL/sea-query/pull/448
-* deprecated: `OnConflict::update_values`, we can now use `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/448
+* Deprecated `OnConflict::update_value` / `OnConflict::update_values`; we can now use `OnConflict::update_expr` / `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/448
+* Deprecated `InsertStatement::exprs`, `InsertStatement::exprs_panic`, `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr`, `UpdateStatement::exprs` https://github.com/SeaQL/sea-query/pull/460
+* `InsertStatement::values`, `UpdateStatement::values` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Value>` https://github.com/SeaQL/sea-query/pull/460
 
 ### House keeping
 
