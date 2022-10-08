@@ -181,7 +181,7 @@ pub enum JoinOn {
 }
 
 /// Ordering options
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Order {
     Asc,
     Desc,

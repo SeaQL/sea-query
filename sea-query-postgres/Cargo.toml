@@ -17,7 +17,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "^0", path = ".." }
+sea-query = { version = "^0", path = "..", features = ["thread-safe", "with-postgres"] }
 postgres-types = { version = "^0.2" }
 bytes = { version = "^1" }
 rust_decimal = { version = "^1", optional = true }
@@ -29,6 +29,5 @@ with-rust_decimal = ["sea-query/with-rust_decimal", "rust_decimal/db-postgres"]
 with-bigdecimal = ["sea-query/with-bigdecimal"]
 with-uuid = ["postgres-types/with-uuid-1", "sea-query/with-uuid"]
 with-time = ["postgres-types/with-time-0_3", "sea-query/with-time"]
-postgres-array = ["postgres-types/array-impls", "sea-query/postgres-array"]
 with-ipnetwork = ["sea-query/with-ipnetwork"]
 with-mac_address = ["sea-query/with-mac_address"]
