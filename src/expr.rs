@@ -1266,7 +1266,7 @@ impl Expr {
                 Some(escape) => SimpleExpr::Binary(
                     Box::new(like.pattern.into()),
                     BinOper::Escape,
-                    Box::new(escape.into()),
+                    Box::new(SimpleExpr::Constant(escape.into())),
                 ),
                 None => like.pattern.into(),
             },
