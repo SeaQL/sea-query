@@ -22,11 +22,11 @@ impl QueryBuilder for PostgresQueryBuilder {
             SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
             SelectDistinct::DistinctOn(cols) => {
                 write!(sql, "DISTINCT ON (").unwrap();
-                cols.iter().fold(true, |first, c| {
+                cols.iter().fold(true, |first, column_ref| {
                     if !first {
                         write!(sql, ", ").unwrap();
                     }
-                    c.prepare(sql.as_writer(), self.quote());
+                    self.prepare_column_ref(column_ref, sql);
                     false
                 });
                 write!(sql, ")").unwrap();

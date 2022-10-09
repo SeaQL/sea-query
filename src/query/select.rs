@@ -61,7 +61,7 @@ pub enum SelectDistinct {
     All,
     Distinct,
     DistinctRow,
-    DistinctOn(Vec<DynIden>),
+    DistinctOn(Vec<ColumnRef>),
 }
 
 /// Window type in [`SelectExpr`]
@@ -343,6 +343,23 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .distinct_on(vec![(Char::Table, Char::Character)])
+    ///     .column(Char::Character)
+    ///     .column(Char::SizeW)
+    ///     .column(Char::SizeH)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DISTINCT ON ("character"."character") "character", "size_w", "size_h" FROM "character""#
+    /// )
+    /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
     /// let distinct_cols: Vec<Character> = vec![];
     /// let query = Query::select()
     ///     .from(Char::Table)
@@ -364,11 +381,8 @@ impl SelectStatement {
     {
         let cols = cols
             .into_iter()
-            .filter_map(|col| match col.into_column_ref() {
-                ColumnRef::Column(c) => Some(c),
-                _ => None,
-            })
-            .collect::<Vec<DynIden>>();
+            .map(|col| col.into_column_ref())
+            .collect::<Vec<ColumnRef>>();
         self.distinct = if !cols.is_empty() {
             Some(SelectDistinct::DistinctOn(cols))
         } else {
