@@ -757,32 +757,32 @@ impl_value_methods!(Json, is_json, as_ref_json, Json);
 #[cfg(all(feature = "with-json", feature = "postgres-array"))]
 impl_value_methods!(JsonArray, is_json_array, as_ref_json_array, [Json]);
 
-#[cfg(feature = "with-time")]
+#[cfg(feature = "with-chrono")]
 impl_value_methods!(ChronoDate, is_chrono_date, as_ref_chrono_date, NaiveDate);
-#[cfg(feature = "with-time")]
+#[cfg(feature = "with-chrono")]
 impl_value_methods!(
     ChronoDateTime,
     is_chrono_date_time,
     as_ref_chrono_date_time,
     NaiveDateTime
 );
-#[cfg(feature = "with-time")]
+#[cfg(feature = "with-chrono")]
 impl_value_methods!(ChronoTime, is_chrono_time, as_ref_chrono_time, NaiveTime);
-#[cfg(feature = "with-time")]
+#[cfg(feature = "with-chrono")]
 impl_value_methods!(
     ChronoDateTimeUtc,
     is_chrono_date_time_utc,
     as_ref_chrono_date_time_utc,
     DateTime<Utc>
 );
-#[cfg(feature = "with-time")]
+#[cfg(feature = "with-chrono")]
 impl_value_methods!(
     ChronoDateTimeLocal,
     is_chrono_date_time_local,
     as_ref_chrono_date_time_local,
     DateTime<Local>
 );
-#[cfg(feature = "with-time")]
+#[cfg(feature = "with-chrono")]
 impl_value_methods!(
     ChronoDateTimeWithTimeZone,
     is_chrono_date_time_with_time_zone,
