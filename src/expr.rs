@@ -1260,16 +1260,15 @@ impl Expr {
     }
 
     fn like_like(self, op: BinOper, like: LikeExpr) -> SimpleExpr {
-        let value = SimpleExpr::Value(Value::String(Some(Box::new(like.pattern))));
         self.bin_oper(
             op,
             match like.escape {
                 Some(escape) => SimpleExpr::Binary(
-                    Box::new(value),
+                    Box::new(like.pattern.into()),
                     BinOper::Escape,
-                    Box::new(SimpleExpr::Constant(Value::Char(Some(escape)))),
+                    Box::new(SimpleExpr::Constant(escape.into())),
                 ),
-                None => value,
+                None => like.pattern.into(),
             },
         )
     }

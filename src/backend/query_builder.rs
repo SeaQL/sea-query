@@ -1260,12 +1260,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         match *frame {
             Frame::UnboundedPreceding => write!(sql, "UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
-                self.prepare_value(&Some(v).into(), sql);
+                self.prepare_value(&v.into(), sql);
                 write!(sql, "PRECEDING").unwrap();
             }
             Frame::CurrentRow => write!(sql, "CURRENT ROW").unwrap(),
             Frame::Following(v) => {
-                self.prepare_value(&Some(v).into(), sql);
+                self.prepare_value(&v.into(), sql);
                 write!(sql, "FOLLOWING").unwrap();
             }
             Frame::UnboundedFollowing => write!(sql, "UNBOUNDED FOLLOWING").unwrap(),
