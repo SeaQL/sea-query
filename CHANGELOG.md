@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Expr::case`, `CaseStatement::case` and `CaseStatement::finally` now accepts `Into<SimpleExpr>` instead of `Into<Expr>` https://github.com/SeaQL/sea-query/pull/460
 * `UpdateStatement::value` now accept `Into<SimpleExpr>` instead of `Into<Value>` https://github.com/SeaQL/sea-query/pull/460
 
+### Bug Fixes
+
+* `distinct_on` handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
+
 ### Breaking changes
 
 * Removed `join_alias`
