@@ -97,9 +97,9 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::JsonBinary => "jsonb".into(),
                 ColumnType::Uuid => "uuid".into(),
                 ColumnType::Array(elem_type) => {
-                    let mut inner = SqlWriter::new();
+                    let mut inner = String::new();
                     self.prepare_column_type(elem_type, &mut inner);
-                    format!("{}[]", inner.result())
+                    format!("{}[]", inner)
                 }
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { name, .. } => name.to_string(),

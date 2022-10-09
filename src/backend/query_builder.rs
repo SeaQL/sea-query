@@ -933,7 +933,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             | Value::String(None)
             | Value::Char(None)
             | Value::Bytes(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::BoolArray(None)
             | Value::TinyIntArray(None)
             | Value::SmallIntArray(None)
@@ -948,67 +948,67 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             | Value::CharArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
             Value::Json(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-json", feature = "with-array"))]
+            #[cfg(all(feature = "with-json", feature = "postgres-array"))]
             Value::JsonArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoTimeArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeUtcArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeLocalArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeWithTimeZoneArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDate(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeDateArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeTimeArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeDateTimeArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeDateTimeWithTimeZoneArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+            #[cfg(all(feature = "with-rust_decimal", feature = "postgres-array"))]
             Value::DecimalArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+            #[cfg(all(feature = "with-bigdecimal", feature = "postgres-array"))]
             Value::BigDecimalArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+            #[cfg(all(feature = "with-uuid", feature = "postgres-array"))]
             Value::UuidArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+            #[cfg(all(feature = "with-ipnetwork", feature = "postgres-array"))]
             Value::IpNetworkArray(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(None) => write!(s, "NULL").unwrap(),
-            #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+            #[cfg(all(feature = "with-mac_address", feature = "postgres-array"))]
             Value::MacAddressArray(None) => write!(s, "NULL").unwrap(),
 
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
@@ -1032,84 +1032,84 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
             )
             .unwrap(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::BoolArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::TinyIntArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::SmallIntArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::IntArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::BigIntArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::SmallUnsignedArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::UnsignedArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::BigUnsignedArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::FloatArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::DoubleArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::StringArray(Some(_)) => todo!(),
-            #[cfg(feature = "with-array")]
+            #[cfg(feature = "postgres-array")]
             Value::CharArray(Some(_)) => todo!(),
 
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
-            #[cfg(all(feature = "with-json", feature = "with-array"))]
+            #[cfg(all(feature = "with-json", feature = "postgres-array"))]
             Value::JsonArray(Some(_)) => todo!(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateArray(_) => todo!(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoTimeArray(_) => todo!(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
             }
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeArray(_) => todo!(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeUtcArray(_) => todo!(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeLocalArray(_) => todo!(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
-            #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
             Value::ChronoDateTimeWithTimeZoneArray(_) => todo!(),
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
                 write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
             }
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeDateArray(_) => todo!(),
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => {
                 write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
             }
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeTimeArray(_) => todo!(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => {
                 write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
             }
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeDateTimeArray(_) => todo!(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
@@ -1118,27 +1118,27 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
             )
             .unwrap(),
-            #[cfg(all(feature = "with-time", feature = "with-array"))]
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
             Value::TimeDateTimeWithTimeZoneArray(_) => todo!(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
-            #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+            #[cfg(all(feature = "with-rust_decimal", feature = "postgres-array"))]
             Value::DecimalArray(Some(_)) => todo!(),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
-            #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+            #[cfg(all(feature = "with-bigdecimal", feature = "postgres-array"))]
             Value::BigDecimalArray(Some(_)) => todo!(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
-            #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+            #[cfg(all(feature = "with-uuid", feature = "postgres-array"))]
             Value::UuidArray(Some(_)) => todo!(),
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(Some(v)) => write!(s, "'{}'", v).unwrap(),
-            #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+            #[cfg(all(feature = "with-ipnetwork", feature = "postgres-array"))]
             Value::IpNetworkArray(Some(_)) => todo!(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
-            #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+            #[cfg(all(feature = "with-mac_address", feature = "postgres-array"))]
             Value::MacAddressArray(Some(_)) => todo!(),
         };
         s

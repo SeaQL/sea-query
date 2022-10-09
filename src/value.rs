@@ -50,29 +50,29 @@ pub enum Value {
     String(Option<Box<String>>),
     Char(Option<char>),
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     BoolArray(Option<Vec<bool>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     TinyIntArray(Option<Vec<i8>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     SmallIntArray(Option<Vec<i16>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     IntArray(Option<Vec<i32>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     BigIntArray(Option<Vec<i64>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     SmallUnsignedArray(Option<Vec<u16>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     UnsignedArray(Option<Vec<u32>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     BigUnsignedArray(Option<Vec<u64>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     FloatArray(Option<Vec<f32>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     DoubleArray(Option<Vec<f64>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     StringArray(Option<Vec<String>>),
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     CharArray(Option<Vec<char>>),
 
     #[allow(clippy::box_collection)]
@@ -81,124 +81,160 @@ pub enum Value {
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     Json(Option<Box<Json>>),
-    #[cfg(all(feature = "with-json", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-json", feature = "with-array"))))]
+    #[cfg(all(feature = "with-json", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-json", feature = "postgres-array")))
+    )]
     JsonArray(Option<Vec<Json>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDate(Option<Box<NaiveDate>>),
-    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-chrono", feature = "postgres-array")))
+    )]
     ChronoDateArray(Option<Vec<NaiveDate>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoTime(Option<Box<NaiveTime>>),
-    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-chrono", feature = "postgres-array")))
+    )]
     ChronoTimeArray(Option<Vec<NaiveTime>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTime(Option<Box<NaiveDateTime>>),
-    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-chrono", feature = "postgres-array")))
+    )]
     ChronoDateTimeArray(Option<Vec<NaiveDateTime>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeUtc(Option<Box<DateTime<Utc>>>),
-    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-chrono", feature = "postgres-array")))
+    )]
     ChronoDateTimeUtcArray(Option<Vec<DateTime<Utc>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeLocal(Option<Box<DateTime<Local>>>),
-    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-chrono", feature = "postgres-array")))
+    )]
     ChronoDateTimeLocalArray(Option<Vec<DateTime<Local>>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
-    #[cfg(all(feature = "with-chrono", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-chrono", feature = "with-array"))))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-chrono", feature = "postgres-array")))
+    )]
     ChronoDateTimeWithTimeZoneArray(Option<Vec<DateTime<FixedOffset>>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDate(Option<Box<time::Date>>),
-    #[cfg(all(feature = "with-time", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    #[cfg(all(feature = "with-time", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-time", feature = "postgres-array")))
+    )]
     TimeDateArray(Option<Vec<time::Date>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeTime(Option<Box<time::Time>>),
-    #[cfg(all(feature = "with-time", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    #[cfg(all(feature = "with-time", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-time", feature = "postgres-array")))
+    )]
     TimeTimeArray(Option<Vec<time::Time>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTime(Option<Box<PrimitiveDateTime>>),
-    #[cfg(all(feature = "with-time", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    #[cfg(all(feature = "with-time", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-time", feature = "postgres-array")))
+    )]
     TimeDateTimeArray(Option<Vec<PrimitiveDateTime>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
-    #[cfg(all(feature = "with-time", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-time", feature = "with-array"))))]
+    #[cfg(all(feature = "with-time", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-time", feature = "postgres-array")))
+    )]
     TimeDateTimeWithTimeZoneArray(Option<Vec<OffsetDateTime>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Option<Box<Uuid>>),
-    #[cfg(all(feature = "with-uuid", feature = "with-array"))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "with-uuid", feature = "with-array"))))]
+    #[cfg(all(feature = "with-uuid", feature = "postgres-array"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-uuid", feature = "postgres-array")))
+    )]
     UuidArray(Option<Vec<Uuid>>),
 
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
     Decimal(Option<Box<Decimal>>),
-    #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+    #[cfg(all(feature = "with-rust_decimal", feature = "postgres-array"))]
     #[cfg_attr(
         docsrs,
-        doc(cfg(all(feature = "with-rust_decimal", feature = "with-array")))
+        doc(cfg(all(feature = "with-rust_decimal", feature = "postgres-array")))
     )]
     DecimalArray(Option<Vec<Decimal>>),
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Option<Box<BigDecimal>>),
-    #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+    #[cfg(all(feature = "with-bigdecimal", feature = "postgres-array"))]
     #[cfg_attr(
         docsrs,
-        doc(cfg(all(feature = "with-bigdecimal", feature = "with-array")))
+        doc(cfg(all(feature = "with-bigdecimal", feature = "postgres-array")))
     )]
     BigDecimalArray(Option<Vec<BigDecimal>>),
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
     IpNetwork(Option<Box<IpNetwork>>),
-    #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+    #[cfg(all(feature = "with-ipnetwork", feature = "postgres-array"))]
     #[cfg_attr(
         docsrs,
-        doc(cfg(all(feature = "with-ipnetwork", feature = "with-array")))
+        doc(cfg(all(feature = "with-ipnetwork", feature = "postgres-array")))
     )]
     IpNetworkArray(Option<Vec<IpNetwork>>),
 
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<Box<MacAddress>>),
-    #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+    #[cfg(all(feature = "with-mac_address", feature = "postgres-array"))]
     #[cfg_attr(
         docsrs,
-        doc(cfg(all(feature = "with-mac_address", feature = "with-array")))
+        doc(cfg(all(feature = "with-mac_address", feature = "postgres-array")))
     )]
     MacAddressArray(Option<Vec<MacAddress>>),
 }
@@ -404,8 +440,8 @@ where
 type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
 type_to_box_value!(String, String, String(None));
 
-#[cfg(feature = "with-array")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-array")))]
+#[cfg(feature = "postgres-array")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 mod with_array {
     use super::*;
 
@@ -438,7 +474,7 @@ mod with_json {
 
     type_to_box_value!(Json, Json, Json);
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<Json>, JsonArray, Array(Box::new(Json)));
 }
 
@@ -540,29 +576,29 @@ mod with_chrono {
         }
     }
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<NaiveDate>, ChronoDateArray, Array(Box::new(Date)));
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<NaiveTime>, ChronoTimeArray, Array(Box::new(Time(None))));
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(
         Vec<NaiveDateTime>,
         ChronoDateTimeArray,
         Array(Box::new(DateTime(None)))
     );
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(
         Vec<DateTime<Local>>,
         ChronoDateTimeLocalArray,
         Array(Box::new(TimestampWithTimeZone(None)))
     );
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(
         Vec<DateTime<Utc>>,
         ChronoDateTimeUtcArray,
         Array(Box::new(TimestampWithTimeZone(None)))
     );
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(
         Vec<DateTime<FixedOffset>>,
         ChronoDateTimeWithTimeZoneArray,
@@ -624,17 +660,17 @@ mod with_time {
         }
     }
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<time::Date>, TimeDateArray, Array(Box::new(Date)));
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<time::Time>, TimeTimeArray, Array(Box::new(Time(None))));
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(
         Vec<PrimitiveDateTime>,
         TimeDateTimeArray,
         Array(Box::new(DateTime(None)))
     );
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(
         Vec<OffsetDateTime>,
         TimeDateTimeWithTimeZoneArray,
@@ -649,7 +685,7 @@ mod with_rust_decimal {
 
     type_to_box_value!(Decimal, Decimal, Decimal(None));
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<Decimal>, DecimalArray, Array(Box::new(Decimal(None))));
 }
 
@@ -660,7 +696,7 @@ mod with_bigdecimal {
 
     type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(
         Vec<BigDecimal>,
         BigDecimalArray,
@@ -674,12 +710,8 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid, Uuid);
-    #[cfg(feature = "with-array")]
-    type_to_value!(
-        Vec<Uuid>,
-        UuidArray,
-        Array(Box::new(Uuid))
-    );
+    #[cfg(feature = "postgres-array")]
+    type_to_value!(Vec<Uuid>, UuidArray, Array(Box::new(Uuid)));
 }
 
 #[cfg(feature = "with-ipnetwork")]
@@ -689,7 +721,7 @@ mod with_ipnetwork {
 
     type_to_box_value!(IpNetwork, IpNetwork, Inet);
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<IpNetwork>, IpNetworkArray, Array(Box::new(Inet)));
 }
 
@@ -700,7 +732,7 @@ mod with_mac_address {
 
     type_to_box_value!(MacAddress, MacAddress, MacAddr);
 
-    #[cfg(feature = "with-array")]
+    #[cfg(feature = "postgres-array")]
     type_to_value!(Vec<MacAddress>, MacAddressArray, Array(Box::new(MacAddr)));
 }
 
@@ -722,21 +754,41 @@ macro_rules! impl_value_methods {
 
 #[cfg(feature = "with-json")]
 impl_value_methods!(Json, is_json, as_ref_json, Json);
-#[cfg(all(feature = "with-json", feature = "with-array"))]
+#[cfg(all(feature = "with-json", feature = "postgres-array"))]
 impl_value_methods!(JsonArray, is_json_array, as_ref_json_array, [Json]);
 
 #[cfg(feature = "with-time")]
 impl_value_methods!(ChronoDate, is_chrono_date, as_ref_chrono_date, NaiveDate);
 #[cfg(feature = "with-time")]
-impl_value_methods!(ChronoDateTime, is_chrono_date_time, as_ref_chrono_date_time, NaiveDateTime);
+impl_value_methods!(
+    ChronoDateTime,
+    is_chrono_date_time,
+    as_ref_chrono_date_time,
+    NaiveDateTime
+);
 #[cfg(feature = "with-time")]
 impl_value_methods!(ChronoTime, is_chrono_time, as_ref_chrono_time, NaiveTime);
 #[cfg(feature = "with-time")]
-impl_value_methods!(ChronoDateTimeUtc, is_chrono_date_time_utc, as_ref_chrono_date_time_utc, DateTime<Utc>);
+impl_value_methods!(
+    ChronoDateTimeUtc,
+    is_chrono_date_time_utc,
+    as_ref_chrono_date_time_utc,
+    DateTime<Utc>
+);
 #[cfg(feature = "with-time")]
-impl_value_methods!(ChronoDateTimeLocal, is_chrono_date_time_local, as_ref_chrono_date_time_local, DateTime<Local>);
+impl_value_methods!(
+    ChronoDateTimeLocal,
+    is_chrono_date_time_local,
+    as_ref_chrono_date_time_local,
+    DateTime<Local>
+);
 #[cfg(feature = "with-time")]
-impl_value_methods!(ChronoDateTimeWithTimeZone, is_chrono_date_time_with_time_zone, as_ref_chrono_date_time_with_time_zone, DateTime<FixedOffset>);
+impl_value_methods!(
+    ChronoDateTimeWithTimeZone,
+    is_chrono_date_time_with_time_zone,
+    as_ref_chrono_date_time_with_time_zone,
+    DateTime<FixedOffset>
+);
 #[cfg(feature = "with-chrono")]
 impl Value {
     pub fn chrono_as_naive_utc_in_string(&self) -> Option<String> {
@@ -751,27 +803,67 @@ impl Value {
         }
     }
 }
-#[cfg(all(feature = "with-chrono", feature = "with-array"))]
-impl_value_methods!(ChronoDateArray, is_chrono_date_array, as_ref_chrono_date_array, [NaiveDate]);
-#[cfg(all(feature = "with-chrono", feature = "with-array"))]
-impl_value_methods!(ChronoDateTimeArray, is_chrono_date_time_array, as_ref_chrono_date_time_array, [NaiveDateTime]);
-#[cfg(all(feature = "with-chrono", feature = "with-array"))]
-impl_value_methods!(ChronoTimeArray, is_chrono_time_array, as_ref_chrono_time_array, [NaiveTime]);
-#[cfg(all(feature = "with-chrono", feature = "with-array"))]
-impl_value_methods!(ChronoDateTimeUtcArray, is_chrono_date_time_utc_array, as_ref_chrono_date_time_utc_array, [DateTime<Utc>]);
-#[cfg(all(feature = "with-chrono", feature = "with-array"))]
-impl_value_methods!(ChronoDateTimeLocalArray, is_chrono_date_time_local_array, as_ref_chrono_date_time_local_array, [DateTime<Local>]);
-#[cfg(all(feature = "with-chrono", feature = "with-array"))]
-impl_value_methods!(ChronoDateTimeWithTimeZoneArray, is_chrono_date_time_with_time_zone_array, as_ref_chrono_date_time_with_time_zone_array, [DateTime<FixedOffset>]);
+#[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+impl_value_methods!(
+    ChronoDateArray,
+    is_chrono_date_array,
+    as_ref_chrono_date_array,
+    [NaiveDate]
+);
+#[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+impl_value_methods!(
+    ChronoDateTimeArray,
+    is_chrono_date_time_array,
+    as_ref_chrono_date_time_array,
+    [NaiveDateTime]
+);
+#[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+impl_value_methods!(
+    ChronoTimeArray,
+    is_chrono_time_array,
+    as_ref_chrono_time_array,
+    [NaiveTime]
+);
+#[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+impl_value_methods!(
+    ChronoDateTimeUtcArray,
+    is_chrono_date_time_utc_array,
+    as_ref_chrono_date_time_utc_array,
+    [DateTime<Utc>]
+);
+#[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+impl_value_methods!(
+    ChronoDateTimeLocalArray,
+    is_chrono_date_time_local_array,
+    as_ref_chrono_date_time_local_array,
+    [DateTime<Local>]
+);
+#[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+impl_value_methods!(
+    ChronoDateTimeWithTimeZoneArray,
+    is_chrono_date_time_with_time_zone_array,
+    as_ref_chrono_date_time_with_time_zone_array,
+    [DateTime<FixedOffset>]
+);
 
 #[cfg(feature = "with-time")]
 impl_value_methods!(TimeDate, is_time_date, as_ref_time_date, time::Date);
 #[cfg(feature = "with-time")]
 impl_value_methods!(TimeTime, is_time_time, as_ref_time_time, time::Time);
 #[cfg(feature = "with-time")]
-impl_value_methods!(TimeDateTime, is_time_date_time, as_ref_time_date_time, PrimitiveDateTime);
+impl_value_methods!(
+    TimeDateTime,
+    is_time_date_time,
+    as_ref_time_date_time,
+    PrimitiveDateTime
+);
 #[cfg(feature = "with-time")]
-impl_value_methods!(TimeDateTimeWithTimeZone, is_time_date_time_with_time_zone, as_ref_time_date_time_with_time_zone, OffsetDateTime);
+impl_value_methods!(
+    TimeDateTimeWithTimeZone,
+    is_time_date_time_with_time_zone,
+    as_ref_time_date_time_with_time_zone,
+    OffsetDateTime
+);
 #[cfg(feature = "with-time")]
 impl Value {
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
@@ -794,14 +886,34 @@ impl Value {
         }
     }
 }
-#[cfg(all(feature = "with-time", feature = "with-array"))]
-impl_value_methods!(TimeDateArray, is_time_date_array, as_ref_time_date_array, [time::Date]);
-#[cfg(all(feature = "with-time", feature = "with-array"))]
-impl_value_methods!(TimeTimeArray, is_time_time_array, as_ref_time_time_array, [time::Time]);
-#[cfg(all(feature = "with-time", feature = "with-array"))]
-impl_value_methods!(TimeDateTimeArray, is_time_date_time_array, as_ref_time_date_time_array, [PrimitiveDateTime]);
-#[cfg(all(feature = "with-time", feature = "with-array"))]
-impl_value_methods!(TimeDateTimeWithTimeZoneArray, is_time_date_time_with_time_zone_array, as_ref_time_date_time_with_time_zone_array, [OffsetDateTime]);
+#[cfg(all(feature = "with-time", feature = "postgres-array"))]
+impl_value_methods!(
+    TimeDateArray,
+    is_time_date_array,
+    as_ref_time_date_array,
+    [time::Date]
+);
+#[cfg(all(feature = "with-time", feature = "postgres-array"))]
+impl_value_methods!(
+    TimeTimeArray,
+    is_time_time_array,
+    as_ref_time_time_array,
+    [time::Time]
+);
+#[cfg(all(feature = "with-time", feature = "postgres-array"))]
+impl_value_methods!(
+    TimeDateTimeArray,
+    is_time_date_time_array,
+    as_ref_time_date_time_array,
+    [PrimitiveDateTime]
+);
+#[cfg(all(feature = "with-time", feature = "postgres-array"))]
+impl_value_methods!(
+    TimeDateTimeWithTimeZoneArray,
+    is_time_date_time_with_time_zone_array,
+    as_ref_time_date_time_with_time_zone_array,
+    [OffsetDateTime]
+);
 
 #[cfg(feature = "with-rust_decimal")]
 impl_value_methods!(Decimal, is_decimal, as_ref_decimal, Decimal);
@@ -813,8 +925,13 @@ impl Value {
         self.as_ref_decimal().and_then(|d| d.to_f64())
     }
 }
-#[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
-impl_value_methods!(DecimalArray, is_decimal_array, as_ref_decimal_array, [Decimal]);
+#[cfg(all(feature = "with-rust_decimal", feature = "postgres-array"))]
+impl_value_methods!(
+    DecimalArray,
+    is_decimal_array,
+    as_ref_decimal_array,
+    [Decimal]
+);
 
 #[cfg(feature = "with-bigdecimal")]
 impl_value_methods!(BigDecimal, is_big_decimal, as_ref_big_decimal, BigDecimal);
@@ -825,12 +942,17 @@ impl Value {
         self.as_ref_big_decimal().map(|d| d.to_f64().unwrap())
     }
 }
-#[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
-impl_value_methods!(BigDecimalArray, is_big_decimal_array, as_ref_big_decimal_array, [BigDecimal]);
+#[cfg(all(feature = "with-bigdecimal", feature = "postgres-array"))]
+impl_value_methods!(
+    BigDecimalArray,
+    is_big_decimal_array,
+    as_ref_big_decimal_array,
+    [BigDecimal]
+);
 
 #[cfg(feature = "with-uuid")]
 impl_value_methods!(Uuid, is_uuid, as_ref_uuid, Uuid);
-#[cfg(all(feature = "with-uuid", feature = "with-array"))]
+#[cfg(all(feature = "with-uuid", feature = "postgres-array"))]
 impl_value_methods!(UuidArray, is_uuid_array, as_ref_uuid_array, [Uuid]);
 
 #[cfg(feature = "with-ipnetwork")]
@@ -838,17 +960,26 @@ impl_value_methods!(IpNetwork, is_ipnetwork, as_ref_ipnetwork, IpNetwork);
 #[cfg(feature = "with-ipnetwork")]
 impl Value {
     pub fn as_ipaddr(&self) -> Option<IpAddr> {
-        self.as_ref_ipnetwork().map(|v|v.network())
+        self.as_ref_ipnetwork().map(|v| v.network())
     }
 }
-#[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
-impl_value_methods!(IpNetworkArray, is_ipnetwork_array, as_ref_ipnetwork_array, [IpNetwork]);
+#[cfg(all(feature = "with-ipnetwork", feature = "postgres-array"))]
+impl_value_methods!(
+    IpNetworkArray,
+    is_ipnetwork_array,
+    as_ref_ipnetwork_array,
+    [IpNetwork]
+);
 
 #[cfg(feature = "with-mac_address")]
 impl_value_methods!(MacAddress, is_mac_address, as_ref_mac_address, MacAddress);
-#[cfg(all(feature = "with-mac_address", feature = "with-array"))]
-impl_value_methods!(MacAddressArray, is_mac_address_array, as_ref_mac_address_array, [MacAddress]);
-
+#[cfg(all(feature = "with-mac_address", feature = "postgres-array"))]
+impl_value_methods!(
+    MacAddressArray,
+    is_mac_address_array,
+    as_ref_mac_address_array,
+    [MacAddress]
+);
 
 impl IntoIterator for ValueTuple {
     type Item = Value;
@@ -1089,7 +1220,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::BoolArray(None)
         | Value::TinyIntArray(None)
         | Value::SmallIntArray(None)
@@ -1113,7 +1244,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
-        #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+        #[cfg(all(feature = "with-uuid", feature = "postgres-array"))]
         Value::UuidArray(None) => Json::Null,
 
         Value::Bool(Some(b)) => Json::Bool(*b),
@@ -1131,31 +1262,31 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::JsonArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::BoolArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::TinyIntArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::SmallIntArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::IntArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::BigIntArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::SmallUnsignedArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::UnsignedArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::BigUnsignedArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::FloatArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::DoubleArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::StringArray(Some(v)) => v.as_slice().into(),
-        #[cfg(feature = "with-array")]
+        #[cfg(feature = "postgres-array")]
         Value::CharArray(Some(v)) => v
             .iter()
             .map(|c| c.to_string())
@@ -1163,46 +1294,46 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             .into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
         Value::ChronoDateArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
         Value::ChronoTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
         Value::ChronoDateTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
         Value::ChronoDateTimeWithTimeZoneArray(_) => {
             CommonSqlQueryBuilder.value_to_string(value).into()
         }
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
         Value::ChronoDateTimeUtcArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-chrono", feature = "with-array"))]
+        #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
         Value::ChronoDateTimeLocalArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
 
         #[cfg(feature = "with-time")]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        #[cfg(all(feature = "with-time", feature = "postgres-array"))]
         Value::TimeDateArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        #[cfg(all(feature = "with-time", feature = "postgres-array"))]
         Value::TimeTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        #[cfg(all(feature = "with-time", feature = "postgres-array"))]
         Value::TimeDateTimeArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-time", feature = "with-array"))]
+        #[cfg(all(feature = "with-time", feature = "postgres-array"))]
         Value::TimeDateTimeWithTimeZoneArray(_) => {
             CommonSqlQueryBuilder.value_to_string(value).into()
         }
@@ -1212,18 +1343,18 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             use rust_decimal::prelude::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
-        #[cfg(all(feature = "with-rust_decimal", feature = "with-array"))]
+        #[cfg(all(feature = "with-rust_decimal", feature = "postgres-array"))]
         Value::DecimalArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(Some(v)) => {
             use bigdecimal::ToPrimitive;
             v.as_ref().to_f64().unwrap().into()
         }
-        #[cfg(all(feature = "with-bigdecimal", feature = "with-array"))]
+        #[cfg(all(feature = "with-bigdecimal", feature = "postgres-array"))]
         Value::BigDecimalArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
-        #[cfg(all(feature = "with-uuid", feature = "with-array"))]
+        #[cfg(all(feature = "with-uuid", feature = "postgres-array"))]
         Value::UuidArray(Some(v)) => v
             .iter()
             .map(|v| v.to_string())
@@ -1231,11 +1362,11 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             .into(),
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-ipnetwork", feature = "with-array"))]
+        #[cfg(all(feature = "with-ipnetwork", feature = "postgres-array"))]
         Value::IpNetworkArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-mac_address", feature = "with-array"))]
+        #[cfg(all(feature = "with-mac_address", feature = "postgres-array"))]
         Value::MacAddressArray(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
