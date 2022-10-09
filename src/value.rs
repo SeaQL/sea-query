@@ -31,6 +31,88 @@ use mac_address::MacAddress;
 
 use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ArrayType {
+    Bool,
+    TinyInt,
+    SmallInt,
+    Int,
+    BigInt,
+    TinyUnsigned,
+    SmallUnsigned,
+    Unsigned,
+    BigUnsigned,
+    Float,
+    Double,
+    String,
+    Char,
+    Bytes,
+
+    #[cfg(feature = "with-json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+    Json,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDate,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoTime,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTime,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeUtc,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeLocal,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeWithTimeZone,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDate,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeTime,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTime,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeWithTimeZone,
+
+    #[cfg(feature = "with-uuid")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    Uuid,
+
+    #[cfg(feature = "with-rust_decimal")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+    Decimal,
+
+    #[cfg(feature = "with-bigdecimal")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+    BigDecimal,
+
+    #[cfg(feature = "with-ipnetwork")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+    IpNetwork,
+
+    #[cfg(feature = "with-mac_address")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+    MacAddress,
+}
+
 /// Value variants
 ///
 /// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
@@ -111,7 +193,7 @@ pub enum Value {
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(Option<Box<Vec<Value>>>),
+    Array(ArrayType, Option<Box<Vec<Value>>>),
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
@@ -135,7 +217,13 @@ pub trait ValueType: Sized {
         Self::try_from(v).unwrap()
     }
 
+    fn except(v: Value, msg: &str) -> Self {
+        Self::try_from(v).expect(msg)
+    }
+
     fn type_name() -> String;
+
+    fn array_type() -> ArrayType;
 
     fn column_type() -> ColumnType;
 }
@@ -185,10 +273,17 @@ impl Value {
     {
         T::unwrap(self)
     }
+
+    pub fn except<T>(self, msg: &str) -> T
+    where
+        T: ValueType,
+    {
+        T::except(self, msg)
+    }
 }
 
 macro_rules! type_to_value {
-    ( $type: ty, $name: ident, $col_type: expr ) => {
+    ( $type: ty, $name: ident, $col_type: expr, $array_type: expr ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
                 Value::$name(Some(x))
@@ -213,6 +308,11 @@ macro_rules! type_to_value {
                 stringify!($type).to_owned()
             }
 
+            fn array_type() -> ArrayType {
+                use ArrayType::*;
+                $array_type
+            }
+
             fn column_type() -> ColumnType {
                 use ColumnType::*;
                 $col_type
@@ -222,7 +322,7 @@ macro_rules! type_to_value {
 }
 
 macro_rules! type_to_box_value {
-    ( $type: ty, $name: ident, $col_type: expr ) => {
+    ( $type: ty, $name: ident, $col_type: expr, $array_type: expr ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
                 Value::$name(Some(Box::new(x)))
@@ -247,6 +347,11 @@ macro_rules! type_to_box_value {
                 stringify!($type).to_owned()
             }
 
+            fn array_type() -> ArrayType {
+                use ArrayType::*;
+                $array_type
+            }
+
             fn column_type() -> ColumnType {
                 use ColumnType::*;
                 $col_type
@@ -255,18 +360,18 @@ macro_rules! type_to_box_value {
     };
 }
 
-type_to_value!(bool, Bool, Boolean);
-type_to_value!(i8, TinyInt, TinyInteger(None));
-type_to_value!(i16, SmallInt, SmallInteger(None));
-type_to_value!(i32, Int, Integer(None));
-type_to_value!(i64, BigInt, BigInteger(None));
-type_to_value!(u8, TinyUnsigned, TinyUnsigned(None));
-type_to_value!(u16, SmallUnsigned, SmallUnsigned(None));
-type_to_value!(u32, Unsigned, Unsigned(None));
-type_to_value!(u64, BigUnsigned, BigUnsigned(None));
-type_to_value!(f32, Float, Float(None));
-type_to_value!(f64, Double, Double(None));
-type_to_value!(char, Char, Char(None));
+type_to_value!(bool, Bool, Boolean, Bool);
+type_to_value!(i8, TinyInt, TinyInteger(None), TinyInt);
+type_to_value!(i16, SmallInt, SmallInteger(None), SmallInt);
+type_to_value!(i32, Int, Integer(None), Int);
+type_to_value!(i64, BigInt, BigInteger(None), BigInt);
+type_to_value!(u8, TinyUnsigned, TinyUnsigned(None), TinyUnsigned);
+type_to_value!(u16, SmallUnsigned, SmallUnsigned(None), SmallUnsigned);
+type_to_value!(u32, Unsigned, Unsigned(None), Unsigned);
+type_to_value!(u64, BigUnsigned, BigUnsigned(None), BigUnsigned);
+type_to_value!(f32, Float, Float(None), Float);
+type_to_value!(f64, Double, Double(None), Double);
+type_to_value!(char, Char, Char(None), Char);
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
@@ -315,20 +420,24 @@ where
         format!("Option<{}>", T::type_name())
     }
 
+    fn array_type() -> ArrayType {
+        T::array_type()
+    }
+
     fn column_type() -> ColumnType {
         T::column_type()
     }
 }
 
-type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
-type_to_box_value!(String, String, String(None));
+type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)), Bytes);
+type_to_box_value!(String, String, String(None), String);
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
     use super::*;
 
-    type_to_box_value!(Json, Json, Json);
+    type_to_box_value!(Json, Json, Json, Json);
 }
 
 #[cfg(feature = "with-chrono")]
@@ -337,9 +446,14 @@ mod with_chrono {
     use super::*;
     use chrono::{Local, Offset, Utc};
 
-    type_to_box_value!(NaiveDate, ChronoDate, Date);
-    type_to_box_value!(NaiveTime, ChronoTime, Time(None));
-    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime(None));
+    type_to_box_value!(NaiveDate, ChronoDate, Date, ChronoDate);
+    type_to_box_value!(NaiveTime, ChronoTime, Time(None), ChronoTime);
+    type_to_box_value!(
+        NaiveDateTime,
+        ChronoDateTime,
+        DateTime(None),
+        ChronoDateTime
+    );
 
     impl From<DateTime<Utc>> for Value {
         fn from(v: DateTime<Utc>) -> Value {
@@ -378,6 +492,10 @@ mod with_chrono {
             stringify!(DateTime<Utc>).to_owned()
         }
 
+        fn array_type() -> ArrayType {
+            ArrayType::ChronoDateTimeUtc
+        }
+
         fn column_type() -> ColumnType {
             ColumnType::TimestampWithTimeZone(None)
         }
@@ -401,6 +519,10 @@ mod with_chrono {
             stringify!(DateTime<Local>).to_owned()
         }
 
+        fn array_type() -> ArrayType {
+            ArrayType::ChronoDateTimeLocal
+        }
+
         fn column_type() -> ColumnType {
             ColumnType::TimestampWithTimeZone(None)
         }
@@ -422,6 +544,10 @@ mod with_chrono {
 
         fn type_name() -> String {
             stringify!(DateTime<FixedOffset>).to_owned()
+        }
+
+        fn array_type() -> ArrayType {
+            ArrayType::ChronoDateTimeWithTimeZone
         }
 
         fn column_type() -> ColumnType {
@@ -451,9 +577,14 @@ pub mod time_format {
 mod with_time {
     use super::*;
 
-    type_to_box_value!(time::Date, TimeDate, Date);
-    type_to_box_value!(time::Time, TimeTime, Time(None));
-    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime(None));
+    type_to_box_value!(time::Date, TimeDate, Date, TimeDate);
+    type_to_box_value!(time::Time, TimeTime, Time(None), TimeTime);
+    type_to_box_value!(
+        PrimitiveDateTime,
+        TimeDateTime,
+        DateTime(None),
+        TimeDateTime
+    );
 
     impl From<OffsetDateTime> for Value {
         fn from(v: OffsetDateTime) -> Value {
@@ -479,6 +610,10 @@ mod with_time {
             stringify!(OffsetDateTime).to_owned()
         }
 
+        fn array_type() -> ArrayType {
+            ArrayType::TimeDateTimeWithTimeZone
+        }
+
         fn column_type() -> ColumnType {
             ColumnType::TimestampWithTimeZone(None)
         }
@@ -490,7 +625,7 @@ mod with_time {
 mod with_rust_decimal {
     use super::*;
 
-    type_to_box_value!(Decimal, Decimal, Decimal(None));
+    type_to_box_value!(Decimal, Decimal, Decimal(None), Decimal);
 }
 
 #[cfg(feature = "with-bigdecimal")]
@@ -498,7 +633,7 @@ mod with_rust_decimal {
 mod with_bigdecimal {
     use super::*;
 
-    type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
+    type_to_box_value!(BigDecimal, BigDecimal, Decimal(None), BigDecimal);
 }
 
 #[cfg(feature = "with-uuid")]
@@ -506,7 +641,7 @@ mod with_bigdecimal {
 mod with_uuid {
     use super::*;
 
-    type_to_box_value!(Uuid, Uuid, Uuid);
+    type_to_box_value!(Uuid, Uuid, Uuid, Uuid);
 }
 
 #[cfg(feature = "with-ipnetwork")]
@@ -514,7 +649,7 @@ mod with_uuid {
 mod with_ipnetwork {
     use super::*;
 
-    type_to_box_value!(IpNetwork, IpNetwork, Inet);
+    type_to_box_value!(IpNetwork, IpNetwork, Inet, IpNetwork);
 }
 
 #[cfg(feature = "with-mac_address")]
@@ -522,13 +657,14 @@ mod with_ipnetwork {
 mod with_mac_address {
     use super::*;
 
-    type_to_box_value!(MacAddress, MacAddress, MacAddr);
+    type_to_box_value!(MacAddress, MacAddress, MacAddr, MacAddress);
 }
 
 #[cfg(feature = "postgres-array")]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 mod with_array {
     use super::*;
+    use crate::SeaRc;
 
     // We only imlement conversion from Vec<T> to Array when T is not u8.
     // This is because for u8's case, there is already conversion to Byte defined above.
@@ -545,7 +681,11 @@ mod with_array {
     impl NotU8 for u64 {}
     impl NotU8 for f32 {}
     impl NotU8 for f64 {}
+    impl NotU8 for char {}
     impl NotU8 for String {}
+    impl NotU8 for Vec<u8> {}
+
+    // TODO impl<T: NotU8> NotU8 for Option<T> {}
 
     #[cfg(feature = "with-json")]
     impl NotU8 for Json {}
@@ -585,19 +725,22 @@ mod with_array {
 
     impl<T> From<Vec<T>> for Value
     where
-        T: Into<Value> + NotU8,
+        T: Into<Value> + NotU8 + ValueType,
     {
         fn from(x: Vec<T>) -> Value {
-            Value::Array(Some(Box::new(x.into_iter().map(|e| e.into()).collect())))
+            Value::Array(
+                T::array_type(),
+                Some(Box::new(x.into_iter().map(|e| e.into()).collect())),
+            )
         }
     }
 
     impl<T> Nullable for Vec<T>
     where
-        T: Into<Value> + NotU8,
+        T: Into<Value> + NotU8 + ValueType,
     {
         fn null() -> Value {
-            Value::Array(None)
+            Value::Array(T::array_type(), None)
         }
     }
 
@@ -607,7 +750,9 @@ mod with_array {
     {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::Array(Some(v)) => Ok(v.into_iter().map(|e| e.unwrap()).collect()),
+                Value::Array(ty, Some(v)) if T::array_type() == ty => {
+                    Ok(v.into_iter().map(|e| e.unwrap()).collect())
+                }
                 _ => Err(ValueTypeErr),
             }
         }
@@ -616,9 +761,13 @@ mod with_array {
             stringify!(Vec<T>).to_owned()
         }
 
+        fn array_type() -> ArrayType {
+            T::array_type()
+        }
+
         fn column_type() -> ColumnType {
             use ColumnType::*;
-            Array(None)
+            Array(SeaRc::new(Box::new(T::column_type())))
         }
     }
 }
@@ -880,12 +1029,12 @@ impl Value {
 #[cfg(feature = "postgres-array")]
 impl Value {
     pub fn is_array(&self) -> bool {
-        matches!(self, Self::Array(_))
+        matches!(self, Self::Array(_, _))
     }
 
     pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
         match self {
-            Self::Array(v) => box_to_opt_ref!(v),
+            Self::Array(_, v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Array"),
         }
     }
@@ -1172,7 +1321,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
-        Value::Array(None) => Json::Null,
+        Value::Array(_, None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
@@ -1225,7 +1374,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
-        Value::Array(Some(v)) => {
+        Value::Array(_, Some(v)) => {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
         }
         #[cfg(feature = "with-ipnetwork")]
@@ -1616,7 +1765,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-uuid")]
     fn test_uuid_value() {
-        let uuid = uuid::Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
+        let uuid = Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
         let value: Value = uuid.into();
         let out: uuid::Uuid = value.unwrap();
         assert_eq!(out, uuid);
@@ -1641,5 +1790,13 @@ mod tests {
         let v: Value = array.into();
         let out: Vec<i32> = v.unwrap();
         assert_eq!(out, vec![1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    #[cfg(feature = "postgres-array")]
+    fn test_option_array_value() {
+        let v: Value = Value::Array(ArrayType::Int, None);
+        let out: Option<Vec<i32>> = v.unwrap();
+        assert_eq!(out, None);
     }
 }
