@@ -32,6 +32,7 @@ pub enum ColumnType {
     TimestampWithTimeZone(Option<u32>),
     Time(Option<u32>),
     Date,
+    Year(Option<MySQLYear>),
     Interval(Option<PgInterval>, Option<u32>),
     Binary(BlobSize),
     VarBinary(u32),
@@ -79,6 +80,13 @@ pub enum PgInterval {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
+}
+
+// All MySQL year type field length sizes
+#[derive(Debug, Clone)]
+pub enum MySQLYear {
+    Two,
+    Four,
 }
 
 #[derive(Debug, Clone)]
@@ -436,6 +444,13 @@ impl ColumnDef {
     /// Set column type as date
     pub fn date(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Date);
+        self
+    }
+
+    /// Set column type as year
+    /// Only MySQL supports year
+    pub fn year(&mut self, length: Option<MySQLYear>) -> &mut Self {
+        self.types = Some(ColumnType::Year(length));
         self
     }
 

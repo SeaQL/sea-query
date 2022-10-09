@@ -76,6 +76,15 @@ impl TableBuilder for MysqlQueryBuilder {
                     None => "time".into(),
                 },
                 ColumnType::Date => "date".into(),
+                ColumnType::Year(length) => {
+                    match length {
+                        Some(length) => match length {
+                            MySQLYear::Two => "year(2)".into(),
+                            MySQLYear::Four => "year(4)".into(),
+                        },
+                        None => "year".into(),
+                    }
+                },
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
                     BlobSize::Tiny => "tinyblob".into(),

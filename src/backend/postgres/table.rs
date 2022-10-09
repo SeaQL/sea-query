@@ -101,7 +101,8 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Enum { name, .. } => name.to_string(),
                 ColumnType::Cidr => "cidr".into(),
                 ColumnType::Inet => "inet".into(),
-                ColumnType::MacAddr => "macaddr".into(),
+            ColumnType::MacAddr => "macaddr".into(),
+            ColumnType::Year(_) => unimplemented!("Year is not available in Postgres."),
             }
         )
         .unwrap()
