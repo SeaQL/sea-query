@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Bug Fixes
 
-* `distinct_on` handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
+* `distinct_on` properly handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
 
 ### Breaking changes
 
