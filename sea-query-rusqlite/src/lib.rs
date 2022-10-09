@@ -126,9 +126,44 @@ impl ToSql for RusqliteValue {
                 panic!("Rusqlite doesn't support MacAddress arguments");
             }
             #[cfg(feature = "postgres-array")]
-            Value::Array(_) => {
-                panic!("Rusqlite doesn't support Array arguments");
+            Value::BoolArray(_)
+            | Value::TinyIntArray(_)
+            | Value::SmallIntArray(_)
+            | Value::IntArray(_)
+            | Value::BigIntArray(_)
+            | Value::SmallUnsignedArray(_)
+            | Value::UnsignedArray(_)
+            | Value::BigUnsignedArray(_)
+            | Value::FloatArray(_)
+            | Value::DoubleArray(_)
+            | Value::StringArray(_)
+            | Value::CharArray(_) => panic!("Rusqlite doesn't support array arguments"),
+            #[cfg(all(feature = "with-chrono", feature = "postgres-array"))]
+            Value::ChronoDateArray(_)
+            | Value::ChronoTimeArray(_)
+            | Value::ChronoDateTimeArray(_)
+            | Value::ChronoDateTimeUtcArray(_)
+            | Value::ChronoDateTimeLocalArray(_)
+            | Value::ChronoDateTimeWithTimeZoneArray(_) => panic!("Rusqlite doesn't support array"),
+            #[cfg(all(feature = "with-time", feature = "postgres-array"))]
+            Value::TimeDateArray(_)
+            | Value::TimeTimeArray(_)
+            | Value::TimeDateTimeArray(_)
+            | Value::TimeDateTimeWithTimeZoneArray(_) => {
+                panic!("Rusqlite doesn't support array")
             }
+            #[cfg(all(feature = "with-uuid", feature = "postgres-array"))]
+            Value::UuidArray(_) => panic!("Rusqlite doesn't support array"),
+            #[cfg(all(feature = "with-rust_decimal", feature = "postgres-array"))]
+            Value::DecimalArray(_) => panic!("Rusqlite doesn't support array"),
+            #[cfg(all(feature = "with-bigdecimal", feature = "postgres-array"))]
+            Value::BigDecimalArray(_) => panic!("Rusqlite doesn't support array"),
+            #[cfg(all(feature = "with-json", feature = "postgres-array"))]
+            Value::JsonArray(_) => panic!("Rusqlite doesn't support array"),
+            #[cfg(all(feature = "with-ipnetwork", feature = "postgres-array"))]
+            Value::IpNetworkArray(_) => panic!("Rusqlite doesn't support array"),
+            #[cfg(all(feature = "with-mac_address", feature = "postgres-array"))]
+            Value::MacAddressArray(_) => panic!("Rusqlite doesn't support array"),
         }
     }
 }

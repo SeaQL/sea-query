@@ -160,7 +160,7 @@ impl ToSql for PostgresValue {
             Value::TimeDateTimeWithTimeZoneArray(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(v) => v.as_deref().to_sql(ty, out),
-            #[cfg(all(feature = "postgres-rust_decimal", feature = "postgres-array"))]
+            #[cfg(all(feature = "with-rust_decimal", feature = "postgres-array"))]
             Value::DecimalArray(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.as_deref().to_sql(ty, out),
