@@ -40,8 +40,6 @@ time = { version = "^0.3", optional = true, features = ["macros", "formatting"] 
 ipnetwork = { version = "^0.19", optional = true }
 mac_address = { version = "^1.1", optional = true }
 bytes = { version = "^1", optional = true }
-postgres-types = { version = "^0", optional = true }
-rusqlite = { version = "^0.28", features = ["bundled"], optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
@@ -54,8 +52,6 @@ backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
-with-postgres = ["postgres-types", "bytes"]
-with-rusqlite = ["rusqlite"]
 postgres-interval = ["proc-macro2", "quote"]
 thread-safe = []
 with-chrono = ["chrono"]

@@ -3,7 +3,8 @@ use std::error::Error;
 use bytes::BytesMut;
 use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
 
-use sea_query::{query::*, QueryBuilder, Value, ValueTrait};
+use sea_query::BinOper::Is;
+use sea_query::{query::*, QueryBuilder, Value, ValueType};
 
 #[derive(Clone, Debug)]
 pub struct PostgresValue(pub Value);
@@ -54,7 +55,61 @@ impl ToSql for PostgresValue {
         ty: &Type,
         out: &mut BytesMut,
     ) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
-        self.0.to_sql(ty, out)
+        if self.0.is_null() {
+            return Ok(IsNull::Yes);
+        }
+
+        match &self.0.ty() {
+            ValueType::Bool => {
+                let v = self.0.value::<bool>().unwrap();
+                (*v).to_sql(ty, out)
+            }
+            ValueType::TinyInt => {
+                let v = self.0.value::<i8>().unwrap();
+                (*v).to_sql(ty, out)
+            }
+            ValueType::SmallInt => {
+                let v = self.0.value::<i16>().unwrap();
+                (*v).to_sql(ty, out)
+            }
+            ValueType::Int => {
+                let v = self.0.value::<i32>().unwrap();
+                (*v).to_sql(ty, out)
+            }
+            ValueType::BigInt => {
+                let v = self.0.value::<i64>().unwrap();
+                (*v).to_sql(ty, out)
+            }
+            ValueType::TinyUnsigned => {
+                let v = self.0.value::<u8>().unwrap();
+                (*v as i16).to_sql(ty, out)
+            }
+            ValueType::SmallUnsigned => {
+                let v = self.0.value::<u16>().unwrap();
+                (*v as i32).to_sql(ty, out)
+            }
+            ValueType::Unsigned => {
+                let v = self.0.value::<u32>().unwrap();
+                (*v as i64).to_sql(ty, out)
+            }
+            ValueType::BigUnsigned => {
+                let v = self.0.value::<u64>().unwrap();
+                (*v as i64).to_sql(ty, out)
+            }
+            ValueType::Float => {
+                let v = self.0.value::<f32>().unwrap();
+                (*v).to_sql(ty, out)
+            }
+            ValueType::Double => {
+                let v = self.0.value::<f64>().unwrap();
+                (*v).to_sql(ty, out)
+            }
+            ValueType::Char => {
+                let v = self.0.value::<f64>().unwrap();
+                v.to_string().to_sql(ty, out)
+            }
+            _ => panic!(),
+        }
     }
 
     fn accepts(_ty: &Type) -> bool {

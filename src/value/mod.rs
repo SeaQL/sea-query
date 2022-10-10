@@ -1,6 +1,8 @@
+pub use string::*;
 pub use tuple::*;
 pub use types::*;
 
+mod string;
 mod tuple;
 mod types;
 

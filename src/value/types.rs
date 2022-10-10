@@ -1,151 +1,245 @@
-use std::error::Error;
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 
 use crate::SeaRc;
-#[cfg(feature = "with-postgres")]
-use bytes::BytesMut;
-#[cfg(feature = "with-postgres")]
-use postgres_types::{to_sql_checked, IsNull, ToSql as PostgresToSql, Type};
-#[cfg(feature = "with-rusqlite")]
-use rusqlite::{types::ToSqlOutput, Result, ToSql as RuSqliteToSql};
 
-pub trait ValueTrait: PostgresToSql + RuSqliteToSql
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ValueType {
+    Bool,
+    TinyInt,
+    SmallInt,
+    Int,
+    BigInt,
+    TinyUnsigned,
+    SmallUnsigned,
+    Unsigned,
+    BigUnsigned,
+    Float,
+    Double,
+    String,
+    Char,
+    Bytes,
+
+    #[cfg(feature = "with-json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+    Json,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDate,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoTime,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTime,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeUtc,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeLocal,
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeWithTimeZone,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDate,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeTime,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTime,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeWithTimeZone,
+
+    #[cfg(feature = "with-uuid")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    Uuid,
+
+    #[cfg(feature = "with-rust_decimal")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+    Decimal,
+
+    #[cfg(feature = "with-bigdecimal")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+    BigDecimal,
+
+    #[cfg(feature = "with-ipnetwork")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+    IpNetwork,
+
+    #[cfg(feature = "with-mac_address")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+    MacAddress,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum IsNull {
+    /// The value is NULL.
+    Yes,
+    /// The value is not NULL.
+    No,
+}
+
+#[cfg(feature = "thread-safe")]
+pub trait ValueTrait: Sync + Send
 where
     Self: Debug,
 {
     fn to_sql_string(&self) -> String;
+
+    fn value_type() -> ValueType
+    where
+        Self: Sized;
+
+    fn value_is_null(&self) -> IsNull;
+}
+
+#[cfg(not(feature = "thread-safe"))]
+pub trait ValueTrait
+where
+    Self: Debug,
+{
+    fn to_sql_string(&self) -> String;
+
+    fn value_type() -> ValueType
+    where
+        Self: Sized;
+
+    fn value_is_null(&self) -> IsNull;
 }
 
 #[derive(Debug, Clone)]
-pub enum Value {
-    Bool(bool),
-    TinyInt(i8),
-    SmallInt(i16),
-    Int(i32),
-    BigInt(i64),
-    TinyUnsigned(u8),
-    SmallUnsigned(u16),
-    Unsigned(u32),
-    BigUnsigned(u64),
-    Float(f32),
-    Double(f64),
+pub struct Value {
+    pub(crate) ty: ValueType,
     #[cfg(feature = "thread-safe")]
-    Object(SeaRc<Box<dyn ValueTrait + Sync + Send>>),
+    pub(crate) object: SeaRc<Box<dyn ValueTrait + Sync + Send>>,
     #[cfg(not(feature = "thread-safe"))]
-    Object(SeaRc<Box<dyn ValueTrait>>),
+    pub(crate) object: SeaRc<Box<dyn ValueTrait>>,
 }
 
-impl PostgresToSql for Value {
-    fn to_sql(
-        &self,
-        ty: &Type,
-        out: &mut BytesMut,
-    ) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
-        match self {
-            Value::Bool(v) => <bool as PostgresToSql>::to_sql(v, ty, out),
-            Value::TinyInt(v) => <i8 as PostgresToSql>::to_sql(v, ty, out),
-            Value::SmallInt(v) => <i16 as PostgresToSql>::to_sql(v, ty, out),
-            Value::Int(v) => <i32 as PostgresToSql>::to_sql(v, ty, out),
-            Value::BigInt(v) => <i64 as PostgresToSql>::to_sql(v, ty, out),
-            Value::TinyUnsigned(v) => <u32 as PostgresToSql>::to_sql(&(*v as u32), ty, out),
-            Value::SmallUnsigned(v) => <u32 as PostgresToSql>::to_sql(&(*v as u32), ty, out),
-            Value::Unsigned(v) => <u32 as PostgresToSql>::to_sql(v, ty, out),
-            Value::BigUnsigned(v) => <i64 as PostgresToSql>::to_sql(&(*v as i64), ty, out),
-            Value::Float(v) => <f32 as PostgresToSql>::to_sql(v, ty, out),
-            Value::Double(v) => <f64 as PostgresToSql>::to_sql(v, ty, out),
-            Value::Object(o) => (o as &dyn PostgresToSql).to_sql(),
-        }
-    }
-
-    fn accepts(_ty: &Type) -> bool {
-        true
-    }
-
-    to_sql_checked!();
-}
-
-impl RuSqliteToSql for Value {
-    fn to_sql(&self) -> Result<ToSqlOutput<'_>> {
-        match self {
-            Value::Bool(v) => <bool as RuSqliteToSql>::to_sql(v),
-            Value::TinyInt(v) => <i8 as RuSqliteToSql>::to_sql(v),
-            Value::SmallInt(v) => <i16 as RuSqliteToSql>::to_sql(v),
-            Value::Int(v) => <i32 as RuSqliteToSql>::to_sql(v),
-            Value::BigInt(v) => <i64 as RuSqliteToSql>::to_sql(v),
-            Value::TinyUnsigned(v) => <u8 as RuSqliteToSql>::to_sql(v),
-            Value::SmallUnsigned(v) => <u16 as RuSqliteToSql>::to_sql(v),
-            Value::Unsigned(v) => <u32 as RuSqliteToSql>::to_sql(v),
-            Value::BigUnsigned(v) => <u64 as RuSqliteToSql>::to_sql(v),
-            Value::Float(v) => <f32 as RuSqliteToSql>::to_sql(v),
-            Value::Double(v) => <f64 as RuSqliteToSql>::to_sql(v),
-            Value::Object(o) => (o as &dyn RuSqliteToSql).to_sql(),
-        }
-    }
-}
-
-impl ValueTrait for Value {
-    fn to_sql_string(&self) -> String {
+impl Value {
+    pub fn to_sql_string(&self) -> String {
         todo!()
+    }
+
+    pub fn ty(&self) -> &ValueType {
+        &self.ty
+    }
+
+    pub fn is_null(&self) -> bool {
+        matches!(self.object.value_is_null(), IsNull::Yes)
+    }
+
+    pub fn value<T: ValueTrait>(&self) -> Result<&T, ()> {
+        if T::value_type() == self.ty {
+            let (v, _): (&T, *const ()) =
+                unsafe { std::mem::transmute(self.object.as_ref().as_ref()) };
+            Ok(v)
+        } else {
+            Err(())
+        }
     }
 }
 
 macro_rules! simple_to {
-    ( $type: ty, $name: expr ) => {
+    ( $type: ty, $value_type: expr ) => {
         impl From<$type> for Value {
             fn from(v: $type) -> Value {
-                use Value::*;
-                $name(v.to_owned())
+                Value {
+                    ty: <$type>::value_type(),
+                    object: SeaRc::new(Box::new(v)),
+                }
+            }
+        }
+
+        impl ValueTrait for $type {
+            fn to_sql_string(&self) -> String {
+                todo!()
+            }
+
+            fn value_type() -> ValueType {
+                $value_type
+            }
+
+            fn value_is_null(&self) -> IsNull {
+                IsNull::No
             }
         }
     };
 }
 
-macro_rules! object_to {
-    ( $type: ty ) => {
-        impl From<$type> for Value {
-            fn from(v: $type) -> Value {
-                let object = Box::new(v) as _;
-                Value::Object(SeaRc::new(object))
-            }
+simple_to!(bool, ValueType::Bool);
+simple_to!(i8, ValueType::TinyInt);
+simple_to!(i16, ValueType::SmallInt);
+simple_to!(i32, ValueType::Int);
+simple_to!(i64, ValueType::BigInt);
+simple_to!(u8, ValueType::TinyUnsigned);
+simple_to!(u16, ValueType::SmallUnsigned);
+simple_to!(u32, ValueType::Unsigned);
+simple_to!(u64, ValueType::BigUnsigned);
+simple_to!(f32, ValueType::Float);
+simple_to!(f64, ValueType::Double);
+simple_to!(char, ValueType::Char);
+
+impl<T: ValueTrait> ValueTrait for Option<T> {
+    fn to_sql_string(&self) -> String {
+        todo!()
+    }
+
+    fn value_type() -> ValueType {
+        T::value_type()
+    }
+
+    fn value_is_null(&self) -> IsNull {
+        match self {
+            Some(_) => IsNull::Yes,
+            None => IsNull::No,
         }
-    };
+    }
 }
 
-simple_to!(i8, TinyInt);
-simple_to!(i16, SmallInt);
-simple_to!(i32, Int);
-simple_to!(i64, BigInt);
-simple_to!(u8, TinyUnsigned);
-simple_to!(u16, SmallUnsigned);
-simple_to!(u32, Unsigned);
-simple_to!(u64, BigUnsigned);
-simple_to!(f32, Float);
-simple_to!(f64, Double);
+impl<T: ValueTrait + 'static> From<Option<T>> for Value {
+    fn from(v: Option<T>) -> Self {
+        let object = Box::new(v) as _;
+        Value {
+            ty: T::value_type(),
+            object: SeaRc::new(object),
+        }
+    }
+}
 
-impl ValueTrait for String {
+impl<T: ValueTrait> ValueTrait for Vec<T> {
     fn to_sql_string(&self) -> String {
         todo!()
     }
-}
 
-object_to!(String);
+    fn value_type() -> ValueType {
+        T::value_type()
+    }
 
-impl ValueTrait for &str {
-    fn to_sql_string(&self) -> String {
-        todo!()
+    fn value_is_null(&self) -> IsNull {
+        IsNull::No
     }
 }
 
-impl From<&str> for Value {
-    fn from(v: &str) -> Self {
-        let object = Box::new(v.to_string()) as _;
-        Value::Object(SeaRc::new(object))
-    }
-}
-
-impl From<char> for Value {
-    fn from(v: char) -> Self {
-        let object = Box::new(v.to_string()) as _;
-        Value::Object(SeaRc::new(object))
+impl<T: ValueTrait + 'static> From<Vec<T>> for Value {
+    fn from(v: Vec<T>) -> Self {
+        let object = Box::new(v) as _;
+        Value {
+            ty: T::value_type(),
+            object: SeaRc::new(object),
+        }
     }
 }

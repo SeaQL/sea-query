@@ -17,7 +17,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "^0", path = "..", feature = ["with-rusqlite"] }
+sea-query = { version = "^0", path = ".." }
 rusqlite = { version = "^0.28", features = ["bundled"] }
 
 [features]
@@ -29,4 +29,3 @@ with-uuid = ["rusqlite/uuid", "sea-query/with-uuid"]
 with-time = ["rusqlite/time", "sea-query/with-time"]
 with-ipnetwork = ["sea-query/with-ipnetwork"]
 with-mac_address = ["sea-query/with-mac_address"]
-
