@@ -723,6 +723,12 @@ mod with_array {
     #[cfg(feature = "with-uuid")]
     impl NotU8 for Uuid {}
 
+    #[cfg(feature = "with-ipnetwork")]
+    impl NotU8 for IpNetwork {}
+
+    #[cfg(feature = "with-mac_address")]
+    impl NotU8 for MacAddress {}
+
     impl<T> From<Vec<T>> for Value
     where
         T: Into<Value> + NotU8 + ValueType,

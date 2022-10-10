@@ -1,12 +1,7 @@
-#[cfg(feature = "with-ipnetwork")]
-use std::net::IpAddr;
-#[cfg(feature = "with-json")]
-use std::str::from_utf8;
-
 #[cfg(feature = "with-bigdecimal")]
 use bigdecimal::BigDecimal;
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 #[cfg(feature = "with-ipnetwork")]
 use ipnetwork::IpNetwork;
 #[cfg(feature = "with-mac_address")]
