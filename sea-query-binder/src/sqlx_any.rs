@@ -114,7 +114,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     panic!("SeaQuery doesn't support MacAddress arguments for Any");
                 }
                 #[cfg(feature = "postgres-array")]
-                Value::Array(_) => {
+                Value::Array(_, _) => {
                     panic!("SeaQuery doesn't support array arguments for Any");
                 }
             }
