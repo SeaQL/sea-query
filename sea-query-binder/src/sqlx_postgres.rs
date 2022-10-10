@@ -1,30 +1,24 @@
-use sea_query::{ArrayType, Value};
-
-#[cfg(feature = "with-json")]
-use serde_json::Value as Json;
+#[cfg(feature = "with-ipnetwork")]
+use std::net::IpAddr;
 #[cfg(feature = "with-json")]
 use std::str::from_utf8;
 
-#[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
-
-#[cfg(feature = "with-rust_decimal")]
-use rust_decimal::Decimal;
-
 #[cfg(feature = "with-bigdecimal")]
 use bigdecimal::BigDecimal;
-
+#[cfg(feature = "with-chrono")]
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+#[cfg(feature = "with-ipnetwork")]
+use ipnetwork::IpNetwork;
+#[cfg(feature = "with-mac_address")]
+use mac_address::MacAddress;
+#[cfg(feature = "with-rust_decimal")]
+use rust_decimal::Decimal;
+#[cfg(feature = "with-json")]
+use serde_json::Value as Json;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
-#[cfg(feature = "with-ipnetwork")]
-use ipnetwork::IpNetwork;
-
-#[cfg(feature = "with-ipnetwork")]
-use std::net::IpAddr;
-
-#[cfg(feature = "with-mac_address")]
-use mac_address::MacAddress;
+use sea_query::{ArrayType, Value};
 
 use crate::SqlxValues;
 
@@ -53,7 +47,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
                     args.add(i.map(|i| i as i16));
                 }
                 Value::SmallUnsigned(i) => {
-                    args.add(i.map(|i| i as i16));
+                    args.add(i.map(|i| i as i32));
                 }
                 Value::Unsigned(i) => {
                     args.add(i.map(|i| i as i64));
