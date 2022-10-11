@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.26.4 - Pending
+
+### New Features
+
+* Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455 
+
+### Bug Fixes
+
+* Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
+
 ## 0.26.3 - 2022-08-18
 
 ### Bug Fixes
