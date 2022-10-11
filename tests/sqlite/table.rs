@@ -298,12 +298,14 @@ fn alter_3() {
 }
 
 #[test]
-#[should_panic(expected = "Sqlite not support dropping table column")]
 fn alter_4() {
-    Table::alter()
-        .table(Font::Table)
-        .drop_column(Alias::new("new_column"))
-        .to_string(SqliteQueryBuilder);
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .drop_column(Alias::new("new_column"))
+            .to_string(SqliteQueryBuilder),
+        r#"ALTER TABLE "font" DROP COLUMN "new_column""#
+    );
 }
 
 #[test]
@@ -328,5 +330,6 @@ fn alter_7() {
         .table(Font::Table)
         .add_column(ColumnDef::new(Alias::new("new_col")).integer())
         .rename_column(Font::Name, Alias::new("name_new"))
+        .drop_column(Alias::new("name_new"))
         .to_string(SqliteQueryBuilder);
 }

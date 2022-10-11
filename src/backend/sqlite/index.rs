@@ -37,11 +37,6 @@ impl IndexBuilder for SqliteQueryBuilder {
             let quote = self.quote();
             write!(sql, "{}{}{}", quote, name, quote).unwrap();
         }
-
-        write!(sql, " ON ").unwrap();
-        if let Some(table) = &drop.table {
-            table.prepare(sql, self.quote());
-        }
     }
 
     fn write_column_index_prefix(&self, _col_prefix: &Option<u32>, _sql: &mut SqlWriter) {}
