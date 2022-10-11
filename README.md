@@ -683,7 +683,7 @@ assert_eq!(
 );
 assert_eq!(
     index.to_string(SqliteQueryBuilder),
-    r#"DROP INDEX "idx-glyph-aspect" ON "glyph""#
+    r#"DROP INDEX "idx-glyph-aspect""#
 );
 ```
 
