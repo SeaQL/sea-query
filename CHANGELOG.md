@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug Fixes
 
 * `distinct_on` properly handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
-* remove `ON` for `DROP INDEX` with SQLite https://github.com/SeaQL/sea-query/pull/462
+* Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
 
 ### Breaking changes
 
