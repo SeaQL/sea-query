@@ -202,7 +202,7 @@ fn create_8() {
     assert_eq!(
         Table::create()
             .table(Font::Table)
-            .col(ColumnDef::new(Font::Variant).year(Some(MySQLYear::Four)))
+            .col(ColumnDef::new(Font::Variant).year(Some(MySqlYear::Four)))
             .to_string(MysqlQueryBuilder),
         ["CREATE TABLE `font` (", "`variant` year(4)", ")",].join(" ")
     );

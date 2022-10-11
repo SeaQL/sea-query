@@ -79,8 +79,8 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Year(length) => {
                     match length {
                         Some(length) => match length {
-                            MySQLYear::Two => "year(2)".into(),
-                            MySQLYear::Four => "year(4)".into(),
+                            MySqlYear::Two => "year(2)".into(),
+                            MySqlYear::Four => "year(4)".into(),
                         },
                         None => "year".into(),
                     }
