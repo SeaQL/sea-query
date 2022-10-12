@@ -31,6 +31,7 @@ use mac_address::MacAddress;
 
 use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
 
+/// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ArrayType {
     Bool,
