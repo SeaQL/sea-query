@@ -93,12 +93,17 @@ Enum {
 * Deprecated `OnConflict::update_value` / `OnConflict::update_values`; we can now use `OnConflict::update_expr` / `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/448
 * Deprecated `InsertStatement::exprs`, `InsertStatement::exprs_panic`, `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr`, `UpdateStatement::exprs` https://github.com/SeaQL/sea-query/pull/460
 * `InsertStatement::values`, `UpdateStatement::values` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Value>` https://github.com/SeaQL/sea-query/pull/460
+* Use native api from SQLx for SQLite to work with `time` https://github.com/SeaQL/sea-query/pull/412
 
 ### House keeping
 
 * Cleanup `IndexBuilder` trait methods https://github.com/SeaQL/sea-query/pull/426
 * Introduce `SqlWriter` trait https://github.com/SeaQL/sea-query/pull/436
 * Remove unneeded `vec!` from examples https://github.com/SeaQL/sea-query/pull/448
+
+### Upgrades
+
+* Upgrade `sqlx` driver to 0.6.1
 
 ## 0.26.3 - 2022-08-18
 
