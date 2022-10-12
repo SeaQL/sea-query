@@ -18,7 +18,7 @@ rust-version = "1.60"
 
 [dependencies]
 sea-query = { version = "^0", path = ".." }
-sqlx = { version = "^0.6", optional = true }
+sqlx = { version = "^0.6.1", optional = true }
 
 [features]
 sqlx-mysql = ["sqlx/mysql"]

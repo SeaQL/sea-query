@@ -75,19 +75,19 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
-                    args.add(Value::TimeDate(t).time_as_naive_utc_in_string());
+                    args.add(t.map(|t| *t));
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
-                    args.add(Value::TimeTime(t).time_as_naive_utc_in_string());
+                    args.add(t.map(|t| *t));
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
-                    args.add(Value::TimeDateTime(t).time_as_naive_utc_in_string());
+                    args.add(t.map(|t| *t));
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
+                    args.add(t.map(|t| *t));
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
