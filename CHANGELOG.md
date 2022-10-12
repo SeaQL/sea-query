@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 	4. `postgres` support is moved to `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/433
 * Added sub-query operators: `EXISTS`, `ALL`, `ANY`, `SOME` https://github.com/SeaQL/sea-query/pull/379
 * Added support to `ON CONFLICT WHERE` https://github.com/SeaQL/sea-query/pull/447
+* Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455
 
 ### Enhancements
 
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug Fixes
 
 * `distinct_on` properly handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
+* Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
 
 ### Breaking changes
 
@@ -91,12 +93,17 @@ Enum {
 * Deprecated `OnConflict::update_value` / `OnConflict::update_values`; we can now use `OnConflict::update_expr` / `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/448
 * Deprecated `InsertStatement::exprs`, `InsertStatement::exprs_panic`, `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr`, `UpdateStatement::exprs` https://github.com/SeaQL/sea-query/pull/460
 * `InsertStatement::values`, `UpdateStatement::values` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Value>` https://github.com/SeaQL/sea-query/pull/460
+* Use native api from SQLx for SQLite to work with `time` https://github.com/SeaQL/sea-query/pull/412
 
 ### House keeping
 
 * Cleanup `IndexBuilder` trait methods https://github.com/SeaQL/sea-query/pull/426
 * Introduce `SqlWriter` trait https://github.com/SeaQL/sea-query/pull/436
 * Remove unneeded `vec!` from examples https://github.com/SeaQL/sea-query/pull/448
+
+### Upgrades
+
+* Upgrade `sqlx` driver to 0.6.1
 
 ## 0.26.3 - 2022-08-18
 

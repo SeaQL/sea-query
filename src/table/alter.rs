@@ -247,7 +247,10 @@ impl TableAlterStatement {
     ///     table.to_string(PostgresQueryBuilder),
     ///     r#"ALTER TABLE "font" DROP COLUMN "new_column""#
     /// );
-    /// // Sqlite not support modifying table column
+    /// assert_eq!(
+    ///     table.to_string(SqliteQueryBuilder),
+    ///     r#"ALTER TABLE "font" DROP COLUMN "new_column""#
+    /// );
     /// ```
     pub fn drop_column<T: 'static>(&mut self, col_name: T) -> &mut Self
     where
