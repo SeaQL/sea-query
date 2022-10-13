@@ -438,11 +438,11 @@ pub mod time_format {
 
     pub static FORMAT_DATE: &[FormatItem<'static>] = format_description!("[year]-[month]-[day]");
     pub static FORMAT_TIME: &[FormatItem<'static>] =
-        format_description!("[hour]:[minute]:[second]");
+        format_description!("[hour]:[minute]:[second].[subsecond digits:6]");
     pub static FORMAT_DATETIME: &[FormatItem<'static>] =
-        format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
+        format_description!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:6]");
     pub static FORMAT_DATETIME_TZ: &[FormatItem<'static>] = format_description!(
-        "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]"
+        "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:6] [offset_hour sign:mandatory]:[offset_minute]"
     );
 }
 
@@ -1597,7 +1597,7 @@ mod tests {
 
         let timestamp = datetime!(2020-01-01 02:02:02 +8);
         let query = Query::select().expr(Expr::val(timestamp)).to_owned();
-        let formatted = "2020-01-01 02:02:02 +0800";
+        let formatted = "2020-01-01 02:02:02.000000 +08:00";
 
         assert_eq!(
             query.to_string(MysqlQueryBuilder),
