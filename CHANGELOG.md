@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.26.4 - Pending
+## 0.26.4 - 2022-10-13
 
 ### New Features
 
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug Fixes
 
 * Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
+* Changed datetime display format to include microseconds https://github.com/SeaQL/sea-query/pull/468
 
 ## 0.26.3 - 2022-08-18
 
