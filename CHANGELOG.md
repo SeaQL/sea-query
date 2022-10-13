@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * `distinct_on` properly handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
 * Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
+* Change datetime string format to include microseconds https://github.com/SeaQL/sea-query/pull/468
 
 ### Breaking changes
 
