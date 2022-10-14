@@ -323,7 +323,7 @@ macro_rules! type_to_value {
 }
 
 macro_rules! type_to_box_value {
-    ( $type: ty, $name: ident, $col_type: expr, $array_type: expr ) => {
+    ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
                 Value::$name(Some(Box::new(x)))
@@ -349,8 +349,7 @@ macro_rules! type_to_box_value {
             }
 
             fn array_type() -> ArrayType {
-                use ArrayType::*;
-                $array_type
+                ArrayType::$name
             }
 
             fn column_type() -> ColumnType {
@@ -430,15 +429,15 @@ where
     }
 }
 
-type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)), Bytes);
-type_to_box_value!(String, String, String(None), String);
+type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
+type_to_box_value!(String, String, String(None));
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
     use super::*;
 
-    type_to_box_value!(Json, Json, Json, Json);
+    type_to_box_value!(Json, Json, Json);
 }
 
 #[cfg(feature = "with-chrono")]
@@ -447,14 +446,9 @@ mod with_chrono {
     use super::*;
     use chrono::{Local, Offset, Utc};
 
-    type_to_box_value!(NaiveDate, ChronoDate, Date, ChronoDate);
-    type_to_box_value!(NaiveTime, ChronoTime, Time(None), ChronoTime);
-    type_to_box_value!(
-        NaiveDateTime,
-        ChronoDateTime,
-        DateTime(None),
-        ChronoDateTime
-    );
+    type_to_box_value!(NaiveDate, ChronoDate, Date);
+    type_to_box_value!(NaiveTime, ChronoTime, Time(None));
+    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime(None));
 
     impl From<DateTime<Utc>> for Value {
         fn from(v: DateTime<Utc>) -> Value {
@@ -578,14 +572,9 @@ pub mod time_format {
 mod with_time {
     use super::*;
 
-    type_to_box_value!(time::Date, TimeDate, Date, TimeDate);
-    type_to_box_value!(time::Time, TimeTime, Time(None), TimeTime);
-    type_to_box_value!(
-        PrimitiveDateTime,
-        TimeDateTime,
-        DateTime(None),
-        TimeDateTime
-    );
+    type_to_box_value!(time::Date, TimeDate, Date);
+    type_to_box_value!(time::Time, TimeTime, Time(None));
+    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime(None));
 
     impl From<OffsetDateTime> for Value {
         fn from(v: OffsetDateTime) -> Value {
@@ -626,7 +615,7 @@ mod with_time {
 mod with_rust_decimal {
     use super::*;
 
-    type_to_box_value!(Decimal, Decimal, Decimal(None), Decimal);
+    type_to_box_value!(Decimal, Decimal, Decimal(None));
 }
 
 #[cfg(feature = "with-bigdecimal")]
@@ -634,7 +623,7 @@ mod with_rust_decimal {
 mod with_bigdecimal {
     use super::*;
 
-    type_to_box_value!(BigDecimal, BigDecimal, Decimal(None), BigDecimal);
+    type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 }
 
 #[cfg(feature = "with-uuid")]
@@ -642,7 +631,7 @@ mod with_bigdecimal {
 mod with_uuid {
     use super::*;
 
-    type_to_box_value!(Uuid, Uuid, Uuid, Uuid);
+    type_to_box_value!(Uuid, Uuid, Uuid);
 }
 
 #[cfg(feature = "with-ipnetwork")]
@@ -650,7 +639,7 @@ mod with_uuid {
 mod with_ipnetwork {
     use super::*;
 
-    type_to_box_value!(IpNetwork, IpNetwork, Inet, IpNetwork);
+    type_to_box_value!(IpNetwork, IpNetwork, Inet);
 }
 
 #[cfg(feature = "with-mac_address")]
@@ -658,7 +647,7 @@ mod with_ipnetwork {
 mod with_mac_address {
     use super::*;
 
-    type_to_box_value!(MacAddress, MacAddress, MacAddr, MacAddress);
+    type_to_box_value!(MacAddress, MacAddress, MacAddr);
 }
 
 #[cfg(feature = "postgres-array")]
