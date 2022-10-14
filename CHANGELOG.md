@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added sub-query operators: `EXISTS`, `ALL`, `ANY`, `SOME` https://github.com/SeaQL/sea-query/pull/379
 * Added support to `ON CONFLICT WHERE` https://github.com/SeaQL/sea-query/pull/447
 * Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455
+* Added `YEAR`, `BIT` and `VARBIT` types https://github.com/SeaQL/sea-query/pull/466
 
 ### Enhancements
 
