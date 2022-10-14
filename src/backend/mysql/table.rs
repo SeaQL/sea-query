@@ -76,6 +76,15 @@ impl TableBuilder for MysqlQueryBuilder {
                     None => "time".into(),
                 },
                 ColumnType::Date => "date".into(),
+                ColumnType::Year(length) => {
+                    match length {
+                        Some(length) => match length {
+                            MySqlYear::Two => "year(2)".into(),
+                            MySqlYear::Four => "year(4)".into(),
+                        },
+                        None => "year".into(),
+                    }
+                }
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
                     BlobSize::Tiny => "tinyblob".into(),
@@ -89,6 +98,15 @@ impl TableBuilder for MysqlQueryBuilder {
                     BlobSize::Long => "longblob".into(),
                 },
                 ColumnType::VarBinary(length) => format!("varbinary({})", length),
+                ColumnType::Bit(length) => {
+                    match length {
+                        Some(length) => format!("bit({})", length),
+                        None => "bit".into(),
+                    }
+                }
+                ColumnType::VarBit(length) => {
+                    format!("bit({})", length)
+                }
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
                     Some((precision, scale)) => format!("money({}, {})", precision, scale),

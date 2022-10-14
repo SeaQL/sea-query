@@ -198,6 +198,17 @@ fn create_7() {
 }
 
 #[test]
+fn create_8() {
+    assert_eq!(
+        Table::create()
+            .table(Font::Table)
+            .col(ColumnDef::new(Font::Variant).year(Some(MySqlYear::Four)))
+            .to_string(MysqlQueryBuilder),
+        ["CREATE TABLE `font` (", "`variant` year(4)", ")",].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()

@@ -88,6 +88,15 @@ impl TableBuilder for PostgresQueryBuilder {
                 }
                 ColumnType::Binary(_) => "bytea".into(),
                 ColumnType::VarBinary(length) => format!("bit varying({})", length),
+                ColumnType::Bit(length) => {
+                    match length {
+                        Some(length) => format!("varbit({})", length),
+                        None => "bit".into(),
+                    }
+                }
+                ColumnType::VarBit(length) => {
+                    format!("varbit({})", length)
+                }
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
                     Some((precision, scale)) => format!("money({}, {})", precision, scale),
@@ -102,6 +111,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Cidr => "cidr".into(),
                 ColumnType::Inet => "inet".into(),
                 ColumnType::MacAddr => "macaddr".into(),
+                ColumnType::Year(_) => unimplemented!("Year is not available in Postgres."),
             }
         )
         .unwrap()
