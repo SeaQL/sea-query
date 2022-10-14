@@ -218,7 +218,7 @@ pub trait ValueType: Sized {
         Self::try_from(v).unwrap()
     }
 
-    fn except(v: Value, msg: &str) -> Self {
+    fn expect(v: Value, msg: &str) -> Self {
         Self::try_from(v).expect(msg)
     }
 
@@ -279,7 +279,7 @@ impl Value {
     where
         T: ValueType,
     {
-        T::except(self, msg)
+        T::expect(self, msg)
     }
 }
 
