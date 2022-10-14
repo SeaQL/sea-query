@@ -143,7 +143,7 @@ impl TableBuilder for PostgresQueryBuilder {
                         write!(sql, " TYPE").unwrap();
                         self.prepare_column_type_check_auto_increment(column_def, sql);
                     }
-                    let first = !column_def.types.is_some();
+                    let first = column_def.types.is_none();
 
                     column_def.spec.iter().fold(first, |first, column_spec| {
                         if !first && !matches!(column_spec, ColumnSpec::AutoIncrement) {
