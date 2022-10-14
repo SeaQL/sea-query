@@ -463,6 +463,31 @@ fn alter_8() {
 }
 
 #[test]
+fn alter_9() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .unique_key()
+                    .primary_key()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ALTER COLUMN "aspect" TYPE serial,"#,
+            r#"ALTER COLUMN "aspect" SET NOT NULL,"#,
+            r#"ADD UNIQUE ("aspect"),"#,
+            r#"ADD PRIMARY KEY ("aspect")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn rename_1() {
     assert_eq!(
         Table::rename()

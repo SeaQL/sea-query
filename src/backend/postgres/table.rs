@@ -143,24 +143,44 @@ impl TableBuilder for PostgresQueryBuilder {
                         write!(sql, " TYPE").unwrap();
                         self.prepare_column_type_check_auto_increment(column_def, sql);
                     }
-                    for column_spec in column_def.spec.iter() {
-                        if let ColumnSpec::AutoIncrement = column_spec {
-                            continue;
+                    let first = !column_def.types.is_some();
+
+                    column_def.spec.iter().fold(first, |first, column_spec| {
+                        if !first && !matches!(column_spec, ColumnSpec::AutoIncrement) {
+                            write!(sql, ", ").unwrap();
                         }
-                        if column_def.types.is_some() {
-                            write!(sql, ", ALTER COLUMN ").unwrap();
-                        } else {
-                            write!(sql, "ALTER COLUMN ").unwrap();
-                        }
-                        column_def.name.prepare(sql.as_writer(), self.quote());
                         match column_spec {
-                            ColumnSpec::Null => write!(sql, " DROP NOT NULL").unwrap(),
-                            _ => {
-                                write!(sql, " SET ").unwrap();
-                                self.prepare_column_spec(column_spec, sql);
+                            ColumnSpec::AutoIncrement => {}
+                            ColumnSpec::Null => {
+                                write!(sql, "ALTER COLUMN ").unwrap();
+                                column_def.name.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " DROP NOT NULL").unwrap();
                             }
+                            ColumnSpec::NotNull => {
+                                write!(sql, "ALTER COLUMN ").unwrap();
+                                column_def.name.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " SET NOT NULL").unwrap()
+                            }
+                            ColumnSpec::Default(v) => {
+                                write!(sql, "ALTER COLUMN ").unwrap();
+                                column_def.name.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " SET DEFAULT ").unwrap();
+                                QueryBuilder::prepare_simple_expr(self, v, sql);
+                            }
+                            ColumnSpec::UniqueKey => {
+                                write!(sql, "ADD UNIQUE (").unwrap();
+                                column_def.name.prepare(sql.as_writer(), self.quote());
+                                write!(sql, ")").unwrap();
+                            }
+                            ColumnSpec::PrimaryKey => {
+                                write!(sql, "ADD PRIMARY KEY (").unwrap();
+                                column_def.name.prepare(sql.as_writer(), self.quote());
+                                write!(sql, ")").unwrap();
+                            }
+                            ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
                         }
-                    }
+                        false
+                    });
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
                     write!(sql, "RENAME COLUMN ").unwrap();
@@ -213,25 +233,30 @@ impl TableBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
+    fn prepare_column_auto_increment(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
+        match &column_type {
+            ColumnType::SmallInteger(_) => write!(sql, "smallserial").unwrap(),
+            ColumnType::Integer(_) => write!(sql, "serial").unwrap(),
+            ColumnType::BigInteger(_) => write!(sql, "bigserial").unwrap(),
+            _ => unimplemented!("{:?} doesn't support auto increment", column_type),
+        }
+    }
+
     fn prepare_column_type_check_auto_increment(
         &self,
         column_def: &ColumnDef,
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(column_type) = &column_def.types {
-            write!(sql, " ").unwrap();
             let is_auto_increment = column_def
                 .spec
                 .iter()
                 .position(|s| matches!(s, ColumnSpec::AutoIncrement));
             if is_auto_increment.is_some() {
-                match &column_type {
-                    ColumnType::SmallInteger(_) => write!(sql, "smallserial").unwrap(),
-                    ColumnType::Integer(_) => write!(sql, "serial").unwrap(),
-                    ColumnType::BigInteger(_) => write!(sql, "bigserial").unwrap(),
-                    _ => unimplemented!("{:?} doesn't support auto increment", column_type),
-                }
+                write!(sql, " ").unwrap();
+                self.prepare_column_auto_increment(column_type, sql);
             } else {
+                write!(sql, " ").unwrap();
                 self.prepare_column_type(column_type, sql);
             }
         }

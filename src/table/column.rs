@@ -114,26 +114,26 @@ impl quote::ToTokens for PgInterval {
 
 impl ColumnDef {
     /// Construct a table column
-    pub fn new<T: 'static>(name: T) -> Self
+    pub fn new<T>(name: T) -> Self
     where
-        T: Iden,
+        T: IntoIden,
     {
         Self {
             table: None,
-            name: SeaRc::new(name),
+            name: name.into_iden(),
             types: None,
             spec: Vec::new(),
         }
     }
 
     /// Construct a table column with column type
-    pub fn new_with_type<T: 'static>(name: T, types: ColumnType) -> Self
+    pub fn new_with_type<T>(name: T, types: ColumnType) -> Self
     where
-        T: Iden,
+        T: IntoIden,
     {
         Self {
             table: None,
-            name: SeaRc::new(name),
+            name: name.into_iden(),
             types: Some(types),
             spec: Vec::new(),
         }

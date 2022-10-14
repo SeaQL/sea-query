@@ -50,7 +50,7 @@ impl ForeignKeyDropStatement {
     }
 
     /// Set key table and referencing table
-    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
+    pub fn table<T>(&mut self, table: T) -> &mut Self
     where
         T: IntoTableRef,
     {
