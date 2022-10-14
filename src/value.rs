@@ -284,7 +284,7 @@ impl Value {
 }
 
 macro_rules! type_to_value {
-    ( $type: ty, $name: ident, $col_type: expr, $array_type: expr ) => {
+    ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
                 Value::$name(Some(x))
@@ -310,8 +310,7 @@ macro_rules! type_to_value {
             }
 
             fn array_type() -> ArrayType {
-                use ArrayType::*;
-                $array_type
+                ArrayType::$name
             }
 
             fn column_type() -> ColumnType {
@@ -360,18 +359,18 @@ macro_rules! type_to_box_value {
     };
 }
 
-type_to_value!(bool, Bool, Boolean, Bool);
-type_to_value!(i8, TinyInt, TinyInteger(None), TinyInt);
-type_to_value!(i16, SmallInt, SmallInteger(None), SmallInt);
-type_to_value!(i32, Int, Integer(None), Int);
-type_to_value!(i64, BigInt, BigInteger(None), BigInt);
-type_to_value!(u8, TinyUnsigned, TinyUnsigned(None), TinyUnsigned);
-type_to_value!(u16, SmallUnsigned, SmallUnsigned(None), SmallUnsigned);
-type_to_value!(u32, Unsigned, Unsigned(None), Unsigned);
-type_to_value!(u64, BigUnsigned, BigUnsigned(None), BigUnsigned);
-type_to_value!(f32, Float, Float(None), Float);
-type_to_value!(f64, Double, Double(None), Double);
-type_to_value!(char, Char, Char(None), Char);
+type_to_value!(bool, Bool, Boolean);
+type_to_value!(i8, TinyInt, TinyInteger(None));
+type_to_value!(i16, SmallInt, SmallInteger(None));
+type_to_value!(i32, Int, Integer(None));
+type_to_value!(i64, BigInt, BigInteger(None));
+type_to_value!(u8, TinyUnsigned, TinyUnsigned(None));
+type_to_value!(u16, SmallUnsigned, SmallUnsigned(None));
+type_to_value!(u32, Unsigned, Unsigned(None));
+type_to_value!(u64, BigUnsigned, BigUnsigned(None));
+type_to_value!(f32, Float, Float(None));
+type_to_value!(f64, Double, Double(None));
+type_to_value!(char, Char, Char(None));
 
 impl<'a> From<&'a [u8]> for Value {
     fn from(x: &'a [u8]) -> Value {
