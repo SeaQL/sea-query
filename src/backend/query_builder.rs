@@ -255,9 +255,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 write!(sql, " ").unwrap();
                 self.prepare_simple_expr(expr, sql);
             }
-            SimpleExpr::FunctionCall(func, exprs) => {
-                self.prepare_function(func, sql);
-                self.prepare_tuple(exprs, sql);
+            SimpleExpr::FunctionCall(func) => {
+                self.prepare_function(&func.func, sql);
+                self.prepare_tuple(&func.args, sql);
             }
             SimpleExpr::Binary(left, op, right) => {
                 if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
@@ -465,6 +465,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 write!(sql, "(").unwrap();
                 self.prepare_values_list(values, sql);
                 write!(sql, ")").unwrap();
+                write!(sql, " AS ").unwrap();
+                alias.prepare(sql.as_writer(), self.quote());
+            }
+            TableRef::FunctionCall(func, alias) => {
+                self.prepare_function(&func.func, sql);
+                self.prepare_tuple(&func.args, sql);
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql.as_writer(), self.quote());
             }

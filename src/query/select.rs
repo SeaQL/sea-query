@@ -1,6 +1,7 @@
 use crate::{
     backend::QueryBuilder,
     expr::*,
+    func::Func,
     prepare::*,
     query::{condition::*, OrderedStatement},
     types::*,
@@ -124,11 +125,13 @@ pub enum UnionType {
     All,
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<SelectExpr> for SimpleExpr {
-    fn into(self) -> SelectExpr {
+impl<T> From<T> for SelectExpr
+where
+    T: Into<SimpleExpr>,
+{
+    fn from(expr: T) -> Self {
         SelectExpr {
-            expr: self,
+            expr: expr.into(),
             alias: None,
             window: None,
         }
@@ -810,7 +813,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = sea_query::Query::select()
+    /// let query = Query::select()
     ///     .expr(Expr::asterisk())
     ///     .from(Char::Table)
     ///     .from(Font::Table)
@@ -843,7 +846,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = sea_query::Query::select()
+    /// let query = Query::select()
     ///     .expr(Expr::asterisk())
     ///     .from_values([(1, "hello"), (2, "world")], Alias::new("x"))
     ///     .to_owned();
@@ -970,6 +973,41 @@ impl SelectStatement {
         T: IntoIden,
     {
         self.from_from(TableRef::SubQuery(query, alias.into_iden()))
+    }
+
+    /// From function call.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(ColumnRef::Asterisk)
+    ///     .from_function(
+    ///         Func::random(),
+    ///         Alias::new("func"),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT * FROM RAND() AS `func`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT * FROM RANDOM() AS "func""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT * FROM RANDOM() AS "func""#
+    /// );
+    /// ```
+    pub fn from_function<T>(&mut self, func: Func, alias: T) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.from_from(TableRef::FunctionCall(func, alias.into_iden()))
     }
 
     #[allow(clippy::wrong_self_convention)]
