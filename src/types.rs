@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, func::Func, query::*, ValueTuple, Values};
+use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
 use std::fmt;
 
 #[cfg(not(feature = "thread-safe"))]
@@ -92,7 +92,7 @@ pub enum TableRef {
     /// Values list with alias
     ValuesList(Vec<ValueTuple>, DynIden),
     /// Function call with alias
-    FunctionCall(Func, DynIden),
+    FunctionCall(FunctionCall, DynIden),
 }
 
 pub trait IntoTableRef {

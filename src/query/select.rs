@@ -1,13 +1,12 @@
 use crate::{
     backend::QueryBuilder,
     expr::*,
-    func::Func,
     prepare::*,
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement, WithClause,
-    WithQuery,
+    FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
+    WithClause, WithQuery,
 };
 
 /// Select rows from an existing table
@@ -1003,7 +1002,7 @@ impl SelectStatement {
     ///     r#"SELECT * FROM RANDOM() AS "func""#
     /// );
     /// ```
-    pub fn from_function<T>(&mut self, func: Func, alias: T) -> &mut Self
+    pub fn from_function<T>(&mut self, func: FunctionCall, alias: T) -> &mut Self
     where
         T: IntoIden,
     {

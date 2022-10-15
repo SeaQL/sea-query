@@ -24,7 +24,7 @@ pub enum SimpleExpr {
     Column(ColumnRef),
     Tuple(Vec<SimpleExpr>),
     Unary(UnOper, Box<SimpleExpr>),
-    FunctionCall(Func),
+    FunctionCall(FunctionCall),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
     SubQuery(Option<SubQueryOper>, Box<SubQueryStatement>),
     Value(Value),
@@ -1488,7 +1488,7 @@ impl Expr {
     /// ```
     pub fn max(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Func::new(Function::Max).arg(left.unwrap()).into()
+        Func::max(left.unwrap()).into()
     }
 
     /// Express a `MIN` function.
@@ -1518,7 +1518,7 @@ impl Expr {
     /// ```
     pub fn min(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Func::new(Function::Min).arg(left.unwrap()).into()
+        Func::min(left.unwrap()).into()
     }
 
     /// Express a `SUM` function.
@@ -1548,7 +1548,7 @@ impl Expr {
     /// ```
     pub fn sum(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Func::new(Function::Sum).arg(left.unwrap()).into()
+        Func::sum(left.unwrap()).into()
     }
 
     /// Express a `COUNT` function.
@@ -1578,7 +1578,7 @@ impl Expr {
     /// ```
     pub fn count(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Func::new(Function::Count).arg(left.unwrap()).into()
+        Func::count(left.unwrap()).into()
     }
 
     /// Express a `IF NULL` function.
@@ -1611,9 +1611,7 @@ impl Expr {
         V: Into<SimpleExpr>,
     {
         let left = self.left.take();
-        Func::new(Function::IfNull)
-            .args([left.unwrap(), v.into()])
-            .into()
+        Func::if_null(left.unwrap(), v).into()
     }
 
     /// Express a `IN` expression.
@@ -2304,8 +2302,8 @@ where
     }
 }
 
-impl From<Func> for SimpleExpr {
-    fn from(func: Func) -> Self {
+impl From<FunctionCall> for SimpleExpr {
+    fn from(func: FunctionCall) -> Self {
         SimpleExpr::FunctionCall(func)
     }
 }

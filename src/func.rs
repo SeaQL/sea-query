@@ -26,14 +26,14 @@ pub enum Function {
     PgFunction(PgFunction),
 }
 
-/// Function call helper.
+/// Function call.
 #[derive(Debug, Clone)]
-pub struct Func {
+pub struct FunctionCall {
     pub(crate) func: Function,
     pub(crate) args: Vec<SimpleExpr>,
 }
 
-impl Func {
+impl FunctionCall {
     pub(crate) fn new(func: Function) -> Self {
         Self {
             func,
@@ -41,6 +41,28 @@ impl Func {
         }
     }
 
+    pub fn arg<T>(mut self, arg: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.args = vec![arg.into()];
+        self
+    }
+
+    pub fn args<I>(mut self, args: I) -> Self
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        self.args = args.into_iter().collect();
+        self
+    }
+}
+
+/// Function call helper.
+#[derive(Debug, Clone)]
+pub struct Func;
+
+impl Func {
     /// Call a custom function.
     ///
     /// # Examples
@@ -73,11 +95,11 @@ impl Func {
     ///     r#"SELECT MY_FUNCTION('hello')"#
     /// );
     /// ```
-    pub fn cust<T>(func: T) -> Self
+    pub fn cust<T>(func: T) -> FunctionCall
     where
         T: IntoIden,
     {
-        Func::new(Function::Custom(func.into_iden()))
+        FunctionCall::new(Function::Custom(func.into_iden()))
     }
 
     /// Call `MAX` function.
@@ -105,11 +127,11 @@ impl Func {
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn max<T>(expr: T) -> Self
+    pub fn max<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Max).arg(expr)
+        FunctionCall::new(Function::Max).arg(expr)
     }
 
     /// Call `MIN` function.
@@ -137,11 +159,11 @@ impl Func {
     ///     r#"SELECT MIN("character"."size_h") FROM "character""#
     /// );
     /// ```
-    pub fn min<T>(expr: T) -> Self
+    pub fn min<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Min).arg(expr)
+        FunctionCall::new(Function::Min).arg(expr)
     }
 
     /// Call `SUM` function.
@@ -169,11 +191,11 @@ impl Func {
     ///     r#"SELECT SUM("character"."size_h") FROM "character""#
     /// );
     /// ```
-    pub fn sum<T>(expr: T) -> Self
+    pub fn sum<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Sum).arg(expr)
+        FunctionCall::new(Function::Sum).arg(expr)
     }
 
     /// Call `AVG` function.
@@ -201,11 +223,11 @@ impl Func {
     ///     r#"SELECT AVG("character"."size_h") FROM "character""#
     /// );
     /// ```
-    pub fn avg<T>(expr: T) -> Self
+    pub fn avg<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Avg).arg(expr)
+        FunctionCall::new(Function::Avg).arg(expr)
     }
 
     /// Call `ABS` function.
@@ -233,11 +255,11 @@ impl Func {
     ///     r#"SELECT ABS("character"."size_h") FROM "character""#
     /// );
     /// ```
-    pub fn abs<T>(expr: T) -> Self
+    pub fn abs<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Abs).arg(expr)
+        FunctionCall::new(Function::Abs).arg(expr)
     }
 
     /// Call `COUNT` function.
@@ -265,11 +287,11 @@ impl Func {
     ///     r#"SELECT COUNT("character"."id") FROM "character""#
     /// );
     /// ```
-    pub fn count<T>(expr: T) -> Self
+    pub fn count<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Count).arg(expr)
+        FunctionCall::new(Function::Count).arg(expr)
     }
 
     /// Call `CHAR_LENGTH` function.
@@ -297,11 +319,11 @@ impl Func {
     ///     r#"SELECT LENGTH("character"."character") FROM "character""#
     /// );
     /// ```
-    pub fn char_length<T>(expr: T) -> Self
+    pub fn char_length<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::CharLength).arg(expr)
+        FunctionCall::new(Function::CharLength).arg(expr)
     }
 
     /// Call `IF NULL` function.
@@ -332,12 +354,12 @@ impl Func {
     ///     r#"SELECT IFNULL("size_w", "size_h") FROM "character""#
     /// );
     /// ```
-    pub fn if_null<A, B>(a: A, b: B) -> Self
+    pub fn if_null<A, B>(a: A, b: B) -> FunctionCall
     where
         A: Into<SimpleExpr>,
         B: Into<SimpleExpr>,
     {
-        Func::new(Function::IfNull).args([a.into(), b.into()])
+        FunctionCall::new(Function::IfNull).args([a.into(), b.into()])
     }
 
     /// Call `CAST` function with a custom type.
@@ -364,13 +386,13 @@ impl Func {
     ///     r#"SELECT CAST('hello' AS MyType)"#
     /// );
     /// ```
-    pub fn cast_as<V, I>(expr: V, iden: I) -> Self
+    pub fn cast_as<V, I>(expr: V, iden: I) -> FunctionCall
     where
         V: Into<SimpleExpr>,
         I: IntoIden,
     {
         let expr: SimpleExpr = expr.into();
-        Func::new(Function::Cast).arg(expr.binary(
+        FunctionCall::new(Function::Cast).arg(expr.binary(
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
         ))
@@ -405,11 +427,11 @@ impl Func {
     ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
     /// );
     /// ```
-    pub fn coalesce<I>(args: I) -> Self
+    pub fn coalesce<I>(args: I) -> FunctionCall
     where
         I: IntoIterator<Item = SimpleExpr>,
     {
-        Func::new(Function::Coalesce).args(args)
+        FunctionCall::new(Function::Coalesce).args(args)
     }
 
     /// Call `LOWER` function.
@@ -437,11 +459,11 @@ impl Func {
     ///     r#"SELECT LOWER("character") FROM "character""#
     /// );
     /// ```
-    pub fn lower<T>(expr: T) -> Self
+    pub fn lower<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Lower).arg(expr)
+        FunctionCall::new(Function::Lower).arg(expr)
     }
 
     /// Call `UPPER` function.
@@ -469,11 +491,11 @@ impl Func {
     ///     r#"SELECT UPPER("character") FROM "character""#
     /// );
     /// ```
-    pub fn upper<T>(expr: T) -> Self
+    pub fn upper<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {
-        Func::new(Function::Upper).arg(expr)
+        FunctionCall::new(Function::Upper).arg(expr)
     }
 
     /// Call `RANDOM` function.
@@ -492,26 +514,7 @@ impl Func {
     ///
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
     /// ```
-    pub fn random() -> Self {
-        Func {
-            func: Function::Random,
-            args: vec![],
-        }
-    }
-
-    pub fn arg<T>(mut self, arg: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.args = vec![arg.into()];
-        self
-    }
-
-    pub fn args<I>(mut self, args: I) -> Self
-    where
-        I: IntoIterator<Item = SimpleExpr>,
-    {
-        self.args = args.into_iter().collect();
-        self
+    pub fn random() -> FunctionCall {
+        FunctionCall::new(Function::Random)
     }
 }
