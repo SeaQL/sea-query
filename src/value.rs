@@ -275,7 +275,7 @@ impl Value {
         T::unwrap(self)
     }
 
-    pub fn except<T>(self, msg: &str) -> T
+    pub fn expect<T>(self, msg: &str) -> T
     where
         T: ValueType,
     {
