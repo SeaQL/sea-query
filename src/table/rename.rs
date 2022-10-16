@@ -46,7 +46,7 @@ impl TableRenameStatement {
     }
 
     /// Set old and new table name
-    pub fn table<T: 'static, R: 'static>(&mut self, from_name: T, to_name: R) -> &mut Self
+    pub fn table<T, R>(&mut self, from_name: T, to_name: R) -> &mut Self
     where
         T: IntoTableRef,
         R: IntoTableRef,

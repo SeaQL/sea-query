@@ -353,7 +353,7 @@ where
 
 impl TableRef {
     /// Add or replace the current alias
-    pub fn alias<A: 'static>(self, alias: A) -> Self
+    pub fn alias<A>(self, alias: A) -> Self
     where
         A: IntoIden,
     {

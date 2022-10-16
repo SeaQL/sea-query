@@ -193,7 +193,7 @@ impl TypeCreateStatement {
     ///     r#"CREATE TYPE "font_family" AS ENUM ('serif', 'sans', 'monospace')"#
     /// );
     /// ```
-    pub fn as_enum<T: 'static>(&mut self, name: T) -> &mut Self
+    pub fn as_enum<T>(&mut self, name: T) -> &mut Self
     where
         T: IntoTypeRef,
     {
