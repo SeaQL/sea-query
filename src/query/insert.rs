@@ -198,10 +198,7 @@ impl InsertStatement {
     where
         I: IntoIterator<Item = SimpleExpr>,
     {
-        let values = values
-            .into_iter()
-            .map(|v| v.into())
-            .collect::<Vec<SimpleExpr>>();
+        let values = values.into_iter().collect::<Vec<SimpleExpr>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),

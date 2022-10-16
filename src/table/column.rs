@@ -48,7 +48,7 @@ pub enum ColumnType {
         name: DynIden,
         variants: Vec<DynIden>,
     },
-    Array(Option<String>),
+    Array(SeaRc<Box<ColumnType>>),
     Cidr,
     Inet,
     MacAddr,
@@ -67,7 +67,7 @@ pub enum ColumnSpec {
 }
 
 // All interval fields
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum PgInterval {
     Year,
     Month,
@@ -553,8 +553,8 @@ impl ColumnDef {
 
     /// Set column type as an array with a specified element type.
     /// This is only supported on Postgres.
-    pub fn array(&mut self, elem_type: String) -> &mut Self {
-        self.types = Some(ColumnType::Array(Some(elem_type)));
+    pub fn array(&mut self, elem_type: ColumnType) -> &mut Self {
+        self.types = Some(ColumnType::Array(SeaRc::new(Box::new(elem_type))));
         self
     }
 

@@ -6,7 +6,7 @@ use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
 use sea_query::{query::*, QueryBuilder, Value};
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct PostgresValue(pub sea_query::Value);
+pub struct PostgresValue(pub Value);
 #[derive(Clone, Debug, PartialEq)]
 pub struct PostgresValues(pub Vec<PostgresValue>);
 
@@ -101,13 +101,13 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
-            Value::Array(Some(v)) => v
+            Value::Array(_, Some(v)) => v
                 .iter()
                 .map(|v| PostgresValue(v.clone()))
                 .collect::<Vec<PostgresValue>>()
                 .to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
-            Value::Array(None) => Ok(IsNull::Yes),
+            Value::Array(_, None) => Ok(IsNull::Yes),
             #[allow(unreachable_patterns)]
             _ => unimplemented!(),
         }

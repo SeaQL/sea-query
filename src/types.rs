@@ -23,9 +23,9 @@ macro_rules! iden_trait {
             }
 
             fn to_string(&self) -> String {
-                let s = &mut String::new();
-                self.unquoted(s);
-                s.to_owned()
+                let mut s = String::new();
+                self.unquoted(&mut s);
+                s
             }
 
             fn unquoted(&self, s: &mut dyn fmt::Write);
