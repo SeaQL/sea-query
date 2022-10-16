@@ -32,12 +32,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `OrderedStatement::order_by_customs`, `OrderedStatement::order_by_columns`, `OverStatement::partition_by_customs`, `OverStatement::partition_by_columns` now accepts `IntoIterator<Item = T>` instead of `Vec<T>` https://github.com/SeaQL/sea-query/pull/448
 * `Expr::case`, `CaseStatement::case` and `CaseStatement::finally` now accepts `Into<SimpleExpr>` instead of `Into<Expr>` https://github.com/SeaQL/sea-query/pull/460
 * `UpdateStatement::value` now accept `Into<SimpleExpr>` instead of `Into<Value>` https://github.com/SeaQL/sea-query/pull/460
+* `TableAlterStatement::rename_column`, `TableAlterStatement::drop_column`, `ColumnDef::new`, `ColumnDef::new_with_type` now accepts `IntoIden` instead of `Iden` https://github.com/SeaQL/sea-query/pull/472
 
 ### Bug Fixes
 
 * `distinct_on` properly handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
 * Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
 * Change datetime string format to include microseconds https://github.com/SeaQL/sea-query/pull/468
+* `ALTER TABLE` for PosgreSQL with `UNIQUE` constraint https://github.com/SeaQL/sea-query/pull/472
 
 ### Breaking changes
 
