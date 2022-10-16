@@ -106,7 +106,7 @@
 //!     (
 //!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
 //!             .to_owned(),
-//!         Values([
+//!         Values(vec![
 //!             Value::String(Some(Box::new("A".to_owned()))),
 //!             Value::Int(Some(1)),
 //!             Value::Int(Some(2)),
