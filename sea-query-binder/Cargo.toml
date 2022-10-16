@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "sea-query-sqlx"]
+members = ["."]
 
 [package]
 name = "sea-query-binder"
