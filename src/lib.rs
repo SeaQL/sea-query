@@ -51,10 +51,10 @@
 //!
 //! Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 //!
-//! SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
+//! SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 //!
 //! Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
-//! `postgres-array`
+//! `with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`
 //!
 //! ## Usage
 //!
@@ -106,7 +106,7 @@
 //!     (
 //!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
 //!             .to_owned(),
-//!         Values(vec![
+//!         Values([
 //!             Value::String(Some(Box::new("A".to_owned()))),
 //!             Value::Int(Some(1)),
 //!             Value::Int(Some(2)),
