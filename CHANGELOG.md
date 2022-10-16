@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added support to `ON CONFLICT WHERE` https://github.com/SeaQL/sea-query/pull/447
 * Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455
 * Added `YEAR`, `BIT` and `VARBIT` types https://github.com/SeaQL/sea-query/pull/466
+* Added support one dimension Postgres array for SQLx https://github.com/SeaQL/sea-query/pull/467
 
 ### Enhancements
 
