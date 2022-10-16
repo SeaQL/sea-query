@@ -23,6 +23,8 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
         self.prepare_index_prefix(create, sql);
 
         self.prepare_index_columns(&create.index.columns, sql);
+
+        self.prepare_filter(&create.r#where, sql);
     }
 
     /// Translate [`IndexCreateStatement`] into SQL statement.
@@ -74,4 +76,8 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
         });
         write!(sql, ")").unwrap();
     }
+
+    #[doc(hidden)]
+    // Write WHERE clause for partial index. This function is not available in MySQL.
+    fn prepare_filter(&self, _condition: &ConditionHolder, _sql: &mut dyn SqlWriter) {}
 }
