@@ -184,11 +184,7 @@ impl TypeCreateStatement {
     /// assert_eq!(
     ///     Type::create()
     ///         .as_enum(FontFamily::Type)
-    ///         .values([
-    ///             FontFamily::Serif,
-    ///             FontFamily::Sans,
-    ///             FontFamily::Monospace
-    ///         ])
+    ///         .values([FontFamily::Serif, FontFamily::Sans, FontFamily::Monospace])
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"CREATE TYPE "font_family" AS ENUM ('serif', 'sans', 'monospace')"#
     /// );

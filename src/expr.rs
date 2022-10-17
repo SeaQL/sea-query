@@ -483,10 +483,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::cust_with_values(
-    ///         "data @? ($1::JSONPATH)",
-    ///         ["hello"],
-    ///     ))
+    ///     .expr(Expr::cust_with_values("data @? ($1::JSONPATH)", ["hello"]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1912,19 +1909,14 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Id)
     ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::col(Char::Id)
-    ///             .eq(
-    ///                 Expr::any(
-    ///                     Query::select().column(Char::Id).from(Char::Table).take()
-    ///                 )
-    ///             )
-    ///     )
+    ///     .and_where(Expr::col(Char::Id).eq(Expr::any(
+    ///         Query::select().column(Char::Id).from(Char::Table).take(),
+    ///     )))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1948,19 +1940,14 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Id)
     ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::col(Char::Id)
-    ///             .ne(
-    ///                 Expr::some(
-    ///                     Query::select().column(Char::Id).from(Char::Table).take()
-    ///                 )
-    ///             )
-    ///     )
+    ///     .and_where(Expr::col(Char::Id).ne(Expr::some(
+    ///         Query::select().column(Char::Id).from(Char::Table).take(),
+    ///     )))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -2238,14 +2225,11 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{Query, Expr, PostgresQueryBuilder, MysqlQueryBuilder, SqliteQueryBuilder};
+    /// use sea_query::{Expr, MysqlQueryBuilder, PostgresQueryBuilder, Query, SqliteQueryBuilder};
     ///
     /// let query = Query::select().expr(Expr::current_date()).to_owned();
     ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CURRENT_DATE"#
-    /// );
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_DATE"#);
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT CURRENT_DATE"#
@@ -2264,14 +2248,11 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{Query, Expr, PostgresQueryBuilder, MysqlQueryBuilder, SqliteQueryBuilder};
+    /// use sea_query::{Expr, MysqlQueryBuilder, PostgresQueryBuilder, Query, SqliteQueryBuilder};
     ///
     /// let query = Query::select().expr(Expr::current_time()).to_owned();
     ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CURRENT_TIME"#
-    /// );
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_TIME"#);
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT CURRENT_TIME"#
@@ -2290,7 +2271,7 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{Query, Expr, PostgresQueryBuilder, MysqlQueryBuilder, SqliteQueryBuilder};
+    /// use sea_query::{Expr, MysqlQueryBuilder, PostgresQueryBuilder, Query, SqliteQueryBuilder};
     ///
     /// let query = Query::select().expr(Expr::current_timestamp()).to_owned();
     ///

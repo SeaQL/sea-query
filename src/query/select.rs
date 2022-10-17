@@ -1632,10 +1632,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column(Char::Character)
-    ///     .add_group_by([
-    ///         Expr::col(Char::SizeW).into(),
-    ///         Expr::col(Char::SizeH).into(),
-    ///     ])
+    ///     .add_group_by([Expr::col(Char::SizeW).into(), Expr::col(Char::SizeH).into()])
     ///     .to_owned();
     ///
     /// assert_eq!(
