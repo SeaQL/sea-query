@@ -109,7 +109,7 @@ fn create_4() {
             .table(Glyph::Table)
             .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
             .to_string(PostgresQueryBuilder),
-        [r#"CREATE TABLE "glyph" ("#, r#""image" aspect"#, r#")"#,].join(" ")
+        r#"CREATE TABLE "glyph" ( "image" aspect )"#
     );
 }
 

@@ -204,7 +204,7 @@ fn create_8() {
             .table(Font::Table)
             .col(ColumnDef::new(Font::Variant).year(Some(MySqlYear::Four)))
             .to_string(MysqlQueryBuilder),
-        ["CREATE TABLE `font` (", "`variant` year(4)", ")",].join(" ")
+        "CREATE TABLE `font` ( `variant` year(4) )"
     );
 }
 
