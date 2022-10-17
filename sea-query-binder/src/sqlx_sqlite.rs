@@ -96,12 +96,16 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(decimal) => {
                     use rust_decimal::prelude::ToPrimitive;
-                    args.add(decimal.map(|d| d.to_f64().unwrap()));
+                    args.add(
+                        decimal.map(|d| d.to_f64().expect("Fail to convert rust_decimal as f64")),
+                    );
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(big_decimal) => {
                     use bigdecimal::ToPrimitive;
-                    args.add(big_decimal.map(|d| d.to_f64().unwrap()));
+                    args.add(
+                        big_decimal.map(|d| d.to_f64().expect("Fail to convert bigdecimal as f64")),
+                    );
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
