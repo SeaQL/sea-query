@@ -215,12 +215,7 @@ fn create_9() {
             .table(Glyph::Table)
             .index(Index::create().name("idx-glyph-id").col(Glyph::Id))
             .to_string(MysqlQueryBuilder),
-        [
-            "CREATE TABLE `glyph` (",
-            "KEY `idx-glyph-id` (`id`)",
-            ")",
-        ]
-        .join(" ")
+        ["CREATE TABLE `glyph` (", "KEY `idx-glyph-id` (`id`)", ")",].join(" ")
     );
 }
 
