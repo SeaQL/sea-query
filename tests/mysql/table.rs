@@ -209,6 +209,22 @@ fn create_8() {
 }
 
 #[test]
+fn create_9() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .index(Index::create().name("idx-glyph-id").col(Glyph::Id))
+            .to_string(MysqlQueryBuilder),
+        [
+            "CREATE TABLE `glyph` (",
+            "KEY `idx-glyph-id` (`id`)",
+            ")",
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()

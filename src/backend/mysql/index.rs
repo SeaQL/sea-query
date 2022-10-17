@@ -7,7 +7,7 @@ impl IndexBuilder for MysqlQueryBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         self.prepare_index_prefix(create, sql);
-        write!(sql, " KEY ").unwrap();
+        write!(sql, "KEY ").unwrap();
 
         if let Some(name) = &create.index.name {
             write!(sql, "{}{}{} ", self.quote(), name, self.quote()).unwrap();
@@ -28,12 +28,7 @@ impl IndexBuilder for MysqlQueryBuilder {
     ) {
         write!(sql, "CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
-        if create.unique || create.primary || matches!(create.index_type, Some(IndexType::FullText))
-        {
-            write!(sql, " INDEX ").unwrap();
-        } else {
-            write!(sql, "INDEX ").unwrap();
-        }
+        write!(sql, "INDEX ").unwrap();
 
         if let Some(name) = &create.index.name {
             write!(sql, "{}{}{}", self.quote(), name, self.quote()).unwrap();
@@ -87,13 +82,13 @@ impl IndexBuilder for MysqlQueryBuilder {
 
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
         if create.primary {
-            write!(sql, "PRIMARY").unwrap();
+            write!(sql, "PRIMARY ").unwrap();
         }
         if create.unique {
-            write!(sql, "UNIQUE").unwrap();
+            write!(sql, "UNIQUE ").unwrap();
         }
         if matches!(create.index_type, Some(IndexType::FullText)) {
-            write!(sql, "FULLTEXT").unwrap();
+            write!(sql, "FULLTEXT ").unwrap();
         }
     }
 }
