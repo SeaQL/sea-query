@@ -1565,3 +1565,74 @@ fn delete_returning_specific_exprs() {
         r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     );
 }
+
+#[test]
+fn select_pgtrgm_similarity() {
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Font::Name).binary(BinOper::Similarity, Expr::value("serif")))
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" % 'serif' FROM "font""#
+    );
+}
+
+#[test]
+fn select_pgtrgm_word_similarity() {
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Font::Name).binary(BinOper::WordSimilarity, Expr::value("serif")))
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" <% 'serif' FROM "font""#
+    );
+}
+
+#[test]
+fn select_pgtrgm_strict_word_similarity() {
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Font::Name).binary(BinOper::StrictWordSimilarity, Expr::value("serif")))
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" <<% 'serif' FROM "font""#
+    );
+}
+
+#[test]
+fn select_pgtrgm_similarity_distance() {
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Font::Name).binary(BinOper::SimilarityDistance, Expr::value("serif")))
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" <-> 'serif' FROM "font""#
+    );
+}
+
+#[test]
+fn select_pgtrgm_word_similarity_distance() {
+    assert_eq!(
+        Query::select()
+            .expr(
+                Expr::col(Font::Name).binary(BinOper::WordSimilarityDistance, Expr::value("serif"))
+            )
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" <<-> 'serif' FROM "font""#
+    );
+}
+
+#[test]
+fn select_pgtrgm_strict_word_similarity_distance() {
+    assert_eq!(
+        Query::select()
+            .expr(
+                Expr::col(Font::Name)
+                    .binary(BinOper::StrictWordSimilarityDistance, Expr::value("serif"))
+            )
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" <<<-> 'serif' FROM "font""#
+    );
+}

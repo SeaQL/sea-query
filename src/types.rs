@@ -139,6 +139,18 @@ pub enum BinOper {
     Contained,
     #[cfg(feature = "backend-postgres")]
     Concatenate,
+    #[cfg(feature = "backend-postgres")]
+    Similarity,
+    #[cfg(feature = "backend-postgres")]
+    WordSimilarity,
+    #[cfg(feature = "backend-postgres")]
+    StrictWordSimilarity,
+    #[cfg(feature = "backend-postgres")]
+    SimilarityDistance,
+    #[cfg(feature = "backend-postgres")]
+    WordSimilarityDistance,
+    #[cfg(feature = "backend-postgres")]
+    StrictWordSimilarityDistance,
 }
 
 /// Logical chain operator
