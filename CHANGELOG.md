@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.27.1 - Pending
+## 0.27.1 - 2022-10-18
 
 * Fix consecutive spacing on schema statements https://github.com/SeaQL/sea-query/pull/481
 * SQLite bind `rust_decimal` & `bigdecimal` as f64 https://github.com/SeaQL/sea-query/pull/480
