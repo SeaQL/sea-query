@@ -1555,13 +1555,11 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_in<V, I>(mut self, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::Values(
-            v.into_iter().map(|v| v.into()).collect(),
-        ));
+        self.right = Some(SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()));
         self.into()
     }
 
@@ -1666,13 +1664,11 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_in<V, I>(mut self, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::Values(
-            v.into_iter().map(|v| v.into()).collect(),
-        ));
+        self.right = Some(SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()));
         self.into()
     }
 
@@ -2488,17 +2484,6 @@ impl SimpleExpr {
             self,
             Self::Binary(_, BinOper::Between, _) | Self::Binary(_, BinOper::NotBetween, _)
         )
-    }
-
-    pub(crate) fn is_values(&self) -> bool {
-        matches!(self, Self::Values(_))
-    }
-
-    pub(crate) fn get_values(&self) -> &Vec<Value> {
-        match self {
-            Self::Values(vec) => vec,
-            _ => panic!("not Values"),
-        }
     }
 
     pub(crate) fn get_bin_oper(&self) -> Option<BinOper> {
