@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.28.0 - Pending
+
+### Breaking changes
+
+* `ColumnType::Array` definition changed from `Array(SeaRc<Box<ColumnType>>)` to `Array(SeaRc<ColumnType>)`
+
 ## 0.27.1 - 2022-10-18
 
 * Fix consecutive spacing on schema statements https://github.com/SeaQL/sea-query/pull/481
