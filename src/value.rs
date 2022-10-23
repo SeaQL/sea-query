@@ -762,7 +762,7 @@ mod with_array {
 
         fn column_type() -> ColumnType {
             use ColumnType::*;
-            Array(SeaRc::new(Box::new(T::column_type())))
+            Array(SeaRc::new(T::column_type()))
         }
     }
 }

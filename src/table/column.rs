@@ -48,7 +48,7 @@ pub enum ColumnType {
         name: DynIden,
         variants: Vec<DynIden>,
     },
-    Array(SeaRc<Box<ColumnType>>),
+    Array(SeaRc<ColumnType>),
     Cidr,
     Inet,
     MacAddr,
@@ -554,7 +554,7 @@ impl ColumnDef {
     /// Set column type as an array with a specified element type.
     /// This is only supported on Postgres.
     pub fn array(&mut self, elem_type: ColumnType) -> &mut Self {
-        self.types = Some(ColumnType::Array(SeaRc::new(Box::new(elem_type))));
+        self.types = Some(ColumnType::Array(SeaRc::new(elem_type)));
         self
     }
 
