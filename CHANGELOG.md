@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `RAND` function https://github.com/SeaQL/sea-query/pull/430
 * Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
 * Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
+* Added `OnConflict::value` and `OnConflict::values` https://github.com/SeaQL/sea-query/issues/451
 * `ColumnDef::default` now accepts both `Value` and `SimpleExpr` https://github.com/SeaQL/sea-query/pull/436
 * `OrderedStatement::order_by_customs`, `OrderedStatement::order_by_columns`, `OverStatement::partition_by_customs`, `OverStatement::partition_by_columns` now accepts `IntoIterator<Item = T>` instead of `Vec<T>` https://github.com/SeaQL/sea-query/pull/448
 * `Expr::case`, `CaseStatement::case` and `CaseStatement::finally` now accepts `Into<SimpleExpr>` instead of `Into<Expr>` https://github.com/SeaQL/sea-query/pull/460
