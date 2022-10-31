@@ -317,6 +317,25 @@ fn create_with_unique_index_constraint() {
 }
 
 #[test]
+fn create_strict() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(ColumnDef::new(Task::Id).integer())
+            .col(ColumnDef::new(Task::IsDone).boolean())
+            .strict()
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "task" ("#,
+            r#""id" integer,"#,
+            r#""is_done" boolean"#,
+            r#") STRICT"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()

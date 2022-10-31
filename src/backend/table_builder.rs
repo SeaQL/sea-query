@@ -101,6 +101,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
                 TableOpt::Engine(s) => format!("ENGINE={}", s),
                 TableOpt::Collate(s) => format!("COLLATE={}", s),
                 TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={}", s),
+                TableOpt::Strict => "STRICT".to_string(),
             }
         )
         .unwrap()
