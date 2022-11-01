@@ -78,12 +78,35 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct TableCreateStatement {
     pub(crate) table: Option<TableRef>,
+    pub(crate) modifier: Option<TableModifier>,
     pub(crate) columns: Vec<ColumnDef>,
     pub(crate) options: Vec<TableOpt>,
     pub(crate) partitions: Vec<TablePartition>,
     pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct TableModifier {
+    pub(crate) virtual_table: Option<String>,
+}
+
+impl TableModifier {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn virtual_table(&mut self, extension: impl Into<String>) -> &mut Self {
+        self.virtual_table = Some(extension.into());
+        self
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            virtual_table: self.virtual_table.take(),
+        }
+    }
 }
 
 /// All available table options
@@ -109,6 +132,7 @@ impl TableCreateStatement {
     pub fn new() -> Self {
         Self {
             table: None,
+            modifier: None,
             columns: Vec::new(),
             options: Vec::new(),
             partitions: Vec::new(),
@@ -121,6 +145,11 @@ impl TableCreateStatement {
     /// Create table if table not exists
     pub fn if_not_exists(&mut self) -> &mut Self {
         self.if_not_exists = true;
+        self
+    }
+
+    pub fn modifier(&mut self, modifier: TableModifier) -> &mut Self {
+        self.modifier = Some(modifier);
         self
     }
 
@@ -276,6 +305,7 @@ impl TableCreateStatement {
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
+            modifier: self.modifier.take(),
             columns: std::mem::take(&mut self.columns),
             options: std::mem::take(&mut self.options),
             partitions: std::mem::take(&mut self.partitions),

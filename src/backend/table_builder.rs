@@ -7,7 +7,17 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
         create: &TableCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE TABLE ").unwrap();
+        if let Some(modifier) = create.modifier.as_ref() {
+            write!(sql, "CREATE ").unwrap();
+
+            if modifier.virtual_table.is_some() {
+                write!(sql, "VIRTUAL ").unwrap();
+            }
+
+            write!(sql, "TABLE ").unwrap();
+        } else {
+            write!(sql, "CREATE TABLE ").unwrap();
+        }
 
         if create.if_not_exists {
             write!(sql, "IF NOT EXISTS ").unwrap();
@@ -15,6 +25,15 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
 
         if let Some(table_ref) = &create.table {
             self.prepare_table_ref_table_stmt(table_ref, sql);
+        }
+
+        if let Some(virtual_table_extension) = create
+            .modifier
+            .as_ref()
+            .map(|modifier| modifier.virtual_table.as_ref())
+            .flatten()
+        {
+            write!(sql, " USING {}", virtual_table_extension).unwrap();
         }
 
         write!(sql, " ( ").unwrap();

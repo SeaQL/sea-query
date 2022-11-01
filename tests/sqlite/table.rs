@@ -317,6 +317,23 @@ fn create_with_unique_index_constraint() {
 }
 
 #[test]
+fn create_virtual_table() {
+    assert_eq!(
+        Table::create()
+            .table(Font::Table)
+            .if_not_exists()
+            .modifier(TableModifier::new().virtual_table("fts5").take())
+            .col(ColumnDef::new(Font::Name).text().not_null())
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE VIRTUAL TABLE IF NOT EXISTS "font" USING fts5 ("#,
+            r#""name" text NOT NULL"#,
+            r#")"#,
+        ].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
