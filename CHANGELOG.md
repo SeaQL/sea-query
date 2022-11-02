@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * New struct `FunctionCall` which hold function and arguments
 * Added `SelectStatement::from_function`
+* Added binary operators from the Postgres `pg_trgm` extension
 
 ### Breaking changes
 
