@@ -7,9 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.28.0 - Pending
 
+### New Features
+
+* New struct `FunctionCall` which hold function and arguments
+* Added `SelectStatement::from_function`
+
 ### Breaking changes
 
-* `ColumnType::Array` definition changed from `Array(SeaRc<Box<ColumnType>>)` to `Array(SeaRc<ColumnType>)`
+* `ColumnType::Array` definition changed from `Array(SeaRc<Box<ColumnType>>)` to `Array(SeaRc<ColumnType>)` https://github.com/SeaQL/sea-query/pull/492
+* `Func::*` now returns `FunctionCall` insted `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
+* `Func::coalesce` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Into<SimpleExpr>` https://github.com/SeaQL/sea-query/pull/475
+* Removed `Expr::arg` and `Expr::args` - these functions are no longer needed https://github.com/SeaQL/sea-query/pull/475
+* 
+
+### Enhancements
+
+* `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 
 ## 0.27.1 - 2022-10-18
 
