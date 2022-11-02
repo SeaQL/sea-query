@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, query::*, ValueTuple, Values};
+use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
 use std::fmt;
 
 #[cfg(not(feature = "thread-safe"))]
@@ -91,6 +91,8 @@ pub enum TableRef {
     SubQuery(SelectStatement, DynIden),
     /// Values list with alias
     ValuesList(Vec<ValueTuple>, DynIden),
+    /// Function call with alias
+    FunctionCall(FunctionCall, DynIden),
 }
 
 pub trait IntoTableRef {
@@ -374,6 +376,7 @@ impl TableRef {
             }
             Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
             Self::ValuesList(values, _) => Self::ValuesList(values, alias.into_iden()),
+            Self::FunctionCall(func, _) => Self::FunctionCall(func, alias.into_iden()),
         }
     }
 }

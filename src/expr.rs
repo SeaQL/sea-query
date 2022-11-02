@@ -13,8 +13,6 @@ pub struct Expr {
     pub(crate) right: Option<SimpleExpr>,
     pub(crate) uopr: Option<UnOper>,
     pub(crate) bopr: Option<BinOper>,
-    pub(crate) func: Option<Function>,
-    pub(crate) args: Vec<SimpleExpr>,
 }
 
 /// Represents a Simple Expression in SQL.
@@ -26,7 +24,7 @@ pub enum SimpleExpr {
     Column(ColumnRef),
     Tuple(Vec<SimpleExpr>),
     Unary(UnOper, Box<SimpleExpr>),
-    FunctionCall(Function, Vec<SimpleExpr>),
+    FunctionCall(FunctionCall),
     Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
     SubQuery(Option<SubQueryOper>, Box<SubQueryStatement>),
     Value(Value),
@@ -40,18 +38,12 @@ pub enum SimpleExpr {
 }
 
 impl Expr {
-    pub(crate) fn new() -> Self {
-        Self::default()
-    }
-
     fn new_with_left(left: SimpleExpr) -> Self {
         Self {
             left: Some(left),
             right: None,
             uopr: None,
             bopr: None,
-            func: None,
-            args: Vec::new(),
         }
     }
 
@@ -352,8 +344,11 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::self_named_constructors)]
-    pub fn expr(expr: SimpleExpr) -> Self {
-        Self::new_with_left(expr)
+    pub fn expr<T>(expr: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        Self::new_with_left(expr.into())
     }
 
     /// Express a [`Value`], returning a [`SimpleExpr`].
@@ -1490,7 +1485,7 @@ impl Expr {
     /// ```
     pub fn max(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Self::func_with_args(Function::Max, vec![left.unwrap()])
+        Func::max(left.unwrap()).into()
     }
 
     /// Express a `MIN` function.
@@ -1520,7 +1515,7 @@ impl Expr {
     /// ```
     pub fn min(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Self::func_with_args(Function::Min, vec![left.unwrap()])
+        Func::min(left.unwrap()).into()
     }
 
     /// Express a `SUM` function.
@@ -1550,7 +1545,7 @@ impl Expr {
     /// ```
     pub fn sum(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Self::func_with_args(Function::Sum, vec![left.unwrap()])
+        Func::sum(left.unwrap()).into()
     }
 
     /// Express a `COUNT` function.
@@ -1580,7 +1575,7 @@ impl Expr {
     /// ```
     pub fn count(mut self) -> SimpleExpr {
         let left = self.left.take();
-        Self::func_with_args(Function::Count, vec![left.unwrap()])
+        Func::count(left.unwrap()).into()
     }
 
     /// Express a `IF NULL` function.
@@ -1610,13 +1605,10 @@ impl Expr {
     /// ```
     pub fn if_null<V>(mut self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
         let left = self.left.take();
-        Self::func_with_args(
-            Function::IfNull,
-            vec![left.unwrap(), SimpleExpr::Value(v.into())],
-        )
+        Func::if_null(left.unwrap(), v).into()
     }
 
     /// Express a `IN` expression.
@@ -2091,29 +2083,6 @@ impl Expr {
         self.concatenate(expr)
     }
 
-    pub(crate) fn func(func: Function) -> Self {
-        let mut expr = Expr::new();
-        expr.func = Some(func);
-        expr
-    }
-
-    pub fn arg<T>(mut self, arg: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.args = vec![arg.into()];
-        self.into()
-    }
-
-    pub fn args<T, I>(mut self, args: I) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-        I: IntoIterator<Item = T>,
-    {
-        self.args = args.into_iter().map(|v| v.into()).collect();
-        self.into()
-    }
-
     /// Express a `AS enum` expression.
     ///
     /// # Examples
@@ -2163,13 +2132,6 @@ impl Expr {
         T: IntoIden,
     {
         SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
-    }
-
-    fn func_with_args(func: Function, args: Vec<SimpleExpr>) -> SimpleExpr {
-        let mut expr = Expr::new();
-        expr.func = Some(func);
-        expr.args = args;
-        expr.into()
     }
 
     fn un_oper(mut self, o: UnOper) -> SimpleExpr {
@@ -2304,19 +2266,11 @@ impl From<Expr> for SimpleExpr {
                 bopr,
                 Box::new(src.right.unwrap()),
             )
-        } else if let Some(func) = src.func {
-            SimpleExpr::FunctionCall(func, src.args)
         } else if let Some(left) = src.left {
             left
         } else {
             panic!("incomplete expression")
         }
-    }
-}
-
-impl From<Expr> for SelectExpr {
-    fn from(src: Expr) -> Self {
-        src.into_simple_expr().into()
     }
 }
 
@@ -2326,6 +2280,12 @@ where
 {
     fn from(v: T) -> Self {
         SimpleExpr::Value(v.into())
+    }
+}
+
+impl From<FunctionCall> for SimpleExpr {
+    fn from(func: FunctionCall) -> Self {
+        SimpleExpr::FunctionCall(func)
     }
 }
 
@@ -2676,12 +2636,7 @@ impl SimpleExpr {
     where
         T: IntoIden,
     {
-        Self::FunctionCall(
-            Function::Cast,
-            vec![self.binary(
-                BinOper::As,
-                Expr::cust(type_name.into_iden().to_string().as_str()),
-            )],
-        )
+        let func = Func::cast_as(self, type_name);
+        Self::FunctionCall(func)
     }
 }
