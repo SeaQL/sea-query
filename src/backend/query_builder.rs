@@ -809,6 +809,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 JoinType::InnerJoin => "INNER JOIN",
                 JoinType::LeftJoin => "LEFT JOIN",
                 JoinType::RightJoin => "RIGHT JOIN",
+                JoinType::FullOuterJoin => "FULL OUTER JOIN",
             }
         )
         .unwrap()
