@@ -1247,8 +1247,44 @@ impl Expr {
         self.like_like(BinOper::Like, like.into_like_expr())
     }
 
+    /// Express a `NOT LIKE` expression
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
         self.like_like(BinOper::NotLike, like.into_like_expr())
+    }
+
+    /// Express a `LIKE` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::Character).ilike("Ours'%"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" ILIKE E'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
+    /// );
+    /// ```
+    pub fn ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
+        self.like_like(BinOper::ILike, like.into_like_expr())
+    }
+
+    /// Express a `NOT ILIKE` expression
+    pub fn not_ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
+        self.like_like(BinOper::NotILike, like.into_like_expr())
     }
 
     fn like_like(self, op: BinOper, like: LikeExpr) -> SimpleExpr {

@@ -112,6 +112,8 @@ pub enum BinOper {
     Or,
     Like,
     NotLike,
+    ILike,
+    NotILike,
     Is,
     IsNot,
     In,

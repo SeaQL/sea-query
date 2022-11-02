@@ -37,6 +37,8 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
         match bin_oper {
+            BinOper::ILike => write!(sql, "ILIKE").unwrap(),
+            BinOper::NotLike => write!(sql, "NOT ILIKE").unwrap(),
             BinOper::Matches => write!(sql, "@@").unwrap(),
             BinOper::Contains => write!(sql, "@>").unwrap(),
             BinOper::Contained => write!(sql, "<@").unwrap(),
