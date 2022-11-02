@@ -41,6 +41,12 @@ impl QueryBuilder for PostgresQueryBuilder {
             BinOper::Contains => write!(sql, "@>").unwrap(),
             BinOper::Contained => write!(sql, "<@").unwrap(),
             BinOper::Concatenate => write!(sql, "||").unwrap(),
+            BinOper::Similarity => write!(sql, "%").unwrap(),
+            BinOper::WordSimilarity => write!(sql, "<%").unwrap(),
+            BinOper::StrictWordSimilarity => write!(sql, "<<%").unwrap(),
+            BinOper::SimilarityDistance => write!(sql, "<->").unwrap(),
+            BinOper::WordSimilarityDistance => write!(sql, "<<->").unwrap(),
+            BinOper::StrictWordSimilarityDistance => write!(sql, "<<<->").unwrap(),
             _ => self.prepare_bin_oper_common(bin_oper, sql),
         }
     }
