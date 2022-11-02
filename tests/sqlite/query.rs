@@ -1459,3 +1459,30 @@ fn delete_returning_specific_exprs() {
         r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id", "image""#
     );
 }
+
+#[test]
+fn union_1() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .union(
+                UnionType::Distinct,
+                Query::select()
+                    .column(Char::Character)
+                    .from(Char::Table)
+                    .left_join(
+                        Font::Table,
+                        Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                    )
+                    .order_by((Font::Table, Font::Id), Order::Asc)
+                    .take()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"SELECT "character" FROM "character" UNION (SELECT "character" FROM "character""#,
+            r#"LEFT JOIN "font" ON "character"."font_id" = "font"."id" ORDER BY "font"."id" ASC)"#
+        ]
+        .join(" ")
+    );
+}
