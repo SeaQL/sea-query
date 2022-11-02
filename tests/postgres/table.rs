@@ -109,7 +109,7 @@ fn create_4() {
             .table(Glyph::Table)
             .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
             .to_string(PostgresQueryBuilder),
-        [r#"CREATE TABLE "glyph" ("#, r#""image" aspect"#, r#")"#,].join(" ")
+        r#"CREATE TABLE "glyph" ( "image" aspect )"#
     );
 }
 
@@ -457,6 +457,31 @@ fn alter_8() {
         [
             r#"ALTER TABLE "font""#,
             r#"ALTER COLUMN "language" DROP NOT NULL"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn alter_9() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .modify_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .unique_key()
+                    .primary_key()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ALTER COLUMN "aspect" TYPE serial,"#,
+            r#"ALTER COLUMN "aspect" SET NOT NULL,"#,
+            r#"ADD UNIQUE ("aspect"),"#,
+            r#"ADD PRIMARY KEY ("aspect")"#,
         ]
         .join(" ")
     );

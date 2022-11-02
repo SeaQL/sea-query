@@ -94,12 +94,18 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     args.add(uuid.map(|uuid| *uuid));
                 }
                 #[cfg(feature = "with-rust_decimal")]
-                Value::Decimal(_) => {
-                    panic!("Sqlite doesn't support decimal arguments");
+                Value::Decimal(decimal) => {
+                    use rust_decimal::prelude::ToPrimitive;
+                    args.add(
+                        decimal.map(|d| d.to_f64().expect("Fail to convert rust_decimal as f64")),
+                    );
                 }
                 #[cfg(feature = "with-bigdecimal")]
-                Value::BigDecimal(_) => {
-                    panic!("Sqlite doesn't support bigdecimal arguments");
+                Value::BigDecimal(big_decimal) => {
+                    use bigdecimal::ToPrimitive;
+                    args.add(
+                        big_decimal.map(|d| d.to_f64().expect("Fail to convert bigdecimal as f64")),
+                    );
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
@@ -114,7 +120,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     panic!("Sqlite doesn't support MacAddress arguments");
                 }
                 #[cfg(feature = "postgres-array")]
-                Value::Array(_) => {
+                Value::Array(_, _) => {
                     panic!("Sqlite doesn't support array arguments");
                 }
             }

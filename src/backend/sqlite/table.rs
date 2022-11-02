@@ -116,6 +116,9 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Cidr => unimplemented!("Cidr is not available in Sqlite."),
                 ColumnType::Inet => unimplemented!("Inet is not available in Sqlite."),
                 ColumnType::MacAddr => unimplemented!("MacAddr is not available in Sqlite."),
+                ColumnType::Year(_) => unimplemented!("Year is not available in Sqlite."),
+                ColumnType::Bit(_) => unimplemented!("Bit is not available in Sqlite."),
+                ColumnType::VarBit(_) => unimplemented!("VarBit is not available in Sqlite."),
             }
         )
         .unwrap()

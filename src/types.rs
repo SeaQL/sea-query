@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, query::*, ValueTuple, Values};
+use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
 use std::fmt;
 
 #[cfg(not(feature = "thread-safe"))]
@@ -23,9 +23,9 @@ macro_rules! iden_trait {
             }
 
             fn to_string(&self) -> String {
-                let s = &mut String::new();
-                self.unquoted(s);
-                s.to_owned()
+                let mut s = String::new();
+                self.unquoted(&mut s);
+                s
             }
 
             fn unquoted(&self, s: &mut dyn fmt::Write);
@@ -91,6 +91,8 @@ pub enum TableRef {
     SubQuery(SelectStatement, DynIden),
     /// Values list with alias
     ValuesList(Vec<ValueTuple>, DynIden),
+    /// Function call with alias
+    FunctionCall(FunctionCall, DynIden),
 }
 
 pub trait IntoTableRef {
@@ -141,6 +143,18 @@ pub enum BinOper {
     Contained,
     #[cfg(feature = "backend-postgres")]
     Concatenate,
+    #[cfg(feature = "backend-postgres")]
+    Similarity,
+    #[cfg(feature = "backend-postgres")]
+    WordSimilarity,
+    #[cfg(feature = "backend-postgres")]
+    StrictWordSimilarity,
+    #[cfg(feature = "backend-postgres")]
+    SimilarityDistance,
+    #[cfg(feature = "backend-postgres")]
+    WordSimilarityDistance,
+    #[cfg(feature = "backend-postgres")]
+    StrictWordSimilarityDistance,
 }
 
 /// Logical chain operator
@@ -355,7 +369,7 @@ where
 
 impl TableRef {
     /// Add or replace the current alias
-    pub fn alias<A: 'static>(self, alias: A) -> Self
+    pub fn alias<A>(self, alias: A) -> Self
     where
         A: IntoIden,
     {
@@ -376,6 +390,7 @@ impl TableRef {
             }
             Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
             Self::ValuesList(values, _) => Self::ValuesList(values, alias.into_iden()),
+            Self::FunctionCall(func, _) => Self::FunctionCall(func, alias.into_iden()),
         }
     }
 }

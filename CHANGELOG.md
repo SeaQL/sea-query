@@ -5,7 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.27.0 - Pending
+## 0.28.0 - Pending
+
+### New Features
+
+* New struct `FunctionCall` which hold function and arguments
+* Added `SelectStatement::from_function`
+* Added binary operators from the Postgres `pg_trgm` extension
+
+### Breaking changes
+
+* `ColumnType::Array` definition changed from `Array(SeaRc<Box<ColumnType>>)` to `Array(SeaRc<ColumnType>)` https://github.com/SeaQL/sea-query/pull/492
+* `Func::*` now returns `FunctionCall` insted `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
+* `Func::coalesce` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Into<SimpleExpr>` https://github.com/SeaQL/sea-query/pull/475
+* Removed `Expr::arg` and `Expr::args` - these functions are no longer needed https://github.com/SeaQL/sea-query/pull/475
+
+### Enhancements
+
+* `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
+
+## 0.27.1 - 2022-10-18
+
+* Fix consecutive spacing on schema statements https://github.com/SeaQL/sea-query/pull/481
+* SQLite bind `rust_decimal` & `bigdecimal` as f64 https://github.com/SeaQL/sea-query/pull/480
+
+## 0.27.0 - 2022-10-16
 
 ### New Features
 
@@ -19,6 +43,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added sub-query operators: `EXISTS`, `ALL`, `ANY`, `SOME` https://github.com/SeaQL/sea-query/pull/379
 * Added support to `ON CONFLICT WHERE` https://github.com/SeaQL/sea-query/pull/447
 * Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455
+* Added `YEAR`, `BIT` and `VARBIT` types https://github.com/SeaQL/sea-query/pull/466
+* Added support one dimension Postgres array for SQLx https://github.com/SeaQL/sea-query/pull/467
 
 ### Enhancements
 
@@ -27,19 +53,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `RAND` function https://github.com/SeaQL/sea-query/pull/430
 * Implements `Display` for `Value` https://github.com/SeaQL/sea-query/pull/425
 * Added `INTERSECT` and `EXCEPT` to `UnionType` https://github.com/SeaQL/sea-query/pull/438
+* Added `OnConflict::value` and `OnConflict::values` https://github.com/SeaQL/sea-query/issues/451
 * `ColumnDef::default` now accepts both `Value` and `SimpleExpr` https://github.com/SeaQL/sea-query/pull/436
 * `OrderedStatement::order_by_customs`, `OrderedStatement::order_by_columns`, `OverStatement::partition_by_customs`, `OverStatement::partition_by_columns` now accepts `IntoIterator<Item = T>` instead of `Vec<T>` https://github.com/SeaQL/sea-query/pull/448
 * `Expr::case`, `CaseStatement::case` and `CaseStatement::finally` now accepts `Into<SimpleExpr>` instead of `Into<Expr>` https://github.com/SeaQL/sea-query/pull/460
 * `UpdateStatement::value` now accept `Into<SimpleExpr>` instead of `Into<Value>` https://github.com/SeaQL/sea-query/pull/460
+* `TableAlterStatement::rename_column`, `TableAlterStatement::drop_column`, `ColumnDef::new`, `ColumnDef::new_with_type` now accepts `IntoIden` instead of `Iden` https://github.com/SeaQL/sea-query/pull/472
 
 ### Bug Fixes
 
 * `distinct_on` properly handles `ColumnRef` https://github.com/SeaQL/sea-query/pull/450
 * Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
+* Change datetime string format to include microseconds https://github.com/SeaQL/sea-query/pull/468
+* `ALTER TABLE` for PosgreSQL with `UNIQUE` constraint https://github.com/SeaQL/sea-query/pull/472
 
 ### Breaking changes
 
-* Removed `join_alias`
 * Changed `in_tuples` interface to accept `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/386
 * Removed deprecated methods (`or_where`, `or_having`, `table_column` etc) https://github.com/SeaQL/sea-query/pull/380
 * **Changed `cond_where` chaining semantics** https://github.com/SeaQL/sea-query/pull/417
@@ -90,7 +119,6 @@ Enum {
     variants: Vec<DynIden>,
 }
 ```
-* Deprecated `OnConflict::update_value` / `OnConflict::update_values`; we can now use `OnConflict::update_expr` / `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/448
 * Deprecated `InsertStatement::exprs`, `InsertStatement::exprs_panic`, `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr`, `UpdateStatement::exprs` https://github.com/SeaQL/sea-query/pull/460
 * `InsertStatement::values`, `UpdateStatement::values` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Value>` https://github.com/SeaQL/sea-query/pull/460
 * Use native api from SQLx for SQLite to work with `time` https://github.com/SeaQL/sea-query/pull/412
@@ -104,6 +132,17 @@ Enum {
 ### Upgrades
 
 * Upgrade `sqlx` driver to 0.6.1
+
+## 0.26.4 - 2022-10-13
+
+### New Features
+
+* Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455 
+
+### Bug Fixes
+
+* Removed `ON` for `DROP INDEX` for SQLite https://github.com/SeaQL/sea-query/pull/462
+* Changed datetime display format to include microseconds https://github.com/SeaQL/sea-query/pull/468
 
 ## 0.26.3 - 2022-08-18
 

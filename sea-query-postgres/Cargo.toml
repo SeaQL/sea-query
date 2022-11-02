@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-postgres"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2021"
 description = "Binder traits for connecting sea-query with postgres driver"
@@ -17,7 +17,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "^0", path = ".." }
+sea-query = { version = "^0.28", path = ".." }
 postgres-types = { version = "^0.2" }
 bytes = { version = "^1" }
 rust_decimal = { version = "^1", optional = true }

@@ -106,7 +106,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::mysql::MySql> for SqlxValues {
                     args.add(j.as_deref());
                 }
                 #[cfg(feature = "postgres-array")]
-                Value::Array(_) => {
+                Value::Array(_, _) => {
                     panic!("Mysql doesn't support array arguments");
                 }
                 #[cfg(feature = "with-ipnetwork")]

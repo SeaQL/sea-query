@@ -171,7 +171,7 @@ impl IndexCreateStatement {
     }
 
     /// Set target table
-    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
+    pub fn table<T>(&mut self, table: T) -> &mut Self
     where
         T: IntoTableRef,
     {
@@ -180,7 +180,7 @@ impl IndexCreateStatement {
     }
 
     /// Add index column
-    pub fn col<C: 'static>(&mut self, col: C) -> &mut Self
+    pub fn col<C>(&mut self, col: C) -> &mut Self
     where
         C: IntoIndexColumn,
     {
