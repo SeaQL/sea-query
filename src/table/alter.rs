@@ -70,7 +70,7 @@ impl TableAlterStatement {
     }
 
     /// Set table name
-    pub fn table<T: 'static>(&mut self, table: T) -> &mut Self
+    pub fn table<T>(&mut self, table: T) -> &mut Self
     where
         T: IntoTableRef,
     {
@@ -216,14 +216,14 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     /// );
     /// ```
-    pub fn rename_column<T: 'static, R: 'static>(&mut self, from_name: T, to_name: R) -> &mut Self
+    pub fn rename_column<T, R>(&mut self, from_name: T, to_name: R) -> &mut Self
     where
-        T: Iden,
-        R: Iden,
+        T: IntoIden,
+        R: IntoIden,
     {
         self.add_alter_option(TableAlterOption::RenameColumn(
-            SeaRc::new(from_name),
-            SeaRc::new(to_name),
+            from_name.into_iden(),
+            to_name.into_iden(),
         ))
     }
 
@@ -252,11 +252,11 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE "font" DROP COLUMN "new_column""#
     /// );
     /// ```
-    pub fn drop_column<T: 'static>(&mut self, col_name: T) -> &mut Self
+    pub fn drop_column<T>(&mut self, col_name: T) -> &mut Self
     where
-        T: Iden,
+        T: IntoIden,
     {
-        self.add_alter_option(TableAlterOption::DropColumn(SeaRc::new(col_name)))
+        self.add_alter_option(TableAlterOption::DropColumn(col_name.into_iden()))
     }
 
     /// Add a foreign key to existing table

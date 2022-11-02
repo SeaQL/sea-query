@@ -18,10 +18,7 @@ use crate::{
 ///
 /// let query = Query::update()
 ///     .table(Glyph::Table)
-///     .values([
-///         (Glyph::Aspect, 1.23.into()),
-///         (Glyph::Image, "123".into()),
-///     ])
+///     .values([(Glyph::Aspect, 1.23.into()), (Glyph::Image, "123".into())])
 ///     .and_where(Expr::col(Glyph::Id).eq(1))
 ///     .to_owned();
 ///

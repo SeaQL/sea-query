@@ -51,10 +51,10 @@
 //!
 //! Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 //!
-//! SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
+//! SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 //!
 //! Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
-//! `postgres-array`
+//! `with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`
 //!
 //! ## Usage
 //!
@@ -401,10 +401,7 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::update()
 //!     .table(Glyph::Table)
-//!     .values([
-//!         (Glyph::Aspect, 1.23.into()),
-//!         (Glyph::Image, "123".into()),
-//!     ])
+//!     .values([(Glyph::Aspect, 1.23.into()), (Glyph::Image, "123".into())])
 //!     .and_where(Expr::col(Glyph::Id).eq(1))
 //!     .to_owned();
 //!

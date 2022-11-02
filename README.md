@@ -48,10 +48,10 @@ Macro: `derive` `attr`
 
 Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
-SQL dialect: `backend-mysql`, `backend-postgres`, `backend-sqlite`
+SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
 Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
-`postgres-array`
+`with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`
 
 ## Usage
 
@@ -331,7 +331,7 @@ let query = Query::select()
     .column((Font::Table, Font::Name))
     .from(Char::Table)
     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-    .and_where(Expr::col(Char::SizeW).is_in(vec![3, 4]))
+    .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
     .and_where(Expr::col(Char::Character).like("A%"))
     .to_owned();
 
@@ -355,8 +355,8 @@ assert_eq!(
 let query = Query::insert()
     .into_table(Glyph::Table)
     .columns([Glyph::Aspect, Glyph::Image])
-    .values_panic(vec![5.15.into(), "12A".into()])
-    .values_panic(vec![4.21.into(), "123".into()])
+    .values_panic([5.15.into(), "12A".into()])
+    .values_panic([4.21.into(), "123".into()])
     .to_owned();
 
 assert_eq!(
@@ -378,7 +378,7 @@ assert_eq!(
 ```rust
 let query = Query::update()
     .table(Glyph::Table)
-    .values(vec![
+    .values([
         (Glyph::Aspect, 1.23.into()),
         (Glyph::Image, "123".into()),
     ])
@@ -449,7 +449,7 @@ let table = Table::create()
 
 assert_eq!(
     table.to_string(MysqlQueryBuilder),
-    vec![
+    [
         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
             r#"`font_size` int NOT NULL,"#,
@@ -465,7 +465,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(PostgresQueryBuilder),
-    vec![
+    [
         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" serial NOT NULL PRIMARY KEY,"#,
             r#""font_size" integer NOT NULL,"#,
@@ -481,7 +481,7 @@ assert_eq!(
 );
 assert_eq!(
     table.to_string(SqliteQueryBuilder),
-    vec![
+    [
        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
            r#""font_size" integer NOT NULL,"#,
@@ -597,7 +597,7 @@ let foreign_key = ForeignKey::create()
 
 assert_eq!(
     foreign_key.to_string(MysqlQueryBuilder),
-    vec![
+    [
         r#"ALTER TABLE `character`"#,
         r#"ADD CONSTRAINT `FK_character_font`"#,
         r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
@@ -607,7 +607,7 @@ assert_eq!(
 );
 assert_eq!(
     foreign_key.to_string(PostgresQueryBuilder),
-    vec![
+    [
         r#"ALTER TABLE "character" ADD CONSTRAINT "FK_character_font""#,
         r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
         r#"ON DELETE CASCADE ON UPDATE CASCADE"#,

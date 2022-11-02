@@ -184,16 +184,12 @@ impl TypeCreateStatement {
     /// assert_eq!(
     ///     Type::create()
     ///         .as_enum(FontFamily::Type)
-    ///         .values([
-    ///             FontFamily::Serif,
-    ///             FontFamily::Sans,
-    ///             FontFamily::Monospace
-    ///         ])
+    ///         .values([FontFamily::Serif, FontFamily::Sans, FontFamily::Monospace])
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"CREATE TYPE "font_family" AS ENUM ('serif', 'sans', 'monospace')"#
     /// );
     /// ```
-    pub fn as_enum<T: 'static>(&mut self, name: T) -> &mut Self
+    pub fn as_enum<T>(&mut self, name: T) -> &mut Self
     where
         T: IntoTypeRef,
     {

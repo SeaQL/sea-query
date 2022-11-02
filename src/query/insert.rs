@@ -176,7 +176,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values([
     ///         2.into(),
-    ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")),
+    ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")).into(),
     ///     ])
     ///     .unwrap()
     ///     .to_owned();
@@ -198,10 +198,7 @@ impl InsertStatement {
     where
         I: IntoIterator<Item = SimpleExpr>,
     {
-        let values = values
-            .into_iter()
-            .map(|v| v.into())
-            .collect::<Vec<SimpleExpr>>();
+        let values = values.into_iter().collect::<Vec<SimpleExpr>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),

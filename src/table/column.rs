@@ -32,9 +32,12 @@ pub enum ColumnType {
     TimestampWithTimeZone(Option<u32>),
     Time(Option<u32>),
     Date,
+    Year(Option<MySqlYear>),
     Interval(Option<PgInterval>, Option<u32>),
     Binary(BlobSize),
     VarBinary(u32),
+    Bit(Option<u32>),
+    VarBit(u32),
     Boolean,
     Money(Option<(u32, u32)>),
     Json,
@@ -45,7 +48,7 @@ pub enum ColumnType {
         name: DynIden,
         variants: Vec<DynIden>,
     },
-    Array(Option<String>),
+    Array(SeaRc<ColumnType>),
     Cidr,
     Inet,
     MacAddr,
@@ -64,7 +67,7 @@ pub enum ColumnSpec {
 }
 
 // All interval fields
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum PgInterval {
     Year,
     Month,
@@ -79,6 +82,13 @@ pub enum PgInterval {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
+}
+
+// All MySQL year type field length sizes
+#[derive(Debug, Clone)]
+pub enum MySqlYear {
+    Two,
+    Four,
 }
 
 #[derive(Debug, Clone)]
@@ -114,26 +124,26 @@ impl quote::ToTokens for PgInterval {
 
 impl ColumnDef {
     /// Construct a table column
-    pub fn new<T: 'static>(name: T) -> Self
+    pub fn new<T>(name: T) -> Self
     where
-        T: Iden,
+        T: IntoIden,
     {
         Self {
             table: None,
-            name: SeaRc::new(name),
+            name: name.into_iden(),
             types: None,
             spec: Vec::new(),
         }
     }
 
     /// Construct a table column with column type
-    pub fn new_with_type<T: 'static>(name: T, types: ColumnType) -> Self
+    pub fn new_with_type<T>(name: T, types: ColumnType) -> Self
     where
-        T: Iden,
+        T: IntoIden,
     {
         Self {
             table: None,
-            name: SeaRc::new(name),
+            name: name.into_iden(),
             types: Some(types),
             spec: Vec::new(),
         }
@@ -439,6 +449,13 @@ impl ColumnDef {
         self
     }
 
+    /// Set column type as year
+    /// Only MySQL supports year
+    pub fn year(&mut self, length: Option<MySqlYear>) -> &mut Self {
+        self.types = Some(ColumnType::Year(length));
+        self
+    }
+
     /// Set column type as binary with custom length
     pub fn binary_len(&mut self, length: u32) -> &mut Self {
         self.types = Some(ColumnType::Binary(BlobSize::Blob(Some(length))));
@@ -460,6 +477,18 @@ impl ColumnDef {
     /// Set column type as binary with variable length
     pub fn var_binary(&mut self, length: u32) -> &mut Self {
         self.types = Some(ColumnType::VarBinary(length));
+        self
+    }
+
+    /// Set column type as bit with variable length
+    pub fn bit(&mut self, length: Option<u32>) -> &mut Self {
+        self.types = Some(ColumnType::Bit(length));
+        self
+    }
+
+    /// Set column type as varbit with variable length
+    pub fn varbit(&mut self, length: u32) -> &mut Self {
+        self.types = Some(ColumnType::VarBit(length));
         self
     }
 
@@ -524,8 +553,8 @@ impl ColumnDef {
 
     /// Set column type as an array with a specified element type.
     /// This is only supported on Postgres.
-    pub fn array(&mut self, elem_type: String) -> &mut Self {
-        self.types = Some(ColumnType::Array(Some(elem_type)));
+    pub fn array(&mut self, elem_type: ColumnType) -> &mut Self {
+        self.types = Some(ColumnType::Array(SeaRc::new(elem_type)));
         self
     }
 

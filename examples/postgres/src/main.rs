@@ -1,7 +1,8 @@
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
+use postgres::types::IsNull::No;
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, Iden, Order, PostgresQueryBuilder, Query, Table};
+use sea_query::{ColumnDef, ColumnType, Iden, Order, PostgresQueryBuilder, Query, Table};
 use sea_query_postgres::PostgresBinder;
 use time::{
     macros::{date, offset, time},
@@ -34,7 +35,7 @@ fn main() {
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
-            .col(ColumnDef::new(Document::Array).array("integer".into()))
+            .col(ColumnDef::new(Document::Array).array(ColumnType::Integer(None)))
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
