@@ -2,10 +2,16 @@ name: tests
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - .gitignore
   push:
     branches:
       - master
       - pr/**/ci
+    paths-ignore:
+      - '**.md'
+      - .gitignore
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref || github.run_id }}
