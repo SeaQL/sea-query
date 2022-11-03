@@ -8,9 +8,9 @@
     <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
   </p>
 
-  [![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
-  [![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
-  [![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
+[![crate](https://img.shields.io/crates/v/sea-query.svg)](https://crates.io/crates/sea-query)
+[![docs](https://docs.rs/sea-query/badge.svg)](https://docs.rs/sea-query)
+[![build status](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml/badge.svg)](https://github.com/SeaQL/sea-query/actions/workflows/rust.yml)
 
 </div>
 
@@ -59,29 +59,46 @@ Table of Content
 
 1. Basics
 
-    1. [Iden](#iden)
-    1. [Expression](#expression)
-    1. [Condition](#condition)
-    1. [Statement Builders](#statement-builders)
+   1. [Iden](#iden)
+   1. [Expression](#expression)
+   1. [Condition](#condition)
+   1. [Statement Builders](#statement-builders)
 
 1. Query Statement
 
-    1. [Query Select](#query-select)
-    1. [Query Insert](#query-insert)
-    1. [Query Update](#query-update)
-    1. [Query Delete](#query-delete)
+   1. [Query Select](#query-select)
+   1. [Query Insert](#query-insert)
+   1. [Query Update](#query-update)
+   1. [Query Delete](#query-delete)
+
+1. Functions
+
+   1. [Max](#function-max)
+   1. [Min](#function-min)
+   1. [Sum](#function-sum)
+   1. [Avg](#function-avg)
+   1. [Abs](#function-abs)
+   1. [Count](#function-count)
+   1. [IfNull](#function-ifnull)
+   1. [CharLength](#function-charlength)
+   1. [Cast](#function-cast)
+   1. [Custom](#function-custom)
+   1. [Coalesce](#function-coalesce)
+   1. [Lower](#function-lower)
+   1. [Upper](#function-upper)
+   1. [Random](#function-random)
 
 1. Schema Statement
 
-    1. [Table Create](#table-create)
-    1. [Table Alter](#table-alter)
-    1. [Table Drop](#table-drop)
-    1. [Table Rename](#table-rename)
-    1. [Table Truncate](#table-truncate)
-    1. [Foreign Key Create](#foreign-key-create)
-    1. [Foreign Key Drop](#foreign-key-drop)
-    1. [Index Create](#index-create)
-    1. [Index Drop](#index-drop)
+   1. [Table Create](#table-create)
+   1. [Table Alter](#table-alter)
+   1. [Table Drop](#table-drop)
+   1. [Table Rename](#table-rename)
+   1. [Table Truncate](#table-truncate)
+   1. [Foreign Key Create](#foreign-key-create)
+   1. [Foreign Key Drop](#foreign-key-drop)
+   1. [Index Create](#index-create)
+   1. [Index Drop](#index-drop)
 
 ### Motivation
 
@@ -212,7 +229,6 @@ enum CharacterIden {
 assert_eq!(CharacterIden::Table.to_string(), "character");
 assert_eq!(CharacterIden::Foo.to_string(), "foo");
 ```
-
 
 ### Expression
 
@@ -423,6 +439,314 @@ assert_eq!(
     query.to_string(SqliteQueryBuilder),
     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 );
+```
+
+### Function Max
+
+```rust
+let query = Query::select()
+    .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+```
+
+### Function Min
+
+```rust
+let query = Query::select()
+    .expr(Func::min(Expr::tbl(Char::Table, Char::SizeH)))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT MIN(`character`.`size_h`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT MIN("character"."size_h") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT MIN("character"."size_h") FROM "character""#
+);
+```
+
+### Function Sum
+
+```rust
+let query = Query::select()
+    .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT SUM("character"."size_h") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT SUM("character"."size_h") FROM "character""#
+);
+```
+
+### Function Avg
+
+```rust
+let query = Query::select()
+    .expr(Func::abs(Expr::tbl(Char::Table, Char::SizeH)))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT ABS(`character`.`size_h`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT ABS("character"."size_h") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT ABS("character"."size_h") FROM "character""#
+);
+```
+
+### Function Abs
+
+```rust
+let query = Query::select()
+    .expr(Func::count(Expr::tbl(Char::Table, Char::Id)))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT COUNT(`character`.`id`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT COUNT("character"."id") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT COUNT("character"."id") FROM "character""#
+);
+```
+
+### Function Count
+
+```rust
+let query = Query::select()
+    .expr(Func::char_length(Expr::tbl(Char::Table, Char::Character)))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT CHAR_LENGTH(`character`.`character`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT CHAR_LENGTH("character"."character") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT LENGTH("character"."character") FROM "character""#
+);
+```
+
+### Function IfNull
+
+```rust
+let query = Query::select()
+    .expr(Func::cast_as("hello", Alias::new("MyType")))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+```
+
+### Function CharLength
+
+```rust
+let query = Query::select()
+    .expr(Func::if_null(
+        Expr::col(Char::SizeW),
+        Expr::col(Char::SizeH),
+    ))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT IFNULL(`size_w`, `size_h`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT COALESCE("size_w", "size_h") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT IFNULL("size_w", "size_h") FROM "character""#
+);
+```
+
+### Function Cast
+
+```rust
+let query = Query::select()
+    .expr(Func::cast_as("hello", Alias::new("MyType")))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+```
+
+### Function Custom
+
+```rust
+struct MyFunction;
+
+impl Iden for MyFunction {
+    fn unquoted(&self, s: &mut dyn Write) {
+        write!(s, "MY_FUNCTION").unwrap();
+    }
+}
+
+let query = Query::select()
+    .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+);
+```
+
+### Function Coalesce
+
+```rust
+let query = Query::select()
+    .expr(Func::coalesce([
+        Expr::col(Char::SizeW).into(),
+        Expr::col(Char::SizeH).into(),
+        Expr::val(12).into(),
+    ]))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+);
+```
+
+### Function Lower
+
+```rust
+let query = Query::select()
+    .expr(Func::lower(Expr::col(Char::Character)))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT LOWER(`character`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT LOWER("character") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT LOWER("character") FROM "character""#
+);
+```
+
+### Function Upper
+
+```rust
+let query = Query::select()
+    .expr(Func::upper(Expr::col(Char::Character)))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT UPPER(`character`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT UPPER("character") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT UPPER("character") FROM "character""#
+);
+```
+
+### Function Random
+
+```rust
+let query = Query::select().expr(Func::random()).to_owned();
+
+assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT RAND()"#);
+
+assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT RANDOM()"#);
+
+assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
 ```
 
 ### Table Create
@@ -685,10 +1009,10 @@ assert_eq!(
 
 Licensed under either of
 
--   Apache License, Version 2.0
-    ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
--   MIT license
-    ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+- Apache License, Version 2.0
+  ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license
+  ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 
