@@ -108,8 +108,6 @@ impl ToSql for PostgresValue {
                 .to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, None) => Ok(IsNull::Yes),
-            #[allow(unreachable_patterns)]
-            _ => unimplemented!(),
         }
     }
 
