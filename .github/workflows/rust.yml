@@ -93,6 +93,8 @@ jobs:
           args: >
             --all-features
             --workspace
+            --
+            -D warnings
 
       - uses: actions-rs/cargo@v1
         name: Run clippy on `sea-query-binder`
