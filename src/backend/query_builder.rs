@@ -1204,17 +1204,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         keyword: &str,
         sql: &mut dyn SqlWriter,
     ) {
-        if !condition.is_empty() {
-            write!(sql, " {} ", keyword).unwrap();
-        }
         match &condition.contents {
             ConditionHolderContents::Empty => (),
             ConditionHolderContents::Chain(conditions) => {
+                write!(sql, " {} ", keyword).unwrap();
                 for (i, log_chain_oper) in conditions.iter().enumerate() {
                     self.prepare_logical_chain_oper(log_chain_oper, i, conditions.len(), sql);
                 }
             }
             ConditionHolderContents::Condition(c) => {
+                write!(sql, " {} ", keyword).unwrap();
                 self.prepare_condition_where(c, sql);
             }
         }
@@ -1224,13 +1223,22 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate part of a condition to part of a "WHERE" clause.
     fn prepare_condition_where(&self, condition: &Condition, sql: &mut dyn SqlWriter) {
         if condition.negate {
-            write!(sql, "NOT (").unwrap();
+            write!(sql, "NOT ").unwrap()
         }
-        let mut is_first = true;
-        for cond in &condition.conditions {
-            if is_first {
-                is_first = false;
-            } else {
+
+        if condition.is_empty() {
+            match condition.condition_type {
+                ConditionType::All => self.prepare_constant(&true.into(), sql),
+                ConditionType::Any => self.prepare_constant(&false.into(), sql),
+            }
+            return;
+        }
+
+        if condition.negate {
+            write!(sql, "(").unwrap();
+        }
+        condition.conditions.iter().fold(true, |first, cond| {
+            if !first {
                 match condition.condition_type {
                     ConditionType::Any => write!(sql, " OR ").unwrap(),
                     ConditionType::All => write!(sql, " AND ").unwrap(),
@@ -1256,7 +1264,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     }
                 }
             }
-        }
+            false
+        });
         if condition.negate {
             write!(sql, ")").unwrap();
         }

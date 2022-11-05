@@ -185,7 +185,7 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Image)
@@ -592,9 +592,8 @@ impl ConditionHolder {
     }
 
     pub fn new_with_condition(condition: Condition) -> Self {
-        let mut slf = Self::new();
-        slf.add_condition(condition);
-        slf
+        let contents = ConditionHolderContents::Condition(condition);
+        Self { contents }
     }
 
     pub fn is_empty(&self) -> bool {

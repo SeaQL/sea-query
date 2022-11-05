@@ -530,7 +530,7 @@ fn select_37() {
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
         .build(PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph""#);
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE FALSE"#);
     assert_eq!(values.0, vec![]);
 }
 
@@ -544,7 +544,7 @@ fn select_38() {
                 .add(Expr::col(Glyph::Aspect).is_null())
                 .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
-        .build(sea_query::PostgresQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
@@ -555,7 +555,7 @@ fn select_38() {
 
 #[test]
 fn select_39() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -563,7 +563,7 @@ fn select_39() {
                 .add(Expr::col(Glyph::Aspect).is_null())
                 .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
-        .build(sea_query::PostgresQueryBuilder);
+        .build(PostgresQueryBuilder);
 
     assert_eq!(
         statement,
@@ -632,7 +632,7 @@ fn select_43() {
         .cond_where(Cond::all().add_option::<SimpleExpr>(None))
         .to_string(PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph""#);
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE TRUE"#);
 }
 
 #[test]
@@ -1176,7 +1176,7 @@ fn insert_from_select() {
 }
 
 #[test]
-fn insert_6() -> sea_query::error::Result<()> {
+fn insert_6() -> error::Result<()> {
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .from(Glyph::Table)
