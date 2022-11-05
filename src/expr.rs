@@ -4,6 +4,8 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
+#[cfg(feature = "backend-postgres")]
+use crate::extension::postgres::PgBinOper;
 use crate::{func::*, query::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
@@ -1278,13 +1280,15 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
     /// );
     /// ```
+    #[cfg(feature = "backend-postgres")]
     pub fn ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(BinOper::ILike, like.into_like_expr())
+        self.like_like(PgBinOper::ILike.into(), like.into_like_expr())
     }
 
     /// Express a `NOT ILIKE` expression
+    #[cfg(feature = "backend-postgres")]
     pub fn not_ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(BinOper::NotILike, like.into_like_expr())
+        self.like_like(PgBinOper::NotILike.into(), like.into_like_expr())
     }
 
     fn like_like(self, op: BinOper, like: LikeExpr) -> SimpleExpr {
@@ -1456,11 +1460,12 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// ```
-    pub fn binary<T>(self, operation: BinOper, right: T) -> SimpleExpr
+    pub fn binary<O, T>(self, operation: O, right: T) -> SimpleExpr
     where
+        O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        self.bin_oper(operation, right.into())
+        self.bin_oper(operation.into(), right.into())
     }
 
     /// Negates an expression with `NOT`.
@@ -2026,7 +2031,7 @@ impl Expr {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Matches, expr.into())
+        self.binary(PgBinOper::Matches, expr.into())
     }
 
     /// Express an postgres fulltext search contains (`@>`) expression.
@@ -2053,7 +2058,7 @@ impl Expr {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Contains, expr.into())
+        self.binary(PgBinOper::Contains, expr.into())
     }
 
     /// Express an postgres fulltext search contained (`<@`) expression.
@@ -2080,7 +2085,7 @@ impl Expr {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Contained, expr.into())
+        self.binary(PgBinOper::Contained, expr.into())
     }
 
     /// Express an postgres concatenate (`||`) expression.
@@ -2107,7 +2112,7 @@ impl Expr {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Concatenate, expr.into())
+        self.binary(PgBinOper::Concatenate, expr.into())
     }
 
     /// Alias of [`Expr::concatenate`]
@@ -2538,8 +2543,8 @@ impl SimpleExpr {
         self.binary(BinOper::Sub, right.into())
     }
 
-    pub(crate) fn binary(self, op: BinOper, right: SimpleExpr) -> Self {
-        SimpleExpr::Binary(Box::new(self), op, Box::new(right))
+    pub(crate) fn binary<T: Into<BinOper>>(self, op: T, right: SimpleExpr) -> Self {
+        SimpleExpr::Binary(Box::new(self), op.into(), Box::new(right))
     }
 
     #[allow(dead_code)]
@@ -2632,7 +2637,7 @@ impl SimpleExpr {
     where
         T: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Concatenate, right.into())
+        self.binary(PgBinOper::Concatenate, right.into())
     }
 
     /// Alias of [`SimpleExpr::concatenate`]

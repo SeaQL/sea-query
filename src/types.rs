@@ -3,6 +3,8 @@
 use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
 use std::fmt;
 
+#[cfg(feature = "backend-postgres")]
+use crate::extension::postgres::PgBinOper;
 #[cfg(not(feature = "thread-safe"))]
 pub use std::rc::Rc as SeaRc;
 #[cfg(feature = "thread-safe")]
@@ -112,8 +114,6 @@ pub enum BinOper {
     Or,
     Like,
     NotLike,
-    ILike,
-    NotILike,
     Is,
     IsNot,
     In,
@@ -136,25 +136,7 @@ pub enum BinOper {
     As,
     Escape,
     #[cfg(feature = "backend-postgres")]
-    Matches,
-    #[cfg(feature = "backend-postgres")]
-    Contains,
-    #[cfg(feature = "backend-postgres")]
-    Contained,
-    #[cfg(feature = "backend-postgres")]
-    Concatenate,
-    #[cfg(feature = "backend-postgres")]
-    Similarity,
-    #[cfg(feature = "backend-postgres")]
-    WordSimilarity,
-    #[cfg(feature = "backend-postgres")]
-    StrictWordSimilarity,
-    #[cfg(feature = "backend-postgres")]
-    SimilarityDistance,
-    #[cfg(feature = "backend-postgres")]
-    WordSimilarityDistance,
-    #[cfg(feature = "backend-postgres")]
-    StrictWordSimilarityDistance,
+    PgOperators(PgBinOper),
 }
 
 /// Logical chain operator

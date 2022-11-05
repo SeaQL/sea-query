@@ -522,8 +522,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             match bin_oper {
                 BinOper::And => "AND",
                 BinOper::Or => "OR",
-                BinOper::Like | BinOper::ILike => "LIKE",
-                BinOper::NotLike | BinOper::NotILike => "NOT LIKE",
                 BinOper::Is => "IS",
                 BinOper::IsNot => "IS NOT",
                 BinOper::In => "IN",

@@ -37,18 +37,25 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
         match bin_oper {
-            BinOper::ILike => write!(sql, "ILIKE").unwrap(),
-            BinOper::NotLike => write!(sql, "NOT ILIKE").unwrap(),
-            BinOper::Matches => write!(sql, "@@").unwrap(),
-            BinOper::Contains => write!(sql, "@>").unwrap(),
-            BinOper::Contained => write!(sql, "<@").unwrap(),
-            BinOper::Concatenate => write!(sql, "||").unwrap(),
-            BinOper::Similarity => write!(sql, "%").unwrap(),
-            BinOper::WordSimilarity => write!(sql, "<%").unwrap(),
-            BinOper::StrictWordSimilarity => write!(sql, "<<%").unwrap(),
-            BinOper::SimilarityDistance => write!(sql, "<->").unwrap(),
-            BinOper::WordSimilarityDistance => write!(sql, "<<->").unwrap(),
-            BinOper::StrictWordSimilarityDistance => write!(sql, "<<<->").unwrap(),
+            BinOper::PgOperators(oper) => write!(
+                sql,
+                "{}",
+                match oper {
+                    PgBinOper::ILike => "ILIKE",
+                    PgBinOper::NotILike => "NOT ILIKE",
+                    PgBinOper::Matches => "@@",
+                    PgBinOper::Contains => "@>",
+                    PgBinOper::Contained => "<@",
+                    PgBinOper::Concatenate => "||",
+                    PgBinOper::Similarity => "%",
+                    PgBinOper::WordSimilarity => "<%",
+                    PgBinOper::StrictWordSimilarity => "<<%",
+                    PgBinOper::SimilarityDistance => "<->",
+                    PgBinOper::WordSimilarityDistance => "<<->",
+                    PgBinOper::StrictWordSimilarityDistance => "<<<->",
+                }
+            )
+            .unwrap(),
             _ => self.prepare_bin_oper_common(bin_oper, sql),
         }
     }
