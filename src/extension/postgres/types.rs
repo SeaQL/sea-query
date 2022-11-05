@@ -166,7 +166,7 @@ impl TypeCreateStatement {
     /// }
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+    ///     fn unquoted(&self, s: &mut dyn Write) {
     ///         write!(
     ///             s,
     ///             "{}",
@@ -223,7 +223,7 @@ impl TypeDropStatement {
     /// struct FontFamily;
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+    ///     fn unquoted(&self, s: &mut dyn Write) {
     ///         write!(s, "{}", "font_family").unwrap();
     ///     }
     /// }
@@ -293,7 +293,7 @@ impl TypeAlterStatement {
     /// }
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+    ///     fn unquoted(&self, s: &mut dyn Write) {
     ///         write!(
     ///             s,
     ///             "{}",

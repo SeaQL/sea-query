@@ -1,11 +1,12 @@
-pub(crate) mod func;
-pub(crate) mod interval;
-pub(crate) mod types;
-
-use crate::BinOper;
 pub use func::*;
 pub use interval::*;
 pub use types::*;
+
+use crate::types::BinOper;
+
+pub(crate) mod func;
+pub(crate) mod interval;
+pub(crate) mod types;
 
 /// Binary operator
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
