@@ -2002,7 +2002,9 @@ impl Expr {
         )
     }
 
-    /// Express an postgres fulltext search matches (`@@`) expression.
+    /// Express postgres/sqlite fulltext search match expression:
+    /// - postgres: '@@'
+    /// - sqlite: 'MATCH'
     ///
     /// # Examples
     ///
@@ -2020,8 +2022,12 @@ impl Expr {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @@ 'a b' AND "name" @@ 'a b'"#
     /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' MATCH 'a b' AND "name" MATCH 'a b'"#
+    /// );
     /// ```
-    #[cfg(feature = "backend-postgres")]
+    #[cfg(any(feature = "backend-postgres", feature = "backend-sqlite"))]
     pub fn matches<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,

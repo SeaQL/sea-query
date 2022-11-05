@@ -978,6 +978,21 @@ fn select_58() {
 }
 
 #[test]
+fn select_59() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).matches("pattern"))
+            .build(SqliteQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" MATCH ?"#.to_owned(),
+            Values(vec!["pattern".into()])
+        )
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(

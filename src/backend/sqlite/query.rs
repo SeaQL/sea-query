@@ -40,6 +40,13 @@ impl QueryBuilder for SqliteQueryBuilder {
         }
     }
 
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
+        match bin_oper {
+            BinOper::Matches => write!(sql, "MATCH").unwrap(),
+            _ => self.prepare_bin_oper_common(bin_oper, sql),
+        }
+    }
+
     fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
         sql.push_param(value.clone(), self as _);
     }

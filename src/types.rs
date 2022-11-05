@@ -135,7 +135,7 @@ pub enum BinOper {
     RShift,
     As,
     Escape,
-    #[cfg(feature = "backend-postgres")]
+    #[cfg(any(feature = "backend-postgres", feature = "backend-sqlite"))]
     Matches,
     #[cfg(feature = "backend-postgres")]
     Contains,
