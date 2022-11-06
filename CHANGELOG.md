@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-* New struct `FunctionCall` which hold function and arguments
-* Added `SelectStatement::from_function`
-* Added binary operators from the Postgres `pg_trgm` extension
-* Added `ILIKE` and `NOT ILIKE` operators
-* Added support `BigDecimal`, `IpNetwork` and `MacAddress` for `sea-query-postgres`
+* New struct `FunctionCall` which hold function and arguments https://github.com/SeaQL/sea-query/pull/475
+* Added `SelectStatement::from_function` https://github.com/SeaQL/sea-query/pull/475
+* Added binary operators from the Postgres `pg_trgm` extension https://github.com/SeaQL/sea-query/pull/486
+* Added `ILIKE` and `NOT ILIKE` operators https://github.com/SeaQL/sea-query/pull/473
+* Added support `BigDecimal`, `IpNetwork` and `MacAddress` for `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/503
+
+### Bug fixes
+
+* https://github.com/SeaQL/sea-query/pull/498
 
 ### Breaking changes
 
