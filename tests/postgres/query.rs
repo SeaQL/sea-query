@@ -1636,3 +1636,30 @@ fn select_pgtrgm_strict_word_similarity_distance() {
         r#"SELECT "name" <<<-> 'serif' FROM "font""#
     );
 }
+
+#[test]
+fn union_1() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .union(
+                UnionType::Distinct,
+                Query::select()
+                    .column(Char::Character)
+                    .from(Char::Table)
+                    .left_join(
+                        Font::Table,
+                        Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                    )
+                    .order_by((Font::Table, Font::Id), Order::Asc)
+                    .take()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"SELECT "character" FROM "character" UNION (SELECT "character" FROM "character""#,
+            r#"LEFT JOIN "font" ON "character"."font_id" = "font"."id" ORDER BY "font"."id" ASC)"#
+        ]
+        .join(" ")
+    );
+}

@@ -122,12 +122,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         if !select.unions.is_empty() {
             select.unions.iter().for_each(|(union_type, query)| {
                 match union_type {
-                    UnionType::Intersect => write!(sql, " INTERSECT ").unwrap(),
-                    UnionType::Distinct => write!(sql, " UNION ").unwrap(),
-                    UnionType::Except => write!(sql, " EXCEPT ").unwrap(),
-                    UnionType::All => write!(sql, " UNION ALL ").unwrap(),
+                    UnionType::Intersect => write!(sql, " INTERSECT (").unwrap(),
+                    UnionType::Distinct => write!(sql, " UNION (").unwrap(),
+                    UnionType::Except => write!(sql, " EXCEPT (").unwrap(),
+                    UnionType::All => write!(sql, " UNION ALL (").unwrap(),
                 }
                 self.prepare_select_statement(query, sql);
+                write!(sql, ")").unwrap();
             });
         }
 
