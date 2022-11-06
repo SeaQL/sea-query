@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `SelectStatement::from_function`
 * Added binary operators from the Postgres `pg_trgm` extension
 * Added `ILIKE` and `NOT ILIKE` operators
+* Added support `BigDecimal`, `IpNetwork` and `MacAddress` for `sea-query-postgres`
 
 ### Breaking changes
 
