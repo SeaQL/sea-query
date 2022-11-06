@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Bug fixes
 
-* https://github.com/SeaQL/sea-query/pull/498
+* Wrap unions into parenthesis https://github.com/SeaQL/sea-query/pull/498
 
 ### Breaking changes
 
