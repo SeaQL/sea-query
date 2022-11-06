@@ -98,6 +98,13 @@ impl ToSql for PostgresValue {
             Value::TimeDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(v) => v.as_deref().to_sql(ty, out),
+            #[cfg(feature = "with-bigdecimal")]
+            Value::BigDecimal(v) => {
+                use bigdecimal::ToPrimitive;
+                v.as_deref()
+                    .map(|v| v.to_f64().expect("Fail to convert bigdecimal as f64"))
+                    .to_sql(ty, out)
+            }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
@@ -108,8 +115,23 @@ impl ToSql for PostgresValue {
                 .to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, None) => Ok(IsNull::Yes),
-            #[allow(unreachable_patterns)]
-            _ => unimplemented!(),
+            #[cfg(feature = "with-ipnetwork")]
+            Value::IpNetwork(v) => {
+                use cidr::IpCidr;
+                v.as_deref()
+                    .map(|v| {
+                        IpCidr::new(v.network(), v.prefix())
+                            .expect("Fail to convert IpNetwork to IpCidr")
+                    })
+                    .to_sql(ty, out)
+            }
+            #[cfg(feature = "with-mac_address")]
+            Value::MacAddress(v) => {
+                use eui48::MacAddress;
+                v.as_deref()
+                    .map(|v| MacAddress::new(v.bytes()))
+                    .to_sql(ty, out)
+            }
         }
     }
 
