@@ -2501,6 +2501,80 @@ impl SimpleExpr {
         self.binary(BinOper::Add, right.into())
     }
 
+    /// Perform multiplication with another [`SimpleExpr`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(
+    ///         Expr::col(Char::SizeW)
+    ///             .max()
+    ///             .mul(Expr::col(Char::SizeH).max()),
+    ///     )
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT MAX(`size_w`) * MAX(`size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT MAX("size_w") * MAX("size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MAX("size_w") * MAX("size_h") FROM "character""#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn mul<T>(self, right: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::Mul, right.into())
+    }
+
+    /// Perform division with another [`SimpleExpr`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(
+    ///         Expr::col(Char::SizeW)
+    ///             .max()
+    ///             .div(Expr::col(Char::SizeH).max()),
+    ///     )
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT MAX(`size_w`) / MAX(`size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT MAX("size_w") / MAX("size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MAX("size_w") / MAX("size_h") FROM "character""#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn div<T>(self, right: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::Div, right.into())
+    }
+
     /// Perform subtraction with another [`SimpleExpr`].
     ///
     /// # Examples
