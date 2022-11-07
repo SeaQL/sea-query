@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added binary operators from the Postgres `pg_trgm` extension https://github.com/SeaQL/sea-query/pull/486
 * Added `ILIKE` and `NOT ILIKE` operators https://github.com/SeaQL/sea-query/pull/473
 * Added support `BigDecimal`, `IpNetwork` and `MacAddress` for `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/503
+* Added the `mul` and `div` methods for `SimpleExpr` https://github.com/SeaQL/sea-query/pull/510
 
 ### Bug fixes
 
