@@ -651,7 +651,7 @@ mod with_mac_address {
 
 #[cfg(feature = "postgres-array")]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-mod with_array {
+pub mod with_array {
     use super::*;
     use crate::SeaRc;
 
