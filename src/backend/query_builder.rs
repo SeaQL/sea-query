@@ -69,6 +69,22 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         self.prepare_returning(&insert.returning, sql);
     }
 
+    fn prepare_union_statement(
+        &self,
+        union_type: UnionType,
+        select_statement: &SelectStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        match union_type {
+            UnionType::Intersect => write!(sql, " INTERSECT (").unwrap(),
+            UnionType::Distinct => write!(sql, " UNION (").unwrap(),
+            UnionType::Except => write!(sql, " EXCEPT (").unwrap(),
+            UnionType::All => write!(sql, " UNION ALL (").unwrap(),
+        }
+        self.prepare_select_statement(select_statement, sql);
+        write!(sql, ")").unwrap();
+    }
+
     /// Translate [`SelectStatement`] into SQL statement.
     fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "SELECT ").unwrap();
@@ -121,14 +137,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         if !select.unions.is_empty() {
             select.unions.iter().for_each(|(union_type, query)| {
-                match union_type {
-                    UnionType::Intersect => write!(sql, " INTERSECT (").unwrap(),
-                    UnionType::Distinct => write!(sql, " UNION (").unwrap(),
-                    UnionType::Except => write!(sql, " EXCEPT (").unwrap(),
-                    UnionType::All => write!(sql, " UNION ALL (").unwrap(),
-                }
-                self.prepare_select_statement(query, sql);
-                write!(sql, ")").unwrap();
+                self.prepare_union_statement(*union_type, query, sql);
             });
         }
 

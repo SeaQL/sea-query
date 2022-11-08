@@ -36,6 +36,21 @@ impl QueryBuilder for SqliteQueryBuilder {
         }
     }
 
+    fn prepare_union_statement(
+        &self,
+        union_type: UnionType,
+        select_statement: &SelectStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        match union_type {
+            UnionType::Intersect => write!(sql, " INTERSECT ").unwrap(),
+            UnionType::Distinct => write!(sql, " UNION ").unwrap(),
+            UnionType::Except => write!(sql, " EXCEPT ").unwrap(),
+            UnionType::All => write!(sql, " UNION ALL ").unwrap(),
+        }
+        self.prepare_select_statement(select_statement, sql);
+    }
+
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
     }
