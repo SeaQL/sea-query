@@ -1,5 +1,6 @@
 use super::*;
 use pretty_assertions::assert_eq;
+use sea_query::extension::postgres::PgBinOper;
 
 #[test]
 fn select_1() {
@@ -1570,7 +1571,7 @@ fn delete_returning_specific_exprs() {
 fn select_pgtrgm_similarity() {
     assert_eq!(
         Query::select()
-            .expr(Expr::col(Font::Name).binary(BinOper::Similarity, Expr::value("serif")))
+            .expr(Expr::col(Font::Name).binary(PgBinOper::Similarity, Expr::value("serif")))
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "name" % 'serif' FROM "font""#
@@ -1581,7 +1582,7 @@ fn select_pgtrgm_similarity() {
 fn select_pgtrgm_word_similarity() {
     assert_eq!(
         Query::select()
-            .expr(Expr::col(Font::Name).binary(BinOper::WordSimilarity, Expr::value("serif")))
+            .expr(Expr::col(Font::Name).binary(PgBinOper::WordSimilarity, Expr::value("serif")))
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "name" <% 'serif' FROM "font""#
@@ -1592,7 +1593,9 @@ fn select_pgtrgm_word_similarity() {
 fn select_pgtrgm_strict_word_similarity() {
     assert_eq!(
         Query::select()
-            .expr(Expr::col(Font::Name).binary(BinOper::StrictWordSimilarity, Expr::value("serif")))
+            .expr(
+                Expr::col(Font::Name).binary(PgBinOper::StrictWordSimilarity, Expr::value("serif"))
+            )
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "name" <<% 'serif' FROM "font""#
@@ -1603,7 +1606,7 @@ fn select_pgtrgm_strict_word_similarity() {
 fn select_pgtrgm_similarity_distance() {
     assert_eq!(
         Query::select()
-            .expr(Expr::col(Font::Name).binary(BinOper::SimilarityDistance, Expr::value("serif")))
+            .expr(Expr::col(Font::Name).binary(PgBinOper::SimilarityDistance, Expr::value("serif")))
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "name" <-> 'serif' FROM "font""#
@@ -1615,7 +1618,8 @@ fn select_pgtrgm_word_similarity_distance() {
     assert_eq!(
         Query::select()
             .expr(
-                Expr::col(Font::Name).binary(BinOper::WordSimilarityDistance, Expr::value("serif"))
+                Expr::col(Font::Name)
+                    .binary(PgBinOper::WordSimilarityDistance, Expr::value("serif"))
             )
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
@@ -1627,10 +1631,10 @@ fn select_pgtrgm_word_similarity_distance() {
 fn select_pgtrgm_strict_word_similarity_distance() {
     assert_eq!(
         Query::select()
-            .expr(
-                Expr::col(Font::Name)
-                    .binary(BinOper::StrictWordSimilarityDistance, Expr::value("serif"))
-            )
+            .expr(Expr::col(Font::Name).binary(
+                PgBinOper::StrictWordSimilarityDistance,
+                Expr::value("serif")
+            ))
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "name" <<<-> 'serif' FROM "font""#
