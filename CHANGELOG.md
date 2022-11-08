@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Func::*` now returns `FunctionCall` insted `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 * `Func::coalesce` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Into<SimpleExpr>` https://github.com/SeaQL/sea-query/pull/475
 * Removed `Expr::arg` and `Expr::args` - these functions are no longer needed https://github.com/SeaQL/sea-query/pull/475
-* Moved all Postgres specific operator to own enum https://github.com/SeaQL/sea-query/pull/507
+* Moved all Postgres specific operators to own enum https://github.com/SeaQL/sea-query/pull/507
 
 ### Enhancements
 
