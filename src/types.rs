@@ -5,6 +5,8 @@ use std::fmt;
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
+#[cfg(feature = "backend-sqlite")]
+use crate::extension::sqlite::SqliteBinOper;
 #[cfg(not(feature = "thread-safe"))]
 pub use std::rc::Rc as SeaRc;
 #[cfg(feature = "thread-safe")]
@@ -137,6 +139,8 @@ pub enum BinOper {
     Escape,
     #[cfg(feature = "backend-postgres")]
     PgOperator(PgBinOper),
+    #[cfg(feature = "backend-sqlite")]
+    SqliteOperator(SqliteBinOper),
 }
 
 /// Logical chain operator
