@@ -4,6 +4,7 @@ on:
   pull_request:
     paths-ignore:
       - '**.md'
+      - '.github/ISSUE_TEMPLATE/**'
       - .gitignore
   push:
     branches:
@@ -11,6 +12,7 @@ on:
       - pr/**/ci
     paths-ignore:
       - '**.md'
+      - '.github/ISSUE_TEMPLATE/**'
       - .gitignore
 
 concurrency:
