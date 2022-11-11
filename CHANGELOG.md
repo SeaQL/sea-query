@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## sea-query-binder 0.2.2
+
+* Enable SQLx features only if SQLx optional dependency is enabled https://github.com/SeaQL/sea-query/pull/517
+
 ## 0.27.1 - 2022-10-18
 
 * Fix consecutive spacing on schema statements https://github.com/SeaQL/sea-query/pull/481
