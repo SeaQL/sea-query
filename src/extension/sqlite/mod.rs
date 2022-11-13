@@ -1,4 +1,8 @@
+pub use expr::SqliteExpr;
+
 use crate::types::BinOper;
+
+mod expr;
 
 /// Sqlite-specific binary operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

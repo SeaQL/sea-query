@@ -4,8 +4,6 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
-#[cfg(feature = "backend-postgres")]
-use crate::extension::postgres::PgBinOper;
 use crate::{func::*, query::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
@@ -527,7 +525,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Equal, v.into())
+        self.binary(BinOper::Equal, v)
     }
 
     /// Express a not equal (`<>`) expression.
@@ -561,7 +559,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::NotEqual, v.into())
+        self.binary(BinOper::NotEqual, v)
     }
     /// Express a equal expression between two table columns,
     /// you will mainly use this to relate identical value between two table columns.
@@ -595,7 +593,7 @@ impl Expr {
         T: IntoIden,
         C: IntoIden,
     {
-        self.bin_oper(
+        self.binary(
             BinOper::Equal,
             SimpleExpr::Column((t.into_iden(), c.into_iden()).into_column_ref()),
         )
@@ -631,7 +629,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::GreaterThan, v.into())
+        self.binary(BinOper::GreaterThan, v.into())
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gt`]")]
@@ -671,7 +669,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::GreaterThanOrEqual, v.into())
+        self.binary(BinOper::GreaterThanOrEqual, v)
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gte`]")]
@@ -712,7 +710,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::SmallerThan, v.into())
+        self.binary(BinOper::SmallerThan, v)
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lt`]")]
@@ -753,7 +751,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::SmallerThanOrEqual, v.into())
+        self.binary(BinOper::SmallerThanOrEqual, v)
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lte`]")]
@@ -795,7 +793,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Add, v.into())
+        self.binary(BinOper::Add, v)
     }
 
     /// Express an arithmetic subtraction operation.
@@ -829,7 +827,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Sub, v.into())
+        self.binary(BinOper::Sub, v)
     }
 
     /// Express an arithmetic multiplication operation.
@@ -863,7 +861,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Mul, v.into())
+        self.binary(BinOper::Mul, v)
     }
 
     /// Express an arithmetic division operation.
@@ -897,7 +895,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Div, v.into())
+        self.binary(BinOper::Div, v)
     }
 
     /// Express an arithmetic modulo operation.
@@ -931,7 +929,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Mod, v.into())
+        self.binary(BinOper::Mod, v)
     }
 
     /// Express a bitwise left shift.
@@ -965,7 +963,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::LShift, v.into())
+        self.binary(BinOper::LShift, v)
     }
 
     /// Express a bitwise right shift.
@@ -999,7 +997,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::RShift, v.into())
+        self.binary(BinOper::RShift, v)
     }
 
     /// Express a `BETWEEN` expression.
@@ -1072,7 +1070,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(
+        self.binary(
             op,
             SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
         )
@@ -1138,20 +1136,11 @@ impl Expr {
         self.like_like(BinOper::NotLike, like.into_like_expr())
     }
 
-    #[cfg(feature = "backend-postgres")]
-    #[deprecated(since = "0.28.0", note = "Please use the [`PgExpr::ilike`]")]
-    pub fn ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(PgBinOper::ILike.into(), like.into_like_expr())
-    }
-
-    #[cfg(feature = "backend-postgres")]
-    #[deprecated(since = "0.28.0", note = "Please use the [`PgExpr::ilike`]")]
-    pub fn not_ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(PgBinOper::NotILike.into(), like.into_like_expr())
-    }
-
-    fn like_like(self, op: BinOper, like: LikeExpr) -> SimpleExpr {
-        self.bin_oper(
+    pub(crate) fn like_like<O>(self, op: O, like: LikeExpr) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+    {
+        self.binary(
             op,
             match like.escape {
                 Some(escape) => SimpleExpr::Binary(
@@ -1192,7 +1181,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::Is, SimpleExpr::Keyword(Keyword::Null))
+        self.binary(BinOper::Is, Keyword::Null)
     }
 
     /// Express a `IS` expression.
@@ -1225,7 +1214,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Is, v.into())
+        self.binary(BinOper::Is, v)
     }
 
     /// Express a `IS NOT NULL` expression.
@@ -1256,7 +1245,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::IsNot, SimpleExpr::Keyword(Keyword::Null))
+        self.binary(BinOper::IsNot, Keyword::Null)
     }
 
     /// Express a `IS NOT` expression.
@@ -1289,7 +1278,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::IsNot, v.into())
+        self.binary(BinOper::IsNot, v)
     }
 
     /// Create any binary operation
@@ -1319,12 +1308,14 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// ```
-    pub fn binary<O, T>(self, operation: O, right: T) -> SimpleExpr
+    pub fn binary<O, T>(mut self, op: O, right: T) -> SimpleExpr
     where
         O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        self.bin_oper(operation.into(), right.into())
+        self.bopr = Some(op.into());
+        self.right = Some(right.into());
+        self.into()
     }
 
     /// Negates an expression with `NOT`.
@@ -1857,68 +1848,6 @@ impl Expr {
         )
     }
 
-    #[cfg(feature = "backend-postgres")]
-    pub fn matches<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Matches, expr.into())
-    }
-
-    #[cfg(feature = "backend-postgres")]
-    #[deprecated(since = "0.28.0", note = "Please use the [`PgExpr::contains`]")]
-    pub fn contains<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Contains, expr.into())
-    }
-
-    #[cfg(feature = "backend-postgres")]
-    #[deprecated(since = "0.28.0", note = "Please use the [`PgExpr::contained`]")]
-    pub fn contained<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Contained, expr.into())
-    }
-
-    /// Express an postgres concatenate (`||`) expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a").concatenate(Expr::val("b")))
-    ///     .and_where(Expr::val("c").concat(Expr::val("d")))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' AND 'c' || 'd'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn concatenate<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Concatenate, expr.into())
-    }
-
-    /// Alias of [`Expr::concatenate`]
-    #[cfg(feature = "backend-postgres")]
-    pub fn concat<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.concatenate(expr)
-    }
-
     /// Express a `AS enum` expression.
     ///
     /// # Examples
@@ -1972,12 +1901,6 @@ impl Expr {
 
     fn un_oper(mut self, o: UnOper) -> SimpleExpr {
         self.uopr = Some(o);
-        self.into()
-    }
-
-    pub(crate) fn bin_oper(mut self, o: BinOper, e: SimpleExpr) -> SimpleExpr {
-        self.bopr = Some(o);
-        self.right = Some(e);
         self.into()
     }
 
@@ -2119,6 +2042,12 @@ where
 impl From<FunctionCall> for SimpleExpr {
     fn from(func: FunctionCall) -> Self {
         SimpleExpr::FunctionCall(func)
+    }
+}
+
+impl From<Keyword> for SimpleExpr {
+    fn from(k: Keyword) -> Self {
+        SimpleExpr::Keyword(k)
     }
 }
 
@@ -2409,46 +2338,6 @@ impl SimpleExpr {
         self.binary(BinOper::Sub, right)
     }
 
-    /// Express an postgres concatenate (`||`) expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(
-    ///         Expr::val("a")
-    ///             .concatenate(Expr::val("b"))
-    ///             .concat(Expr::val("c"))
-    ///             .concat(Expr::val("d")),
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn concatenate<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Concatenate, right)
-    }
-
-    /// Alias of [`SimpleExpr::concatenate`]
-    #[cfg(feature = "backend-postgres")]
-    pub fn concat<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.concatenate(right)
-    }
-
     /// Express a `CAST AS` expression.
     ///
     /// # Examples
@@ -2479,6 +2368,23 @@ impl SimpleExpr {
     {
         let func = Func::cast_as(self, type_name);
         Self::FunctionCall(func)
+    }
+
+    pub(crate) fn like_like<O>(self, op: O, like: LikeExpr) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+    {
+        self.binary(
+            op,
+            match like.escape {
+                Some(escape) => SimpleExpr::Binary(
+                    Box::new(like.pattern.into()),
+                    BinOper::Escape,
+                    Box::new(SimpleExpr::Constant(escape.into())),
+                ),
+                None => like.pattern.into(),
+            },
+        )
     }
 
     pub(crate) fn binary<O, T>(self, op: O, right: T) -> Self
