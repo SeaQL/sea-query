@@ -37,6 +37,25 @@ pub enum SimpleExpr {
     Constant(Value),
 }
 
+pub trait Expression: Sized {
+    fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+        T: Into<SimpleExpr>;
+}
+
+impl Expression for Expr {
+    fn bin_op<O, T>(mut self, op: O, right: T) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+        T: Into<SimpleExpr>,
+    {
+        self.bopr = Some(op.into());
+        self.right = Some(right.into());
+        self.into()
+    }
+}
+
 impl Expr {
     fn new_with_left(left: SimpleExpr) -> Self {
         Self {
@@ -1140,7 +1159,7 @@ impl Expr {
     where
         O: Into<BinOper>,
     {
-        self.binary(
+        self.bin_op(
             op,
             match like.escape {
                 Some(escape) => SimpleExpr::Binary(
@@ -1308,14 +1327,12 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// ```
-    pub fn binary<O, T>(mut self, op: O, right: T) -> SimpleExpr
+    pub fn binary<O, T>(self, op: O, right: T) -> SimpleExpr
     where
         O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        self.bopr = Some(op.into());
-        self.right = Some(right.into());
-        self.into()
+        self.bin_op(op, right)
     }
 
     /// Negates an expression with `NOT`.
@@ -2051,6 +2068,16 @@ impl From<Keyword> for SimpleExpr {
     }
 }
 
+impl Expression for SimpleExpr {
+    fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+        T: Into<SimpleExpr>,
+    {
+        SimpleExpr::Binary(Box::new(self), op.into(), Box::new(right.into()))
+    }
+}
+
 impl SimpleExpr {
     /// Express a logical `AND` operation.
     ///
@@ -2370,29 +2397,12 @@ impl SimpleExpr {
         Self::FunctionCall(func)
     }
 
-    pub(crate) fn like_like<O>(self, op: O, like: LikeExpr) -> SimpleExpr
-    where
-        O: Into<BinOper>,
-    {
-        self.binary(
-            op,
-            match like.escape {
-                Some(escape) => SimpleExpr::Binary(
-                    Box::new(like.pattern.into()),
-                    BinOper::Escape,
-                    Box::new(SimpleExpr::Constant(escape.into())),
-                ),
-                None => like.pattern.into(),
-            },
-        )
-    }
-
     pub(crate) fn binary<O, T>(self, op: O, right: T) -> Self
     where
         O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        SimpleExpr::Binary(Box::new(self), op.into(), Box::new(right.into()))
+        self.bin_op(op, right)
     }
 
     pub(crate) fn need_parentheses(&self) -> bool {
