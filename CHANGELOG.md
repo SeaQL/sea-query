@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.27.2 - 2022-11-14
+
+* Made `value::with_array` module public and therefore making NotU8 trait public https://github.com/SeaQL/sea-query/pull/511
+
 ## sea-query-binder 0.2.2
 
 * Enable SQLx features only if SQLx optional dependency is enabled https://github.com/SeaQL/sea-query/pull/517
