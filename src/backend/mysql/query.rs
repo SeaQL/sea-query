@@ -31,19 +31,10 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match join_type {
-                JoinType::Join => "JOIN",
-                JoinType::CrossJoin => "CROSS JOIN",
-                JoinType::InnerJoin => "INNER JOIN",
-                JoinType::LeftJoin => "LEFT JOIN",
-                JoinType::RightJoin => "RIGHT JOIN",
-                JoinType::FullOuterJoin => panic!("Mysql does not support FULL OUTER JOIN"),
-            }
-        )
-        .unwrap()
+        match join_type {
+            JoinType::FullOuterJoin => panic!("Mysql does not support FULL OUTER JOIN"),
+            _ => self.prepare_join_type_common(join_type, sql),
+        }
     }
 
     fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
