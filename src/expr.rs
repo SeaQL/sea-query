@@ -632,7 +632,7 @@ impl Expr {
         self.bin_oper(BinOper::GreaterThan, v.into())
     }
 
-    #[deprecated(since = "0.27.0", note = "Please use the [`Expr::gt`]")]
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gt`]")]
     pub fn greater_than<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -672,7 +672,7 @@ impl Expr {
         self.bin_oper(BinOper::GreaterThanOrEqual, v.into())
     }
 
-    #[deprecated(since = "0.27.0", note = "Please use the [`Expr::gte`]")]
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gte`]")]
     pub fn greater_or_equal<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -713,7 +713,7 @@ impl Expr {
         self.bin_oper(BinOper::SmallerThan, v.into())
     }
 
-    #[deprecated(since = "0.27.0", note = "Please use the [`Expr::lt`]")]
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lt`]")]
     pub fn less_than<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -754,7 +754,7 @@ impl Expr {
         self.bin_oper(BinOper::SmallerThanOrEqual, v.into())
     }
 
-    #[deprecated(since = "0.27.0", note = "Please use the [`Expr::lte`]")]
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lte`]")]
     pub fn less_or_equal<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
