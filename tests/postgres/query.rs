@@ -720,7 +720,7 @@ fn select_48() {
                     Expr::col(Glyph::Aspect).into_simple_expr(),
                     Expr::value(100),
                 ])
-                .less_than(Expr::tuple([Expr::value(8), Expr::value(100)])),
+                .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
             ))),
         )
         .to_string(PostgresQueryBuilder);

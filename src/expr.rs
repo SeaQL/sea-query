@@ -169,7 +169,7 @@ impl Expr {
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::tuple([Expr::col(Char::SizeW).into_simple_expr(), Expr::value(100)])
-    ///             .less_than(Expr::tuple([Expr::value(500), Expr::value(100)])))
+    ///             .lt(Expr::tuple([Expr::value(500), Expr::value(100)])))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -383,9 +383,9 @@ impl Expr {
     /// ```
     pub fn value<V>(v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        SimpleExpr::Value(v.into())
+        v.into()
     }
 
     /// Express any custom expression in [`&str`].
@@ -629,40 +629,12 @@ impl Expr {
     /// ```
     pub fn gt<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::GreaterThan, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::GreaterThan, v.into())
     }
 
-    /// Express a greater than (`>`) expression to another expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::tbl(Char::Table, Char::SizeW)
-    ///         .greater_than(Expr::tbl(Char::Table, Char::SizeH))
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > `character`.`size_h`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > "character"."size_h""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > "character"."size_h""#
-    /// );
-    /// ```
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gt`]")]
     pub fn greater_than<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -697,40 +669,12 @@ impl Expr {
     /// ```
     pub fn gte<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::GreaterThanOrEqual, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::GreaterThanOrEqual, v.into())
     }
 
-    /// Express a greater than or equal (`>=`) expression to another expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::tbl(Char::Table, Char::SizeW)
-    ///         .greater_or_equal(Expr::tbl(Char::Table, Char::SizeH))
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= `character`.`size_h`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= "character"."size_h""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= "character"."size_h""#
-    /// );
-    /// ```
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gte`]")]
     pub fn greater_or_equal<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -766,40 +710,12 @@ impl Expr {
     /// ```
     pub fn lt<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::SmallerThan, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::SmallerThan, v.into())
     }
 
-    /// Express a less than (`<`) expression to another expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::tbl(Char::Table, Char::SizeW)
-    ///         .less_than(Expr::tbl(Char::Table, Char::SizeH))
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < `character`.`size_h`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < "character"."size_h""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < "character"."size_h""#
-    /// );
-    /// ```
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lt`]")]
     pub fn less_than<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -835,40 +751,12 @@ impl Expr {
     /// ```
     pub fn lte<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::SmallerThanOrEqual, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::SmallerThanOrEqual, v.into())
     }
 
-    /// Express a less than or equal (`<=`) expression to another expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(
-    ///         Expr::tbl(Char::Table, Char::SizeW)
-    ///         .less_or_equal(Expr::tbl(Char::Table, Char::SizeH))
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= `character`.`size_h`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= "character"."size_h""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= "character"."size_h""#
-    /// );
-    /// ```
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lte`]")]
     pub fn less_or_equal<T>(self, expr: T) -> SimpleExpr
     where
         T: Into<SimpleExpr>,
@@ -905,9 +793,9 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn add<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Add, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Add, v.into())
     }
 
     /// Express an arithmetic subtraction operation.
@@ -939,9 +827,9 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn sub<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Sub, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Sub, v.into())
     }
 
     /// Express an arithmetic multiplication operation.
@@ -973,9 +861,9 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn mul<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Mul, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Mul, v.into())
     }
 
     /// Express an arithmetic division operation.
@@ -1007,9 +895,9 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn div<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Div, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Div, v.into())
     }
 
     /// Express an arithmetic modulo operation.
@@ -1041,9 +929,9 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn modulo<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Mod, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Mod, v.into())
     }
 
     /// Express a bitwise left shift.
@@ -1075,9 +963,9 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn left_shift<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::LShift, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::LShift, v.into())
     }
 
     /// Express a bitwise right shift.
@@ -1109,9 +997,9 @@ impl Expr {
     #[allow(clippy::should_implement_trait)]
     pub fn right_shift<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::RShift, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::RShift, v.into())
     }
 
     /// Express a `BETWEEN` expression.
@@ -1142,7 +1030,7 @@ impl Expr {
     /// ```
     pub fn between<V>(self, a: V, b: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
         self.between_or_not_between(BinOper::Between, a, b)
     }
@@ -1175,22 +1063,18 @@ impl Expr {
     /// ```
     pub fn not_between<V>(self, a: V, b: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
         self.between_or_not_between(BinOper::NotBetween, a, b)
     }
 
     fn between_or_not_between<V>(self, op: BinOper, a: V, b: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
         self.bin_oper(
             op,
-            SimpleExpr::Binary(
-                Box::new(SimpleExpr::Value(a.into())),
-                BinOper::And,
-                Box::new(SimpleExpr::Value(b.into())),
-            ),
+            SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
         )
     }
 
@@ -1356,9 +1240,9 @@ impl Expr {
     /// ```
     pub fn is<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Is, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::Is, v.into())
     }
 
     /// Express a `IS NOT NULL` expression.
@@ -1420,9 +1304,9 @@ impl Expr {
     /// ```
     pub fn is_not<V>(self, v: V) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::IsNot, SimpleExpr::Value(v.into()))
+        self.bin_oper(BinOper::IsNot, v.into())
     }
 
     /// Create any binary operation
@@ -1696,13 +1580,11 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_in<V, I>(mut self, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::Values(
-            v.into_iter().map(|v| v.into()).collect(),
-        ));
+        self.right = Some(SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()));
         self.into()
     }
 
@@ -1807,13 +1689,11 @@ impl Expr {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_in<V, I>(mut self, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
+        V: Into<SimpleExpr>,
         I: IntoIterator<Item = V>,
     {
         self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::Values(
-            v.into_iter().map(|v| v.into()).collect(),
-        ));
+        self.right = Some(SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()));
         self.into()
     }
 
@@ -2659,17 +2539,6 @@ impl SimpleExpr {
             self,
             Self::Binary(_, BinOper::Between, _) | Self::Binary(_, BinOper::NotBetween, _)
         )
-    }
-
-    pub(crate) fn is_values(&self) -> bool {
-        matches!(self, Self::Values(_))
-    }
-
-    pub(crate) fn get_values(&self) -> &Vec<Value> {
-        match self {
-            Self::Values(vec) => vec,
-            _ => panic!("not Values"),
-        }
     }
 
     pub(crate) fn get_bin_oper(&self) -> Option<BinOper> {

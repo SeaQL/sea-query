@@ -260,28 +260,21 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 self.prepare_function(&func.func, sql);
                 self.prepare_tuple(&func.args, sql);
             }
-            SimpleExpr::Binary(left, op, right) => {
-                if *op == BinOper::In && right.is_values() && right.get_values().is_empty() {
-                    self.binary_expr(
-                        &SimpleExpr::Value(1i32.into()),
-                        &BinOper::Equal,
-                        &SimpleExpr::Value(2i32.into()),
-                        sql,
-                    );
-                } else if *op == BinOper::NotIn
-                    && right.is_values()
-                    && right.get_values().is_empty()
-                {
-                    self.binary_expr(
-                        &SimpleExpr::Value(1i32.into()),
-                        &BinOper::Equal,
-                        &SimpleExpr::Value(1i32.into()),
-                        sql,
-                    );
-                } else {
-                    self.binary_expr(left, op, right, sql);
-                }
-            }
+            SimpleExpr::Binary(left, op, right) => match (op, right.as_ref()) {
+                (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => self.binary_expr(
+                    &SimpleExpr::Value(1i32.into()),
+                    &BinOper::Equal,
+                    &SimpleExpr::Value(2i32.into()),
+                    sql,
+                ),
+                (BinOper::NotIn, SimpleExpr::Tuple(t)) if t.is_empty() => self.binary_expr(
+                    &SimpleExpr::Value(1i32.into()),
+                    &BinOper::Equal,
+                    &SimpleExpr::Value(1i32.into()),
+                    sql,
+                ),
+                _ => self.binary_expr(left, op, right, sql),
+            },
             SimpleExpr::SubQuery(oper, sel) => {
                 if let Some(oper) = oper {
                     self.prepare_sub_query_oper(oper, sql);
