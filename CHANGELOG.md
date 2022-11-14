@@ -28,10 +28,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Func::coalesce` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Into<SimpleExpr>` https://github.com/SeaQL/sea-query/pull/475
 * Removed `Expr::arg` and `Expr::args` - these functions are no longer needed https://github.com/SeaQL/sea-query/pull/475
 * Moved all Postgres specific operators to own enum https://github.com/SeaQL/sea-query/pull/507
+* `Expr::value`, `Expr::gt`, `Expr::gte`, `Expr::lt`, `Expr::lte`, `Expr::add`, `Expr::div`, `Expr::sub`, `Expr::modulo`, `Expr::left_shift`, `Expr::right_shift`, `Expr::between`, `Expr::not_between`, `Expr::is`, `Expr::is_not`, `Expr::if_null` now accepts `Into<SimpleExpr>` instead `Into<Value>` https://github.com/SeaQL/sea-query/pull/476
+* `Expr::is_in`, `Expr::is_not_in accept` now accepts `Into<SimpleExpr>` instead `Into<Value>` and convert it to `SimpleExpr::Tuple` instead `SimpleExpr::Values` https://github.com/SeaQL/sea-query/pull/476
+* Deprecated `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than` and `Expr::less_or_equal` https://github.com/SeaQL/sea-query/pull/476
+* `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 
 ### Enhancements
 
-* `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 * Made `value::with_array` module public and therefore making NotU8 trait public https://github.com/SeaQL/sea-query/pull/511
 
 ## 0.27.2 - 2022-11-14
