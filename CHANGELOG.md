@@ -32,7 +32,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
-* Made `value::with_array` module public and therefore making NotU8 trait public as well https://github.com/SeaQL/sea-query/pull/511
+* Made `value::with_array` module public and therefore making NotU8 trait public https://github.com/SeaQL/sea-query/pull/511
+
+## 0.27.2 - 2022-11-14
+
+* Made `value::with_array` module public and therefore making NotU8 trait public https://github.com/SeaQL/sea-query/pull/511
 
 ## sea-query-binder 0.2.2
 
