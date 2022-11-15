@@ -158,6 +158,7 @@ pub enum JoinType {
     InnerJoin,
     LeftJoin,
     RightJoin,
+    FullOuterJoin,
 }
 
 /// Nulls order

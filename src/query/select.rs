@@ -1263,6 +1263,60 @@ impl SelectStatement {
         self.join(JoinType::InnerJoin, tbl_ref, condition)
     }
 
+    /// Full outer join.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .column((Font::Table, Font::Name))
+    ///     .from(Char::Table)
+    ///     .full_outer_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "font"."name" FROM "character" FULL OUTER JOIN "font" ON "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "font"."name" FROM "character" FULL OUTER JOIN "font" ON "character"."font_id" = "font"."id""#
+    /// );
+    ///
+    /// // Constructing chained join conditions
+    /// let query = Query::select()
+    ///         .column(Char::Character)
+    ///         .column((Font::Table, Font::Name))
+    ///         .from(Char::Table)
+    ///         .full_outer_join(
+    ///             Font::Table,
+    ///             all![
+    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///             ]
+    ///         )
+    ///         .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "font"."name" FROM "character" FULL OUTER JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "font"."name" FROM "character" FULL OUTER JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
+    /// );
+    /// ```
+    pub fn full_outer_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
+    where
+        R: IntoTableRef,
+        C: IntoCondition,
+    {
+        self.join(JoinType::FullOuterJoin, tbl_ref, condition)
+    }
+
     /// Join with other table by [`JoinType`].
     ///
     /// # Examples

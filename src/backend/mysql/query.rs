@@ -30,6 +30,13 @@ impl QueryBuilder for MysqlQueryBuilder {
         // MySQL doesn't support declaring materialization in SQL for with query.
     }
 
+    fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
+        match join_type {
+            JoinType::FullOuterJoin => panic!("Mysql does not support FULL OUTER JOIN"),
+            _ => self.prepare_join_type_common(join_type, sql),
+        }
+    }
+
     fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         match order_expr.nulls {
             None => (),

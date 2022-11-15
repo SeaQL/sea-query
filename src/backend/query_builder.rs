@@ -800,6 +800,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
     /// Translate [`JoinType`] into SQL statement.
     fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
+        self.prepare_join_type_common(join_type, sql)
+    }
+
+    fn prepare_join_type_common(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",
@@ -809,6 +813,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 JoinType::InnerJoin => "INNER JOIN",
                 JoinType::LeftJoin => "LEFT JOIN",
                 JoinType::RightJoin => "RIGHT JOIN",
+                JoinType::FullOuterJoin => "FULL OUTER JOIN",
             }
         )
         .unwrap()
