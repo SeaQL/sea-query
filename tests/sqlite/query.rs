@@ -421,7 +421,7 @@ fn select_30() {
                 Expr::col(Char::SizeW)
                     .mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
-                    .equals(Expr::value(4))
+                    .equals(4)
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" * 2) + ("size_h" / 3) = 4"#
@@ -432,7 +432,7 @@ fn select_30() {
 fn select_31() {
     assert_eq!(
         Query::select()
-            .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(Expr::value(i)) }))
+            .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(i) }))
             .to_string(SqliteQueryBuilder),
         r#"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"#
     );
@@ -940,15 +940,9 @@ fn select_57() {
     let query = Query::select()
         .expr_as(
             CaseStatement::new()
-                .case(
-                    Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
-                    Expr::val("positive"),
-                )
-                .case(
-                    Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
-                    Expr::val("negative"),
-                )
-                .finally(Expr::val("zero")),
+                .case(Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0), "positive")
+                .case(Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0), "negative")
+                .finally("zero"),
             Alias::new("polarity"),
         )
         .from(Glyph::Table)

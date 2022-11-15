@@ -15,9 +15,9 @@ pub trait PgExpr: Expression {
     ///     .from(Font::Table)
     ///     .and_where(
     ///         Expr::val("a")
-    ///             .concatenate(Expr::val("b"))
-    ///             .concat(Expr::val("c"))
-    ///             .concat(Expr::val("d")),
+    ///             .concatenate("b")
+    ///             .concat("c")
+    ///             .concat("d"),
     ///     )
     ///     .to_owned();
     ///
@@ -50,8 +50,8 @@ pub trait PgExpr: Expression {
     /// let query = Query::select()
     ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a & b").matches(Expr::val("a b")))
-    ///     .and_where(Expr::col(Font::Name).matches(Expr::val("a b")))
+    ///     .and_where(Expr::val("a & b").matches("a b"))
+    ///     .and_where(Expr::col(Font::Name).matches("a b"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -76,8 +76,8 @@ pub trait PgExpr: Expression {
     /// let query = Query::select()
     ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a & b").contains(Expr::val("a b")))
-    ///     .and_where(Expr::col(Font::Name).contains(Expr::val("a b")))
+    ///     .and_where(Expr::val("a & b").contains("a b"))
+    ///     .and_where(Expr::col(Font::Name).contains("a b"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -102,8 +102,8 @@ pub trait PgExpr: Expression {
     /// let query = Query::select()
     ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a & b").contained(Expr::val("a b")))
-    ///     .and_where(Expr::col(Font::Name).contained(Expr::val("a b")))
+    ///     .and_where(Expr::val("a & b").contained("a b"))
+    ///     .and_where(Expr::col(Font::Name).contained("a b"))
     ///     .to_owned();
     ///
     /// assert_eq!(

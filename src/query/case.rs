@@ -23,8 +23,8 @@ impl CaseStatement {
     /// let query = Query::select()
     ///     .expr_as(
     ///         CaseStatement::new()
-    ///             .case(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([2, 4]), Expr::val(true))
-    ///             .finally(Expr::val(false)),
+    ///             .case(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([2, 4]), true)
+    ///             .finally(false),
     ///          Alias::new("is_even")
     ///     )
     ///     .from(Glyph::Table)
@@ -50,13 +50,13 @@ impl CaseStatement {
     ///     .expr_as(
     ///             Expr::case(
     ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
-    ///                 Expr::val("positive")
+    ///                 "positive"
     ///              )
     ///             .case(
     ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
-    ///                 Expr::val("negative")
+    ///                 "negative"
     ///              )
-    ///             .finally(Expr::val("zero")),
+    ///             .finally("zero"),
     ///          Alias::new("polarity")
     ///     )
     ///     .from(Glyph::Table)
@@ -92,15 +92,15 @@ impl CaseStatement {
     ///             Cond::any()
     ///                 .add(Expr::tbl(Character::Table, Character::FontSize).gt(48))
     ///                 .add(Expr::tbl(Character::Table, Character::SizeW).gt(500)),
-    ///             Expr::val("large")
+    ///             "large"
     ///         )
     ///         .case(
     ///             Cond::any()
     ///                 .add(Expr::tbl(Character::Table, Character::FontSize).between(24,48).into_condition())
     ///                 .add(Expr::tbl(Character::Table, Character::SizeW).between(300,500).into_condition()),
-    ///             Expr::val("medium")
+    ///             "medium"
     ///         )
-    ///         .finally(Expr::val("small")),
+    ///         .finally("small"),
     ///         Alias::new("char_size"))
     ///     .from(Character::Table)
     ///     .to_owned();

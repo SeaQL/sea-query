@@ -791,7 +791,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).add(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).add(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -825,7 +825,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).sub(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).sub(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -859,7 +859,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).mul(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).mul(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -893,7 +893,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).div(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).div(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -927,7 +927,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).modulo(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).modulo(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -961,7 +961,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).left_shift(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).left_shift(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -995,7 +995,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).right_shift(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).right_shift(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1310,7 +1310,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .cond_where(all![
-    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, Expr::value(10)),
+    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, 10),
     ///         Expr::col(Char::SizeW).binary(BinOper::GreaterThan, Expr::col(Char::SizeH))
     ///     ])
     ///     .to_owned();
@@ -1940,9 +1940,9 @@ impl Expr {
     ///     .expr_as(
     ///         Expr::case(
     ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([2, 4]),
-    ///                 Expr::val(true)
+    ///                 true
     ///              )
-    ///             .finally(Expr::val(false)),
+    ///             .finally(false),
     ///          Alias::new("is_even")
     ///     )
     ///     .from(Glyph::Table)
