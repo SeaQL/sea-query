@@ -238,7 +238,7 @@
 //!         .and_where(
 //!             Expr::expr(Expr::col(Char::SizeW).add(1))
 //!                 .mul(2)
-//!                 .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+//!                 .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
 //!         )
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(

@@ -358,7 +358,7 @@ fn select_25() {
             .and_where(
                 Expr::col(Char::SizeW)
                     .mul(2)
-                    .equals(Expr::col(Char::SizeH).div(2))
+                    .eq(Expr::col(Char::SizeH).div(2))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" / 2"#
@@ -374,7 +374,7 @@ fn select_26() {
             .and_where(
                 Expr::expr(Expr::col(Char::SizeW).add(1))
                     .mul(2)
-                    .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                    .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#
@@ -421,7 +421,7 @@ fn select_30() {
                 Expr::col(Char::SizeW)
                     .mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
-                    .equals(4)
+                    .eq(4)
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" * 2) + ("size_h" / 3) = 4"#
