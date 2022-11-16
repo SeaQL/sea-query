@@ -37,12 +37,35 @@ pub enum SimpleExpr {
     Constant(Value),
 }
 
-pub trait Expression: Sized {
-    fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
-    where
-        O: Into<BinOper>,
-        T: Into<SimpleExpr>;
+pub(crate) mod private {
+    use crate::{BinOper, LikeExpr, SimpleExpr};
+
+    pub trait Expression: Sized {
+        fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
+        where
+            O: Into<BinOper>,
+            T: Into<SimpleExpr>;
+
+        fn like_like<O>(self, op: O, like: LikeExpr) -> SimpleExpr
+        where
+            O: Into<BinOper>,
+        {
+            self.bin_op(
+                op,
+                match like.escape {
+                    Some(escape) => SimpleExpr::Binary(
+                        Box::new(like.pattern.into()),
+                        BinOper::Escape,
+                        Box::new(SimpleExpr::Constant(escape.into())),
+                    ),
+                    None => like.pattern.into(),
+                },
+            )
+        }
+    }
 }
+
+use private::Expression;
 
 impl Expression for Expr {
     fn bin_op<O, T>(mut self, op: O, right: T) -> SimpleExpr
@@ -1153,23 +1176,6 @@ impl Expr {
     /// Express a `NOT LIKE` expression
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
         self.like_like(BinOper::NotLike, like.into_like_expr())
-    }
-
-    pub(crate) fn like_like<O>(self, op: O, like: LikeExpr) -> SimpleExpr
-    where
-        O: Into<BinOper>,
-    {
-        self.bin_op(
-            op,
-            match like.escape {
-                Some(escape) => SimpleExpr::Binary(
-                    Box::new(like.pattern.into()),
-                    BinOper::Escape,
-                    Box::new(SimpleExpr::Constant(escape.into())),
-                ),
-                None => like.pattern.into(),
-            },
-        )
     }
 
     /// Express a `IS NULL` expression.

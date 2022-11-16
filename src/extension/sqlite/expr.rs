@@ -1,4 +1,4 @@
-use crate::{Expr, Expression, SimpleExpr};
+use crate::{expr::private::Expression, Expr, SimpleExpr};
 
 use super::SqliteBinOper;
 

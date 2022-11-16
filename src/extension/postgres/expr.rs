@@ -1,6 +1,5 @@
-use crate::{Expr, Expression, IntoLikeExpr, SimpleExpr};
-
 use super::PgBinOper;
+use crate::{expr::private::Expression, Expr, IntoLikeExpr, SimpleExpr};
 
 pub trait PgExpr: Expression {
     /// Express an postgres concatenate (`||`) expression.
@@ -117,26 +116,13 @@ pub trait PgExpr: Expression {
     {
         self.bin_op(PgBinOper::Contained, expr)
     }
-}
 
-pub trait PgExprILike: Expression {
-    fn ilike<L>(self, like: L) -> SimpleExpr
-    where
-        L: IntoLikeExpr;
-    fn not_ilike<L>(self, like: L) -> SimpleExpr
-    where
-        L: IntoLikeExpr;
-}
-
-impl PgExpr for Expr {}
-
-impl PgExprILike for Expr {
     /// Express a `LIKE` expression.
     ///
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::PgExprILike};
+    /// use sea_query::{*, tests_cfg::*, extension::postgres::PgExpr};
     ///
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
@@ -164,5 +150,7 @@ impl PgExprILike for Expr {
         self.like_like(PgBinOper::NotILike, like.into_like_expr())
     }
 }
+
+impl PgExpr for Expr {}
 
 impl PgExpr for SimpleExpr {}
