@@ -1,6 +1,8 @@
 use crate::*;
 
-pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + TableRefBuilder {
+pub trait TableBuilder:
+    IndexBuilder + ForeignKeyBuilder + QuotedBuilder + TableRefBuilder + QueryBuilder
+{
     /// Translate [`TableCreateStatement`] into SQL statement.
     fn prepare_table_create_statement(
         &self,
@@ -69,10 +71,7 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter);
 
     /// Translate [`ColumnSpec`] into SQL statement.
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter)
-    where
-        Self: QueryBuilder + Sized,
-    {
+    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter) {
         match column_spec {
             ColumnSpec::Null => write!(sql, "NULL").unwrap(),
             ColumnSpec::NotNull => write!(sql, "NOT NULL").unwrap(),
