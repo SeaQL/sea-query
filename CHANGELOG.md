@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added the `mul` and `div` methods for `SimpleExpr` https://github.com/SeaQL/sea-query/pull/510
 * Added the `MATCH`, `->` and `->>` operators for SQLite https://github.com/SeaQL/sea-query/pull/513
 * Added the `FULL OUTER JOIN` https://github.com/SeaQL/sea-query/pull/497
+* New traits: `PgExpr` and `SqliteExpr` for custom expressions https://github.com/SeaQL/sea-query/pull/519
 
 ### Bug fixes
 
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Expr::is_in`, `Expr::is_not_in accept` now accepts `Into<SimpleExpr>` instead `Into<Value>` and convert it to `SimpleExpr::Tuple` instead `SimpleExpr::Values` https://github.com/SeaQL/sea-query/pull/476
 * Deprecated `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than` and `Expr::less_or_equal` https://github.com/SeaQL/sea-query/pull/476
 * `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
+* Moved: `Expr::ilike`, `Expr::not_ilike`, `Expr::matches`, `Expr::contains`, `Expr::contained`, `Expr::concatenate`, `Expr::concat`, `SimpleExpr::concatenate` and `SimpleExpr::concat` to new trait: `PgExpr` https://github.com/SeaQL/sea-query/pull/519
 
 ### Enhancements
 
