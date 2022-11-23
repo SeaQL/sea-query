@@ -79,7 +79,7 @@ impl Func {
     /// }
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
+    ///     .expr(Func::cust(MyFunction).arg("hello"))
     ///     .to_owned();
     ///
     /// assert_eq!(

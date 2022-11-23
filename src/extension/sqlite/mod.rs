@@ -1,13 +1,17 @@
+pub use expr::SqliteExpr;
+
 use crate::types::BinOper;
+
+mod expr;
 
 /// Sqlite-specific binary operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SqliteBinOper {
-    /// 'MATCH'.
+    /// `MATCH`.
     Match,
-    /// '->'. Retreives JSON field as JSON value.
+    /// `->`. Retrieves JSON field as JSON value.
     GetJsonField,
-    /// '->>'. Retreives JSON field and casts it to an appropriate SQL type.
+    /// `->>`. Retrieves JSON field and casts it to an appropriate SQL type.
     CastJsonField,
 }
 

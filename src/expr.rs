@@ -4,14 +4,12 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
-#[cfg(feature = "backend-postgres")]
-use crate::extension::postgres::PgBinOper;
 use crate::{func::*, query::*, types::*, value::*};
 
 /// Helper to build a [`SimpleExpr`].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Expr {
-    pub(crate) left: Option<SimpleExpr>,
+    pub(crate) left: SimpleExpr,
     pub(crate) right: Option<SimpleExpr>,
     pub(crate) uopr: Option<UnOper>,
     pub(crate) bopr: Option<BinOper>,
@@ -39,10 +37,52 @@ pub enum SimpleExpr {
     Constant(Value),
 }
 
+pub(crate) mod private {
+    use crate::{BinOper, LikeExpr, SimpleExpr};
+
+    pub trait Expression: Sized {
+        fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
+        where
+            O: Into<BinOper>,
+            T: Into<SimpleExpr>;
+
+        fn like_like<O>(self, op: O, like: LikeExpr) -> SimpleExpr
+        where
+            O: Into<BinOper>,
+        {
+            self.bin_op(
+                op,
+                match like.escape {
+                    Some(escape) => SimpleExpr::Binary(
+                        Box::new(like.pattern.into()),
+                        BinOper::Escape,
+                        Box::new(SimpleExpr::Constant(escape.into())),
+                    ),
+                    None => like.pattern.into(),
+                },
+            )
+        }
+    }
+}
+
+use private::Expression;
+
+impl Expression for Expr {
+    fn bin_op<O, T>(mut self, op: O, right: T) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+        T: Into<SimpleExpr>,
+    {
+        self.bopr = Some(op.into());
+        self.right = Some(right.into());
+        self.into()
+    }
+}
+
 impl Expr {
     fn new_with_left(left: SimpleExpr) -> Self {
         Self {
-            left: Some(left),
+            left,
             right: None,
             uopr: None,
             bopr: None,
@@ -168,7 +208,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(
-    ///         Expr::tuple([Expr::col(Char::SizeW).into_simple_expr(), Expr::value(100)])
+    ///         Expr::tuple([Expr::col(Char::SizeW).into(), Expr::value(100)])
     ///             .lt(Expr::tuple([Expr::value(500), Expr::value(100)])))
     ///     .to_owned();
     ///
@@ -527,7 +567,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Equal, v.into())
+        self.binary(BinOper::Equal, v)
     }
 
     /// Express a not equal (`<>`) expression.
@@ -561,7 +601,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::NotEqual, v.into())
+        self.binary(BinOper::NotEqual, v)
     }
     /// Express a equal expression between two table columns,
     /// you will mainly use this to relate identical value between two table columns.
@@ -595,7 +635,7 @@ impl Expr {
         T: IntoIden,
         C: IntoIden,
     {
-        self.bin_oper(
+        self.binary(
             BinOper::Equal,
             SimpleExpr::Column((t.into_iden(), c.into_iden()).into_column_ref()),
         )
@@ -631,7 +671,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::GreaterThan, v.into())
+        self.binary(BinOper::GreaterThan, v.into())
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gt`]")]
@@ -671,7 +711,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::GreaterThanOrEqual, v.into())
+        self.binary(BinOper::GreaterThanOrEqual, v)
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gte`]")]
@@ -712,7 +752,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::SmallerThan, v.into())
+        self.binary(BinOper::SmallerThan, v)
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lt`]")]
@@ -753,7 +793,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::SmallerThanOrEqual, v.into())
+        self.binary(BinOper::SmallerThanOrEqual, v)
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lte`]")]
@@ -774,7 +814,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).add(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).add(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -795,7 +835,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Add, v.into())
+        self.binary(BinOper::Add, v)
     }
 
     /// Express an arithmetic subtraction operation.
@@ -808,7 +848,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).sub(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).sub(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -829,7 +869,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Sub, v.into())
+        self.binary(BinOper::Sub, v)
     }
 
     /// Express an arithmetic multiplication operation.
@@ -842,7 +882,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).mul(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).mul(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -863,7 +903,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Mul, v.into())
+        self.binary(BinOper::Mul, v)
     }
 
     /// Express an arithmetic division operation.
@@ -876,7 +916,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).div(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).div(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -897,7 +937,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Div, v.into())
+        self.binary(BinOper::Div, v)
     }
 
     /// Express an arithmetic modulo operation.
@@ -910,7 +950,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).modulo(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).modulo(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -931,7 +971,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Mod, v.into())
+        self.binary(BinOper::Mod, v)
     }
 
     /// Express a bitwise left shift.
@@ -944,7 +984,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).left_shift(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).left_shift(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -965,7 +1005,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::LShift, v.into())
+        self.binary(BinOper::LShift, v)
     }
 
     /// Express a bitwise right shift.
@@ -978,7 +1018,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).right_shift(1).equals(Expr::value(2)))
+    ///     .and_where(Expr::val(1).right_shift(1).equals(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -999,7 +1039,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::RShift, v.into())
+        self.binary(BinOper::RShift, v)
     }
 
     /// Express a `BETWEEN` expression.
@@ -1072,7 +1112,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(
+        self.binary(
             op,
             SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
         )
@@ -1138,49 +1178,6 @@ impl Expr {
         self.like_like(BinOper::NotLike, like.into_like_expr())
     }
 
-    /// Express a `LIKE` expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Character).ilike("Ours'%"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" ILIKE E'Ours\'%'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(PgBinOper::ILike.into(), like.into_like_expr())
-    }
-
-    /// Express a `NOT ILIKE` expression
-    #[cfg(feature = "backend-postgres")]
-    pub fn not_ilike<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(PgBinOper::NotILike.into(), like.into_like_expr())
-    }
-
-    fn like_like(self, op: BinOper, like: LikeExpr) -> SimpleExpr {
-        self.bin_oper(
-            op,
-            match like.escape {
-                Some(escape) => SimpleExpr::Binary(
-                    Box::new(like.pattern.into()),
-                    BinOper::Escape,
-                    Box::new(SimpleExpr::Constant(escape.into())),
-                ),
-                None => like.pattern.into(),
-            },
-        )
-    }
-
     /// Express a `IS NULL` expression.
     ///
     /// # Examples
@@ -1209,7 +1206,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::Is, SimpleExpr::Keyword(Keyword::Null))
+        self.binary(BinOper::Is, Keyword::Null)
     }
 
     /// Express a `IS` expression.
@@ -1242,7 +1239,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::Is, v.into())
+        self.binary(BinOper::Is, v)
     }
 
     /// Express a `IS NOT NULL` expression.
@@ -1273,7 +1270,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_null(self) -> SimpleExpr {
-        self.bin_oper(BinOper::IsNot, SimpleExpr::Keyword(Keyword::Null))
+        self.binary(BinOper::IsNot, Keyword::Null)
     }
 
     /// Express a `IS NOT` expression.
@@ -1306,7 +1303,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.bin_oper(BinOper::IsNot, v.into())
+        self.binary(BinOper::IsNot, v)
     }
 
     /// Create any binary operation
@@ -1319,7 +1316,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .cond_where(all![
-    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, Expr::value(10)),
+    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, 10),
     ///         Expr::col(Char::SizeW).binary(BinOper::GreaterThan, Expr::col(Char::SizeH))
     ///     ])
     ///     .to_owned();
@@ -1336,12 +1333,12 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// ```
-    pub fn binary<O, T>(self, operation: O, right: T) -> SimpleExpr
+    pub fn binary<O, T>(self, op: O, right: T) -> SimpleExpr
     where
         O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        self.bin_oper(operation.into(), right.into())
+        self.bin_op(op, right)
     }
 
     /// Negates an expression with `NOT`.
@@ -1400,9 +1397,8 @@ impl Expr {
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn max(mut self) -> SimpleExpr {
-        let left = self.left.take();
-        Func::max(left.unwrap()).into()
+    pub fn max(self) -> SimpleExpr {
+        Func::max(self.left).into()
     }
 
     /// Express a `MIN` function.
@@ -1430,9 +1426,8 @@ impl Expr {
     ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn min(mut self) -> SimpleExpr {
-        let left = self.left.take();
-        Func::min(left.unwrap()).into()
+    pub fn min(self) -> SimpleExpr {
+        Func::min(self.left).into()
     }
 
     /// Express a `SUM` function.
@@ -1460,9 +1455,8 @@ impl Expr {
     ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn sum(mut self) -> SimpleExpr {
-        let left = self.left.take();
-        Func::sum(left.unwrap()).into()
+    pub fn sum(self) -> SimpleExpr {
+        Func::sum(self.left).into()
     }
 
     /// Express a `COUNT` function.
@@ -1490,9 +1484,8 @@ impl Expr {
     ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn count(mut self) -> SimpleExpr {
-        let left = self.left.take();
-        Func::count(left.unwrap()).into()
+    pub fn count(self) -> SimpleExpr {
+        Func::count(self.left).into()
     }
 
     /// Express a `IF NULL` function.
@@ -1520,12 +1513,11 @@ impl Expr {
     ///     r#"SELECT IFNULL("character"."size_w", 0) FROM "character""#
     /// );
     /// ```
-    pub fn if_null<V>(mut self, v: V) -> SimpleExpr
+    pub fn if_null<V>(self, v: V) -> SimpleExpr
     where
         V: Into<SimpleExpr>,
     {
-        let left = self.left.take();
-        Func::if_null(left.unwrap(), v).into()
+        Func::if_null(self.left, v).into()
     }
 
     /// Express a `IN` expression.
@@ -1600,8 +1592,8 @@ impl Expr {
     ///     .from(Char::Table)
     ///     .and_where(
     ///         Expr::tuple([
-    ///             Expr::col(Char::Character).into_simple_expr(),
-    ///             Expr::col(Char::FontId).into_simple_expr(),
+    ///             Expr::col(Char::Character).into(),
+    ///             Expr::col(Char::FontId).into(),
     ///         ])
     ///         .in_tuples([(1, String::from("1")), (2, String::from("2"))])
     ///     )
@@ -1879,123 +1871,6 @@ impl Expr {
         )
     }
 
-    /// Express an postgres fulltext search matches (`@@`) expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a & b").matches(Expr::val("a b")))
-    ///     .and_where(Expr::col(Font::Name).matches(Expr::val("a b")))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @@ 'a b' AND "name" @@ 'a b'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn matches<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Matches, expr.into())
-    }
-
-    /// Express an postgres fulltext search contains (`@>`) expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a & b").contains(Expr::val("a b")))
-    ///     .and_where(Expr::col(Font::Name).contains(Expr::val("a b")))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @> 'a b' AND "name" @> 'a b'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn contains<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Contains, expr.into())
-    }
-
-    /// Express an postgres fulltext search contained (`<@`) expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a & b").contained(Expr::val("a b")))
-    ///     .and_where(Expr::col(Font::Name).contained(Expr::val("a b")))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' <@ 'a b' AND "name" <@ 'a b'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn contained<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Contained, expr.into())
-    }
-
-    /// Express an postgres concatenate (`||`) expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a").concatenate(Expr::val("b")))
-    ///     .and_where(Expr::val("c").concat(Expr::val("d")))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' AND 'c' || 'd'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn concatenate<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Concatenate, expr.into())
-    }
-
-    /// Alias of [`Expr::concatenate`]
-    #[cfg(feature = "backend-postgres")]
-    pub fn concat<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.concatenate(expr)
-    }
-
     /// Express a `AS enum` expression.
     ///
     /// # Examples
@@ -2052,13 +1927,10 @@ impl Expr {
         self.into()
     }
 
-    pub(crate) fn bin_oper(mut self, o: BinOper, e: SimpleExpr) -> SimpleExpr {
-        self.bopr = Some(o);
-        self.right = Some(e);
-        self.into()
-    }
-
-    /// `Into::<SimpleExpr>::into()` when type inference is impossible
+    #[deprecated(
+        since = "0.28.0",
+        note = "Please use the [`Into::<SimpleExpr>::into()`]"
+    )]
     pub fn into_simple_expr(self) -> SimpleExpr {
         self.into()
     }
@@ -2074,9 +1946,9 @@ impl Expr {
     ///     .expr_as(
     ///         Expr::case(
     ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([2, 4]),
-    ///                 Expr::val(true)
+    ///                 true
     ///              )
-    ///             .finally(Expr::val(false)),
+    ///             .finally(false),
     ///          Alias::new("is_even")
     ///     )
     ///     .from(Glyph::Table)
@@ -2169,20 +2041,14 @@ impl Expr {
 }
 
 impl From<Expr> for SimpleExpr {
-    /// Convert into SimpleExpr. Will panic if this Expr is missing an operand
+    /// Convert into SimpleExpr
     fn from(src: Expr) -> Self {
         if let Some(uopr) = src.uopr {
-            SimpleExpr::Unary(uopr, Box::new(src.left.unwrap()))
+            SimpleExpr::Unary(uopr, Box::new(src.left))
         } else if let Some(bopr) = src.bopr {
-            SimpleExpr::Binary(
-                Box::new(src.left.unwrap()),
-                bopr,
-                Box::new(src.right.unwrap()),
-            )
-        } else if let Some(left) = src.left {
-            left
+            SimpleExpr::Binary(Box::new(src.left), bopr, Box::new(src.right.unwrap()))
         } else {
-            panic!("incomplete expression")
+            src.left
         }
     }
 }
@@ -2199,6 +2065,22 @@ where
 impl From<FunctionCall> for SimpleExpr {
     fn from(func: FunctionCall) -> Self {
         SimpleExpr::FunctionCall(func)
+    }
+}
+
+impl From<Keyword> for SimpleExpr {
+    fn from(k: Keyword) -> Self {
+        SimpleExpr::Keyword(k)
+    }
+}
+
+impl Expression for SimpleExpr {
+    fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+        T: Into<SimpleExpr>,
+    {
+        SimpleExpr::Binary(Box::new(self), op.into(), Box::new(right.into()))
     }
 }
 
@@ -2489,25 +2371,44 @@ impl SimpleExpr {
         self.binary(BinOper::Sub, right)
     }
 
+    /// Express a `CAST AS` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::value("1").cast_as(Alias::new("integer")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// ```
+    pub fn cast_as<T>(self, type_name: T) -> Self
+    where
+        T: IntoIden,
+    {
+        let func = Func::cast_as(self, type_name);
+        Self::FunctionCall(func)
+    }
+
     pub(crate) fn binary<O, T>(self, op: O, right: T) -> Self
     where
         O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        SimpleExpr::Binary(Box::new(self), op.into(), Box::new(right.into()))
-    }
-
-    #[allow(dead_code)]
-    pub(crate) fn static_conditions<T, F>(self, b: bool, if_true: T, if_false: F) -> Self
-    where
-        T: FnOnce(Self) -> Self,
-        F: FnOnce(Self) -> Self,
-    {
-        if b {
-            if_true(self)
-        } else {
-            if_false(self)
-        }
+        self.bin_op(op, right)
     }
 
     pub(crate) fn need_parentheses(&self) -> bool {
@@ -2546,77 +2447,5 @@ impl SimpleExpr {
             Self::Binary(_, oper, _) => Some(*oper),
             _ => None,
         }
-    }
-
-    /// Express an postgres concatenate (`||`) expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(
-    ///         Expr::val("a")
-    ///             .concatenate(Expr::val("b"))
-    ///             .concat(Expr::val("c"))
-    ///             .concat(Expr::val("d")),
-    ///     )
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn concatenate<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(PgBinOper::Concatenate, right)
-    }
-
-    /// Alias of [`SimpleExpr::concatenate`]
-    #[cfg(feature = "backend-postgres")]
-    pub fn concat<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.concatenate(right)
-    }
-
-    /// Express a `CAST AS` expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::value("1").cast_as(Alias::new("integer")))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// ```
-    pub fn cast_as<T>(self, type_name: T) -> Self
-    where
-        T: IntoIden,
-    {
-        let func = Func::cast_as(self, type_name);
-        Self::FunctionCall(func)
     }
 }

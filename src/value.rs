@@ -1628,7 +1628,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_value() {
-        let timestamp = chrono::NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2);
+        let timestamp = NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2);
         let value: Value = timestamp.into();
         let out: NaiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1672,7 +1672,7 @@ mod tests {
         let string = "2020-01-01T02:02:02+08:00";
         let timestamp = DateTime::parse_from_rfc3339(string).unwrap();
 
-        let query = Query::select().expr(Expr::val(timestamp)).to_owned();
+        let query = Query::select().expr(timestamp).to_owned();
 
         let formatted = "2020-01-01 02:02:02 +08:00";
 
@@ -1740,7 +1740,7 @@ mod tests {
         use time::macros::datetime;
 
         let timestamp = datetime!(2020-01-01 02:02:02 +8);
-        let query = Query::select().expr(Expr::val(timestamp)).to_owned();
+        let query = Query::select().expr(timestamp).to_owned();
         let formatted = "2020-01-01 02:02:02.000000 +08:00";
 
         assert_eq!(
@@ -1762,7 +1762,7 @@ mod tests {
     fn test_uuid_value() {
         let uuid = Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
         let value: Value = uuid.into();
-        let out: uuid::Uuid = value.unwrap();
+        let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
     }
 

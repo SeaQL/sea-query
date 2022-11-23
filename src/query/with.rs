@@ -381,7 +381,7 @@ impl Cycle {
 ///
 /// let base_query = SelectStatement::new()
 ///                     .column(Alias::new("id"))
-///                     .expr(Expr::val(1i32))
+///                     .expr(1i32)
 ///                     .column(Alias::new("next"))
 ///                     .column(Alias::new("value"))
 ///                     .from(Alias::new("table"))

@@ -246,7 +246,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .expr(Expr::val(42))
     ///     .expr(Expr::col(Char::Id).max())
-    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))))
+    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| expr.add(i)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -281,7 +281,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .exprs([
     ///         Expr::col(Char::Id).max(),
-    ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))),
+    ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(i)),
     ///     ])
     ///     .to_owned();
     ///
@@ -2206,7 +2206,7 @@ impl SelectStatement {
     ///
     /// let base_query = SelectStatement::new()
     ///                     .column(Alias::new("id"))
-    ///                     .expr(Expr::val(1i32))
+    ///                     .expr(1i32)
     ///                     .column(Alias::new("next"))
     ///                     .column(Alias::new("value"))
     ///                     .from(Alias::new("table"))

@@ -261,18 +261,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 self.prepare_tuple(&func.args, sql);
             }
             SimpleExpr::Binary(left, op, right) => match (op, right.as_ref()) {
-                (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => self.binary_expr(
-                    &SimpleExpr::Value(1i32.into()),
-                    &BinOper::Equal,
-                    &SimpleExpr::Value(2i32.into()),
-                    sql,
-                ),
-                (BinOper::NotIn, SimpleExpr::Tuple(t)) if t.is_empty() => self.binary_expr(
-                    &SimpleExpr::Value(1i32.into()),
-                    &BinOper::Equal,
-                    &SimpleExpr::Value(1i32.into()),
-                    sql,
-                ),
+                (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => {
+                    self.binary_expr(&1i32.into(), &BinOper::Equal, &2i32.into(), sql)
+                }
+                (BinOper::NotIn, SimpleExpr::Tuple(t)) if t.is_empty() => {
+                    self.binary_expr(&1i32.into(), &BinOper::Equal, &1i32.into(), sql)
+                }
                 _ => self.binary_expr(left, op, right, sql),
             },
             SimpleExpr::SubQuery(oper, sel) => {
