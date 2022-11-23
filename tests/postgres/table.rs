@@ -239,13 +239,13 @@ fn create_11() {
             .table(Char::Table)
             .col(
                 ColumnDef::new(Char::CreatedAt)
-                    .timestamp_with_time_zone_len(0)
+                    .timestamp_with_time_zone()
                     .not_null()
             )
             .to_string(PostgresQueryBuilder),
         [
             r#"CREATE TABLE "character" ("#,
-            r#""created_at" timestamp(0) with time zone NOT NULL"#,
+            r#""created_at" timestamp with time zone NOT NULL"#,
             r#")"#,
         ]
         .join(" ")

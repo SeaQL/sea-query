@@ -360,16 +360,16 @@ macro_rules! type_to_box_value {
 }
 
 type_to_value!(bool, Bool, Boolean);
-type_to_value!(i8, TinyInt, TinyInteger(None));
-type_to_value!(i16, SmallInt, SmallInteger(None));
-type_to_value!(i32, Int, Integer(None));
-type_to_value!(i64, BigInt, BigInteger(None));
-type_to_value!(u8, TinyUnsigned, TinyUnsigned(None));
-type_to_value!(u16, SmallUnsigned, SmallUnsigned(None));
-type_to_value!(u32, Unsigned, Unsigned(None));
-type_to_value!(u64, BigUnsigned, BigUnsigned(None));
-type_to_value!(f32, Float, Float(None));
-type_to_value!(f64, Double, Double(None));
+type_to_value!(i8, TinyInt, TinyInteger);
+type_to_value!(i16, SmallInt, SmallInteger);
+type_to_value!(i32, Int, Integer);
+type_to_value!(i64, BigInt, BigInteger);
+type_to_value!(u8, TinyUnsigned, TinyUnsigned);
+type_to_value!(u16, SmallUnsigned, SmallUnsigned);
+type_to_value!(u32, Unsigned, Unsigned);
+type_to_value!(u64, BigUnsigned, BigUnsigned);
+type_to_value!(f32, Float, Float);
+type_to_value!(f64, Double, Double);
 type_to_value!(char, Char, Char(None));
 
 impl<'a> From<&'a [u8]> for Value {
@@ -446,8 +446,8 @@ mod with_chrono {
     use chrono::{Local, Offset, Utc};
 
     type_to_box_value!(NaiveDate, ChronoDate, Date);
-    type_to_box_value!(NaiveTime, ChronoTime, Time(None));
-    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime(None));
+    type_to_box_value!(NaiveTime, ChronoTime, Time);
+    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime);
 
     impl From<DateTime<Utc>> for Value {
         fn from(v: DateTime<Utc>) -> Value {
@@ -491,7 +491,7 @@ mod with_chrono {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 
@@ -518,7 +518,7 @@ mod with_chrono {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 
@@ -545,7 +545,7 @@ mod with_chrono {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 }
@@ -572,8 +572,8 @@ mod with_time {
     use super::*;
 
     type_to_box_value!(time::Date, TimeDate, Date);
-    type_to_box_value!(time::Time, TimeTime, Time(None));
-    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime(None));
+    type_to_box_value!(time::Time, TimeTime, Time);
+    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime);
 
     impl From<OffsetDateTime> for Value {
         fn from(v: OffsetDateTime) -> Value {
@@ -604,7 +604,7 @@ mod with_time {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 }
