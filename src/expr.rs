@@ -30,7 +30,7 @@ pub enum SimpleExpr {
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
-    CustomWithValues(String, Vec<Value>),
+    CustomWithExpr(String, Vec<SimpleExpr>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
@@ -469,7 +469,51 @@ impl Expr {
         SimpleExpr::Custom(s.to_owned())
     }
 
-    /// Express any custom expression with [`Value`]. Use this if your expression needs variables.
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::cust_with_expr`]")]
+    pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
+    where
+        V: Into<SimpleExpr>,
+        I: IntoIterator<Item = V>,
+    {
+        SimpleExpr::CustomWithExpr(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
+    }
+
+    /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_expr("data @? ($1::JSONPATH)", "hello"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
+    /// );
+    /// ```
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_expr("json_agg(DISTINCT $1)", Expr::col(Char::Character)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT json_agg(DISTINCT "character")"#
+    /// );
+    /// ```
+    pub fn cust_with_expr<T>(s: &str, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        SimpleExpr::CustomWithExpr(s.to_owned(), vec![expr.into()])
+    }
+
+    /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
     ///
     /// # Examples
     ///
@@ -480,7 +524,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_values("6 = ? * ?", [2, 3]))
+    ///     .and_where(Expr::cust_with_exprs("6 = ? * ?", [2.into(), 3.into()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -499,7 +543,7 @@ impl Expr {
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", [3, 2]))
+    ///     .and_where(Expr::cust_with_exprs("6 = $2 * $1", [3.into(), 2.into()]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -511,7 +555,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::cust_with_values("6 = ? * ?", [2, 3]))
+    ///     .expr(Expr::cust_with_exprs("6 = ? * ?", [2.into(), 3.into()]))
     ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
@@ -522,29 +566,16 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::cust_with_values("$1 $$ $2", ["a", "b"]))
+    ///     .expr(Expr::cust_with_exprs("$1 $$ $2", ["a".into(), "b".into()]))
     ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' $ 'b'"#);
     /// ```
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::cust_with_values("data @? ($1::JSONPATH)", ["hello"]))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
-    /// );
-    /// ```
-    pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
+    pub fn cust_with_exprs<I>(s: &str, v: I) -> SimpleExpr
     where
-        V: Into<Value>,
-        I: IntoIterator<Item = V>,
+        I: IntoIterator<Item = SimpleExpr>,
     {
-        SimpleExpr::CustomWithValues(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
+        SimpleExpr::CustomWithExpr(s.to_owned(), v.into_iter().collect())
     }
 
     /// Express an equal (`=`) expression.
