@@ -326,7 +326,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT ALL('{0,1}')"#
+    ///     r#"SELECT GET_RANDOM_UUID()"#
     /// );
     /// ```
     pub fn get_random_uuid() -> FunctionCall {
