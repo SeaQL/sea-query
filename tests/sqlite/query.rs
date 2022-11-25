@@ -970,6 +970,55 @@ fn select_58() {
 }
 
 #[test]
+fn match_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).binary(SqliteBinOper::Match, Expr::val("test")))
+            .build(SqliteQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" MATCH ?"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
+fn get_json_field_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).binary(SqliteBinOper::GetJsonField, Expr::val("test"))
+            )
+            .build(SqliteQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" -> ?"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
+fn cast_json_field_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).binary(SqliteBinOper::CastJsonField, Expr::val("test"))
+            )
+            .build(SqliteQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" ->> ?"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
