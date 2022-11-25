@@ -103,7 +103,7 @@ fn select_8() {
             .from(Char::Table)
             .left_join(
                 Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
@@ -118,11 +118,11 @@ fn select_9() {
             .from(Char::Table)
             .left_join(
                 Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
             )
             .inner_join(
                 Glyph::Table,
-                Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image),
+                Expr::tbl(Char::Table, Char::Character).equals((Glyph::Table, Glyph::Image)),
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" INNER JOIN "glyph" ON "character"."character" = "glyph"."image""#
@@ -138,8 +138,8 @@ fn select_10() {
             .left_join(
                 Font::Table,
                 Expr::tbl(Char::Table, Char::FontId)
-                    .equals(Font::Table, Font::Id)
-                    .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)),
+                    .equals((Font::Table, Font::Id))
+                    .and(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))),
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
@@ -768,7 +768,7 @@ fn select_50() {
         .from(Char::Table)
         .inner_join(
             Font::Table,
-            Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+            Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
         )
         .to_string(SqliteQueryBuilder);
 
@@ -859,7 +859,7 @@ fn select_54() {
         .expr(Expr::asterisk())
         .from(Char::Table)
         .from(Font::Table)
-        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .and_where(Expr::tbl(Font::Table, Font::Id).equals((Char::Table, Char::FontId)))
         .to_string(SqliteQueryBuilder);
 
     assert_eq!(
@@ -1514,7 +1514,7 @@ fn union_1() {
                     .from(Char::Table)
                     .left_join(
                         Font::Table,
-                        Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                        Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
                     )
                     .order_by((Font::Table, Font::Id), Order::Asc)
                     .take()

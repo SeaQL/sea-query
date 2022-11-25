@@ -104,7 +104,7 @@ fn select_8() {
                 Char::Character,
             ])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"
     );
@@ -118,8 +118,8 @@ fn select_9() {
                 Char::Character,
             ])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-            .inner_join(Glyph::Table, Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image))
+            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+            .inner_join(Glyph::Table, Expr::tbl(Char::Table, Char::Character).equals((Glyph::Table, Glyph::Image)))
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` INNER JOIN `glyph` ON `character`.`character` = `glyph`.`image`"
     );
@@ -134,8 +134,8 @@ fn select_10() {
             ])
             .from(Char::Table)
             .left_join(Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
-                .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
+                .and(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON (`character`.`font_id` = `font`.`id`) AND (`character`.`font_id` = `font`.`id`)"
@@ -784,7 +784,7 @@ fn select_50() {
         .from(Char::Table)
         .inner_join(
             Font::Table,
-            Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+            Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
         )
         .to_string(MysqlQueryBuilder);
 
@@ -881,7 +881,7 @@ fn select_54() {
         .expr(Expr::asterisk())
         .from(Char::Table)
         .from(Font::Table)
-        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .and_where(Expr::tbl(Font::Table, Font::Id).equals((Char::Table, Char::FontId)))
         .to_string(MysqlQueryBuilder);
 
     assert_eq!(
@@ -1372,7 +1372,7 @@ fn union_1() {
                     .from(Char::Table)
                     .left_join(
                         Font::Table,
-                        Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                        Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
                     )
                     .order_by((Font::Table, Font::Id), Order::Asc)
                     .take()
