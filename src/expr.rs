@@ -267,7 +267,7 @@ impl Expr {
     ///     .expr(Expr::table_asterisk(Char::Table))
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -615,7 +615,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -631,15 +631,45 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
     /// );
     /// ```
-    pub fn equals<T, C>(self, t: T, c: C) -> SimpleExpr
+    pub fn equals<C>(self, col: C) -> SimpleExpr
     where
-        T: IntoIden,
-        C: IntoIden,
+        C: IntoColumnRef,
     {
-        self.binary(
-            BinOper::Equal,
-            SimpleExpr::Column((t.into_iden(), c.into_iden()).into_column_ref()),
-        )
+        self.binary(BinOper::Equal, col.into_column_ref())
+    }
+
+    /// Express a not equal expression between two table columns,
+    /// you will mainly use this to relate identical value between two table columns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
+    /// );
+    /// ```
+    pub fn not_equals<C>(self, col: C) -> SimpleExpr
+    where
+        C: IntoColumnRef,
+    {
+        self.binary(BinOper::NotEqual, col.into_column_ref())
     }
 
     /// Express a greater than (`>`) expression.
@@ -2067,6 +2097,12 @@ where
 impl From<FunctionCall> for SimpleExpr {
     fn from(func: FunctionCall) -> Self {
         SimpleExpr::FunctionCall(func)
+    }
+}
+
+impl From<ColumnRef> for SimpleExpr {
+    fn from(col: ColumnRef) -> Self {
+        SimpleExpr::Column(col)
     }
 }
 
