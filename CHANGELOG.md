@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 * Moved: `Expr::ilike`, `Expr::not_ilike`, `Expr::matches`, `Expr::contains`, `Expr::contained`, `Expr::concatenate`, `Expr::concat`, `SimpleExpr::concatenate` and `SimpleExpr::concat` to new trait: `PgExpr` https://github.com/SeaQL/sea-query/pull/519
 
+### House keeping
+* Drop the `Sized` requirement on implementers of `SchemaBuilders` https://github.com/SeaQL/sea-query/pull/524
+
 ### Enhancements
 
 * Made `value::with_array` module public and therefore making NotU8 trait public https://github.com/SeaQL/sea-query/pull/511
