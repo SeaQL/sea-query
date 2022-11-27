@@ -26,6 +26,10 @@ impl IndexBuilder for PostgresQueryBuilder {
         self.prepare_index_type(&create.index_type, sql);
         write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
+
+        if create.nulls_not_distinct {
+            write!(sql, " NULLS NOT DISTINCT").unwrap();
+        }
     }
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {

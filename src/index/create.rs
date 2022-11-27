@@ -126,6 +126,7 @@ pub struct IndexCreateStatement {
     pub(crate) index: TableIndex,
     pub(crate) primary: bool,
     pub(crate) unique: bool,
+    pub(crate) nulls_not_distinct: bool,
     pub(crate) index_type: Option<IndexType>,
     pub(crate) if_not_exists: bool,
 }
@@ -153,6 +154,7 @@ impl IndexCreateStatement {
             index: Default::default(),
             primary: false,
             unique: false,
+            nulls_not_distinct: false,
             index_type: None,
             if_not_exists: false,
         }
@@ -200,6 +202,12 @@ impl IndexCreateStatement {
         self
     }
 
+    /// Set nulls to not be treated as distinct values. Only available on Postgres.
+    pub fn nulls_not_distinct(&mut self) -> &mut Self {
+        self.nulls_not_distinct = true;
+        self
+    }
+
     /// Set index as full text.
     /// On MySQL, this is `FULLTEXT`.
     /// On PgSQL, this is `GIN`.
@@ -221,6 +229,10 @@ impl IndexCreateStatement {
         self.unique
     }
 
+    pub fn is_nulls_not_distinct(&self) -> bool {
+        self.nulls_not_distinct
+    }
+
     pub fn get_index_spec(&self) -> &TableIndex {
         &self.index
     }
@@ -231,6 +243,7 @@ impl IndexCreateStatement {
             index: self.index.take(),
             primary: self.primary,
             unique: self.unique,
+            nulls_not_distinct: self.nulls_not_distinct,
             index_type: self.index_type.take(),
             if_not_exists: self.if_not_exists,
         }
