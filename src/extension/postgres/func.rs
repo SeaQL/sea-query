@@ -323,7 +323,6 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::starts_with("123", "1"))
-    ///     .expr(PgFunc::get_random_uuid())
     ///     .to_owned();
     ///
     /// assert_eq!(
