@@ -12,6 +12,7 @@ pub enum PgFunction {
     WebsearchToTsquery,
     TsRank,
     TsRankCd,
+    GetRandomUUID,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -310,5 +311,25 @@ impl PgFunc {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::All)).arg(expr)
+    }
+
+    /// Call `ALL` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::get_random_uuid())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT GET_RANDOM_UUID()"#
+    /// );
+    /// ```
+    pub fn get_random_uuid() -> FunctionCall {
+        FunctionCall::new(Function::PgFunction(PgFunction::GetRandomUUID))
     }
 }
