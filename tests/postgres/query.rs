@@ -103,7 +103,7 @@ fn select_8() {
             .from(Char::Table)
             .left_join(
                 Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
@@ -118,11 +118,11 @@ fn select_9() {
             .from(Char::Table)
             .left_join(
                 Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
             )
             .inner_join(
                 Glyph::Table,
-                Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image)
+                Expr::tbl(Char::Table, Char::Character).equals((Glyph::Table, Glyph::Image))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" INNER JOIN "glyph" ON "character"."character" = "glyph"."image""#
@@ -138,8 +138,8 @@ fn select_10() {
             .left_join(
                 Font::Table,
                 Expr::tbl(Char::Table, Char::FontId)
-                    .equals(Font::Table, Font::Id)
-                    .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+                    .equals((Font::Table, Font::Id))
+                    .and(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
@@ -358,7 +358,7 @@ fn select_25() {
             .and_where(
                 Expr::col(Char::SizeW)
                     .mul(2)
-                    .equals(Expr::col(Char::SizeH).div(2))
+                    .eq(Expr::col(Char::SizeH).div(2))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" / 2"#
@@ -374,7 +374,7 @@ fn select_26() {
             .and_where(
                 Expr::expr(Expr::col(Char::SizeW).add(1))
                     .mul(2)
-                    .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                    .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#
@@ -421,7 +421,7 @@ fn select_30() {
                 Expr::col(Char::SizeW)
                     .mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
-                    .equals(4)
+                    .eq(4)
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" * 2) + ("size_h" / 3) = 4"#
@@ -768,7 +768,7 @@ fn select_50() {
         .from(Char::Table)
         .inner_join(
             Font::Table,
-            Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+            Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
         )
         .to_string(PostgresQueryBuilder);
 
@@ -887,7 +887,7 @@ fn select_55() {
         .expr(Expr::asterisk())
         .from(Char::Table)
         .from(Font::Table)
-        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .and_where(Expr::tbl(Font::Table, Font::Id).equals((Char::Table, Char::FontId)))
         .to_string(PostgresQueryBuilder);
 
     assert_eq!(
@@ -1645,7 +1645,7 @@ fn union_1() {
                     .from(Char::Table)
                     .left_join(
                         Font::Table,
-                        Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                        Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
                     )
                     .order_by((Font::Table, Font::Id), Order::Asc)
                     .take()
