@@ -71,10 +71,6 @@ impl Condition {
     {
         let mut expr: ConditionExpression = condition.into();
         if let ConditionExpression::Condition(ref mut c) = expr {
-            // Don't add empty `Condition::any` and `Condition::all`.
-            if c.conditions.is_empty() {
-                return self;
-            }
             // Skip the junction if there is only one.
             if c.conditions.len() == 1 && !c.negate {
                 expr = c.conditions.pop().unwrap();

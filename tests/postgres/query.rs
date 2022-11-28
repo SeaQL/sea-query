@@ -530,7 +530,10 @@ fn select_37() {
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
         .build(PostgresQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE FALSE"#);
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE (TRUE) OR (FALSE)"#
+    );
     assert_eq!(values.0, vec![]);
 }
 
