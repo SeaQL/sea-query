@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added the `MATCH`, `->` and `->>` operators for SQLite https://github.com/SeaQL/sea-query/pull/513
 * Added the `FULL OUTER JOIN` https://github.com/SeaQL/sea-query/pull/497
 * New traits: `PgExpr` and `SqliteExpr` for custom expressions https://github.com/SeaQL/sea-query/pull/519
+* Added PgFunc::get_random_uuid https://github.com/SeaQL/sea-query/pull/530
+* Added `SimpleExpr::eq`, `SimpleExpr::ne`, `Expr::not_equals https://github.com/SeaQL/sea-query/pull/528
 
 ### Bug fixes
 
@@ -35,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Deprecated `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than` and `Expr::less_or_equal` https://github.com/SeaQL/sea-query/pull/476
 * `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 * Moved: `Expr::ilike`, `Expr::not_ilike`, `Expr::matches`, `Expr::contains`, `Expr::contained`, `Expr::concatenate`, `Expr::concat`, `SimpleExpr::concatenate` and `SimpleExpr::concat` to new trait: `PgExpr` https://github.com/SeaQL/sea-query/pull/519
+* Deprecated `SimpleExpr::equals`, `SimpleExpr::not_equals` https://github.com/SeaQL/sea-query/pull/528
+* `Expr::equals` now acceptes `C: IntoColumntRef` instead `T: IntoIden, C: IntoIden`  https://github.com/SeaQL/sea-query/pull/528
 
 ### House keeping
 * Drop the `Sized` requirement on implementers of `SchemaBuilders` https://github.com/SeaQL/sea-query/pull/524
