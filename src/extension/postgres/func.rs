@@ -339,7 +339,7 @@ impl PgFunc {
         FunctionCall::new(Function::PgFunction(PgFunction::StartsWith))
             .args([text.into(), prefix.into()])
     }
-            
+
     /// Call `GET_RANDOM_UUID` function. Postgres only.
     ///
     /// # Examples
