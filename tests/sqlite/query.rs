@@ -1521,8 +1521,8 @@ fn union_1() {
             )
             .to_string(SqliteQueryBuilder),
         [
-            r#"SELECT "character" FROM "character" UNION (SELECT "character" FROM "character""#,
-            r#"LEFT JOIN "font" ON "character"."font_id" = "font"."id" ORDER BY "font"."id" ASC)"#
+            r#"SELECT "character" FROM "character" UNION SELECT "character" FROM "character""#,
+            r#"LEFT JOIN "font" ON "character"."font_id" = "font"."id" ORDER BY "font"."id" ASC"#
         ]
         .join(" ")
     );

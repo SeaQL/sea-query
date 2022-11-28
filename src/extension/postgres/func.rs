@@ -13,6 +13,7 @@ pub enum PgFunction {
     TsRank,
     TsRankCd,
     StartsWith,
+    GetRandomUUID,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -322,6 +323,7 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::starts_with("123", "1"))
+    ///     .expr(PgFunc::get_random_uuid())
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -336,5 +338,25 @@ impl PgFunc {
     {
         FunctionCall::new(Function::PgFunction(PgFunction::StartsWith))
             .args([text.into(), prefix.into()])
+    }
+            
+    /// Call `GET_RANDOM_UUID` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::get_random_uuid())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT GET_RANDOM_UUID()"#
+    /// );
+    /// ```
+    pub fn get_random_uuid() -> FunctionCall {
+        FunctionCall::new(Function::PgFunction(PgFunction::GetRandomUUID))
     }
 }
