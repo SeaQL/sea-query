@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * New traits: `PgExpr` and `SqliteExpr` for custom expressions https://github.com/SeaQL/sea-query/pull/519
 * Added PgFunc::get_random_uuid https://github.com/SeaQL/sea-query/pull/530
 * Added `SimpleExpr::eq`, `SimpleExpr::ne`, `Expr::not_equals https://github.com/SeaQL/sea-query/pull/528
+* Added `PgFunc::starts_with` https://github.com/SeaQL/sea-query/pull/529
 
 ### Bug fixes
 
