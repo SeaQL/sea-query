@@ -538,6 +538,26 @@ fn select_37() {
 }
 
 #[test]
+fn select_37a() {
+    let (statement, values) = Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .add(Cond::all().not())
+                .add(Cond::any().not())
+                .not(),
+        )
+        .build(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE NOT ((NOT TRUE) AND (NOT FALSE))"#
+    );
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
 fn select_38() {
     let (statement, values) = Query::select()
         .column(Glyph::Id)
