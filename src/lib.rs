@@ -84,6 +84,7 @@
 //!     1. [Custom](#function-custom)
 //!     1. [Upper/Lower](#function-upper)
 //!     1. [Random](#function-random)
+//!     1. [Postgres Specific](#function-postgres)
 //!
 //! 1. Schema Statement
 //!
@@ -458,13 +459,13 @@
 //! ```
 //!
 //! ### Function Sum
-//! 
+//!
 //! ```rust
 //! let query = Query::select()
 //!     .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
 //!     .from(Char::Table)
 //!     .to_owned();
-//! 
+//!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
 //!     r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
@@ -478,15 +479,15 @@
 //!     r#"SELECT SUM("character"."size_h") FROM "character""#
 //! );
 //! ```
-//! 
+//!
 //! ### Function Count
-//! 
+//!
 //! ```rust
 //! let query = Query::select()
 //!     .expr(Func::count(Expr::tbl(Char::Table, Char::Id)))
 //!     .from(Char::Table)
 //!     .to_owned();
-//! 
+//!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
 //!     r#"SELECT COUNT(`character`.`id`) FROM `character`"#
@@ -500,9 +501,9 @@
 //!     r#"SELECT COUNT("character"."id") FROM "character""#
 //! );
 //! ```
-//! 
+//!
 //! ### Function Coalesce
-//! 
+//!
 //! ```rust
 //! let query = Query::select()
 //!     .expr(Func::coalesce([
@@ -512,7 +513,7 @@
 //! ]))
 //! .from(Char::Table)
 //! .to_owned();
-//! 
+//!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
 //!     r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
@@ -526,15 +527,15 @@
 //!     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
 //! );
 //! ```
-//! 
+//!
 //! ### Function CharLength
-//! 
+//!
 //! ```rust
 //! let query = Query::select()
 //!     .expr(Func::char_length(Expr::tbl(Char::Table, Char::Character)))
 //!     .from(Char::Table)
 //!     .to_owned();
-//! 
+//!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
 //!     r#"SELECT CHAR_LENGTH(`character`.`character`) FROM `character`"#
@@ -548,14 +549,14 @@
 //!     r#"SELECT LENGTH("character"."character") FROM "character""#
 //! );
 //! ```
-//! 
+//!
 //! ### Function Cast
-//! 
+//!
 //! ```rust
 //! let query = Query::select()
 //!     .expr(Func::cast_as("hello", Alias::new("MyType")))
 //!     .to_owned();
-//! 
+//!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
 //!     r#"SELECT CAST('hello' AS MyType)"#
@@ -569,22 +570,22 @@
 //!     r#"SELECT CAST('hello' AS MyType)"#
 //! );
 //! ```
-//! 
+//!
 //! ### Function Custom
-//! 
+//!
 //! ```rust
 //! struct MyFunction;
-//! 
+//!
 //! impl Iden for MyFunction {
 //!     fn unquoted(&self, s: &mut dyn Write) {
 //!         write!(s, "MY_FUNCTION").unwrap();
 //!     }
 //! }
-//! 
+//!
 //! let query = Query::select()
 //!     .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
 //!     .to_owned();
-//! 
+//!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
 //!     r#"SELECT MY_FUNCTION('hello')"#
@@ -598,15 +599,15 @@
 //!     r#"SELECT MY_FUNCTION('hello')"#
 //! );
 //! ```
-//! 
+//!
 //! ### Function Upper
-//! 
+//!
 //! ```rust
 //! let query = Query::select()
 //!     .expr(Func::upper(Expr::col(Char::Character)))
 //!     .from(Char::Table)
 //!     .to_owned();
-//! 
+//!
 //! assert_eq!(
 //!     query.to_string(MysqlQueryBuilder),
 //!     r#"SELECT UPPER(`character`) FROM `character`"#
@@ -620,19 +621,23 @@
 //!     r#"SELECT UPPER("character") FROM "character""#
 //! );
 //! ```
-//! 
+//!
 //! ### Function Random
-//! 
+//!
 //! ```rust
 //! let query = Query::select().expr(Func::random()).to_owned();
-//! 
+//!
 //! assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT RAND()"#);
-//! 
+//!
 //! assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT RANDOM()"#);
-//! 
+//!
 //! assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
 //! ```
-//! 
+//!
+//! ### Function Postgres
+//!
+//! SeaQuery also provides various Postgres specific functions. [See docs for more details](https://docs.rs/sea-query/latest/sea_query/func/struct.PgFunc.html).
+//!
 //! ### Table Create
 //!
 //! ```rust

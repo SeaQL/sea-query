@@ -81,6 +81,7 @@ Table of Content
     1. [Custom](#function-custom)
     1. [Upper/Lower](#function-upper)
     1. [Random](#function-random)
+    1. [Postgres Specific](#function-postgres)
 
 1. Schema Statement
 
@@ -608,6 +609,10 @@ assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT RANDOM()"#);
 
 assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
 ```
+
+### Function Postgres
+
+SeaQuery also provides various Postgres specific functions. [See docs for more details](https://docs.rs/sea-query/latest/sea_query/func/struct.PgFunc.html).
 
 ### Table Create
 
