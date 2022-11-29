@@ -64,6 +64,7 @@ pub enum ColumnSpec {
     UniqueKey,
     PrimaryKey,
     Extra(String),
+    Check(String)
 }
 
 // All interval fields
@@ -584,7 +585,12 @@ impl ColumnDef {
         self.spec.push(ColumnSpec::Extra(string));
         self
     }
-
+    
+    pub fn check(&mut self, string: String) -> &mut Self {
+        self.spec.push(ColumnSpec::Check(string));
+        self
+    }
+    
     pub fn get_column_name(&self) -> String {
         self.name.to_string()
     }

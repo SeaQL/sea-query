@@ -192,6 +192,7 @@ impl TableBuilder for PostgresQueryBuilder {
                                 write!(sql, ")").unwrap();
                             }
                             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
+                            ColumnSpec::Check(string) => write!(sql, "CHECK ({})", string).unwrap(),
                         }
                         false
                     });

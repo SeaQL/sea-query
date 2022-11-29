@@ -122,10 +122,19 @@ fn create_4() {
                     .not_null()
                     .extra("ANYTHING I WANT TO SAY".to_owned())
             )
+            .col(
+                ColumnDef::new(Glyph::Aspect)
+                .double()
+                .not_null()
+                .check("Aspect > 0".to_owned())
+            )
+            .check("Id < Number".to_owned())
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `glyph` (",
-            "`id` int NOT NULL ANYTHING I WANT TO SAY",
+            "`id` int NOT NULL ANYTHING I WANT TO SAY,",
+            "`aspect` double NOT NULL CHECK (Aspect > 0),",
+            "CHECK (Id < Number)",
             ")",
         ]
         .join(" ")
