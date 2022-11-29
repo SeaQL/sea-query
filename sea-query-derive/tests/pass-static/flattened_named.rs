@@ -1,7 +1,7 @@
-use sea_query::Iden;
+use sea_query::{Iden, IdenStatic};
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Copy, Clone, Iden, EnumIter)]
+#[derive(Copy, Clone, IdenStatic, EnumIter)]
 enum Asset {
     Table,
     Id,
@@ -12,7 +12,7 @@ enum Asset {
     },
 }
 
-#[derive(Copy, Clone, Iden)]
+#[derive(Copy, Clone, IdenStatic)]
 enum CreationInfo {
     UserId,
     #[iden = "creation_date"]
@@ -35,5 +35,6 @@ fn main() {
         .zip(expected)
         .for_each(|(var, exp)| {
             assert_eq!(var.to_string(), exp);
+            assert_eq!(var.as_str(), exp)
         })
 }

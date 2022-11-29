@@ -57,7 +57,7 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
             }) => {
                 return quote! {
                     impl sea_query::Iden for #ident {
-                        fn unquoted(&self, s: &mut dyn sea_query::Write) {
+                        fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
                             write!(s, #table_name).unwrap();
                         }
                     }
@@ -86,7 +86,7 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
 
     let output = quote! {
         impl sea_query::Iden for #ident {
-            fn unquoted(&self, s: &mut dyn sea_query::Write) {
+            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
                 match self {
                     #match_arms
                 };
@@ -117,6 +117,12 @@ pub fn derive_iden_static(input: TokenStream) -> TokenStream {
                 ..
             }) => {
                 return quote! {
+                    impl sea_query::Iden for #ident {
+                        fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
+                            write!(s, #table_name).unwrap();
+                        }
+                    }
+
                     impl sea_query::IdenStatic for #ident {
                         fn as_str(&self) -> &'static str {
                             #table_name
@@ -152,6 +158,12 @@ pub fn derive_iden_static(input: TokenStream) -> TokenStream {
     };
 
     let output = quote! {
+        impl sea_query::Iden for #ident {
+            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
+                write!(s, "{}", self.as_str()).unwrap();
+            }
+        }
+
         impl sea_query::IdenStatic for #ident {
             fn as_str(&self) -> &'static str {
                 match self {
