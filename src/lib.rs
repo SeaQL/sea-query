@@ -74,6 +74,17 @@
 //!     1. [Query Update](#query-update)
 //!     1. [Query Delete](#query-delete)
 //!
+//! 1. Functions
+//!
+//!     1. [Max/Min/Sum/Avg/Abs](#function-sum)
+//!     1. [Count](#function-count)
+//!     1. [IfNull/Coalesce](#function-coalesce)
+//!     1. [CharLength](#function-charlength)
+//!     1. [Cast](#function-cast)
+//!     1. [Custom](#function-custom)
+//!     1. [Upper/Lower](#function-upper)
+//!     1. [Random](#function-random)
+//!
 //! 1. Schema Statement
 //!
 //!     1. [Table Create](#table-create)
@@ -446,6 +457,182 @@
 //! );
 //! ```
 //!
+//! ### Function Sum
+//! 
+//! ```rust
+//! let query = Query::select()
+//!     .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
+//!     .from(Char::Table)
+//!     .to_owned();
+//! 
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT SUM("character"."size_h") FROM "character""#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT SUM("character"."size_h") FROM "character""#
+//! );
+//! ```
+//! 
+//! ### Function Count
+//! 
+//! ```rust
+//! let query = Query::select()
+//!     .expr(Func::count(Expr::tbl(Char::Table, Char::Id)))
+//!     .from(Char::Table)
+//!     .to_owned();
+//! 
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT COUNT(`character`.`id`) FROM `character`"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT COUNT("character"."id") FROM "character""#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT COUNT("character"."id") FROM "character""#
+//! );
+//! ```
+//! 
+//! ### Function Coalesce
+//! 
+//! ```rust
+//! let query = Query::select()
+//!     .expr(Func::coalesce([
+//!         Expr::col(Char::SizeW).into(),
+//!         Expr::col(Char::SizeH).into(),
+//!         Expr::val(12).into(),
+//! ]))
+//! .from(Char::Table)
+//! .to_owned();
+//! 
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+//! );
+//! ```
+//! 
+//! ### Function CharLength
+//! 
+//! ```rust
+//! let query = Query::select()
+//!     .expr(Func::char_length(Expr::tbl(Char::Table, Char::Character)))
+//!     .from(Char::Table)
+//!     .to_owned();
+//! 
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT CHAR_LENGTH(`character`.`character`) FROM `character`"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT CHAR_LENGTH("character"."character") FROM "character""#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT LENGTH("character"."character") FROM "character""#
+//! );
+//! ```
+//! 
+//! ### Function Cast
+//! 
+//! ```rust
+//! let query = Query::select()
+//!     .expr(Func::cast_as("hello", Alias::new("MyType")))
+//!     .to_owned();
+//! 
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT CAST('hello' AS MyType)"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT CAST('hello' AS MyType)"#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT CAST('hello' AS MyType)"#
+//! );
+//! ```
+//! 
+//! ### Function Custom
+//! 
+//! ```rust
+//! struct MyFunction;
+//! 
+//! impl Iden for MyFunction {
+//!     fn unquoted(&self, s: &mut dyn Write) {
+//!         write!(s, "MY_FUNCTION").unwrap();
+//!     }
+//! }
+//! 
+//! let query = Query::select()
+//!     .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
+//!     .to_owned();
+//! 
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT MY_FUNCTION('hello')"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT MY_FUNCTION('hello')"#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT MY_FUNCTION('hello')"#
+//! );
+//! ```
+//! 
+//! ### Function Upper
+//! 
+//! ```rust
+//! let query = Query::select()
+//!     .expr(Func::upper(Expr::col(Char::Character)))
+//!     .from(Char::Table)
+//!     .to_owned();
+//! 
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT UPPER(`character`) FROM `character`"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT UPPER("character") FROM "character""#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT UPPER("character") FROM "character""#
+//! );
+//! ```
+//! 
+//! ### Function Random
+//! 
+//! ```rust
+//! let query = Query::select().expr(Func::random()).to_owned();
+//! 
+//! assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT RAND()"#);
+//! 
+//! assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT RANDOM()"#);
+//! 
+//! assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
+//! ```
+//! 
 //! ### Table Create
 //!
 //! ```rust
