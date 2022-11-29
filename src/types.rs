@@ -34,6 +34,11 @@ macro_rules! iden_trait {
 
             fn unquoted(&self, s: &mut dyn fmt::Write);
         }
+
+        /// Identifier
+        pub trait IdenStatic: Iden + Copy {
+            fn as_str(&self) -> &'static str;
+        }
     };
 }
 

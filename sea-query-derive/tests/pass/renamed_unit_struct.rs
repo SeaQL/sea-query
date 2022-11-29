@@ -1,9 +1,10 @@
-use sea_query::Iden;
+use sea_query::{Iden, IdenStatic};
 
-#[derive(Iden)]
+#[derive(Copy, Clone, Iden, IdenStatic)]
 #[iden = "another_name"]
 pub struct CustomName;
 
 fn main() {
-    assert_eq!(Iden::to_string(&CustomName), "another_name")
+    assert_eq!(CustomName.to_string(), "another_name");
+    assert_eq!(CustomName.as_str(), "another_name")
 }

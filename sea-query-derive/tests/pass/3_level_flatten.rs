@@ -1,7 +1,7 @@
-use sea_query::Iden;
+use sea_query::{Iden, IdenStatic};
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Iden, EnumIter)]
+#[derive(Copy, Clone, Iden, IdenStatic, EnumIter)]
 enum Asset {
     Table,
     Id,
@@ -12,14 +12,14 @@ enum Asset {
     },
 }
 
-#[derive(Iden)]
+#[derive(Copy, Clone, Iden, IdenStatic)]
 enum FirstLevel {
     LevelOne,
     #[iden(flatten)]
     Second(SecondLevel),
 }
 
-#[derive(Iden, EnumIter)]
+#[derive(Copy, Clone, Iden, IdenStatic, EnumIter)]
 enum SecondLevel {
     LevelTwo,
     #[iden(flatten)]
@@ -27,7 +27,7 @@ enum SecondLevel {
     UserId,
 }
 
-#[derive(Iden, Default)]
+#[derive(Copy, Clone, Iden, IdenStatic, Default)]
 struct LevelThree;
 
 impl Default for FirstLevel {
@@ -53,7 +53,9 @@ fn main() {
                 .map(FirstLevel::Second)
                 .map(|s| Asset::First { first: s }),
         )
-        .map(|var| Iden::to_string(&var))
         .zip(expected)
-        .for_each(|(iden, exp)| assert_eq!(iden, exp))
+        .for_each(|(var, exp)| {
+            assert_eq!(var.to_string(), exp);
+            assert_eq!(var.as_str(), exp)
+        })
 }
