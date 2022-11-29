@@ -70,27 +70,17 @@ pub struct FrameClause {
 /// 1. <https://dev.mysql.com/doc/refman/8.0/en/window-function-descriptions.html>
 /// 2. <https://www.sqlite.org/windowfunctions.html>
 /// 3. <https://www.postgresql.org/docs/current/tutorial-window.html>
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct WindowStatement {
     pub(crate) partition_by: Vec<SimpleExpr>,
     pub(crate) order_by: Vec<OrderExpr>,
     pub(crate) frame: Option<FrameClause>,
 }
 
-impl Default for WindowStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl WindowStatement {
     /// Construct a new [`WindowStatement`]
     pub fn new() -> Self {
-        Self {
-            partition_by: Vec::new(),
-            order_by: Vec::new(),
-            frame: None,
-        }
+        Self::default()
     }
 
     pub fn take(&mut self) -> Self {

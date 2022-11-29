@@ -22,21 +22,15 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 ///     r#"TRUNCATE TABLE "font""#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct TableTruncateStatement {
     pub(crate) table: Option<TableRef>,
-}
-
-impl Default for TableTruncateStatement {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl TableTruncateStatement {
     /// Construct truncate table statement
     pub fn new() -> Self {
-        Self { table: None }
+        Self::default()
     }
 
     /// Set table name

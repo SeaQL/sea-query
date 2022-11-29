@@ -1,7 +1,7 @@
 use crate::types::*;
 
 /// Specification of a table index
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct TableIndex {
     pub(crate) name: Option<String>,
     pub(crate) columns: Vec<IndexColumn>,
@@ -22,12 +22,6 @@ pub enum IndexOrder {
 
 pub trait IntoIndexColumn {
     fn into_index_column(self) -> IndexColumn;
-}
-
-impl Default for TableIndex {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl IntoIndexColumn for IndexColumn {
@@ -91,10 +85,7 @@ where
 impl TableIndex {
     /// Construct a new table index
     pub fn new() -> Self {
-        Self {
-            name: None,
-            columns: Vec::new(),
-        }
+        Self::default()
     }
 
     /// Set index name

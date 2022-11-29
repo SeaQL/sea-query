@@ -29,14 +29,15 @@ pub enum ConditionExpression {
     SimpleExpr(SimpleExpr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum ConditionHolderContents {
+    #[default]
     Empty,
     Chain(Vec<LogicalChainOper>),
     Condition(Condition),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ConditionHolder {
     pub contents: ConditionHolderContents,
 }
@@ -349,7 +350,7 @@ macro_rules! all {
 }
 
 pub trait ConditionalStatement {
-    /// And where condition. This cannot be mixed with [`ConditionalStatement::or_where`].
+    /// And where condition.
     /// Calling `or_where` after `and_where` will panic.
     ///
     /// # Examples
@@ -572,23 +573,9 @@ impl IntoCondition for Condition {
     }
 }
 
-impl Default for ConditionHolderContents {
-    fn default() -> Self {
-        Self::Empty
-    }
-}
-
-impl Default for ConditionHolder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl ConditionHolder {
     pub fn new() -> Self {
-        Self {
-            contents: ConditionHolderContents::Empty,
-        }
+        Self::default()
     }
 
     pub fn new_with_condition(condition: Condition) -> Self {

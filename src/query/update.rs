@@ -35,7 +35,7 @@ use crate::{
 ///     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) values: Vec<(DynIden, Box<SimpleExpr>)>,
@@ -45,23 +45,10 @@ pub struct UpdateStatement {
     pub(crate) returning: Option<ReturningClause>,
 }
 
-impl Default for UpdateStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl UpdateStatement {
     /// Construct a new [`UpdateStatement`]
     pub fn new() -> Self {
-        Self {
-            table: None,
-            values: Vec::new(),
-            r#where: ConditionHolder::new(),
-            orders: Vec::new(),
-            limit: None,
-            returning: None,
-        }
+        Self::default()
     }
 
     /// Specify which table to update.

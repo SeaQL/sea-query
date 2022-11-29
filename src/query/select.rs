@@ -38,7 +38,7 @@ use crate::{
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
     pub(crate) selects: Vec<SelectExpr>,
@@ -137,30 +137,10 @@ where
     }
 }
 
-impl Default for SelectStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl SelectStatement {
     /// Construct a new [`SelectStatement`]
     pub fn new() -> Self {
-        Self {
-            distinct: None,
-            selects: Vec::new(),
-            from: Vec::new(),
-            join: Vec::new(),
-            r#where: ConditionHolder::new(),
-            groups: Vec::new(),
-            having: ConditionHolder::new(),
-            unions: Vec::new(),
-            orders: Vec::new(),
-            limit: None,
-            offset: None,
-            lock: None,
-            window: None,
-        }
+        Self::default()
     }
 
     /// Take the ownership of data in the current [`SelectStatement`]
