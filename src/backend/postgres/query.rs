@@ -77,6 +77,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
                     PgFunction::TsRank => "TS_RANK",
                     PgFunction::TsRankCd => "TS_RANK_CD",
+                    PgFunction::StartsWith => "STARTS_WITH",
                     PgFunction::GetRandomUUID => "GET_RANDOM_UUID",
                     #[cfg(feature = "postgres-array")]
                     PgFunction::Any => "ANY",

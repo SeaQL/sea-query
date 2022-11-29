@@ -12,6 +12,7 @@ pub enum PgFunction {
     WebsearchToTsquery,
     TsRank,
     TsRankCd,
+    StartsWith,
     GetRandomUUID,
     #[cfg(feature = "postgres-array")]
     Any,
@@ -313,7 +314,32 @@ impl PgFunc {
         FunctionCall::new(Function::PgFunction(PgFunction::All)).arg(expr)
     }
 
-    /// Call `ALL` function. Postgres only.
+    /// Call `STARTS_WITH` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::starts_with("123", "1"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT STARTS_WITH('123', '1')"#
+    /// );
+    /// ```
+    pub fn starts_with<T, P>(text: T, prefix: P) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+        P: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::PgFunction(PgFunction::StartsWith))
+            .args([text.into(), prefix.into()])
+    }
+
+    /// Call `GET_RANDOM_UUID` function. Postgres only.
     ///
     /// # Examples
     ///
