@@ -238,7 +238,7 @@
 //!         .and_where(
 //!             Expr::expr(Expr::col(Char::SizeW).add(1))
 //!                 .mul(2)
-//!                 .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+//!                 .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
 //!         )
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(
@@ -351,7 +351,7 @@
 //!     .column(Char::Character)
 //!     .column((Font::Table, Font::Name))
 //!     .from(Char::Table)
-//!     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+//!     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
 //!     .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
 //!     .and_where(Expr::col(Char::Character).like("A%"))
 //!     .to_owned();

@@ -381,7 +381,7 @@ impl Cycle {
 ///
 /// let base_query = SelectStatement::new()
 ///                     .column(Alias::new("id"))
-///                     .expr(Expr::val(1i32))
+///                     .expr(1i32)
 ///                     .column(Alias::new("next"))
 ///                     .column(Alias::new("value"))
 ///                     .from(Alias::new("table"))
@@ -396,7 +396,7 @@ impl Cycle {
 ///                             .join(
 ///                                 JoinType::InnerJoin,
 ///                                 Alias::new("cte_traversal"),
-///                                 Expr::tbl(Alias::new("cte_traversal"), Alias::new("next")).equals(Alias::new("table"), Alias::new("id")).into_condition()
+///                                 Expr::tbl(Alias::new("cte_traversal"), Alias::new("next")).equals((Alias::new("table"), Alias::new("id")))
 ///                             )
 ///                             .to_owned();
 ///
@@ -434,7 +434,7 @@ impl Cycle {
 /// );
 /// assert_eq!(
 ///     query.to_string(SqliteQueryBuilder),
-///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL (SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id")) SELECT * FROM "cte_traversal""#
+///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
 /// );
 /// ```
 #[derive(Debug, Clone, Default)]

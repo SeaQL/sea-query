@@ -69,6 +69,22 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         self.prepare_returning(&insert.returning, sql);
     }
 
+    fn prepare_union_statement(
+        &self,
+        union_type: UnionType,
+        select_statement: &SelectStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        match union_type {
+            UnionType::Intersect => write!(sql, " INTERSECT (").unwrap(),
+            UnionType::Distinct => write!(sql, " UNION (").unwrap(),
+            UnionType::Except => write!(sql, " EXCEPT (").unwrap(),
+            UnionType::All => write!(sql, " UNION ALL (").unwrap(),
+        }
+        self.prepare_select_statement(select_statement, sql);
+        write!(sql, ")").unwrap();
+    }
+
     /// Translate [`SelectStatement`] into SQL statement.
     fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "SELECT ").unwrap();
@@ -121,14 +137,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         if !select.unions.is_empty() {
             select.unions.iter().for_each(|(union_type, query)| {
-                match union_type {
-                    UnionType::Intersect => write!(sql, " INTERSECT (").unwrap(),
-                    UnionType::Distinct => write!(sql, " UNION (").unwrap(),
-                    UnionType::Except => write!(sql, " EXCEPT (").unwrap(),
-                    UnionType::All => write!(sql, " UNION ALL (").unwrap(),
-                }
-                self.prepare_select_statement(query, sql);
-                write!(sql, ")").unwrap();
+                self.prepare_union_statement(*union_type, query, sql);
             });
         }
 
@@ -261,18 +270,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 self.prepare_tuple(&func.args, sql);
             }
             SimpleExpr::Binary(left, op, right) => match (op, right.as_ref()) {
-                (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => self.binary_expr(
-                    &SimpleExpr::Value(1i32.into()),
-                    &BinOper::Equal,
-                    &SimpleExpr::Value(2i32.into()),
-                    sql,
-                ),
-                (BinOper::NotIn, SimpleExpr::Tuple(t)) if t.is_empty() => self.binary_expr(
-                    &SimpleExpr::Value(1i32.into()),
-                    &BinOper::Equal,
-                    &SimpleExpr::Value(1i32.into()),
-                    sql,
-                ),
+                (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => {
+                    self.binary_expr(&1i32.into(), &BinOper::Equal, &2i32.into(), sql)
+                }
+                (BinOper::NotIn, SimpleExpr::Tuple(t)) if t.is_empty() => {
+                    self.binary_expr(&1i32.into(), &BinOper::Equal, &1i32.into(), sql)
+                }
                 _ => self.binary_expr(left, op, right, sql),
             },
             SimpleExpr::SubQuery(oper, sel) => {
@@ -1201,17 +1204,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         keyword: &str,
         sql: &mut dyn SqlWriter,
     ) {
-        if !condition.is_empty() {
-            write!(sql, " {} ", keyword).unwrap();
-        }
         match &condition.contents {
             ConditionHolderContents::Empty => (),
             ConditionHolderContents::Chain(conditions) => {
+                write!(sql, " {} ", keyword).unwrap();
                 for (i, log_chain_oper) in conditions.iter().enumerate() {
                     self.prepare_logical_chain_oper(log_chain_oper, i, conditions.len(), sql);
                 }
             }
             ConditionHolderContents::Condition(c) => {
+                write!(sql, " {} ", keyword).unwrap();
                 self.prepare_condition_where(c, sql);
             }
         }
@@ -1221,13 +1223,22 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate part of a condition to part of a "WHERE" clause.
     fn prepare_condition_where(&self, condition: &Condition, sql: &mut dyn SqlWriter) {
         if condition.negate {
-            write!(sql, "NOT (").unwrap();
+            write!(sql, "NOT ").unwrap()
         }
-        let mut is_first = true;
-        for cond in &condition.conditions {
-            if is_first {
-                is_first = false;
-            } else {
+
+        if condition.is_empty() {
+            match condition.condition_type {
+                ConditionType::All => self.prepare_constant(&true.into(), sql),
+                ConditionType::Any => self.prepare_constant(&false.into(), sql),
+            }
+            return;
+        }
+
+        if condition.negate {
+            write!(sql, "(").unwrap();
+        }
+        condition.conditions.iter().fold(true, |first, cond| {
+            if !first {
                 match condition.condition_type {
                     ConditionType::Any => write!(sql, " OR ").unwrap(),
                     ConditionType::All => write!(sql, " AND ").unwrap(),
@@ -1253,7 +1264,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     }
                 }
             }
-        }
+            false
+        });
         if condition.negate {
             write!(sql, ")").unwrap();
         }
