@@ -71,10 +71,6 @@ impl Condition {
     {
         let mut expr: ConditionExpression = condition.into();
         if let ConditionExpression::Condition(ref mut c) = expr {
-            // Don't add empty `Condition::any` and `Condition::all`.
-            if c.conditions.is_empty() {
-                return self;
-            }
             // Skip the junction if there is only one.
             if c.conditions.len() == 1 && !c.negate {
                 expr = c.conditions.pop().unwrap();
@@ -185,7 +181,7 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Image)
@@ -592,9 +588,8 @@ impl ConditionHolder {
     }
 
     pub fn new_with_condition(condition: Condition) -> Self {
-        let mut slf = Self::new();
-        slf.add_condition(condition);
-        slf
+        let contents = ConditionHolderContents::Condition(condition);
+        Self { contents }
     }
 
     pub fn is_empty(&self) -> bool {
