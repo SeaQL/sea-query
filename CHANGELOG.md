@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added PgFunc::get_random_uuid https://github.com/SeaQL/sea-query/pull/530
 * Added `SimpleExpr::eq`, `SimpleExpr::ne`, `Expr::not_equals https://github.com/SeaQL/sea-query/pull/528
 * Added `PgFunc::starts_with` https://github.com/SeaQL/sea-query/pull/529
+* Added `Expr::custom_keyword` and `SimpleExpr::not` https://github.com/SeaQL/sea-query/pull/535
 
 ### Bug fixes
 
@@ -41,10 +42,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Moved `Expr::ilike`, `Expr::not_ilike`, `Expr::matches`, `Expr::contains`, `Expr::contained`, `Expr::concatenate`, `Expr::concat`, `SimpleExpr::concatenate` and `SimpleExpr::concat` to new trait `PgExpr` https://github.com/SeaQL/sea-query/pull/519
 * Deprecated `SimpleExpr::equals`, `SimpleExpr::not_equals` https://github.com/SeaQL/sea-query/pull/528
 * `Expr::equals` now acceptes `C: IntoColumnRef` instead of `T: IntoIden, C: IntoIden` https://github.com/SeaQL/sea-query/pull/528
+* MSRV is up to 1.62 https://github.com/SeaQL/sea-query/pull/535
 
 ### House keeping
 
 * Drop the `Sized` requirement on implementers of `SchemaBuilders` https://github.com/SeaQL/sea-query/pull/524
+* Replace `impl Default` to `#[derive(Default)]` https://github.com/SeaQL/sea-query/pull/535
 
 ### Enhancements
 
