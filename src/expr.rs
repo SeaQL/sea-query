@@ -38,9 +38,11 @@ pub enum SimpleExpr {
 }
 
 pub(crate) mod private {
-    use crate::{BinOper, LikeExpr, SimpleExpr};
+    use crate::{BinOper, LikeExpr, SimpleExpr, UnOper};
 
     pub trait Expression: Sized {
+        fn un_op(self, o: UnOper) -> SimpleExpr;
+
         fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
         where
             O: Into<BinOper>,
@@ -68,6 +70,11 @@ pub(crate) mod private {
 use private::Expression;
 
 impl Expression for Expr {
+    fn un_op(mut self, o: UnOper) -> SimpleExpr {
+        self.uopr = Some(o);
+        self.into()
+    }
+
     fn bin_op<O, T>(mut self, op: O, right: T) -> SimpleExpr
     where
         O: Into<BinOper>,
@@ -80,7 +87,11 @@ impl Expression for Expr {
 }
 
 impl Expr {
-    fn new_with_left(left: SimpleExpr) -> Self {
+    fn new_with_left<T>(left: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        let left = left.into();
         Self {
             left,
             right: None,
@@ -194,7 +205,7 @@ impl Expr {
     where
         T: IntoColumnRef,
     {
-        Self::new_with_left(SimpleExpr::Column(n.into_column_ref()))
+        Self::new_with_left(n.into_column_ref())
     }
 
     /// Wraps tuple of `SimpleExpr`, can be used for tuple comparison
@@ -356,7 +367,7 @@ impl Expr {
     where
         V: Into<Value>,
     {
-        Self::new_with_left(SimpleExpr::Value(v.into()))
+        Self::new_with_left(v)
     }
 
     /// Wrap a [`SimpleExpr`] and perform some operation on it.
@@ -390,7 +401,7 @@ impl Expr {
     where
         T: Into<SimpleExpr>,
     {
-        Self::new_with_left(expr.into())
+        Self::new_with_left(expr)
     }
 
     /// Express a [`Value`], returning a [`SimpleExpr`].
@@ -1369,7 +1380,7 @@ impl Expr {
     /// ```
     #[allow(clippy::should_implement_trait)]
     pub fn not(self) -> SimpleExpr {
-        self.un_oper(UnOper::Not)
+        self.un_op(UnOper::Not)
     }
 
     /// Express a `MAX` function.
@@ -1922,11 +1933,6 @@ impl Expr {
         SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
     }
 
-    fn un_oper(mut self, o: UnOper) -> SimpleExpr {
-        self.uopr = Some(o);
-        self.into()
-    }
-
     /// Adds new `CASE WHEN` to existing case statement.
     ///
     /// # Examples
@@ -1964,22 +1970,16 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{Expr, MysqlQueryBuilder, PostgresQueryBuilder, Query, SqliteQueryBuilder};
+    /// use sea_query::*;
     ///
     /// let query = Query::select().expr(Expr::current_date()).to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_DATE"#);
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CURRENT_DATE"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CURRENT_DATE"#
-    /// );
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT CURRENT_DATE"#);
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT CURRENT_DATE"#);
     /// ```
-    pub fn current_date() -> SimpleExpr {
-        SimpleExpr::Keyword(Keyword::CurrentDate)
+    pub fn current_date() -> Expr {
+        Expr::new_with_left(Keyword::CurrentDate)
     }
 
     /// Keyword `CURRENT_TIMESTAMP`.
@@ -1987,22 +1987,16 @@ impl Expr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{Expr, MysqlQueryBuilder, PostgresQueryBuilder, Query, SqliteQueryBuilder};
+    /// use sea_query::*;
     ///
     /// let query = Query::select().expr(Expr::current_time()).to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_TIME"#);
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CURRENT_TIME"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CURRENT_TIME"#
-    /// );
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT CURRENT_TIME"#);
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT CURRENT_TIME"#);
     /// ```
-    pub fn current_time() -> SimpleExpr {
-        SimpleExpr::Keyword(Keyword::CurrentTime)
+    pub fn current_time() -> Expr {
+        Expr::new_with_left(Keyword::CurrentTime)
     }
 
     /// Keyword `CURRENT_TIMESTAMP`.
@@ -2014,21 +2008,32 @@ impl Expr {
     ///
     /// let query = Query::select().expr(Expr::current_timestamp()).to_owned();
     ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CURRENT_TIMESTAMP"#
-    /// );
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_TIMESTAMP"#);
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT CURRENT_TIMESTAMP"#);
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT CURRENT_TIMESTAMP"#);
     /// ```
-    pub fn current_timestamp() -> SimpleExpr {
-        SimpleExpr::Keyword(Keyword::CurrentTimestamp)
+    pub fn current_timestamp() -> Expr {
+        Expr::new_with_left(Keyword::CurrentTimestamp)
+    }
+
+    /// Custom keyword.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::*;
+    ///
+    /// let query = Query::select().expr(Expr::custom_keyword(Alias::new("test"))).to_owned();
+    ///
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT test"#);
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT test"#);
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT test"#);
+    /// ```
+    pub fn custom_keyword<T>(i: T) -> Expr
+    where
+        T: IntoIden,
+    {
+        Expr::new_with_left(Keyword::Custom(i.into_iden()))
     }
 
     #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gt`]")]
@@ -2113,6 +2118,10 @@ impl From<Keyword> for SimpleExpr {
 }
 
 impl Expression for SimpleExpr {
+    fn un_op(self, op: UnOper) -> SimpleExpr {
+        SimpleExpr::Unary(op, Box::new(self))
+    }
+
     fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
     where
         O: Into<BinOper>,
@@ -2123,6 +2132,37 @@ impl Expression for SimpleExpr {
 }
 
 impl SimpleExpr {
+    /// Negates an expression with `NOT`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::SizeW)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::SizeW).eq(1).not())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `size_w` FROM `character` WHERE NOT `size_w` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "size_w" FROM "character" WHERE NOT "size_w" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "size_w" FROM "character" WHERE NOT "size_w" = 1"#
+    /// );
+    /// ```
+    #[allow(clippy::should_implement_trait)]
+    pub fn not(self) -> SimpleExpr {
+        self.un_op(UnOper::Not)
+    }
+
     /// Express a logical `AND` operation.
     ///
     /// # Examples

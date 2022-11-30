@@ -36,7 +36,7 @@ use crate::{
 ///     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct DeleteStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) wherei: ConditionHolder,
@@ -45,22 +45,10 @@ pub struct DeleteStatement {
     pub(crate) returning: Option<ReturningClause>,
 }
 
-impl Default for DeleteStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl DeleteStatement {
     /// Construct a new [`DeleteStatement`]
     pub fn new() -> Self {
-        Self {
-            table: None,
-            wherei: ConditionHolder::new(),
-            orders: Vec::new(),
-            limit: None,
-            returning: None,
-        }
+        Self::default()
     }
 
     /// Specify which table to delete from.

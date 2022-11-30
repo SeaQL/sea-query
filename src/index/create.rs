@@ -120,7 +120,7 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" ASC)"#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct IndexCreateStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
@@ -139,23 +139,10 @@ pub enum IndexType {
     Custom(DynIden),
 }
 
-impl Default for IndexCreateStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl IndexCreateStatement {
     /// Construct a new [`IndexCreateStatement`]
     pub fn new() -> Self {
-        Self {
-            table: None,
-            index: Default::default(),
-            primary: false,
-            unique: false,
-            index_type: None,
-            if_not_exists: false,
-        }
+        Self::default()
     }
 
     /// Create index if index not exists

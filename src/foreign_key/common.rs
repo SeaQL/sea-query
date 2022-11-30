@@ -1,7 +1,7 @@
 use crate::types::*;
 
 /// Specification of a foreign key
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct TableForeignKey {
     pub(crate) name: Option<String>,
     pub(crate) table: Option<TableRef>,
@@ -22,24 +22,10 @@ pub enum ForeignKeyAction {
     SetDefault,
 }
 
-impl Default for TableForeignKey {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl TableForeignKey {
     /// Construct a new foreign key
     pub fn new() -> Self {
-        Self {
-            name: None,
-            table: None,
-            ref_table: None,
-            columns: Vec::new(),
-            ref_columns: Vec::new(),
-            on_delete: None,
-            on_update: None,
-        }
+        Self::default()
     }
 
     /// Set foreign key name

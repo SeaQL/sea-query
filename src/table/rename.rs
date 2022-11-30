@@ -24,25 +24,16 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 ///     r#"ALTER TABLE "font" RENAME TO "font_new""#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct TableRenameStatement {
     pub(crate) from_name: Option<TableRef>,
     pub(crate) to_name: Option<TableRef>,
 }
 
-impl Default for TableRenameStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl TableRenameStatement {
     /// Construct rename table statement
     pub fn new() -> Self {
-        Self {
-            from_name: None,
-            to_name: None,
-        }
+        Self::default()
     }
 
     /// Set old and new table name
