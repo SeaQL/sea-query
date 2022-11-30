@@ -2483,6 +2483,51 @@ impl SimpleExpr {
     {
         self.bin_op(op, right)
     }
+    
+    
+    /// Express a `LIKE` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).cast_as(Alias::new("TEXT")).like("a%"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE CAST("character"."font_id" AS TEXT) LIKE 'a%'"#
+    /// );
+    /// ```
+    ///
+    /// Like with ESCAPE
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).cast_as(Alias::new("TEXT")).like(LikeExpr::str(r"|_Our|_").escape('|')))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE CAST("character"."font_id" AS TEXT) LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// ```
+    pub fn like<L: IntoLikeExpr>(self, like: L) -> Self {
+        self.like_like(BinOper::Like, like.into_like_expr())
+    }
+
+    /// Express a `NOT LIKE` expression
+    pub fn not_like<L: IntoLikeExpr>(self, like: L) -> Self {
+        self.like_like(BinOper::NotLike, like.into_like_expr())
+    }
 
     pub(crate) fn need_parentheses(&self) -> bool {
         match self {
@@ -2520,83 +2565,5 @@ impl SimpleExpr {
             Self::Binary(_, oper, _) => Some(*oper),
             _ => None,
         }
-    }
-
-    /// Express a `CAST AS` expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::value("1").cast_as(Alias::new("integer")))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// ```
-    pub fn cast_as<T>(self, type_name: T) -> Self
-    where
-        T: IntoIden,
-    {
-        let func = Func::cast_as(self, type_name);
-        Self::FunctionCall(func)
-    }
-
-    /// Express a `LIKE` expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).into_simple_expr().cast_as(Alias::new("TEXT")).like("a%"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE CAST("character"."font_id" AS TEXT) LIKE 'a%'"#
-    /// );
-    /// ```
-    ///
-    /// Like with ESCAPE
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).into_simple_expr().cast_as(Alias::new("TEXT")).like(LikeExpr::str(r"|_Our|_").escape('|')))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE CAST("character"."font_id" AS TEXT) LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// ```
-    #[cfg(feature = "backend-postgres")]
-    pub fn like<L: IntoLikeExpr>(self, like: L) -> Self {
-        self.like_like(BinOper::Like, like.into_like_expr())
-    }
-
-    /// Express a `NOT LIKE` expression
-    #[cfg(feature = "backend-postgres")]
-    pub fn not_like<L: IntoLikeExpr>(self, like: L) -> Self {
-        self.like_like(BinOper::NotLike, like.into_like_expr())
     }
 }
