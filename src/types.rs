@@ -36,7 +36,7 @@ macro_rules! iden_trait {
         }
 
         /// Identifier
-        pub trait IdenStatic: Iden + Copy {
+        pub trait IdenStatic: Iden + Copy + 'static {
             fn as_str(&self) -> &'static str;
         }
     };
