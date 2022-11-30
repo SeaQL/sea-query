@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug fixes
 
 * Wrap unions into parenthesis https://github.com/SeaQL/sea-query/pull/498
-* Syntax error when have empty condition https://github.com/SeaQL/sea-query/issues/485
+* Syntax error on empty condition https://github.com/SeaQL/sea-query/issues/485
 
 ### Breaking changes
 
