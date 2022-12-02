@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `SimpleExpr::eq`, `SimpleExpr::ne`, `Expr::not_equals https://github.com/SeaQL/sea-query/pull/528
 * Added `PgFunc::starts_with` https://github.com/SeaQL/sea-query/pull/529
 * Added `Expr::custom_keyword` and `SimpleExpr::not` https://github.com/SeaQL/sea-query/pull/535
+* Added `SimpleExpr::like`, `SimpleExpr::not_like` and `Expr::cast_as` https://github.com/SeaQL/sea-query/pull/539
 
 ### Bug fixes
 
