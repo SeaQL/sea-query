@@ -68,6 +68,21 @@ fn create_5() {
 }
 
 #[test]
+fn create_6() {
+    assert_eq!(
+        Index::create()
+            .unique()
+            .nulls_not_distinct()
+            .name("idx-glyph-aspect-image")
+            .table(Glyph::Table)
+            .col(Glyph::Aspect)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE UNIQUE INDEX "idx-glyph-aspect-image" ON "glyph" ("aspect", "image") NULLS NOT DISTINCT"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

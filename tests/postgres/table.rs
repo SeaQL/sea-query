@@ -317,6 +317,34 @@ fn create_14() {
 }
 
 #[test]
+fn create_15() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Image).json())
+            .col(ColumnDef::new(Glyph::Aspect).json_binary())
+            .index(
+                Index::create()
+                    .unique()
+                    .nulls_not_distinct()
+                    .name("idx-glyph-aspect-image")
+                    .table(Glyph::Table)
+                    .col(Glyph::Aspect)
+                    .col(Glyph::Image)
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE "glyph" ("#,
+            r#""image" json,"#,
+            r#""aspect" jsonb,"#,
+            r#"CONSTRAINT "idx-glyph-aspect-image" UNIQUE NULLS NOT DISTINCT ("aspect", "image")"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
