@@ -25,7 +25,7 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 ///     r#"DROP TABLE "glyph", "character""#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct TableDropStatement {
     pub(crate) tables: Vec<TableRef>,
     pub(crate) options: Vec<TableDropOpt>,
@@ -39,20 +39,10 @@ pub enum TableDropOpt {
     Cascade,
 }
 
-impl Default for TableDropStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl TableDropStatement {
     /// Construct drop table statement
     pub fn new() -> Self {
-        Self {
-            tables: Vec::new(),
-            options: Vec::new(),
-            if_exists: false,
-        }
+        Self::default()
     }
 
     /// Set table name

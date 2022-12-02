@@ -18,34 +18,44 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added the `MATCH`, `->` and `->>` operators for SQLite https://github.com/SeaQL/sea-query/pull/513
 * Added the `FULL OUTER JOIN` https://github.com/SeaQL/sea-query/pull/497
 * New traits: `PgExpr` and `SqliteExpr` for custom expressions https://github.com/SeaQL/sea-query/pull/519
+* Added PgFunc::get_random_uuid https://github.com/SeaQL/sea-query/pull/530
+* Added `SimpleExpr::eq`, `SimpleExpr::ne`, `Expr::not_equals https://github.com/SeaQL/sea-query/pull/528
+* Added `PgFunc::starts_with` https://github.com/SeaQL/sea-query/pull/529
+* Added `Expr::custom_keyword` and `SimpleExpr::not` https://github.com/SeaQL/sea-query/pull/535
 
 ### Bug fixes
 
 * Wrap unions into parenthesis https://github.com/SeaQL/sea-query/pull/498
+* Syntax error on empty condition https://github.com/SeaQL/sea-query/issues/485
 
 ### Breaking changes
 
 * `ColumnType::Array` definition changed from `Array(SeaRc<Box<ColumnType>>)` to `Array(SeaRc<ColumnType>)` https://github.com/SeaQL/sea-query/pull/492
-* `Func::*` now returns `FunctionCall` insted `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
+* `Func::*` now returns `FunctionCall` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 * `Func::coalesce` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Into<SimpleExpr>` https://github.com/SeaQL/sea-query/pull/475
 * Removed `Expr::arg` and `Expr::args` - these functions are no longer needed https://github.com/SeaQL/sea-query/pull/475
-* Moved all Postgres specific operators to own enum https://github.com/SeaQL/sea-query/pull/507
-* `Expr::value`, `Expr::gt`, `Expr::gte`, `Expr::lt`, `Expr::lte`, `Expr::add`, `Expr::div`, `Expr::sub`, `Expr::modulo`, `Expr::left_shift`, `Expr::right_shift`, `Expr::between`, `Expr::not_between`, `Expr::is`, `Expr::is_not`, `Expr::if_null` now accepts `Into<SimpleExpr>` instead `Into<Value>` https://github.com/SeaQL/sea-query/pull/476
-* `Expr::is_in`, `Expr::is_not_in accept` now accepts `Into<SimpleExpr>` instead `Into<Value>` and convert it to `SimpleExpr::Tuple` instead `SimpleExpr::Values` https://github.com/SeaQL/sea-query/pull/476
+* Moved all Postgres specific operators to `PgBinOper` https://github.com/SeaQL/sea-query/pull/507
+* `Expr::value`, `Expr::gt`, `Expr::gte`, `Expr::lt`, `Expr::lte`, `Expr::add`, `Expr::div`, `Expr::sub`, `Expr::modulo`, `Expr::left_shift`, `Expr::right_shift`, `Expr::between`, `Expr::not_between`, `Expr::is`, `Expr::is_not`, `Expr::if_null` now accepts `Into<SimpleExpr>` instead of `Into<Value>` https://github.com/SeaQL/sea-query/pull/476
+* `Expr::is_in`, `Expr::is_not_in` now accepts `Into<SimpleExpr>` instead of `Into<Value>` and convert it to `SimpleExpr::Tuple` instead of `SimpleExpr::Values` https://github.com/SeaQL/sea-query/pull/476
 * Deprecated `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than` and `Expr::less_or_equal` https://github.com/SeaQL/sea-query/pull/476
 * `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
-* Moved: `Expr::ilike`, `Expr::not_ilike`, `Expr::matches`, `Expr::contains`, `Expr::contained`, `Expr::concatenate`, `Expr::concat`, `SimpleExpr::concatenate` and `SimpleExpr::concat` to new trait: `PgExpr` https://github.com/SeaQL/sea-query/pull/519
+* Moved `Expr::ilike`, `Expr::not_ilike`, `Expr::matches`, `Expr::contains`, `Expr::contained`, `Expr::concatenate`, `Expr::concat`, `SimpleExpr::concatenate` and `SimpleExpr::concat` to new trait `PgExpr` https://github.com/SeaQL/sea-query/pull/519
+* Deprecated `SimpleExpr::equals`, `SimpleExpr::not_equals` https://github.com/SeaQL/sea-query/pull/528
+* `Expr::equals` now acceptes `C: IntoColumnRef` instead of `T: IntoIden, C: IntoIden` https://github.com/SeaQL/sea-query/pull/528
+* MSRV is up to 1.62 https://github.com/SeaQL/sea-query/pull/535
 
 ### House keeping
+
 * Drop the `Sized` requirement on implementers of `SchemaBuilders` https://github.com/SeaQL/sea-query/pull/524
+* Replace `impl Default` to `#[derive(Default)]` https://github.com/SeaQL/sea-query/pull/535
 
 ### Enhancements
 
-* Made `value::with_array` module public and therefore making NotU8 trait public https://github.com/SeaQL/sea-query/pull/511
+* Made `value::with_array` module public and therefore making `NotU8` trait public https://github.com/SeaQL/sea-query/pull/511
 
 ## 0.27.2 - 2022-11-14
 
-* Made `value::with_array` module public and therefore making NotU8 trait public https://github.com/SeaQL/sea-query/pull/511
+* Made `value::with_array` module public and therefore making `NotU8` trait public https://github.com/SeaQL/sea-query/pull/511
 
 ## sea-query-binder 0.2.2
 

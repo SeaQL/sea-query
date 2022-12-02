@@ -22,25 +22,16 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder, TableForei
 /// );
 /// // Sqlite does not support modification of foreign key constraints to existing tables
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ForeignKeyDropStatement {
     pub(crate) foreign_key: TableForeignKey,
     pub(crate) table: Option<TableRef>,
 }
 
-impl Default for ForeignKeyDropStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl ForeignKeyDropStatement {
     /// Construct a new [`ForeignKeyDropStatement`]
     pub fn new() -> Self {
-        Self {
-            foreign_key: Default::default(),
-            table: None,
-        }
+        Self::default()
     }
 
     /// Set foreign key name

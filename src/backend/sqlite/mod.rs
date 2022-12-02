@@ -6,14 +6,8 @@ pub(crate) mod table;
 use super::*;
 
 /// Sqlite query builder.
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct SqliteQueryBuilder;
-
-impl Default for SqliteQueryBuilder {
-    fn default() -> Self {
-        Self
-    }
-}
 
 impl GenericBuilder for SqliteQueryBuilder {}
 

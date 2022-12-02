@@ -29,14 +29,15 @@ pub enum ConditionExpression {
     SimpleExpr(SimpleExpr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum ConditionHolderContents {
+    #[default]
     Empty,
     Chain(Vec<LogicalChainOper>),
     Condition(Condition),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ConditionHolder {
     pub contents: ConditionHolderContents,
 }
@@ -71,10 +72,6 @@ impl Condition {
     {
         let mut expr: ConditionExpression = condition.into();
         if let ConditionExpression::Condition(ref mut c) = expr {
-            // Don't add empty `Condition::any` and `Condition::all`.
-            if c.conditions.is_empty() {
-                return self;
-            }
             // Skip the junction if there is only one.
             if c.conditions.len() == 1 && !c.negate {
                 expr = c.conditions.pop().unwrap();
@@ -185,7 +182,7 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Image)
@@ -349,7 +346,7 @@ macro_rules! all {
 }
 
 pub trait ConditionalStatement {
-    /// And where condition. This cannot be mixed with [`ConditionalStatement::or_where`].
+    /// And where condition.
     /// Calling `or_where` after `and_where` will panic.
     ///
     /// # Examples
@@ -572,29 +569,14 @@ impl IntoCondition for Condition {
     }
 }
 
-impl Default for ConditionHolderContents {
-    fn default() -> Self {
-        Self::Empty
-    }
-}
-
-impl Default for ConditionHolder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl ConditionHolder {
     pub fn new() -> Self {
-        Self {
-            contents: ConditionHolderContents::Empty,
-        }
+        Self::default()
     }
 
     pub fn new_with_condition(condition: Condition) -> Self {
-        let mut slf = Self::new();
-        slf.add_condition(condition);
-        slf
+        let contents = ConditionHolderContents::Condition(condition);
+        Self { contents }
     }
 
     pub fn is_empty(&self) -> bool {

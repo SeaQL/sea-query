@@ -103,7 +103,7 @@ fn select_8() {
             .from(Char::Table)
             .left_join(
                 Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
@@ -118,11 +118,11 @@ fn select_9() {
             .from(Char::Table)
             .left_join(
                 Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
             )
             .inner_join(
                 Glyph::Table,
-                Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image),
+                Expr::tbl(Char::Table, Char::Character).equals((Glyph::Table, Glyph::Image)),
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" INNER JOIN "glyph" ON "character"."character" = "glyph"."image""#
@@ -138,8 +138,8 @@ fn select_10() {
             .left_join(
                 Font::Table,
                 Expr::tbl(Char::Table, Char::FontId)
-                    .equals(Font::Table, Font::Id)
-                    .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)),
+                    .equals((Font::Table, Font::Id))
+                    .and(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))),
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
@@ -358,7 +358,7 @@ fn select_25() {
             .and_where(
                 Expr::col(Char::SizeW)
                     .mul(2)
-                    .equals(Expr::col(Char::SizeH).div(2))
+                    .eq(Expr::col(Char::SizeH).div(2))
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "size_w" * 2 = "size_h" / 2"#
@@ -374,7 +374,7 @@ fn select_26() {
             .and_where(
                 Expr::expr(Expr::col(Char::SizeW).add(1))
                     .mul(2)
-                    .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                    .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#
@@ -421,7 +421,7 @@ fn select_30() {
                 Expr::col(Char::SizeW)
                     .mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
-                    .equals(4)
+                    .eq(4)
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" * 2) + ("size_h" / 3) = 4"#
@@ -494,11 +494,11 @@ fn select_34a() {
 
 #[test]
 fn select_35() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .and_where(Expr::col(Glyph::Aspect).is_null())
-        .build(sea_query::SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     assert_eq!(
         statement,
@@ -509,11 +509,11 @@ fn select_35() {
 
 #[test]
 fn select_36() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::any().add(Expr::col(Glyph::Aspect).is_null()))
-        .build(sea_query::SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     assert_eq!(
         statement,
@@ -524,19 +524,42 @@ fn select_36() {
 
 #[test]
 fn select_37() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
-        .build(sea_query::SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph""#);
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE (TRUE) OR (FALSE)"#
+    );
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
+fn select_37a() {
+    let (statement, values) = Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .add(Cond::all().not())
+                .add(Cond::any().not())
+                .not(),
+        )
+        .build(SqliteQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "id" FROM "glyph" WHERE NOT ((NOT TRUE) AND (NOT FALSE))"#
+    );
     assert_eq!(values.0, vec![]);
 }
 
 #[test]
 fn select_38() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -544,7 +567,7 @@ fn select_38() {
                 .add(Expr::col(Glyph::Aspect).is_null())
                 .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
-        .build(sea_query::SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     assert_eq!(
         statement,
@@ -555,7 +578,7 @@ fn select_38() {
 
 #[test]
 fn select_39() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -563,7 +586,7 @@ fn select_39() {
                 .add(Expr::col(Glyph::Aspect).is_null())
                 .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
-        .build(sea_query::SqliteQueryBuilder);
+        .build(SqliteQueryBuilder);
 
     assert_eq!(
         statement,
@@ -574,7 +597,7 @@ fn select_39() {
 
 #[test]
 fn select_40() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(any![
@@ -584,7 +607,7 @@ fn select_40() {
                 Expr::col(Glyph::Aspect).lt(8)
             ]
         ])
-        .to_string(sea_query::SqliteQueryBuilder);
+        .to_string(SqliteQueryBuilder);
 
     assert_eq!(
         statement,
@@ -608,7 +631,7 @@ fn select_41() {
 
 #[test]
 fn select_42() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -626,18 +649,18 @@ fn select_42() {
 
 #[test]
 fn select_43() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::all().add_option::<SimpleExpr>(None))
         .to_string(SqliteQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT "id" FROM "glyph""#);
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE TRUE"#);
 }
 
 #[test]
 fn select_44() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -655,7 +678,7 @@ fn select_44() {
 
 #[test]
 fn select_45() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -674,7 +697,7 @@ fn select_45() {
 
 #[test]
 fn select_46() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -692,7 +715,7 @@ fn select_46() {
 
 #[test]
 fn select_47() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -711,7 +734,7 @@ fn select_47() {
 
 #[test]
 fn select_48() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -730,7 +753,7 @@ fn select_48() {
 
 #[test]
 fn select_48a() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -752,7 +775,7 @@ fn select_48a() {
 
 #[test]
 fn select_49() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
         .to_string(SqliteQueryBuilder);
@@ -762,13 +785,13 @@ fn select_49() {
 
 #[test]
 fn select_50() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::table_asterisk(Char::Table))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(
             Font::Table,
-            Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+            Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
         )
         .to_string(SqliteQueryBuilder);
 
@@ -855,11 +878,11 @@ fn select_53() {
 
 #[test]
 fn select_54() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
         .from(Font::Table)
-        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .and_where(Expr::tbl(Font::Table, Font::Id).equals((Char::Table, Char::FontId)))
         .to_string(SqliteQueryBuilder);
 
     assert_eq!(
@@ -1514,7 +1537,7 @@ fn union_1() {
                     .from(Char::Table)
                     .left_join(
                         Font::Table,
-                        Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                        Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
                     )
                     .order_by((Font::Table, Font::Id), Order::Asc)
                     .take()

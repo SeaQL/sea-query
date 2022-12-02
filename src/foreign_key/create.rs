@@ -70,23 +70,15 @@ use crate::{
 ///     .join(" ")
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ForeignKeyCreateStatement {
     pub(crate) foreign_key: TableForeignKey,
-}
-
-impl Default for ForeignKeyCreateStatement {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl ForeignKeyCreateStatement {
     /// Construct a new [`ForeignKeyCreateStatement`]
     pub fn new() -> Self {
-        Self {
-            foreign_key: Default::default(),
-        }
+        Self::default()
     }
 
     /// Set foreign key name

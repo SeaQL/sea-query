@@ -75,7 +75,7 @@ use crate::{
 ///     ].join(" ")
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct TableCreateStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) columns: Vec<ColumnDef>,
@@ -98,24 +98,10 @@ pub enum TableOpt {
 #[derive(Debug, Clone)]
 pub enum TablePartition {}
 
-impl Default for TableCreateStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl TableCreateStatement {
     /// Construct create table statement
     pub fn new() -> Self {
-        Self {
-            table: None,
-            columns: Vec::new(),
-            options: Vec::new(),
-            partitions: Vec::new(),
-            indexes: Vec::new(),
-            foreign_keys: Vec::new(),
-            if_not_exists: false,
-        }
+        Self::default()
     }
 
     /// Create table if table not exists

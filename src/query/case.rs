@@ -96,8 +96,8 @@ impl CaseStatement {
     ///         )
     ///         .case(
     ///             Cond::any()
-    ///                 .add(Expr::tbl(Character::Table, Character::FontSize).between(24,48).into_condition())
-    ///                 .add(Expr::tbl(Character::Table, Character::SizeW).between(300,500).into_condition()),
+    ///                 .add(Expr::tbl(Character::Table, Character::FontSize).between(24,48))
+    ///                 .add(Expr::tbl(Character::Table, Character::SizeW).between(300,500)),
     ///             "medium"
     ///         )
     ///         .finally("small"),
