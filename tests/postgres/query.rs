@@ -137,7 +137,7 @@ fn select_10() {
             .from(Char::Table)
             .left_join(
                 Font::Table,
-                Expr::tbl(Char::Table, Char::FontId)
+                Expr::col((Char::Table, Char::FontId))
                     .equals((Font::Table, Font::Id))
                     .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             )
