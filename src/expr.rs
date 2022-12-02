@@ -1965,6 +1965,38 @@ impl Expr {
         CaseStatement::new().case(cond, then)
     }
 
+    /// Express a `CAST AS` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::val("1").cast_as(Alias::new("integer")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// ```
+    pub fn cast_as<T>(self, type_name: T) -> SimpleExpr
+    where
+        T: IntoIden,
+    {
+        let func = Func::cast_as(self, type_name);
+        SimpleExpr::FunctionCall(func)
+    }
+
     /// Keyword `CURRENT_TIMESTAMP`.
     ///
     /// # Examples
@@ -2522,6 +2554,41 @@ impl SimpleExpr {
         T: Into<SimpleExpr>,
     {
         self.bin_op(op, right)
+    }
+
+    /// Express a `LIKE` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col((Char::Table, Char::FontId)).cast_as(Alias::new("TEXT")).like("a%"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE CAST(`character`.`font_id` AS TEXT) LIKE 'a%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE CAST("character"."font_id" AS TEXT) LIKE 'a%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE CAST("character"."font_id" AS TEXT) LIKE 'a%'"#
+    /// );
+    /// ```
+    pub fn like<L: IntoLikeExpr>(self, like: L) -> Self {
+        self.like_like(BinOper::Like, like.into_like_expr())
+    }
+
+    /// Express a `NOT LIKE` expression
+    pub fn not_like<L: IntoLikeExpr>(self, like: L) -> Self {
+        self.like_like(BinOper::NotLike, like.into_like_expr())
     }
 
     pub(crate) fn need_parentheses(&self) -> bool {
