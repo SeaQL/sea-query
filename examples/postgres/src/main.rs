@@ -35,7 +35,7 @@ fn main() {
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
-            .col(ColumnDef::new(Document::Array).array(ColumnType::Integer(None)))
+            .col(ColumnDef::new(Document::Array).array(ColumnType::Integer))
             .build(PostgresQueryBuilder),
     ]
     .join("; ");

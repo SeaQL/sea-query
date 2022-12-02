@@ -16,21 +16,21 @@ pub enum ColumnType {
     Char(Option<u32>),
     String(Option<u32>),
     Text,
-    TinyInteger(Option<u32>),
-    SmallInteger(Option<u32>),
-    Integer(Option<u32>),
-    BigInteger(Option<u32>),
-    TinyUnsigned(Option<u32>),
-    SmallUnsigned(Option<u32>),
-    Unsigned(Option<u32>),
-    BigUnsigned(Option<u32>),
-    Float(Option<u32>),
-    Double(Option<u32>),
+    TinyInteger,
+    SmallInteger,
+    Integer,
+    BigInteger,
+    TinyUnsigned,
+    SmallUnsigned,
+    Unsigned,
+    BigUnsigned,
+    Float,
+    Double,
     Decimal(Option<(u32, u32)>),
-    DateTime(Option<u32>),
-    Timestamp(Option<u32>),
-    TimestampWithTimeZone(Option<u32>),
-    Time(Option<u32>),
+    DateTime,
+    Timestamp,
+    TimestampWithTimeZone,
+    Time,
     Date,
     Year(Option<MySqlYear>),
     Interval(Option<PgInterval>, Option<u32>),
@@ -218,123 +218,63 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as tiny_integer with custom length
-    pub fn tiny_integer_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::TinyInteger(Some(length)));
-        self
-    }
-
     /// Set column type as tiny_integer
     pub fn tiny_integer(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::TinyInteger(None));
-        self
-    }
-
-    /// Set column type as small_integer with custom length
-    pub fn small_integer_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::SmallInteger(Some(length)));
+        self.types = Some(ColumnType::TinyInteger);
         self
     }
 
     /// Set column type as small_integer
     pub fn small_integer(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::SmallInteger(None));
-        self
-    }
-
-    /// Set column type as integer with custom length
-    pub fn integer_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::Integer(Some(length)));
+        self.types = Some(ColumnType::SmallInteger);
         self
     }
 
     /// Set column type as integer
     pub fn integer(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Integer(None));
-        self
-    }
-
-    /// Set column type as big_integer with custom length
-    pub fn big_integer_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::BigInteger(Some(length)));
+        self.types = Some(ColumnType::Integer);
         self
     }
 
     /// Set column type as big_integer
     pub fn big_integer(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::BigInteger(None));
-        self
-    }
-
-    /// Set column type as tiny_unsigned with custom length
-    pub fn tiny_unsigned_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::TinyUnsigned(Some(length)));
+        self.types = Some(ColumnType::BigInteger);
         self
     }
 
     /// Set column type as tiny_unsigned
     pub fn tiny_unsigned(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::TinyUnsigned(None));
-        self
-    }
-
-    /// Set column type as small_unsigned with custom length
-    pub fn small_unsigned_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::SmallUnsigned(Some(length)));
+        self.types = Some(ColumnType::TinyUnsigned);
         self
     }
 
     /// Set column type as small_unsigned
     pub fn small_unsigned(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::SmallUnsigned(None));
-        self
-    }
-
-    /// Set column type as unsigned with custom length
-    pub fn unsigned_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::Unsigned(Some(length)));
+        self.types = Some(ColumnType::SmallUnsigned);
         self
     }
 
     /// Set column type as unsigned
     pub fn unsigned(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Unsigned(None));
-        self
-    }
-
-    /// Set column type as big_unsigned with custom length
-    pub fn big_unsigned_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::BigUnsigned(Some(length)));
+        self.types = Some(ColumnType::Unsigned);
         self
     }
 
     /// Set column type as big_unsigned
     pub fn big_unsigned(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::BigUnsigned(None));
-        self
-    }
-
-    /// Set column type as float with custom precision
-    pub fn float_len(&mut self, precision: u32) -> &mut Self {
-        self.types = Some(ColumnType::Float(Some(precision)));
+        self.types = Some(ColumnType::BigUnsigned);
         self
     }
 
     /// Set column type as float
     pub fn float(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Float(None));
-        self
-    }
-
-    /// Set column type as double with custom precision
-    pub fn double_len(&mut self, precision: u32) -> &mut Self {
-        self.types = Some(ColumnType::Double(Some(precision)));
+        self.types = Some(ColumnType::Float);
         self
     }
 
     /// Set column type as double
     pub fn double(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Double(None));
+        self.types = Some(ColumnType::Double);
         self
     }
 
@@ -350,15 +290,9 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as date_time with custom precision
-    pub fn date_time_len(&mut self, precision: u32) -> &mut Self {
-        self.types = Some(ColumnType::DateTime(Some(precision)));
-        self
-    }
-
     /// Set column type as date_time
     pub fn date_time(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::DateTime(None));
+        self.types = Some(ColumnType::DateTime);
         self
     }
 
@@ -407,39 +341,21 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as timestamp with custom precision
-    pub fn timestamp_len(&mut self, precision: u32) -> &mut Self {
-        self.types = Some(ColumnType::Timestamp(Some(precision)));
-        self
-    }
-
     /// Set column type as timestamp
     pub fn timestamp(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Timestamp(None));
+        self.types = Some(ColumnType::Timestamp);
         self
     }
 
     /// Set column type as timestamp with time zone. Postgres only
     pub fn timestamp_with_time_zone(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::TimestampWithTimeZone(None));
-        self
-    }
-
-    /// Set column type as timestamp with time zone plus custom precision
-    pub fn timestamp_with_time_zone_len(&mut self, precision: u32) -> &mut Self {
-        self.types = Some(ColumnType::TimestampWithTimeZone(Some(precision)));
-        self
-    }
-
-    /// Set column type as time with custom precision
-    pub fn time_len(&mut self, precision: u32) -> &mut Self {
-        self.types = Some(ColumnType::Time(Some(precision)));
+        self.types = Some(ColumnType::TimestampWithTimeZone);
         self
     }
 
     /// Set column type as time
     pub fn time(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Time(None));
+        self.types = Some(ColumnType::Time);
         self
     }
 

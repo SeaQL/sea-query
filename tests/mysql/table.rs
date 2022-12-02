@@ -7,7 +7,7 @@ fn create_1() {
             .table(Glyph::Table)
             .col(
                 ColumnDef::new(Glyph::Id)
-                    .integer_len(11)
+                    .integer()
                     .not_null()
                     .auto_increment()
                     .primary_key()
@@ -20,7 +20,7 @@ fn create_1() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `glyph` (",
-            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
             "`aspect` double NOT NULL,",
             "`image` text",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
@@ -36,7 +36,7 @@ fn create_2() {
             .table(Font::Table)
             .col(
                 ColumnDef::new(Font::Id)
-                    .integer_len(11)
+                    .integer()
                     .not_null()
                     .auto_increment()
                     .primary_key()
@@ -50,7 +50,7 @@ fn create_2() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `font` (",
-            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
             "`name` varchar(255) NOT NULL,",
             "`variant` varchar(255) NOT NULL,",
             "`language` varchar(1024) NOT NULL",
@@ -68,18 +68,18 @@ fn create_3() {
             .if_not_exists()
             .col(
                 ColumnDef::new(Char::Id)
-                    .integer_len(11)
+                    .integer()
                     .not_null()
                     .auto_increment()
                     .primary_key()
             )
-            .col(ColumnDef::new(Char::FontSize).integer_len(11).not_null())
+            .col(ColumnDef::new(Char::FontSize).integer().not_null())
             .col(ColumnDef::new(Char::Character).string_len(255).not_null())
-            .col(ColumnDef::new(Char::SizeW).unsigned_len(11).not_null())
-            .col(ColumnDef::new(Char::SizeH).unsigned_len(11).not_null())
+            .col(ColumnDef::new(Char::SizeW).unsigned().not_null())
+            .col(ColumnDef::new(Char::SizeH).unsigned().not_null())
             .col(
                 ColumnDef::new(Char::FontId)
-                    .integer_len(11)
+                    .integer()
                     .default(Value::Int(None))
             )
             .foreign_key(
@@ -96,12 +96,12 @@ fn create_3() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE IF NOT EXISTS `character` (",
-            "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,",
-            "`font_size` int(11) NOT NULL,",
+            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`font_size` int NOT NULL,",
             "`character` varchar(255) NOT NULL,",
-            "`size_w` int(11) UNSIGNED NOT NULL,",
-            "`size_h` int(11) UNSIGNED NOT NULL,",
-            "`font_id` int(11) DEFAULT NULL,",
+            "`size_w` int UNSIGNED NOT NULL,",
+            "`size_h` int UNSIGNED NOT NULL,",
+            "`font_id` int DEFAULT NULL,",
             "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE RESTRICT",
