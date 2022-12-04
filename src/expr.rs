@@ -37,7 +37,6 @@ pub enum SimpleExpr {
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
     Constant(Value),
-    //here?
 }
 
 impl Expr {
