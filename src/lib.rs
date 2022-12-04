@@ -15,7 +15,7 @@
 //!
 //! </div>
 //!
-//! ## Introduction
+//! ## SeaQuery
 //!
 //! SeaQuery is a query builder to help you construct dynamic SQL queries in Rust.
 //! You can construct expressions, queries and schema as abstract syntax trees using an ergonomic API.
