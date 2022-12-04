@@ -1,8 +1,6 @@
 <div align="center">
 
-  <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQuery logo.png" width="280"/>
-
-  <h1>SeaQuery</h1>
+  <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQuery logo.png" width="280" alt="SeaQuery logo"/>
 
   <p>
     <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
@@ -102,7 +100,7 @@ assert_eq!(
     (
         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
             .to_owned(),
-        Values([
+        Values(vec![
             Value::String(Some(Box::new("A".to_owned()))),
             Value::Int(Some(1)),
             Value::Int(Some(2)),
@@ -226,7 +224,7 @@ assert_eq!(
         .and_where(
             Expr::expr(Expr::col(Char::SizeW).add(1))
                 .mul(2)
-                .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
         )
         .and_where(
             Expr::col(Char::SizeW).in_subquery(
@@ -330,7 +328,7 @@ let query = Query::select()
     .column(Char::Character)
     .column((Font::Table, Font::Name))
     .from(Char::Table)
-    .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
     .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
     .and_where(Expr::col(Char::Character).like("A%"))
     .to_owned();
@@ -378,10 +376,7 @@ assert_eq!(
 ```rust
 let query = Query::update()
     .table(Glyph::Table)
-    .values([
-        (Glyph::Aspect, 1.23.into()),
-        (Glyph::Image, "123".into()),
-    ])
+    .values([(Glyph::Aspect, 1.23.into()), (Glyph::Image, "123".into())])
     .and_where(Expr::col(Glyph::Id).eq(1))
     .to_owned();
 

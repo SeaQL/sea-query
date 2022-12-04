@@ -3,9 +3,7 @@
 
 //! <div align="center">
 //!
-//!   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQuery logo.png" width="280"/>
-//!
-//!   <h1>SeaQuery</h1>
+//!   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQuery logo.png" width="280" alt="SeaQuery logo"/>
 //!
 //!   <p>
 //!     <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
