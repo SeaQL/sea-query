@@ -3,9 +3,7 @@
 
 //! <div align="center">
 //!
-//!   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL logo dual.png" width="280"/>
-//!
-//!   <h1>SeaQuery</h1>
+//!   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQuery logo.png" width="280" alt="SeaQuery logo"/>
 //!
 //!   <p>
 //!     <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
@@ -17,7 +15,7 @@
 //!
 //! </div>
 //!
-//! ## Introduction
+//! ## SeaQuery
 //!
 //! SeaQuery is a query builder to help you construct dynamic SQL queries in Rust.
 //! You can construct expressions, queries and schema as abstract syntax trees using an ergonomic API.

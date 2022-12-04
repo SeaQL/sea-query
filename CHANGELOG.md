@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `PgFunc::starts_with` https://github.com/SeaQL/sea-query/pull/529
 * Added `Expr::custom_keyword` and `SimpleExpr::not` https://github.com/SeaQL/sea-query/pull/535
 * Added `SimpleExpr::like`, `SimpleExpr::not_like` and `Expr::cast_as` https://github.com/SeaQL/sea-query/pull/539
+* Added support for `NULLS NOT DISTINCT` clause for Postgres https://github.com/SeaQL/sea-query/pull/532
 
 ### Bug fixes
 
@@ -44,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Deprecated `SimpleExpr::equals`, `SimpleExpr::not_equals` https://github.com/SeaQL/sea-query/pull/528
 * `Expr::equals` now acceptes `C: IntoColumnRef` instead of `T: IntoIden, C: IntoIden` https://github.com/SeaQL/sea-query/pull/528
 * MSRV is up to 1.62 https://github.com/SeaQL/sea-query/pull/535
+* Integer and date time column types with display length or precision option has been removed https://github.com/SeaQL/sea-query/pull/525
 
 ### House keeping
 
