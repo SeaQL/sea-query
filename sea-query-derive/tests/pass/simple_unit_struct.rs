@@ -1,8 +1,8 @@
 use sea_query::Iden;
 
-#[derive(Iden)]
+#[derive(Copy, Clone, Iden)]
 pub struct SomeType;
 
 fn main() {
-    assert_eq!(Iden::to_string(&SomeType), "some_type")
+    assert_eq!(SomeType.to_string(), "some_type");
 }

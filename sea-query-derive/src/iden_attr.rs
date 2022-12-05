@@ -5,7 +5,7 @@ use syn::{Attribute, Error, Ident, Lit, Meta, MetaNameValue, NestedMeta};
 use crate::{error::ErrorMsg, iden_path::IdenPath};
 
 #[derive(PartialEq, Eq)]
-pub enum IdenAttr {
+pub(crate) enum IdenAttr {
     Rename(String),
     Method(Ident),
     Flatten,
