@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `Expr::custom_keyword` and `SimpleExpr::not` https://github.com/SeaQL/sea-query/pull/535
 * Added `SimpleExpr::like`, `SimpleExpr::not_like` and `Expr::cast_as` https://github.com/SeaQL/sea-query/pull/539
 * Added support for `NULLS NOT DISTINCT` clause for Postgres https://github.com/SeaQL/sea-query/pull/532
+* Introduce trait: `IdenStatic` https://github.com/SeaQL/sea-query/issues/484
 
 ### Bug fixes
 
