@@ -7,17 +7,12 @@ pub trait PgExpr: Expression {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::PgExpr};
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .columns([Font::Name, Font::Variant, Font::Language])
     ///     .from(Font::Table)
-    ///     .and_where(
-    ///         Expr::val("a")
-    ///             .concatenate("b")
-    ///             .concat("c")
-    ///             .concat("d"),
-    ///     )
+    ///     .and_where(Expr::val("a").concatenate("b").concat("c").concat("d"))
     ///     .to_owned();
     ///
     /// assert_eq!(

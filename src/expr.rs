@@ -2007,8 +2007,14 @@ impl Expr {
     /// let query = Query::select().expr(Expr::current_date()).to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_DATE"#);
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT CURRENT_DATE"#);
-    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT CURRENT_DATE"#);
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CURRENT_DATE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CURRENT_DATE"#
+    /// );
     /// ```
     pub fn current_date() -> Expr {
         Expr::new_with_left(Keyword::CurrentDate)
@@ -2024,8 +2030,14 @@ impl Expr {
     /// let query = Query::select().expr(Expr::current_time()).to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_TIME"#);
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT CURRENT_TIME"#);
-    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT CURRENT_TIME"#);
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CURRENT_TIME"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CURRENT_TIME"#
+    /// );
     /// ```
     pub fn current_time() -> Expr {
         Expr::new_with_left(Keyword::CurrentTime)
@@ -2040,9 +2052,18 @@ impl Expr {
     ///
     /// let query = Query::select().expr(Expr::current_timestamp()).to_owned();
     ///
-    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT CURRENT_TIMESTAMP"#);
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT CURRENT_TIMESTAMP"#);
-    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT CURRENT_TIMESTAMP"#);
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CURRENT_TIMESTAMP"#
+    /// );
     /// ```
     pub fn current_timestamp() -> Expr {
         Expr::new_with_left(Keyword::CurrentTimestamp)
@@ -2055,7 +2076,9 @@ impl Expr {
     /// ```
     /// use sea_query::*;
     ///
-    /// let query = Query::select().expr(Expr::custom_keyword(Alias::new("test"))).to_owned();
+    /// let query = Query::select()
+    ///     .expr(Expr::custom_keyword(Alias::new("test")))
+    ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT test"#);
     /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT test"#);
@@ -2169,7 +2192,7 @@ impl SimpleExpr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::SizeW)
@@ -2264,7 +2287,7 @@ impl SimpleExpr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
@@ -2297,7 +2320,7 @@ impl SimpleExpr {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
@@ -2547,7 +2570,6 @@ impl SimpleExpr {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 10 < "size_w" AND 20 > "size_h""#
     /// );
-    ///
     pub fn binary<O, T>(self, op: O, right: T) -> Self
     where
         O: Into<BinOper>,

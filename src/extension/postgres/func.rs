@@ -249,9 +249,7 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(PgFunc::any(vec![0, 1]))
-    ///     .to_owned();
+    /// let query = Query::select().expr(PgFunc::any(vec![0, 1])).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -273,9 +271,7 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(PgFunc::some(vec![0, 1]))
-    ///     .to_owned();
+    /// let query = Query::select().expr(PgFunc::some(vec![0, 1])).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -297,9 +293,7 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(PgFunc::all(vec![0, 1]))
-    ///     .to_owned();
+    /// let query = Query::select().expr(PgFunc::all(vec![0, 1])).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -346,9 +340,7 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(PgFunc::get_random_uuid())
-    ///     .to_owned();
+    /// let query = Query::select().expr(PgFunc::get_random_uuid()).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
