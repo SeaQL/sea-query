@@ -469,10 +469,79 @@ impl Expr {
         SimpleExpr::Custom(s.to_owned())
     }
 
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::cust_with_expr`]")]
+    /// Express any custom expression with [`Value`]. Use this if your expression needs variables.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Id).eq(1))
+    ///     .and_where(Expr::cust_with_values("6 = ? * ?", [2, 3]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
+    /// );
+    /// ```
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Id).eq(1))
+    ///     .and_where(Expr::cust_with_values("6 = $2 * $1", [3, 2]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
+    /// );
+    /// ```
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_values("6 = ? * ?", [2, 3]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT 6 = 2 * 3"#);
+    /// ```
+    /// Postgres only: use `$$` to escape `$`
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_values("$1 $$ $2", ["a", "b"]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' $ 'b'"#);
+    /// ```
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_values("data @? ($1::JSONPATH)", ["hello"]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
+    /// );
+    /// ```
     pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
     where
-        V: Into<SimpleExpr>,
+        V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
         SimpleExpr::CustomWithExpr(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
@@ -514,63 +583,6 @@ impl Expr {
     }
 
     /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_exprs("6 = ? * ?", [2.into(), 3.into()]))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `id` = 1 AND 6 = 2 * 3"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
-    /// );
-    /// ```
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .and_where(Expr::cust_with_exprs("6 = $2 * $1", [3.into(), 2.into()]))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "id" = 1 AND 6 = 2 * 3"#
-    /// );
-    /// ```
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::cust_with_exprs("6 = ? * ?", [2.into(), 3.into()]))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT 6 = 2 * 3"#);
-    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT 6 = 2 * 3"#);
-    /// ```
-    /// Postgres only: use `$$` to escape `$`
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::cust_with_exprs("$1 $$ $2", ["a".into(), "b".into()]))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT 'a' $ 'b'"#);
-    /// ```
     pub fn cust_with_exprs<I>(s: &str, v: I) -> SimpleExpr
     where
         I: IntoIterator<Item = SimpleExpr>,
