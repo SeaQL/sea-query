@@ -572,7 +572,10 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::cust_with_expr("json_agg(DISTINCT $1)", Expr::col(Char::Character)))
+    ///     .expr(Expr::cust_with_expr(
+    ///         "json_agg(DISTINCT $1)",
+    ///         Expr::col(Char::Character),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
