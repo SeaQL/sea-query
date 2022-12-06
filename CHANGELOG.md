@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Drop the `Sized` requirement on implementers of `SchemaBuilders` https://github.com/SeaQL/sea-query/pull/524
 * Replace `impl Default` to `#[derive(Default)]` https://github.com/SeaQL/sea-query/pull/535
 * Exclude `sqlx` default-features https://github.com/SeaQL/sea-query/pull/543
+* Added support convert `&String` to Value https://github.com/SeaQL/sea-query/issues/537
 
 ### Enhancements
 
