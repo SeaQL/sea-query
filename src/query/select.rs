@@ -963,10 +963,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(ColumnRef::Asterisk)
-    ///     .from_function(
-    ///         Func::random(),
-    ///         Alias::new("func"),
-    ///     )
+    ///     .from_function(Func::random(), Alias::new("func"))
     ///     .to_owned();
     ///
     /// assert_eq!(

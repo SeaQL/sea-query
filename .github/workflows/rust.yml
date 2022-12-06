@@ -28,205 +28,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
-          toolchain: stable
+          toolchain: nightly
           components: rustfmt
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        name: Run rustfmt on `sea-query`
-        with:
-          command: fmt
-          args: >
-            --all
-            --
-            --check
-
-      - uses: actions-rs/cargo@v1
-        name: Run rustfmt on `sea-query-binder`
-        with:
-          command: fmt
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --all
-            --
-            --check
-
-      - uses: actions-rs/cargo@v1
-        name: Run rustfmt on `sea-query-rusqlite`
-        with:
-          command: fmt
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --all
-            --
-            --check
-
-      - uses: actions-rs/cargo@v1
-        name: Run rustfmt on `sea-query-postgres`
-        with:
-          command: fmt
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --all
-            --
-            --check
+      - run: cargo fmt --all -- --check
+      - run: cargo fmt --manifest-path sea-query-binder/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path sea-query-rusqlite/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path sea-query-postgres/Cargo.toml --all -- --check
 
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: stable
           components: clippy
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        name: Run clippy on `sea-query`
-        with:
-          command: clippy
-          args: >
-            --all-features
-            --workspace
-            --
-            -D warnings
-
-      - uses: actions-rs/cargo@v1
-        name: Run clippy on `sea-query-binder`
-        with:
-          command: clippy
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace
-            --features runtime-async-std-rustls
-            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-            --
-            -D warnings
-
-      - uses: actions-rs/cargo@v1
-        name: Run clippy on `sea-query-rusqlite`
-        with:
-          command: clippy
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --all-features
-            --workspace
-            --
-            -D warnings
-
-      - uses: actions-rs/cargo@v1
-        name: Run clippy on `sea-query-postgres`
-        with:
-          command: clippy
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --all-features
-            --workspace
-            --
-            -D warnings
+      - run: cargo clippy --all-features --workspace -- -D warnings
+      - run: cargo clippy --manifest-path sea-query-binder/Cargo.toml --workspace --features runtime-async-std-rustls --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array -- -D warnings
+      - run: cargo clippy --manifest-path sea-query-rusqlite/Cargo.toml --all-features --workspace -- -D warnings
+      - run: cargo clippy --manifest-path sea-query-postgres/Cargo.toml --all-features --workspace -- -D warnings
 
   build:
     name: Build `sea-query`
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --no-default-features
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --all-features
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-chrono
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-json
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-rust_decimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-bigdecimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-uuid
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-time
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-ipnetwork
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=with-mac_address
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=postgres-array
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --workspace 
-            --features=thread-safe
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --workspace --no-default-features
+      - run: cargo build --workspace --all-features
+      - run: cargo build --workspace --features=with-chrono
+      - run: cargo build --workspace --features=with-json
+      - run: cargo build --workspace --features=with-rust_decimal
+      - run: cargo build --workspace --features=with-bigdecimal
+      - run: cargo build --workspace --features=with-uuid
+      - run: cargo build --workspace --features=with-time
+      - run: cargo build --workspace --features=with-ipnetwork
+      - run: cargo build --workspace --features=with-mac_address
+      - run: cargo build --workspace --features=postgres-array
+      - run: cargo build --workspace --features=thread-safe
 
   binder-build:
     name: Build `sea-query-binder`
@@ -234,300 +76,55 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runtime: [ async-std ]
-        tls: [ rustls ]
+        runtime: [async-std]
+        tls: [rustls]
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-chrono
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-json
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-rust_decimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-bigdecimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-uuid
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-time
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-ipnetwork
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=with-mac_address
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-binder/Cargo.toml
-            --workspace 
-            --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql
-            --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
-            --features=postgres-array
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-chrono
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-json
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-rust_decimal
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-bigdecimal
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-uuid
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-time
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-ipnetwork
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-mac_address
+      - run: cargo build --manifest-path sea-query-binder/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=postgres-array
 
   rusqlite-build:
     name: Build `sea-query-rusqlite`
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-chrono
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-json
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-rust_decimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-bigdecimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-uuid
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-time
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-ipnetwork
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=with-mac_address
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-rusqlite/Cargo.toml
-            --workspace 
-            --features=postgres-array
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-chrono
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-json
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-rust_decimal
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-bigdecimal
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-uuid
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-time
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-ipnetwork
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-mac_address
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-array
 
   postgres-build:
     name: Build `sea-query-postgres`
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-chrono
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-json
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-rust_decimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-bigdecimal
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-uuid
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-time
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-ipnetwork
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=with-mac_address
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: >
-            --manifest-path sea-query-postgres/Cargo.toml
-            --workspace 
-            --features=postgres-array
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-json
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-rust_decimal
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-bigdecimal
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-uuid
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-time
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-ipnetwork
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-mac_address
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-array
 
   test:
     name: Unit Test
@@ -535,17 +132,8 @@ jobs:
     needs: ["build"]
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all-features
 
   derive-test:
     name: Derive Tests
@@ -553,24 +141,9 @@ jobs:
     needs: ["build"]
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: Swatinem/rust-cache@v2
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --package sea-query-derive --all-features
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --package sea-query-derive --all-features
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --package sea-query-derive --all-features
+      - run: cargo test --package sea-query-derive --all-features
 
   sqlite:
     name: SQLite
@@ -581,22 +154,9 @@ jobs:
         example: [rusqlite, sqlx_sqlite]
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
   mysql:
     name: MySQL
@@ -624,22 +184,9 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
   mariadb:
     name: MariaDB
@@ -667,22 +214,9 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
   postgres:
     name: PostgreSQL
@@ -709,19 +243,6 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml

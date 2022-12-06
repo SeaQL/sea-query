@@ -8,7 +8,7 @@ pub trait SqliteExpr: Expression {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::sqlite::SqliteExpr};
+    /// use sea_query::{extension::sqlite::SqliteExpr, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Font::Name)
@@ -33,7 +33,7 @@ pub trait SqliteExpr: Expression {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::sqlite::SqliteExpr};
+    /// use sea_query::{extension::sqlite::SqliteExpr, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Font::Variant)
@@ -58,7 +58,7 @@ pub trait SqliteExpr: Expression {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::sqlite::SqliteExpr};
+    /// use sea_query::{extension::sqlite::SqliteExpr, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Font::Variant)
