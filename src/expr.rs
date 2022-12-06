@@ -544,7 +544,12 @@ impl Expr {
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
-        SimpleExpr::CustomWithExpr(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
+        SimpleExpr::CustomWithExpr(
+            s.to_owned(),
+            v.into_iter()
+                .map(|v| Into::<Value>::into(v).into())
+                .collect(),
+        )
     }
 
     /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expression.
