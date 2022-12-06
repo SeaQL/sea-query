@@ -378,8 +378,15 @@ impl<'a> From<&'a [u8]> for Value {
     }
 }
 
-impl<'a> From<&'a str> for Value {
-    fn from(x: &'a str) -> Value {
+impl From<&str> for Value {
+    fn from(x: &str) -> Value {
+        let string: String = x.into();
+        Value::String(Some(Box::new(string)))
+    }
+}
+
+impl From<&String> for Value {
+    fn from(x: &String) -> Value {
         let string: String = x.into();
         Value::String(Some(Box::new(string)))
     }
