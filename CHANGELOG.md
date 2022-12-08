@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `SimpleExpr::like`, `SimpleExpr::not_like` and `Expr::cast_as` https://github.com/SeaQL/sea-query/pull/539
 * Added support for `NULLS NOT DISTINCT` clause for Postgres https://github.com/SeaQL/sea-query/pull/532
 * Introduce trait: `IdenStatic` https://github.com/SeaQL/sea-query/issues/484
+* Added `Expr::cust_with_expr` and `Expr::cust_with_exprs` https://github.com/SeaQL/sea-query/pull/531
 
 ### Bug fixes
 
@@ -47,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Expr::equals` now acceptes `C: IntoColumnRef` instead of `T: IntoIden, C: IntoIden` https://github.com/SeaQL/sea-query/pull/528
 * MSRV is up to 1.62 https://github.com/SeaQL/sea-query/pull/535
 * Integer and date time column types with display length or precision option has been removed https://github.com/SeaQL/sea-query/pull/525
+* Deprecated `Expr::tbl` https://github.com/SeaQL/sea-query/pull/540
 
 ### House keeping
 
