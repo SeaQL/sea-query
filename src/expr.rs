@@ -30,7 +30,7 @@ pub enum SimpleExpr {
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
-    CustomWithValues(String, Vec<Value>),
+    CustomWithExpr(String, Vec<SimpleExpr>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
@@ -519,7 +519,58 @@ impl Expr {
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
-        SimpleExpr::CustomWithValues(s.to_owned(), v.into_iter().map(|v| v.into()).collect())
+        SimpleExpr::CustomWithExpr(
+            s.to_owned(),
+            v.into_iter()
+                .map(|v| Into::<Value>::into(v).into())
+                .collect(),
+        )
+    }
+
+    /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_expr("data @? ($1::JSONPATH)", "hello"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
+    /// );
+    /// ```
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::cust_with_expr(
+    ///         "json_agg(DISTINCT $1)",
+    ///         Expr::col(Char::Character),
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT json_agg(DISTINCT "character")"#
+    /// );
+    /// ```
+    pub fn cust_with_expr<T>(s: &str, expr: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        SimpleExpr::CustomWithExpr(s.to_owned(), vec![expr.into()])
+    }
+
+    /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
+    pub fn cust_with_exprs<I>(s: &str, v: I) -> SimpleExpr
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        SimpleExpr::CustomWithExpr(s.to_owned(), v.into_iter().collect())
     }
 
     /// Express an equal (`=`) expression.

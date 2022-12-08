@@ -303,7 +303,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             SimpleExpr::Custom(s) => {
                 write!(sql, "{}", s).unwrap();
             }
-            SimpleExpr::CustomWithValues(expr, values) => {
+            SimpleExpr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
                 let mut tokenizer = Tokenizer::new(expr).iter().peekable();
                 let mut count = 0;
@@ -316,12 +316,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                             }
                             Some(Token::Unquoted(tok)) if numbered => {
                                 if let Ok(num) = tok.parse::<usize>() {
-                                    self.prepare_value(&values[num - 1], sql);
+                                    self.prepare_simple_expr(&values[num - 1], sql);
                                 }
                                 tokenizer.next();
                             }
                             _ => {
-                                self.prepare_value(&values[count], sql);
+                                self.prepare_simple_expr(&values[count], sql);
                                 count += 1;
                             }
                         },
