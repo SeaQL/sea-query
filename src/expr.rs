@@ -278,7 +278,7 @@ impl Expr {
     ///     .expr(Expr::table_asterisk(Char::Table))
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+    ///     .inner_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -301,32 +301,7 @@ impl Expr {
         Self::col(ColumnRef::TableAsterisk(t.into_iden()))
     }
 
-    /// Express the target column with table prefix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).eq(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
-    /// );
-    /// ```
+    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::col`]")]
     pub fn tbl<T, C>(t: T, c: C) -> Self
     where
         T: IntoIden,
@@ -626,7 +601,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+    ///     .and_where(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -660,7 +635,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+    ///     .and_where(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -693,7 +668,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).gt(2))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).gt(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -726,7 +701,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).gte(2))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).gte(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -759,7 +734,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).lt(2))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).lt(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -792,7 +767,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).lte(2))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).lte(2))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1063,7 +1038,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).between(1, 10))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).between(1, 10))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1096,7 +1071,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).not_between(1, 10))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).not_between(1, 10))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1139,7 +1114,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like("Ours'%"))
+    ///     .and_where(Expr::col((Char::Table, Char::Character)).like("Ours'%"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1164,7 +1139,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Character).like(LikeExpr::str(r"|_Our|_").escape('|')))
+    ///     .and_where(Expr::col((Char::Table, Char::Character)).like(LikeExpr::str(r"|_Our|_").escape('|')))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1199,7 +1174,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_null())
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_null())
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1230,7 +1205,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Ascii).is(true))
+    ///     .and_where(Expr::col((Char::Table, Char::Ascii)).is(true))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1263,7 +1238,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_null())
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_not_null())
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1294,7 +1269,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Ascii).is_not(true))
+    ///     .and_where(Expr::col((Char::Table, Char::Ascii)).is_not(true))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1362,7 +1337,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::expr(Expr::tbl(Char::Table, Char::SizeW).is_null()).not())
+    ///     .and_where(Expr::expr(Expr::col((Char::Table, Char::SizeW)).is_null()).not())
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1391,7 +1366,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).max())
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).max())
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -1420,7 +1395,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).min())
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).min())
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -1449,7 +1424,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).sum())
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).sum())
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -1478,7 +1453,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).count())
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).count())
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -1507,7 +1482,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::tbl(Char::Table, Char::SizeW).if_null(0))
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).if_null(0))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -1541,7 +1516,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in([1, 2, 3]))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_in([1, 2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1564,7 +1539,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_in(Vec::<u8>::new()))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_in(Vec::<u8>::new()))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1650,7 +1625,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in([1, 2, 3]))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_not_in([1, 2, 3]))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1673,7 +1648,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::SizeW).is_not_in(Vec::<u8>::new()))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_not_in(Vec::<u8>::new()))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1943,7 +1918,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .expr_as(
     ///         Expr::case(
-    ///                 Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([2, 4]),
+    ///                 Expr::col((Glyph::Table, Glyph::Aspect)).is_in([2, 4]),
     ///                 true
     ///              )
     ///             .finally(false),

@@ -396,7 +396,7 @@ impl Cycle {
 ///                             .join(
 ///                                 JoinType::InnerJoin,
 ///                                 Alias::new("cte_traversal"),
-///                                 Expr::tbl(Alias::new("cte_traversal"), Alias::new("next")).equals((Alias::new("table"), Alias::new("id")))
+///                                 Expr::col((Alias::new("cte_traversal"), Alias::new("next"))).equals((Alias::new("table"), Alias::new("id")))
 ///                             )
 ///                             .to_owned();
 ///

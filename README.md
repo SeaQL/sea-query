@@ -328,7 +328,7 @@ let query = Query::select()
     .column(Char::Character)
     .column((Font::Table, Font::Name))
     .from(Char::Table)
-    .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+    .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
     .and_where(Expr::col(Char::Character).like("A%"))
     .to_owned();

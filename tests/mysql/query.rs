@@ -64,7 +64,7 @@ fn select_5() {
         Query::select()
             .column((Glyph::Table, Glyph::Image))
             .from(Glyph::Table)
-            .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
+            .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]))
             .to_string(MysqlQueryBuilder),
         "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4)"
     );
@@ -104,7 +104,7 @@ fn select_8() {
                 Char::Character,
             ])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+            .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"
     );
@@ -118,8 +118,8 @@ fn select_9() {
                 Char::Character,
             ])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
-            .inner_join(Glyph::Table, Expr::tbl(Char::Table, Char::Character).equals((Glyph::Table, Glyph::Image)))
+            .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+            .inner_join(Glyph::Table, Expr::col((Char::Table, Char::Character)).equals((Glyph::Table, Glyph::Image)))
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` INNER JOIN `glyph` ON `character`.`character` = `glyph`.`image`"
     );
@@ -134,8 +134,8 @@ fn select_10() {
             ])
             .from(Char::Table)
             .left_join(Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
-                .and(Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)))
+                Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
+                .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON (`character`.`font_id` = `font`.`id`) AND (`character`.`font_id` = `font`.`id`)"
@@ -245,7 +245,7 @@ fn select_17() {
         Query::select()
             .columns([(Glyph::Table, Glyph::Image),])
             .from(Glyph::Table)
-            .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).between(3, 5))
+            .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).between(3, 5))
             .to_string(MysqlQueryBuilder),
         "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` BETWEEN 3 AND 5"
     );
@@ -807,7 +807,7 @@ fn select_50() {
         .from(Char::Table)
         .inner_join(
             Font::Table,
-            Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id)),
+            Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
         )
         .to_string(MysqlQueryBuilder);
 
@@ -904,7 +904,7 @@ fn select_54() {
         .expr(Expr::asterisk())
         .from(Char::Table)
         .from(Font::Table)
-        .and_where(Expr::tbl(Font::Table, Font::Id).equals((Char::Table, Char::FontId)))
+        .and_where(Expr::col((Font::Table, Font::Id)).equals((Char::Table, Char::FontId)))
         .to_string(MysqlQueryBuilder);
 
     assert_eq!(
@@ -975,8 +975,8 @@ fn select_57() {
     let query = Query::select()
         .expr_as(
             CaseStatement::new()
-                .case(Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0), "positive")
-                .case(Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0), "negative")
+                .case(Expr::col((Glyph::Table, Glyph::Aspect)).gt(0), "positive")
+                .case(Expr::col((Glyph::Table, Glyph::Aspect)).lt(0), "negative")
                 .finally("zero"),
             Alias::new("polarity"),
         )
@@ -1395,7 +1395,7 @@ fn union_1() {
                     .from(Char::Table)
                     .left_join(
                         Font::Table,
-                        Expr::tbl(Char::Table, Char::FontId).equals((Font::Table, Font::Id))
+                        Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
                     )
                     .order_by((Font::Table, Font::Id), Order::Asc)
                     .take()

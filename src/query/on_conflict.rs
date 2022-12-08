@@ -224,7 +224,7 @@ impl OnConflict {
     ///     .on_conflict(
     ///         OnConflict::column(Glyph::Id)
     ///             .value(Glyph::Image, Expr::val(1).add(2))
-    ///             .target_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
+    ///             .target_and_where(Expr::col((Glyph::Table, Glyph::Aspect)).is_null())
     ///             .to_owned()
     ///     )
     ///     .to_owned();
@@ -280,7 +280,7 @@ impl OnConflict {
     ///     .on_conflict(
     ///         OnConflict::column(Glyph::Id)
     ///             .value(Glyph::Image, Expr::val(1).add(2))
-    ///             .action_and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_null())
+    ///             .action_and_where(Expr::col((Glyph::Table, Glyph::Aspect)).is_null())
     ///             .to_owned()
     ///     )
     ///     .to_owned();

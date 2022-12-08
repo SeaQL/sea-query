@@ -122,7 +122,7 @@ pub trait PgExpr: Expression {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::tbl(Char::Table, Char::Character).ilike("Ours'%"))
+    ///     .and_where(Expr::col((Char::Table, Char::Character)).ilike("Ours'%"))
     ///     .to_owned();
     ///
     /// assert_eq!(
