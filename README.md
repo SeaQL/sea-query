@@ -69,6 +69,11 @@ Table of Content
     1. [Query Update](#query-update)
     1. [Query Delete](#query-delete)
 
+1. Advanced
+    1. [Aggregate Functions](#aggregate-functions)
+    1. [Casting](#casting)
+    1. [Custom Function](#custom-function)
+
 1. Schema Statement
 
     1. [Table Create](#table-create)
@@ -417,6 +422,79 @@ assert_eq!(
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
+);
+```
+
+### Aggregate Functions
+
+`max`, `min`, `sum`, `avg`, `count` etc
+
+```rust
+let query = Query::select()
+    .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
+    .from(Char::Table)
+    .to_owned();
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT SUM("character"."size_h") FROM "character""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT SUM("character"."size_h") FROM "character""#
+);
+```
+
+### Casting
+
+```rust
+let query = Query::select()
+    .expr(Func::cast_as("hello", Alias::new("MyType")))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT CAST('hello' AS MyType)"#
+);
+```
+
+### Custom Function
+
+```rust
+struct MyFunction;
+
+impl Iden for MyFunction {
+    fn unquoted(&self, s: &mut dyn Write) {
+        write!(s, "MY_FUNCTION").unwrap();
+    }
+}
+
+let query = Query::select()
+    .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"SELECT MY_FUNCTION('hello')"#
 );
 ```
 
