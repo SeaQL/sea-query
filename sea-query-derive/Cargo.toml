@@ -1,6 +1,6 @@
 [package]
 name = "sea-query-derive"
-version = "0.2.0"
+version = "0.3.0"
 authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>" ]
 edition = "2021"
 description = "Derive macro for sea-query's Iden trait"
