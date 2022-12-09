@@ -5,35 +5,66 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.28.0 - Pending
+## 0.28.0 - 2022-12-09
 
 ### New Features
 
 * New struct `FunctionCall` which hold function and arguments https://github.com/SeaQL/sea-query/pull/475
+* New trait `IdenStatic` with method `fn as_str(&self) -> &'static str` https://github.com/SeaQL/sea-query/pull/508
+* New traits `PgExpr` and `SqliteExpr` for custom expressions https://github.com/SeaQL/sea-query/pull/519
+* Support `BigDecimal`, `IpNetwork` and `MacAddress` for `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/503
+
+### API Additions
+
 * Added `SelectStatement::from_function` https://github.com/SeaQL/sea-query/pull/475
 * Added binary operators from the Postgres `pg_trgm` extension https://github.com/SeaQL/sea-query/pull/486
 * Added `ILIKE` and `NOT ILIKE` operators https://github.com/SeaQL/sea-query/pull/473
-* Added support `BigDecimal`, `IpNetwork` and `MacAddress` for `sea-query-postgres` https://github.com/SeaQL/sea-query/pull/503
 * Added the `mul` and `div` methods for `SimpleExpr` https://github.com/SeaQL/sea-query/pull/510
 * Added the `MATCH`, `->` and `->>` operators for SQLite https://github.com/SeaQL/sea-query/pull/513
 * Added the `FULL OUTER JOIN` https://github.com/SeaQL/sea-query/pull/497
-* New traits: `PgExpr` and `SqliteExpr` for custom expressions https://github.com/SeaQL/sea-query/pull/519
-* Added PgFunc::get_random_uuid https://github.com/SeaQL/sea-query/pull/530
-* Added `SimpleExpr::eq`, `SimpleExpr::ne`, `Expr::not_equals https://github.com/SeaQL/sea-query/pull/528
+* Added `PgFunc::get_random_uuid` https://github.com/SeaQL/sea-query/pull/530
+* Added `SimpleExpr::eq`, `SimpleExpr::ne`, `Expr::not_equals` https://github.com/SeaQL/sea-query/pull/528
 * Added `PgFunc::starts_with` https://github.com/SeaQL/sea-query/pull/529
 * Added `Expr::custom_keyword` and `SimpleExpr::not` https://github.com/SeaQL/sea-query/pull/535
 * Added `SimpleExpr::like`, `SimpleExpr::not_like` and `Expr::cast_as` https://github.com/SeaQL/sea-query/pull/539
 * Added support for `NULLS NOT DISTINCT` clause for Postgres https://github.com/SeaQL/sea-query/pull/532
-* Introduce trait: `IdenStatic` https://github.com/SeaQL/sea-query/issues/484
 * Added `Expr::cust_with_expr` and `Expr::cust_with_exprs` https://github.com/SeaQL/sea-query/pull/531
+* Added support for converting `&String` to Value https://github.com/SeaQL/sea-query/issues/537
+
+### Enhancements
+
+* Made `value::with_array` module public and therefore making `NotU8` trait public https://github.com/SeaQL/sea-query/pull/511
+* Drop the `Sized` requirement on implementers of `SchemaBuilders` https://github.com/SeaQL/sea-query/pull/524
 
 ### Bug fixes
 
 * Wrap unions into parenthesis https://github.com/SeaQL/sea-query/pull/498
-* Syntax error on empty condition https://github.com/SeaQL/sea-query/issues/485
+* Syntax error on empty condition https://github.com/SeaQL/sea-query/pull/505
+```rust
+
+// given
+let (statement, values) = sea_query::Query::select()
+    .column(Glyph::Id)
+    .from(Glyph::Table)
+    .cond_where(Cond::any()
+        .add(Cond::all()) // empty all() => TRUE
+        .add(Cond::any()) // empty any() => FALSE
+    )
+    .build(sea_query::MysqlQueryBuilder);
+
+// old behavior
+assert_eq!(statement, r#"SELECT `id` FROM `glyph`"#);
+
+// new behavior
+assert_eq!(
+    statement,
+    r#"SELECT `id` FROM `glyph` WHERE (TRUE) OR (FALSE)"#
+);
+```
 
 ### Breaking changes
 
+* MSRV is up to 1.62 https://github.com/SeaQL/sea-query/pull/535
 * `ColumnType::Array` definition changed from `Array(SeaRc<Box<ColumnType>>)` to `Array(SeaRc<ColumnType>)` https://github.com/SeaQL/sea-query/pull/492
 * `Func::*` now returns `FunctionCall` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 * `Func::coalesce` now accepts `IntoIterator<Item = SimpleExpr>` instead of `IntoIterator<Item = Into<SimpleExpr>` https://github.com/SeaQL/sea-query/pull/475
@@ -41,26 +72,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Moved all Postgres specific operators to `PgBinOper` https://github.com/SeaQL/sea-query/pull/507
 * `Expr::value`, `Expr::gt`, `Expr::gte`, `Expr::lt`, `Expr::lte`, `Expr::add`, `Expr::div`, `Expr::sub`, `Expr::modulo`, `Expr::left_shift`, `Expr::right_shift`, `Expr::between`, `Expr::not_between`, `Expr::is`, `Expr::is_not`, `Expr::if_null` now accepts `Into<SimpleExpr>` instead of `Into<Value>` https://github.com/SeaQL/sea-query/pull/476
 * `Expr::is_in`, `Expr::is_not_in` now accepts `Into<SimpleExpr>` instead of `Into<Value>` and convert it to `SimpleExpr::Tuple` instead of `SimpleExpr::Values` https://github.com/SeaQL/sea-query/pull/476
-* Deprecated `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than` and `Expr::less_or_equal` https://github.com/SeaQL/sea-query/pull/476
 * `Expr::expr` now accepts `Into<SimpleExpr>` instead of `SimpleExpr` https://github.com/SeaQL/sea-query/pull/475
 * Moved `Expr::ilike`, `Expr::not_ilike`, `Expr::matches`, `Expr::contains`, `Expr::contained`, `Expr::concatenate`, `Expr::concat`, `SimpleExpr::concatenate` and `SimpleExpr::concat` to new trait `PgExpr` https://github.com/SeaQL/sea-query/pull/519
+* `Expr::equals` now accepts `C: IntoColumnRef` instead of `T: IntoIden, C: IntoIden` https://github.com/SeaQL/sea-query/pull/528
+* Removed integer and date time column types' display length / precision option https://github.com/SeaQL/sea-query/pull/525
+
+### Deprecations
+
+* Deprecated `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than` and `Expr::less_or_equal` https://github.com/SeaQL/sea-query/pull/476
 * Deprecated `SimpleExpr::equals`, `SimpleExpr::not_equals` https://github.com/SeaQL/sea-query/pull/528
-* `Expr::equals` now acceptes `C: IntoColumnRef` instead of `T: IntoIden, C: IntoIden` https://github.com/SeaQL/sea-query/pull/528
-* MSRV is up to 1.62 https://github.com/SeaQL/sea-query/pull/535
-* Integer and date time column types with display length or precision option has been removed https://github.com/SeaQL/sea-query/pull/525
-* Deprecated `Expr::tbl` https://github.com/SeaQL/sea-query/pull/540
+* Deprecated `Expr::tbl`, please use `Expr::col` with a tuple https://github.com/SeaQL/sea-query/pull/540
 
 ### House keeping
 
-* Drop the `Sized` requirement on implementers of `SchemaBuilders` https://github.com/SeaQL/sea-query/pull/524
-* Replace `impl Default` to `#[derive(Default)]` https://github.com/SeaQL/sea-query/pull/535
-* Exclude `sqlx` default-features https://github.com/SeaQL/sea-query/pull/543
-* Added support convert `&String` to Value https://github.com/SeaQL/sea-query/issues/537
-* Replace use `dtolnay/rust-toolchain` instead of `actions-rs/toolchain` in `CI` https://github.com/SeaQL/sea-query/pull/544
-
-### Enhancements
-
-* Made `value::with_array` module public and therefore making `NotU8` trait public https://github.com/SeaQL/sea-query/pull/511
+* Replace `impl Default` with `#[derive(Default)]` https://github.com/SeaQL/sea-query/pull/535
+* Exclude `sqlx` default features https://github.com/SeaQL/sea-query/pull/543
+* Use `dtolnay/rust-toolchain` instead of `actions-rs/toolchain` in `CI` https://github.com/SeaQL/sea-query/pull/544
 
 ## 0.27.2 - 2022-11-14
 
