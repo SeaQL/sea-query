@@ -112,7 +112,7 @@ pub trait PgExpr: Expression {
         self.bin_op(PgBinOper::Contained, expr)
     }
 
-    /// Express a `LIKE` expression.
+    /// Express a `ILIKE` expression.
     ///
     /// # Examples
     ///
