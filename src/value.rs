@@ -446,7 +446,7 @@ impl<'a> From<Cow<'a, str>> for Value {
 impl<'a> ValueType for Cow<'a, str> {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
-            Value::String(Some(x)) => Ok(x.into()),
+            Value::String(Some(x)) => Ok(*x.into()),
             _ => Err(ValueTypeErr),
         }
     }
