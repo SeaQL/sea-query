@@ -439,9 +439,7 @@ where
 
 impl<'a> From<Cow<'a, str>> for Value {
     fn from(x: Cow<'a, str>) -> Value {
-        // will stack overflow if not cloning the ref
-        #[allow(clippy::clone_double_ref)]
-        x.as_ref().clone().into()
+        x.into_owned().into()
     }
 }
 
