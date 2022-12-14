@@ -460,7 +460,7 @@ impl<'a> ValueType for Cow<'a, str> {
     }
 
     fn column_type() -> ColumnType {
-        ColumnType::Text
+        ColumnType::String(None)
     }
 }
 
