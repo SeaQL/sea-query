@@ -141,33 +141,6 @@ impl UpdateStatement {
         self
     }
 
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::values`]")]
-    pub fn exprs<T, I>(&mut self, values: I) -> &mut Self
-    where
-        T: IntoIden,
-        I: IntoIterator<Item = (T, SimpleExpr)>,
-    {
-        self.values(values)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
-    pub fn col_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
-    where
-        C: IntoIden,
-        T: Into<SimpleExpr>,
-    {
-        self.value(col, expr)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
-    pub fn value_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
-    where
-        C: IntoIden,
-        T: Into<SimpleExpr>,
-    {
-        self.value(col, expr)
-    }
-
     /// Limit number of updated rows.
     pub fn limit(&mut self, limit: u64) -> &mut Self {
         self.limit = Some(limit.into());
