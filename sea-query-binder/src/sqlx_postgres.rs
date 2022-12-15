@@ -17,7 +17,7 @@ use sea_query::{ArrayType, Value};
 
 use crate::SqlxValues;
 
-impl<'q> sqlx::IntoArguments<'q, sqlx::postgres::Postgres> for SqlxValues {
+impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
     fn into_arguments(self) -> sqlx::postgres::PgArguments {
         let mut args = sqlx::postgres::PgArguments::default();
         for arg in self.0.into_iter() {
