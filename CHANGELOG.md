@@ -9,7 +9,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-### Bug fixes
+* Added `Cow<str>` conversion to `Value` https://github.com/SeaQL/sea-query/pull/550
+
+### Breaking changes
+
+* Removed `Expr::tbl`, `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than`, `Expr::less_or_equal`, `Expr::into_simple_expr` https://github.com/SeaQL/sea-query/pull/551
+* Removed `SimpleExpr::equals` and `SimpleExpr::not_equals` https://github.com/SeaQL/sea-query/pull/551
+* Removed `InsertStatement::exprs`, `InsertStatement::exprs_panic` https://github.com/SeaQL/sea-query/pull/551
+* Removed `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/551
+* Removed `UpdateStatement::exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr` https://github.com/SeaQL/sea-query/pull/551
+
+### House keeping
+
+* Elided unnecessary lifetimes https://github.com/SeaQL/sea-query/pull/552
 
 ## 0.28.0 - 2022-12-09
 
