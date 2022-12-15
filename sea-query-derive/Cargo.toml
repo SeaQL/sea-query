@@ -15,13 +15,13 @@ rust-version = "1.60"
 proc-macro = true
 
 [dependencies]
-syn = { version = "1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
-quote = "1"
-heck = "0.4"
-proc-macro2 = "1"
-thiserror = "^1.0"
+syn = { version = "1", default-features = false }
+quote = { version = "1", default-features = false }
+heck = { version = "0.4", default-features = false }
+proc-macro2 = { version = "1", default-features = false }
+thiserror = { version = "1.0", default-features = false }
 
 [dev-dependencies]
-trybuild = "^1.0"
-sea-query = { version = "^0", path = ".." }
-strum = { version = "^0.24", features = ["derive"] }
+trybuild = "1.0"
+sea-query = { version = "0", path = ".." }
+strum = { version = "0.24", features = ["derive"] }

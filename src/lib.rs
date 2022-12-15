@@ -38,7 +38,7 @@
 //! ```toml
 //! # Cargo.toml
 //! [dependencies]
-//! sea-query = "^0"
+//! sea-query = "0"
 //! ```
 //!
 //! SeaQuery is very lightweight, all dependencies are optional.
