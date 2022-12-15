@@ -1,5 +1,7 @@
 //! Container for all SQL value types.
 
+use std::borrow::Cow;
+
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
 #[cfg(feature = "with-json")]
@@ -432,6 +434,33 @@ where
 
     fn column_type() -> ColumnType {
         T::column_type()
+    }
+}
+
+impl From<Cow<'_, str>> for Value {
+    fn from(x: Cow<'_, str>) -> Value {
+        x.into_owned().into()
+    }
+}
+
+impl ValueType for Cow<'_, str> {
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::String(Some(x)) => Ok((*x).into()),
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        "Cow<str>".into()
+    }
+
+    fn array_type() -> ArrayType {
+        ArrayType::String
+    }
+
+    fn column_type() -> ColumnType {
+        ColumnType::String(None)
     }
 }
 
@@ -1510,6 +1539,15 @@ mod tests {
         test_none!(i16, SmallInt);
         test_none!(i32, Int);
         test_none!(i64, BigInt);
+    }
+
+    #[test]
+    fn test_cow_value() {
+        let val: Cow<str> = "hello".into();
+        let val2 = val.clone();
+        let v: Value = val.into();
+        let out: Cow<str> = v.unwrap();
+        assert_eq!(out, val2);
     }
 
     #[test]
