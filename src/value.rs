@@ -372,8 +372,8 @@ type_to_value!(f32, Float, Float);
 type_to_value!(f64, Double, Double);
 type_to_value!(char, Char, Char(None));
 
-impl<'a> From<&'a [u8]> for Value {
-    fn from(x: &'a [u8]) -> Value {
+impl From<&[u8]> for Value {
+    fn from(x: &[u8]) -> Value {
         Value::Bytes(Some(Box::<Vec<u8>>::new(x.into())))
     }
 }
@@ -392,7 +392,7 @@ impl From<&String> for Value {
     }
 }
 
-impl<'a> Nullable for &'a str {
+impl Nullable for &str {
     fn null() -> Value {
         Value::String(None)
     }
