@@ -255,25 +255,6 @@ impl InsertStatement {
         self.values(values).unwrap()
     }
 
-    #[deprecated(since = "0.27.0", note = "Please use the [`InsertStatement::values`]")]
-    pub fn exprs<I>(&mut self, values: I) -> Result<&mut Self>
-    where
-        I: IntoIterator<Item = SimpleExpr>,
-    {
-        self.values(values)
-    }
-
-    #[deprecated(
-        since = "0.27.0",
-        note = "Please use the [`InsertStatement::values_panic`]"
-    )]
-    pub fn exprs_panic<I>(&mut self, values: I) -> &mut Self
-    where
-        I: IntoIterator<Item = SimpleExpr>,
-    {
-        self.values_panic(values)
-    }
-
     /// ON CONFLICT expression
     ///
     /// # Examples
