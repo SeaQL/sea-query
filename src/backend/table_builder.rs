@@ -1,6 +1,8 @@
 use crate::*;
 
-pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + TableRefBuilder {
+pub trait TableBuilder:
+    IndexBuilder + ForeignKeyBuilder + QuotedBuilder + TableRefBuilder + QueryBuilder
+{
     /// Translate [`TableCreateStatement`] into SQL statement.
     fn prepare_table_create_statement(
         &self,
@@ -44,10 +46,11 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
             count += 1;
         }
 
-        if create.check.len() > 0 {
-            write!(sql, ", CHECK ({})", create.check).unwrap();
+        if let Some(value) = &create.check {
+            write!(sql, ", CHECK ").unwrap();
+            QueryBuilder::prepare_simple_expr(self, value, sql);
         }
-        
+
         write!(sql, " )").unwrap();
 
         for table_opt in create.options.iter() {
@@ -89,8 +92,11 @@ pub trait TableBuilder: IndexBuilder + ForeignKeyBuilder + QuotedBuilder + Table
             }
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
+            ColumnSpec::Check(value) => {
+                write!(sql, "CHECK ").unwrap();
+                QueryBuilder::prepare_simple_expr(self, value, sql);
+            }
             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
-            ColumnSpec::Check(string) => write!(sql, "CHECK ({})", string).unwrap(),
         }
     }
 

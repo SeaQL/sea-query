@@ -124,17 +124,17 @@ fn create_4() {
             )
             .col(
                 ColumnDef::new(Glyph::Aspect)
-                .double()
-                .not_null()
-                .check("Aspect > 0".to_owned())
+                    .double()
+                    .not_null()
+                    .check(Expr::col(Glyph::Aspect).eq(Expr::value(0)))
             )
-            .check("Id < Number".to_owned())
+            .check(Expr::col(Glyph::Id).gt(Expr::col(Glyph::Aspect)))
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `glyph` (",
             "`id` int NOT NULL ANYTHING I WANT TO SAY,",
-            "`aspect` double NOT NULL CHECK (Aspect > 0),",
-            "CHECK (Id < Number)",
+            "`aspect` double NOT NULL CHECK `aspect` = 0,",
+            "CHECK `id` > `aspect`",
             ")",
         ]
         .join(" ")

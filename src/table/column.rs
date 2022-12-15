@@ -63,8 +63,8 @@ pub enum ColumnSpec {
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
+    Check(SimpleExpr),
     Extra(String),
-    Check(String)
 }
 
 // All interval fields
@@ -580,17 +580,20 @@ impl ColumnDef {
         self
     }
 
+    /// Set constraints as SimpleExpr
+    pub fn check<T>(&mut self, value: T) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.spec.push(ColumnSpec::Check(value.into()));
+        self
+    }
+
     /// Some extra options in custom string
     pub fn extra(&mut self, string: String) -> &mut Self {
         self.spec.push(ColumnSpec::Extra(string));
         self
     }
-    
-    pub fn check(&mut self, string: String) -> &mut Self {
-        self.spec.push(ColumnSpec::Check(string));
-        self
-    }
-    
     pub fn get_column_name(&self) -> String {
         self.name.to_string()
     }
