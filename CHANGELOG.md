@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### House keeping
 
 * Elided unnecessary lifetimes https://github.com/SeaQL/sea-query/pull/552
+* Changed all `version = "^x.y.z"` into `version = "x.y.z"` in all Cargo.toml https://github.com/SeaQL/sea-query/pull/547/
+* Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
 
 ## 0.28.0 - 2022-12-09
 
