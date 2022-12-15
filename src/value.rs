@@ -437,13 +437,13 @@ where
     }
 }
 
-impl<'a> From<Cow<'a, str>> for Value {
-    fn from(x: Cow<'a, str>) -> Value {
+impl From<Cow<'_, str>> for Value {
+    fn from(x: Cow<'_, str>) -> Value {
         x.into_owned().into()
     }
 }
 
-impl<'a> ValueType for Cow<'a, str> {
+impl ValueType for Cow<'_, str> {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
             Value::String(Some(x)) => Ok((*x).into()),
