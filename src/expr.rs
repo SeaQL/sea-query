@@ -301,15 +301,6 @@ impl Expr {
         Self::col(ColumnRef::TableAsterisk(t.into_iden()))
     }
 
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::col`]")]
-    pub fn tbl<T, C>(t: T, c: C) -> Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        Self::col((t.into_iden(), c.into_iden()))
-    }
-
     /// Express a [`Value`], returning a [`Expr`].
     ///
     /// # Examples
@@ -2116,46 +2107,6 @@ impl Expr {
     {
         Expr::new_with_left(Keyword::Custom(i.into_iden()))
     }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gt`]")]
-    pub fn greater_than<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::GreaterThan, expr)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gte`]")]
-    pub fn greater_or_equal<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::GreaterThanOrEqual, expr)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lt`]")]
-    pub fn less_than<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::SmallerThan, expr)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lte`]")]
-    pub fn less_or_equal<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::SmallerThanOrEqual, expr)
-    }
-
-    #[deprecated(
-        since = "0.28.0",
-        note = "Please use the [`Into::<SimpleExpr>::into()`]"
-    )]
-    pub fn into_simple_expr(self) -> SimpleExpr {
-        self.into()
-    }
 }
 
 impl From<Expr> for SimpleExpr {
@@ -2372,22 +2323,6 @@ impl SimpleExpr {
         V: Into<SimpleExpr>,
     {
         self.binary(BinOper::NotEqual, v)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`SimpleExpr::eq`]")]
-    pub fn equals<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::Equal, right)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`SimpleExpr::ne`]")]
-    pub fn not_equals<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::NotEqual, right)
     }
 
     /// Perform addition with another [`SimpleExpr`].

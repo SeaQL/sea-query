@@ -431,7 +431,7 @@ assert_eq!(
 
 ```rust
 let query = Query::select()
-    .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
+    .expr(Func::sum(Expr::col((Char::Table, Char::SizeH))))
     .from(Char::Table)
     .to_owned();
 assert_eq!(

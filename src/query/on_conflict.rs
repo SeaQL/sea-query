@@ -1,4 +1,4 @@
-use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, SimpleExpr, Value};
+use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, SimpleExpr};
 
 #[derive(Debug, Clone, Default)]
 pub struct OnConflict {
@@ -113,41 +113,6 @@ impl OnConflict {
             columns.into_iter().map(IntoIden::into_iden).collect(),
         ));
         self
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::value`]")]
-    pub fn update_value<C>(&mut self, column_value: (C, Value)) -> &mut Self
-    where
-        C: IntoIden,
-    {
-        self.value(column_value.0, column_value.1)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::values`]")]
-    pub fn update_values<C, I>(&mut self, column_values: I) -> &mut Self
-    where
-        C: IntoIden,
-        I: IntoIterator<Item = (C, Value)>,
-    {
-        self.values(column_values.into_iter().map(|(c, v)| (c, v.into())))
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::value`]")]
-    pub fn update_expr<C, E>(&mut self, col_expr: (C, E)) -> &mut Self
-    where
-        C: IntoIden,
-        E: Into<SimpleExpr>,
-    {
-        self.value(col_expr.0, col_expr.1)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`OnConflict::values`]")]
-    pub fn update_exprs<C, I>(&mut self, values: I) -> &mut Self
-    where
-        C: IntoIden,
-        I: IntoIterator<Item = (C, SimpleExpr)>,
-    {
-        self.values(values)
     }
 
     /// Set ON CONFLICT update exprs

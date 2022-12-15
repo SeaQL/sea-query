@@ -1,5 +1,7 @@
 //! Container for all SQL value types.
 
+use std::borrow::Cow;
+
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
 #[cfg(feature = "with-json")]
@@ -372,8 +374,8 @@ type_to_value!(f32, Float, Float);
 type_to_value!(f64, Double, Double);
 type_to_value!(char, Char, Char(None));
 
-impl<'a> From<&'a [u8]> for Value {
-    fn from(x: &'a [u8]) -> Value {
+impl From<&[u8]> for Value {
+    fn from(x: &[u8]) -> Value {
         Value::Bytes(Some(Box::<Vec<u8>>::new(x.into())))
     }
 }
@@ -392,7 +394,7 @@ impl From<&String> for Value {
     }
 }
 
-impl<'a> Nullable for &'a str {
+impl Nullable for &str {
     fn null() -> Value {
         Value::String(None)
     }
@@ -432,6 +434,33 @@ where
 
     fn column_type() -> ColumnType {
         T::column_type()
+    }
+}
+
+impl From<Cow<'_, str>> for Value {
+    fn from(x: Cow<'_, str>) -> Value {
+        x.into_owned().into()
+    }
+}
+
+impl ValueType for Cow<'_, str> {
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::String(Some(x)) => Ok((*x).into()),
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        "Cow<str>".into()
+    }
+
+    fn array_type() -> ArrayType {
+        ArrayType::String
+    }
+
+    fn column_type() -> ColumnType {
+        ColumnType::String(None)
     }
 }
 
@@ -1456,6 +1485,15 @@ mod tests {
         test_none!(i16, SmallInt);
         test_none!(i32, Int);
         test_none!(i64, BigInt);
+    }
+
+    #[test]
+    fn test_cow_value() {
+        let val: Cow<str> = "hello".into();
+        let val2 = val.clone();
+        let v: Value = val.into();
+        let out: Cow<str> = v.unwrap();
+        assert_eq!(out, val2);
     }
 
     #[test]
