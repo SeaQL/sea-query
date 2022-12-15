@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-rusqlite"
-version = "0.1.0"
+version = "0.3.0"
 authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2021"
 description = "Binder traits for connecting sea-query with Rusqlite"
@@ -17,7 +17,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "^0.28", path = ".." }
+sea-query = { version = "^0.29", path = ".." }
 rusqlite = { package = "rusqlite", version = "^0.28", features = ["bundled"] }
 
 [features]
