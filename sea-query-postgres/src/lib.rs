@@ -107,6 +107,11 @@ impl ToSql for PostgresValue {
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.as_deref().to_sql(ty, out),
+            #[cfg(feature = "with-uuid")]
+            Value::UuidHyphenated(uuid_hyphenated) => uuid_hyphenated
+                .as_ref()
+                .map(|hyphenated| hyphenated.to_string())
+                .to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => v
                 .iter()

@@ -99,6 +99,10 @@ pub enum ArrayType {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid,
 
+    #[cfg(feature = "with-uuid")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    UuidHyphenated,
+
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
     Decimal,
@@ -185,6 +189,10 @@ pub enum Value {
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Option<Box<Uuid>>),
+
+    #[cfg(feature = "with-uuid")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+    UuidHyphenated(Option<Box<uuid::fmt::Hyphenated>>),
 
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
@@ -667,6 +675,7 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid, Uuid);
+    type_to_box_value!(uuid::fmt::Hyphenated, UuidHyphenated, String(None));
 }
 
 #[cfg(feature = "with-ipnetwork")]
@@ -747,6 +756,9 @@ pub mod with_array {
 
     #[cfg(feature = "with-uuid")]
     impl NotU8 for Uuid {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Hyphenated {}
 
     #[cfg(feature = "with-ipnetwork")]
     impl NotU8 for IpNetwork {}
@@ -1351,6 +1363,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
+        #[cfg(feature = "with-uuid")]
+        Value::UuidHyphenated(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(_, None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
@@ -1404,6 +1418,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
+        #[cfg(feature = "with-uuid")]
+        Value::UuidHyphenated(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
         Value::Array(_, Some(v)) => {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())

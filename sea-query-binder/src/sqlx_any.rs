@@ -93,6 +93,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::Uuid(_) => {
                     panic!("UUID support not implemented for Any");
                 }
+                #[cfg(feature = "with-uuid")]
+                Value::UuidHyphenated(uuid_hyphenated) => {
+                    args.add(uuid_hyphenated.map(|hyphenated| hyphenated.to_string()))
+                }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(_) => {
                     panic!("Sqlite doesn't support decimal arguments");

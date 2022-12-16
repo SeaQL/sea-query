@@ -969,6 +969,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-uuid")]
+            Value::UuidHyphenated(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
@@ -1043,6 +1045,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            #[cfg(feature = "with-uuid")]
+            Value::UuidHyphenated(Some(v)) => write!(s, "'{}'", v).unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => write!(
                 s,

@@ -93,6 +93,8 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::Uuid(uuid) => {
                     args.add(uuid.as_deref());
                 }
+                #[cfg(feature = "with-uuid")]
+                Value::UuidHyphenated(uuid_hyphenated) => args.add(uuid_hyphenated.as_deref()),
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(d) => {
                     args.add(d.as_deref());

@@ -109,6 +109,10 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::Uuid(uuid) => {
                     args.add(uuid.as_deref());
                 }
+                #[cfg(feature = "with-uuid")]
+                Value::UuidHyphenated(uuid_hyphenated) => {
+                    args.add(uuid_hyphenated.map(|hyphenated| hyphenated.to_string()))
+                }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(d) => {
                     args.add(d.as_deref());
@@ -281,6 +285,19 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     ArrayType::Uuid => {
                         let value: Option<Vec<Uuid>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::Uuid");
+                        args.add(value);
+                    }
+                    #[cfg(feature = "with-uuid")]
+                    ArrayType::UuidHyphenated => {
+                        let value: Option<Vec<String>> = Value::Array(ty, v)
+                            .expect::<Option<Vec<uuid::fmt::Hyphenated>>>(
+                                "This Value::Array should consist of Value::UuidHyphenated",
+                            )
+                            .map(|vec| {
+                                vec.into_iter()
+                                    .map(|hyphenated| hyphenated.to_string())
+                                    .collect()
+                            });
                         args.add(value);
                     }
                     #[cfg(feature = "with-rust_decimal")]

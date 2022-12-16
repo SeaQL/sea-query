@@ -107,6 +107,12 @@ impl ToSql for RusqliteValue {
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => box_to_sql!(v),
+            #[cfg(feature = "with-uuid")]
+            Value::UuidHyphenated(uuid_hyphenated) => {
+                opt_string_to_sql!(uuid_hyphenated
+                    .as_ref()
+                    .map(|hyphenated| hyphenated.to_string()))
+            }
             #[cfg(feature = "with-json")]
             Value::Json(j) => box_to_sql!(j),
             #[cfg(feature = "with-rust_decimal")]

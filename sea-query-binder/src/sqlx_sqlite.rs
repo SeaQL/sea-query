@@ -93,6 +93,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Uuid(uuid) => {
                     args.add(uuid.map(|uuid| *uuid));
                 }
+                #[cfg(feature = "with-uuid")]
+                Value::UuidHyphenated(uuid_hyphenated) => {
+                    args.add(uuid_hyphenated.map(|hyphenated| *hyphenated));
+                }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(decimal) => {
                     use rust_decimal::prelude::ToPrimitive;
