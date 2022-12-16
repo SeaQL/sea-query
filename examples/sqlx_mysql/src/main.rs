@@ -69,7 +69,11 @@ async fn main() {
                 .unwrap()
                 .with_scale(3)
                 .into(),
-            NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+            NaiveDate::from_ymd_opt(2020, 8, 20)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .into(),
         ])
         .values_panic([
             Uuid::new_v4().into(),

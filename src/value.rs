@@ -1673,7 +1673,10 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_value() {
-        let timestamp = NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2);
+        let timestamp = NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(2, 2, 2)
+            .unwrap();
         let value: Value = timestamp.into();
         let out: NaiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1682,8 +1685,13 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_utc_value() {
-        let timestamp =
-            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let timestamp = DateTime::<Utc>::from_utc(
+            NaiveDate::from_ymd_opt(2022, 1, 2)
+                .unwrap()
+                .and_hms_opt(3, 4, 5)
+                .unwrap(),
+            Utc,
+        );
         let value: Value = timestamp.into();
         let out: DateTime<Utc> = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1692,8 +1700,13 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_local_value() {
-        let timestamp_utc =
-            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let timestamp_utc = DateTime::<Utc>::from_utc(
+            NaiveDate::from_ymd_opt(2022, 1, 2)
+                .unwrap()
+                .and_hms_opt(3, 4, 5)
+                .unwrap(),
+            Utc,
+        );
         let timestamp_local: DateTime<Local> = timestamp_utc.into();
         let value: Value = timestamp_local.into();
         let out: DateTime<Local> = value.unwrap();
