@@ -80,7 +80,11 @@ async fn main() {
         .values_panic([
             12.into(),
             "A".into(),
-            NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+            NaiveDate::from_ymd_opt(2020, 8, 20)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .into(),
         ])
         .returning_col(Character::Id)
         .build_any_sqlx(query_builder);

@@ -73,7 +73,13 @@ fn main() -> Result<()> {
                 "notes": "some notes here",
             })
             .into(),
-            Some(NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2)).into(),
+            Some(
+                NaiveDate::from_ymd_opt(2020, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(2, 2, 2)
+                    .unwrap(),
+            )
+            .into(),
         ])
         .values_panic([
             Uuid::new_v4().into(),
