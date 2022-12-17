@@ -47,8 +47,9 @@ pub trait TableBuilder:
         }
 
         if let Some(value) = &create.check {
-            write!(sql, ", CHECK ").unwrap();
+            write!(sql, ", CHECK (").unwrap();
             QueryBuilder::prepare_simple_expr(self, value, sql);
+            write!(sql, ")").unwrap();
         }
 
         write!(sql, " )").unwrap();
@@ -93,8 +94,9 @@ pub trait TableBuilder:
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
             ColumnSpec::Check(value) => {
-                write!(sql, "CHECK ").unwrap();
+                write!(sql, "CHECK (").unwrap();
                 QueryBuilder::prepare_simple_expr(self, value, sql);
+                write!(sql, ")").unwrap();
             }
             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
         }

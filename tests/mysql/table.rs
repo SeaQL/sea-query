@@ -133,8 +133,8 @@ fn create_4() {
         [
             "CREATE TABLE `glyph` (",
             "`id` int NOT NULL ANYTHING I WANT TO SAY,",
-            "`aspect` double NOT NULL CHECK `aspect` = 0,",
-            "CHECK `id` > `aspect`",
+            "`aspect` double NOT NULL CHECK (`aspect` = 0),",
+            "CHECK (`id` > `aspect`)",
             ")",
         ]
         .join(" ")
