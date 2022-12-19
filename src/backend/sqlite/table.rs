@@ -52,7 +52,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::TinyInteger | ColumnType::TinyUnsigned => "integer".into(),
                 ColumnType::SmallInteger | ColumnType::SmallUnsigned => "integer".into(),
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
-                ColumnType::BigInteger | ColumnType::BigUnsigned => "integer".into(),
+                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
                 ColumnType::Float => "real".into(),
                 ColumnType::Double => "real".into(),
                 ColumnType::Decimal(precision) => match precision {
