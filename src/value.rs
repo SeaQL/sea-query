@@ -667,6 +667,48 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid, Uuid);
+
+    macro_rules! fmt_uuid_to_box_value {
+        ( $type: ty, $conversion_fn: ident ) => {
+            impl From<$type> for Value {
+                fn from(x: $type) -> Value {
+                    Value::Uuid(Some(Box::new(x.into_uuid())))
+                }
+            }
+
+            impl Nullable for $type {
+                fn null() -> Value {
+                    Value::Uuid(None)
+                }
+            }
+
+            impl ValueType for $type {
+                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                    match v {
+                        Value::Uuid(Some(x)) => Ok(x.$conversion_fn()),
+                        _ => Err(ValueTypeErr),
+                    }
+                }
+
+                fn type_name() -> String {
+                    stringify!($type).to_owned()
+                }
+
+                fn array_type() -> ArrayType {
+                    ArrayType::Uuid
+                }
+
+                fn column_type() -> ColumnType {
+                    ColumnType::Uuid
+                }
+            }
+        };
+    }
+
+    fmt_uuid_to_box_value!(uuid::fmt::Braced, braced);
+    fmt_uuid_to_box_value!(uuid::fmt::Hyphenated, hyphenated);
+    fmt_uuid_to_box_value!(uuid::fmt::Simple, simple);
+    fmt_uuid_to_box_value!(uuid::fmt::Urn, urn);
 }
 
 #[cfg(feature = "with-ipnetwork")]
@@ -747,6 +789,18 @@ pub mod with_array {
 
     #[cfg(feature = "with-uuid")]
     impl NotU8 for Uuid {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Braced {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Hyphenated {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Simple {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Urn {}
 
     #[cfg(feature = "with-ipnetwork")]
     impl NotU8 for IpNetwork {}
@@ -1820,6 +1874,26 @@ mod tests {
     fn test_uuid_value() {
         let uuid = Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
         let value: Value = uuid.into();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_braced = uuid.clone().braced();
+        let value: Value = uuid_braced.into();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_hyphenated = uuid.clone().hyphenated();
+        let value: Value = uuid_hyphenated.into();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_simple = uuid.clone().simple();
+        let value: Value = uuid_simple.into();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_urn = uuid.clone().urn();
+        let value: Value = uuid_urn.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
     }
