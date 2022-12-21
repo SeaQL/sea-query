@@ -250,9 +250,7 @@ pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
     Three(Value, Value, Value),
-    Four(Value, Value, Value, Value),
-    Five(Value, Value, Value, Value, Value),
-    Six(Value, Value, Value, Value, Value, Value),
+    Many(Vec<Value>),
 }
 
 pub trait IntoValueTuple {
@@ -1115,9 +1113,7 @@ impl IntoIterator for ValueTuple {
             ValueTuple::One(v) => vec![v].into_iter(),
             ValueTuple::Two(v, w) => vec![v, w].into_iter(),
             ValueTuple::Three(u, v, w) => vec![u, v, w].into_iter(),
-            ValueTuple::Four(u, v, w, x) => vec![u, v, w, x].into_iter(),
-            ValueTuple::Five(u, v, w, x, y) => vec![u, v, w, x, y].into_iter(),
-            ValueTuple::Six(u, v, w, x, y, z) => vec![u, v, w, x, y, z].into_iter(),
+            ValueTuple::Many(vec) => vec.into_iter(),
         }
     }
 }
@@ -1166,7 +1162,12 @@ where
     X: Into<Value>,
 {
     fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Four(self.0.into(), self.1.into(), self.2.into(), self.3.into())
+        ValueTuple::Many(vec![
+            self.0.into(),
+            self.1.into(),
+            self.2.into(),
+            self.3.into(),
+        ])
     }
 }
 
@@ -1179,13 +1180,13 @@ where
     Y: Into<Value>,
 {
     fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Five(
+        ValueTuple::Many(vec![
             self.0.into(),
             self.1.into(),
             self.2.into(),
             self.3.into(),
             self.4.into(),
-        )
+        ])
     }
 }
 
@@ -1199,14 +1200,14 @@ where
     Z: Into<Value>,
 {
     fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Six(
+        ValueTuple::Many(vec![
             self.0.into(),
             self.1.into(),
             self.2.into(),
             self.3.into(),
             self.4.into(),
             self.5.into(),
-        )
+        ])
     }
 }
 
@@ -1270,8 +1271,16 @@ where
         I: IntoValueTuple,
     {
         match i.into_value_tuple() {
-            ValueTuple::Four(u, v, w, x) => (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap()),
-            _ => panic!("not ValueTuple::Four"),
+            ValueTuple::Many(vec) if vec.len() == 4 => {
+                let mut iter = vec.into_iter();
+                (
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                )
+            }
+            _ => panic!("not ValueTuple::Many with length of 4"),
         }
     }
 }
@@ -1289,10 +1298,17 @@ where
         I: IntoValueTuple,
     {
         match i.into_value_tuple() {
-            ValueTuple::Five(u, v, w, x, y) => {
-                (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap(), y.unwrap())
+            ValueTuple::Many(vec) if vec.len() == 5 => {
+                let mut iter = vec.into_iter();
+                (
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                )
             }
-            _ => panic!("not ValueTuple::Five"),
+            _ => panic!("not ValueTuple::Many with length of 5"),
         }
     }
 }
@@ -1311,15 +1327,18 @@ where
         I: IntoValueTuple,
     {
         match i.into_value_tuple() {
-            ValueTuple::Six(u, v, w, x, y, z) => (
-                u.unwrap(),
-                v.unwrap(),
-                w.unwrap(),
-                x.unwrap(),
-                y.unwrap(),
-                z.unwrap(),
-            ),
-            _ => panic!("not ValueTuple::Six"),
+            ValueTuple::Many(vec) if vec.len() == 6 => {
+                let mut iter = vec.into_iter();
+                (
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                    iter.next().unwrap().unwrap(),
+                )
+            }
+            _ => panic!("not ValueTuple::Many with length of 6"),
         }
     }
 }
@@ -1531,33 +1550,33 @@ mod tests {
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8).into_value_tuple(),
-            ValueTuple::Four(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16).into_value_tuple(),
-            ValueTuple::Five(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16, 789u32).into_value_tuple(),
-            ValueTuple::Six(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456)),
                 Value::Unsigned(Some(789))
-            )
+            ])
         );
     }
 
