@@ -1154,61 +1154,34 @@ where
     }
 }
 
-impl<U, V, W, X> IntoValueTuple for (U, V, W, X)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Many(vec![
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-        ])
-    }
+macro_rules! impl_into_value_tuple {
+    ( $($idx:tt : $T:ident),+ $(,)? ) => {
+        impl< $($T),+ > IntoValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value>),+
+        {
+            fn into_value_tuple(self) -> ValueTuple {
+                ValueTuple::Many(vec![
+                    $(self.$idx.into()),+
+                ])
+            }
+        }
+    };
 }
 
-impl<U, V, W, X, Y> IntoValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Many(vec![
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-        ])
-    }
-}
+#[rustfmt::skip]
+mod impl_into_value_tuple {
+    use super::*;
 
-impl<U, V, W, X, Y, Z> IntoValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-    Z: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Many(vec![
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-            self.5.into(),
-        ])
-    }
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10, 11:T11);
 }
 
 impl<V> FromValueTuple for V
@@ -1259,88 +1232,43 @@ where
     }
 }
 
-impl<U, V, W, X> FromValueTuple for (U, V, W, X)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Many(vec) if vec.len() == 4 => {
-                let mut iter = vec.into_iter();
-                (
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                )
+macro_rules! impl_from_value_tuple {
+    ( $len:expr, $($T:ident),+ $(,)? ) => {
+        impl< $($T),+ > FromValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value> + ValueType),+
+        {
+            fn from_value_tuple<Z>(i: Z) -> Self
+            where
+                Z: IntoValueTuple,
+            {
+                match i.into_value_tuple() {
+                    ValueTuple::Many(vec) if vec.len() == $len => {
+                        let mut iter = vec.into_iter();
+                        (
+                            $(<$T as ValueType>::unwrap(iter.next().unwrap())),+
+                        )
+                    }
+                    _ => panic!("not ValueTuple::Many with length of {}", $len),
+                }
             }
-            _ => panic!("not ValueTuple::Many with length of 4"),
         }
-    }
+    };
 }
 
-impl<U, V, W, X, Y> FromValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Many(vec) if vec.len() == 5 => {
-                let mut iter = vec.into_iter();
-                (
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                )
-            }
-            _ => panic!("not ValueTuple::Many with length of 5"),
-        }
-    }
-}
+#[rustfmt::skip]
+mod impl_from_value_tuple {
+    use super::*;
 
-impl<U, V, W, X, Y, Z> FromValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-    Z: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Many(vec) if vec.len() == 6 => {
-                let mut iter = vec.into_iter();
-                (
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                    iter.next().unwrap().unwrap(),
-                )
-            }
-            _ => panic!("not ValueTuple::Many with length of 6"),
-        }
-    }
+    impl_from_value_tuple!( 4, T0, T1, T2, T3);
+    impl_from_value_tuple!( 5, T0, T1, T2, T3, T4);
+    impl_from_value_tuple!( 6, T0, T1, T2, T3, T4, T5);
+    impl_from_value_tuple!( 7, T0, T1, T2, T3, T4, T5, T6);
+    impl_from_value_tuple!( 8, T0, T1, T2, T3, T4, T5, T6, T7);
+    impl_from_value_tuple!( 9, T0, T1, T2, T3, T4, T5, T6, T7, T8);
+    impl_from_value_tuple!(10, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
+    impl_from_value_tuple!(11, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
+    impl_from_value_tuple!(12, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
 }
 
 /// Convert value to json value
