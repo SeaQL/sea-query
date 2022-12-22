@@ -250,9 +250,7 @@ pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
     Three(Value, Value, Value),
-    Four(Value, Value, Value, Value),
-    Five(Value, Value, Value, Value, Value),
-    Six(Value, Value, Value, Value, Value, Value),
+    Many(Vec<Value>),
 }
 
 pub trait IntoValueTuple {
@@ -1169,9 +1167,7 @@ impl IntoIterator for ValueTuple {
             ValueTuple::One(v) => vec![v].into_iter(),
             ValueTuple::Two(v, w) => vec![v, w].into_iter(),
             ValueTuple::Three(u, v, w) => vec![u, v, w].into_iter(),
-            ValueTuple::Four(u, v, w, x) => vec![u, v, w, x].into_iter(),
-            ValueTuple::Five(u, v, w, x, y) => vec![u, v, w, x, y].into_iter(),
-            ValueTuple::Six(u, v, w, x, y, z) => vec![u, v, w, x, y, z].into_iter(),
+            ValueTuple::Many(vec) => vec.into_iter(),
         }
     }
 }
@@ -1212,56 +1208,34 @@ where
     }
 }
 
-impl<U, V, W, X> IntoValueTuple for (U, V, W, X)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Four(self.0.into(), self.1.into(), self.2.into(), self.3.into())
-    }
+macro_rules! impl_into_value_tuple {
+    ( $($idx:tt : $T:ident),+ $(,)? ) => {
+        impl< $($T),+ > IntoValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value>),+
+        {
+            fn into_value_tuple(self) -> ValueTuple {
+                ValueTuple::Many(vec![
+                    $(self.$idx.into()),+
+                ])
+            }
+        }
+    };
 }
 
-impl<U, V, W, X, Y> IntoValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Five(
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-        )
-    }
-}
+#[rustfmt::skip]
+mod impl_into_value_tuple {
+    use super::*;
 
-impl<U, V, W, X, Y, Z> IntoValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-    Z: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Six(
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-            self.5.into(),
-        )
-    }
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10, 11:T11);
 }
 
 impl<V> FromValueTuple for V
@@ -1312,70 +1286,43 @@ where
     }
 }
 
-impl<U, V, W, X> FromValueTuple for (U, V, W, X)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Four(u, v, w, x) => (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap()),
-            _ => panic!("not ValueTuple::Four"),
-        }
-    }
-}
-
-impl<U, V, W, X, Y> FromValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Five(u, v, w, x, y) => {
-                (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap(), y.unwrap())
+macro_rules! impl_from_value_tuple {
+    ( $len:expr, $($T:ident),+ $(,)? ) => {
+        impl< $($T),+ > FromValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value> + ValueType),+
+        {
+            fn from_value_tuple<Z>(i: Z) -> Self
+            where
+                Z: IntoValueTuple,
+            {
+                match i.into_value_tuple() {
+                    ValueTuple::Many(vec) if vec.len() == $len => {
+                        let mut iter = vec.into_iter();
+                        (
+                            $(<$T as ValueType>::unwrap(iter.next().unwrap())),+
+                        )
+                    }
+                    _ => panic!("not ValueTuple::Many with length of {}", $len),
+                }
             }
-            _ => panic!("not ValueTuple::Five"),
         }
-    }
+    };
 }
 
-impl<U, V, W, X, Y, Z> FromValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-    Z: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Six(u, v, w, x, y, z) => (
-                u.unwrap(),
-                v.unwrap(),
-                w.unwrap(),
-                x.unwrap(),
-                y.unwrap(),
-                z.unwrap(),
-            ),
-            _ => panic!("not ValueTuple::Six"),
-        }
-    }
+#[rustfmt::skip]
+mod impl_from_value_tuple {
+    use super::*;
+
+    impl_from_value_tuple!( 4, T0, T1, T2, T3);
+    impl_from_value_tuple!( 5, T0, T1, T2, T3, T4);
+    impl_from_value_tuple!( 6, T0, T1, T2, T3, T4, T5);
+    impl_from_value_tuple!( 7, T0, T1, T2, T3, T4, T5, T6);
+    impl_from_value_tuple!( 8, T0, T1, T2, T3, T4, T5, T6, T7);
+    impl_from_value_tuple!( 9, T0, T1, T2, T3, T4, T5, T6, T7, T8);
+    impl_from_value_tuple!(10, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
+    impl_from_value_tuple!(11, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
+    impl_from_value_tuple!(12, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
 }
 
 /// Convert value to json value
@@ -1585,33 +1532,33 @@ mod tests {
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8).into_value_tuple(),
-            ValueTuple::Four(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16).into_value_tuple(),
-            ValueTuple::Five(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16, 789u32).into_value_tuple(),
-            ValueTuple::Six(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456)),
                 Value::Unsigned(Some(789))
-            )
+            ])
         );
     }
 
