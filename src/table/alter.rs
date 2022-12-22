@@ -30,7 +30,7 @@ use crate::{backend::SchemaBuilder, types::*, ColumnDef, SchemaStatementBuilder,
 ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct TableAlterStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) options: Vec<TableAlterOption>,
@@ -54,19 +54,10 @@ pub enum TableAlterOption {
     DropForeignKey(DynIden),
 }
 
-impl Default for TableAlterStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl TableAlterStatement {
     /// Construct alter table statement
     pub fn new() -> Self {
-        Self {
-            table: None,
-            options: Vec::new(),
-        }
+        Self::default()
     }
 
     /// Set table name

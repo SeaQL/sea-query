@@ -34,6 +34,11 @@ macro_rules! iden_trait {
 
             fn unquoted(&self, s: &mut dyn fmt::Write);
         }
+
+        /// Identifier
+        pub trait IdenStatic: Iden + Copy + 'static {
+            fn as_str(&self) -> &'static str;
+        }
     };
 }
 
@@ -196,10 +201,10 @@ pub enum Order {
 pub struct Alias(String);
 
 /// Null Alias
-#[derive(Debug, Copy, Clone)]
+#[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;
 
-/// Common SQL Keywords
+/// SQL Keywords
 #[derive(Debug, Clone)]
 pub enum Keyword {
     Null,
@@ -397,12 +402,6 @@ impl Iden for Alias {
 impl NullAlias {
     pub fn new() -> Self {
         Self::default()
-    }
-}
-
-impl Default for NullAlias {
-    fn default() -> Self {
-        Self
     }
 }
 

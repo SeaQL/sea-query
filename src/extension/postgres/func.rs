@@ -12,6 +12,8 @@ pub enum PgFunction {
     WebsearchToTsquery,
     TsRank,
     TsRankCd,
+    StartsWith,
+    GetRandomUUID,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -36,7 +38,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::to_tsquery(Expr::val("a & b"), None))
+    ///     .expr(PgFunc::to_tsquery("a & b", None))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -69,7 +71,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::to_tsvector(Expr::val("a b"), None))
+    ///     .expr(PgFunc::to_tsvector("a b", None))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -102,7 +104,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::phraseto_tsquery(Expr::val("a b"), None))
+    ///     .expr(PgFunc::phraseto_tsquery("a b", None))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -135,7 +137,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::plainto_tsquery(Expr::val("a b"), None))
+    ///     .expr(PgFunc::plainto_tsquery("a b", None))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -168,7 +170,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::websearch_to_tsquery(Expr::val("a b"), None))
+    ///     .expr(PgFunc::websearch_to_tsquery("a b", None))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -200,7 +202,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::ts_rank(Expr::val("a b"), Expr::val("a&b")))
+    ///     .expr(PgFunc::ts_rank("a b", "a&b"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -224,7 +226,7 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::ts_rank_cd(Expr::val("a b"), Expr::val("a&b")))
+    ///     .expr(PgFunc::ts_rank_cd("a b", "a&b"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -247,9 +249,7 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(PgFunc::any(Expr::val(vec![0, 1])))
-    ///     .to_owned();
+    /// let query = Query::select().expr(PgFunc::any(vec![0, 1])).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -271,9 +271,7 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(PgFunc::some(Expr::val(vec![0, 1])))
-    ///     .to_owned();
+    /// let query = Query::select().expr(PgFunc::some(vec![0, 1])).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -295,9 +293,7 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(PgFunc::all(Expr::val(vec![0, 1])))
-    ///     .to_owned();
+    /// let query = Query::select().expr(PgFunc::all(vec![0, 1])).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -310,5 +306,48 @@ impl PgFunc {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::All)).arg(expr)
+    }
+
+    /// Call `STARTS_WITH` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::starts_with("123", "1"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT STARTS_WITH('123', '1')"#
+    /// );
+    /// ```
+    pub fn starts_with<T, P>(text: T, prefix: P) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+        P: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::PgFunction(PgFunction::StartsWith))
+            .args([text.into(), prefix.into()])
+    }
+
+    /// Call `GET_RANDOM_UUID` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select().expr(PgFunc::get_random_uuid()).to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT GET_RANDOM_UUID()"#
+    /// );
+    /// ```
+    pub fn get_random_uuid() -> FunctionCall {
+        FunctionCall::new(Function::PgFunction(PgFunction::GetRandomUUID))
     }
 }

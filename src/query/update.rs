@@ -35,7 +35,7 @@ use crate::{
 ///     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) values: Vec<(DynIden, Box<SimpleExpr>)>,
@@ -45,23 +45,10 @@ pub struct UpdateStatement {
     pub(crate) returning: Option<ReturningClause>,
 }
 
-impl Default for UpdateStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl UpdateStatement {
     /// Construct a new [`UpdateStatement`]
     pub fn new() -> Self {
-        Self {
-            table: None,
-            values: Vec::new(),
-            r#where: ConditionHolder::new(),
-            orders: Vec::new(),
-            limit: None,
-            returning: None,
-        }
+        Self::default()
     }
 
     /// Specify which table to update.
@@ -152,33 +139,6 @@ impl UpdateStatement {
     {
         self.values.push((col.into_iden(), Box::new(value.into())));
         self
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::values`]")]
-    pub fn exprs<T, I>(&mut self, values: I) -> &mut Self
-    where
-        T: IntoIden,
-        I: IntoIterator<Item = (T, SimpleExpr)>,
-    {
-        self.values(values)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
-    pub fn col_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
-    where
-        C: IntoIden,
-        T: Into<SimpleExpr>,
-    {
-        self.value(col, expr)
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`UpdateStatement::value`]")]
-    pub fn value_expr<C, T>(&mut self, col: C, expr: T) -> &mut Self
-    where
-        C: IntoIden,
-        T: Into<SimpleExpr>,
-    {
-        self.value(col, expr)
     }
 
     /// Limit number of updated rows.

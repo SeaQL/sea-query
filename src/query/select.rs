@@ -20,7 +20,7 @@ use crate::{
 ///     .column(Char::Character)
 ///     .column((Font::Table, Font::Name))
 ///     .from(Char::Table)
-///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+///     .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
 ///     .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
 ///     .and_where(Expr::col(Char::Character).like("A%"))
 ///     .to_owned();
@@ -38,7 +38,7 @@ use crate::{
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
     pub(crate) selects: Vec<SelectExpr>,
@@ -137,30 +137,10 @@ where
     }
 }
 
-impl Default for SelectStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl SelectStatement {
     /// Construct a new [`SelectStatement`]
     pub fn new() -> Self {
-        Self {
-            distinct: None,
-            selects: Vec::new(),
-            from: Vec::new(),
-            join: Vec::new(),
-            r#where: ConditionHolder::new(),
-            groups: Vec::new(),
-            having: ConditionHolder::new(),
-            unions: Vec::new(),
-            orders: Vec::new(),
-            limit: None,
-            offset: None,
-            lock: None,
-            window: None,
-        }
+        Self::default()
     }
 
     /// Take the ownership of data in the current [`SelectStatement`]
@@ -246,7 +226,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .expr(Expr::val(42))
     ///     .expr(Expr::col(Char::Id).max())
-    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))))
+    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| expr.add(i)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -281,7 +261,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .exprs([
     ///         Expr::col(Char::Id).max(),
-    ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(Expr::value(i))),
+    ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(i)),
     ///     ])
     ///     .to_owned();
     ///
@@ -816,7 +796,7 @@ impl SelectStatement {
     ///     .expr(Expr::asterisk())
     ///     .from(Char::Table)
     ///     .from(Font::Table)
-    ///     .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+    ///     .and_where(Expr::col((Font::Table, Font::Id)).equals((Char::Table, Char::FontId)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -983,10 +963,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(ColumnRef::Asterisk)
-    ///     .from_function(
-    ///         Func::random(),
-    ///         Alias::new("func"),
-    ///     )
+    ///     .from_function(Func::random(), Alias::new("func"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1026,7 +1003,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .cross_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .cross_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1050,8 +1027,8 @@ impl SelectStatement {
     ///         .cross_join(
     ///             Font::Table,
     ///             all![
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
     ///             ]
     ///         )
     ///         .to_owned();
@@ -1088,7 +1065,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1112,8 +1089,8 @@ impl SelectStatement {
     ///         .left_join(
     ///             Font::Table,
     ///             all![
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
     ///             ]
     ///         )
     ///         .to_owned();
@@ -1150,7 +1127,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .right_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .right_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1174,8 +1151,8 @@ impl SelectStatement {
     ///         .right_join(
     ///             Font::Table,
     ///             all![
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
     ///             ]
     ///         )
     ///         .to_owned();
@@ -1212,7 +1189,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .inner_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .inner_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1236,8 +1213,8 @@ impl SelectStatement {
     ///         .inner_join(
     ///             Font::Table,
     ///             all![
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
     ///             ]
     ///         )
     ///         .to_owned();
@@ -1274,7 +1251,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .full_outer_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .full_outer_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1294,8 +1271,8 @@ impl SelectStatement {
     ///         .full_outer_join(
     ///             Font::Table,
     ///             all![
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
     ///             ]
     ///         )
     ///         .to_owned();
@@ -1328,7 +1305,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .join(JoinType::RightJoin, Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1353,8 +1330,8 @@ impl SelectStatement {
     ///             JoinType::RightJoin,
     ///             Font::Table,
     ///             all![
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
-    ///                 Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
     ///             ]
     ///         )
     ///         .to_owned();
@@ -1402,7 +1379,7 @@ impl SelectStatement {
     ///         JoinType::RightJoin,
     ///         Font::Table,
     ///         Alias::new("f"),
-    ///         Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+    ///         Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
     ///     )
     ///     .to_owned();
     ///
@@ -1430,8 +1407,8 @@ impl SelectStatement {
     ///             Font::Table,
     ///             Alias::new("f"),
     ///             Condition::all()
-    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-    ///                 .add(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
@@ -1474,7 +1451,7 @@ impl SelectStatement {
     ///         JoinType::LeftJoin,
     ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
     ///         sub_glyph.clone(),
-    ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
+    ///         Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id))
     ///     )
     ///     .to_owned();
     ///
@@ -1501,8 +1478,8 @@ impl SelectStatement {
     ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
     ///             sub_glyph.clone(),
     ///             Condition::all()
-    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
-    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
@@ -1544,7 +1521,7 @@ impl SelectStatement {
     ///         JoinType::LeftJoin,
     ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
     ///         sub_glyph.clone(),
-    ///         Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id)
+    ///         Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id))
     ///     )
     ///     .to_owned();
     ///
@@ -1567,8 +1544,8 @@ impl SelectStatement {
     ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
     ///             sub_glyph.clone(),
     ///             Condition::all()
-    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
-    ///                 .add(Expr::tbl(Font::Table, Font::Id).equals(sub_glyph.clone(), Glyph::Id))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
@@ -1622,7 +1599,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .join(JoinType::RightJoin, Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .group_by_columns([
     ///         Char::Character,
     ///     ])
@@ -1649,7 +1626,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .join(JoinType::RightJoin, Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .group_by_columns([
     ///         (Char::Table, Char::Character),
     ///     ])
@@ -1689,7 +1666,7 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .join(JoinType::RightJoin, Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+    ///     .join(JoinType::RightJoin, Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///     .group_by_col((Char::Table, Char::Character))
     ///     .to_owned();
     ///
@@ -1763,10 +1740,10 @@ impl SelectStatement {
     ///     ])
     ///     .cond_having(
     ///         all![
-    ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]),
+    ///             Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]),
     ///             any![
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%")
+    ///                 Expr::col((Glyph::Table, Glyph::Image)).like("A%"),
+    ///                 Expr::col((Glyph::Table, Glyph::Image)).like("B%")
     ///             ]
     ///         ]
     ///     )
@@ -2143,7 +2120,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL (SELECT "character" FROM "character" WHERE "font_id" = 4)"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
     /// ```
     pub fn union(&mut self, union_type: UnionType, query: SelectStatement) -> &mut Self {
@@ -2186,7 +2163,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL (SELECT "character" FROM "character" WHERE "font_id" = 4) UNION (SELECT "character" FROM "character" WHERE "font_id" = 3)"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "character" FROM "character" WHERE "font_id" = 3"#
     /// );
     /// ```
     pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement)>>(
@@ -2206,7 +2183,7 @@ impl SelectStatement {
     ///
     /// let base_query = SelectStatement::new()
     ///                     .column(Alias::new("id"))
-    ///                     .expr(Expr::val(1i32))
+    ///                     .expr(1i32)
     ///                     .column(Alias::new("next"))
     ///                     .column(Alias::new("value"))
     ///                     .from(Alias::new("table"))
@@ -2221,7 +2198,7 @@ impl SelectStatement {
     ///                             .join(
     ///                                 JoinType::InnerJoin,
     ///                                 Alias::new("cte_traversal"),
-    ///                                 Expr::tbl(Alias::new("cte_traversal"), Alias::new("next")).equals(Alias::new("table"), Alias::new("id")).into_condition()
+    ///                                 Expr::col((Alias::new("cte_traversal"), Alias::new("next"))).equals((Alias::new("table"), Alias::new("id")))
     ///                             )
     ///                             .to_owned();
     ///
@@ -2256,7 +2233,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL (SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id")) SELECT * FROM "cte_traversal""#
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
     /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {

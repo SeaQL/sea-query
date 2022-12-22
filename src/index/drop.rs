@@ -25,25 +25,16 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder, TableIndex
 ///     r#"DROP INDEX "idx-glyph-aspect""#
 /// );
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct IndexDropStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
 }
 
-impl Default for IndexDropStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl IndexDropStatement {
     /// Construct a new [`IndexDropStatement`]
     pub fn new() -> Self {
-        Self {
-            table: None,
-            index: Default::default(),
-        }
+        Self::default()
     }
 
     /// Set index name

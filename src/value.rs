@@ -1,5 +1,7 @@
 //! Container for all SQL value types.
 
+use std::borrow::Cow;
+
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
 #[cfg(feature = "with-json")]
@@ -248,9 +250,7 @@ pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
     Three(Value, Value, Value),
-    Four(Value, Value, Value, Value),
-    Five(Value, Value, Value, Value, Value),
-    Six(Value, Value, Value, Value, Value, Value),
+    Many(Vec<Value>),
 }
 
 pub trait IntoValueTuple {
@@ -360,32 +360,39 @@ macro_rules! type_to_box_value {
 }
 
 type_to_value!(bool, Bool, Boolean);
-type_to_value!(i8, TinyInt, TinyInteger(None));
-type_to_value!(i16, SmallInt, SmallInteger(None));
-type_to_value!(i32, Int, Integer(None));
-type_to_value!(i64, BigInt, BigInteger(None));
-type_to_value!(u8, TinyUnsigned, TinyUnsigned(None));
-type_to_value!(u16, SmallUnsigned, SmallUnsigned(None));
-type_to_value!(u32, Unsigned, Unsigned(None));
-type_to_value!(u64, BigUnsigned, BigUnsigned(None));
-type_to_value!(f32, Float, Float(None));
-type_to_value!(f64, Double, Double(None));
+type_to_value!(i8, TinyInt, TinyInteger);
+type_to_value!(i16, SmallInt, SmallInteger);
+type_to_value!(i32, Int, Integer);
+type_to_value!(i64, BigInt, BigInteger);
+type_to_value!(u8, TinyUnsigned, TinyUnsigned);
+type_to_value!(u16, SmallUnsigned, SmallUnsigned);
+type_to_value!(u32, Unsigned, Unsigned);
+type_to_value!(u64, BigUnsigned, BigUnsigned);
+type_to_value!(f32, Float, Float);
+type_to_value!(f64, Double, Double);
 type_to_value!(char, Char, Char(None));
 
-impl<'a> From<&'a [u8]> for Value {
-    fn from(x: &'a [u8]) -> Value {
+impl From<&[u8]> for Value {
+    fn from(x: &[u8]) -> Value {
         Value::Bytes(Some(Box::<Vec<u8>>::new(x.into())))
     }
 }
 
-impl<'a> From<&'a str> for Value {
-    fn from(x: &'a str) -> Value {
+impl From<&str> for Value {
+    fn from(x: &str) -> Value {
         let string: String = x.into();
         Value::String(Some(Box::new(string)))
     }
 }
 
-impl<'a> Nullable for &'a str {
+impl From<&String> for Value {
+    fn from(x: &String) -> Value {
+        let string: String = x.into();
+        Value::String(Some(Box::new(string)))
+    }
+}
+
+impl Nullable for &str {
     fn null() -> Value {
         Value::String(None)
     }
@@ -428,6 +435,33 @@ where
     }
 }
 
+impl From<Cow<'_, str>> for Value {
+    fn from(x: Cow<'_, str>) -> Value {
+        x.into_owned().into()
+    }
+}
+
+impl ValueType for Cow<'_, str> {
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::String(Some(x)) => Ok((*x).into()),
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        "Cow<str>".into()
+    }
+
+    fn array_type() -> ArrayType {
+        ArrayType::String
+    }
+
+    fn column_type() -> ColumnType {
+        ColumnType::String(None)
+    }
+}
+
 type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
 type_to_box_value!(String, String, String(None));
 
@@ -446,8 +480,8 @@ mod with_chrono {
     use chrono::{Local, Offset, Utc};
 
     type_to_box_value!(NaiveDate, ChronoDate, Date);
-    type_to_box_value!(NaiveTime, ChronoTime, Time(None));
-    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime(None));
+    type_to_box_value!(NaiveTime, ChronoTime, Time);
+    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime);
 
     impl From<DateTime<Utc>> for Value {
         fn from(v: DateTime<Utc>) -> Value {
@@ -491,7 +525,7 @@ mod with_chrono {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 
@@ -518,7 +552,7 @@ mod with_chrono {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 
@@ -545,7 +579,7 @@ mod with_chrono {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 }
@@ -572,8 +606,8 @@ mod with_time {
     use super::*;
 
     type_to_box_value!(time::Date, TimeDate, Date);
-    type_to_box_value!(time::Time, TimeTime, Time(None));
-    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime(None));
+    type_to_box_value!(time::Time, TimeTime, Time);
+    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime);
 
     impl From<OffsetDateTime> for Value {
         fn from(v: OffsetDateTime) -> Value {
@@ -604,7 +638,7 @@ mod with_time {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::TimestampWithTimeZone(None)
+            ColumnType::TimestampWithTimeZone
         }
     }
 }
@@ -631,6 +665,48 @@ mod with_uuid {
     use super::*;
 
     type_to_box_value!(Uuid, Uuid, Uuid);
+
+    macro_rules! fmt_uuid_to_box_value {
+        ( $type: ty, $conversion_fn: ident ) => {
+            impl From<$type> for Value {
+                fn from(x: $type) -> Value {
+                    Value::Uuid(Some(Box::new(x.into_uuid())))
+                }
+            }
+
+            impl Nullable for $type {
+                fn null() -> Value {
+                    Value::Uuid(None)
+                }
+            }
+
+            impl ValueType for $type {
+                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                    match v {
+                        Value::Uuid(Some(x)) => Ok(x.$conversion_fn()),
+                        _ => Err(ValueTypeErr),
+                    }
+                }
+
+                fn type_name() -> String {
+                    stringify!($type).to_owned()
+                }
+
+                fn array_type() -> ArrayType {
+                    ArrayType::Uuid
+                }
+
+                fn column_type() -> ColumnType {
+                    ColumnType::Uuid
+                }
+            }
+        };
+    }
+
+    fmt_uuid_to_box_value!(uuid::fmt::Braced, braced);
+    fmt_uuid_to_box_value!(uuid::fmt::Hyphenated, hyphenated);
+    fmt_uuid_to_box_value!(uuid::fmt::Simple, simple);
+    fmt_uuid_to_box_value!(uuid::fmt::Urn, urn);
 }
 
 #[cfg(feature = "with-ipnetwork")]
@@ -711,6 +787,18 @@ pub mod with_array {
 
     #[cfg(feature = "with-uuid")]
     impl NotU8 for Uuid {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Braced {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Hyphenated {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Simple {}
+
+    #[cfg(feature = "with-uuid")]
+    impl NotU8 for uuid::fmt::Urn {}
 
     #[cfg(feature = "with-ipnetwork")]
     impl NotU8 for IpNetwork {}
@@ -1079,9 +1167,7 @@ impl IntoIterator for ValueTuple {
             ValueTuple::One(v) => vec![v].into_iter(),
             ValueTuple::Two(v, w) => vec![v, w].into_iter(),
             ValueTuple::Three(u, v, w) => vec![u, v, w].into_iter(),
-            ValueTuple::Four(u, v, w, x) => vec![u, v, w, x].into_iter(),
-            ValueTuple::Five(u, v, w, x, y) => vec![u, v, w, x, y].into_iter(),
-            ValueTuple::Six(u, v, w, x, y, z) => vec![u, v, w, x, y, z].into_iter(),
+            ValueTuple::Many(vec) => vec.into_iter(),
         }
     }
 }
@@ -1122,56 +1208,34 @@ where
     }
 }
 
-impl<U, V, W, X> IntoValueTuple for (U, V, W, X)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Four(self.0.into(), self.1.into(), self.2.into(), self.3.into())
-    }
+macro_rules! impl_into_value_tuple {
+    ( $($idx:tt : $T:ident),+ $(,)? ) => {
+        impl< $($T),+ > IntoValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value>),+
+        {
+            fn into_value_tuple(self) -> ValueTuple {
+                ValueTuple::Many(vec![
+                    $(self.$idx.into()),+
+                ])
+            }
+        }
+    };
 }
 
-impl<U, V, W, X, Y> IntoValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Five(
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-        )
-    }
-}
+#[rustfmt::skip]
+mod impl_into_value_tuple {
+    use super::*;
 
-impl<U, V, W, X, Y, Z> IntoValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-    Z: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Six(
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-            self.5.into(),
-        )
-    }
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10, 11:T11);
 }
 
 impl<V> FromValueTuple for V
@@ -1222,70 +1286,43 @@ where
     }
 }
 
-impl<U, V, W, X> FromValueTuple for (U, V, W, X)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Four(u, v, w, x) => (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap()),
-            _ => panic!("not ValueTuple::Four"),
-        }
-    }
-}
-
-impl<U, V, W, X, Y> FromValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Five(u, v, w, x, y) => {
-                (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap(), y.unwrap())
+macro_rules! impl_from_value_tuple {
+    ( $len:expr, $($T:ident),+ $(,)? ) => {
+        impl< $($T),+ > FromValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value> + ValueType),+
+        {
+            fn from_value_tuple<Z>(i: Z) -> Self
+            where
+                Z: IntoValueTuple,
+            {
+                match i.into_value_tuple() {
+                    ValueTuple::Many(vec) if vec.len() == $len => {
+                        let mut iter = vec.into_iter();
+                        (
+                            $(<$T as ValueType>::unwrap(iter.next().unwrap())),+
+                        )
+                    }
+                    _ => panic!("not ValueTuple::Many with length of {}", $len),
+                }
             }
-            _ => panic!("not ValueTuple::Five"),
         }
-    }
+    };
 }
 
-impl<U, V, W, X, Y, Z> FromValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-    Z: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Six(u, v, w, x, y, z) => (
-                u.unwrap(),
-                v.unwrap(),
-                w.unwrap(),
-                x.unwrap(),
-                y.unwrap(),
-                z.unwrap(),
-            ),
-            _ => panic!("not ValueTuple::Six"),
-        }
-    }
+#[rustfmt::skip]
+mod impl_from_value_tuple {
+    use super::*;
+
+    impl_from_value_tuple!( 4, T0, T1, T2, T3);
+    impl_from_value_tuple!( 5, T0, T1, T2, T3, T4);
+    impl_from_value_tuple!( 6, T0, T1, T2, T3, T4, T5);
+    impl_from_value_tuple!( 7, T0, T1, T2, T3, T4, T5, T6);
+    impl_from_value_tuple!( 8, T0, T1, T2, T3, T4, T5, T6, T7);
+    impl_from_value_tuple!( 9, T0, T1, T2, T3, T4, T5, T6, T7, T8);
+    impl_from_value_tuple!(10, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
+    impl_from_value_tuple!(11, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
+    impl_from_value_tuple!(12, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
 }
 
 /// Convert value to json value
@@ -1452,6 +1489,15 @@ mod tests {
     }
 
     #[test]
+    fn test_cow_value() {
+        let val: Cow<str> = "hello".into();
+        let val2 = val.clone();
+        let v: Value = val.into();
+        let out: Cow<str> = v.unwrap();
+        assert_eq!(out, val2);
+    }
+
+    #[test]
     fn test_box_value() {
         let val: String = "hello".to_owned();
         let v: Value = val.clone().into();
@@ -1486,33 +1532,33 @@ mod tests {
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8).into_value_tuple(),
-            ValueTuple::Four(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16).into_value_tuple(),
-            ValueTuple::Five(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16, 789u32).into_value_tuple(),
-            ValueTuple::Six(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456)),
                 Value::Unsigned(Some(789))
-            )
+            ])
         );
     }
 
@@ -1628,7 +1674,10 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_value() {
-        let timestamp = chrono::NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2);
+        let timestamp = NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(2, 2, 2)
+            .unwrap();
         let value: Value = timestamp.into();
         let out: NaiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1637,8 +1686,13 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_utc_value() {
-        let timestamp =
-            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let timestamp = DateTime::<Utc>::from_utc(
+            NaiveDate::from_ymd_opt(2022, 1, 2)
+                .unwrap()
+                .and_hms_opt(3, 4, 5)
+                .unwrap(),
+            Utc,
+        );
         let value: Value = timestamp.into();
         let out: DateTime<Utc> = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1647,8 +1701,13 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_local_value() {
-        let timestamp_utc =
-            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let timestamp_utc = DateTime::<Utc>::from_utc(
+            NaiveDate::from_ymd_opt(2022, 1, 2)
+                .unwrap()
+                .and_hms_opt(3, 4, 5)
+                .unwrap(),
+            Utc,
+        );
         let timestamp_local: DateTime<Local> = timestamp_utc.into();
         let value: Value = timestamp_local.into();
         let out: DateTime<Local> = value.unwrap();
@@ -1672,7 +1731,7 @@ mod tests {
         let string = "2020-01-01T02:02:02+08:00";
         let timestamp = DateTime::parse_from_rfc3339(string).unwrap();
 
-        let query = Query::select().expr(Expr::val(timestamp)).to_owned();
+        let query = Query::select().expr(timestamp).to_owned();
 
         let formatted = "2020-01-01 02:02:02 +08:00";
 
@@ -1740,7 +1799,7 @@ mod tests {
         use time::macros::datetime;
 
         let timestamp = datetime!(2020-01-01 02:02:02 +8);
-        let query = Query::select().expr(Expr::val(timestamp)).to_owned();
+        let query = Query::select().expr(timestamp).to_owned();
         let formatted = "2020-01-01 02:02:02.000000 +08:00";
 
         assert_eq!(
@@ -1762,7 +1821,27 @@ mod tests {
     fn test_uuid_value() {
         let uuid = Uuid::parse_str("936DA01F9ABD4d9d80C702AF85C822A8").unwrap();
         let value: Value = uuid.into();
-        let out: uuid::Uuid = value.unwrap();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_braced = uuid.clone().braced();
+        let value: Value = uuid_braced.into();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_hyphenated = uuid.clone().hyphenated();
+        let value: Value = uuid_hyphenated.into();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_simple = uuid.clone().simple();
+        let value: Value = uuid_simple.into();
+        let out: Uuid = value.unwrap();
+        assert_eq!(out, uuid);
+
+        let uuid_urn = uuid.clone().urn();
+        let value: Value = uuid_urn.into();
+        let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
     }
 

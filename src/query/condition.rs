@@ -29,14 +29,15 @@ pub enum ConditionExpression {
     SimpleExpr(SimpleExpr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum ConditionHolderContents {
+    #[default]
     Empty,
     Chain(Vec<LogicalChainOper>),
     Condition(Condition),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ConditionHolder {
     pub contents: ConditionHolderContents,
 }
@@ -71,10 +72,6 @@ impl Condition {
     {
         let mut expr: ConditionExpression = condition.into();
         if let ConditionExpression::Condition(ref mut c) = expr {
-            // Don't add empty `Condition::any` and `Condition::all`.
-            if c.conditions.is_empty() {
-                return self;
-            }
             // Skip the junction if there is only one.
             if c.conditions.len() == 1 && !c.negate {
                 expr = c.conditions.pop().unwrap();
@@ -98,7 +95,7 @@ impl Condition {
     ///     .from(Glyph::Table)
     ///     .cond_where(
     ///         Cond::all()
-    ///             .add_option(Some(Expr::tbl(Glyph::Table, Glyph::Image).like("A%")))
+    ///             .add_option(Some(Expr::col((Glyph::Table, Glyph::Image)).like("A%")))
     ///             .add_option(None::<SimpleExpr>),
     ///     )
     ///     .to_owned();
@@ -132,8 +129,8 @@ impl Condition {
     ///     .from(Glyph::Table)
     ///     .cond_where(
     ///         Cond::any()
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///             .add(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]))
+    ///             .add(Expr::col((Glyph::Table, Glyph::Image)).like("A%"))
     ///     )
     ///     .to_owned();
     ///
@@ -162,8 +159,8 @@ impl Condition {
     ///     .from(Glyph::Table)
     ///     .cond_where(
     ///         Cond::all()
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///             .add(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]))
+    ///             .add(Expr::col((Glyph::Table, Glyph::Image)).like("A%"))
     ///     )
     ///     .to_owned();
     ///
@@ -185,7 +182,7 @@ impl Condition {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Glyph::Image)
@@ -193,8 +190,8 @@ impl Condition {
     ///     .cond_where(
     ///         Cond::all()
     ///             .not()
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///             .add(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]))
+    ///             .add(Expr::col((Glyph::Table, Glyph::Image)).like("A%"))
     ///     )
     ///     .to_owned();
     ///
@@ -289,8 +286,8 @@ impl From<SimpleExpr> for ConditionExpression {
 ///     .from(Glyph::Table)
 ///     .cond_where(
 ///         any![
-///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]),
-///             Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///             Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]),
+///             Expr::col((Glyph::Table, Glyph::Image)).like("A%")
 ///         ]
 ///     )
 ///     .to_owned();
@@ -325,8 +322,8 @@ macro_rules! any {
 ///     .from(Glyph::Table)
 ///     .cond_where(
 ///         all![
-///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]),
-///             Expr::tbl(Glyph::Table, Glyph::Image).like("A%")
+///             Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]),
+///             Expr::col((Glyph::Table, Glyph::Image)).like("A%")
 ///         ]
 ///     )
 ///     .to_owned();
@@ -349,7 +346,7 @@ macro_rules! all {
 }
 
 pub trait ConditionalStatement {
-    /// And where condition. This cannot be mixed with [`ConditionalStatement::or_where`].
+    /// And where condition.
     /// Calling `or_where` after `and_where` will panic.
     ///
     /// # Examples
@@ -360,8 +357,8 @@ pub trait ConditionalStatement {
     /// let query = Query::select()
     ///     .column(Glyph::Image)
     ///     .from(Glyph::Table)
-    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
-    ///     .and_where(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
+    ///     .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]))
+    ///     .and_where(Expr::col((Glyph::Table, Glyph::Image)).like("A%"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -416,10 +413,10 @@ pub trait ConditionalStatement {
     ///     .from(Glyph::Table)
     ///     .cond_where(
     ///         Cond::all()
-    ///             .add(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
+    ///             .add(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]))
     ///             .add(Cond::any()
-    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like("A%"))
-    ///                 .add(Expr::tbl(Glyph::Table, Glyph::Image).like("B%"))
+    ///                 .add(Expr::col((Glyph::Table, Glyph::Image)).like("A%"))
+    ///                 .add(Expr::col((Glyph::Table, Glyph::Image)).like("B%"))
     ///             )
     ///     )
     ///     .to_owned();
@@ -440,10 +437,10 @@ pub trait ConditionalStatement {
     ///     .from(Glyph::Table)
     ///     .cond_where(
     ///         all![
-    ///             Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]),
+    ///             Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]),
     ///             any![
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("A%"),
-    ///                 Expr::tbl(Glyph::Table, Glyph::Image).like("B%"),
+    ///                 Expr::col((Glyph::Table, Glyph::Image)).like("A%"),
+    ///                 Expr::col((Glyph::Table, Glyph::Image)).like("B%"),
     ///             ]
     ///         ])
     ///     .to_owned();
@@ -572,29 +569,14 @@ impl IntoCondition for Condition {
     }
 }
 
-impl Default for ConditionHolderContents {
-    fn default() -> Self {
-        Self::Empty
-    }
-}
-
-impl Default for ConditionHolder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl ConditionHolder {
     pub fn new() -> Self {
-        Self {
-            contents: ConditionHolderContents::Empty,
-        }
+        Self::default()
     }
 
     pub fn new_with_condition(condition: Condition) -> Self {
-        let mut slf = Self::new();
-        slf.add_condition(condition);
-        slf
+        let contents = ConditionHolderContents::Condition(condition);
+        Self { contents }
     }
 
     pub fn is_empty(&self) -> bool {

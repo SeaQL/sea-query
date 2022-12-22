@@ -10,8 +10,8 @@ pub struct RusqliteValue(pub sea_query::Value);
 #[derive(Clone, Debug, PartialEq)]
 pub struct RusqliteValues(pub Vec<RusqliteValue>);
 
-impl<'a> RusqliteValues {
-    pub fn as_params(&'a self) -> Vec<&'a dyn ToSql> {
+impl RusqliteValues {
+    pub fn as_params(&self) -> Vec<&dyn ToSql> {
         self.0
             .iter()
             .map(|x| {

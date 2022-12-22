@@ -1,4 +1,5 @@
 use std::convert::TryFrom;
+use std::marker::PhantomData;
 
 use heck::ToSnakeCase;
 use proc_macro2::{Span, TokenStream};
@@ -7,14 +8,47 @@ use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
 use crate::{error::ErrorMsg, find_attr, iden_attr::IdenAttr};
 
-pub struct IdenVariant<'a> {
+pub(crate) trait WriteArm {
+    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream;
+    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream;
+}
+
+pub(crate) struct DeriveIden;
+
+impl WriteArm for DeriveIden {
+    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
+        quote! { Self::#variant => write!(s, "{}", #name).unwrap() }
+    }
+
+    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
+        quote! { Self::#variant => #name.unquoted(s) }
+    }
+}
+
+pub(crate) struct DeriveIdenStatic;
+
+impl WriteArm for DeriveIdenStatic {
+    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
+        quote! { Self::#variant => #name }
+    }
+
+    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
+        quote! { Self::#variant => #name.as_str() }
+    }
+}
+
+pub(crate) struct IdenVariant<'a, T> {
     ident: &'a Ident,
     fields: &'a Fields,
     table_name: &'a str,
     attr: Option<IdenAttr>,
+    _p: PhantomData<T>,
 }
 
-impl<'a> TryFrom<(&'a str, &'a Variant)> for IdenVariant<'a> {
+impl<'a, T> TryFrom<(&'a str, &'a Variant)> for IdenVariant<'a, T>
+where
+    T: WriteArm,
+{
     type Error = Error;
 
     fn try_from((table_name, value): (&'a str, &'a Variant)) -> Result<Self, Self::Error> {
@@ -30,7 +64,10 @@ impl<'a> TryFrom<(&'a str, &'a Variant)> for IdenVariant<'a> {
     }
 }
 
-impl ToTokens for IdenVariant<'_> {
+impl<T> ToTokens for IdenVariant<'_, T>
+where
+    T: WriteArm,
+{
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self.fields {
             Fields::Named(named) => self.to_tokens_from_named(named, tokens),
@@ -40,7 +77,10 @@ impl ToTokens for IdenVariant<'_> {
     }
 }
 
-impl<'a> IdenVariant<'a> {
+impl<'a, T> IdenVariant<'a, T>
+where
+    T: WriteArm,
+{
     fn new(
         ident: &'a Ident,
         fields: &'a Fields,
@@ -73,6 +113,7 @@ impl<'a> IdenVariant<'a> {
             fields,
             table_name,
             attr,
+            _p: PhantomData::<T>,
         })
     }
 
@@ -85,7 +126,7 @@ impl<'a> IdenVariant<'a> {
             // Unwrapping the ident is also safe because a named field always has an ident.
             let capture = field.ident.as_ref().unwrap();
             let variant = quote! { #ident{#capture} };
-            write_flattened(variant, capture)
+            T::flattened(variant, capture)
         } else {
             let variant = quote! { #ident{..} };
             self.write_variant_name(variant)
@@ -101,7 +142,7 @@ impl<'a> IdenVariant<'a> {
             // The case where unnamed fields length is not 1 is handled by new
             let capture = Delegated.into();
             let variant = quote! { #ident(#capture) };
-            write_flattened(variant, &capture)
+            T::flattened(variant, &capture)
         } else {
             let variant = quote! { #ident(..) };
             self.write_variant_name(variant)
@@ -138,7 +179,7 @@ impl<'a> IdenVariant<'a> {
             })
             .unwrap_or_else(|| self.table_or_snake_case());
 
-        write_variant(variant, name)
+        T::variant(variant, name)
     }
 }
 
@@ -148,12 +189,4 @@ impl From<Delegated> for Ident {
     fn from(_: Delegated) -> Self {
         Ident::new("delegated", Span::call_site())
     }
-}
-
-fn write_variant(variant: TokenStream, name: TokenStream) -> TokenStream {
-    quote! { Self::#variant => write!(s, "{}", #name).unwrap() }
-}
-
-fn write_flattened(variant: TokenStream, name: &Ident) -> TokenStream {
-    quote! { Self::#variant => #name.unquoted(s) }
 }

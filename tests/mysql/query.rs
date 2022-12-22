@@ -64,7 +64,7 @@ fn select_5() {
         Query::select()
             .column((Glyph::Table, Glyph::Image))
             .from(Glyph::Table)
-            .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).is_in([3, 4]))
+            .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([3, 4]))
             .to_string(MysqlQueryBuilder),
         "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4)"
     );
@@ -104,7 +104,7 @@ fn select_8() {
                 Char::Character,
             ])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+            .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"
     );
@@ -118,8 +118,8 @@ fn select_9() {
                 Char::Character,
             ])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
-            .inner_join(Glyph::Table, Expr::tbl(Char::Table, Char::Character).equals(Glyph::Table, Glyph::Image))
+            .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+            .inner_join(Glyph::Table, Expr::col((Char::Table, Char::Character)).equals((Glyph::Table, Glyph::Image)))
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` INNER JOIN `glyph` ON `character`.`character` = `glyph`.`image`"
     );
@@ -134,8 +134,8 @@ fn select_10() {
             ])
             .from(Char::Table)
             .left_join(Font::Table,
-                Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
-                .and(Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+                Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
+                .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON (`character`.`font_id` = `font`.`id`) AND (`character`.`font_id` = `font`.`id`)"
@@ -245,7 +245,7 @@ fn select_17() {
         Query::select()
             .columns([(Glyph::Table, Glyph::Image),])
             .from(Glyph::Table)
-            .and_where(Expr::tbl(Glyph::Table, Glyph::Aspect).between(3, 5))
+            .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).between(3, 5))
             .to_string(MysqlQueryBuilder),
         "SELECT `glyph`.`image` FROM `glyph` WHERE `glyph`.`aspect` BETWEEN 3 AND 5"
     );
@@ -369,7 +369,7 @@ fn select_25() {
             .and_where(
                 Expr::col(Char::SizeW)
                     .mul(2)
-                    .equals(Expr::col(Char::SizeH).div(2))
+                    .eq(Expr::col(Char::SizeH).div(2))
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` WHERE `size_w` * 2 = `size_h` / 2"
@@ -385,7 +385,7 @@ fn select_26() {
             .and_where(
                 Expr::expr(Expr::col(Char::SizeW).add(1))
                     .mul(2)
-                    .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                    .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` WHERE (`size_w` + 1) * 2 = (`size_h` / 2) - 1"
@@ -437,7 +437,7 @@ fn select_30() {
             .and_where(
                 Expr::col(Char::SizeW).mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
-                    .equals(Expr::value(4))
+                    .eq(4)
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` * 2) + (`size_h` / 3) = 4"
@@ -448,7 +448,7 @@ fn select_30() {
 fn select_31() {
     assert_eq!(
         Query::select()
-            .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(Expr::value(i)) }))
+            .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(i) }))
             .to_string(MysqlQueryBuilder),
         "SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"
     );
@@ -510,11 +510,11 @@ fn select_34a() {
 
 #[test]
 fn select_35() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .and_where(Expr::col(Glyph::Aspect).is_null())
-        .build(sea_query::MysqlQueryBuilder);
+        .build(MysqlQueryBuilder);
 
     assert_eq!(
         statement,
@@ -525,11 +525,11 @@ fn select_35() {
 
 #[test]
 fn select_36() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::any().add(Expr::col(Glyph::Aspect).is_null()))
-        .build(sea_query::MysqlQueryBuilder);
+        .build(MysqlQueryBuilder);
 
     assert_eq!(
         statement,
@@ -540,19 +540,42 @@ fn select_36() {
 
 #[test]
 fn select_37() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
-        .build(sea_query::MysqlQueryBuilder);
+        .build(MysqlQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT `id` FROM `glyph`"#);
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE (TRUE) OR (FALSE)"#
+    );
+    assert_eq!(values.0, vec![]);
+}
+
+#[test]
+fn select_37a() {
+    let (statement, values) = Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::all()
+                .add(Cond::all().not())
+                .add(Cond::any().not())
+                .not(),
+        )
+        .build(MysqlQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `id` FROM `glyph` WHERE NOT ((NOT TRUE) AND (NOT FALSE))"#
+    );
     assert_eq!(values.0, vec![]);
 }
 
 #[test]
 fn select_38() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -560,7 +583,7 @@ fn select_38() {
                 .add(Expr::col(Glyph::Aspect).is_null())
                 .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
-        .build(sea_query::MysqlQueryBuilder);
+        .build(MysqlQueryBuilder);
 
     assert_eq!(
         statement,
@@ -571,7 +594,7 @@ fn select_38() {
 
 #[test]
 fn select_39() {
-    let (statement, values) = sea_query::Query::select()
+    let (statement, values) = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -579,7 +602,7 @@ fn select_39() {
                 .add(Expr::col(Glyph::Aspect).is_null())
                 .add(Expr::col(Glyph::Aspect).is_not_null()),
         )
-        .build(sea_query::MysqlQueryBuilder);
+        .build(MysqlQueryBuilder);
 
     assert_eq!(
         statement,
@@ -590,7 +613,7 @@ fn select_39() {
 
 #[test]
 fn select_40() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(any![
@@ -600,7 +623,7 @@ fn select_40() {
                 Expr::col(Glyph::Aspect).lt(8)
             ]
         ])
-        .to_string(sea_query::MysqlQueryBuilder);
+        .to_string(MysqlQueryBuilder);
 
     assert_eq!(
         statement,
@@ -624,7 +647,7 @@ fn select_41() {
 
 #[test]
 fn select_42() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -642,18 +665,18 @@ fn select_42() {
 
 #[test]
 fn select_43() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(Cond::all().add_option::<SimpleExpr>(None))
         .to_string(MysqlQueryBuilder);
 
-    assert_eq!(statement, "SELECT `id` FROM `glyph`");
+    assert_eq!(statement, "SELECT `id` FROM `glyph` WHERE TRUE");
 }
 
 #[test]
 fn select_44() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -671,7 +694,7 @@ fn select_44() {
 
 #[test]
 fn select_45() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -690,7 +713,7 @@ fn select_45() {
 
 #[test]
 fn select_46() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -708,7 +731,7 @@ fn select_46() {
 
 #[test]
 fn select_47() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
@@ -727,16 +750,13 @@ fn select_47() {
 
 #[test]
 fn select_48() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
             Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
-                Expr::tuple([
-                    Expr::col(Glyph::Aspect).into_simple_expr(),
-                    Expr::value(100),
-                ])
-                .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
+                Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::value(100)])
+                    .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
             ))),
         )
         .to_string(MysqlQueryBuilder);
@@ -749,13 +769,13 @@ fn select_48() {
 
 #[test]
 fn select_48a() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
             Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
                 Expr::tuple([
-                    Expr::col(Glyph::Aspect).into_simple_expr(),
+                    Expr::col(Glyph::Aspect).into(),
                     Expr::value(String::from("100")),
                 ])
                 .in_tuples([(8, String::from("100"))]),
@@ -771,7 +791,7 @@ fn select_48a() {
 
 #[test]
 fn select_49() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
         .to_string(MysqlQueryBuilder);
@@ -781,13 +801,13 @@ fn select_49() {
 
 #[test]
 fn select_50() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::table_asterisk(Char::Table))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(
             Font::Table,
-            Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id),
+            Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
         )
         .to_string(MysqlQueryBuilder);
 
@@ -880,11 +900,11 @@ fn select_53() {
 
 #[test]
 fn select_54() {
-    let statement = sea_query::Query::select()
+    let statement = Query::select()
         .expr(Expr::asterisk())
         .from(Char::Table)
         .from(Font::Table)
-        .and_where(Expr::tbl(Font::Table, Font::Id).equals(Char::Table, Char::FontId))
+        .and_where(Expr::col((Font::Table, Font::Id)).equals((Char::Table, Char::FontId)))
         .to_string(MysqlQueryBuilder);
 
     assert_eq!(
@@ -955,15 +975,9 @@ fn select_57() {
     let query = Query::select()
         .expr_as(
             CaseStatement::new()
-                .case(
-                    Expr::tbl(Glyph::Table, Glyph::Aspect).gt(0),
-                    Expr::val("positive"),
-                )
-                .case(
-                    Expr::tbl(Glyph::Table, Glyph::Aspect).lt(0),
-                    Expr::val("negative"),
-                )
-                .finally(Expr::val("zero")),
+                .case(Expr::col((Glyph::Table, Glyph::Aspect)).gt(0), "positive")
+                .case(Expr::col((Glyph::Table, Glyph::Aspect)).lt(0), "negative")
+                .finally("zero"),
             Alias::new("polarity"),
         )
         .from(Glyph::Table)
@@ -1381,7 +1395,7 @@ fn union_1() {
                     .from(Char::Table)
                     .left_join(
                         Font::Table,
-                        Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id)
+                        Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
                     )
                     .order_by((Font::Table, Font::Id), Order::Asc)
                     .take()

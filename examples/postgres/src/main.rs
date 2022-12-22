@@ -35,7 +35,7 @@ fn main() {
             .col(ColumnDef::new(Document::Timestamp).timestamp())
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
-            .col(ColumnDef::new(Document::Array).array(ColumnType::Integer(None)))
+            .col(ColumnDef::new(Document::Array).array(ColumnType::Integer))
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
@@ -56,7 +56,10 @@ fn main() {
                 "bla": 1
             }
         }},
-        timestamp: NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2),
+        timestamp: NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(2, 2, 2)
+            .unwrap(),
         timestamp_with_time_zone: DateTime::parse_from_rfc3339("2020-01-01T02:02:02+08:00")
             .unwrap(),
         decimal: Decimal::from_i128_with_scale(3141i128, 3),

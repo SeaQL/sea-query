@@ -1,6 +1,26 @@
 use super::*;
 
 impl IndexBuilder for PostgresQueryBuilder {
+    // Overriden due to different "NULLS NOT UNIQUE" position in table index expression
+    // (as opposed to the regular index expression)
+    fn prepare_table_index_expression(
+        &self,
+        create: &IndexCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if let Some(name) = &create.index.name {
+            write!(sql, "CONSTRAINT {}{}{} ", self.quote(), name, self.quote()).unwrap();
+        }
+
+        self.prepare_index_prefix(create, sql);
+
+        if create.nulls_not_distinct {
+            write!(sql, "NULLS NOT DISTINCT ").unwrap();
+        }
+
+        self.prepare_index_columns(&create.index.columns, sql);
+    }
+
     fn prepare_index_create_statement(
         &self,
         create: &IndexCreateStatement,
@@ -26,6 +46,10 @@ impl IndexBuilder for PostgresQueryBuilder {
         self.prepare_index_type(&create.index_type, sql);
         write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
+
+        if create.nulls_not_distinct {
+            write!(sql, " NULLS NOT DISTINCT").unwrap();
+        }
     }
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {

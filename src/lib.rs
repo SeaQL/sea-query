@@ -3,9 +3,7 @@
 
 //! <div align="center">
 //!
-//!   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL logo dual.png" width="280"/>
-//!
-//!   <h1>SeaQuery</h1>
+//!   <img src="https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQuery logo.png" width="280" alt="SeaQuery logo"/>
 //!
 //!   <p>
 //!     <strong>🔱 A dynamic query builder for MySQL, Postgres and SQLite</strong>
@@ -17,7 +15,7 @@
 //!
 //! </div>
 //!
-//! ## Introduction
+//! ## SeaQuery
 //!
 //! SeaQuery is a query builder to help you construct dynamic SQL queries in Rust.
 //! You can construct expressions, queries and schema as abstract syntax trees using an ergonomic API.
@@ -40,7 +38,7 @@
 //! ```toml
 //! # Cargo.toml
 //! [dependencies]
-//! sea-query = "^0"
+//! sea-query = "0"
 //! ```
 //!
 //! SeaQuery is very lightweight, all dependencies are optional.
@@ -73,6 +71,11 @@
 //!     1. [Query Insert](#query-insert)
 //!     1. [Query Update](#query-update)
 //!     1. [Query Delete](#query-delete)
+//!
+//! 1. Advanced
+//!     1. [Aggregate Functions](#aggregate-functions)
+//!     1. [Casting](#casting)
+//!     1. [Custom Function](#custom-function)
 //!
 //! 1. Schema Statement
 //!
@@ -238,7 +241,7 @@
 //!         .and_where(
 //!             Expr::expr(Expr::col(Char::SizeW).add(1))
 //!                 .mul(2)
-//!                 .equals(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+//!                 .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
 //!         )
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(
@@ -351,7 +354,7 @@
 //!     .column(Char::Character)
 //!     .column((Font::Table, Font::Name))
 //!     .from(Char::Table)
-//!     .left_join(Font::Table, Expr::tbl(Char::Table, Char::FontId).equals(Font::Table, Font::Id))
+//!     .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
 //!     .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
 //!     .and_where(Expr::col(Char::Character).like("A%"))
 //!     .to_owned();
@@ -443,6 +446,82 @@
 //! assert_eq!(
 //!     query.to_string(SqliteQueryBuilder),
 //!     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
+//! );
+//! ```
+//!
+//! ### Aggregate Functions
+//!
+//! `max`, `min`, `sum`, `avg`, `count` etc
+//!
+//! ```rust
+//! # use sea_query::{*, tests_cfg::*};
+//! let query = Query::select()
+//!     .expr(Func::sum(Expr::col((Char::Table, Char::SizeH))))
+//!     .from(Char::Table)
+//!     .to_owned();
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT SUM(`character`.`size_h`) FROM `character`"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT SUM("character"."size_h") FROM "character""#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT SUM("character"."size_h") FROM "character""#
+//! );
+//! ```
+//!
+//! ### Casting
+//!
+//! ```rust
+//! # use sea_query::{*, tests_cfg::*};
+//! let query = Query::select()
+//!     .expr(Func::cast_as("hello", Alias::new("MyType")))
+//!     .to_owned();
+//!
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT CAST('hello' AS MyType)"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT CAST('hello' AS MyType)"#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT CAST('hello' AS MyType)"#
+//! );
+//! ```
+//!
+//! ### Custom Function
+//!
+//! ```rust
+//! # use sea_query::{*, tests_cfg::*};
+//! struct MyFunction;
+//!
+//! impl Iden for MyFunction {
+//!     fn unquoted(&self, s: &mut dyn Write) {
+//!         write!(s, "MY_FUNCTION").unwrap();
+//!     }
+//! }
+//!
+//! let query = Query::select()
+//!     .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
+//!     .to_owned();
+//!
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"SELECT MY_FUNCTION('hello')"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"SELECT MY_FUNCTION('hello')"#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"SELECT MY_FUNCTION('hello')"#
 //! );
 //! ```
 //!
@@ -772,7 +851,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::Iden;
+pub use sea_query_derive::{Iden, IdenStatic};
 
 #[cfg(feature = "attr")]
 pub use sea_query_attr::enum_def;

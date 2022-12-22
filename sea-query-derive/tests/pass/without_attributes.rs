@@ -1,7 +1,7 @@
 use sea_query::Iden;
 use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Iden, EnumIter)]
+#[derive(Copy, Clone, Iden, EnumIter)]
 enum User {
     Table,
     Id,
@@ -12,8 +12,7 @@ enum User {
 
 fn main() {
     let expected = ["user", "id", "first_name", "last_name", "email"];
-    User::iter()
-        .map(|var| Iden::to_string(&var))
-        .zip(expected)
-        .for_each(|(iden, exp)| assert_eq!(iden, exp))
+    User::iter().zip(expected).for_each(|(var, exp)| {
+        assert_eq!(var.to_string(), exp);
+    });
 }

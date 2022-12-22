@@ -29,52 +29,20 @@ impl TableBuilder for MysqlQueryBuilder {
                     None => "varchar(255)".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger(length) | ColumnType::TinyUnsigned(length) =>
-                    match length {
-                        Some(length) => format!("tinyint({})", length),
-                        None => "tinyint".into(),
-                    },
-                ColumnType::SmallInteger(length) | ColumnType::SmallUnsigned(length) =>
-                    match length {
-                        Some(length) => format!("smallint({})", length),
-                        None => "smallint".into(),
-                    },
-                ColumnType::Integer(length) | ColumnType::Unsigned(length) => match length {
-                    Some(length) => format!("int({})", length),
-                    None => "int".into(),
-                },
-                ColumnType::BigInteger(length) | ColumnType::BigUnsigned(length) => match length {
-                    Some(length) => format!("bigint({})", length),
-                    None => "bigint".into(),
-                },
-                ColumnType::Float(precision) => match precision {
-                    Some(precision) => format!("float({})", precision),
-                    None => "float".into(),
-                },
-                ColumnType::Double(precision) => match precision {
-                    Some(precision) => format!("double({})", precision),
-                    None => "double".into(),
-                },
+                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "tinyint".into(),
+                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
+                ColumnType::Integer | ColumnType::Unsigned => "int".into(),
+                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
+                ColumnType::Float => "float".into(),
+                ColumnType::Double => "double".into(),
                 ColumnType::Decimal(precision) => match precision {
                     Some((precision, scale)) => format!("decimal({}, {})", precision, scale),
                     None => "decimal".into(),
                 },
-                ColumnType::DateTime(precision) => match precision {
-                    Some(precision) => format!("datetime({})", precision),
-                    None => "datetime".into(),
-                },
-                ColumnType::Timestamp(precision) => match precision {
-                    Some(precision) => format!("timestamp({})", precision),
-                    None => "timestamp".into(),
-                },
-                ColumnType::TimestampWithTimeZone(precision) => match precision {
-                    Some(precision) => format!("timestamp({})", precision),
-                    None => "timestamp".into(),
-                },
-                ColumnType::Time(precision) => match precision {
-                    Some(precision) => format!("time({})", precision),
-                    None => "time".into(),
-                },
+                ColumnType::DateTime => "datetime".into(),
+                ColumnType::Timestamp => "timestamp".into(),
+                ColumnType::TimestampWithTimeZone => "timestamp".into(),
+                ColumnType::Time => "time".into(),
                 ColumnType::Date => "date".into(),
                 ColumnType::Year(length) => {
                     match length {
@@ -133,10 +101,10 @@ impl TableBuilder for MysqlQueryBuilder {
         .unwrap();
         if matches!(
             column_type,
-            ColumnType::TinyUnsigned(_)
-                | ColumnType::SmallUnsigned(_)
-                | ColumnType::Unsigned(_)
-                | ColumnType::BigUnsigned(_)
+            ColumnType::TinyUnsigned
+                | ColumnType::SmallUnsigned
+                | ColumnType::Unsigned
+                | ColumnType::BigUnsigned
         ) {
             write!(sql, " ").unwrap();
             write!(sql, "UNSIGNED").unwrap();

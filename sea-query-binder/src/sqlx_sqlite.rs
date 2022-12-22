@@ -3,7 +3,7 @@ use sea_query::Value;
 
 impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
     fn into_arguments(self) -> sqlx::sqlite::SqliteArguments<'q> {
-        let mut args = sqlx::sqlite::SqliteArguments::<'q>::default();
+        let mut args = sqlx::sqlite::SqliteArguments::default();
         for arg in self.0.into_iter() {
             use sqlx::Arguments;
             match arg {

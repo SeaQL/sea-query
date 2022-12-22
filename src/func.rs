@@ -79,7 +79,7 @@ impl Func {
     /// }
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
+    ///     .expr(Func::cust(MyFunction).arg("hello"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -110,7 +110,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::max(Expr::tbl(Char::Table, Char::SizeW)))
+    ///     .expr(Func::max(Expr::col((Char::Table, Char::SizeW))))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -142,7 +142,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::min(Expr::tbl(Char::Table, Char::SizeH)))
+    ///     .expr(Func::min(Expr::col((Char::Table, Char::SizeH))))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -174,7 +174,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
+    ///     .expr(Func::sum(Expr::col((Char::Table, Char::SizeH))))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -206,7 +206,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::avg(Expr::tbl(Char::Table, Char::SizeH)))
+    ///     .expr(Func::avg(Expr::col((Char::Table, Char::SizeH))))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -238,7 +238,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::abs(Expr::tbl(Char::Table, Char::SizeH)))
+    ///     .expr(Func::abs(Expr::col((Char::Table, Char::SizeH))))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -270,7 +270,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::count(Expr::tbl(Char::Table, Char::Id)))
+    ///     .expr(Func::count(Expr::col((Char::Table, Char::Id))))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -302,7 +302,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::char_length(Expr::tbl(Char::Table, Char::Character)))
+    ///     .expr(Func::char_length(Expr::col((Char::Table, Char::Character))))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///

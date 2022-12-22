@@ -49,52 +49,20 @@ impl TableBuilder for SqliteQueryBuilder {
                     None => "text".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger(length) | ColumnType::TinyUnsigned(length) =>
-                    match length {
-                        Some(length) => format!("integer({})", length),
-                        None => "integer".into(),
-                    },
-                ColumnType::SmallInteger(length) | ColumnType::SmallUnsigned(length) =>
-                    match length {
-                        Some(length) => format!("integer({})", length),
-                        None => "integer".into(),
-                    },
-                ColumnType::Integer(length) | ColumnType::Unsigned(length) => match length {
-                    Some(length) => format!("integer({})", length),
-                    None => "integer".into(),
-                },
-                ColumnType::BigInteger(length) | ColumnType::BigUnsigned(length) => match length {
-                    Some(length) => format!("integer({})", length),
-                    None => "integer".into(),
-                },
-                ColumnType::Float(precision) => match precision {
-                    Some(precision) => format!("real({})", precision),
-                    None => "real".into(),
-                },
-                ColumnType::Double(precision) => match precision {
-                    Some(precision) => format!("real({})", precision),
-                    None => "real".into(),
-                },
+                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "integer".into(),
+                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "integer".into(),
+                ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
+                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
+                ColumnType::Float => "real".into(),
+                ColumnType::Double => "real".into(),
                 ColumnType::Decimal(precision) => match precision {
                     Some((precision, scale)) => format!("real({}, {})", precision, scale),
                     None => "real".into(),
                 },
-                ColumnType::DateTime(precision) => match precision {
-                    Some(precision) => format!("text({})", precision),
-                    None => "text".into(),
-                },
-                ColumnType::Timestamp(precision) => match precision {
-                    Some(precision) => format!("text({})", precision),
-                    None => "text".into(),
-                },
-                ColumnType::TimestampWithTimeZone(precision) => match precision {
-                    Some(precision) => format!("text({})", precision),
-                    None => "text".into(),
-                },
-                ColumnType::Time(precision) => match precision {
-                    Some(precision) => format!("text({})", precision),
-                    None => "text".into(),
-                },
+                ColumnType::DateTime => "text".into(),
+                ColumnType::Timestamp => "text".into(),
+                ColumnType::TimestampWithTimeZone => "text".into(),
+                ColumnType::Time => "text".into(),
                 ColumnType::Date => "text".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {

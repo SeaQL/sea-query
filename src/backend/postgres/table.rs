@@ -29,52 +29,20 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger(length) | ColumnType::TinyUnsigned(length) =>
-                    match length {
-                        Some(length) => format!("smallint({})", length),
-                        None => "smallint".into(),
-                    },
-                ColumnType::SmallInteger(length) | ColumnType::SmallUnsigned(length) =>
-                    match length {
-                        Some(length) => format!("smallint({})", length),
-                        None => "smallint".into(),
-                    },
-                ColumnType::Integer(length) | ColumnType::Unsigned(length) => match length {
-                    Some(length) => format!("integer({})", length),
-                    None => "integer".into(),
-                },
-                ColumnType::BigInteger(length) | ColumnType::BigUnsigned(length) => match length {
-                    Some(length) => format!("bigint({})", length),
-                    None => "bigint".into(),
-                },
-                ColumnType::Float(precision) => match precision {
-                    Some(precision) => format!("real({})", precision),
-                    None => "real".into(),
-                },
-                ColumnType::Double(precision) => match precision {
-                    Some(precision) => format!("double precision({})", precision),
-                    None => "double precision".into(),
-                },
+                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "smallint".into(),
+                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
+                ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
+                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
+                ColumnType::Float => "real".into(),
+                ColumnType::Double => "double precision".into(),
                 ColumnType::Decimal(precision) => match precision {
                     Some((precision, scale)) => format!("decimal({}, {})", precision, scale),
                     None => "decimal".into(),
                 },
-                ColumnType::DateTime(precision) => match precision {
-                    Some(precision) => format!("timestamp({}) without time zone", precision),
-                    None => "timestamp without time zone".into(),
-                },
-                ColumnType::Timestamp(precision) => match precision {
-                    Some(precision) => format!("timestamp({})", precision),
-                    None => "timestamp".into(),
-                },
-                ColumnType::TimestampWithTimeZone(precision) => match precision {
-                    Some(precision) => format!("timestamp({}) with time zone", precision),
-                    None => "timestamp with time zone".into(),
-                },
-                ColumnType::Time(precision) => match precision {
-                    Some(precision) => format!("time({})", precision),
-                    None => "time".into(),
-                },
+                ColumnType::DateTime => "timestamp without time zone".into(),
+                ColumnType::Timestamp => "timestamp".into(),
+                ColumnType::TimestampWithTimeZone => "timestamp with time zone".into(),
+                ColumnType::Time => "time".into(),
                 ColumnType::Date => "date".into(),
                 ColumnType::Interval(fields, precision) => {
                     let mut typ = "interval".to_string();
@@ -253,9 +221,9 @@ impl TableBuilder for PostgresQueryBuilder {
 impl PostgresQueryBuilder {
     fn prepare_column_auto_increment(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
         match &column_type {
-            ColumnType::SmallInteger(_) => write!(sql, "smallserial").unwrap(),
-            ColumnType::Integer(_) => write!(sql, "serial").unwrap(),
-            ColumnType::BigInteger(_) => write!(sql, "bigserial").unwrap(),
+            ColumnType::SmallInteger => write!(sql, "smallserial").unwrap(),
+            ColumnType::Integer => write!(sql, "serial").unwrap(),
+            ColumnType::BigInteger => write!(sql, "bigserial").unwrap(),
             _ => unimplemented!("{:?} doesn't support auto increment", column_type),
         }
     }
