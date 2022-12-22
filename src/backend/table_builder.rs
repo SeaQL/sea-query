@@ -46,9 +46,9 @@ pub trait TableBuilder:
             count += 1;
         }
 
-        if let Some(value) = &create.check {
+        for check in create.check.iter() {
             write!(sql, ", CHECK (").unwrap();
-            QueryBuilder::prepare_simple_expr(self, value, sql);
+            QueryBuilder::prepare_simple_expr(self, check, sql);
             write!(sql, ")").unwrap();
         }
 

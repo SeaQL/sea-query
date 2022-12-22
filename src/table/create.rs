@@ -85,7 +85,7 @@ pub struct TableCreateStatement {
     pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
-    pub(crate) check: Option<SimpleExpr>,
+    pub(crate) check: Vec<SimpleExpr>,
 }
 
 /// All available table options
@@ -117,7 +117,7 @@ impl TableCreateStatement {
             indexes: Vec::new(),
             foreign_keys: Vec::new(),
             if_not_exists: false,
-            check: None,
+            check: Vec::new(),
         }
     }
 
@@ -145,7 +145,7 @@ impl TableCreateStatement {
     }
 
     pub fn check(&mut self, value: SimpleExpr) -> &mut Self {
-        self.check = Some(value);
+        self.check.push(value);
         self
     }
 
@@ -290,7 +290,7 @@ impl TableCreateStatement {
             indexes: std::mem::take(&mut self.indexes),
             foreign_keys: std::mem::take(&mut self.foreign_keys),
             if_not_exists: self.if_not_exists,
-            check: self.check.take(),
+            check: std::mem::take(&mut self.check),
         }
     }
 }
