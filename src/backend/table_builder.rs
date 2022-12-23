@@ -47,9 +47,11 @@ pub trait TableBuilder:
         }
 
         for check in create.check.iter() {
-            write!(sql, ", CHECK (").unwrap();
-            QueryBuilder::prepare_simple_expr(self, check, sql);
-            write!(sql, ")").unwrap();
+            if count > 0 {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_check_constraint(check, sql);
+            count += 1;
         }
 
         write!(sql, " )").unwrap();
@@ -90,11 +92,7 @@ pub trait TableBuilder:
             }
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
-            ColumnSpec::Check(value) => {
-                write!(sql, "CHECK (").unwrap();
-                QueryBuilder::prepare_simple_expr(self, value, sql);
-                write!(sql, ")").unwrap();
-            }
+            ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
         }
     }
@@ -165,6 +163,13 @@ pub trait TableBuilder:
         if let Some(table) = &truncate.table {
             self.prepare_table_ref_table_stmt(table, sql);
         }
+    }
+
+    /// Translate the check constraint into SQL statement
+    fn prepare_check_constraint(&self, check: &SimpleExpr, sql: &mut dyn SqlWriter) {
+        write!(sql, "CHECK (").unwrap();
+        QueryBuilder::prepare_simple_expr(self, check, sql);
+        write!(sql, ")").unwrap();
     }
 
     /// Translate [`TableAlterStatement`] into SQL statement.
