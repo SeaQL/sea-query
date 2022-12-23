@@ -20,39 +20,39 @@ pub trait TableBuilder:
         }
 
         write!(sql, " ( ").unwrap();
-        let mut count = 0;
+        let mut first = true;
 
-        for column_def in create.columns.iter() {
-            if count > 0 {
+        create.columns.iter().for_each(|column_def| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_column_def(column_def, sql);
-            count += 1;
-        }
+            first = false;
+        });
 
-        for index in create.indexes.iter() {
-            if count > 0 {
+        create.indexes.iter().for_each(|index| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_table_index_expression(index, sql);
-            count += 1;
-        }
+            first = false;
+        });
 
-        for foreign_key in create.foreign_keys.iter() {
-            if count > 0 {
+        create.foreign_keys.iter().for_each(|foreign_key| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_foreign_key_create_statement_internal(foreign_key, sql, Mode::Creation);
-            count += 1;
-        }
+            first = false;
+        });
 
-        for check in create.check.iter() {
-            if count > 0 {
+        create.check.iter().for_each(|check| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_check_constraint(check, sql);
-            count += 1;
-        }
+            first = false;
+        });
 
         write!(sql, " )").unwrap();
 
