@@ -189,6 +189,28 @@ impl ColumnDef {
     }
 
     /// Set column type as char with custom length
+    ///
+    /// ```
+    /// # use sea_query::{tests_cfg::*, *};
+    /// #
+    /// let table_create = Table::create()
+    ///     .table(Sample::Table)
+    ///     .col(ColumnDef::new(Sample::Column).char_len(10))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table_create.to_string(MysqlQueryBuilder),
+    ///     r#"CREATE TABLE `sample` ( `column` char(10) )"#,
+    /// );
+    /// assert_eq!(
+    ///     table_create.to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "sample" ( "column" char(10) )"#,
+    /// );
+    /// assert_eq!(
+    ///     table_create.to_string(SqliteQueryBuilder),
+    ///     r#"CREATE TABLE "sample" ( "column" text(10) )"#,
+    /// );
+    /// ```
     pub fn char_len(&mut self, length: u32) -> &mut Self {
         self.types = Some(ColumnType::Char(Some(length)));
         self
@@ -299,7 +321,8 @@ impl ColumnDef {
     /// Set column type as interval type with optional fields and precision. Postgres only
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// # use sea_query::{tests_cfg::*, *};
+    /// #
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)

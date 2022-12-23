@@ -135,3 +135,28 @@ impl Iden for Task {
         .unwrap();
     }
 }
+
+/// Representation of a database table named `Sample`.
+///
+/// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
+///
+/// [`Iden`]: crate::types::Iden
+#[derive(Debug)]
+pub enum Sample {
+    Table,
+    Column,
+}
+
+impl Iden for Sample {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        write!(
+            s,
+            "{}",
+            match self {
+                Self::Table => "sample",
+                Self::Column => "column",
+            }
+        )
+        .unwrap();
+    }
+}
