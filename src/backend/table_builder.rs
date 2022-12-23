@@ -46,6 +46,12 @@ pub trait TableBuilder:
             count += 1;
         }
 
+        for check in create.check.iter() {
+            write!(sql, ", CHECK (").unwrap();
+            QueryBuilder::prepare_simple_expr(self, check, sql);
+            write!(sql, ")").unwrap();
+        }
+
         write!(sql, " )").unwrap();
 
         for table_opt in create.options.iter() {
@@ -84,6 +90,11 @@ pub trait TableBuilder:
             }
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
+            ColumnSpec::Check(value) => {
+                write!(sql, "CHECK (").unwrap();
+                QueryBuilder::prepare_simple_expr(self, value, sql);
+                write!(sql, ")").unwrap();
+            }
             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
         }
     }

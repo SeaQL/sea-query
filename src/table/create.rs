@@ -1,5 +1,6 @@
 use crate::{
     backend::SchemaBuilder, foreign_key::*, index::*, types::*, ColumnDef, SchemaStatementBuilder,
+    SimpleExpr,
 };
 
 /// Create a table
@@ -84,6 +85,7 @@ pub struct TableCreateStatement {
     pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
+    pub(crate) check: Vec<SimpleExpr>,
 }
 
 /// All available table options
@@ -124,6 +126,11 @@ impl TableCreateStatement {
         let mut column = column.take();
         column.table = self.table.clone();
         self.columns.push(column);
+        self
+    }
+
+    pub fn check(&mut self, value: SimpleExpr) -> &mut Self {
+        self.check.push(value);
         self
     }
 
@@ -268,6 +275,7 @@ impl TableCreateStatement {
             indexes: std::mem::take(&mut self.indexes),
             foreign_keys: std::mem::take(&mut self.foreign_keys),
             if_not_exists: self.if_not_exists,
+            check: std::mem::take(&mut self.check),
         }
     }
 }
