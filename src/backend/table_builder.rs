@@ -20,31 +20,39 @@ pub trait TableBuilder:
         }
 
         write!(sql, " ( ").unwrap();
-        let mut count = 0;
+        let mut first = true;
 
-        for column_def in create.columns.iter() {
-            if count > 0 {
+        create.columns.iter().for_each(|column_def| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_column_def(column_def, sql);
-            count += 1;
-        }
+            first = false;
+        });
 
-        for index in create.indexes.iter() {
-            if count > 0 {
+        create.indexes.iter().for_each(|index| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_table_index_expression(index, sql);
-            count += 1;
-        }
+            first = false;
+        });
 
-        for foreign_key in create.foreign_keys.iter() {
-            if count > 0 {
+        create.foreign_keys.iter().for_each(|foreign_key| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_foreign_key_create_statement_internal(foreign_key, sql, Mode::Creation);
-            count += 1;
-        }
+            first = false;
+        });
+
+        create.check.iter().for_each(|check| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_check_constraint(check, sql);
+            first = false;
+        });
 
         write!(sql, " )").unwrap();
 
@@ -84,6 +92,7 @@ pub trait TableBuilder:
             }
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
+            ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
         }
     }
@@ -154,6 +163,13 @@ pub trait TableBuilder:
         if let Some(table) = &truncate.table {
             self.prepare_table_ref_table_stmt(table, sql);
         }
+    }
+
+    /// Translate the check constraint into SQL statement
+    fn prepare_check_constraint(&self, check: &SimpleExpr, sql: &mut dyn SqlWriter) {
+        write!(sql, "CHECK (").unwrap();
+        QueryBuilder::prepare_simple_expr(self, check, sql);
+        write!(sql, ")").unwrap();
     }
 
     /// Translate [`TableAlterStatement`] into SQL statement.

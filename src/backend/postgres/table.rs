@@ -159,6 +159,7 @@ impl TableBuilder for PostgresQueryBuilder {
                                 column_def.name.prepare(sql.as_writer(), self.quote());
                                 write!(sql, ")").unwrap();
                             }
+                            ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
                             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
                         }
                         false
