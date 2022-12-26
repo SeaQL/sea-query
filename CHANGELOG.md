@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `Cow<str>` conversion to `Value` https://github.com/SeaQL/sea-query/pull/550
 * Added convert various `UUID` defined in `uuid::fmt` module into `sea_query::Value::Uuid` https://github.com/SeaQL/sea-query/pull/563
 * Added `ValueTuple::Many` for tuple with length up to 12 https://github.com/SeaQL/sea-query/pull/564
+* Added create Table `CHECK` Constraints https://github.com/SeaQL/sea-query/pull/567
 
 ### Breaking changes
 
