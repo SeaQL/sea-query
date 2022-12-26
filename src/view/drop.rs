@@ -1,4 +1,4 @@
-use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder};
+use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 
 /// Drop a view
 ///
@@ -6,7 +6,7 @@ use crate::{backend::SchemaBuilder, prepare::*, types::*, SchemaStatementBuilder
 ///
 /// ```
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ViewDropStatement {
     pub(crate) views: Vec<TableRef>,
     pub(crate) options: Vec<ViewDropOpt>,
@@ -20,20 +20,10 @@ pub enum ViewDropOpt {
     Cascade,
 }
 
-impl Default for ViewDropStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl ViewDropStatement {
     /// Construct drop view statement.
     pub fn new() -> Self {
-        Self {
-            views: Vec::new(),
-            options: Vec::new(),
-            if_exists: false,
-        }
+        Self::default()
     }
 
     /// Set view name.
@@ -74,14 +64,14 @@ impl ViewDropStatement {
 
 impl SchemaStatementBuilder for ViewDropStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_view_drop_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_view_drop_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }

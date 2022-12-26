@@ -2,7 +2,7 @@ use crate::*;
 
 pub trait ViewBuilder: QueryBuilder + QuotedBuilder {
     /// Translate [`ViewCreateStatement`] into SQL statement.
-    fn prepare_view_create_statement(&self, create: &ViewCreateStatement, sql: &mut SqlWriter) {
+    fn prepare_view_create_statement(&self, create: &ViewCreateStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "CREATE").unwrap();
         self.prepare_view_create_befor_view(create, sql);
 
@@ -19,7 +19,7 @@ pub trait ViewBuilder: QueryBuilder + QuotedBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                column.prepare(sql, self.quote());
+                column.prepare(sql.as_writer(), self.quote());
                 false
             });
             write!(sql, " ) ").unwrap();
@@ -32,11 +32,21 @@ pub trait ViewBuilder: QueryBuilder + QuotedBuilder {
         }
     }
 
-    fn prepare_view_create_befor_view(&self, _create: &ViewCreateStatement, _sql: &mut SqlWriter) {}
+    fn prepare_view_create_befor_view(
+        &self,
+        _create: &ViewCreateStatement,
+        _sql: &mut dyn SqlWriter,
+    ) {
+    }
 
-    fn prepare_view_create_after_view(&self, _create: &ViewCreateStatement, _sql: &mut SqlWriter) {}
+    fn prepare_view_create_after_view(
+        &self,
+        _create: &ViewCreateStatement,
+        _sql: &mut dyn SqlWriter,
+    ) {
+    }
 
-    fn prepare_view_create_opt_update(&self, opt: &ViewCreateOpt, sql: &mut SqlWriter) {
+    fn prepare_view_create_opt_update(&self, opt: &ViewCreateOpt, sql: &mut dyn SqlWriter) {
         write!(sql, " WITH ").unwrap();
         match opt {
             ViewCreateOpt::Cascade => write!(sql, "CASCADED").unwrap(),
@@ -45,10 +55,14 @@ pub trait ViewBuilder: QueryBuilder + QuotedBuilder {
         write!(sql, " CHECK OPTION").unwrap();
     }
 
-    fn prepare_view_rename_statement(&self, _rename: &ViewRenameStatement, _sql: &mut SqlWriter);
+    fn prepare_view_rename_statement(
+        &self,
+        _rename: &ViewRenameStatement,
+        _sql: &mut dyn SqlWriter,
+    );
 
     /// Translate [`ViewDropStatement`] into SQL statement.
-    fn prepare_view_drop_statement(&self, drop: &ViewDropStatement, sql: &mut SqlWriter) {
+    fn prepare_view_drop_statement(&self, drop: &ViewDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP VIEW ").unwrap();
 
         if drop.if_exists {
@@ -72,7 +86,7 @@ pub trait ViewBuilder: QueryBuilder + QuotedBuilder {
     }
 
     /// Translate [`ViewDropOpt`] into SQL statement.
-    fn prepare_view_drop_opt(&self, drop_opt: &ViewDropOpt, sql: &mut dyn std::fmt::Write) {
+    fn prepare_view_drop_opt(&self, drop_opt: &ViewDropOpt, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",
@@ -85,22 +99,22 @@ pub trait ViewBuilder: QueryBuilder + QuotedBuilder {
     }
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_view_ref(&self, table_ref: &TableRef, sql: &mut SqlWriter) {
+    fn prepare_view_ref(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::Table(table) => {
-                table.prepare(sql, self.quote());
+                table.prepare(sql.as_writer(), self.quote());
             }
             TableRef::SchemaTable(schema, table) => {
-                schema.prepare(sql, self.quote());
+                schema.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
+                table.prepare(sql.as_writer(), self.quote());
             }
             TableRef::DatabaseSchemaTable(database, schema, table) => {
-                database.prepare(sql, self.quote());
+                database.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                schema.prepare(sql, self.quote());
+                schema.prepare(sql.as_writer(), self.quote());
                 write!(sql, ".").unwrap();
-                table.prepare(sql, self.quote());
+                table.prepare(sql.as_writer(), self.quote());
             }
             _ => panic!("Not supported"),
         }

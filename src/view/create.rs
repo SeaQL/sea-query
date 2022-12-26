@@ -1,6 +1,4 @@
-use crate::{
-    backend::SchemaBuilder, prepare::*, query::SelectStatement, types::*, SchemaStatementBuilder,
-};
+use crate::{backend::SchemaBuilder, query::SelectStatement, types::*, SchemaStatementBuilder};
 
 /// Create a view
 ///
@@ -8,7 +6,7 @@ use crate::{
 ///
 /// ```
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ViewCreateStatement {
     pub(crate) view: Option<TableRef>,
     pub(crate) columns: Vec<DynIden>,
@@ -26,25 +24,10 @@ pub enum ViewCreateOpt {
     Local,
 }
 
-impl Default for ViewCreateStatement {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl ViewCreateStatement {
     /// Construct create view statement.
     pub fn new() -> Self {
-        Self {
-            view: None,
-            columns: Vec::new(),
-            query: SelectStatement::new(),
-            if_not_exists: false,
-            or_replace: false,
-            recursive: false,
-            temporary: false,
-            opt: None,
-        }
+        Self::default()
     }
 
     /// Create view if view not exists.
@@ -140,14 +123,14 @@ impl ViewCreateStatement {
 
 impl SchemaStatementBuilder for ViewCreateStatement {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_view_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 
     fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = SqlWriter::new();
+        let mut sql = String::with_capacity(256);
         schema_builder.prepare_view_create_statement(self, &mut sql);
-        sql.result()
+        sql
     }
 }
