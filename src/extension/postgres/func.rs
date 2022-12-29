@@ -333,7 +333,7 @@ impl PgFunc {
             .args([text.into(), prefix.into()])
     }
 
-    /// Call `GET_RANDOM_UUID` function. Postgres only.
+    /// Call `GEN_RANDOM_UUID` function. Postgres only.
     ///
     /// # Examples
     ///
@@ -344,7 +344,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT GET_RANDOM_UUID()"#
+    ///     r#"SELECT GEN_RANDOM_UUID()"#
     /// );
     /// ```
     pub fn get_random_uuid() -> FunctionCall {
