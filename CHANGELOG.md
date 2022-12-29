@@ -22,12 +22,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Removed `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/551
 * Removed `UpdateStatement::exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr` https://github.com/SeaQL/sea-query/pull/551
 * `INTEGER` mapped to `i64` instead of `i32` for SQLite https://github.com/SeaQL/sea-query/pull/556
+* Fixes Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
 
 ### House keeping
 
 * Elided unnecessary lifetimes https://github.com/SeaQL/sea-query/pull/552
 * Changed all `version = "^x.y.z"` into `version = "x.y.z"` in all Cargo.toml https://github.com/SeaQL/sea-query/pull/547/
 * Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
+
+## 0.28.1 - 2022-12-29
+
+### Bug fixes
+
+* Fixes Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
 
 ## 0.28.0 - 2022-12-09
 
