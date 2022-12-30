@@ -21,8 +21,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Removed `InsertStatement::exprs`, `InsertStatement::exprs_panic` https://github.com/SeaQL/sea-query/pull/551
 * Removed `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/551
 * Removed `UpdateStatement::exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr` https://github.com/SeaQL/sea-query/pull/551
-* `INTEGER` mapped to `i64` instead of `i32` for SQLite https://github.com/SeaQL/sea-query/pull/556
-* Fixes Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
+* `BigInteger` now maps to `bigint` instead of `integer` on SQLite https://github.com/SeaQL/sea-query/pull/556
+* Fixed Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
+  - `PgFunction::GetRandomUUID` -> `PgFunction::GenRandomUUID`
+  - `PgFunc::get_random_uuid` -> `PgFunc::gen_random_uuid`
 
 ### House keeping
 
