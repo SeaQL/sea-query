@@ -2163,6 +2163,12 @@ impl Expression for SimpleExpr {
     }
 }
 
+impl From<SelectStatement> for SimpleExpr {
+    fn from(sel: SelectStatement) -> Self {
+        SimpleExpr::SubQuery(None, Box::new(sel.into_sub_query_statement()))
+    }
+}
+
 impl SimpleExpr {
     /// Negates an expression with `NOT`.
     ///
