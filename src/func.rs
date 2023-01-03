@@ -407,7 +407,11 @@ impl Func {
     ///
     /// let query = Query::select()
     ///     .expr(Func::coalesce([
-    ///         Query::select().from(Char::Table).expr(Func::max(Expr::col(Char::SizeW))).to_owned().into(),
+    ///         Query::select()
+    ///             .from(Char::Table)
+    ///             .expr(Func::max(Expr::col(Char::SizeW)))
+    ///             .to_owned()
+    ///             .into(),
     ///         Expr::col(Char::SizeH).into(),
     ///         Expr::val(12).into(),
     ///     ]))
