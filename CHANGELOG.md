@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-* Added `Cow<str>` conversion to `Value` https://github.com/SeaQL/sea-query/pull/550
-* Added convert various `UUID` defined in `uuid::fmt` module into `sea_query::Value::Uuid` https://github.com/SeaQL/sea-query/pull/563
 * Added `ValueTuple::Many` for tuple with length up to 12 https://github.com/SeaQL/sea-query/pull/564
 * Added create Table `CHECK` Constraints https://github.com/SeaQL/sea-query/pull/567
 
@@ -31,6 +29,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Elided unnecessary lifetimes https://github.com/SeaQL/sea-query/pull/552
 * Changed all `version = "^x.y.z"` into `version = "x.y.z"` in all Cargo.toml https://github.com/SeaQL/sea-query/pull/547/
 * Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
+
+## 0.28.2 - 2023-01-04
+
+### Enhancements
+
+* Added `Cow<str>` conversion to `Value` https://github.com/SeaQL/sea-query/pull/550
+* Added convert various `UUID` defined in `uuid::fmt` module into `sea_query::Value::Uuid` https://github.com/SeaQL/sea-query/pull/563
 
 ## 0.28.1 - 2022-12-29
 
