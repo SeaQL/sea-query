@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - master
+      - 0.*.x
       - pr/**/ci
     paths-ignore:
       - '**.md'
