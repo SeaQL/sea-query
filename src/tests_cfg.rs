@@ -91,6 +91,7 @@ pub enum Glyph {
     Id,
     Image,
     Aspect,
+    Tokens
 }
 
 impl Iden for Glyph {
@@ -103,6 +104,7 @@ impl Iden for Glyph {
                 Self::Id => "id",
                 Self::Image => "image",
                 Self::Aspect => "aspect",
+                Self::Tokens => "tokens"
             }
         )
         .unwrap();
