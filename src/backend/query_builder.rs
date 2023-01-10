@@ -1065,11 +1065,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Convert a SQL value inside an array into syntax-specific string
     fn value_to_string_in_array(&self, v: &Value) -> String {
         let mut s = String::new();
-        match v{
-            Value::String(Some(v)) => {
-                self.write_string(v, &mut s)
-            }
-            _ => {s = self.value_to_string(v)}
+        match v {
+            Value::String(Some(v)) => self.write_string(v, &mut s),
+            _ => s = self.value_to_string(v),
         }
         s
     }
