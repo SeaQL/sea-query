@@ -314,6 +314,11 @@ impl UpdateStatement {
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
+
+    /// Get column values
+    pub fn get_values(&self) -> &Vec<(DynIden, Box<SimpleExpr>)> {
+        &self.values
+    }
 }
 
 impl QueryStatementBuilder for UpdateStatement {
