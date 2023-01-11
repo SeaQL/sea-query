@@ -1046,9 +1046,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => write!(
                 s,
-                "'{{{}}}'",
+                "ARRAY [{}]",
                 v.iter()
-                    .map(|element| self.value_to_string_in_array(element))
+                    .map(|element| self.value_to_string(element))
                     .collect::<Vec<String>>()
                     .join(",")
             )
@@ -1058,17 +1058,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
         };
-        s
-    }
-
-    #[doc(hidden)]
-    /// Convert a SQL value inside an array into syntax-specific string
-    fn value_to_string_in_array(&self, v: &Value) -> String {
-        let mut s = String::new();
-        match v {
-            Value::String(Some(v)) => self.write_string(v, &mut s),
-            _ => s = self.value_to_string(v),
-        }
         s
     }
 
@@ -1386,12 +1375,6 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
         write!(buffer, "'{}'", self.escape_string(string)).unwrap()
-    }
-
-    #[doc(hidden)]
-    /// Write a string without any quotes.
-    fn write_string(&self, string: &str, buffer: &mut String) {
-        write!(buffer, "{}", self.escape_string(string)).unwrap()
     }
 
     #[doc(hidden)]
