@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.28.3 - Pending
+
+### New Features
+
+* Added getter for the `UpdateStatement::values` field https://github.com/SeaQL/sea-query/pull/578
+
 ## 0.28.2 - 2023-01-04
 
 ### Enhancements
