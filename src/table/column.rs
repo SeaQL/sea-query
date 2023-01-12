@@ -64,10 +64,7 @@ pub enum ColumnSpec {
     UniqueKey,
     PrimaryKey,
     Check(SimpleExpr),
-    Generated {
-        expr: SimpleExpr,
-        stored: bool,
-    },
+    Generated { expr: SimpleExpr, stored: bool },
     Extra(String),
 }
 

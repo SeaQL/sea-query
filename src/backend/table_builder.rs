@@ -93,10 +93,9 @@ pub trait TableBuilder:
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
-            ColumnSpec::Generated {
-                expr,
-                stored
-            } => self.prepare_generated_column(expr, *stored, sql),
+            ColumnSpec::Generated { expr, stored } => {
+                self.prepare_generated_column(expr, *stored, sql)
+            }
             ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
         }
     }
