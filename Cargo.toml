@@ -42,6 +42,7 @@ ipnetwork = { version = "0.19", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 
 [dev-dependencies]
+sea-query = { path = ".", features = ["tests-cfg"] }
 criterion = { version = "0.3", features = ["html_reports"] }
 pretty_assertions = { version = "1" }
 
@@ -63,6 +64,7 @@ with-uuid = ["uuid"]
 with-time = ["time"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
+tests-cfg = []
 
 [[test]]
 name = "test-derive"
@@ -72,22 +74,22 @@ required-features = ["derive"]
 [[test]]
 name = "test-error"
 path = "tests/error/mod.rs"
-required-features = []
+required-features = ["tests-cfg"]
 
 [[test]]
 name = "test-mysql"
 path = "tests/mysql/mod.rs"
-required-features = ["backend-mysql"]
+required-features = ["tests-cfg", "backend-mysql"]
 
 [[test]]
 name = "test-postgres"
 path = "tests/postgres/mod.rs"
-required-features = ["backend-postgres"]
+required-features = ["tests-cfg", "backend-postgres"]
 
 [[test]]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
-required-features = ["backend-sqlite"]
+required-features = ["tests-cfg", "backend-sqlite"]
 
 [[bench]]
 name = "basic"

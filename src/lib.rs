@@ -828,24 +828,23 @@ pub mod query;
 pub mod schema;
 mod shim;
 pub mod table;
-pub mod tests_cfg;
 pub mod token;
 pub mod types;
 pub mod value;
 
+#[doc(hidden)]
+#[cfg(feature = "tests-cfg")]
+pub mod tests_cfg;
+
 pub use backend::*;
-//pub use extension::*;
-pub use foreign_key::*;
-pub use index::*;
-pub use query::*;
-pub use table::*;
-// pub use error::*;
 pub use expr::*;
+pub use foreign_key::*;
 pub use func::*;
+pub use index::*;
 pub use prepare::*;
+pub use query::*;
 pub use schema::*;
-//pub use shim::*;
-//pub use tests_cfg::*;
+pub use table::*;
 pub use token::*;
 pub use types::*;
 pub use value::*;
