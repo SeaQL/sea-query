@@ -90,6 +90,12 @@ impl PartialEq for ColumnType {
     }
 }
 
+impl ColumnType {
+    pub fn custom(ty: &str) -> ColumnType {
+        ColumnType::Custom(Alias::new(ty).into_iden())
+    }
+}
+
 /// All column specification keywords
 #[derive(Debug, Clone)]
 pub enum ColumnSpec {
