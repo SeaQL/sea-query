@@ -204,7 +204,33 @@ impl ColumnDef {
         self
     }
 
-    /// Set default value of a column
+    /// Set default expression of a column
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(ColumnDef::new(Char::FontId).integer().default(12i32))
+    ///     .col(
+    ///         ColumnDef::new(Char::CreatedAt)
+    ///             .timestamp()
+    ///             .default(Expr::current_timestamp())
+    ///             .not_null(),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         "CREATE TABLE `character` (",
+    ///         "`font_id` int DEFAULT 12,",
+    ///         "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL",
+    ///         ")",
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
         T: Into<SimpleExpr>,
