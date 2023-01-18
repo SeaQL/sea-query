@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
 * `tests_cfg` module is available only if you enabled `tests-cfg` feature https://github.com/SeaQL/sea-query/pull/584
 
+## 0.28.3 - 2023-01-18
+
+### Enhancements
+
+* Added getter for the `UpdateStatement::values` field https://github.com/SeaQL/sea-query/pull/578
+* Implements `PartialEq` for `ColumnType` https://github.com/SeaQL/sea-query/pull/579
+* Added helper function to construct `ColumnType::Custom` https://github.com/SeaQL/sea-query/pull/579
+
 ## 0.28.2 - 2023-01-04
 
 ### Enhancements
