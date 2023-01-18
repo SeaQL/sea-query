@@ -316,7 +316,7 @@ impl UpdateStatement {
     }
 
     /// Get column values
-    pub fn get_values(&self) -> &Vec<(DynIden, Box<SimpleExpr>)> {
+    pub fn get_values(&self) -> &[(DynIden, Box<SimpleExpr>)] {
         &self.values
     }
 }
