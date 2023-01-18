@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.28.3 - Pending
+## 0.28.3 - 2023-01-18
 
-### New Features
+### Enhancements
 
 * Added getter for the `UpdateStatement::values` field https://github.com/SeaQL/sea-query/pull/578
+* Implements `PartialEq` for `ColumnType` https://github.com/SeaQL/sea-query/pull/579
+* Added helper function to construct `ColumnType::Custom` https://github.com/SeaQL/sea-query/pull/579
 
 ## 0.28.2 - 2023-01-04
 
