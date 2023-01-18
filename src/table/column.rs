@@ -230,6 +230,17 @@ impl ColumnDef {
     ///     ]
     ///     .join(" ")
     /// );
+    ///
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""font_id" integer DEFAULT 12,"#,
+    ///         r#""created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
     /// ```
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
