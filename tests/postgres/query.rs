@@ -1256,6 +1256,26 @@ fn insert_8() {
 }
 
 #[test]
+fn insert_10() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Tokens])
+            .values_panic([
+                3.1415.into(),
+                vec![
+                    "Token1".to_string(),
+                    "Token2".to_string(),
+                    "Token3".to_string()
+                ]
+                .into()
+            ])
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, ARRAY ['Token1','Token2','Token3'])"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_1() {
     assert_eq!(
