@@ -1046,7 +1046,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => write!(
                 s,
-                "'{{{}}}'",
+                "ARRAY [{}]",
                 v.iter()
                     .map(|element| self.value_to_string(element))
                     .collect::<Vec<String>>()
