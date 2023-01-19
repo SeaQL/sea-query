@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
 * `tests_cfg` module is available only if you enabled `tests-cfg` feature https://github.com/SeaQL/sea-query/pull/584
 
+### Bug fixes
+
+* Fix quoted string bug while inserting array of strings to Postgres https://github.com/SeaQL/sea-query/pull/576
+
 ## 0.28.3 - 2023-01-18
 
 ### Enhancements
