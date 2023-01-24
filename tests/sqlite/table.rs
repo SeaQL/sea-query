@@ -172,6 +172,140 @@ fn create_6() {
 }
 
 #[test]
+fn create_7() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::Deferrable)
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") DEFERRABLE"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_8() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::DeferrableInitiallyImmediate)
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") DEFERRABLE INITIALLY IMMEDIATE"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+#[test]
+fn create_9() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::DeferrableInitiallyDeferred)
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") DEFERRABLE INITIALLY DEFERRED"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+#[test]
+fn create_10() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::NotDeferrable)
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") NOT DEFERRABLE"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+#[test]
+fn create_11() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::NotDeferrableInitiallyImmediate)
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") NOT DEFERRABLE INITIALLY IMMEDIATE"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+#[test]
+fn create_12() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::NotDeferrableInitiallyDeferred)
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") NOT DEFERRABLE INITIALLY DEFERRED"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn create_with_unique_index() {
     assert_eq!(
         Table::create()

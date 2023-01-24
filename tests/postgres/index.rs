@@ -83,6 +83,48 @@ fn create_6() {
 }
 
 #[test]
+fn create_7() {
+    assert_eq!(
+        Index::create()
+            .name("deferable")
+            .unique()
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .deferrable(Deferrable::NotDeferrable)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE UNIQUE INDEX "deferable" ON "glyph" ("image") NOT DEFERRABLE"#
+    );
+}
+
+#[test]
+fn create_8() {
+    assert_eq!(
+        Index::create()
+            .name("deferable")
+            .unique()
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .deferrable(Deferrable::DeferrableInitiallyImmediate)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE UNIQUE INDEX "deferable" ON "glyph" ("image") DEFERRABLE INITIALLY IMMEDIATE"#
+    );
+}
+
+#[test]
+fn create_9() {
+    assert_eq!(
+        Index::create()
+            .name("deferable")
+            .unique()
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .deferrable(Deferrable::DeferrableInitiallyDeferred)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE UNIQUE INDEX "deferable" ON "glyph" ("image") DEFERRABLE INITIALLY DEFERRED"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

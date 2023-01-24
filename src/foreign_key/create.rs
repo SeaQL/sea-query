@@ -161,6 +161,13 @@ impl ForeignKeyCreateStatement {
         self
     }
 
+    /// Set when this constraint is checked
+    #[cfg(any(feature = "backend-postgres", feature = "backend-sqlite"))]
+    pub fn deferrable(&mut self, deferrable: Deferrable) -> &mut Self {
+        self.foreign_key.deferrable(deferrable);
+        self
+    }
+
     pub fn get_foreign_key(&self) -> &TableForeignKey {
         &self.foreign_key
     }

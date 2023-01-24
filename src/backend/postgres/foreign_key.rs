@@ -83,6 +83,20 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             write!(sql, " ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
         }
+
+        match create.foreign_key.deferrable {
+            Some(Deferrable::NotDeferrable) => {
+                write!(sql, " NOT DEFERRABLE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyImmediate) => {
+                write!(sql, " DEFERRABLE INITIALLY IMMEDIATE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyDeferred) => {
+                write!(sql, " DEFERRABLE INITIALLY DEFERRED").unwrap();
+            }
+            Some(_) => panic!("Not supported"),
+            None => {}
+        }
     }
 
     fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {

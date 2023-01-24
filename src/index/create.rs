@@ -129,6 +129,7 @@ pub struct IndexCreateStatement {
     pub(crate) nulls_not_distinct: bool,
     pub(crate) index_type: Option<IndexType>,
     pub(crate) if_not_exists: bool,
+    pub(crate) deferrable: Option<Deferrable>,
 }
 
 /// Specification of a table index
@@ -207,6 +208,13 @@ impl IndexCreateStatement {
         self
     }
 
+    /// Set when this constraint is checked
+    #[cfg(feature = "backend-postgres")]
+    pub fn deferrable(&mut self, deferrable: Deferrable) -> &mut Self {
+        self.deferrable = Some(deferrable);
+        self
+    }
+
     pub fn is_primary_key(&self) -> bool {
         self.primary
     }
@@ -223,6 +231,11 @@ impl IndexCreateStatement {
         &self.index
     }
 
+    #[cfg(feature = "backend-postgres")]
+    pub fn get_deferrable(&self) -> Option<Deferrable> {
+        self.deferrable
+    }
+
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
@@ -232,6 +245,7 @@ impl IndexCreateStatement {
             nulls_not_distinct: self.nulls_not_distinct,
             index_type: self.index_type.take(),
             if_not_exists: self.if_not_exists,
+            deferrable: self.deferrable,
         }
     }
 }

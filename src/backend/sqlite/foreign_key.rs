@@ -71,5 +71,27 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             write!(sql, " ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
         }
+
+        match create.foreign_key.deferrable {
+            Some(Deferrable::Deferrable) => {
+                write!(sql, " DEFERRABLE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyImmediate) => {
+                write!(sql, " DEFERRABLE INITIALLY IMMEDIATE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyDeferred) => {
+                write!(sql, " DEFERRABLE INITIALLY DEFERRED").unwrap();
+            }
+            Some(Deferrable::NotDeferrable) => {
+                write!(sql, " NOT DEFERRABLE").unwrap();
+            }
+            Some(Deferrable::NotDeferrableInitiallyImmediate) => {
+                write!(sql, " NOT DEFERRABLE INITIALLY IMMEDIATE").unwrap();
+            }
+            Some(Deferrable::NotDeferrableInitiallyDeferred) => {
+                write!(sql, " NOT DEFERRABLE INITIALLY DEFERRED").unwrap();
+            }
+            None => {}
+        }
     }
 }

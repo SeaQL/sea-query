@@ -234,6 +234,21 @@ pub enum SubQueryOper {
     All,
 }
 
+/// Set when a constraint is checked
+#[cfg(any(feature = "backend-postgres", feature = "backend-sqlite"))]
+#[derive(Debug, Copy, Clone)]
+pub enum Deferrable {
+    #[cfg(feature = "backend-sqlite")]
+    Deferrable,
+    DeferrableInitiallyImmediate,
+    DeferrableInitiallyDeferred,
+    NotDeferrable,
+    #[cfg(feature = "backend-sqlite")]
+    NotDeferrableInitiallyImmediate,
+    #[cfg(feature = "backend-sqlite")]
+    NotDeferrableInitiallyDeferred,
+}
+
 // Impl begins
 
 impl<T: 'static> IntoIden for T

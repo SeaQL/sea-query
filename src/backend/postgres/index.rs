@@ -19,6 +19,20 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
+
+        match create.deferrable {
+            Some(Deferrable::NotDeferrable) => {
+                write!(sql, " NOT DEFERRABLE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyImmediate) => {
+                write!(sql, " DEFERRABLE INITIALLY IMMEDIATE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyDeferred) => {
+                write!(sql, " DEFERRABLE INITIALLY DEFERRED").unwrap();
+            }
+            Some(_) => panic!("Not supported!"),
+            None => {}
+        }
     }
 
     fn prepare_index_create_statement(
@@ -49,6 +63,20 @@ impl IndexBuilder for PostgresQueryBuilder {
 
         if create.nulls_not_distinct {
             write!(sql, " NULLS NOT DISTINCT").unwrap();
+        }
+
+        match create.deferrable {
+            Some(Deferrable::NotDeferrable) => {
+                write!(sql, " NOT DEFERRABLE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyImmediate) => {
+                write!(sql, " DEFERRABLE INITIALLY IMMEDIATE").unwrap();
+            }
+            Some(Deferrable::DeferrableInitiallyDeferred) => {
+                write!(sql, " DEFERRABLE INITIALLY DEFERRED").unwrap();
+            }
+            Some(_) => panic!("Not supported!"),
+            None => {}
         }
     }
 

@@ -345,6 +345,75 @@ fn create_15() {
 }
 
 #[test]
+fn create_16() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::NotDeferrable)
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") NOT DEFERRABLE"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_17() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::DeferrableInitiallyImmediate)
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") DEFERRABLE INITIALLY IMMEDIATE"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_18() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(ColumnDef::new(Char::FontId).integer())
+            .foreign_key(
+                ForeignKey::create()
+                    .from(Char::Table, Char::FontId)
+                    .to(Font::Table, Font::Id)
+                    .deferrable(Deferrable::DeferrableInitiallyDeferred)
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""font_id" integer,"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") DEFERRABLE INITIALLY DEFERRED"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
