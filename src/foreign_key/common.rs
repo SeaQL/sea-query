@@ -10,6 +10,7 @@ pub struct TableForeignKey {
     pub(crate) ref_columns: Vec<DynIden>,
     pub(crate) on_delete: Option<ForeignKeyAction>,
     pub(crate) on_update: Option<ForeignKeyAction>,
+    #[cfg(any(feature = "backend-postgres", feature = "backend-sqlite"))]
     pub(crate) deferrable: Option<Deferrable>,
 }
 
@@ -127,6 +128,7 @@ impl TableForeignKey {
             ref_columns: std::mem::take(&mut self.ref_columns),
             on_delete: self.on_delete.take(),
             on_update: self.on_update.take(),
+            #[cfg(any(feature = "backend-postgres", feature = "backend-sqlite"))]
             deferrable: self.deferrable.take(),
         }
     }
