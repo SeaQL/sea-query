@@ -1550,3 +1550,27 @@ fn union_1() {
         .join(" ")
     );
 }
+
+#[test]
+fn sub_query_with_fn() {
+    #[derive(Iden)]
+    #[iden = "ARRAY"]
+    pub struct ArrayFunc;
+
+    let sub_select = Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .to_owned();
+
+    let select = Query::select()
+        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
+            None,
+            Box::new(sub_select.into_sub_query_statement()),
+        )))
+        .to_owned();
+
+    assert_eq!(
+        select.to_string(SqliteQueryBuilder),
+        r#"SELECT ARRAY((SELECT * FROM "character"))"#
+    );
+}
