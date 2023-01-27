@@ -100,6 +100,14 @@ impl TableBuilder for SqliteQueryBuilder {
         // SQLite does not support table drop options
     }
 
+    fn prepare_table_truncate_statement(
+        &self,
+        _truncate: &TableTruncateStatement,
+        _sql: &mut dyn SqlWriter,
+    ) {
+        panic!("Sqlite doesn't support TRUNCATE statement")
+    }
+
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
