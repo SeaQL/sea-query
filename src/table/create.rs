@@ -94,6 +94,7 @@ pub enum TableOpt {
     Engine(String),
     Collate(String),
     CharacterSet(String),
+    Strict,
 }
 
 /// All available table partition options
@@ -236,6 +237,12 @@ impl TableCreateStatement {
     /// Set database character set. MySQL only.
     pub fn character_set(&mut self, string: &str) -> &mut Self {
         self.opt(TableOpt::CharacterSet(string.into()));
+        self
+    }
+
+    /// Mark table as strict. SQLite only.
+    pub fn strict(&mut self) -> &mut Self {
+        self.opt(TableOpt::Strict);
         self
     }
 
