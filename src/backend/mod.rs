@@ -79,7 +79,7 @@ pub trait EscapeBuilder {
                 .unwrap();
                 escape = false;
             } else {
-                write!(output, "{}", c).unwrap();
+                write!(output, "{c}").unwrap();
             }
         }
         output

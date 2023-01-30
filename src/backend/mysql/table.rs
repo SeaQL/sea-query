@@ -21,11 +21,11 @@ impl TableBuilder for MysqlQueryBuilder {
             "{}",
             match column_type {
                 ColumnType::Char(length) => match length {
-                    Some(length) => format!("char({})", length),
+                    Some(length) => format!("char({length})"),
                     None => "char".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("varchar({})", length),
+                    Some(length) => format!("varchar({length})"),
                     None => "varchar(255)".into(),
                 },
                 ColumnType::Text => "text".into(),
@@ -36,7 +36,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Float => "float".into(),
                 ColumnType::Double => "double".into(),
                 ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
                     None => "decimal".into(),
                 },
                 ColumnType::DateTime => "datetime".into(),
@@ -58,26 +58,26 @@ impl TableBuilder for MysqlQueryBuilder {
                     BlobSize::Tiny => "tinyblob".into(),
                     BlobSize::Blob(length) => {
                         match length {
-                            Some(length) => format!("binary({})", length),
+                            Some(length) => format!("binary({length})"),
                             None => "blob".into(),
                         }
                     }
                     BlobSize::Medium => "mediumblob".into(),
                     BlobSize::Long => "longblob".into(),
                 },
-                ColumnType::VarBinary(length) => format!("varbinary({})", length),
+                ColumnType::VarBinary(length) => format!("varbinary({length})"),
                 ColumnType::Bit(length) => {
                     match length {
-                        Some(length) => format!("bit({})", length),
+                        Some(length) => format!("bit({length})"),
                         None => "bit".into(),
                     }
                 }
                 ColumnType::VarBit(length) => {
-                    format!("bit({})", length)
+                    format!("bit({length})")
                 }
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("money({precision}, {scale})"),
                     None => "money".into(),
                 },
                 ColumnType::Json => "json".into(),

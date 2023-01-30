@@ -93,7 +93,7 @@ pub trait TableBuilder:
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
-            ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
+            ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
         }
     }
 
@@ -106,9 +106,9 @@ pub trait TableBuilder:
             sql,
             "{}",
             match table_opt {
-                TableOpt::Engine(s) => format!("ENGINE={}", s),
-                TableOpt::Collate(s) => format!("COLLATE={}", s),
-                TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={}", s),
+                TableOpt::Engine(s) => format!("ENGINE={s}"),
+                TableOpt::Collate(s) => format!("COLLATE={s}"),
+                TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={s}"),
             }
         )
         .unwrap()

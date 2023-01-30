@@ -1737,15 +1737,15 @@ mod tests {
 
         assert_eq!(
             query.to_string(MysqlQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
     }
 
@@ -1804,15 +1804,15 @@ mod tests {
 
         assert_eq!(
             query.to_string(MysqlQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
     }
 
@@ -1824,22 +1824,22 @@ mod tests {
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_braced = uuid.clone().braced();
+        let uuid_braced = uuid.braced();
         let value: Value = uuid_braced.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_hyphenated = uuid.clone().hyphenated();
+        let uuid_hyphenated = uuid.hyphenated();
         let value: Value = uuid_hyphenated.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_simple = uuid.clone().simple();
+        let uuid_simple = uuid.simple();
         let value: Value = uuid_simple.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_urn = uuid.clone().urn();
+        let uuid_urn = uuid.urn();
         let value: Value = uuid_urn.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);

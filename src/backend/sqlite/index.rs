@@ -38,7 +38,7 @@ impl IndexBuilder for SqliteQueryBuilder {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(name) = &drop.index.name {
             let quote = self.quote();
-            write!(sql, "{}{}{}", quote, name, quote).unwrap();
+            write!(sql, "{quote}{name}{quote}").unwrap();
         }
     }
 

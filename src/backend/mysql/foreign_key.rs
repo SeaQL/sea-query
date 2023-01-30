@@ -24,7 +24,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
 
         write!(sql, "DROP FOREIGN KEY ").unwrap();
         if let Some(name) = &drop.foreign_key.name {
-            write!(sql, "`{}`", name).unwrap();
+            write!(sql, "`{name}`").unwrap();
         }
     }
 
@@ -48,7 +48,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
 
         write!(sql, "CONSTRAINT ").unwrap();
         if let Some(name) = &create.foreign_key.name {
-            write!(sql, "`{}`", name).unwrap();
+            write!(sql, "`{name}`").unwrap();
         }
         write!(sql, " FOREIGN KEY ").unwrap();
 

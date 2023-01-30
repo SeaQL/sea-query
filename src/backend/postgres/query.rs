@@ -116,7 +116,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         } else {
             "'".to_owned() + &escaped + "'"
         };
-        write!(buffer, "{}", string).unwrap()
+        write!(buffer, "{string}").unwrap()
     }
 
     fn if_null_function(&self) -> &str {

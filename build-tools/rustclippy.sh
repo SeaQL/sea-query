@@ -2,7 +2,7 @@
 set -e
 if [ -d ./build-tools ]; then
     targets=(
-        "Cargo.toml"
+        "Cargo.toml --all-features"
         "sea-query-attr/Cargo.toml"
         "sea-query-binder/Cargo.toml"
         "sea-query-derive/Cargo.toml"
@@ -12,7 +12,7 @@ if [ -d ./build-tools ]; then
 
     for target in "${targets[@]}"; do
         echo "cargo clippy --manifest-path ${target} --fix --allow-dirty --allow-staged"
-        cargo clippy --manifest-path "${target}" --fix --allow-dirty --allow-staged
+        cargo clippy --manifest-path ${target} --fix --allow-dirty --allow-staged
     done
 
     examples=(`find examples -type f -name 'Cargo.toml'`)
