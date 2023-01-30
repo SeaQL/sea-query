@@ -329,6 +329,17 @@ fn drop_1() {
 }
 
 #[test]
+#[should_panic(expected = "Sqlite doesn't support TRUNCATE statement")]
+fn truncate_1() {
+    assert_eq!(
+        Table::truncate()
+            .table(Font::Table)
+            .to_string(SqliteQueryBuilder),
+        r#"TRUNCATE TABLE "font""#
+    );
+}
+
+#[test]
 fn alter_1() {
     assert_eq!(
         Table::alter()
