@@ -1081,7 +1081,9 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .values_panic([chrono::NaiveDateTime::from_timestamp_opt(0, 0)
+                .unwrap()
+                .into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
     );

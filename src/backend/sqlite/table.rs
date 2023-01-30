@@ -41,11 +41,11 @@ impl TableBuilder for SqliteQueryBuilder {
             "{}",
             match column_type {
                 ColumnType::Char(length) => match length {
-                    Some(length) => format!("text({})", length),
+                    Some(length) => format!("text({length})"),
                     None => "text".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("text({})", length),
+                    Some(length) => format!("text({length})"),
                     None => "text".into(),
                 },
                 ColumnType::Text => "text".into(),
@@ -56,7 +56,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Float => "real".into(),
                 ColumnType::Double => "real".into(),
                 ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("real({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("real({precision}, {scale})"),
                     None => "real".into(),
                 },
                 ColumnType::DateTime => "text".into(),
@@ -66,13 +66,13 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Date => "text".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Blob(Some(length)) => format!("binary({})", length),
+                    BlobSize::Blob(Some(length)) => format!("binary({length})"),
                     _ => "blob".into(),
                 },
-                ColumnType::VarBinary(length) => format!("binary({})", length),
+                ColumnType::VarBinary(length) => format!("binary({length})"),
                 ColumnType::Boolean => "boolean".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("integer({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("integer({precision}, {scale})"),
                     None => "integer".into(),
                 },
                 ColumnType::Json => "text".into(),
