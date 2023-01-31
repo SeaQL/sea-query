@@ -96,7 +96,7 @@ pub trait TableBuilder:
             ColumnSpec::Generated { expr, stored } => {
                 self.prepare_generated_column(expr, *stored, sql)
             }
-            ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
+            ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
         }
     }
 
@@ -109,9 +109,9 @@ pub trait TableBuilder:
             sql,
             "{}",
             match table_opt {
-                TableOpt::Engine(s) => format!("ENGINE={}", s),
-                TableOpt::Collate(s) => format!("COLLATE={}", s),
-                TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={}", s),
+                TableOpt::Engine(s) => format!("ENGINE={s}"),
+                TableOpt::Collate(s) => format!("COLLATE={s}"),
+                TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={s}"),
             }
         )
         .unwrap()

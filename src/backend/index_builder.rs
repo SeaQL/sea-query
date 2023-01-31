@@ -43,7 +43,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     /// Write the column index prefix.
     fn write_column_index_prefix(&self, col_prefix: &Option<u32>, sql: &mut dyn SqlWriter) {
         if let Some(prefix) = col_prefix {
-            write!(sql, " ({})", prefix).unwrap();
+            write!(sql, " ({prefix})").unwrap();
         }
     }
 

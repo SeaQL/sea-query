@@ -53,7 +53,7 @@ impl IndexBuilder for MysqlQueryBuilder {
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(name) = &drop.index.name {
-            write!(sql, "`{}`", name).unwrap();
+            write!(sql, "`{name}`").unwrap();
         }
 
         write!(sql, " ON ").unwrap();

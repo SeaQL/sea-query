@@ -1081,7 +1081,9 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .values_panic([chrono::NaiveDateTime::from_timestamp_opt(0, 0)
+                .unwrap()
+                .into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
     );
@@ -1548,5 +1550,29 @@ fn union_1() {
             r#"LEFT JOIN "font" ON "character"."font_id" = "font"."id" ORDER BY "font"."id" ASC"#
         ]
         .join(" ")
+    );
+}
+
+#[test]
+fn sub_query_with_fn() {
+    #[derive(Iden)]
+    #[iden = "ARRAY"]
+    pub struct ArrayFunc;
+
+    let sub_select = Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .to_owned();
+
+    let select = Query::select()
+        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
+            None,
+            Box::new(sub_select.into_sub_query_statement()),
+        )))
+        .to_owned();
+
+    assert_eq!(
+        select.to_string(SqliteQueryBuilder),
+        r#"SELECT ARRAY((SELECT * FROM "character"))"#
     );
 }

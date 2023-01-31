@@ -20,15 +20,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Removed `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/551
 * Removed `UpdateStatement::exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr` https://github.com/SeaQL/sea-query/pull/551
 * `BigInteger` now maps to `bigint` instead of `integer` on SQLite https://github.com/SeaQL/sea-query/pull/556
-* Fixed Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
-  - `PgFunction::GetRandomUUID` -> `PgFunction::GenRandomUUID`
-  - `PgFunc::get_random_uuid` -> `PgFunc::gen_random_uuid`
 
 ### House keeping
 
 * Elided unnecessary lifetimes https://github.com/SeaQL/sea-query/pull/552
 * Changed all `version = "^x.y.z"` into `version = "x.y.z"` in all Cargo.toml https://github.com/SeaQL/sea-query/pull/547/
 * Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
+* `tests_cfg` module is available only if you enabled `tests-cfg` feature https://github.com/SeaQL/sea-query/pull/584
+
+### Bug fixes
+
+* Fix quoted string bug while inserting array of strings to Postgres https://github.com/SeaQL/sea-query/pull/576
+
+## 0.28.3 - 2023-01-18
+
+### Enhancements
+
+* Added getter for the `UpdateStatement::values` field https://github.com/SeaQL/sea-query/pull/578
+* Implements `PartialEq` for `ColumnType` https://github.com/SeaQL/sea-query/pull/579
+* Added helper function to construct `ColumnType::Custom` https://github.com/SeaQL/sea-query/pull/579
 
 ## 0.28.2 - 2023-01-04
 
@@ -41,7 +51,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Bug fixes
 
-* Fixes Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
+* Fixed Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
+  - `PgFunction::GetRandomUUID` -> `PgFunction::GenRandomUUID`
+  - `PgFunc::get_random_uuid` -> `PgFunc::gen_random_uuid`
 
 ## 0.28.0 - 2022-12-09
 

@@ -54,6 +54,48 @@ pub enum ColumnType {
     MacAddr,
 }
 
+impl PartialEq for ColumnType {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Char(l0), Self::Char(r0)) => l0 == r0,
+            (Self::String(l0), Self::String(r0)) => l0 == r0,
+            (Self::Decimal(l0), Self::Decimal(r0)) => l0 == r0,
+            (Self::Year(l0), Self::Year(r0)) => l0 == r0,
+            (Self::Interval(l0, l1), Self::Interval(r0, r1)) => l0 == r0 && l1 == r1,
+            (Self::Binary(l0), Self::Binary(r0)) => l0 == r0,
+            (Self::VarBinary(l0), Self::VarBinary(r0)) => l0 == r0,
+            (Self::Bit(l0), Self::Bit(r0)) => l0 == r0,
+            (Self::VarBit(l0), Self::VarBit(r0)) => l0 == r0,
+            (Self::Money(l0), Self::Money(r0)) => l0 == r0,
+            (Self::Custom(l0), Self::Custom(r0)) => l0.to_string() == r0.to_string(),
+            (
+                Self::Enum {
+                    name: l_name,
+                    variants: l_variants,
+                },
+                Self::Enum {
+                    name: r_name,
+                    variants: r_variants,
+                },
+            ) => {
+                l_name.to_string() == r_name.to_string()
+                    && l_variants
+                        .iter()
+                        .map(|v| v.to_string())
+                        .eq(r_variants.iter().map(|v| v.to_string()))
+            }
+            (Self::Array(l0), Self::Array(r0)) => l0 == r0,
+            _ => core::mem::discriminant(self) == core::mem::discriminant(other),
+        }
+    }
+}
+
+impl ColumnType {
+    pub fn custom(ty: &str) -> ColumnType {
+        ColumnType::Custom(Alias::new(ty).into_iden())
+    }
+}
+
 /// All column specification keywords
 #[derive(Debug, Clone)]
 pub enum ColumnSpec {
@@ -87,13 +129,13 @@ pub enum PgInterval {
 }
 
 // All MySQL year type field length sizes
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum MySqlYear {
     Two,
     Four,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum BlobSize {
     Tiny,
     /// MySQL & SQLite support `binary(length)` column type
@@ -163,7 +205,44 @@ impl ColumnDef {
         self
     }
 
-    /// Set default value of a column
+    /// Set default expression of a column
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(ColumnDef::new(Char::FontId).integer().default(12i32))
+    ///     .col(
+    ///         ColumnDef::new(Char::CreatedAt)
+    ///             .timestamp()
+    ///             .default(Expr::current_timestamp())
+    ///             .not_null(),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         "CREATE TABLE `character` (",
+    ///         "`font_id` int DEFAULT 12,",
+    ///         "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL",
+    ///         ")",
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""font_id" integer DEFAULT 12,"#,
+    ///         r#""created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
         T: Into<SimpleExpr>,

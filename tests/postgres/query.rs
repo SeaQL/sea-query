@@ -1135,7 +1135,9 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .values_panic([chrono::NaiveDateTime::from_timestamp_opt(0, 0)
+                .unwrap()
+                .into()])
             .to_string(PostgresQueryBuilder),
         "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00')"
     );
@@ -1252,6 +1254,26 @@ fn insert_8() {
             .returning_col(Glyph::Id)
             .to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" VALUES (DEFAULT) RETURNING "id""#
+    );
+}
+
+#[test]
+fn insert_10() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Tokens])
+            .values_panic([
+                3.1415.into(),
+                vec![
+                    "Token1".to_string(),
+                    "Token2".to_string(),
+                    "Token3".to_string()
+                ]
+                .into()
+            ])
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, ARRAY ['Token1','Token2','Token3'])"#
     );
 }
 
@@ -1679,5 +1701,29 @@ fn union_1() {
             r#"LEFT JOIN "font" ON "character"."font_id" = "font"."id" ORDER BY "font"."id" ASC)"#
         ]
         .join(" ")
+    );
+}
+
+#[test]
+fn sub_query_with_fn() {
+    #[derive(Iden)]
+    #[iden = "ARRAY"]
+    pub struct ArrayFunc;
+
+    let sub_select = Query::select()
+        .expr(Expr::asterisk())
+        .from(Char::Table)
+        .to_owned();
+
+    let select = Query::select()
+        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
+            None,
+            Box::new(sub_select.into_sub_query_statement()),
+        )))
+        .to_owned();
+
+    assert_eq!(
+        select.to_string(PostgresQueryBuilder),
+        r#"SELECT ARRAY((SELECT * FROM "character"))"#
     );
 }

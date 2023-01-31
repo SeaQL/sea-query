@@ -1,5 +1,5 @@
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
-use postgres::types::IsNull::No;
+
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
 use sea_query::{ColumnDef, ColumnType, Iden, Order, PostgresQueryBuilder, Query, Table};
@@ -40,9 +40,9 @@ fn main() {
     ]
     .join("; ");
 
-    println!("{}", sql);
+    println!("{sql}");
     let result = client.batch_execute(&sql);
-    println!("Create table document: {:?}\n", result);
+    println!("Create table document: {result:?}\n");
 
     // Create
     let document_chrono = DocumentStructChrono {
@@ -118,7 +118,7 @@ fn main() {
         .build_postgres(PostgresQueryBuilder);
 
     let result = client.execute(sql.as_str(), &values.as_params());
-    println!("Insert into document: {:?}\n", result);
+    println!("Insert into document: {result:?}\n");
 
     // Read
 
@@ -141,10 +141,10 @@ fn main() {
     println!("Select one from document:");
     for row in rows.iter() {
         let item = DocumentStructChrono::from(row);
-        println!("{:?}", item);
+        println!("{item:?}");
 
         let item = DocumentStructTime::from(row);
-        println!("{:?}", item);
+        println!("{item:?}");
     }
     println!();
 }

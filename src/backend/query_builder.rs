@@ -301,7 +301,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 write!(sql, ")").unwrap();
             }
             SimpleExpr::Custom(s) => {
-                write!(sql, "{}", s).unwrap();
+                write!(sql, "{s}").unwrap();
             }
             SimpleExpr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
@@ -311,7 +311,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     match token {
                         Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
                             Some(Token::Punctuation(mark)) if mark == placeholder => {
-                                write!(sql, "{}", mark).unwrap();
+                                write!(sql, "{mark}").unwrap();
                                 tokenizer.next();
                             }
                             Some(Token::Unquoted(tok)) if numbered => {
@@ -325,7 +325,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                                 count += 1;
                             }
                         },
-                        _ => write!(sql, "{}", token).unwrap(),
+                        _ => write!(sql, "{token}").unwrap(),
                     };
                 }
             }
@@ -582,7 +582,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             LogicalChainOper::Or(simple_expr) => (simple_expr, "OR"),
         };
         if i > 0 {
-            write!(sql, " {} ", oper).unwrap();
+            write!(sql, " {oper} ").unwrap();
         }
         let both_binary = match simple_expr {
             SimpleExpr::Binary(_, _, right) => {
@@ -861,11 +861,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_simple_expr(&order_expr.expr, sql);
             write!(sql, "=").unwrap();
             let value = self.value_to_string(value);
-            write!(sql, "{}", value).unwrap();
-            write!(sql, " THEN {} ", i).unwrap();
+            write!(sql, "{value}").unwrap();
+            write!(sql, " THEN {i} ").unwrap();
             i += 1;
         }
-        write!(sql, "ELSE {} END", i).unwrap();
+        write!(sql, "ELSE {i} END").unwrap();
     }
 
     /// Write [`Value`] into SQL statement as parameter.
@@ -874,7 +874,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
         let string = self.value_to_string(value);
-        write!(sql, "{}", string).unwrap();
+        write!(sql, "{string}").unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
@@ -976,16 +976,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             #[cfg(feature = "postgres-array")]
             Value::Array(_, None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Int(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::TinyInt(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::SmallInt(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Int(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::BigInt(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::TinyUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::SmallUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Unsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::BigUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Float(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Double(Some(v)) => write!(s, "{v}").unwrap(),
             Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
@@ -993,7 +993,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x'{}'",
-                v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
+                v.iter().map(|b| format!("{b:02X}")).collect::<String>()
             )
             .unwrap(),
             #[cfg(feature = "with-json")]
@@ -1038,15 +1038,15 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             )
             .unwrap(),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::BigDecimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            Value::Uuid(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => write!(
                 s,
-                "'{{{}}}'",
+                "ARRAY [{}]",
                 v.iter()
                     .map(|element| self.value_to_string(element))
                     .collect::<Vec<String>>()
@@ -1054,9 +1054,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             )
             .unwrap(),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            Value::IpNetwork(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            Value::MacAddress(Some(v)) => write!(s, "'{v}'").unwrap(),
         };
         s
     }
@@ -1207,13 +1207,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         match &condition.contents {
             ConditionHolderContents::Empty => (),
             ConditionHolderContents::Chain(conditions) => {
-                write!(sql, " {} ", keyword).unwrap();
+                write!(sql, " {keyword} ").unwrap();
                 for (i, log_chain_oper) in conditions.iter().enumerate() {
                     self.prepare_logical_chain_oper(log_chain_oper, i, conditions.len(), sql);
                 }
             }
             ConditionHolderContents::Condition(c) => {
-                write!(sql, " {} ", keyword).unwrap();
+                write!(sql, " {keyword} ").unwrap();
                 self.prepare_condition_where(c, sql);
             }
         }

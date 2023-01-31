@@ -47,7 +47,7 @@ impl SqlWriterValues {
 
 impl Write for SqlWriterValues {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        write!(self.string, "{}", s)
+        write!(self.string, "{s}")
     }
 }
 
