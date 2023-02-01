@@ -403,6 +403,7 @@ fn alter_6() {
 }
 
 #[test]
+#[should_panic(expected = "Sqlite doesn't support multiple alter options")]
 fn alter_7() {
     let _ = Table::alter()
         .table(Font::Table)

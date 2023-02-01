@@ -111,7 +111,10 @@ impl TableBuilder for SqliteQueryBuilder {
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
-        };
+        }
+        if alter.options.len() > 1 {
+            panic!("Sqlite doesn't support multiple alter options")
+        }
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
             self.prepare_table_ref_table_stmt(table, sql);
