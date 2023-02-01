@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added create Table `CHECK` Constraints https://github.com/SeaQL/sea-query/pull/567
 * Added support generated column spec https://github.com/SeaQL/sea-query/pull/581
 * Added `BIT_AND`, `BIT_OR` functions https://github.com/SeaQL/sea-query/pull/582
+* Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
 
 ### Breaking changes
 
