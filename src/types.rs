@@ -410,9 +410,12 @@ impl Iden for NullAlias {
 }
 
 impl LikeExpr {
-    pub fn new(pattern: String) -> Self {
+    pub fn new<T>(pattern: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            pattern,
+            pattern: pattern.into(),
             escape: None,
         }
     }
