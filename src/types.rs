@@ -441,13 +441,10 @@ impl IntoLikeExpr for LikeExpr {
     }
 }
 
-impl IntoLikeExpr for &str {
-    fn into_like_expr(self) -> LikeExpr {
-        LikeExpr::str(self)
-    }
-}
-
-impl IntoLikeExpr for String {
+impl<T> IntoLikeExpr for T
+where
+    T: Into<String>,
+{
     fn into_like_expr(self) -> LikeExpr {
         LikeExpr::new(self)
     }
