@@ -204,6 +204,10 @@ pub struct Alias(String);
 #[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;
 
+/// Asterisk ("*")
+#[derive(Default, Debug, Clone, Copy)]
+pub struct Asterisk;
+
 /// SQL Keywords
 #[derive(Debug, Clone)]
 pub enum Keyword {
@@ -302,6 +306,12 @@ where
     }
 }
 
+impl IntoColumnRef for Asterisk {
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::Asterisk
+    }
+}
+
 impl<S: 'static, T: 'static> IntoColumnRef for (S, T)
 where
     S: IntoIden,
@@ -309,6 +319,15 @@ where
 {
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
+    }
+}
+
+impl<T: 'static> IntoColumnRef for (T, Asterisk)
+where
+    T: IntoIden,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::TableAsterisk(self.0.into_iden())
     }
 }
 
