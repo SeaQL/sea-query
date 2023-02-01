@@ -106,6 +106,7 @@ pub enum ColumnSpec {
     UniqueKey,
     PrimaryKey,
     Check(SimpleExpr),
+    Generated { expr: SimpleExpr, stored: bool },
     Extra(String),
 }
 
@@ -581,6 +582,18 @@ impl ColumnDef {
         T: Into<SimpleExpr>,
     {
         self.spec.push(ColumnSpec::Check(value.into()));
+        self
+    }
+
+    /// Sets the column as generated with SimpleExpr
+    pub fn generated<T>(&mut self, expr: T, stored: bool) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.spec.push(ColumnSpec::Generated {
+            expr: expr.into(),
+            stored,
+        });
         self
     }
 

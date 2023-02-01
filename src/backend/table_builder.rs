@@ -93,6 +93,9 @@ pub trait TableBuilder:
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
+            ColumnSpec::Generated { expr, stored } => {
+                self.prepare_generated_column(expr, *stored, sql)
+            }
             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
         }
     }
@@ -170,6 +173,18 @@ pub trait TableBuilder:
         write!(sql, "CHECK (").unwrap();
         QueryBuilder::prepare_simple_expr(self, check, sql);
         write!(sql, ")").unwrap();
+    }
+
+    /// Translate the generated column into SQL statement
+    fn prepare_generated_column(&self, gen: &SimpleExpr, stored: bool, sql: &mut dyn SqlWriter) {
+        write!(sql, "GENERATED ALWAYS AS (").unwrap();
+        QueryBuilder::prepare_simple_expr(self, gen, sql);
+        write!(sql, ")").unwrap();
+        if stored {
+            write!(sql, " STORED").unwrap();
+        } else {
+            write!(sql, " VIRTUAL").unwrap();
+        }
     }
 
     /// Translate [`TableAlterStatement`] into SQL statement.
