@@ -91,7 +91,10 @@ impl PartialEq for ColumnType {
 }
 
 impl ColumnType {
-    pub fn custom(ty: &str) -> ColumnType {
+    pub fn custom<T>(ty: T) -> ColumnType
+    where
+        T: Into<String>,
+    {
         ColumnType::Custom(Alias::new(ty).into_iden())
     }
 }
@@ -585,8 +588,11 @@ impl ColumnDef {
     }
 
     /// Some extra options in custom string
-    pub fn extra(&mut self, string: String) -> &mut Self {
-        self.spec.push(ColumnSpec::Extra(string));
+    pub fn extra<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.spec.push(ColumnSpec::Extra(string.into()));
         self
     }
     pub fn get_column_name(&self) -> String {

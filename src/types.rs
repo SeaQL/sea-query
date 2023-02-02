@@ -388,8 +388,11 @@ impl TableRef {
 }
 
 impl Alias {
-    pub fn new(n: &str) -> Self {
-        Self(n.to_owned())
+    pub fn new<T>(n: T) -> Self
+    where
+        T: Into<String>,
+    {
+        Self(n.into())
     }
 }
 
@@ -420,9 +423,12 @@ impl LikeExpr {
         }
     }
 
-    pub fn str(pattern: &str) -> Self {
+    pub fn str<T>(pattern: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            pattern: pattern.to_owned(),
+            pattern: pattern.into(),
             escape: None,
         }
     }
