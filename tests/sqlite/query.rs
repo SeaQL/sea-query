@@ -776,7 +776,7 @@ fn select_48a() {
 #[test]
 fn select_49() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .to_string(SqliteQueryBuilder);
 
@@ -786,7 +786,7 @@ fn select_49() {
 #[test]
 fn select_50() {
     let statement = Query::select()
-        .expr(Expr::table_asterisk(Char::Table))
+        .column((Character::Table, Asterisk))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(
@@ -879,7 +879,7 @@ fn select_53() {
 #[test]
 fn select_54() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .from(Font::Table)
         .and_where(Expr::col((Font::Table, Font::Id)).equals((Char::Table, Char::FontId)))
@@ -1560,7 +1560,7 @@ fn sub_query_with_fn() {
     pub struct ArrayFunc;
 
     let sub_select = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .to_owned();
 
