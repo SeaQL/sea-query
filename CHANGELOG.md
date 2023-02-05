@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added support generated column spec https://github.com/SeaQL/sea-query/pull/581
 * Added `BIT_AND`, `BIT_OR` functions https://github.com/SeaQL/sea-query/pull/582
 * Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
+* Added new type `Asteriks` https://github.com/SeaQL/sea-query/pull/596
 
 ### Breaking changes
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Removed `UpdateStatement::exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr` https://github.com/SeaQL/sea-query/pull/551
 * `BigInteger` now maps to `bigint` instead of `integer` on SQLite https://github.com/SeaQL/sea-query/pull/556
 * `Table::truncate` now panic for Sqlite https://github.com/SeaQL/sea-query/pull/590
+* Deprecated `Expr::asteriks` and `Expr::table_asteriks` https://github.com/SeaQL/sea-query/pull/596
 
 ### House keeping
 
