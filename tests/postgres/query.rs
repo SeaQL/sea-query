@@ -1258,6 +1258,7 @@ fn insert_8() {
 }
 
 #[test]
+#[cfg(feature = "postgres-array")]
 fn insert_10() {
     assert_eq!(
         Query::insert()
