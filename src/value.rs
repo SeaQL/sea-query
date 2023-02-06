@@ -118,7 +118,10 @@ pub enum ArrayType {
 
 /// Value variants
 ///
-/// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
+/// We want the inner Value to be exactly 1 pointer sized, so anything larger should be boxed.
+///
+/// If the `hashable-value` feature is enabled, NaN == NaN, which contradicts Rust's built-in
+/// implementation of NaN != NaN.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
 #[cfg_attr(
@@ -1911,38 +1914,34 @@ mod tests {
 #[cfg(feature = "hashable-value")]
 mod hashable_value {
     use super::*;
-    use ordered_float::{NotNan, OrderedFloat};
+    use ordered_float::OrderedFloat;
     use std::hash::{Hash, Hasher};
 
-    /// Panic when value is NaN
     pub fn hash_f32<H: Hasher>(v: &Option<f32>, state: &mut H) {
         match v {
-            Some(v) => NotNan::new(*v).unwrap().hash(state),
-            None => OrderedFloat(std::f32::NAN).hash(state),
+            Some(v) => OrderedFloat(*v).hash(state),
+            None => "null".hash(state),
         }
     }
 
-    /// Panic when value is NaN
     pub fn hash_f64<H: Hasher>(v: &Option<f64>, state: &mut H) {
         match v {
-            Some(v) => NotNan::new(*v).unwrap().hash(state),
-            None => OrderedFloat(std::f64::NAN).hash(state),
+            Some(v) => OrderedFloat(*v).hash(state),
+            None => "null".hash(state),
         }
     }
 
-    /// Panic when value is NaN
     pub fn cmp_f32(l: &Option<f32>, r: &Option<f32>) -> bool {
         match (l, r) {
-            (Some(l), Some(r)) => NotNan::new(*l).unwrap().eq(&NotNan::new(*r).unwrap()),
+            (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
             (None, None) => true,
             _ => false,
         }
     }
 
-    /// Panic when value is NaN
     pub fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
         match (l, r) {
-            (Some(l), Some(r)) => NotNan::new(*l).unwrap().eq(&NotNan::new(*r).unwrap()),
+            (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
             (None, None) => true,
             _ => false,
         }
@@ -1975,9 +1974,13 @@ mod hashable_value {
             Value::BigInt(None),
             Value::BigInt(None),
             Value::Float(None),
-            Value::Float(None),
+            Value::Float(None),                // Null is not NaN
+            Value::Float(Some(std::f32::NAN)), // NaN considered equal
+            Value::Float(Some(std::f32::NAN)),
             Value::Double(None),
             Value::Double(None),
+            Value::Double(Some(std::f64::NAN)),
+            Value::Double(Some(std::f64::NAN)),
         ]
         .into_iter()
         .collect();
@@ -1987,6 +1990,8 @@ mod hashable_value {
             Value::BigInt(None),
             Value::Float(None),
             Value::Double(None),
+            Value::Float(Some(std::f32::NAN)),
+            Value::Double(Some(std::f64::NAN)),
         ]
         .into_iter()
         .collect();
