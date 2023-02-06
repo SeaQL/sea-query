@@ -34,7 +34,7 @@ use mac_address::MacAddress;
 use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
 
 /// [`Value`] types variant for Postgres array
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ArrayType {
     Bool,
     TinyInt,
@@ -164,7 +164,16 @@ pub enum Value {
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    Json(Option<Box<Json>>),
+    Json(
+        #[cfg_attr(
+            feature = "hashable-value",
+            derivative(
+                Hash(hash_with = "hashable_value::hash_json"),
+                PartialEq(compare_with = "hashable_value::cmp_json")
+            )
+        )]
+        Option<Box<Json>>,
+    ),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
@@ -1901,6 +1910,7 @@ mod tests {
 
 #[cfg(feature = "hashable-value")]
 mod hashable_value {
+    use super::*;
     use ordered_float::{NotNan, OrderedFloat};
     use std::hash::{Hash, Hasher};
 
@@ -1938,10 +1948,27 @@ mod hashable_value {
         }
     }
 
+    #[cfg(feature = "with-json")]
+    pub fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
+        match v {
+            Some(v) => serde_json::to_string(v).unwrap().hash(state),
+            None => "null".hash(state),
+        }
+    }
+
+    #[cfg(feature = "with-json")]
+    pub fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => serde_json::to_string(l)
+                .unwrap()
+                .eq(&serde_json::to_string(r).unwrap()),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
     #[test]
     fn test_hash_value_0() {
-        use super::Value;
-
         let hash_set: std::collections::HashSet<Value> = [
             Value::Int(None),
             Value::Int(None),
@@ -1969,8 +1996,6 @@ mod hashable_value {
 
     #[test]
     fn test_hash_value_1() {
-        use super::Value;
-
         let hash_set: std::collections::HashSet<Value> = [
             Value::Int(None),
             Value::Int(Some(1)),
@@ -1993,6 +2018,54 @@ mod hashable_value {
             Value::BigInt(Some(2)),
             Value::Int(Some(1)),
             Value::Int(None),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(hash_set, unique);
+    }
+
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn test_hash_value_array() {
+        assert_eq!(
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Value::Array(
+                ArrayType::Int,
+                Some(Box::new(vec![
+                    Value::Int(Some(0)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(2))
+                ]))
+            )
+        );
+
+        assert_eq!(
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Value::Array(
+                ArrayType::Float,
+                Some(Box::new(vec![
+                    Value::Float(Some(0f32)),
+                    Value::Float(Some(1.0)),
+                    Value::Float(Some(2.0))
+                ]))
+            )
+        );
+
+        let hash_set: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
+        ]
+        .into_iter()
+        .collect();
+
+        let unique: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
         ]
         .into_iter()
         .collect();
