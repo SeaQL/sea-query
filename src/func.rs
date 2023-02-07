@@ -461,6 +461,29 @@ impl Func {
     ///     r#"SELECT LOWER("character") FROM "character""#
     /// );
     /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Font::Id)
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::expr(Func::lower(Expr::col(Font::Name))).eq("abc".trim().to_lowercase()))
+    ///     .take();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "SELECT `id` FROM `font` WHERE LOWER(`name`) = 'abc'"
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "font" WHERE LOWER("name") = 'abc'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "id" FROM "font" WHERE LOWER("name") = 'abc'"#
+    /// );
+    /// ```
     pub fn lower<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
