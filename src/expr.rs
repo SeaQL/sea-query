@@ -431,12 +431,15 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
+    ///     .expr(Expr::val(1).add(2))
     ///     .expr(Expr::cust_with_expr("data @? ($1::JSONPATH)", "hello"))
     ///     .to_owned();
+    /// let (sql, values) = query.build(PostgresQueryBuilder);
     ///
+    /// assert_eq!(sql, r#"SELECT $1 + $2, data @? ($3::JSONPATH)"#);
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
+    ///     values,
+    ///     Values(vec![1i32.into(), 2i32.into(), "hello".into()])
     /// );
     /// ```
     /// ```
