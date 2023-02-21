@@ -15,7 +15,14 @@ impl IndexBuilder for SqliteQueryBuilder {
         }
 
         if let Some(name) = &create.index.name {
-            write!(sql, "{}{}{}", self.quote(), name, self.quote()).unwrap();
+            write!(
+                sql,
+                "{}{}{}",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
 
         write!(sql, " ON ").unwrap();
@@ -37,8 +44,14 @@ impl IndexBuilder for SqliteQueryBuilder {
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
         if let Some(name) = &drop.index.name {
-            let quote = self.quote();
-            write!(sql, "{quote}{name}{quote}").unwrap();
+            write!(
+                sql,
+                "{}{}{}",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
     }
 

@@ -1,4 +1,4 @@
-use sea_query::Iden;
+use sea_query::{Iden, Quote};
 
 #[derive(Copy, Clone, Iden)]
 pub struct SomeType;
@@ -12,14 +12,14 @@ fn main() {
     assert_eq!(SomeTypeWithRename.to_string(), "Hel`lo");
 
     let mut string = String::new();
-    SomeType.prepare(&mut string, '"');
+    SomeType.prepare(&mut string, Quote::new(b'"'));
     assert_eq!(string, "\"some_type\"");
 
     let mut string = String::new();
-    SomeTypeWithRename.prepare(&mut string, '"');
+    SomeTypeWithRename.prepare(&mut string, Quote::new(b'"'));
     assert_eq!(string, "\"Hel`lo\"");
 
     let mut string = String::new();
-    SomeTypeWithRename.prepare(&mut string, '`');
+    SomeTypeWithRename.prepare(&mut string, Quote::new(b'`'));
     assert_eq!(string, "`Hel``lo`");
 }

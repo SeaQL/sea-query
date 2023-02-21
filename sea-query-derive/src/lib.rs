@@ -48,10 +48,10 @@ fn impl_iden_for_unit_struct(
 ) -> proc_macro2::TokenStream {
     let prepare = if must_be_valid_iden(table_name) {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: char) {
-                write!(s, "{}", q).unwrap();
+            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: sea_query::Quote) {
+                write!(s, "{}", q.left()).unwrap();
                 self.unquoted(s);
-                write!(s, "{}", q).unwrap();
+                write!(s, "{}", q.right()).unwrap();
             }
         }
     } else {
@@ -93,10 +93,10 @@ where
 
     let prepare = if is_all_valid {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: char) {
-                write!(s, "{}", q).unwrap();
+            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: sea_query::Quote) {
+                write!(s, "{}", q.left()).unwrap();
                 self.unquoted(s);
-                write!(s, "{}", q).unwrap();
+                write!(s, "{}", q.right()).unwrap();
             }
         }
     } else {

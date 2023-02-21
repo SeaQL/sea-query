@@ -1,4 +1,4 @@
-use sea_query::Iden;
+use sea_query::{Iden, Quote};
 use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Iden, EnumIter)]
@@ -39,10 +39,10 @@ fn main() {
         .for_each(|(iden, exp)| assert_eq!(iden, exp));
     
     let mut string = String::new();
-    Custom::Email("".to_owned()).prepare(&mut string, '"');
+    Custom::Email("".to_owned()).prepare(&mut string, Quote::new(b'"'));
     assert_eq!(string, "\"EM`ail\"");
 
     let mut string = String::new();
-    Custom::Email("".to_owned()).prepare(&mut string, '`');
+    Custom::Email("".to_owned()).prepare(&mut string, Quote::new(b'`'));
     assert_eq!(string, "`EM``ail`");
 }

@@ -10,7 +10,14 @@ impl IndexBuilder for MysqlQueryBuilder {
         write!(sql, "KEY ").unwrap();
 
         if let Some(name) = &create.index.name {
-            write!(sql, "{}{}{} ", self.quote(), name, self.quote()).unwrap();
+            write!(
+                sql,
+                "{}{}{} ",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
 
         self.prepare_index_type(&create.index_type, sql);
@@ -31,7 +38,14 @@ impl IndexBuilder for MysqlQueryBuilder {
         write!(sql, "INDEX ").unwrap();
 
         if let Some(name) = &create.index.name {
-            write!(sql, "{}{}{}", self.quote(), name, self.quote()).unwrap();
+            write!(
+                sql,
+                "{}{}{}",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
 
         write!(sql, " ON ").unwrap();
