@@ -17,6 +17,7 @@ repository = "https://github.com/SeaQL/sea-query"
 categories = ["database"]
 keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
 rust-version = "1.62"
+# STUB
 
 [package.metadata.docs.rs]
 all-features = true
@@ -49,6 +50,7 @@ criterion = { version = "0.3", features = ["html_reports"] }
 pretty_assertions = { version = "1" }
 
 [features]
+# STUB
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
