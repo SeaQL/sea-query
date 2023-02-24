@@ -12,14 +12,14 @@ fn main() {
     assert_eq!(SomeTypeWithRename.to_string(), "Hel`lo");
 
     let mut string = String::new();
-    SomeType.prepare(&mut string, Quote::new(b'"'));
+    SomeType.prepare(&mut string, '"'.into());
     assert_eq!(string, "\"some_type\"");
 
     let mut string = String::new();
-    SomeTypeWithRename.prepare(&mut string, Quote::new(b'"'));
+    SomeTypeWithRename.prepare(&mut string, '"'.into());
     assert_eq!(string, "\"Hel`lo\"");
 
     let mut string = String::new();
-    SomeTypeWithRename.prepare(&mut string, Quote::new(b'`'));
+    SomeTypeWithRename.prepare(&mut string, b'`'.into());
     assert_eq!(string, "`Hel``lo`");
 }

@@ -309,6 +309,18 @@ impl Quote {
     }
 }
 
+impl From<char> for Quote {
+    fn from(c: char) -> Self {
+        (c as u8).into()
+    }
+}
+
+impl From<u8> for Quote {
+    fn from(u8: u8) -> Self {
+        Quote::new(u8)
+    }
+}
+
 impl<T: 'static> IntoIden for T
 where
     T: Iden,

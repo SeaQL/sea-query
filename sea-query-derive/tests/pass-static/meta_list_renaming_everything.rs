@@ -39,10 +39,10 @@ fn main() {
         .for_each(|(iden, exp)| assert_eq!(iden, exp));
     
     let mut string = String::new();
-    Custom::Email(0).prepare(&mut string, Quote::new(b'"'));
+    Custom::Email(0).prepare(&mut string, '"'.into());
     assert_eq!(string, "\"EM`ail\"");
 
     let mut string = String::new();
-    Custom::Email(0).prepare(&mut string, Quote::new(b'`'));
+    Custom::Email(0).prepare(&mut string, b'`'.into());
     assert_eq!(string, "`EM``ail`");
 }
