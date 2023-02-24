@@ -315,9 +315,21 @@ impl From<char> for Quote {
     }
 }
 
+impl From<(char, char)> for Quote {
+    fn from((l, r): (char, char)) -> Self {
+        (l as u8, r as u8).into()
+    }
+}
+
 impl From<u8> for Quote {
     fn from(u8: u8) -> Self {
         Quote::new(u8)
+    }
+}
+
+impl From<(u8, u8)> for Quote {
+    fn from((l, r): (u8, u8)) -> Self {
+        Quote(l, r)
     }
 }
 
