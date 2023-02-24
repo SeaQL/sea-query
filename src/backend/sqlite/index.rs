@@ -36,6 +36,11 @@ impl IndexBuilder for SqliteQueryBuilder {
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
+
+        if drop.if_exists {
+            write!(sql, "IF EXISTS ").unwrap();
+        }
+
         if let Some(name) = &drop.index.name {
             let quote = self.quote();
             write!(sql, "{quote}{name}{quote}").unwrap();
