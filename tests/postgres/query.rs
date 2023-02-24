@@ -1387,6 +1387,60 @@ fn insert_on_conflict_4() {
 
 #[test]
 #[allow(clippy::approx_constant)]
+fn insert_on_conflict_5() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .value(Glyph::Aspect, Expr::val("04108048005887010020060000204E0180400400"))
+                    .update_column(Glyph::Image)
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = "excluded"."image""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_6() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_column(Glyph::Aspect)
+                    .value(Glyph::Image, Expr::val(1).add(2))
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
 fn insert_returning_all_columns() {
     assert_eq!(
         Query::insert()
