@@ -34,7 +34,7 @@ use mac_address::MacAddress;
 use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
 
 /// [`Value`] types variant for Postgres array
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ArrayType {
     Bool,
     TinyInt,
@@ -118,8 +118,17 @@ pub enum ArrayType {
 
 /// Value variants
 ///
-/// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
-#[derive(Clone, Debug, PartialEq)]
+/// We want the inner Value to be exactly 1 pointer sized, so anything larger should be boxed.
+///
+/// If the `hashable-value` feature is enabled, NaN == NaN, which contradicts Rust's built-in
+/// implementation of NaN != NaN.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
+#[cfg_attr(
+    feature = "hashable-value",
+    derive(derivative::Derivative),
+    derivative(Hash, PartialEq, Eq)
+)]
 pub enum Value {
     Bool(Option<bool>),
     TinyInt(Option<i8>),
@@ -130,8 +139,26 @@ pub enum Value {
     SmallUnsigned(Option<u16>),
     Unsigned(Option<u32>),
     BigUnsigned(Option<u64>),
-    Float(Option<f32>),
-    Double(Option<f64>),
+    Float(
+        #[cfg_attr(
+            feature = "hashable-value",
+            derivative(
+                Hash(hash_with = "hashable_value::hash_f32"),
+                PartialEq(compare_with = "hashable_value::cmp_f32")
+            )
+        )]
+        Option<f32>,
+    ),
+    Double(
+        #[cfg_attr(
+            feature = "hashable-value",
+            derivative(
+                Hash(hash_with = "hashable_value::hash_f64"),
+                PartialEq(compare_with = "hashable_value::cmp_f64")
+            )
+        )]
+        Option<f64>,
+    ),
     String(Option<Box<String>>),
     Char(Option<char>),
 
@@ -140,7 +167,16 @@ pub enum Value {
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    Json(Option<Box<Json>>),
+    Json(
+        #[cfg_attr(
+            feature = "hashable-value",
+            derivative(
+                Hash(hash_with = "hashable_value::hash_json"),
+                PartialEq(compare_with = "hashable_value::cmp_json")
+            )
+        )]
+        Option<Box<Json>>,
+    ),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
@@ -1872,5 +1908,173 @@ mod tests {
         let v: Value = Value::Array(ArrayType::Int, None);
         let out: Option<Vec<i32>> = v.unwrap();
         assert_eq!(out, None);
+    }
+}
+
+#[cfg(feature = "hashable-value")]
+mod hashable_value {
+    use super::*;
+    use ordered_float::OrderedFloat;
+    use std::hash::{Hash, Hasher};
+
+    pub fn hash_f32<H: Hasher>(v: &Option<f32>, state: &mut H) {
+        match v {
+            Some(v) => OrderedFloat(*v).hash(state),
+            None => "null".hash(state),
+        }
+    }
+
+    pub fn hash_f64<H: Hasher>(v: &Option<f64>, state: &mut H) {
+        match v {
+            Some(v) => OrderedFloat(*v).hash(state),
+            None => "null".hash(state),
+        }
+    }
+
+    pub fn cmp_f32(l: &Option<f32>, r: &Option<f32>) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    pub fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    #[cfg(feature = "with-json")]
+    pub fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
+        match v {
+            Some(v) => serde_json::to_string(v).unwrap().hash(state),
+            None => "null".hash(state),
+        }
+    }
+
+    #[cfg(feature = "with-json")]
+    pub fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => serde_json::to_string(l)
+                .unwrap()
+                .eq(&serde_json::to_string(r).unwrap()),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    #[test]
+    fn test_hash_value_0() {
+        let hash_set: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::Int(None),
+            Value::BigInt(None),
+            Value::BigInt(None),
+            Value::Float(None),
+            Value::Float(None),                // Null is not NaN
+            Value::Float(Some(std::f32::NAN)), // NaN considered equal
+            Value::Float(Some(std::f32::NAN)),
+            Value::Double(None),
+            Value::Double(None),
+            Value::Double(Some(std::f64::NAN)),
+            Value::Double(Some(std::f64::NAN)),
+        ]
+        .into_iter()
+        .collect();
+
+        let unique: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::BigInt(None),
+            Value::Float(None),
+            Value::Double(None),
+            Value::Float(Some(std::f32::NAN)),
+            Value::Double(Some(std::f64::NAN)),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(hash_set, unique);
+    }
+
+    #[test]
+    fn test_hash_value_1() {
+        let hash_set: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::Int(Some(1)),
+            Value::Int(Some(1)),
+            Value::BigInt(Some(2)),
+            Value::BigInt(Some(2)),
+            Value::Float(Some(3.0)),
+            Value::Float(Some(3.0)),
+            Value::Double(Some(3.0)),
+            Value::Double(Some(3.0)),
+            Value::BigInt(Some(5)),
+        ]
+        .into_iter()
+        .collect();
+
+        let unique: std::collections::HashSet<Value> = [
+            Value::BigInt(Some(5)),
+            Value::Double(Some(3.0)),
+            Value::Float(Some(3.0)),
+            Value::BigInt(Some(2)),
+            Value::Int(Some(1)),
+            Value::Int(None),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(hash_set, unique);
+    }
+
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn test_hash_value_array() {
+        assert_eq!(
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Value::Array(
+                ArrayType::Int,
+                Some(Box::new(vec![
+                    Value::Int(Some(0)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(2))
+                ]))
+            )
+        );
+
+        assert_eq!(
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Value::Array(
+                ArrayType::Float,
+                Some(Box::new(vec![
+                    Value::Float(Some(0f32)),
+                    Value::Float(Some(1.0)),
+                    Value::Float(Some(2.0))
+                ]))
+            )
+        );
+
+        let hash_set: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
+        ]
+        .into_iter()
+        .collect();
+
+        let unique: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(hash_set, unique);
     }
 }

@@ -776,7 +776,7 @@ fn select_48a() {
 #[test]
 fn select_49() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .to_string(PostgresQueryBuilder);
 
@@ -786,7 +786,7 @@ fn select_49() {
 #[test]
 fn select_50() {
     let statement = Query::select()
-        .expr(Expr::table_asterisk(Char::Table))
+        .column((Char::Table, Asterisk))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(
@@ -907,7 +907,7 @@ fn select_54() {
 #[test]
 fn select_55() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .from(Font::Table)
         .and_where(Expr::col((Font::Table, Font::Id)).equals((Char::Table, Char::FontId)))
@@ -1071,7 +1071,7 @@ fn select_61() {
 #[test]
 fn select_62() {
     let select = SelectStatement::new()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from_values([(1i32, "hello"), (2, "world")], Alias::new("x"))
         .to_owned();
     let cte = CommonTableExpression::new()
@@ -1258,6 +1258,7 @@ fn insert_8() {
 }
 
 #[test]
+#[cfg(feature = "postgres-array")]
 fn insert_10() {
     assert_eq!(
         Query::insert()
@@ -1711,7 +1712,7 @@ fn sub_query_with_fn() {
     pub struct ArrayFunc;
 
     let sub_select = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .to_owned();
 

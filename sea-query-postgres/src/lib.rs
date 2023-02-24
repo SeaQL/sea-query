@@ -47,6 +47,7 @@ impl_postgres_binder!(SelectStatement);
 impl_postgres_binder!(UpdateStatement);
 impl_postgres_binder!(InsertStatement);
 impl_postgres_binder!(DeleteStatement);
+impl_postgres_binder!(WithQuery);
 
 impl ToSql for PostgresValue {
     fn to_sql(

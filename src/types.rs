@@ -204,6 +204,62 @@ pub struct Alias(String);
 #[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;
 
+/// Asterisk ("*")
+///
+/// Express the asterisk without table prefix.
+///
+/// # Examples
+///
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let query = Query::select()
+///     .column(Asterisk)
+///     .from(Char::Table)
+///     .to_owned();
+///
+/// assert_eq!(
+///     query.to_string(MysqlQueryBuilder),
+///     r#"SELECT * FROM `character`"#
+/// );
+/// assert_eq!(
+///     query.to_string(PostgresQueryBuilder),
+///     r#"SELECT * FROM "character""#
+/// );
+/// assert_eq!(
+///     query.to_string(SqliteQueryBuilder),
+///     r#"SELECT * FROM "character""#
+/// );
+/// ```
+///
+/// Express the asterisk with table prefix.
+///
+/// Examples
+///
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let query = Query::select()
+///     .column((Char::Table, Asterisk))
+///     .from(Char::Table)
+///     .to_owned();
+///
+/// assert_eq!(
+///     query.to_string(MysqlQueryBuilder),
+///     r#"SELECT `character`.* FROM `character`"#
+/// );
+/// assert_eq!(
+///     query.to_string(PostgresQueryBuilder),
+///     r#"SELECT "character".* FROM "character""#
+/// );
+/// assert_eq!(
+///     query.to_string(SqliteQueryBuilder),
+///     r#"SELECT "character".* FROM "character""#
+/// );
+/// ```
+#[derive(Default, Debug, Clone, Copy)]
+pub struct Asterisk;
+
 /// SQL Keywords
 #[derive(Debug, Clone)]
 pub enum Keyword {
@@ -302,6 +358,12 @@ where
     }
 }
 
+impl IntoColumnRef for Asterisk {
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::Asterisk
+    }
+}
+
 impl<S: 'static, T: 'static> IntoColumnRef for (S, T)
 where
     S: IntoIden,
@@ -309,6 +371,15 @@ where
 {
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
+    }
+}
+
+impl<T: 'static> IntoColumnRef for (T, Asterisk)
+where
+    T: IntoIden,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::TableAsterisk(self.0.into_iden())
     }
 }
 

@@ -100,56 +100,9 @@ impl Expr {
         }
     }
 
-    /// Express the asterisk without table prefix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::asterisk())
-    ///     .from(Char::Table)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT * FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// ```
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
-    /// );
-    /// ```
+    #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
     pub fn asterisk() -> Self {
-        Self::col(ColumnRef::Asterisk)
+        Self::col(Asterisk)
     }
 
     /// Express the target column without table prefix.
@@ -245,60 +198,12 @@ impl Expr {
         ))
     }
 
-    /// Express the asterisk with table prefix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::asterisk())
-    ///     .from(Char::Table)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT * FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// ```
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::table_asterisk(Char::Table))
-    ///     .column((Font::Table, Font::Name))
-    ///     .from(Char::Table)
-    ///     .inner_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
-    /// );
-    /// ```
+    #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
     pub fn table_asterisk<T>(t: T) -> Self
     where
         T: IntoIden,
     {
-        Self::col(ColumnRef::TableAsterisk(t.into_iden()))
+        Self::col((t.into_iden(), Asterisk))
     }
 
     /// Express a [`Value`], returning a [`Expr`].
@@ -530,12 +435,15 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
+    ///     .expr(Expr::val(1).add(2))
     ///     .expr(Expr::cust_with_expr("data @? ($1::JSONPATH)", "hello"))
     ///     .to_owned();
+    /// let (sql, values) = query.build(PostgresQueryBuilder);
     ///
+    /// assert_eq!(sql, r#"SELECT $1 + $2, data @? ($3::JSONPATH)"#);
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
+    ///     values,
+    ///     Values(vec![1i32.into(), 2i32.into(), "hello".into()])
     /// );
     /// ```
     /// ```

@@ -21,6 +21,8 @@ pub enum Function {
     Coalesce,
     Lower,
     Upper,
+    BitAnd,
+    BitOr,
     Random,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
@@ -459,6 +461,29 @@ impl Func {
     ///     r#"SELECT LOWER("character") FROM "character""#
     /// );
     /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Font::Id)
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::expr(Func::lower(Expr::col(Font::Name))).eq("abc".trim().to_lowercase()))
+    ///     .take();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "SELECT `id` FROM `font` WHERE LOWER(`name`) = 'abc'"
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "font" WHERE LOWER("name") = 'abc'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "id" FROM "font" WHERE LOWER("name") = 'abc'"#
+    /// );
+    /// ```
     pub fn lower<T>(expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
@@ -496,6 +521,62 @@ impl Func {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::Upper).arg(expr)
+    }
+
+    /// Call `BIT_AND` function, this is not supported on SQLite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::bit_and(Expr::col(Char::FontSize)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT BIT_AND(`font_size`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT BIT_AND("font_size") FROM "character""#
+    /// );
+    /// ```
+    pub fn bit_and<T>(expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::BitAnd).arg(expr)
+    }
+
+    /// Call `BIT_OR` function, this is not supported on SQLite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::bit_or(Expr::col(Char::FontSize)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT BIT_OR(`font_size`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT BIT_OR("font_size") FROM "character""#
+    /// );
+    /// ```
+    pub fn bit_or<T>(expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::BitOr).arg(expr)
     }
 
     /// Call `RANDOM` function.

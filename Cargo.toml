@@ -17,6 +17,7 @@ repository = "https://github.com/SeaQL/sea-query"
 categories = ["database"]
 keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
 rust-version = "1.62"
+# STUB
 
 [package.metadata.docs.rs]
 all-features = true
@@ -30,6 +31,7 @@ path = "src/lib.rs"
 sea-query-attr = { version = "0.1.1", path = "sea-query-attr", default-features = false, optional = true }
 sea-query-derive = { version = "0.3.0", path = "sea-query-derive", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
+derivative = { version = "2.2", default-features = false, optional = true }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
@@ -40,6 +42,7 @@ quote = { version = "1", default-features = false, optional = true }
 time = { version = "0.3", default-features = false, optional = true, features = ["macros", "formatting"] }
 ipnetwork = { version = "0.19", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
+ordered-float = { version = "3.4", default-features = false, optional = true }
 
 [dev-dependencies]
 sea-query = { path = ".", features = ["tests-cfg"] }
@@ -47,12 +50,14 @@ criterion = { version = "0.3", features = ["html_reports"] }
 pretty_assertions = { version = "1" }
 
 [features]
+# STUB
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
+hashable-value = ["derivative", "ordered-float"]
 postgres-array = []
 postgres-interval = ["proc-macro2", "quote"]
 thread-safe = []

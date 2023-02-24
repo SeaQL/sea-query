@@ -17,10 +17,7 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 ///     table.to_string(PostgresQueryBuilder),
 ///     r#"TRUNCATE TABLE "font""#
 /// );
-/// assert_eq!(
-///     table.to_string(SqliteQueryBuilder),
-///     r#"TRUNCATE TABLE "font""#
-/// );
+/// // Sqlite does not support the TRUNCATE statement
 /// ```
 #[derive(Default, Debug, Clone)]
 pub struct TableTruncateStatement {

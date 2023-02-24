@@ -128,7 +128,12 @@ impl TableBuilder for PostgresQueryBuilder {
                     let first = column_def.types.is_none();
 
                     column_def.spec.iter().fold(first, |first, column_spec| {
-                        if !first && !matches!(column_spec, ColumnSpec::AutoIncrement) {
+                        if !first
+                            && !matches!(
+                                column_spec,
+                                ColumnSpec::AutoIncrement | ColumnSpec::Generated { .. }
+                            )
+                        {
                             write!(sql, ", ").unwrap();
                         }
                         match column_spec {
@@ -160,6 +165,7 @@ impl TableBuilder for PostgresQueryBuilder {
                                 write!(sql, ")").unwrap();
                             }
                             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
+                            ColumnSpec::Generated { .. } => {}
                             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
                         }
                         false
