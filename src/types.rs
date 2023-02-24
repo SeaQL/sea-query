@@ -494,6 +494,7 @@ impl LikeExpr {
         }
     }
 
+    #[deprecated(since = "0.29.0", note = "Please use the [`LikeExpr::new`] method")]
     pub fn str<T>(pattern: T) -> Self
     where
         T: Into<String>,
