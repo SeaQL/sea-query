@@ -60,6 +60,11 @@ pub trait TableBuilder:
             write!(sql, " ").unwrap();
             self.prepare_table_opt(table_opt, sql);
         }
+
+        if let Some(extra) = &create.extra {
+            write!(sql, " {extra}").unwrap();
+        }
+
     }
 
     /// Translate [`TableRef`] into SQL statement.

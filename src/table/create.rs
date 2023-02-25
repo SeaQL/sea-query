@@ -86,6 +86,7 @@ pub struct TableCreateStatement {
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
     pub(crate) check: Vec<SimpleExpr>,
+    pub(crate) extra: Option<String>,
 }
 
 /// All available table options
@@ -266,6 +267,52 @@ impl TableCreateStatement {
         self.indexes.as_ref()
     }
 
+    /// Rewriting extra param. You should take care self about concat extra params. Add extra after options.
+    /// Example for PostgresSQL [Citus](https://github.com/citusdata/citus) extension:
+    /// ```
+    ///  use sea_query::{*, tests_cfg::*};
+    ///  let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(
+    ///         ColumnDef::new(Char::Id)
+    ///             .uuid()
+    ///             .extra("DEFAULT uuid_generate_v4()".into())
+    ///             .primary_key()
+    ///             .not_null(),
+    ///     )
+    ///     .col(
+    ///         ColumnDef::new(Char::CreatedAt)
+    ///             .timestamp_with_time_zone()
+    ///             .extra("DEFAULT NOW()".into())
+    ///             .not_null(),
+    ///     )
+    ///     .col(
+    ///         ColumnDef::new(Char::UserData)
+    ///             .json_binary()
+    ///             .not_null(),
+    ///     )
+    ///     .set_extra(&"USING columnar")
+    ///     .to_owned();
+    ///  assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///             r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
+    ///             r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL,"#,
+    ///             r#""user_data" jsonb NOT NULL"#,
+    ///         r#") USING columnar"#,
+    ///     ].join(" ")
+    /// );
+    /// ```
+    pub fn set_extra(&mut self, extra: &str) -> &mut Self {
+        self.extra = Some(extra.into());
+        self
+    }
+
+    pub fn get_extra(&self) -> Option<&String> {
+        self.extra.as_ref()
+    }
+
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
@@ -276,6 +323,7 @@ impl TableCreateStatement {
             foreign_keys: std::mem::take(&mut self.foreign_keys),
             if_not_exists: self.if_not_exists,
             check: std::mem::take(&mut self.check),
+            extra: std::mem::take(&mut self.extra),
         }
     }
 }
