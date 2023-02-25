@@ -410,7 +410,7 @@ impl Func {
     ///         Query::select()
     ///             .from(Char::Table)
     ///             .expr(Func::max(Expr::col(Char::SizeW)))
-    ///             .to_owned()
+    ///             .take()
     ///             .into(),
     ///         Expr::col(Char::SizeH).into(),
     ///         Expr::val(12).into(),

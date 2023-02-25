@@ -1428,7 +1428,7 @@ fn insert_coalesce() {
                        Func::coalesce([Query::select()
                            .from(Glyph::Table)
                            .expr(Func::max(Expr::col(Glyph::Aspect)))
-                           .to_owned()
+                           .take()
                            .into(),
                            1.into(),
                            Value::Bool(None).into(),
