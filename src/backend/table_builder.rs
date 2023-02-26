@@ -64,7 +64,6 @@ pub trait TableBuilder:
         if let Some(extra) = &create.extra {
             write!(sql, " {extra}").unwrap();
         }
-
     }
 
     /// Translate [`TableRef`] into SQL statement.

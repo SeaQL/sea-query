@@ -270,8 +270,8 @@ impl TableCreateStatement {
     /// Rewriting extra param. You should take care self about concat extra params. Add extra after options.
     /// Example for PostgresSQL [Citus](https://github.com/citusdata/citus) extension:
     /// ```
-    ///  use sea_query::{*, tests_cfg::*};
-    ///  let table = Table::create()
+    /// use sea_query::{*, tests_cfg::*};
+    /// let table = Table::create()
     ///     .table(Char::Table)
     ///     .col(
     ///         ColumnDef::new(Char::Id)
@@ -286,22 +286,19 @@ impl TableCreateStatement {
     ///             .extra("DEFAULT NOW()".into())
     ///             .not_null(),
     ///     )
-    ///     .col(
-    ///         ColumnDef::new(Char::UserData)
-    ///             .json_binary()
-    ///             .not_null(),
-    ///     )
+    ///     .col(ColumnDef::new(Char::UserData).json_binary().not_null())
     ///     .set_extra(&"USING columnar")
     ///     .to_owned();
-    ///  assert_eq!(
+    /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
-    ///             r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
-    ///             r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL,"#,
-    ///             r#""user_data" jsonb NOT NULL"#,
+    ///         r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
+    ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL,"#,
+    ///         r#""user_data" jsonb NOT NULL"#,
     ///         r#") USING columnar"#,
-    ///     ].join(" ")
+    ///     ]
+    ///     .join(" ")
     /// );
     /// ```
     pub fn set_extra(&mut self, extra: &str) -> &mut Self {
