@@ -12,17 +12,20 @@ pub use std::rc::Rc as SeaRc;
 #[cfg(feature = "thread-safe")]
 pub use std::sync::Arc as SeaRc;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Quote(pub(crate) u8, pub(crate) u8);
+
 macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
         pub trait Iden where $(Self: $bounds),* {
-            fn prepare(&self, s: &mut dyn fmt::Write, q: char) {
-                write!(s, "{}{}{}", q, self.quoted(q), q).unwrap();
+            fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
+                write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
             }
 
-            fn quoted(&self, q: char) -> String {
-                let mut b = [0; 4];
-                let qq: &str = q.encode_utf8(&mut b);
+            fn quoted(&self, q: Quote) -> String {
+                let byte = [q.1];
+                let qq: &str = std::str::from_utf8(&byte).unwrap();
                 self.to_string().replace(qq, qq.repeat(2).as_str())
             }
 
@@ -291,6 +294,44 @@ pub enum SubQueryOper {
 }
 
 // Impl begins
+
+impl Quote {
+    pub fn new(c: u8) -> Self {
+        Self(c, c)
+    }
+
+    pub fn left(&self) -> char {
+        char::try_from(self.0).unwrap()
+    }
+
+    pub fn right(&self) -> char {
+        char::try_from(self.1).unwrap()
+    }
+}
+
+impl From<char> for Quote {
+    fn from(c: char) -> Self {
+        (c as u8).into()
+    }
+}
+
+impl From<(char, char)> for Quote {
+    fn from((l, r): (char, char)) -> Self {
+        (l as u8, r as u8).into()
+    }
+}
+
+impl From<u8> for Quote {
+    fn from(u8: u8) -> Self {
+        Quote::new(u8)
+    }
+}
+
+impl From<(u8, u8)> for Quote {
+    fn from((l, r): (u8, u8)) -> Self {
+        Quote(l, r)
+    }
+}
 
 impl<T: 'static> IntoIden for T
 where

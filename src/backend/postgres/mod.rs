@@ -10,13 +10,15 @@ use super::*;
 #[derive(Default, Debug)]
 pub struct PostgresQueryBuilder;
 
+const QUOTE: Quote = Quote(b'"', b'"');
+
 impl GenericBuilder for PostgresQueryBuilder {}
 
 impl SchemaBuilder for PostgresQueryBuilder {}
 
 impl QuotedBuilder for PostgresQueryBuilder {
-    fn quote(&self) -> char {
-        '"'
+    fn quote(&self) -> Quote {
+        QUOTE
     }
 }
 

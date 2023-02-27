@@ -37,7 +37,7 @@ pub trait SchemaBuilder: TableBuilder + IndexBuilder + ForeignKeyBuilder {}
 
 pub trait QuotedBuilder {
     /// The type of quote the builder uses.
-    fn quote(&self) -> char;
+    fn quote(&self) -> Quote;
 }
 
 pub trait EscapeBuilder {

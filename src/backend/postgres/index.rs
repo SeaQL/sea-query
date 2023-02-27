@@ -9,7 +9,14 @@ impl IndexBuilder for PostgresQueryBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(name) = &create.index.name {
-            write!(sql, "CONSTRAINT {}{}{} ", self.quote(), name, self.quote()).unwrap();
+            write!(
+                sql,
+                "CONSTRAINT {}{}{} ",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
 
         self.prepare_index_prefix(create, sql);
@@ -35,7 +42,14 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
 
         if let Some(name) = &create.index.name {
-            write!(sql, "{}{}{}", self.quote(), name, self.quote()).unwrap();
+            write!(
+                sql,
+                "{}{}{}",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
 
         write!(sql, " ON ").unwrap();

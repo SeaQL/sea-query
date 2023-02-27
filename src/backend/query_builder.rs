@@ -1,6 +1,8 @@
 use crate::*;
 use std::ops::Deref;
 
+const QUOTE: Quote = Quote(b'"', b'"');
+
 pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
@@ -1154,7 +1156,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     #[doc(hidden)]
     /// Write ON CONFLICT update action by retrieving value from the excluded table
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
-        write!(sql, "{0}excluded{0}", self.quote()).unwrap();
+        write!(
+            sql,
+            "{}excluded{}",
+            self.quote().left(),
+            self.quote().right()
+        )
+        .unwrap();
         write!(sql, ".").unwrap();
         col.prepare(sql.as_writer(), self.quote());
     }
@@ -1446,8 +1454,8 @@ impl QueryBuilder for CommonSqlQueryBuilder {
 }
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
-    fn quote(&self) -> char {
-        '"'
+    fn quote(&self) -> Quote {
+        QUOTE
     }
 }
 
