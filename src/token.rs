@@ -382,7 +382,7 @@ mod tests {
         let string = r#""a\"bc""#;
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"".to_string()),]);
+        assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"".to_string())]);
         assert_eq!(
             string,
             tokens.iter().map(|x| x.to_string()).collect::<String>()
@@ -394,7 +394,7 @@ mod tests {
         let string = "abc123";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Unquoted(string.to_string()),]);
+        assert_eq!(tokens, vec![Token::Unquoted(string.to_string())]);
         assert_eq!(
             string,
             tokens.iter().map(|x| x.to_string()).collect::<String>()
@@ -602,7 +602,7 @@ mod tests {
         let string = "abc_$123";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Unquoted(string.to_string()),]);
+        assert_eq!(tokens, vec![Token::Unquoted(string.to_string())]);
         assert_eq!(
             string,
             tokens.iter().map(|x| x.to_string()).collect::<String>()

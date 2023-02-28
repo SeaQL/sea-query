@@ -74,10 +74,10 @@ fn select_5() {
 fn select_6() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
-            .exprs([Expr::col(Glyph::Image).max(),])
+            .columns([Glyph::Aspect])
+            .exprs([Expr::col(Glyph::Image).max()])
             .from(Glyph::Table)
-            .group_by_columns([Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(MysqlQueryBuilder),
         "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2"
@@ -88,7 +88,7 @@ fn select_6() {
 fn select_7() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .to_string(MysqlQueryBuilder),
@@ -243,7 +243,7 @@ fn select_16() {
 fn select_17() {
     assert_eq!(
         Query::select()
-            .columns([(Glyph::Table, Glyph::Image),])
+            .columns([(Glyph::Table, Glyph::Image)])
             .from(Glyph::Table)
             .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).between(3, 5))
             .to_string(MysqlQueryBuilder),
@@ -487,7 +487,7 @@ fn select_34a() {
             .column(Glyph::Aspect)
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_columns([Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect])
             .cond_having(any![
                 Expr::col(Glyph::Aspect)
                     .gt(2)
@@ -821,7 +821,7 @@ fn select_50() {
 fn select_51() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
@@ -848,7 +848,7 @@ fn select_51() {
 fn select_52() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls([
@@ -873,7 +873,7 @@ fn select_52() {
 fn select_53() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls([
@@ -917,12 +917,12 @@ fn select_54() {
 fn select_55() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(
                 Glyph::Id,
-                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into(),]))
+                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into()]))
             )
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(MysqlQueryBuilder),
@@ -946,13 +946,13 @@ fn select_55() {
 fn select_56() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .order_by(
                 Glyph::Id,
-                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into(),]))
+                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into()]))
             )
             .to_string(MysqlQueryBuilder),
         [
