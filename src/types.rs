@@ -565,6 +565,7 @@ impl IntoLikeExpr for String {
 #[cfg(test)]
 mod tests {
     use crate::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_identifier() {

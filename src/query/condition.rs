@@ -636,6 +636,7 @@ impl ConditionHolder {
 #[cfg(test)]
 mod test {
     use crate::{tests_cfg::*, *};
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_blank_condition() {

@@ -1,3 +1,4 @@
+use pretty_assertions::assert_eq;
 use quote::{quote, ToTokens};
 use sea_query::*;
 

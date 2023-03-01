@@ -117,6 +117,7 @@ where
 #[cfg(feature = "backend-mysql")]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn inject_parameters_1() {
