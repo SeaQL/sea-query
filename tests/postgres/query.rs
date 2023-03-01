@@ -1058,7 +1058,7 @@ fn select_61() {
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .and_where(Expr::col(Char::Character).like(LikeExpr::new("A").escape('\\')))
             .build(PostgresQueryBuilder),
         (
             r#"SELECT "character" FROM "character" WHERE "character" LIKE $1 ESCAPE E'\\'"#

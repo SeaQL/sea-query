@@ -995,7 +995,7 @@ fn select_58() {
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .and_where(Expr::col(Char::Character).like(LikeExpr::new("A").escape('\\')))
             .build(MysqlQueryBuilder),
         (
             r#"SELECT `character` FROM `character` WHERE `character` LIKE ? ESCAPE '\\'"#
