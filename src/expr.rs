@@ -1095,7 +1095,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::Character)).like(LikeExpr::str(r"|_Our|_").escape('|')))
+    ///     .and_where(Expr::col((Char::Table, Char::Character)).like(LikeExpr::new(r"|_Our|_").escape('|')))
     ///     .to_owned();
     ///
     /// assert_eq!(
