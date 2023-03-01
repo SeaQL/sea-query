@@ -51,7 +51,6 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql);
-            write!(sql, " ").unwrap();
         }
         self.prepare_order(order_expr, sql);
     }

@@ -845,8 +845,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`Order`] into SQL statement.
     fn prepare_order(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         match &order_expr.order {
-            Order::Asc => write!(sql, "ASC").unwrap(),
-            Order::Desc => write!(sql, "DESC").unwrap(),
+            Order::Asc => write!(sql, " ASC").unwrap(),
+            Order::Desc => write!(sql, " DESC").unwrap(),
             Order::Field(values) => self.prepare_field_order(order_expr, values, sql),
         }
     }
