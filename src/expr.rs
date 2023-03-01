@@ -336,8 +336,11 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// ```
-    pub fn cust(s: &str) -> SimpleExpr {
-        SimpleExpr::Custom(s.to_owned())
+    pub fn cust<T>(s: T) -> SimpleExpr
+    where
+        T: Into<String>,
+    {
+        SimpleExpr::Custom(s.into())
     }
 
     /// Express any custom expression with [`Value`]. Use this if your expression needs variables.
@@ -410,13 +413,14 @@ impl Expr {
     ///     r#"SELECT data @? ('hello'::JSONPATH)"#
     /// );
     /// ```
-    pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
+    pub fn cust_with_values<T, V, I>(s: T, v: I) -> SimpleExpr
     where
+        T: Into<String>,
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
         SimpleExpr::CustomWithExpr(
-            s.to_owned(),
+            s.into(),
             v.into_iter()
                 .map(|v| Into::<Value>::into(v).into())
                 .collect(),
@@ -457,19 +461,21 @@ impl Expr {
     ///     r#"SELECT json_agg(DISTINCT "character")"#
     /// );
     /// ```
-    pub fn cust_with_expr<T>(s: &str, expr: T) -> SimpleExpr
+    pub fn cust_with_expr<T, E>(s: T, expr: E) -> SimpleExpr
     where
-        T: Into<SimpleExpr>,
+        T: Into<String>,
+        E: Into<SimpleExpr>,
     {
-        SimpleExpr::CustomWithExpr(s.to_owned(), vec![expr.into()])
+        SimpleExpr::CustomWithExpr(s.into(), vec![expr.into()])
     }
 
     /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
-    pub fn cust_with_exprs<I>(s: &str, v: I) -> SimpleExpr
+    pub fn cust_with_exprs<T, I>(s: T, v: I) -> SimpleExpr
     where
+        T: Into<String>,
         I: IntoIterator<Item = SimpleExpr>,
     {
-        SimpleExpr::CustomWithExpr(s.to_owned(), v.into_iter().collect())
+        SimpleExpr::CustomWithExpr(s.into(), v.into_iter().collect())
     }
 
     /// Express an equal (`=`) expression.

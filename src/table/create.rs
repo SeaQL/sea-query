@@ -222,20 +222,29 @@ impl TableCreateStatement {
     }
 
     /// Set database engine. MySQL only.
-    pub fn engine(&mut self, string: &str) -> &mut Self {
+    pub fn engine<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.opt(TableOpt::Engine(string.into()));
         self
     }
 
     /// Set database collate. MySQL only.
-    pub fn collate(&mut self, string: &str) -> &mut Self {
+    pub fn collate<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.opt(TableOpt::Collate(string.into()));
         self
     }
 
     /// Set database character set. MySQL only.
-    pub fn character_set(&mut self, string: &str) -> &mut Self {
-        self.opt(TableOpt::CharacterSet(string.into()));
+    pub fn character_set<T>(&mut self, name: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.opt(TableOpt::CharacterSet(name.into()));
         self
     }
 

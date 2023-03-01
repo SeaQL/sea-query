@@ -29,11 +29,13 @@ pub struct SqlWriterValues {
 }
 
 impl SqlWriterValues {
-    pub fn new(placeholder: &str, numbered: bool) -> Self {
-        let placeholder = placeholder.to_owned();
+    pub fn new<T>(placeholder: T, numbered: bool) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
             counter: 0,
-            placeholder,
+            placeholder: placeholder.into(),
             numbered,
             string: String::with_capacity(256),
             values: Vec::new(),

@@ -500,8 +500,11 @@ impl TableRef {
 }
 
 impl Alias {
-    pub fn new(n: &str) -> Self {
-        Self(n.to_owned())
+    pub fn new<T>(n: T) -> Self
+    where
+        T: Into<String>,
+    {
+        Self(n.into())
     }
 }
 
@@ -522,16 +525,23 @@ impl Iden for NullAlias {
 }
 
 impl LikeExpr {
-    pub fn new(pattern: String) -> Self {
+    pub fn new<T>(pattern: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            pattern,
+            pattern: pattern.into(),
             escape: None,
         }
     }
 
-    pub fn str(pattern: &str) -> Self {
+    #[deprecated(since = "0.29.0", note = "Please use the [`LikeExpr::new`] method")]
+    pub fn str<T>(pattern: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            pattern: pattern.to_owned(),
+            pattern: pattern.into(),
             escape: None,
         }
     }
@@ -550,13 +560,10 @@ impl IntoLikeExpr for LikeExpr {
     }
 }
 
-impl IntoLikeExpr for &str {
-    fn into_like_expr(self) -> LikeExpr {
-        LikeExpr::str(self)
-    }
-}
-
-impl IntoLikeExpr for String {
+impl<T> IntoLikeExpr for T
+where
+    T: Into<String>,
+{
     fn into_like_expr(self) -> LikeExpr {
         LikeExpr::new(self)
     }
