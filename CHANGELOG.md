@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `BIT_AND`, `BIT_OR` functions https://github.com/SeaQL/sea-query/pull/582
 * Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
 * Added new type `Asteriks` https://github.com/SeaQL/sea-query/pull/596
+* Added `IF NOT EXISTS` for `DROP INDEX` in Postgres and Sqlite https://github.com/SeaQL/sea-query/pull/610
 
 ### Breaking changes
 
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `BigInteger` now maps to `bigint` instead of `integer` on SQLite https://github.com/SeaQL/sea-query/pull/556
 * `Table::truncate` now panic for Sqlite https://github.com/SeaQL/sea-query/pull/590
 * Deprecated `Expr::asteriks` and `Expr::table_asteriks` https://github.com/SeaQL/sea-query/pull/596
+* `Expr::cust`, `Expr::cust_with_values`, `Expr::cust_with_expr`, `Expr::cust_with_exprs`, `TableForeignKey::name`, `ForeignKeyCreateStatement::name`, `ForeignKeyDropStatement::name`, `TableIndex::name`, `IndexCreateStatement::name`, `IndexDropStatement::name`, `SqlWriterValues::new`, `ColumnType::custom`, `TableCreateStatement::engine`, `TableCreateStatement::collate`, `TableCreateStatement::character_set`, `TableRef::new`, `LikeExpr::str` now accept `T: Into<String>` https://github.com/SeaQL/sea-query/pull/594
 
 ### House keeping
 
@@ -37,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug fixes
 
 * Fix quoted string bug while inserting array of strings to Postgres https://github.com/SeaQL/sea-query/pull/576
+* `ALTER TABLE` now panic if has multiple column for Sqlite https://github.com/SeaQL/sea-query/pull/595
 
 ## 0.28.3 - 2023-01-18
 
@@ -60,7 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Fixed Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
   - `PgFunction::GetRandomUUID` -> `PgFunction::GenRandomUUID`
   - `PgFunc::get_random_uuid` -> `PgFunc::gen_random_uuid`
-
+ 
 ## 0.28.0 - 2022-12-09
 
 ### New Features
