@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `Table::truncate` now panic for Sqlite https://github.com/SeaQL/sea-query/pull/590
 * Deprecated `Expr::asteriks` and `Expr::table_asteriks` https://github.com/SeaQL/sea-query/pull/596
 * `Expr::cust`, `Expr::cust_with_values`, `Expr::cust_with_expr`, `Expr::cust_with_exprs`, `TableForeignKey::name`, `ForeignKeyCreateStatement::name`, `ForeignKeyDropStatement::name`, `TableIndex::name`, `IndexCreateStatement::name`, `IndexDropStatement::name`, `SqlWriterValues::new`, `ColumnType::custom`, `TableCreateStatement::engine`, `TableCreateStatement::collate`, `TableCreateStatement::character_set`, `TableRef::new`, `LikeExpr::str` now accept `T: Into<String>` https://github.com/SeaQL/sea-query/pull/594
+* `OnConflict::values` and `OnConflict::update_columns` will append the new values keeping the old values intact instead of erasing them https://github.com/SeaQL/sea-query/pull/609
 
 ### House keeping
 
