@@ -1113,27 +1113,24 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 OnConflictAction::DoNothing => {
                     write!(sql, " DO NOTHING").unwrap();
                 }
-                OnConflictAction::UpdateColumns(columns) => {
+                OnConflictAction::Update(update_strats) => {
                     self.prepare_on_conflict_do_update_keywords(sql);
-                    columns.iter().fold(true, |first, col| {
+                    update_strats.iter().fold(true, |first, update_strat| {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        col.prepare(sql.as_writer(), self.quote());
-                        write!(sql, " = ").unwrap();
-                        self.prepare_on_conflict_excluded_table(col, sql);
-                        false
-                    });
-                }
-                OnConflictAction::UpdateExprs(column_exprs) => {
-                    self.prepare_on_conflict_do_update_keywords(sql);
-                    column_exprs.iter().fold(true, |first, (col, expr)| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
+                        match update_strat {
+                            OnConflictUpdate::Column(col) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_on_conflict_excluded_table(col, sql);
+                            }
+                            OnConflictUpdate::Expr(col, expr) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_simple_expr(expr, sql);
+                            }
                         }
-                        col.prepare(sql.as_writer(), self.quote());
-                        write!(sql, " = ").unwrap();
-                        self.prepare_simple_expr(expr, sql);
                         false
                     });
                 }
