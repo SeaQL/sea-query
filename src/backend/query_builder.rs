@@ -228,7 +228,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_table_ref(table, sql);
         }
 
-        self.prepare_condition(&delete.wherei, "WHERE", sql);
+        self.prepare_condition(&delete.r#where, "WHERE", sql);
 
         if !delete.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();

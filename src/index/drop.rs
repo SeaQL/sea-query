@@ -1,3 +1,5 @@
+use inherent::inherent;
+
 use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder, TableIndex};
 
 /// Drop an index for an existing table
@@ -62,16 +64,19 @@ impl IndexDropStatement {
     }
 }
 
+#[inherent]
 impl SchemaStatementBuilder for IndexDropStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql
     }
 
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql
     }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
 }

@@ -823,7 +823,6 @@ pub mod index;
 pub mod prepare;
 pub mod query;
 pub mod schema;
-mod shim;
 pub mod table;
 pub mod token;
 pub mod types;
