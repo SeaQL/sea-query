@@ -283,7 +283,7 @@ impl TableCreateStatement {
     ///     .col(
     ///         ColumnDef::new(Char::CreatedAt)
     ///             .timestamp_with_time_zone()
-    ///             .extra("DEFAULT NOW()".into())
+    ///             .extra("DEFAULT NOW()")
     ///             .not_null(),
     ///     )
     ///     .col(ColumnDef::new(Char::UserData).json_binary().not_null())
