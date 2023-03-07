@@ -287,7 +287,7 @@ impl TableCreateStatement {
     ///             .not_null(),
     ///     )
     ///     .col(ColumnDef::new(Char::UserData).json_binary().not_null())
-    ///     .set_extra(&"USING columnar")
+    ///     .set_extra("USING columnar")
     ///     .to_owned();
     /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
