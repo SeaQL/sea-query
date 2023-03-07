@@ -1782,3 +1782,37 @@ fn sub_query_with_fn() {
         r#"SELECT ARRAY((SELECT * FROM "character"))"#
     );
 }
+
+#[test]
+fn get_json_field_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).binary(PgBinOper::GetJsonField, Expr::val("test"))
+            )
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" -> $1"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
+fn cast_json_field_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).binary(PgBinOper::CastJsonField, Expr::val("test"))
+            )
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" ->> $1"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
