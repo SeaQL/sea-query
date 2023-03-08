@@ -70,6 +70,55 @@ impl OnConflict {
     }
 
     /// Set ON CONFLICT update column
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_panic([
+    ///         "abcd".into(),
+    ///         3.1415.into(),
+    ///     ])
+    ///     .on_conflict(
+    ///         OnConflict::columns([Glyph::Id, Glyph::Aspect])
+    ///             .update_column(Glyph::Aspect)
+    ///             .value(Glyph::Image, Expr::val(1).add(2))
+    ///             .to_owned()
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn update_column<C>(&mut self, column: C) -> &mut Self
     where
         C: IntoIden,

@@ -24,6 +24,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             write!(sql, " ").unwrap();
         }
 
+        self.prepare_output(&insert.returning, sql);
+
         if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
             let num_rows = insert.default_values.unwrap();
             self.insert_default_values(num_rows, sql);
@@ -154,15 +156,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             });
         }
 
-        if let Some(limit) = &select.limit {
-            write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
-        }
-
-        if let Some(offset) = &select.offset {
-            write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(offset, sql);
-        }
+        self.prepare_select_limit_offset(select, sql);
 
         if let Some(lock) = &select.lock {
             write!(sql, " ").unwrap();
@@ -174,6 +168,19 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             name.prepare(sql.as_writer(), self.quote());
             write!(sql, " AS ").unwrap();
             self.prepare_window_statement(query, sql);
+        }
+    }
+
+    // Translate the LIMIT and OFFSET expression in [`SelectStatement`]
+    fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        if let Some(limit) = &select.limit {
+            write!(sql, " LIMIT ").unwrap();
+            self.prepare_value(limit, sql);
+        }
+
+        if let Some(offset) = &select.offset {
+            write!(sql, " OFFSET ").unwrap();
+            self.prepare_value(offset, sql);
         }
     }
 
@@ -198,8 +205,19 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             false
         });
 
+        self.prepare_output(&update.returning, sql);
+
         self.prepare_condition(&update.r#where, "WHERE", sql);
 
+        self.prepare_update_order_by(update, sql);
+
+        self.prepare_update_limit(update, sql);
+
+        self.prepare_returning(&update.returning, sql);
+    }
+
+    /// Translate ORDER BY expression in [`UpdateStatement`].
+    fn prepare_update_order_by(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if !update.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
             update.orders.iter().fold(true, |first, expr| {
@@ -210,13 +228,14 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 false
             });
         }
+    }
 
+    /// Translate LIMIT expression in [`UpdateStatement`].
+    fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &update.limit {
             write!(sql, " LIMIT ").unwrap();
             self.prepare_value(limit, sql);
         }
-
-        self.prepare_returning(&update.returning, sql);
     }
 
     /// Translate [`DeleteStatement`] into SQL statement.
@@ -228,8 +247,19 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_table_ref(table, sql);
         }
 
-        self.prepare_condition(&delete.r#where, "WHERE", sql);
+        self.prepare_output(&delete.returning, sql);
 
+        self.prepare_condition(&delete.wherei, "WHERE", sql);
+
+        self.prepare_delete_order_by(delete, sql);
+
+        self.prepare_delete_limit(delete, sql);
+
+        self.prepare_returning(&delete.returning, sql);
+    }
+
+    /// Translate ORDER BY expression in [`DeleteStatement`].
+    fn prepare_delete_order_by(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if !delete.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
             delete.orders.iter().fold(true, |first, expr| {
@@ -240,13 +270,14 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 false
             });
         }
+    }
 
+    /// Translate LIMIT expression in [`DeleteStatement`].
+    fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &delete.limit {
             write!(sql, " LIMIT ").unwrap();
             self.prepare_value(limit, sql);
         }
-
-        self.prepare_returning(&delete.returning, sql);
     }
 
     /// Translate [`SimpleExpr`] into SQL statement.
@@ -1175,6 +1206,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     }
 
     #[doc(hidden)]
+    /// Hook to insert "OUTPUT" expressions.
+    fn prepare_output(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
+
+    #[doc(hidden)]
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(&self, returning: &Option<ReturningClause>, sql: &mut dyn SqlWriter) {
         if let Some(returning) = returning {
@@ -1235,8 +1270,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         if condition.is_empty() {
             match condition.condition_type {
-                ConditionType::All => self.prepare_constant(&true.into(), sql),
-                ConditionType::Any => self.prepare_constant(&false.into(), sql),
+                ConditionType::All => self.prepare_constant_true(sql),
+                ConditionType::Any => self.prepare_constant_false(sql),
             }
             return;
         }
@@ -1418,6 +1453,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             write!(sql, "{}", self.insert_default_keyword()).unwrap();
             false
         });
+    }
+
+    /// Write TRUE constant
+    fn prepare_constant_true(&self, sql: &mut dyn SqlWriter) {
+        self.prepare_constant(&true.into(), sql);
+    }
+
+    /// Write FALSE constant
+    fn prepare_constant_false(&self, sql: &mut dyn SqlWriter) {
+        self.prepare_constant(&false.into(), sql);
     }
 }
 

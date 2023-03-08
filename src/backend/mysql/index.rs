@@ -72,7 +72,14 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
 
         if let Some(name) = &drop.index.name {
-            write!(sql, "`{name}`").unwrap();
+            write!(
+                sql,
+                "{}{}{}",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
 
         write!(sql, " ON ").unwrap();
