@@ -270,7 +270,7 @@ impl TableCreateStatement {
     /// Rewriting extra param. You should take care self about concat extra params. Add extra after options.
     /// Example for PostgresSQL [Citus](https://github.com/citusdata/citus) extension:
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     /// let table = Table::create()
     ///     .table(Char::Table)
     ///     .col(

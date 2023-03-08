@@ -599,7 +599,7 @@ impl ColumnDef {
 
     /// Some extra options in custom string
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     /// let table = Table::create()
     ///     .table(Char::Table)
     ///     .col(
@@ -628,11 +628,13 @@ impl ColumnDef {
     /// );
     /// ```
     pub fn extra<T>(&mut self, string: T) -> &mut Self
-    where T: Into<String> {
+    where
+        T: Into<String>,
+    {
         self.spec.push(ColumnSpec::Extra(string.into()));
         self
     }
-    
+
     pub fn get_column_name(&self) -> String {
         self.name.to_string()
     }
