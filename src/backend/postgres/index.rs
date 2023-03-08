@@ -93,7 +93,14 @@ impl IndexBuilder for PostgresQueryBuilder {
             }
         }
         if let Some(name) = &drop.index.name {
-            write!(sql, "\"{name}\"").unwrap();
+            write!(
+                sql,
+                "{}{}{}",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
     }
 
