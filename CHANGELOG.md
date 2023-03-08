@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
 * Added new type `Asteriks` https://github.com/SeaQL/sea-query/pull/596
 * Added `IF NOT EXISTS` for `DROP INDEX` in Postgres and Sqlite https://github.com/SeaQL/sea-query/pull/610
+* Added `->` and `->>` operators for Postgres https://github.com/SeaQL/sea-query/pull/617/files
 
 ### Breaking changes
 
