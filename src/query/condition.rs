@@ -639,6 +639,7 @@ mod test {
     use pretty_assertions::assert_eq;
 
     #[test]
+    #[cfg(feature = "backend-mysql")]
     fn test_blank_condition() {
         let query = Query::select()
             .column(Glyph::Image)
