@@ -3,7 +3,7 @@
 /// # Examples
 ///
 /// ```
-/// use sea_query::{*, tests_cfg::*, extension::postgres::ExtensionCreateStatement};
+/// use sea_query::{extension::postgres::ExtensionCreateStatement, tests_cfg::*, *};
 ///
 /// let stmt = ExtensionCreateStatement::new("ltree")
 ///     .if_not_exists()
@@ -45,7 +45,7 @@ impl ExtensionCreateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::ExtensionCreateStatement};
+    /// use sea_query::{extension::postgres::ExtensionCreateStatement, tests_cfg::*, *};
     ///
     /// let stmt = ExtensionCreateStatement::new("ltree")
     ///     .schema("public")
@@ -66,16 +66,13 @@ impl ExtensionCreateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::ExtensionCreateStatement};
+    /// use sea_query::{extension::postgres::ExtensionCreateStatement, tests_cfg::*, *};
     ///
     /// let stmt = ExtensionCreateStatement::new("ltree")
     ///     .version("v0.1.0")
     ///     .to_owned();
     ///
-    /// assert_eq!(
-    ///     stmt.to_string(),
-    ///     r#"CREATE EXTENSION ltree VERSION v0.1.0"#
-    /// );
+    /// assert_eq!(stmt.to_string(), r#"CREATE EXTENSION ltree VERSION v0.1.0"#);
     /// ```
     pub fn version(&mut self, version: &str) -> &mut Self {
         self.version = Some(version.to_string());
@@ -87,16 +84,13 @@ impl ExtensionCreateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::ExtensionCreateStatement};
+    /// use sea_query::{extension::postgres::ExtensionCreateStatement, tests_cfg::*, *};
     ///
     /// let stmt = ExtensionCreateStatement::new("ltree")
     ///     .if_not_exists()
     ///     .to_owned();
     ///
-    /// assert_eq!(
-    ///     stmt.to_string(),
-    ///     r#"CREATE EXTENSION IF NOT EXISTS ltree"#
-    /// );
+    /// assert_eq!(stmt.to_string(), r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
     /// ```
     pub fn if_not_exists(&mut self) -> &mut Self {
         self.if_not_exists = true;
@@ -108,16 +102,11 @@ impl ExtensionCreateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*, extension::postgres::ExtensionCreateStatement};
+    /// use sea_query::{extension::postgres::ExtensionCreateStatement, tests_cfg::*, *};
     ///
-    /// let stmt = ExtensionCreateStatement::new("ltree")
-    ///     .cascade()
-    ///     .to_owned();
+    /// let stmt = ExtensionCreateStatement::new("ltree").cascade().to_owned();
     ///
-    /// assert_eq!(
-    ///     stmt.to_string(),
-    ///     r#"CREATE EXTENSION ltree CASCADE"#
-    /// );
+    /// assert_eq!(stmt.to_string(), r#"CREATE EXTENSION ltree CASCADE"#);
     /// ```
     pub fn cascade(&mut self) -> &mut Self {
         self.cascade = true;
