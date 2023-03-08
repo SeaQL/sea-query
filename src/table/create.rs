@@ -301,7 +301,10 @@ impl TableCreateStatement {
     ///     .join(" ")
     /// );
     /// ```
-    pub fn set_extra(&mut self, extra: &str) -> &mut Self {
+    pub fn extra<T>(&mut self, extra: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.extra = Some(extra.into());
         self
     }
