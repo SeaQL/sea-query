@@ -598,10 +598,41 @@ impl ColumnDef {
     }
 
     /// Some extra options in custom string
-    pub fn extra(&mut self, string: String) -> &mut Self {
-        self.spec.push(ColumnSpec::Extra(string));
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(
+    ///         ColumnDef::new(Char::Id)
+    ///             .uuid()
+    ///             .extra("DEFAULT uuid_generate_v4()")
+    ///             .primary_key()
+    ///             .not_null(),
+    ///     )
+    ///     .col(
+    ///         ColumnDef::new(Char::CreatedAt)
+    ///             .timestamp_with_time_zone()
+    ///             .extra("DEFAULT NOW()")
+    ///             .not_null(),
+    ///     )
+    ///     .to_owned();
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
+    ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
+    pub fn extra<T>(&mut self, string: T) -> &mut Self
+    where T: Into<String> {
+        self.spec.push(ColumnSpec::Extra(string.into()));
         self
     }
+    
     pub fn get_column_name(&self) -> String {
         self.name.to_string()
     }

@@ -276,7 +276,7 @@ impl TableCreateStatement {
     ///     .col(
     ///         ColumnDef::new(Char::Id)
     ///             .uuid()
-    ///             .extra("DEFAULT uuid_generate_v4()".into())
+    ///             .extra("DEFAULT uuid_generate_v4()")
     ///             .primary_key()
     ///             .not_null(),
     ///     )
@@ -287,7 +287,7 @@ impl TableCreateStatement {
     ///             .not_null(),
     ///     )
     ///     .col(ColumnDef::new(Char::UserData).json_binary().not_null())
-    ///     .set_extra("USING columnar")
+    ///     .extra("USING columnar")
     ///     .to_owned();
     /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
