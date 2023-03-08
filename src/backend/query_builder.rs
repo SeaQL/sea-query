@@ -249,7 +249,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         self.prepare_output(&delete.returning, sql);
 
-        self.prepare_condition(&delete.wherei, "WHERE", sql);
+        self.prepare_condition(&delete.r#where, "WHERE", sql);
 
         self.prepare_delete_order_by(delete, sql);
 
