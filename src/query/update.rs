@@ -396,4 +396,5 @@ impl ConditionalStatement for UpdateStatement {
     }
 
     pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
+    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
 }
