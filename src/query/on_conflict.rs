@@ -20,10 +20,17 @@ pub enum OnConflictTarget {
 pub enum OnConflictAction {
     /// Do nothing
     DoNothing,
+    /// Update column value of existing row
+    Update(Vec<OnConflictUpdate>),
+}
+
+/// Represents strategies to update column in ON CONFLICT (upsert) actions
+#[derive(Debug, Clone)]
+pub enum OnConflictUpdate {
     /// Update column value of existing row with inserting value
-    UpdateColumns(Vec<DynIden>),
+    Column(DynIden),
     /// Update column value of existing row with expression
-    UpdateExprs(Vec<(DynIden, SimpleExpr)>),
+    Expr(DynIden, SimpleExpr),
 }
 
 impl OnConflict {
@@ -63,6 +70,55 @@ impl OnConflict {
     }
 
     /// Set ON CONFLICT update column
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_panic([
+    ///         "abcd".into(),
+    ///         3.1415.into(),
+    ///     ])
+    ///     .on_conflict(
+    ///         OnConflict::columns([Glyph::Id, Glyph::Aspect])
+    ///             .update_column(Glyph::Aspect)
+    ///             .value(Glyph::Image, Expr::val(1).add(2))
+    ///             .to_owned()
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn update_column<C>(&mut self, column: C) -> &mut Self
     where
         C: IntoIden,
@@ -109,9 +165,19 @@ impl OnConflict {
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        self.action = Some(OnConflictAction::UpdateColumns(
-            columns.into_iter().map(IntoIden::into_iden).collect(),
-        ));
+        let mut update_strats: Vec<OnConflictUpdate> = columns
+            .into_iter()
+            .map(|x| OnConflictUpdate::Column(IntoIden::into_iden(x)))
+            .collect();
+
+        match &mut self.action {
+            Some(OnConflictAction::Update(v)) => {
+                v.append(&mut update_strats);
+            }
+            Some(OnConflictAction::DoNothing) | None => {
+                self.action = Some(OnConflictAction::Update(update_strats));
+            }
+        };
         self
     }
 
@@ -154,12 +220,19 @@ impl OnConflict {
         C: IntoIden,
         I: IntoIterator<Item = (C, SimpleExpr)>,
     {
-        self.action = Some(OnConflictAction::UpdateExprs(
-            values
-                .into_iter()
-                .map(|(c, e)| (c.into_iden(), e))
-                .collect(),
-        ));
+        let mut update_exprs: Vec<OnConflictUpdate> = values
+            .into_iter()
+            .map(|(c, e)| OnConflictUpdate::Expr(c.into_iden(), e))
+            .collect();
+
+        match &mut self.action {
+            Some(OnConflictAction::Update(v)) => {
+                v.append(&mut update_exprs);
+            }
+            Some(OnConflictAction::DoNothing) | None => {
+                self.action = Some(OnConflictAction::Update(update_exprs));
+            }
+        };
         self
     }
 

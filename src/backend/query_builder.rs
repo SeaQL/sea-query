@@ -1,6 +1,8 @@
 use crate::*;
 use std::ops::Deref;
 
+const QUOTE: Quote = Quote(b'"', b'"');
+
 pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
@@ -843,8 +845,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`Order`] into SQL statement.
     fn prepare_order(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         match &order_expr.order {
-            Order::Asc => write!(sql, "ASC").unwrap(),
-            Order::Desc => write!(sql, "DESC").unwrap(),
+            Order::Asc => write!(sql, " ASC").unwrap(),
+            Order::Desc => write!(sql, " DESC").unwrap(),
             Order::Field(values) => self.prepare_field_order(order_expr, values, sql),
         }
     }
@@ -1111,27 +1113,24 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 OnConflictAction::DoNothing => {
                     write!(sql, " DO NOTHING").unwrap();
                 }
-                OnConflictAction::UpdateColumns(columns) => {
+                OnConflictAction::Update(update_strats) => {
                     self.prepare_on_conflict_do_update_keywords(sql);
-                    columns.iter().fold(true, |first, col| {
+                    update_strats.iter().fold(true, |first, update_strat| {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        col.prepare(sql.as_writer(), self.quote());
-                        write!(sql, " = ").unwrap();
-                        self.prepare_on_conflict_excluded_table(col, sql);
-                        false
-                    });
-                }
-                OnConflictAction::UpdateExprs(column_exprs) => {
-                    self.prepare_on_conflict_do_update_keywords(sql);
-                    column_exprs.iter().fold(true, |first, (col, expr)| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
+                        match update_strat {
+                            OnConflictUpdate::Column(col) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_on_conflict_excluded_table(col, sql);
+                            }
+                            OnConflictUpdate::Expr(col, expr) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_simple_expr(expr, sql);
+                            }
                         }
-                        col.prepare(sql.as_writer(), self.quote());
-                        write!(sql, " = ").unwrap();
-                        self.prepare_simple_expr(expr, sql);
                         false
                     });
                 }
@@ -1154,7 +1153,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     #[doc(hidden)]
     /// Write ON CONFLICT update action by retrieving value from the excluded table
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
-        write!(sql, "{0}excluded{0}", self.quote()).unwrap();
+        write!(
+            sql,
+            "{}excluded{}",
+            self.quote().left(),
+            self.quote().right()
+        )
+        .unwrap();
         write!(sql, ".").unwrap();
         col.prepare(sql.as_writer(), self.quote());
     }
@@ -1446,8 +1451,8 @@ impl QueryBuilder for CommonSqlQueryBuilder {
 }
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
-    fn quote(&self) -> char {
-        '"'
+    fn quote(&self) -> Quote {
+        QUOTE
     }
 }
 

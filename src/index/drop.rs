@@ -29,6 +29,7 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder, TableIndex
 pub struct IndexDropStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
+    pub(crate) if_exists: bool,
 }
 
 impl IndexDropStatement {
@@ -38,7 +39,10 @@ impl IndexDropStatement {
     }
 
     /// Set index name
-    pub fn name(&mut self, name: &str) -> &mut Self {
+    pub fn name<T>(&mut self, name: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.index.name(name);
         self
     }
@@ -49,6 +53,11 @@ impl IndexDropStatement {
         T: IntoTableRef,
     {
         self.table = Some(table.into_table_ref());
+        self
+    }
+
+    pub fn if_exists(&mut self) -> &mut Self {
+        self.if_exists = true;
         self
     }
 }

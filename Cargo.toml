@@ -46,7 +46,7 @@ ordered-float = { version = "3.4", default-features = false, optional = true }
 
 [dev-dependencies]
 sea-query = { path = ".", features = ["tests-cfg"] }
-criterion = { version = "0.3", features = ["html_reports"] }
+criterion = { version = "0.3" }
 pretty_assertions = { version = "1" }
 
 [features]

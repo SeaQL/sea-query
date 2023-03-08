@@ -1,5 +1,12 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use sea_query::{tests_cfg::*, *};
+use sea_query::*;
+
+#[derive(Debug, Iden)]
+pub enum Char {
+    Table,
+    Id,
+    Character,
+}
 
 fn vanilla() -> String {
     format!(

@@ -91,7 +91,10 @@ impl PartialEq for ColumnType {
 }
 
 impl ColumnType {
-    pub fn custom(ty: &str) -> ColumnType {
+    pub fn custom<T>(ty: T) -> ColumnType
+    where
+        T: Into<String>,
+    {
         ColumnType::Custom(Alias::new(ty).into_iden())
     }
 }
