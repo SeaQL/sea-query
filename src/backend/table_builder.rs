@@ -11,9 +11,7 @@ pub trait TableBuilder:
     ) {
         write!(sql, "CREATE TABLE ").unwrap();
 
-        if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap();
-        }
+        self.prepare_create_table_if_not_exists(create, sql);
 
         if let Some(table_ref) = &create.table {
             self.prepare_table_ref_table_stmt(table_ref, sql);
@@ -56,10 +54,7 @@ pub trait TableBuilder:
 
         write!(sql, " )").unwrap();
 
-        for table_opt in create.options.iter() {
-            write!(sql, " ").unwrap();
-            self.prepare_table_opt(table_opt, sql);
-        }
+        self.prepare_table_opt(create, sql);
     }
 
     /// Translate [`TableRef`] into SQL statement.
@@ -74,6 +69,16 @@ pub trait TableBuilder:
 
     /// Translate [`ColumnDef`] into SQL statement.
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter);
+
+    /// Translate [`ColumnDef`] into SQL statement.
+    fn prepare_column_def_internal(
+        &self,
+        _is_alter_column: bool,
+        column_def: &ColumnDef,
+        sql: &mut dyn SqlWriter,
+    ) {
+        self.prepare_column_def(column_def, sql);
+    }
 
     /// Translate [`ColumnType`] into SQL statement.
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter);
@@ -104,17 +109,20 @@ pub trait TableBuilder:
     fn column_spec_auto_increment_keyword(&self) -> &str;
 
     /// Translate [`TableOpt`] into SQL statement.
-    fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match table_opt {
-                TableOpt::Engine(s) => format!("ENGINE={s}"),
-                TableOpt::Collate(s) => format!("COLLATE={s}"),
-                TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={s}"),
-            }
-        )
-        .unwrap()
+    fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+        for table_opt in create.options.iter() {
+            write!(sql, " ").unwrap();
+            write!(
+                sql,
+                "{}",
+                match table_opt {
+                    TableOpt::Engine(s) => format!("ENGINE={s}"),
+                    TableOpt::Collate(s) => format!("COLLATE={s}"),
+                    TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={s}"),
+                }
+            )
+            .unwrap()
+        }
     }
 
     /// Translate [`TablePartition`] into SQL statement.
@@ -184,6 +192,17 @@ pub trait TableBuilder:
             write!(sql, " STORED").unwrap();
         } else {
             write!(sql, " VIRTUAL").unwrap();
+        }
+    }
+
+    /// Translate IF NOT EXISTS expression in [`TableCreateStatement`].
+    fn prepare_create_table_if_not_exists(
+        &self,
+        create: &TableCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if create.if_not_exists {
+            write!(sql, "IF NOT EXISTS ").unwrap();
         }
     }
 
