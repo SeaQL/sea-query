@@ -4,8 +4,8 @@ use crate::{
     query::{condition::*, OrderedStatement},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
-    WithQuery,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryBuilder,
+    SubQueryStatement, WithClause, WithQuery,
 };
 
 /// Delete existing rows from the table
@@ -231,7 +231,9 @@ impl QueryStatementBuilder for DeleteStatement {
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
         query_builder.prepare_delete_statement(self, sql);
     }
+}
 
+impl SubQueryBuilder for DeleteStatement {
     fn into_sub_query_statement(self) -> SubQueryStatement {
         SubQueryStatement::DeleteStatement(self)
     }

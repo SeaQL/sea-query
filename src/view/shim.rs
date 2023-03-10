@@ -1,0 +1,5 @@
+use crate::impl_schema_statement_builder;
+
+impl_schema_statement_builder!(view_create_statement_builder, ViewCreateStatement);
+impl_schema_statement_builder!(view_drop_statement_builder, ViewDropStatement);
+impl_schema_statement_builder!(view_rename_statement_builder, ViewRenameStatement);

@@ -828,6 +828,7 @@ pub mod table;
 pub mod token;
 pub mod types;
 pub mod value;
+pub mod view;
 
 #[doc(hidden)]
 #[cfg(feature = "tests-cfg")]
@@ -845,6 +846,7 @@ pub use table::*;
 pub use token::*;
 pub use types::*;
 pub use value::*;
+pub use view::*;
 
 #[cfg(feature = "derive")]
 pub use sea_query_derive::{Iden, IdenStatic};

@@ -1,12 +1,15 @@
 //! Schema definition & alternations statements
 
-use crate::{backend::SchemaBuilder, ForeignKeyStatement, IndexStatement, TableStatement};
+use crate::{
+    backend::SchemaBuilder, ForeignKeyStatement, IndexStatement, TableStatement, ViewStatement,
+};
 
 #[derive(Debug, Clone)]
 pub enum SchemaStatement {
     TableStatement(TableStatement),
     IndexStatement(IndexStatement),
     ForeignKeyStatement(ForeignKeyStatement),
+    ViewStatement(ViewStatement),
 }
 
 pub trait SchemaStatementBuilder {

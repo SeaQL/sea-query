@@ -7,6 +7,7 @@ use crate::SelectExpr;
 use crate::SelectStatement;
 use crate::SimpleExpr;
 use crate::SqlWriter;
+use crate::SubQueryBuilder;
 use crate::SubQueryStatement;
 use crate::TableRef;
 use crate::{Alias, QueryBuilder};
@@ -109,7 +110,7 @@ impl CommonTableExpression {
     /// columns.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
-        Q: QueryStatementBuilder,
+        Q: SubQueryBuilder,
     {
         self.query = Some(Box::new(query.into_sub_query_statement()));
         self
@@ -487,7 +488,7 @@ impl WithClause {
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
-        T: QueryStatementBuilder + 'static,
+        T: SubQueryBuilder + 'static,
     {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }
@@ -578,7 +579,7 @@ impl WithQuery {
     /// Set the query that you execute with the [WithClause].
     pub fn query<T>(&mut self, query: T) -> &mut Self
     where
-        T: QueryStatementBuilder,
+        T: SubQueryBuilder,
     {
         self.query = Some(Box::new(query.into_sub_query_statement()));
         self
@@ -589,7 +590,9 @@ impl QueryStatementBuilder for WithQuery {
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
         query_builder.prepare_with_query(self, sql);
     }
+}
 
+impl SubQueryBuilder for WithQuery {
     fn into_sub_query_statement(self) -> SubQueryStatement {
         SubQueryStatement::WithStatement(self)
     }
