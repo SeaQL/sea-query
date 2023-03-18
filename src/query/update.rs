@@ -35,10 +35,10 @@ use crate::{
 ///     r#"UPDATE "glyph" SET "aspect" = 1.23, "image" = '123' WHERE "id" = 1"#
 /// );
 /// ```
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) values: Vec<(DynIden, Box<SimpleExpr>)>,
+    pub(crate) values: Vec<(CmpDynIden, Box<SimpleExpr>)>,
     pub(crate) r#where: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
@@ -99,7 +99,7 @@ impl UpdateStatement {
         I: IntoIterator<Item = (T, SimpleExpr)>,
     {
         for (k, v) in values.into_iter() {
-            self.values.push((k.into_iden(), Box::new(v)));
+            self.values.push((k.into_iden().into(), Box::new(v)));
         }
         self
     }
@@ -137,7 +137,8 @@ impl UpdateStatement {
         C: IntoIden,
         T: Into<SimpleExpr>,
     {
-        self.values.push((col.into_iden(), Box::new(value.into())));
+        self.values
+            .push((col.into_iden().into(), Box::new(value.into())));
         self
     }
 
@@ -289,7 +290,7 @@ impl UpdateStatement {
     }
 
     /// Get column values
-    pub fn get_values(&self) -> &[(DynIden, Box<SimpleExpr>)] {
+    pub fn get_values(&self) -> &[(CmpDynIden, Box<SimpleExpr>)] {
         &self.values
     }
 }

@@ -36,7 +36,7 @@ use crate::{
 ///     r#"DELETE FROM "glyph" WHERE "id" < 1 OR "id" > 10"#
 /// );
 /// ```
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct DeleteStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) wherei: ConditionHolder,

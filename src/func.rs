@@ -6,7 +6,7 @@ use crate::{expr::*, types::*};
 pub use crate::extension::postgres::{PgFunc, PgFunction};
 
 /// Functions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Function {
     Max,
     Min,
@@ -17,7 +17,7 @@ pub enum Function {
     IfNull,
     CharLength,
     Cast,
-    Custom(DynIden),
+    Custom(CmpDynIden),
     Coalesce,
     Lower,
     Upper,
@@ -29,7 +29,7 @@ pub enum Function {
 }
 
 /// Function call.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FunctionCall {
     pub(crate) func: Function,
     pub(crate) args: Vec<SimpleExpr>,
@@ -101,7 +101,7 @@ impl Func {
     where
         T: IntoIden,
     {
-        FunctionCall::new(Function::Custom(func.into_iden()))
+        FunctionCall::new(Function::Custom(func.into_iden().into()))
     }
 
     /// Call `MAX` function.

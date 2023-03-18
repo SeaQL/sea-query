@@ -1,7 +1,7 @@
 //! Base types used throughout sea-query.
 
 use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
-use std::fmt;
+use std::{any, fmt};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -18,7 +18,7 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
-        pub trait Iden where $(Self: $bounds),* {
+        pub trait Iden: any::Any where $(Self: $bounds),* {
             fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
                 write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
             }
@@ -69,14 +69,41 @@ impl fmt::Debug for dyn Iden {
     }
 }
 
-/// Column references
 #[derive(Debug, Clone)]
+pub struct CmpDynIden(pub DynIden);
+
+impl Iden for CmpDynIden {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        self.0.unquoted(s)
+    }
+}
+
+impl From<DynIden> for CmpDynIden {
+    fn from(dyn_iden: DynIden) -> Self {
+        CmpDynIden(dyn_iden)
+    }
+}
+
+impl AsRef<DynIden> for CmpDynIden {
+    fn as_ref(&self) -> &DynIden {
+        &self.0
+    }
+}
+
+impl PartialEq for CmpDynIden {
+    fn eq(&self, other: &Self) -> bool {
+        (*self.0).type_id() == (*other.0).type_id() && self.to_string() == other.to_string()
+    }
+}
+
+/// Column references
+#[derive(Debug, Clone, PartialEq)]
 pub enum ColumnRef {
-    Column(DynIden),
-    TableColumn(DynIden, DynIden),
-    SchemaTableColumn(DynIden, DynIden, DynIden),
+    Column(CmpDynIden),
+    TableColumn(CmpDynIden, CmpDynIden),
+    SchemaTableColumn(CmpDynIden, CmpDynIden, CmpDynIden),
     Asterisk,
-    TableAsterisk(DynIden),
+    TableAsterisk(CmpDynIden),
 }
 
 pub trait IntoColumnRef {
@@ -85,26 +112,26 @@ pub trait IntoColumnRef {
 
 /// Table references
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TableRef {
     /// Table identifier without any schema / database prefix
-    Table(DynIden),
+    Table(CmpDynIden),
     /// Table identifier with schema prefix
-    SchemaTable(DynIden, DynIden),
+    SchemaTable(CmpDynIden, CmpDynIden),
     /// Table identifier with database and schema prefix
-    DatabaseSchemaTable(DynIden, DynIden, DynIden),
+    DatabaseSchemaTable(CmpDynIden, CmpDynIden, CmpDynIden),
     /// Table identifier with alias
-    TableAlias(DynIden, DynIden),
+    TableAlias(CmpDynIden, CmpDynIden),
     /// Table identifier with schema prefix and alias
-    SchemaTableAlias(DynIden, DynIden, DynIden),
+    SchemaTableAlias(CmpDynIden, CmpDynIden, CmpDynIden),
     /// Table identifier with database and schema prefix and alias
-    DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
+    DatabaseSchemaTableAlias(CmpDynIden, CmpDynIden, CmpDynIden, CmpDynIden),
     /// Subquery with alias
-    SubQuery(SelectStatement, DynIden),
+    SubQuery(SelectStatement, CmpDynIden),
     /// Values list with alias
-    ValuesList(Vec<ValueTuple>, DynIden),
+    ValuesList(Vec<ValueTuple>, CmpDynIden),
     /// Function call with alias
-    FunctionCall(FunctionCall, DynIden),
+    FunctionCall(FunctionCall, CmpDynIden),
 }
 
 pub trait IntoTableRef {
@@ -152,7 +179,7 @@ pub enum BinOper {
 }
 
 /// Logical chain operator
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
     And(SimpleExpr),
     Or(SimpleExpr),
@@ -177,7 +204,7 @@ pub enum NullOrdering {
 }
 
 /// Order expression
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
@@ -185,7 +212,7 @@ pub struct OrderExpr {
 }
 
 /// Join on types
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
     Columns(Vec<SimpleExpr>),
@@ -264,13 +291,13 @@ pub struct NullAlias;
 pub struct Asterisk;
 
 /// SQL Keywords
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     Null,
     CurrentDate,
     CurrentTime,
     CurrentTimestamp,
-    Custom(DynIden),
+    Custom(CmpDynIden),
 }
 
 /// Like Expression
@@ -285,7 +312,7 @@ pub trait IntoLikeExpr {
 }
 
 /// SubQuery operators
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum SubQueryOper {
     Exists,
     Any,
@@ -395,7 +422,7 @@ where
     T: IntoIden,
 {
     fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::Column(self.into_iden())
+        ColumnRef::Column(self.into_iden().into())
     }
 }
 
@@ -411,7 +438,7 @@ where
     T: IntoIden,
 {
     fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
+        ColumnRef::TableColumn(self.0.into_iden().into(), self.1.into_iden().into())
     }
 }
 
@@ -420,7 +447,7 @@ where
     T: IntoIden,
 {
     fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::TableAsterisk(self.0.into_iden())
+        ColumnRef::TableAsterisk(self.0.into_iden().into())
     }
 }
 
@@ -431,7 +458,11 @@ where
     U: IntoIden,
 {
     fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::SchemaTableColumn(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
+        ColumnRef::SchemaTableColumn(
+            self.0.into_iden().into(),
+            self.1.into_iden().into(),
+            self.2.into_iden().into(),
+        )
     }
 }
 
@@ -446,7 +477,7 @@ where
     T: IntoIden,
 {
     fn into_table_ref(self) -> TableRef {
-        TableRef::Table(self.into_iden())
+        TableRef::Table(self.into_iden().into())
     }
 }
 
@@ -456,7 +487,7 @@ where
     T: IntoIden,
 {
     fn into_table_ref(self) -> TableRef {
-        TableRef::SchemaTable(self.0.into_iden(), self.1.into_iden())
+        TableRef::SchemaTable(self.0.into_iden().into(), self.1.into_iden().into())
     }
 }
 
@@ -467,7 +498,11 @@ where
     U: IntoIden,
 {
     fn into_table_ref(self) -> TableRef {
-        TableRef::DatabaseSchemaTable(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
+        TableRef::DatabaseSchemaTable(
+            self.0.into_iden().into(),
+            self.1.into_iden().into(),
+            self.2.into_iden().into(),
+        )
     }
 }
 
@@ -478,23 +513,23 @@ impl TableRef {
         A: IntoIden,
     {
         match self {
-            Self::Table(table) => Self::TableAlias(table, alias.into_iden()),
-            Self::TableAlias(table, _) => Self::TableAlias(table, alias.into_iden()),
+            Self::Table(table) => Self::TableAlias(table, alias.into_iden().into()),
+            Self::TableAlias(table, _) => Self::TableAlias(table, alias.into_iden().into()),
             Self::SchemaTable(schema, table) => {
-                Self::SchemaTableAlias(schema, table, alias.into_iden())
+                Self::SchemaTableAlias(schema, table, alias.into_iden().into())
             }
             Self::DatabaseSchemaTable(database, schema, table) => {
-                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden())
+                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden().into())
             }
             Self::SchemaTableAlias(schema, table, _) => {
-                Self::SchemaTableAlias(schema, table, alias.into_iden())
+                Self::SchemaTableAlias(schema, table, alias.into_iden().into())
             }
             Self::DatabaseSchemaTableAlias(database, schema, table, _) => {
-                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden())
+                Self::DatabaseSchemaTableAlias(database, schema, table, alias.into_iden().into())
             }
-            Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
-            Self::ValuesList(values, _) => Self::ValuesList(values, alias.into_iden()),
-            Self::FunctionCall(func, _) => Self::FunctionCall(func, alias.into_iden()),
+            Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden().into()),
+            Self::ValuesList(values, _) => Self::ValuesList(values, alias.into_iden().into()),
+            Self::FunctionCall(func, _) => Self::FunctionCall(func, alias.into_iden().into()),
         }
     }
 }
@@ -571,7 +606,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    use crate::{tests_cfg::*, *};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -627,6 +662,34 @@ mod tests {
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
             r#"SELECT "hel""""lo""#
+        );
+    }
+
+    #[test]
+    fn test_cmp_identifier() {
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden().into()),
+            ColumnRef::Column(Character::Id.into_iden().into())
+        );
+        assert_eq!(
+            ColumnRef::Column(Alias::new("id").into_iden().into()),
+            ColumnRef::Column(Alias::new("id").into_iden().into())
+        );
+        assert_ne!(
+            ColumnRef::Column(Alias::new("id").into_iden().into()),
+            ColumnRef::Column(Alias::new("id_").into_iden().into())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden().into()),
+            ColumnRef::Column(Alias::new("id").into_iden().into())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden().into()),
+            ColumnRef::Column(Character::Table.into_iden().into())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden().into()),
+            ColumnRef::Column(Font::Id.into_iden().into())
         );
     }
 }

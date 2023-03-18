@@ -3,7 +3,7 @@
 use crate::{expr::*, func::*};
 
 /// Functions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PgFunction {
     ToTsquery,
     ToTsvector,

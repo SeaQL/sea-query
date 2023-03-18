@@ -8,7 +8,7 @@ use crate::{
 ///
 /// [`InsertValueSource`] is a node in the expression tree and can represent a raw value set
 /// ('VALUES') or a select query.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum InsertValueSource {
     Values(Vec<Vec<SimpleExpr>>),
     Select(Box<SelectStatement>),
@@ -41,11 +41,11 @@ pub(crate) enum InsertValueSource {
 ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// ```
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct InsertStatement {
     pub(crate) replace: bool,
     pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) columns: Vec<DynIden>,
+    pub(crate) columns: Vec<CmpDynIden>,
     pub(crate) source: Option<InsertValueSource>,
     pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Option<ReturningClause>,
@@ -110,7 +110,7 @@ impl InsertStatement {
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
+        self.columns = columns.into_iter().map(|c| c.into_iden().into()).collect();
         self
     }
 

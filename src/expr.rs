@@ -19,7 +19,7 @@ pub struct Expr {
 ///
 /// [`SimpleExpr`] is a node in the expression tree and can represent identifiers, function calls,
 /// various operators and sub-queries.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SimpleExpr {
     Column(ColumnRef),
     Tuple(Vec<SimpleExpr>),
@@ -32,7 +32,7 @@ pub enum SimpleExpr {
     Custom(String),
     CustomWithExpr(String, Vec<SimpleExpr>),
     Keyword(Keyword),
-    AsEnum(DynIden, Box<SimpleExpr>),
+    AsEnum(CmpDynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
     Constant(Value),
 }
@@ -1861,7 +1861,7 @@ impl Expr {
     where
         T: IntoIden,
     {
-        SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
+        SimpleExpr::AsEnum(type_name.into_iden().into(), Box::new(self.into()))
     }
 
     /// Adds new `CASE WHEN` to existing case statement.
@@ -2019,7 +2019,7 @@ impl Expr {
     where
         T: IntoIden,
     {
-        Expr::new_with_left(Keyword::Custom(i.into_iden()))
+        Expr::new_with_left(Keyword::Custom(i.into_iden().into()))
     }
 }
 

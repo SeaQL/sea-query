@@ -47,7 +47,7 @@ pub enum QueryStatement {
     Delete(DeleteStatement),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SubQueryStatement {
     SelectStatement(SelectStatement),
     InsertStatement(InsertStatement),

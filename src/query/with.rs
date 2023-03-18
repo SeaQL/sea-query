@@ -1,5 +1,7 @@
+use crate::CmpDynIden;
 use crate::ColumnRef;
 use crate::DynIden;
+use crate::Iden;
 use crate::IntoIden;
 use crate::QueryStatementBuilder;
 use crate::QueryStatementWriter;
@@ -53,10 +55,10 @@ use std::ops::Deref;
 ///     DELETE FROM table WHERE table.a = cte_name.a)
 ///
 /// It is mandatory to set the [Self::table_name] and the [Self::query].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct CommonTableExpression {
-    pub(crate) table_name: Option<DynIden>,
-    pub(crate) cols: Vec<DynIden>,
+    pub(crate) table_name: Option<CmpDynIden>,
+    pub(crate) cols: Vec<CmpDynIden>,
     pub(crate) query: Option<Box<SubQueryStatement>>,
     pub(crate) materialized: Option<bool>,
 }
@@ -72,7 +74,7 @@ impl CommonTableExpression {
     where
         T: IntoIden,
     {
-        self.table_name = Some(table_name.into_iden());
+        self.table_name = Some(table_name.into_iden().into());
         self
     }
 
@@ -81,7 +83,7 @@ impl CommonTableExpression {
     where
         C: IntoIden,
     {
-        self.cols.push(col.into_iden());
+        self.cols.push(col.into_iden().into());
         self
     }
 
@@ -92,7 +94,7 @@ impl CommonTableExpression {
         I: IntoIterator<Item = T>,
     {
         self.cols
-            .extend(cols.into_iter().map(|col| col.into_iden()));
+            .extend(cols.into_iter().map(|col| col.into_iden().into()));
         self
     }
 
@@ -123,13 +125,17 @@ impl CommonTableExpression {
         cte.try_set_cols_from_selects(&select.selects);
         if let Some(from) = select.from.get(0) {
             match from.deref() {
-                TableRef::Table(iden) => cte.set_table_name_from_select(iden),
-                TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden),
-                TableRef::DatabaseSchemaTable(_, _, iden) => cte.set_table_name_from_select(iden),
-                TableRef::TableAlias(_, iden) => cte.set_table_name_from_select(iden),
-                TableRef::SchemaTableAlias(_, _, iden) => cte.set_table_name_from_select(iden),
+                TableRef::Table(iden) => cte.set_table_name_from_select(iden.as_ref()),
+                TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden.as_ref()),
+                TableRef::DatabaseSchemaTable(_, _, iden) => {
+                    cte.set_table_name_from_select(iden.as_ref())
+                }
+                TableRef::TableAlias(_, iden) => cte.set_table_name_from_select(iden.as_ref()),
+                TableRef::SchemaTableAlias(_, _, iden) => {
+                    cte.set_table_name_from_select(iden.as_ref())
+                }
                 TableRef::DatabaseSchemaTableAlias(_, _, _, iden) => {
-                    cte.set_table_name_from_select(iden)
+                    cte.set_table_name_from_select(iden.as_ref())
                 }
                 _ => {}
             }
@@ -139,7 +145,11 @@ impl CommonTableExpression {
     }
 
     fn set_table_name_from_select(&mut self, iden: &DynIden) {
-        self.table_name = Some(Alias::new(format!("cte_{}", iden.to_string())).into_iden())
+        self.table_name = Some(
+            Alias::new(format!("cte_{}", iden.to_string()))
+                .into_iden()
+                .into(),
+        )
     }
 
     /// Set up the columns of the CTE to match the given [SelectStatement] selected columns.
@@ -152,7 +162,7 @@ impl CommonTableExpression {
     }
 
     fn try_set_cols_from_selects(&mut self, selects: &[SelectExpr]) -> bool {
-        let vec: Option<Vec<DynIden>> = selects
+        let vec: Option<Vec<CmpDynIden>> = selects
             .iter()
             .map(|select| {
                 if let Some(ident) = &select.alias {
@@ -163,7 +173,8 @@ impl CommonTableExpression {
                             ColumnRef::Column(iden) => Some(iden.clone()),
                             ColumnRef::TableColumn(table, column) => Some(
                                 Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
-                                    .into_iden(),
+                                    .into_iden()
+                                    .into(),
                             ),
                             ColumnRef::SchemaTableColumn(schema, table, column) => Some(
                                 Alias::new(format!(
@@ -172,7 +183,8 @@ impl CommonTableExpression {
                                     table.to_string(),
                                     column.to_string()
                                 ))
-                                .into_iden(),
+                                .into_iden()
+                                .into(),
                             ),
                             _ => None,
                         },
@@ -193,7 +205,7 @@ impl CommonTableExpression {
 
 /// For recursive [WithQuery] [WithClause]s the traversing order can be specified in some databases
 /// that support this functionality.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SearchOrder {
     /// Breadth first traversal during the execution of the recursive query.
     BREADTH,
@@ -211,7 +223,7 @@ pub enum SearchOrder {
 ///
 /// Setting [Self::order] and [Self::expr] is mandatory. The [SelectExpr] used must specify an alias
 /// which will be the name that you can use to order the result of the [CommonTableExpression].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Search {
     pub(crate) order: Option<SearchOrder>,
     pub(crate) expr: Option<SelectExpr>,
@@ -269,11 +281,11 @@ impl Search {
 /// A query can have both SEARCH and CYCLE clauses.
 ///
 /// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Cycle {
     pub(crate) expr: Option<SimpleExpr>,
-    pub(crate) set_as: Option<DynIden>,
-    pub(crate) using: Option<DynIden>,
+    pub(crate) set_as: Option<CmpDynIden>,
+    pub(crate) using: Option<CmpDynIden>,
 }
 
 impl Cycle {
@@ -287,8 +299,8 @@ impl Cycle {
     {
         Self {
             expr: Some(expr.into()),
-            set_as: Some(set.into_iden()),
-            using: Some(using.into_iden()),
+            set_as: Some(set.into_iden().into()),
+            using: Some(using.into_iden().into()),
         }
     }
 
@@ -312,7 +324,7 @@ impl Cycle {
     where
         ID: IntoIden,
     {
-        self.set_as = Some(set.into_iden());
+        self.set_as = Some(set.into_iden().into());
         self
     }
 
@@ -322,7 +334,7 @@ impl Cycle {
     where
         ID: IntoIden,
     {
-        self.using = Some(using.into_iden());
+        self.using = Some(using.into_iden().into());
         self
     }
 }
@@ -415,7 +427,7 @@ impl Cycle {
 /// let with_clause = WithClause::new()
 ///         .recursive(true)
 ///         .cte(common_table_expression)
-///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
+///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden().into())), Alias::new("looped"), Alias::new("traversal_path")))
 ///         .to_owned();
 ///
 /// let query = select.with(with_clause).to_owned();
@@ -433,7 +445,7 @@ impl Cycle {
 ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
 /// );
 /// ```
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct WithClause {
     pub(crate) recursive: bool,
     pub(crate) search: Option<Search>,
@@ -533,7 +545,7 @@ impl WithClause {
 ///     DELETE FROM table WHERE table.a = cte_name.a)
 ///
 /// It is mandatory to set the [Self::cte] and the [Self::query].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct WithQuery {
     pub(crate) with_clause: WithClause,
     pub(crate) query: Option<Box<SubQueryStatement>>,
