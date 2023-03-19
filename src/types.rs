@@ -667,6 +667,11 @@ mod tests {
 
     #[test]
     fn test_cmp_identifier() {
+        let type_id = std::any::Any::type_id(&*(SeaRc::new(Character::Id).0));
+        assert!(type_id == std::any::TypeId::of::<dyn Iden>()); // TRUE if it's `trait Iden` but we want to differentiate `Character::Id` from `Alias::new("id")`... like the two lines
+        assert!(type_id == std::any::TypeId::of::<Character>()); // TRUE if we write `trait Iden: any::Any`
+        assert!(type_id != std::any::TypeId::of::<Alias>()); // TRUE if we write `trait Iden: any::Any`
+
         assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Id.into_iden())
