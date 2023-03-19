@@ -56,10 +56,7 @@ impl OnConflict {
     {
         Self {
             target: Some(OnConflictTarget::ConflictColumns(
-                columns
-                    .into_iter()
-                    .map(IntoIden::into_iden)
-                    .collect(),
+                columns.into_iter().map(IntoIden::into_iden).collect(),
             )),
             target_where: ConditionHolder::new(),
             action: None,
