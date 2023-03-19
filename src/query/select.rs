@@ -52,7 +52,7 @@ pub struct SelectStatement {
     pub(crate) limit: Option<Value>,
     pub(crate) offset: Option<Value>,
     pub(crate) lock: Option<LockClause>,
-    pub(crate) window: Option<(CmpDynIden, WindowStatement)>,
+    pub(crate) window: Option<(DynIden, WindowStatement)>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -68,7 +68,7 @@ pub enum SelectDistinct {
 #[derive(Debug, Clone, PartialEq)]
 pub enum WindowSelectType {
     /// Name in [`SelectStatement`]
-    Name(CmpDynIden),
+    Name(DynIden),
     /// Inline query in [`SelectExpr`]
     Query(WindowStatement),
 }
@@ -77,7 +77,7 @@ pub enum WindowSelectType {
 #[derive(Debug, Clone, PartialEq)]
 pub struct SelectExpr {
     pub expr: SimpleExpr,
-    pub alias: Option<CmpDynIden>,
+    pub alias: Option<DynIden>,
     pub window: Option<WindowSelectType>,
 }
 
@@ -546,7 +546,7 @@ impl SelectStatement {
     {
         self.expr(SelectExpr {
             expr: expr.into(),
-            alias: Some(alias.into_iden().into()),
+            alias: Some(alias.into_iden()),
             window: None,
         });
         self
@@ -628,7 +628,7 @@ impl SelectStatement {
     {
         self.expr(SelectExpr {
             expr: expr.into(),
-            alias: Some(alias.into_iden().into()),
+            alias: Some(alias.into_iden()),
             window: Some(WindowSelectType::Query(window)),
         });
         self
@@ -671,7 +671,7 @@ impl SelectStatement {
         self.expr(SelectExpr {
             expr: expr.into(),
             alias: None,
-            window: Some(WindowSelectType::Name(window.into_iden().into())),
+            window: Some(WindowSelectType::Name(window.into_iden())),
         });
         self
     }
@@ -710,8 +710,8 @@ impl SelectStatement {
     {
         self.expr(SelectExpr {
             expr: expr.into(),
-            alias: Some(alias.into_iden().into()),
-            window: Some(WindowSelectType::Name(window.into_iden().into())),
+            alias: Some(alias.into_iden()),
+            window: Some(WindowSelectType::Name(window.into_iden())),
         });
         self
     }
@@ -854,7 +854,7 @@ impl SelectStatement {
             .map(|vt| vt.into_value_tuple())
             .collect();
         assert!(!value_tuples.is_empty());
-        self.from_from(TableRef::ValuesList(value_tuples, alias.into_iden().into()))
+        self.from_from(TableRef::ValuesList(value_tuples, alias.into_iden()))
     }
 
     /// From table with alias.
@@ -951,7 +951,7 @@ impl SelectStatement {
     where
         T: IntoIden,
     {
-        self.from_from(TableRef::SubQuery(query, alias.into_iden().into()))
+        self.from_from(TableRef::SubQuery(query, alias.into_iden()))
     }
 
     /// From function call.
@@ -983,7 +983,7 @@ impl SelectStatement {
     where
         T: IntoIden,
     {
-        self.from_from(TableRef::FunctionCall(func, alias.into_iden().into()))
+        self.from_from(TableRef::FunctionCall(func, alias.into_iden()))
     }
 
     #[allow(clippy::wrong_self_convention)]
@@ -1498,7 +1498,7 @@ impl SelectStatement {
     {
         self.join_join(
             join,
-            TableRef::SubQuery(query, alias.into_iden().into()),
+            TableRef::SubQuery(query, alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
@@ -1564,7 +1564,7 @@ impl SelectStatement {
     {
         self.join_join(
             join,
-            TableRef::SubQuery(query, alias.into_iden().into()),
+            TableRef::SubQuery(query, alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
@@ -2218,7 +2218,7 @@ impl SelectStatement {
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden().into())), Alias::new("looped"), Alias::new("traversal_path")))
+    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
     ///         .to_owned();
     ///
     /// let query = select.with(with_clause).to_owned();
@@ -2270,7 +2270,7 @@ impl SelectStatement {
     where
         A: IntoIden,
     {
-        self.window = Some((name.into_iden().into(), window));
+        self.window = Some((name.into_iden(), window));
         self
     }
 }

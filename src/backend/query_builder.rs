@@ -1154,7 +1154,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                             OnConflictUpdate::Column(col) => {
                                 col.prepare(sql.as_writer(), self.quote());
                                 write!(sql, " = ").unwrap();
-                                self.prepare_on_conflict_excluded_table(col.as_ref(), sql);
+                                self.prepare_on_conflict_excluded_table(col, sql);
                             }
                             OnConflictUpdate::Expr(col, expr) => {
                                 col.prepare(sql.as_writer(), self.quote());

@@ -32,7 +32,7 @@ pub enum SimpleExpr {
     Custom(String),
     CustomWithExpr(String, Vec<SimpleExpr>),
     Keyword(Keyword),
-    AsEnum(CmpDynIden, Box<SimpleExpr>),
+    AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
     Constant(Value),
 }
@@ -1861,7 +1861,7 @@ impl Expr {
     where
         T: IntoIden,
     {
-        SimpleExpr::AsEnum(type_name.into_iden().into(), Box::new(self.into()))
+        SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
     }
 
     /// Adds new `CASE WHEN` to existing case statement.
@@ -2019,7 +2019,7 @@ impl Expr {
     where
         T: IntoIden,
     {
-        Expr::new_with_left(Keyword::Custom(i.into_iden().into()))
+        Expr::new_with_left(Keyword::Custom(i.into_iden()))
     }
 }
 

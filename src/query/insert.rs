@@ -45,7 +45,7 @@ pub(crate) enum InsertValueSource {
 pub struct InsertStatement {
     pub(crate) replace: bool,
     pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) columns: Vec<CmpDynIden>,
+    pub(crate) columns: Vec<DynIden>,
     pub(crate) source: Option<InsertValueSource>,
     pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Option<ReturningClause>,
@@ -110,7 +110,7 @@ impl InsertStatement {
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        self.columns = columns.into_iter().map(|c| c.into_iden().into()).collect();
+        self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
         self
     }
 

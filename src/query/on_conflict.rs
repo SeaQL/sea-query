@@ -1,4 +1,4 @@
-use crate::{CmpDynIden, ConditionHolder, IntoCondition, IntoIden, SimpleExpr};
+use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, SimpleExpr};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct OnConflict {
@@ -12,7 +12,7 @@ pub struct OnConflict {
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictTarget {
     /// A list of columns with unique constraint
-    ConflictColumns(Vec<CmpDynIden>),
+    ConflictColumns(Vec<DynIden>),
 }
 
 /// Represents ON CONFLICT (upsert) actions
@@ -28,9 +28,9 @@ pub enum OnConflictAction {
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictUpdate {
     /// Update column value of existing row with inserting value
-    Column(CmpDynIden),
+    Column(DynIden),
     /// Update column value of existing row with expression
-    Expr(CmpDynIden, SimpleExpr),
+    Expr(DynIden, SimpleExpr),
 }
 
 impl OnConflict {
@@ -226,7 +226,7 @@ impl OnConflict {
     {
         let mut update_exprs: Vec<OnConflictUpdate> = values
             .into_iter()
-            .map(|(c, e)| OnConflictUpdate::Expr(c.into_iden().into(), e))
+            .map(|(c, e)| OnConflictUpdate::Expr(c.into_iden(), e))
             .collect();
 
         match &mut self.action {

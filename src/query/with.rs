@@ -1,7 +1,5 @@
-use crate::CmpDynIden;
 use crate::ColumnRef;
 use crate::DynIden;
-use crate::Iden;
 use crate::IntoIden;
 use crate::QueryStatementBuilder;
 use crate::QueryStatementWriter;
@@ -57,8 +55,8 @@ use std::ops::Deref;
 /// It is mandatory to set the [Self::table_name] and the [Self::query].
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct CommonTableExpression {
-    pub(crate) table_name: Option<CmpDynIden>,
-    pub(crate) cols: Vec<CmpDynIden>,
+    pub(crate) table_name: Option<DynIden>,
+    pub(crate) cols: Vec<DynIden>,
     pub(crate) query: Option<Box<SubQueryStatement>>,
     pub(crate) materialized: Option<bool>,
 }
@@ -74,7 +72,7 @@ impl CommonTableExpression {
     where
         T: IntoIden,
     {
-        self.table_name = Some(table_name.into_iden().into());
+        self.table_name = Some(table_name.into_iden());
         self
     }
 
@@ -83,7 +81,7 @@ impl CommonTableExpression {
     where
         C: IntoIden,
     {
-        self.cols.push(col.into_iden().into());
+        self.cols.push(col.into_iden());
         self
     }
 
@@ -94,7 +92,7 @@ impl CommonTableExpression {
         I: IntoIterator<Item = T>,
     {
         self.cols
-            .extend(cols.into_iter().map(|col| col.into_iden().into()));
+            .extend(cols.into_iter().map(|col| col.into_iden()));
         self
     }
 
@@ -125,17 +123,13 @@ impl CommonTableExpression {
         cte.try_set_cols_from_selects(&select.selects);
         if let Some(from) = select.from.get(0) {
             match from.deref() {
-                TableRef::Table(iden) => cte.set_table_name_from_select(iden.as_ref()),
-                TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden.as_ref()),
-                TableRef::DatabaseSchemaTable(_, _, iden) => {
-                    cte.set_table_name_from_select(iden.as_ref())
-                }
-                TableRef::TableAlias(_, iden) => cte.set_table_name_from_select(iden.as_ref()),
-                TableRef::SchemaTableAlias(_, _, iden) => {
-                    cte.set_table_name_from_select(iden.as_ref())
-                }
+                TableRef::Table(iden) => cte.set_table_name_from_select(iden),
+                TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden),
+                TableRef::DatabaseSchemaTable(_, _, iden) => cte.set_table_name_from_select(iden),
+                TableRef::TableAlias(_, iden) => cte.set_table_name_from_select(iden),
+                TableRef::SchemaTableAlias(_, _, iden) => cte.set_table_name_from_select(iden),
                 TableRef::DatabaseSchemaTableAlias(_, _, _, iden) => {
-                    cte.set_table_name_from_select(iden.as_ref())
+                    cte.set_table_name_from_select(iden)
                 }
                 _ => {}
             }
@@ -162,7 +156,7 @@ impl CommonTableExpression {
     }
 
     fn try_set_cols_from_selects(&mut self, selects: &[SelectExpr]) -> bool {
-        let vec: Option<Vec<CmpDynIden>> = selects
+        let vec: Option<Vec<DynIden>> = selects
             .iter()
             .map(|select| {
                 if let Some(ident) = &select.alias {
@@ -284,8 +278,8 @@ impl Search {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Cycle {
     pub(crate) expr: Option<SimpleExpr>,
-    pub(crate) set_as: Option<CmpDynIden>,
-    pub(crate) using: Option<CmpDynIden>,
+    pub(crate) set_as: Option<DynIden>,
+    pub(crate) using: Option<DynIden>,
 }
 
 impl Cycle {
@@ -299,8 +293,8 @@ impl Cycle {
     {
         Self {
             expr: Some(expr.into()),
-            set_as: Some(set.into_iden().into()),
-            using: Some(using.into_iden().into()),
+            set_as: Some(set.into_iden()),
+            using: Some(using.into_iden()),
         }
     }
 
@@ -324,7 +318,7 @@ impl Cycle {
     where
         ID: IntoIden,
     {
-        self.set_as = Some(set.into_iden().into());
+        self.set_as = Some(set.into_iden());
         self
     }
 
@@ -334,7 +328,7 @@ impl Cycle {
     where
         ID: IntoIden,
     {
-        self.using = Some(using.into_iden().into());
+        self.using = Some(using.into_iden());
         self
     }
 }
@@ -427,7 +421,7 @@ impl Cycle {
 /// let with_clause = WithClause::new()
 ///         .recursive(true)
 ///         .cte(common_table_expression)
-///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden().into())), Alias::new("looped"), Alias::new("traversal_path")))
+///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
 ///         .to_owned();
 ///
 /// let query = select.with(with_clause).to_owned();

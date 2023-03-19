@@ -765,7 +765,7 @@ mod with_mac_address {
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 pub mod with_array {
     use super::*;
-    use crate::SeaRc;
+    use crate::RcOrArc;
 
     // We only imlement conversion from Vec<T> to Array when T is not u8.
     // This is because for u8's case, there is already conversion to Byte defined above.
@@ -886,7 +886,7 @@ pub mod with_array {
 
         fn column_type() -> ColumnType {
             use ColumnType::*;
-            Array(SeaRc::new(T::column_type()))
+            Array(RcOrArc::new(T::column_type()))
         }
     }
 }

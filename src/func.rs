@@ -17,7 +17,7 @@ pub enum Function {
     IfNull,
     CharLength,
     Cast,
-    Custom(CmpDynIden),
+    Custom(DynIden),
     Coalesce,
     Lower,
     Upper,
@@ -101,7 +101,7 @@ impl Func {
     where
         T: IntoIden,
     {
-        FunctionCall::new(Function::Custom(func.into_iden().into()))
+        FunctionCall::new(Function::Custom(func.into_iden()))
     }
 
     /// Call `MAX` function.
