@@ -59,7 +59,6 @@ impl OnConflict {
                 columns
                     .into_iter()
                     .map(IntoIden::into_iden)
-                    .map(Into::into)
                     .collect(),
             )),
             target_where: ConditionHolder::new(),
@@ -171,7 +170,7 @@ impl OnConflict {
     {
         let mut update_strats: Vec<OnConflictUpdate> = columns
             .into_iter()
-            .map(|x| OnConflictUpdate::Column(IntoIden::into_iden(x).into()))
+            .map(|x| OnConflictUpdate::Column(IntoIden::into_iden(x)))
             .collect();
 
         match &mut self.action {

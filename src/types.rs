@@ -68,7 +68,7 @@ impl ops::Deref for SeaRc<dyn Iden> {
 
 impl Clone for SeaRc<dyn Iden> {
     fn clone(&self) -> SeaRc<dyn Iden> {
-        SeaRc::<dyn Iden>::clone(self)
+        SeaRc(RcOrArc::clone(&self.0))
     }
 }
 
@@ -84,12 +84,6 @@ where
 {
     pub fn new(i: I) -> SeaRc<dyn Iden> {
         SeaRc(RcOrArc::new(i))
-    }
-}
-
-impl SeaRc<dyn Iden> {
-    pub fn clone(&self) -> SeaRc<dyn Iden> {
-        SeaRc(RcOrArc::clone(&self.0))
     }
 }
 

@@ -141,8 +141,7 @@ impl CommonTableExpression {
     fn set_table_name_from_select(&mut self, iden: &DynIden) {
         self.table_name = Some(
             Alias::new(format!("cte_{}", iden.to_string()))
-                .into_iden()
-                .into(),
+                .into_iden(),
         )
     }
 
@@ -167,8 +166,7 @@ impl CommonTableExpression {
                             ColumnRef::Column(iden) => Some(iden.clone()),
                             ColumnRef::TableColumn(table, column) => Some(
                                 Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
-                                    .into_iden()
-                                    .into(),
+                                    .into_iden(),
                             ),
                             ColumnRef::SchemaTableColumn(schema, table, column) => Some(
                                 Alias::new(format!(
@@ -177,8 +175,7 @@ impl CommonTableExpression {
                                     table.to_string(),
                                     column.to_string()
                                 ))
-                                .into_iden()
-                                .into(),
+                                .into_iden(),
                             ),
                             _ => None,
                         },
