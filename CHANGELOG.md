@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added new type `Asteriks` https://github.com/SeaQL/sea-query/pull/596
 * Added `IF NOT EXISTS` for `DROP INDEX` in Postgres and Sqlite https://github.com/SeaQL/sea-query/pull/610
 * Added `->` and `->>` operators for Postgres https://github.com/SeaQL/sea-query/pull/617/files
+* Added `TableCreateStatement::set_extra` and `TableCreateStatement::get_extra` https://github.com/SeaQL/sea-query/pull/611
 
 ### Breaking changes
 
