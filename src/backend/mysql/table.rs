@@ -1,6 +1,14 @@
 use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
+    fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+        //commrnt
+        if let Some(comment) = &create.comment {
+            write!(sql, " COMMENT '{comment}' ").unwrap();
+        }
+        self.prepare_table_opt_def(create, sql)
+    }
+
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
         column_def.name.prepare(sql.as_writer(), self.quote());
 

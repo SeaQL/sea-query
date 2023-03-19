@@ -13,8 +13,9 @@ use crate::{
 /// let table = Table::create()
 ///     .table(Char::Table)
 ///     .if_not_exists()
+///     .comment("table comment")
 ///     .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
-///     .col(ColumnDef::new(Char::FontSize).integer().not_null())
+///     .col(ColumnDef::new(Char::FontSize).integer().not_null().comment("font size"))
 ///     .col(ColumnDef::new(Char::Character).string().not_null())
 ///     .col(ColumnDef::new(Char::SizeW).integer().not_null())
 ///     .col(ColumnDef::new(Char::SizeH).integer().not_null())
@@ -34,7 +35,7 @@ use crate::{
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 ///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
-///             r#"`font_size` int NOT NULL,"#,
+///             r#"`font_size` int NOT NULL COMMENT 'font size',"#,
 ///             r#"`character` varchar(255) NOT NULL,"#,
 ///             r#"`size_w` int NOT NULL,"#,
 ///             r#"`size_h` int NOT NULL,"#,
@@ -42,7 +43,7 @@ use crate::{
 ///             r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
 ///                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 ///                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///         r#")"#,
+///         r#") COMMENT 'table comment' "#,
 ///     ].join(" ")
 /// );
 /// assert_eq!(
@@ -50,7 +51,7 @@ use crate::{
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///             r#""id" serial NOT NULL PRIMARY KEY,"#,
-///             r#""font_size" integer NOT NULL,"#,
+///             r#""font_size" integer NOT NULL ,"#,
 ///             r#""character" varchar NOT NULL,"#,
 ///             r#""size_w" integer NOT NULL,"#,
 ///             r#""size_h" integer NOT NULL,"#,
@@ -66,7 +67,7 @@ use crate::{
 ///     [
 ///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-///            r#""font_size" integer NOT NULL,"#,
+///            r#""font_size" integer NOT NULL ,"#,
 ///            r#""character" text NOT NULL,"#,
 ///            r#""size_w" integer NOT NULL,"#,
 ///            r#""size_h" integer NOT NULL,"#,
@@ -86,6 +87,8 @@ pub struct TableCreateStatement {
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
     pub(crate) check: Vec<SimpleExpr>,
+    ///table comment
+    pub(crate) comment: Option<String>,
 }
 
 /// All available table options
@@ -118,6 +121,14 @@ impl TableCreateStatement {
         T: IntoTableRef,
     {
         self.table = Some(table.into_table_ref());
+        self
+    }
+    /// Set table comment
+    pub fn comment<T>(&mut self, comment: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.comment = Some(comment.into());
         self
     }
 
@@ -285,6 +296,7 @@ impl TableCreateStatement {
             foreign_keys: std::mem::take(&mut self.foreign_keys),
             if_not_exists: self.if_not_exists,
             check: std::mem::take(&mut self.check),
+            comment: std::mem::take(&mut self.comment),
         }
     }
 }

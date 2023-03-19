@@ -15,7 +15,7 @@ rust-version = "1.60"
 proc-macro = true
 
 [dependencies]
-syn = { version = "1", default-features = false }
+syn = { version = "1", default-features = false, features = ["derive"]}
 quote = { version = "1", default-features = false }
 heck = { version = "0.4", default-features = false }
 proc-macro2 = { version = "1", default-features = false }

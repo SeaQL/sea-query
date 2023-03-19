@@ -111,6 +111,7 @@ pub enum ColumnSpec {
     Check(SimpleExpr),
     Generated { expr: SimpleExpr, stored: bool },
     Extra(String),
+    Comment(String),
 }
 
 // All interval fields
@@ -608,6 +609,15 @@ impl ColumnDef {
         self.spec.push(ColumnSpec::Extra(string.into()));
         self
     }
+
+    pub fn comment<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.spec.push(ColumnSpec::Comment(string.into()));
+        self
+    }
+    
     pub fn get_column_name(&self) -> String {
         self.name.to_string()
     }

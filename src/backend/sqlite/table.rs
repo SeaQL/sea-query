@@ -164,4 +164,6 @@ impl TableBuilder for SqliteQueryBuilder {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
+    /// column comment
+    fn column_comment(&self, _comment: &String, _sql: &mut dyn SqlWriter) {}
 }

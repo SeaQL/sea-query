@@ -167,6 +167,7 @@ impl TableBuilder for PostgresQueryBuilder {
                             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
                             ColumnSpec::Generated { .. } => {}
                             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
+                            ColumnSpec::Comment(_) => {},
                         }
                         false
                     });
@@ -219,6 +220,8 @@ impl TableBuilder for PostgresQueryBuilder {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
+    /// column comment
+    fn column_comment(&self, _comment: &String, _sql: &mut dyn SqlWriter) {}
 }
 
 impl PostgresQueryBuilder {
