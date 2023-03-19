@@ -8,7 +8,6 @@
 mod common;
 mod create;
 mod drop;
-mod shim;
 
 pub use common::*;
 pub use create::*;
