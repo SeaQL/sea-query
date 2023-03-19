@@ -252,18 +252,18 @@ impl TypeDropStatement {
     ///
     /// #[derive(Iden)]
     /// enum KycStatus {
-    ///    #[iden = "kyc_status"]
-    ///    Type,
-    ///    Pending,
-    ///    Approved,
+    ///     #[iden = "kyc_status"]
+    ///     Type,
+    ///     Pending,
+    ///     Approved,
     /// }
     ///
     /// #[derive(Iden)]
     /// enum FontFamily {
-    ///    #[iden = "font_family"]
-    ///    Type,
-    ///    Aerial,
-    ///    Forte,
+    ///     #[iden = "font_family"]
+    ///     Type,
+    ///     Aerial,
+    ///     Forte,
     /// }
     ///
     /// assert_eq!(
