@@ -106,8 +106,8 @@ pub trait TableBuilder:
         }
     }
 
-    /// column comment 
-    fn column_comment(&self, comment:&String, sql: &mut dyn SqlWriter) {
+    /// column comment
+    fn column_comment(&self, comment: &String, sql: &mut dyn SqlWriter) {
         write!(sql, "COMMENT '{comment}'").unwrap()
     }
 

@@ -617,7 +617,7 @@ impl ColumnDef {
         self.spec.push(ColumnSpec::Comment(string.into()));
         self
     }
-    
+
     pub fn get_column_name(&self) -> String {
         self.name.to_string()
     }
