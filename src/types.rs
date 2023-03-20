@@ -1,7 +1,7 @@
 //! Base types used throughout sea-query.
 
 use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
-use std::{mem, fmt, ops};
+use std::{fmt, mem, ops};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
