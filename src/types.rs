@@ -1,7 +1,7 @@
 //! Base types used throughout sea-query.
 
 use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
-use std::{any, fmt, ops};
+use std::{mem, fmt, ops};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -74,7 +74,12 @@ impl Clone for SeaRc<dyn Iden> {
 
 impl PartialEq for SeaRc<dyn Iden> {
     fn eq(&self, other: &Self) -> bool {
-        any::Any::type_id(&*self.0) == any::Any::type_id(&*other.0) && self.to_string() == other.to_string()
+        let (self_vtable, other_vtable) = unsafe {
+            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
+            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
+            (self_vtable, other_vtable)
+        };
+        self_vtable == other_vtable && self.to_string() == other.to_string()
     }
 }
 
@@ -667,14 +672,19 @@ mod tests {
 
     #[test]
     fn test_cmp_identifier() {
-        let type_id = std::any::Any::type_id(&*(SeaRc::new(Character::Id).0));
-        assert!(type_id == std::any::TypeId::of::<dyn Iden>()); // TRUE if it's `trait Iden` but we want to differentiate `Character::Id` from `Alias::new("id")`... like the two lines
-        assert!(type_id == std::any::TypeId::of::<Character>()); // TRUE if we write `trait Iden: any::Any`
-        assert!(type_id != std::any::TypeId::of::<Alias>()); // TRUE if we write `trait Iden: any::Any`
+        type CharLocal = Character;
 
         assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Char::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(CharLocal::Id.into_iden())
         );
         assert_eq!(
             ColumnRef::Column(Alias::new("id").into_iden()),
@@ -684,9 +694,7 @@ mod tests {
             ColumnRef::Column(Alias::new("id").into_iden()),
             ColumnRef::Column(Alias::new("id_").into_iden())
         );
-        // FIXME: We cannot differentiate `Character::Id` from `Alias::new("id")`,
-        // without making `any::Any` as the super trait of `Iden`
-        assert_eq!(
+        assert_ne!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Alias::new("id").into_iden())
         );
@@ -694,8 +702,7 @@ mod tests {
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Table.into_iden())
         );
-        // FIXME: Same here...
-        assert_eq!(
+        assert_ne!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Font::Id.into_iden())
         );
