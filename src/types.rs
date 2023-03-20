@@ -611,8 +611,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests_cfg::*, *};
+    pub use crate::{tests_cfg::*, *};
     use pretty_assertions::assert_eq;
+    pub use Character as CharReexport;
 
     #[test]
     fn test_identifier() {
@@ -685,6 +686,10 @@ mod tests {
         assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(CharLocal::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(CharReexport::Id.into_iden())
         );
         assert_eq!(
             ColumnRef::Column(Alias::new("id").into_iden()),
