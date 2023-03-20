@@ -15,11 +15,11 @@ rust-version = "1.60"
 proc-macro = true
 
 [dependencies]
-syn = { version = "1", default-features = false, features = ["parsing", "proc-macro", "derive", "printing"] }
-quote = { version = "1", default-features = false }
-heck = { version = "0.4", default-features = false }
-proc-macro2 = { version = "1", default-features = false }
-thiserror = { version = "1.0", default-features = false }
+syn = { version = "1", default-features = false, features = [ "derive", "parsing", "proc-macro", "printing" ] }
+quote = "1"
+heck = "0.4"
+proc-macro2 = "1"
+thiserror = "^1.0"
 
 [dev-dependencies]
 trybuild = "^1.0"
