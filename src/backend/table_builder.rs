@@ -55,6 +55,10 @@ pub trait TableBuilder:
         write!(sql, " )").unwrap();
 
         self.prepare_table_opt(create, sql);
+
+        if let Some(extra) = &create.extra {
+            write!(sql, " {extra}").unwrap();
+        }
     }
 
     /// Translate [`TableRef`] into SQL statement.
