@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
 * `tests_cfg` module is available only if you enabled `tests-cfg` feature https://github.com/SeaQL/sea-query/pull/584
 * Removed hard coded quotes https://github.com/SeaQL/sea-query/pull/613
+* Enabled required `syn` v1 features https://github.com/SeaQL/sea-query/pull/624
 
 ### Bug fixes
 
