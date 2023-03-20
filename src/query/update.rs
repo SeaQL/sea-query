@@ -8,6 +8,7 @@ use crate::{
     QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
     WithQuery,
 };
+use inherent::inherent;
 
 /// Update existing rows in the table
 ///
@@ -294,45 +295,106 @@ impl UpdateStatement {
     }
 }
 
+#[inherent]
 impl QueryStatementBuilder for UpdateStatement {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) {
         query_builder.prepare_update_statement(self, sql);
     }
 
-    fn into_sub_query_statement(self) -> SubQueryStatement {
+    pub fn into_sub_query_statement(self) -> SubQueryStatement {
         SubQueryStatement::UpdateStatement(self)
     }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
+    pub fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
 }
 
+#[inherent]
 impl QueryStatementWriter for UpdateStatement {
-    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
         query_builder.prepare_update_statement(self, sql);
     }
+
+    pub fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 }
 
+#[inherent]
 impl OrderedStatement for UpdateStatement {
-    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.orders.push(order);
         self
     }
 
-    fn clear_order_by(&mut self) -> &mut Self {
+    pub fn clear_order_by(&mut self) -> &mut Self {
         self.orders = Vec::new();
         self
     }
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
+    where
+        T: IntoColumnRef;
+
+    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_with_nulls<T>(
+        &mut self,
+        col: T,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self
+    where
+        T: IntoColumnRef;
+    pub fn order_by_expr_with_nulls(
+        &mut self,
+        expr: SimpleExpr,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self;
+    pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+    pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
 }
 
+#[inherent]
 impl ConditionalStatement for UpdateStatement {
-    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+    pub fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
         self.r#where.add_and_or(condition);
         self
     }
 
-    fn cond_where<C>(&mut self, condition: C) -> &mut Self
+    pub fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
         C: IntoCondition,
     {
         self.r#where.add_condition(condition.into_condition());
         self
     }
+
+    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
+    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
 }

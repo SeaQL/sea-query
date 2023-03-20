@@ -1,4 +1,5 @@
 use crate::{expr::*, query::*, types::*};
+use inherent::inherent;
 
 pub trait OverStatement {
     #[doc(hidden)]
@@ -111,26 +112,6 @@ impl WindowStatement {
         window
     }
 
-    /// Construct a new [`WindowStatement`] with ORDER BY column
-    pub fn order_by<T>(col: T, order: Order) -> Self
-    where
-        T: IntoColumnRef,
-    {
-        let mut window = Self::new();
-        window.order_by_expr(SimpleExpr::Column(col.into_column_ref()), order);
-        window
-    }
-
-    /// Construct a new [`WindowStatement`] with ORDER BY custom
-    pub fn order_by_custom<T>(col: T, order: Order) -> Self
-    where
-        T: ToString,
-    {
-        let mut window = Self::new();
-        window.order_by_expr(SimpleExpr::Custom(col.to_string()), order);
-        window
-    }
-
     /// frame clause for frame_start
     /// # Examples:
     ///
@@ -213,14 +194,51 @@ impl OverStatement for WindowStatement {
     }
 }
 
+#[inherent]
 impl OrderedStatement for WindowStatement {
-    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.order_by.push(order);
         self
     }
 
-    fn clear_order_by(&mut self) -> &mut Self {
+    pub fn clear_order_by(&mut self) -> &mut Self {
         self.order_by = Vec::new();
         self
     }
+
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
+    where
+        T: IntoColumnRef;
+
+    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_with_nulls<T>(
+        &mut self,
+        col: T,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self
+    where
+        T: IntoColumnRef;
+    pub fn order_by_expr_with_nulls(
+        &mut self,
+        expr: SimpleExpr,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self;
+    pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+    pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
 }

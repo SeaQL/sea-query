@@ -23,6 +23,7 @@ pub enum Character {
     FontId,
     Ascii,
     CreatedAt,
+    UserData,
 }
 
 /// A shorthand for [`Character`]
@@ -43,6 +44,7 @@ impl Iden for Character {
                 Self::FontId => "font_id",
                 Self::Ascii => "ascii",
                 Self::CreatedAt => "created_at",
+                Self::UserData => "user_data",
             }
         )
         .unwrap();
