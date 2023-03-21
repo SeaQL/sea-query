@@ -35,15 +35,13 @@ impl TypeBuilder for PostgresQueryBuilder {
             write!(sql, "IF EXISTS ").unwrap();
         }
 
-        let mut names_iter = drop.names.iter();
-        if let Some(name) = names_iter.next() {
+        drop.names.iter().fold(true, |first, name| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
             self.prepare_type_ref(name, sql);
-        }
-
-        for name in names_iter {
-            write!(sql, ", ").unwrap();
-            self.prepare_type_ref(name, sql);
-        }
+            false
+        });
 
         if let Some(option) = &drop.option {
             write!(sql, " ").unwrap();
