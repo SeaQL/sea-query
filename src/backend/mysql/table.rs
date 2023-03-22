@@ -2,7 +2,7 @@ use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
     fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
-        //commrnt
+        // comment
         if let Some(comment) = &create.comment {
             write!(sql, " COMMENT '{comment}' ").unwrap();
         }
