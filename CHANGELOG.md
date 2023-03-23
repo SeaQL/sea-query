@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.29.0 - Pending
 
++ 2023-03-22: `0.29.0-rc.1`
+
 ### New Features
 
 * Added `ValueTuple::Many` for tuple with length up to 12 https://github.com/SeaQL/sea-query/pull/564
