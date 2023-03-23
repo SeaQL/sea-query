@@ -1,0 +1,49 @@
+[workspace]
+# A separate workspace
+
+[package]
+name = "sea-query-rbatis"
+version = "0.1.0"
+authors = ["Caisin <kaixing622@qq.com>"]
+edition = "2021"
+description = "Driver library for using SeaQuery with Rbatis"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = ["database"]
+keywords = ["database", "sql", "mysql", "postgres", "sqlite", "rbatis"]
+rust-version = "1.60"
+
+[lib]
+
+[dependencies]
+sea-query = { version = "0.29", path = "..", default-features = false, features = [
+    "thread-safe",
+] }
+rbs = { version = "4.3.1" }
+serde_json = { version = "1", default-features = false, optional = true, features = [
+    "std",
+] }
+chrono = { version = "0.4", default-features = false, optional = true, features = [
+    "clock",
+] }
+rust_decimal = { version = "1", default-features = false, optional = true }
+bigdecimal = { version = "0.3", default-features = false, optional = true }
+uuid = { version = "1", default-features = false, optional = true }
+time = { version = "0.3", default-features = false, optional = true, features = [
+    "macros",
+    "formatting",
+] }
+ipnetwork = { version= "0.20", default-features = false, optional = true }
+mac_address = { version = "1.1", default-features = false, optional = true }
+
+[features]
+with-chrono = ["sea-query/with-chrono", "chrono"]
+with-json = ["sea-query/with-json", "serde_json"]
+with-rust_decimal = ["sea-query/with-rust_decimal", "rust_decimal"]
+with-bigdecimal = ["sea-query/with-bigdecimal", "bigdecimal"]
+with-uuid = ["sea-query/with-uuid", "uuid"]
+with-time = ["sea-query/with-time", "time"]
+with-ipnetwork = ["sea-query/with-ipnetwork", "ipnetwork"]
+with-mac_address = ["sea-query/with-mac_address", "mac_address"]
+postgres-array = ["sea-query/postgres-array"]
