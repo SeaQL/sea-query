@@ -112,6 +112,7 @@ pub trait TableBuilder:
 
     /// column comment
     fn column_comment(&self, comment: &String, sql: &mut dyn SqlWriter) {
+        let comment = comment.replace("'", "\\'");
         write!(sql, "COMMENT '{comment}'").unwrap()
     }
 

@@ -10,6 +10,9 @@ impl TableBuilder for PostgresQueryBuilder {
             if let ColumnSpec::AutoIncrement = column_spec {
                 continue;
             }
+            if let ColumnSpec::Comment(_) = column_spec {
+                continue;
+            }
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
         }
@@ -220,8 +223,6 @@ impl TableBuilder for PostgresQueryBuilder {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
-    /// column comment
-    fn column_comment(&self, _comment: &String, _sql: &mut dyn SqlWriter) {}
 }
 
 impl PostgresQueryBuilder {

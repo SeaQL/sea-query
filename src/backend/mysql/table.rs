@@ -4,7 +4,8 @@ impl TableBuilder for MysqlQueryBuilder {
     fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
         // comment
         if let Some(comment) = &create.comment {
-            write!(sql, " COMMENT '{comment}' ").unwrap();
+            // self.quote()
+            write!(sql, " COMMENT '{comment}'").unwrap();
         }
         self.prepare_table_opt_def(create, sql)
     }

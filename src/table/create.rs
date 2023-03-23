@@ -45,7 +45,7 @@ use crate::{
 ///             r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
 ///                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 ///                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///         r#") COMMENT 'table comment' "#,
+///         r#") COMMENT 'table comment'"#,
 ///     ].join(" ")
 /// );
 /// assert_eq!(
@@ -53,7 +53,7 @@ use crate::{
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///             r#""id" serial NOT NULL PRIMARY KEY,"#,
-///             r#""font_size" integer NOT NULL ,"#,
+///             r#""font_size" integer NOT NULL,"#,
 ///             r#""character" varchar NOT NULL,"#,
 ///             r#""size_w" integer NOT NULL,"#,
 ///             r#""size_h" integer NOT NULL,"#,
@@ -69,7 +69,7 @@ use crate::{
 ///     [
 ///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-///            r#""font_size" integer NOT NULL ,"#,
+///            r#""font_size" integer NOT NULL,"#,
 ///            r#""character" text NOT NULL,"#,
 ///            r#""size_w" integer NOT NULL,"#,
 ///            r#""size_h" integer NOT NULL,"#,
