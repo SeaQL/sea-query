@@ -111,7 +111,7 @@ pub trait TableBuilder:
     }
 
     /// column comment
-    fn column_comment(&self, _comment: &String, _sql: &mut dyn SqlWriter) {}
+    fn column_comment(&self, _comment: &str, _sql: &mut dyn SqlWriter) {}
 
     /// The keyword for setting a column to be auto increment.
     fn column_spec_auto_increment_keyword(&self) -> &str;
