@@ -200,4 +200,10 @@ impl TableBuilder for MysqlQueryBuilder {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
+
+    /// column comment
+    fn column_comment(&self, comment: &String, sql: &mut dyn SqlWriter) {
+        let comment = comment.replace("'", "\\'");
+        write!(sql, "COMMENT '{comment}'").unwrap()
+    }
 }
