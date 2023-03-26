@@ -281,6 +281,10 @@ impl TableCreateStatement {
         self.columns.as_ref()
     }
 
+    pub fn get_comment(&self) -> Option<&String> {
+        self.comment.as_ref()
+    }
+
     pub fn get_foreign_key_create_stmts(&self) -> &Vec<ForeignKeyCreateStatement> {
         self.foreign_keys.as_ref()
     }
