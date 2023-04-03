@@ -639,6 +639,7 @@ impl ColumnDef {
         self
     }
 
+    /// MySQL only.
     pub fn comment<T>(&mut self, string: T) -> &mut Self
     where
         T: Into<String>,

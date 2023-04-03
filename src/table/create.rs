@@ -89,7 +89,6 @@ pub struct TableCreateStatement {
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
     pub(crate) check: Vec<SimpleExpr>,
-    ///table comment
     pub(crate) comment: Option<String>,
     pub(crate) extra: Option<String>,
 }
@@ -126,6 +125,7 @@ impl TableCreateStatement {
         self.table = Some(table.into_table_ref());
         self
     }
+
     /// Set table comment
     pub fn comment<T>(&mut self, comment: T) -> &mut Self
     where

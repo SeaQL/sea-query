@@ -120,6 +120,7 @@ pub trait TableBuilder:
     fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
         self.prepare_table_opt_def(create, sql)
     }
+
     /// Default function
     fn prepare_table_opt_def(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
         for table_opt in create.options.iter() {
