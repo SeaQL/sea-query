@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `IF NOT EXISTS` for `DROP INDEX` in Postgres and Sqlite https://github.com/SeaQL/sea-query/pull/610
 * Added `->` and `->>` operators for Postgres https://github.com/SeaQL/sea-query/pull/617/files
 * Added `TableCreateStatement::set_extra` and `TableCreateStatement::get_extra` https://github.com/SeaQL/sea-query/pull/611
+* Added `TableCreateStatement::comment` and `ColumnDef::comment` for MySQL comments https://github.com/SeaQL/sea-query/pull/622
 
 ### Breaking changes
 
