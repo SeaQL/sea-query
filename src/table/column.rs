@@ -111,6 +111,7 @@ pub enum ColumnSpec {
     Check(SimpleExpr),
     Generated { expr: SimpleExpr, stored: bool },
     Extra(String),
+    Comment(String),
 }
 
 // All interval fields
@@ -635,6 +636,15 @@ impl ColumnDef {
         T: Into<String>,
     {
         self.spec.push(ColumnSpec::Extra(string.into()));
+        self
+    }
+
+    /// MySQL only.
+    pub fn comment<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.spec.push(ColumnSpec::Comment(string.into()));
         self
     }
 

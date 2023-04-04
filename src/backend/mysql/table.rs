@@ -1,6 +1,15 @@
 use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
+    fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+        // comment
+        if let Some(comment) = &create.comment {
+            let comment = self.escape_string(comment);
+            write!(sql, " COMMENT '{comment}'").unwrap();
+        }
+        self.prepare_table_opt_def(create, sql)
+    }
+
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
         column_def.name.prepare(sql.as_writer(), self.quote());
 
@@ -190,5 +199,11 @@ impl TableBuilder for MysqlQueryBuilder {
         if let Some(to_name) = &rename.to_name {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
+    }
+
+    /// column comment
+    fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
+        let comment = self.escape_string(comment);
+        write!(sql, "COMMENT '{comment}'").unwrap()
     }
 }

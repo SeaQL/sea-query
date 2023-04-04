@@ -10,6 +10,9 @@ impl TableBuilder for PostgresQueryBuilder {
             if let ColumnSpec::AutoIncrement = column_spec {
                 continue;
             }
+            if let ColumnSpec::Comment(_) = column_spec {
+                continue;
+            }
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
         }
@@ -167,6 +170,7 @@ impl TableBuilder for PostgresQueryBuilder {
                             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
                             ColumnSpec::Generated { .. } => {}
                             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
+                            ColumnSpec::Comment(_) => {}
                         }
                         false
                     });

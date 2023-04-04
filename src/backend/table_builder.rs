@@ -106,14 +106,23 @@ pub trait TableBuilder:
                 self.prepare_generated_column(expr, *stored, sql)
             }
             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
+            ColumnSpec::Comment(comment) => self.column_comment(comment, sql),
         }
     }
+
+    /// column comment
+    fn column_comment(&self, _comment: &str, _sql: &mut dyn SqlWriter) {}
 
     /// The keyword for setting a column to be auto increment.
     fn column_spec_auto_increment_keyword(&self) -> &str;
 
     /// Translate [`TableOpt`] into SQL statement.
     fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+        self.prepare_table_opt_def(create, sql)
+    }
+
+    /// Default function
+    fn prepare_table_opt_def(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
         for table_opt in create.options.iter() {
             write!(sql, " ").unwrap();
             write!(

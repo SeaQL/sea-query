@@ -15,8 +15,9 @@ use crate::{
 /// let table = Table::create()
 ///     .table(Char::Table)
 ///     .if_not_exists()
+///     .comment("table's comment")
 ///     .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
-///     .col(ColumnDef::new(Char::FontSize).integer().not_null())
+///     .col(ColumnDef::new(Char::FontSize).integer().not_null().comment("font's size"))
 ///     .col(ColumnDef::new(Char::Character).string().not_null())
 ///     .col(ColumnDef::new(Char::SizeW).integer().not_null())
 ///     .col(ColumnDef::new(Char::SizeH).integer().not_null())
@@ -36,7 +37,7 @@ use crate::{
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 ///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
-///             r#"`font_size` int NOT NULL,"#,
+///             r#"`font_size` int NOT NULL COMMENT 'font\'s size',"#,
 ///             r#"`character` varchar(255) NOT NULL,"#,
 ///             r#"`size_w` int NOT NULL,"#,
 ///             r#"`size_h` int NOT NULL,"#,
@@ -44,7 +45,7 @@ use crate::{
 ///             r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
 ///                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 ///                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///         r#")"#,
+///         r#") COMMENT 'table\'s comment'"#,
 ///     ].join(" ")
 /// );
 /// assert_eq!(
@@ -88,6 +89,7 @@ pub struct TableCreateStatement {
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
     pub(crate) check: Vec<SimpleExpr>,
+    pub(crate) comment: Option<String>,
     pub(crate) extra: Option<String>,
 }
 
@@ -121,6 +123,15 @@ impl TableCreateStatement {
         T: IntoTableRef,
     {
         self.table = Some(table.into_table_ref());
+        self
+    }
+
+    /// Set table comment
+    pub fn comment<T>(&mut self, comment: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.comment = Some(comment.into());
         self
     }
 
@@ -270,6 +281,10 @@ impl TableCreateStatement {
         self.columns.as_ref()
     }
 
+    pub fn get_comment(&self) -> Option<&String> {
+        self.comment.as_ref()
+    }
+
     pub fn get_foreign_key_create_stmts(&self) -> &Vec<ForeignKeyCreateStatement> {
         self.foreign_keys.as_ref()
     }
@@ -334,6 +349,7 @@ impl TableCreateStatement {
             foreign_keys: std::mem::take(&mut self.foreign_keys),
             if_not_exists: self.if_not_exists,
             check: std::mem::take(&mut self.check),
+            comment: std::mem::take(&mut self.comment),
             extra: std::mem::take(&mut self.extra),
         }
     }

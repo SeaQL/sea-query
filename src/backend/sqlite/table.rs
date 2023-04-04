@@ -21,6 +21,9 @@ impl TableBuilder for SqliteQueryBuilder {
                 is_auto_increment = true;
                 continue;
             }
+            if let ColumnSpec::Comment(_) = column_spec {
+                continue;
+            }
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
         }
