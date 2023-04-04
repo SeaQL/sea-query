@@ -15,9 +15,9 @@ use crate::{
 /// let table = Table::create()
 ///     .table(Char::Table)
 ///     .if_not_exists()
-///     .comment("table comment")
+///     .comment("table's comment")
 ///     .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
-///     .col(ColumnDef::new(Char::FontSize).integer().not_null().comment("font size"))
+///     .col(ColumnDef::new(Char::FontSize).integer().not_null().comment("font's size"))
 ///     .col(ColumnDef::new(Char::Character).string().not_null())
 ///     .col(ColumnDef::new(Char::SizeW).integer().not_null())
 ///     .col(ColumnDef::new(Char::SizeH).integer().not_null())
@@ -37,7 +37,7 @@ use crate::{
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 ///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
-///             r#"`font_size` int NOT NULL COMMENT 'font size',"#,
+///             r#"`font_size` int NOT NULL COMMENT 'font\'s size',"#,
 ///             r#"`character` varchar(255) NOT NULL,"#,
 ///             r#"`size_w` int NOT NULL,"#,
 ///             r#"`size_h` int NOT NULL,"#,
@@ -45,7 +45,7 @@ use crate::{
 ///             r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
 ///                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 ///                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///         r#") COMMENT 'table comment'"#,
+///         r#") COMMENT 'table\'s comment'"#,
 ///     ].join(" ")
 /// );
 /// assert_eq!(

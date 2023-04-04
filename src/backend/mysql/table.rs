@@ -5,7 +5,7 @@ impl TableBuilder for MysqlQueryBuilder {
         // comment
         if let Some(comment) = &create.comment {
             let comment = self.escape_string(comment);
-            write!(sql, " COMMENT {comment}").unwrap();
+            write!(sql, " COMMENT '{comment}'").unwrap();
         }
         self.prepare_table_opt_def(create, sql)
     }
