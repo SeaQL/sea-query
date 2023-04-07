@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.28.4 - Pending
+
+### Bug fixes
+
+* Added comma if multiple names are passed to `TypeDropStatement` https://github.com/SeaQL/sea-query/pull/623
+
 ## 0.28.3 - 2023-01-18
 
 ### Enhancements
