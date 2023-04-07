@@ -10,6 +10,9 @@ impl TableBuilder for PostgresQueryBuilder {
             if let ColumnSpec::AutoIncrement = column_spec {
                 continue;
             }
+            if let ColumnSpec::Comment(_) = column_spec {
+                continue;
+            }
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
         }
@@ -21,11 +24,11 @@ impl TableBuilder for PostgresQueryBuilder {
             "{}",
             match column_type {
                 ColumnType::Char(length) => match length {
-                    Some(length) => format!("char({})", length),
+                    Some(length) => format!("char({length})"),
                     None => "char".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("varchar({})", length),
+                    Some(length) => format!("varchar({length})"),
                     None => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
@@ -36,7 +39,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Float => "real".into(),
                 ColumnType::Double => "double precision".into(),
                 ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
                     None => "decimal".into(),
                 },
                 ColumnType::DateTime => "timestamp without time zone".into(),
@@ -47,27 +50,27 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Interval(fields, precision) => {
                     let mut typ = "interval".to_string();
                     if let Some(fields) = fields {
-                        write!(typ, " {}", fields).unwrap();
+                        write!(typ, " {fields}").unwrap();
                     }
                     if let Some(precision) = precision {
-                        write!(typ, "({})", precision).unwrap();
+                        write!(typ, "({precision})").unwrap();
                     }
                     typ
                 }
                 ColumnType::Binary(_) => "bytea".into(),
-                ColumnType::VarBinary(length) => format!("bit varying({})", length),
+                ColumnType::VarBinary(length) => format!("bit varying({length})"),
                 ColumnType::Bit(length) => {
                     match length {
-                        Some(length) => format!("varbit({})", length),
+                        Some(length) => format!("varbit({length})"),
                         None => "bit".into(),
                     }
                 }
                 ColumnType::VarBit(length) => {
-                    format!("varbit({})", length)
+                    format!("varbit({length})")
                 }
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("money({precision}, {scale})"),
                     None => "money".into(),
                 },
                 ColumnType::Json => "json".into(),
@@ -76,7 +79,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Array(elem_type) => {
                     let mut sql = String::new();
                     self.prepare_column_type(elem_type, &mut sql);
-                    format!("{}[]", sql)
+                    format!("{sql}[]")
                 }
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { name, .. } => name.to_string(),
@@ -128,7 +131,12 @@ impl TableBuilder for PostgresQueryBuilder {
                     let first = column_def.types.is_none();
 
                     column_def.spec.iter().fold(first, |first, column_spec| {
-                        if !first && !matches!(column_spec, ColumnSpec::AutoIncrement) {
+                        if !first
+                            && !matches!(
+                                column_spec,
+                                ColumnSpec::AutoIncrement | ColumnSpec::Generated { .. }
+                            )
+                        {
                             write!(sql, ", ").unwrap();
                         }
                         match column_spec {
@@ -159,7 +167,10 @@ impl TableBuilder for PostgresQueryBuilder {
                                 column_def.name.prepare(sql.as_writer(), self.quote());
                                 write!(sql, ")").unwrap();
                             }
-                            ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
+                            ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
+                            ColumnSpec::Generated { .. } => {}
+                            ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
+                            ColumnSpec::Comment(_) => {}
                         }
                         false
                     });

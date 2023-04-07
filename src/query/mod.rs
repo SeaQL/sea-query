@@ -15,7 +15,6 @@ mod on_conflict;
 mod ordered;
 mod returning;
 mod select;
-mod shim;
 mod traits;
 mod update;
 mod window;

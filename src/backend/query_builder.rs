@@ -1,6 +1,8 @@
 use crate::*;
 use std::ops::Deref;
 
+const QUOTE: Quote = Quote(b'"', b'"');
+
 pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
@@ -21,6 +23,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_table_ref(table, sql);
             write!(sql, " ").unwrap();
         }
+
+        self.prepare_output(&insert.returning, sql);
 
         if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
             let num_rows = insert.default_values.unwrap();
@@ -152,15 +156,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             });
         }
 
-        if let Some(limit) = &select.limit {
-            write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
-        }
-
-        if let Some(offset) = &select.offset {
-            write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(offset, sql);
-        }
+        self.prepare_select_limit_offset(select, sql);
 
         if let Some(lock) = &select.lock {
             write!(sql, " ").unwrap();
@@ -172,6 +168,19 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             name.prepare(sql.as_writer(), self.quote());
             write!(sql, " AS ").unwrap();
             self.prepare_window_statement(query, sql);
+        }
+    }
+
+    // Translate the LIMIT and OFFSET expression in [`SelectStatement`]
+    fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        if let Some(limit) = &select.limit {
+            write!(sql, " LIMIT ").unwrap();
+            self.prepare_value(limit, sql);
+        }
+
+        if let Some(offset) = &select.offset {
+            write!(sql, " OFFSET ").unwrap();
+            self.prepare_value(offset, sql);
         }
     }
 
@@ -196,8 +205,19 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             false
         });
 
+        self.prepare_output(&update.returning, sql);
+
         self.prepare_condition(&update.r#where, "WHERE", sql);
 
+        self.prepare_update_order_by(update, sql);
+
+        self.prepare_update_limit(update, sql);
+
+        self.prepare_returning(&update.returning, sql);
+    }
+
+    /// Translate ORDER BY expression in [`UpdateStatement`].
+    fn prepare_update_order_by(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if !update.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
             update.orders.iter().fold(true, |first, expr| {
@@ -208,13 +228,14 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 false
             });
         }
+    }
 
+    /// Translate LIMIT expression in [`UpdateStatement`].
+    fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &update.limit {
             write!(sql, " LIMIT ").unwrap();
             self.prepare_value(limit, sql);
         }
-
-        self.prepare_returning(&update.returning, sql);
     }
 
     /// Translate [`DeleteStatement`] into SQL statement.
@@ -226,8 +247,19 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_table_ref(table, sql);
         }
 
-        self.prepare_condition(&delete.wherei, "WHERE", sql);
+        self.prepare_output(&delete.returning, sql);
 
+        self.prepare_condition(&delete.r#where, "WHERE", sql);
+
+        self.prepare_delete_order_by(delete, sql);
+
+        self.prepare_delete_limit(delete, sql);
+
+        self.prepare_returning(&delete.returning, sql);
+    }
+
+    /// Translate ORDER BY expression in [`DeleteStatement`].
+    fn prepare_delete_order_by(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if !delete.orders.is_empty() {
             write!(sql, " ORDER BY ").unwrap();
             delete.orders.iter().fold(true, |first, expr| {
@@ -238,13 +270,14 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 false
             });
         }
+    }
 
+    /// Translate LIMIT expression in [`DeleteStatement`].
+    fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &delete.limit {
             write!(sql, " LIMIT ").unwrap();
             self.prepare_value(limit, sql);
         }
-
-        self.prepare_returning(&delete.returning, sql);
     }
 
     /// Translate [`SimpleExpr`] into SQL statement.
@@ -301,7 +334,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 write!(sql, ")").unwrap();
             }
             SimpleExpr::Custom(s) => {
-                write!(sql, "{}", s).unwrap();
+                write!(sql, "{s}").unwrap();
             }
             SimpleExpr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
@@ -311,7 +344,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     match token {
                         Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
                             Some(Token::Punctuation(mark)) if mark == placeholder => {
-                                write!(sql, "{}", mark).unwrap();
+                                write!(sql, "{mark}").unwrap();
                                 tokenizer.next();
                             }
                             Some(Token::Unquoted(tok)) if numbered => {
@@ -325,7 +358,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                                 count += 1;
                             }
                         },
-                        _ => write!(sql, "{}", token).unwrap(),
+                        _ => write!(sql, "{token}").unwrap(),
                     };
                 }
             }
@@ -582,7 +615,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             LogicalChainOper::Or(simple_expr) => (simple_expr, "OR"),
         };
         if i > 0 {
-            write!(sql, " {} ", oper).unwrap();
+            write!(sql, " {oper} ").unwrap();
         }
         let both_binary = match simple_expr {
             SimpleExpr::Binary(_, _, right) => {
@@ -621,6 +654,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     Function::Cast => "CAST",
                     Function::Lower => "LOWER",
                     Function::Upper => "UPPER",
+                    Function::BitAnd => "BIT_AND",
+                    Function::BitOr => "BIT_OR",
                     Function::Custom(_) => "",
                     Function::Random => self.random_function(),
                     #[cfg(feature = "backend-postgres")]
@@ -841,8 +876,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Translate [`Order`] into SQL statement.
     fn prepare_order(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         match &order_expr.order {
-            Order::Asc => write!(sql, "ASC").unwrap(),
-            Order::Desc => write!(sql, "DESC").unwrap(),
+            Order::Asc => write!(sql, " ASC").unwrap(),
+            Order::Desc => write!(sql, " DESC").unwrap(),
             Order::Field(values) => self.prepare_field_order(order_expr, values, sql),
         }
     }
@@ -861,11 +896,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             self.prepare_simple_expr(&order_expr.expr, sql);
             write!(sql, "=").unwrap();
             let value = self.value_to_string(value);
-            write!(sql, "{}", value).unwrap();
-            write!(sql, " THEN {} ", i).unwrap();
+            write!(sql, "{value}").unwrap();
+            write!(sql, " THEN {i} ").unwrap();
             i += 1;
         }
-        write!(sql, "ELSE {} END", i).unwrap();
+        write!(sql, "ELSE {i} END").unwrap();
     }
 
     /// Write [`Value`] into SQL statement as parameter.
@@ -874,7 +909,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
         let string = self.value_to_string(value);
-        write!(sql, "{}", string).unwrap();
+        write!(sql, "{string}").unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
@@ -976,16 +1011,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             #[cfg(feature = "postgres-array")]
             Value::Array(_, None) => write!(s, "NULL").unwrap(),
             Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Int(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigInt(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::TinyUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::SmallUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Unsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::BigUnsigned(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Float(Some(v)) => write!(s, "{}", v).unwrap(),
-            Value::Double(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::TinyInt(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::SmallInt(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Int(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::BigInt(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::TinyUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::SmallUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Unsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::BigUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Float(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Double(Some(v)) => write!(s, "{v}").unwrap(),
             Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
@@ -993,7 +1028,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x'{}'",
-                v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
+                v.iter().map(|b| format!("{b:02X}")).collect::<String>()
             )
             .unwrap(),
             #[cfg(feature = "with-json")]
@@ -1038,15 +1073,15 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             )
             .unwrap(),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(s, "{}", v).unwrap(),
+            Value::BigDecimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            Value::Uuid(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => write!(
                 s,
-                "'{{{}}}'",
+                "ARRAY [{}]",
                 v.iter()
                     .map(|element| self.value_to_string(element))
                     .collect::<Vec<String>>()
@@ -1054,9 +1089,9 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             )
             .unwrap(),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            Value::IpNetwork(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(s, "'{}'", v).unwrap(),
+            Value::MacAddress(Some(v)) => write!(s, "'{v}'").unwrap(),
         };
         s
     }
@@ -1109,27 +1144,24 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 OnConflictAction::DoNothing => {
                     write!(sql, " DO NOTHING").unwrap();
                 }
-                OnConflictAction::UpdateColumns(columns) => {
+                OnConflictAction::Update(update_strats) => {
                     self.prepare_on_conflict_do_update_keywords(sql);
-                    columns.iter().fold(true, |first, col| {
+                    update_strats.iter().fold(true, |first, update_strat| {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        col.prepare(sql.as_writer(), self.quote());
-                        write!(sql, " = ").unwrap();
-                        self.prepare_on_conflict_excluded_table(col, sql);
-                        false
-                    });
-                }
-                OnConflictAction::UpdateExprs(column_exprs) => {
-                    self.prepare_on_conflict_do_update_keywords(sql);
-                    column_exprs.iter().fold(true, |first, (col, expr)| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
+                        match update_strat {
+                            OnConflictUpdate::Column(col) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_on_conflict_excluded_table(col, sql);
+                            }
+                            OnConflictUpdate::Expr(col, expr) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_simple_expr(expr, sql);
+                            }
                         }
-                        col.prepare(sql.as_writer(), self.quote());
-                        write!(sql, " = ").unwrap();
-                        self.prepare_simple_expr(expr, sql);
                         false
                     });
                 }
@@ -1152,7 +1184,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     #[doc(hidden)]
     /// Write ON CONFLICT update action by retrieving value from the excluded table
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
-        write!(sql, "{0}excluded{0}", self.quote()).unwrap();
+        write!(
+            sql,
+            "{}excluded{}",
+            self.quote().left(),
+            self.quote().right()
+        )
+        .unwrap();
         write!(sql, ".").unwrap();
         col.prepare(sql.as_writer(), self.quote());
     }
@@ -1166,6 +1204,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     ) {
         self.prepare_condition(on_conflict_condition, "WHERE", sql)
     }
+
+    #[doc(hidden)]
+    /// Hook to insert "OUTPUT" expressions.
+    fn prepare_output(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
 
     #[doc(hidden)]
     /// Hook to insert "RETURNING" statements.
@@ -1207,13 +1249,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         match &condition.contents {
             ConditionHolderContents::Empty => (),
             ConditionHolderContents::Chain(conditions) => {
-                write!(sql, " {} ", keyword).unwrap();
+                write!(sql, " {keyword} ").unwrap();
                 for (i, log_chain_oper) in conditions.iter().enumerate() {
                     self.prepare_logical_chain_oper(log_chain_oper, i, conditions.len(), sql);
                 }
             }
             ConditionHolderContents::Condition(c) => {
-                write!(sql, " {} ", keyword).unwrap();
+                write!(sql, " {keyword} ").unwrap();
                 self.prepare_condition_where(c, sql);
             }
         }
@@ -1228,8 +1270,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         if condition.is_empty() {
             match condition.condition_type {
-                ConditionType::All => self.prepare_constant(&true.into(), sql),
-                ConditionType::Any => self.prepare_constant(&false.into(), sql),
+                ConditionType::All => self.prepare_constant_true(sql),
+                ConditionType::Any => self.prepare_constant_false(sql),
             }
             return;
         }
@@ -1412,6 +1454,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             false
         });
     }
+
+    /// Write TRUE constant
+    fn prepare_constant_true(&self, sql: &mut dyn SqlWriter) {
+        self.prepare_constant(&true.into(), sql);
+    }
+
+    /// Write FALSE constant
+    fn prepare_constant_false(&self, sql: &mut dyn SqlWriter) {
+        self.prepare_constant(&false.into(), sql);
+    }
 }
 
 impl SubQueryStatement {
@@ -1444,8 +1496,8 @@ impl QueryBuilder for CommonSqlQueryBuilder {
 }
 
 impl QuotedBuilder for CommonSqlQueryBuilder {
-    fn quote(&self) -> char {
-        '"'
+    fn quote(&self) -> Quote {
+        QUOTE
     }
 }
 

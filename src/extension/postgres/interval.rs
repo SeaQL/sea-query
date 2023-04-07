@@ -20,7 +20,7 @@ impl fmt::Display for PgInterval {
             PgInterval::HourToSecond => "HOUR TO SECOND",
             PgInterval::MinuteToSecond => "MINUTE TO SECOND",
         };
-        write!(f, "{}", fields)
+        write!(f, "{fields}")
     }
 }
 
@@ -59,8 +59,7 @@ impl TryFrom<&str> for PgInterval {
             "HOUR TO SECOND" => Ok(PgInterval::HourToSecond),
             "MINUTE TO SECOND" => Ok(PgInterval::MinuteToSecond),
             field => Err(format!(
-                "Cannot turn \"{}\" into a Postgres interval field",
-                field,
+                "Cannot turn \"{field}\" into a Postgres interval field",
             )),
         }
     }

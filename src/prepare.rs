@@ -29,11 +29,13 @@ pub struct SqlWriterValues {
 }
 
 impl SqlWriterValues {
-    pub fn new(placeholder: &str, numbered: bool) -> Self {
-        let placeholder = placeholder.to_owned();
+    pub fn new<T>(placeholder: T, numbered: bool) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
             counter: 0,
-            placeholder,
+            placeholder: placeholder.into(),
             numbered,
             string: String::with_capacity(256),
             values: Vec::new(),
@@ -47,7 +49,7 @@ impl SqlWriterValues {
 
 impl Write for SqlWriterValues {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        write!(self.string, "{}", s)
+        write!(self.string, "{s}")
     }
 }
 
@@ -117,6 +119,7 @@ where
 #[cfg(feature = "backend-mysql")]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn inject_parameters_1() {

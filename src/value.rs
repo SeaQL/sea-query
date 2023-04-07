@@ -34,7 +34,7 @@ use mac_address::MacAddress;
 use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
 
 /// [`Value`] types variant for Postgres array
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ArrayType {
     Bool,
     TinyInt,
@@ -118,8 +118,17 @@ pub enum ArrayType {
 
 /// Value variants
 ///
-/// We want Value to be exactly 1 pointer sized, so anything larger should be boxed.
-#[derive(Clone, Debug, PartialEq)]
+/// We want the inner Value to be exactly 1 pointer sized, so anything larger should be boxed.
+///
+/// If the `hashable-value` feature is enabled, NaN == NaN, which contradicts Rust's built-in
+/// implementation of NaN != NaN.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
+#[cfg_attr(
+    feature = "hashable-value",
+    derive(derivative::Derivative),
+    derivative(Hash, PartialEq, Eq)
+)]
 pub enum Value {
     Bool(Option<bool>),
     TinyInt(Option<i8>),
@@ -130,8 +139,26 @@ pub enum Value {
     SmallUnsigned(Option<u16>),
     Unsigned(Option<u32>),
     BigUnsigned(Option<u64>),
-    Float(Option<f32>),
-    Double(Option<f64>),
+    Float(
+        #[cfg_attr(
+            feature = "hashable-value",
+            derivative(
+                Hash(hash_with = "hashable_value::hash_f32"),
+                PartialEq(compare_with = "hashable_value::cmp_f32")
+            )
+        )]
+        Option<f32>,
+    ),
+    Double(
+        #[cfg_attr(
+            feature = "hashable-value",
+            derivative(
+                Hash(hash_with = "hashable_value::hash_f64"),
+                PartialEq(compare_with = "hashable_value::cmp_f64")
+            )
+        )]
+        Option<f64>,
+    ),
     String(Option<Box<String>>),
     Char(Option<char>),
 
@@ -140,7 +167,16 @@ pub enum Value {
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    Json(Option<Box<Json>>),
+    Json(
+        #[cfg_attr(
+            feature = "hashable-value",
+            derivative(
+                Hash(hash_with = "hashable_value::hash_json"),
+                PartialEq(compare_with = "hashable_value::cmp_json")
+            )
+        )]
+        Option<Box<Json>>,
+    ),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
@@ -250,9 +286,7 @@ pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
     Three(Value, Value, Value),
-    Four(Value, Value, Value, Value),
-    Five(Value, Value, Value, Value, Value),
-    Six(Value, Value, Value, Value, Value, Value),
+    Many(Vec<Value>),
 }
 
 pub trait IntoValueTuple {
@@ -374,8 +408,8 @@ type_to_value!(f32, Float, Float);
 type_to_value!(f64, Double, Double);
 type_to_value!(char, Char, Char(None));
 
-impl<'a> From<&'a [u8]> for Value {
-    fn from(x: &'a [u8]) -> Value {
+impl From<&[u8]> for Value {
+    fn from(x: &[u8]) -> Value {
         Value::Bytes(Some(Box::<Vec<u8>>::new(x.into())))
     }
 }
@@ -394,7 +428,7 @@ impl From<&String> for Value {
     }
 }
 
-impl<'a> Nullable for &'a str {
+impl Nullable for &str {
     fn null() -> Value {
         Value::String(None)
     }
@@ -1169,9 +1203,7 @@ impl IntoIterator for ValueTuple {
             ValueTuple::One(v) => vec![v].into_iter(),
             ValueTuple::Two(v, w) => vec![v, w].into_iter(),
             ValueTuple::Three(u, v, w) => vec![u, v, w].into_iter(),
-            ValueTuple::Four(u, v, w, x) => vec![u, v, w, x].into_iter(),
-            ValueTuple::Five(u, v, w, x, y) => vec![u, v, w, x, y].into_iter(),
-            ValueTuple::Six(u, v, w, x, y, z) => vec![u, v, w, x, y, z].into_iter(),
+            ValueTuple::Many(vec) => vec.into_iter(),
         }
     }
 }
@@ -1212,56 +1244,34 @@ where
     }
 }
 
-impl<U, V, W, X> IntoValueTuple for (U, V, W, X)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Four(self.0.into(), self.1.into(), self.2.into(), self.3.into())
-    }
+macro_rules! impl_into_value_tuple {
+    ( $($idx:tt : $T:ident),+ $(,)? ) => {
+        impl< $($T),+ > IntoValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value>),+
+        {
+            fn into_value_tuple(self) -> ValueTuple {
+                ValueTuple::Many(vec![
+                    $(self.$idx.into()),+
+                ])
+            }
+        }
+    };
 }
 
-impl<U, V, W, X, Y> IntoValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Five(
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-        )
-    }
-}
+#[rustfmt::skip]
+mod impl_into_value_tuple {
+    use super::*;
 
-impl<U, V, W, X, Y, Z> IntoValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value>,
-    V: Into<Value>,
-    W: Into<Value>,
-    X: Into<Value>,
-    Y: Into<Value>,
-    Z: Into<Value>,
-{
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Six(
-            self.0.into(),
-            self.1.into(),
-            self.2.into(),
-            self.3.into(),
-            self.4.into(),
-            self.5.into(),
-        )
-    }
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10);
+    impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10, 11:T11);
 }
 
 impl<V> FromValueTuple for V
@@ -1312,70 +1322,43 @@ where
     }
 }
 
-impl<U, V, W, X> FromValueTuple for (U, V, W, X)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Four(u, v, w, x) => (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap()),
-            _ => panic!("not ValueTuple::Four"),
-        }
-    }
-}
-
-impl<U, V, W, X, Y> FromValueTuple for (U, V, W, X, Y)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Five(u, v, w, x, y) => {
-                (u.unwrap(), v.unwrap(), w.unwrap(), x.unwrap(), y.unwrap())
+macro_rules! impl_from_value_tuple {
+    ( $len:expr, $($T:ident),+ $(,)? ) => {
+        impl< $($T),+ > FromValueTuple for ( $($T),+ )
+        where
+            $($T: Into<Value> + ValueType),+
+        {
+            fn from_value_tuple<Z>(i: Z) -> Self
+            where
+                Z: IntoValueTuple,
+            {
+                match i.into_value_tuple() {
+                    ValueTuple::Many(vec) if vec.len() == $len => {
+                        let mut iter = vec.into_iter();
+                        (
+                            $(<$T as ValueType>::unwrap(iter.next().unwrap())),+
+                        )
+                    }
+                    _ => panic!("not ValueTuple::Many with length of {}", $len),
+                }
             }
-            _ => panic!("not ValueTuple::Five"),
         }
-    }
+    };
 }
 
-impl<U, V, W, X, Y, Z> FromValueTuple for (U, V, W, X, Y, Z)
-where
-    U: Into<Value> + ValueType,
-    V: Into<Value> + ValueType,
-    W: Into<Value> + ValueType,
-    X: Into<Value> + ValueType,
-    Y: Into<Value> + ValueType,
-    Z: Into<Value> + ValueType,
-{
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple,
-    {
-        match i.into_value_tuple() {
-            ValueTuple::Six(u, v, w, x, y, z) => (
-                u.unwrap(),
-                v.unwrap(),
-                w.unwrap(),
-                x.unwrap(),
-                y.unwrap(),
-                z.unwrap(),
-            ),
-            _ => panic!("not ValueTuple::Six"),
-        }
-    }
+#[rustfmt::skip]
+mod impl_from_value_tuple {
+    use super::*;
+
+    impl_from_value_tuple!( 4, T0, T1, T2, T3);
+    impl_from_value_tuple!( 5, T0, T1, T2, T3, T4);
+    impl_from_value_tuple!( 6, T0, T1, T2, T3, T4, T5);
+    impl_from_value_tuple!( 7, T0, T1, T2, T3, T4, T5, T6);
+    impl_from_value_tuple!( 8, T0, T1, T2, T3, T4, T5, T6, T7);
+    impl_from_value_tuple!( 9, T0, T1, T2, T3, T4, T5, T6, T7, T8);
+    impl_from_value_tuple!(10, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
+    impl_from_value_tuple!(11, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
+    impl_from_value_tuple!(12, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
 }
 
 /// Convert value to json value
@@ -1487,6 +1470,7 @@ impl IntoIterator for Values {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_value() {
@@ -1585,33 +1569,33 @@ mod tests {
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8).into_value_tuple(),
-            ValueTuple::Four(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16).into_value_tuple(),
-            ValueTuple::Five(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456))
-            )
+            ])
         );
         assert_eq!(
             (1i32, 2.4f64, "b", 123u8, 456u16, 789u32).into_value_tuple(),
-            ValueTuple::Six(
+            ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
                 Value::String(Some(Box::new("b".to_owned()))),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456)),
                 Value::Unsigned(Some(789))
-            )
+            ])
         );
     }
 
@@ -1727,7 +1711,10 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_value() {
-        let timestamp = NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2);
+        let timestamp = NaiveDate::from_ymd_opt(2020, 1, 1)
+            .unwrap()
+            .and_hms_opt(2, 2, 2)
+            .unwrap();
         let value: Value = timestamp.into();
         let out: NaiveDateTime = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1736,8 +1723,13 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_utc_value() {
-        let timestamp =
-            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let timestamp = DateTime::<Utc>::from_utc(
+            NaiveDate::from_ymd_opt(2022, 1, 2)
+                .unwrap()
+                .and_hms_opt(3, 4, 5)
+                .unwrap(),
+            Utc,
+        );
         let value: Value = timestamp.into();
         let out: DateTime<Utc> = value.unwrap();
         assert_eq!(out, timestamp);
@@ -1746,8 +1738,13 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_local_value() {
-        let timestamp_utc =
-            DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2022, 1, 2).and_hms(3, 4, 5), Utc);
+        let timestamp_utc = DateTime::<Utc>::from_utc(
+            NaiveDate::from_ymd_opt(2022, 1, 2)
+                .unwrap()
+                .and_hms_opt(3, 4, 5)
+                .unwrap(),
+            Utc,
+        );
         let timestamp_local: DateTime<Local> = timestamp_utc.into();
         let value: Value = timestamp_local.into();
         let out: DateTime<Local> = value.unwrap();
@@ -1777,15 +1774,15 @@ mod tests {
 
         assert_eq!(
             query.to_string(MysqlQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
     }
 
@@ -1844,15 +1841,15 @@ mod tests {
 
         assert_eq!(
             query.to_string(MysqlQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
         assert_eq!(
             query.to_string(SqliteQueryBuilder),
-            format!("SELECT '{}'", formatted)
+            format!("SELECT '{formatted}'")
         );
     }
 
@@ -1864,22 +1861,22 @@ mod tests {
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_braced = uuid.clone().braced();
+        let uuid_braced = uuid.braced();
         let value: Value = uuid_braced.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_hyphenated = uuid.clone().hyphenated();
+        let uuid_hyphenated = uuid.hyphenated();
         let value: Value = uuid_hyphenated.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_simple = uuid.clone().simple();
+        let uuid_simple = uuid.simple();
         let value: Value = uuid_simple.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
 
-        let uuid_urn = uuid.clone().urn();
+        let uuid_urn = uuid.urn();
         let value: Value = uuid_urn.into();
         let out: Uuid = value.unwrap();
         assert_eq!(out, uuid);
@@ -1912,5 +1909,173 @@ mod tests {
         let v: Value = Value::Array(ArrayType::Int, None);
         let out: Option<Vec<i32>> = v.unwrap();
         assert_eq!(out, None);
+    }
+}
+
+#[cfg(feature = "hashable-value")]
+mod hashable_value {
+    use super::*;
+    use ordered_float::OrderedFloat;
+    use std::hash::{Hash, Hasher};
+
+    pub fn hash_f32<H: Hasher>(v: &Option<f32>, state: &mut H) {
+        match v {
+            Some(v) => OrderedFloat(*v).hash(state),
+            None => "null".hash(state),
+        }
+    }
+
+    pub fn hash_f64<H: Hasher>(v: &Option<f64>, state: &mut H) {
+        match v {
+            Some(v) => OrderedFloat(*v).hash(state),
+            None => "null".hash(state),
+        }
+    }
+
+    pub fn cmp_f32(l: &Option<f32>, r: &Option<f32>) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    pub fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    #[cfg(feature = "with-json")]
+    pub fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
+        match v {
+            Some(v) => serde_json::to_string(v).unwrap().hash(state),
+            None => "null".hash(state),
+        }
+    }
+
+    #[cfg(feature = "with-json")]
+    pub fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => serde_json::to_string(l)
+                .unwrap()
+                .eq(&serde_json::to_string(r).unwrap()),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    #[test]
+    fn test_hash_value_0() {
+        let hash_set: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::Int(None),
+            Value::BigInt(None),
+            Value::BigInt(None),
+            Value::Float(None),
+            Value::Float(None),                // Null is not NaN
+            Value::Float(Some(std::f32::NAN)), // NaN considered equal
+            Value::Float(Some(std::f32::NAN)),
+            Value::Double(None),
+            Value::Double(None),
+            Value::Double(Some(std::f64::NAN)),
+            Value::Double(Some(std::f64::NAN)),
+        ]
+        .into_iter()
+        .collect();
+
+        let unique: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::BigInt(None),
+            Value::Float(None),
+            Value::Double(None),
+            Value::Float(Some(std::f32::NAN)),
+            Value::Double(Some(std::f64::NAN)),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(hash_set, unique);
+    }
+
+    #[test]
+    fn test_hash_value_1() {
+        let hash_set: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::Int(Some(1)),
+            Value::Int(Some(1)),
+            Value::BigInt(Some(2)),
+            Value::BigInt(Some(2)),
+            Value::Float(Some(3.0)),
+            Value::Float(Some(3.0)),
+            Value::Double(Some(3.0)),
+            Value::Double(Some(3.0)),
+            Value::BigInt(Some(5)),
+        ]
+        .into_iter()
+        .collect();
+
+        let unique: std::collections::HashSet<Value> = [
+            Value::BigInt(Some(5)),
+            Value::Double(Some(3.0)),
+            Value::Float(Some(3.0)),
+            Value::BigInt(Some(2)),
+            Value::Int(Some(1)),
+            Value::Int(None),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(hash_set, unique);
+    }
+
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn test_hash_value_array() {
+        assert_eq!(
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Value::Array(
+                ArrayType::Int,
+                Some(Box::new(vec![
+                    Value::Int(Some(0)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(2))
+                ]))
+            )
+        );
+
+        assert_eq!(
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Value::Array(
+                ArrayType::Float,
+                Some(Box::new(vec![
+                    Value::Float(Some(0f32)),
+                    Value::Float(Some(1.0)),
+                    Value::Float(Some(2.0))
+                ]))
+            )
+        );
+
+        let hash_set: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
+        ]
+        .into_iter()
+        .collect();
+
+        let unique: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(hash_set, unique);
     }
 }

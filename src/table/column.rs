@@ -91,7 +91,10 @@ impl PartialEq for ColumnType {
 }
 
 impl ColumnType {
-    pub fn custom(ty: &str) -> ColumnType {
+    pub fn custom<T>(ty: T) -> ColumnType
+    where
+        T: Into<String>,
+    {
         ColumnType::Custom(Alias::new(ty).into_iden())
     }
 }
@@ -105,7 +108,10 @@ pub enum ColumnSpec {
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
+    Check(SimpleExpr),
+    Generated { expr: SimpleExpr, stored: bool },
     Extra(String),
+    Comment(String),
 }
 
 // All interval fields
@@ -203,7 +209,44 @@ impl ColumnDef {
         self
     }
 
-    /// Set default value of a column
+    /// Set default expression of a column
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(ColumnDef::new(Char::FontId).integer().default(12i32))
+    ///     .col(
+    ///         ColumnDef::new(Char::CreatedAt)
+    ///             .timestamp()
+    ///             .default(Expr::current_timestamp())
+    ///             .not_null(),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         "CREATE TABLE `character` (",
+    ///         "`font_id` int DEFAULT 12,",
+    ///         "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL",
+    ///         ")",
+    ///     ]
+    ///     .join(" ")
+    /// );
+    ///
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""font_id" integer DEFAULT 12,"#,
+    ///         r#""created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
         T: Into<SimpleExpr>,
@@ -537,9 +580,71 @@ impl ColumnDef {
         self
     }
 
+    /// Set constraints as SimpleExpr
+    pub fn check<T>(&mut self, value: T) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.spec.push(ColumnSpec::Check(value.into()));
+        self
+    }
+
+    /// Sets the column as generated with SimpleExpr
+    pub fn generated<T>(&mut self, expr: T, stored: bool) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.spec.push(ColumnSpec::Generated {
+            expr: expr.into(),
+            stored,
+        });
+        self
+    }
+
     /// Some extra options in custom string
-    pub fn extra(&mut self, string: String) -> &mut Self {
-        self.spec.push(ColumnSpec::Extra(string));
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(
+    ///         ColumnDef::new(Char::Id)
+    ///             .uuid()
+    ///             .extra("DEFAULT uuid_generate_v4()")
+    ///             .primary_key()
+    ///             .not_null(),
+    ///     )
+    ///     .col(
+    ///         ColumnDef::new(Char::CreatedAt)
+    ///             .timestamp_with_time_zone()
+    ///             .extra("DEFAULT NOW()")
+    ///             .not_null(),
+    ///     )
+    ///     .to_owned();
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
+    ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
+    pub fn extra<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.spec.push(ColumnSpec::Extra(string.into()));
+        self
+    }
+
+    /// MySQL only.
+    pub fn comment<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.spec.push(ColumnSpec::Comment(string.into()));
         self
     }
 

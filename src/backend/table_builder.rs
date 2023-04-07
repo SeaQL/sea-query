@@ -11,46 +11,53 @@ pub trait TableBuilder:
     ) {
         write!(sql, "CREATE TABLE ").unwrap();
 
-        if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap();
-        }
+        self.prepare_create_table_if_not_exists(create, sql);
 
         if let Some(table_ref) = &create.table {
             self.prepare_table_ref_table_stmt(table_ref, sql);
         }
 
         write!(sql, " ( ").unwrap();
-        let mut count = 0;
+        let mut first = true;
 
-        for column_def in create.columns.iter() {
-            if count > 0 {
+        create.columns.iter().for_each(|column_def| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_column_def(column_def, sql);
-            count += 1;
-        }
+            first = false;
+        });
 
-        for index in create.indexes.iter() {
-            if count > 0 {
+        create.indexes.iter().for_each(|index| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_table_index_expression(index, sql);
-            count += 1;
-        }
+            first = false;
+        });
 
-        for foreign_key in create.foreign_keys.iter() {
-            if count > 0 {
+        create.foreign_keys.iter().for_each(|foreign_key| {
+            if !first {
                 write!(sql, ", ").unwrap();
             }
             self.prepare_foreign_key_create_statement_internal(foreign_key, sql, Mode::Creation);
-            count += 1;
-        }
+            first = false;
+        });
+
+        create.check.iter().for_each(|check| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_check_constraint(check, sql);
+            first = false;
+        });
 
         write!(sql, " )").unwrap();
 
-        for table_opt in create.options.iter() {
-            write!(sql, " ").unwrap();
-            self.prepare_table_opt(table_opt, sql);
+        self.prepare_table_opt(create, sql);
+
+        if let Some(extra) = &create.extra {
+            write!(sql, " {extra}").unwrap();
         }
     }
 
@@ -66,6 +73,16 @@ pub trait TableBuilder:
 
     /// Translate [`ColumnDef`] into SQL statement.
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter);
+
+    /// Translate [`ColumnDef`] into SQL statement.
+    fn prepare_column_def_internal(
+        &self,
+        _is_alter_column: bool,
+        column_def: &ColumnDef,
+        sql: &mut dyn SqlWriter,
+    ) {
+        self.prepare_column_def(column_def, sql);
+    }
 
     /// Translate [`ColumnType`] into SQL statement.
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter);
@@ -84,25 +101,41 @@ pub trait TableBuilder:
             }
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
-            ColumnSpec::Extra(string) => write!(sql, "{}", string).unwrap(),
+            ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
+            ColumnSpec::Generated { expr, stored } => {
+                self.prepare_generated_column(expr, *stored, sql)
+            }
+            ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
+            ColumnSpec::Comment(comment) => self.column_comment(comment, sql),
         }
     }
+
+    /// column comment
+    fn column_comment(&self, _comment: &str, _sql: &mut dyn SqlWriter) {}
 
     /// The keyword for setting a column to be auto increment.
     fn column_spec_auto_increment_keyword(&self) -> &str;
 
     /// Translate [`TableOpt`] into SQL statement.
-    fn prepare_table_opt(&self, table_opt: &TableOpt, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match table_opt {
-                TableOpt::Engine(s) => format!("ENGINE={}", s),
-                TableOpt::Collate(s) => format!("COLLATE={}", s),
-                TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={}", s),
-            }
-        )
-        .unwrap()
+    fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+        self.prepare_table_opt_def(create, sql)
+    }
+
+    /// Default function
+    fn prepare_table_opt_def(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+        for table_opt in create.options.iter() {
+            write!(sql, " ").unwrap();
+            write!(
+                sql,
+                "{}",
+                match table_opt {
+                    TableOpt::Engine(s) => format!("ENGINE={s}"),
+                    TableOpt::Collate(s) => format!("COLLATE={s}"),
+                    TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={s}"),
+                }
+            )
+            .unwrap()
+        }
     }
 
     /// Translate [`TablePartition`] into SQL statement.
@@ -153,6 +186,36 @@ pub trait TableBuilder:
 
         if let Some(table) = &truncate.table {
             self.prepare_table_ref_table_stmt(table, sql);
+        }
+    }
+
+    /// Translate the check constraint into SQL statement
+    fn prepare_check_constraint(&self, check: &SimpleExpr, sql: &mut dyn SqlWriter) {
+        write!(sql, "CHECK (").unwrap();
+        QueryBuilder::prepare_simple_expr(self, check, sql);
+        write!(sql, ")").unwrap();
+    }
+
+    /// Translate the generated column into SQL statement
+    fn prepare_generated_column(&self, gen: &SimpleExpr, stored: bool, sql: &mut dyn SqlWriter) {
+        write!(sql, "GENERATED ALWAYS AS (").unwrap();
+        QueryBuilder::prepare_simple_expr(self, gen, sql);
+        write!(sql, ")").unwrap();
+        if stored {
+            write!(sql, " STORED").unwrap();
+        } else {
+            write!(sql, " VIRTUAL").unwrap();
+        }
+    }
+
+    /// Translate IF NOT EXISTS expression in [`TableCreateStatement`].
+    fn prepare_create_table_if_not_exists(
+        &self,
+        create: &TableCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if create.if_not_exists {
+            write!(sql, "IF NOT EXISTS ").unwrap();
         }
     }
 

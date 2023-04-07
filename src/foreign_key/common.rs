@@ -29,7 +29,10 @@ impl TableForeignKey {
     }
 
     /// Set foreign key name
-    pub fn name(&mut self, name: &str) -> &mut Self {
+    pub fn name<T>(&mut self, name: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.name = Some(name.into());
         self
     }

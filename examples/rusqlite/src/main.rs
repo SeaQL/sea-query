@@ -73,7 +73,13 @@ fn main() -> Result<()> {
                 "notes": "some notes here",
             })
             .into(),
-            Some(NaiveDate::from_ymd(2020, 1, 1).and_hms(2, 2, 2)).into(),
+            Some(
+                NaiveDate::from_ymd_opt(2020, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(2, 2, 2)
+                    .unwrap(),
+            )
+            .into(),
         ])
         .values_panic([
             Uuid::new_v4().into(),
@@ -98,7 +104,7 @@ fn main() -> Result<()> {
         .build_rusqlite(SqliteQueryBuilder);
 
     let result = conn.execute(sql.as_str(), &*values.as_params());
-    println!("Insert into character: {:?}\n", result);
+    println!("Insert into character: {result:?}\n");
     let id = conn.last_insert_rowid();
 
     // Read
@@ -122,10 +128,10 @@ fn main() -> Result<()> {
     let mut rows = stmt.query(&*values.as_params())?;
     while let Some(row) = rows.next()? {
         let item = CharacterStructChrono::from(row);
-        println!("{:?}", item);
+        println!("{item:?}");
 
         let item = CharacterStructTime::from(row);
-        println!("{:?}", item);
+        println!("{item:?}");
     }
     println!();
 
@@ -138,7 +144,7 @@ fn main() -> Result<()> {
         .build_rusqlite(SqliteQueryBuilder);
 
     let result = conn.execute(sql.as_str(), &*values.as_params());
-    println!("Update character: {:?}\n", result);
+    println!("Update character: {result:?}\n");
 
     // Read
 
@@ -161,10 +167,10 @@ fn main() -> Result<()> {
     let mut rows = stmt.query(&*values.as_params())?;
     while let Some(row) = rows.next()? {
         let item = CharacterStructChrono::from(row);
-        println!("{:?}", item);
+        println!("{item:?}");
 
         let item = CharacterStructTime::from(row);
-        println!("{:?}", item);
+        println!("{item:?}");
     }
     println!();
 
@@ -183,7 +189,7 @@ fn main() -> Result<()> {
     } else {
         0
     };
-    println!("{}", count);
+    println!("{count}");
     println!();
 
     // Delete
@@ -194,7 +200,7 @@ fn main() -> Result<()> {
         .build_rusqlite(SqliteQueryBuilder);
 
     let result = conn.execute(sql.as_str(), &*values.as_params());
-    println!("Delete character: {:?}", result);
+    println!("Delete character: {result:?}");
 
     Ok(())
 }

@@ -35,7 +35,7 @@ Join our Discord server to chat with others in the SeaQL community!
 ```toml
 # Cargo.toml
 [dependencies]
-sea-query = "^0"
+sea-query = "0"
 ```
 
 SeaQuery is very lightweight, all dependencies are optional.
@@ -431,7 +431,7 @@ assert_eq!(
 
 ```rust
 let query = Query::select()
-    .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
+    .expr(Func::sum(Expr::col((Char::Table, Char::SizeH))))
     .from(Char::Table)
     .to_owned();
 assert_eq!(
@@ -651,10 +651,7 @@ assert_eq!(
     table.to_string(PostgresQueryBuilder),
     r#"TRUNCATE TABLE "font""#
 );
-assert_eq!(
-    table.to_string(SqliteQueryBuilder),
-    r#"TRUNCATE TABLE "font""#
-);
+// Sqlite does not support the TRUNCATE statement
 ```
 
 ### Foreign Key Create

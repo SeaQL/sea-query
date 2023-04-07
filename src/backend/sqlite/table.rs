@@ -21,6 +21,9 @@ impl TableBuilder for SqliteQueryBuilder {
                 is_auto_increment = true;
                 continue;
             }
+            if let ColumnSpec::Comment(_) = column_spec {
+                continue;
+            }
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
         }
@@ -41,22 +44,22 @@ impl TableBuilder for SqliteQueryBuilder {
             "{}",
             match column_type {
                 ColumnType::Char(length) => match length {
-                    Some(length) => format!("text({})", length),
+                    Some(length) => format!("text({length})"),
                     None => "text".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("text({})", length),
+                    Some(length) => format!("text({length})"),
                     None => "text".into(),
                 },
                 ColumnType::Text => "text".into(),
                 ColumnType::TinyInteger | ColumnType::TinyUnsigned => "integer".into(),
                 ColumnType::SmallInteger | ColumnType::SmallUnsigned => "integer".into(),
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
-                ColumnType::BigInteger | ColumnType::BigUnsigned => "integer".into(),
+                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
                 ColumnType::Float => "real".into(),
                 ColumnType::Double => "real".into(),
                 ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("real({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("real({precision}, {scale})"),
                     None => "real".into(),
                 },
                 ColumnType::DateTime => "text".into(),
@@ -66,13 +69,13 @@ impl TableBuilder for SqliteQueryBuilder {
                 ColumnType::Date => "text".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Blob(Some(length)) => format!("binary({})", length),
+                    BlobSize::Blob(Some(length)) => format!("binary({length})"),
                     _ => "blob".into(),
                 },
-                ColumnType::VarBinary(length) => format!("binary({})", length),
+                ColumnType::VarBinary(length) => format!("binary({length})"),
                 ColumnType::Boolean => "boolean".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("integer({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("integer({precision}, {scale})"),
                     None => "integer".into(),
                 },
                 ColumnType::Json => "text".into(),
@@ -100,10 +103,21 @@ impl TableBuilder for SqliteQueryBuilder {
         // SQLite does not support table drop options
     }
 
+    fn prepare_table_truncate_statement(
+        &self,
+        _truncate: &TableTruncateStatement,
+        _sql: &mut dyn SqlWriter,
+    ) {
+        panic!("Sqlite doesn't support TRUNCATE statement")
+    }
+
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
-        };
+        }
+        if alter.options.len() > 1 {
+            panic!("Sqlite doesn't support multiple alter options")
+        }
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
             self.prepare_table_ref_table_stmt(table, sql);

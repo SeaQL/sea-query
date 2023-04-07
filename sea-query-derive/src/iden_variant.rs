@@ -6,7 +6,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
-use crate::{error::ErrorMsg, find_attr, iden_attr::IdenAttr};
+use crate::{error::ErrorMsg, find_attr, iden_attr::IdenAttr, must_be_valid_iden};
 
 pub(crate) trait WriteArm {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream;
@@ -158,13 +158,11 @@ where
         tokens.append_all(self.write_variant_name(variant))
     }
 
-    fn table_or_snake_case(&self) -> TokenStream {
+    fn table_or_snake_case(&self) -> String {
         if self.ident == "Table" {
-            let table_name = self.table_name;
-            quote! { #table_name }
+            self.table_name.to_owned()
         } else {
-            let name = self.ident.to_string().to_snake_case();
-            quote! { #name }
+            self.ident.to_string().to_snake_case()
         }
     }
 
@@ -177,9 +175,25 @@ where
                 IdenAttr::Method(method) => quote! { self.#method() },
                 IdenAttr::Flatten => unreachable!(),
             })
-            .unwrap_or_else(|| self.table_or_snake_case());
+            .unwrap_or_else(|| {
+                let name = self.table_or_snake_case();
+                quote! { #name }
+            });
 
         T::variant(variant, name)
+    }
+
+    pub(super) fn must_be_valid_iden(&self) -> bool {
+        let name: String = match &self.attr {
+            Some(a) => match a {
+                IdenAttr::Rename(name) => name.to_owned(),
+                IdenAttr::Method(_) => return false,
+                IdenAttr::Flatten => return false,
+            },
+            None => self.table_or_snake_case(),
+        };
+
+        must_be_valid_iden(&name)
     }
 }
 

@@ -53,6 +53,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgBinOper::SimilarityDistance => "<->",
                     PgBinOper::WordSimilarityDistance => "<<->",
                     PgBinOper::StrictWordSimilarityDistance => "<<<->",
+                    PgBinOper::GetJsonField => "->",
+                    PgBinOper::CastJsonField => "->>",
                 }
             )
             .unwrap(),
@@ -78,7 +80,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::TsRank => "TS_RANK",
                     PgFunction::TsRankCd => "TS_RANK_CD",
                     PgFunction::StartsWith => "STARTS_WITH",
-                    PgFunction::GetRandomUUID => "GEN_RANDOM_UUID",
+                    PgFunction::GenRandomUUID => "GEN_RANDOM_UUID",
                     #[cfg(feature = "postgres-array")]
                     PgFunction::Any => "ANY",
                     #[cfg(feature = "postgres-array")]
@@ -95,7 +97,6 @@ impl QueryBuilder for PostgresQueryBuilder {
     fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql);
-            write!(sql, " ").unwrap();
         }
         self.prepare_order(order_expr, sql);
         match order_expr.nulls {
@@ -116,7 +117,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         } else {
             "'".to_owned() + &escaped + "'"
         };
-        write!(buffer, "{}", string).unwrap()
+        write!(buffer, "{string}").unwrap()
     }
 
     fn if_null_function(&self) -> &str {

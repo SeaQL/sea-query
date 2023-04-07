@@ -13,7 +13,7 @@ pub enum PgFunction {
     TsRank,
     TsRankCd,
     StartsWith,
-    GetRandomUUID,
+    GenRandomUUID,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -253,7 +253,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT ANY('{0,1}')"#
+    ///     r#"SELECT ANY(ARRAY [0,1])"#
     /// );
     /// ```
     #[cfg(feature = "postgres-array")]
@@ -275,7 +275,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT SOME('{0,1}')"#
+    ///     r#"SELECT SOME(ARRAY [0,1])"#
     /// );
     /// ```
     #[cfg(feature = "postgres-array")]
@@ -297,7 +297,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT ALL('{0,1}')"#
+    ///     r#"SELECT ALL(ARRAY [0,1])"#
     /// );
     /// ```
     #[cfg(feature = "postgres-array")]
@@ -340,14 +340,14 @@ impl PgFunc {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select().expr(PgFunc::get_random_uuid()).to_owned();
+    /// let query = Query::select().expr(PgFunc::gen_random_uuid()).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT GEN_RANDOM_UUID()"#
     /// );
     /// ```
-    pub fn get_random_uuid() -> FunctionCall {
-        FunctionCall::new(Function::PgFunction(PgFunction::GetRandomUUID))
+    pub fn gen_random_uuid() -> FunctionCall {
+        FunctionCall::new(Function::PgFunction(PgFunction::GenRandomUUID))
     }
 }

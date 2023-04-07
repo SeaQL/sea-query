@@ -73,10 +73,10 @@ fn select_5() {
 fn select_6() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
-            .exprs([Expr::col(Glyph::Image).max(),])
+            .columns([Glyph::Aspect])
+            .exprs([Expr::col(Glyph::Image).max()])
             .from(Glyph::Table)
-            .group_by_columns([Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(SqliteQueryBuilder),
         r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
@@ -87,7 +87,7 @@ fn select_6() {
 fn select_7() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .to_string(SqliteQueryBuilder),
@@ -196,7 +196,7 @@ fn select_14() {
             .columns([Glyph::Id, Glyph::Aspect])
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_columns([(Glyph::Table, Glyph::Id), (Glyph::Table, Glyph::Aspect),])
+            .group_by_columns([(Glyph::Table, Glyph::Id), (Glyph::Table, Glyph::Aspect)])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(SqliteQueryBuilder),
         r#"SELECT "id", "aspect", MAX("image") FROM "glyph" GROUP BY "glyph"."id", "glyph"."aspect" HAVING "aspect" > 2"#
@@ -232,7 +232,7 @@ fn select_16() {
 fn select_17() {
     assert_eq!(
         Query::select()
-            .columns([(Glyph::Table, Glyph::Image),])
+            .columns([(Glyph::Table, Glyph::Image)])
             .from(Glyph::Table)
             .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).between(3, 5))
             .to_string(SqliteQueryBuilder),
@@ -471,7 +471,7 @@ fn select_34a() {
             .column(Glyph::Aspect)
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_columns([Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect])
             .cond_having(any![
                 Expr::col(Glyph::Aspect)
                     .gt(2)
@@ -776,7 +776,7 @@ fn select_48a() {
 #[test]
 fn select_49() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .to_string(SqliteQueryBuilder);
 
@@ -786,7 +786,7 @@ fn select_49() {
 #[test]
 fn select_50() {
     let statement = Query::select()
-        .expr(Expr::table_asterisk(Char::Table))
+        .column((Character::Table, Asterisk))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(
@@ -805,7 +805,7 @@ fn select_50() {
 fn select_51() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
@@ -830,7 +830,7 @@ fn select_51() {
 fn select_52() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls([
@@ -853,7 +853,7 @@ fn select_52() {
 fn select_53() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls([
@@ -879,7 +879,7 @@ fn select_53() {
 #[test]
 fn select_54() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .from(Font::Table)
         .and_where(Expr::col((Font::Table, Font::Id)).equals((Char::Table, Char::FontId)))
@@ -895,7 +895,7 @@ fn select_54() {
 fn select_55() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(
@@ -929,7 +929,7 @@ fn select_55() {
 fn select_56() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
@@ -983,7 +983,7 @@ fn select_58() {
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .and_where(Expr::col(Char::Character).like(LikeExpr::new("A").escape('\\')))
             .build(SqliteQueryBuilder),
         (
             r#"SELECT "character" FROM "character" WHERE "character" LIKE ? ESCAPE '\'"#.to_owned(),
@@ -1081,7 +1081,9 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .values_panic([chrono::NaiveDateTime::from_timestamp_opt(0, 0)
+                .unwrap()
+                .into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
     );
@@ -1108,7 +1110,7 @@ fn insert_9() {
         Query::insert()
             .into_table(Task::Table)
             .columns([Task::IsDone])
-            .values_panic([true.into(),])
+            .values_panic([true.into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "task" ("is_done") VALUES (TRUE)"#
     );
@@ -1121,7 +1123,7 @@ fn insert_10() {
         Query::insert()
             .into_table(Task::Table)
             .columns([Task::IsDone])
-            .values_panic([false.into(),])
+            .values_panic([false.into()])
             .to_string(SqliteQueryBuilder),
         r#"INSERT INTO "task" ("is_done") VALUES (FALSE)"#
     );
@@ -1301,11 +1303,65 @@ fn insert_on_conflict_4() {
 
 #[test]
 #[allow(clippy::approx_constant)]
+fn insert_on_conflict_5() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .value(Glyph::Aspect, Expr::val("04108048005887010020060000204E0180400400"))
+                    .update_column(Glyph::Image)
+                    .to_owned()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = "excluded"."image""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_6() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_column(Glyph::Aspect)
+                    .value(Glyph::Image, Expr::val(1).add(2))
+                    .to_owned()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
 fn insert_returning_all_columns() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns([Glyph::Image, Glyph::Aspect,])
+            .columns([Glyph::Image, Glyph::Aspect])
             .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1322,7 +1378,7 @@ fn insert_returning_specific_columns() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns([Glyph::Image, Glyph::Aspect,])
+            .columns([Glyph::Image, Glyph::Aspect])
             .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1360,7 +1416,7 @@ fn update_3() {
             .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
-            ),])
+            )])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .to_string(SqliteQueryBuilder),
         r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#
@@ -1376,7 +1432,7 @@ fn update_4() {
             .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
-            ),])
+            )])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .order_by(Glyph::Id, Order::Asc)
             .limit(1)
@@ -1394,7 +1450,7 @@ fn update_returning_all_columns() {
             .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
-            ),])
+            )])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .returning(Query::returning().all())
             .to_string(SqliteQueryBuilder),
@@ -1411,7 +1467,7 @@ fn update_returning_specified_columns() {
             .values([(
                 Glyph::Image,
                 "24B0E11951B03B07F8300FD003983F03F0780060".into()
-            ),])
+            )])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .returning(Query::returning().columns([Glyph::Id, Glyph::Image]))
             .to_string(SqliteQueryBuilder),
@@ -1548,5 +1604,29 @@ fn union_1() {
             r#"LEFT JOIN "font" ON "character"."font_id" = "font"."id" ORDER BY "font"."id" ASC"#
         ]
         .join(" ")
+    );
+}
+
+#[test]
+fn sub_query_with_fn() {
+    #[derive(Iden)]
+    #[iden = "ARRAY"]
+    pub struct ArrayFunc;
+
+    let sub_select = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .to_owned();
+
+    let select = Query::select()
+        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
+            None,
+            Box::new(sub_select.into_sub_query_statement()),
+        )))
+        .to_owned();
+
+    assert_eq!(
+        select.to_string(SqliteQueryBuilder),
+        r#"SELECT ARRAY((SELECT * FROM "character"))"#
     );
 }

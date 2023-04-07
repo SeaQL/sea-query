@@ -10,8 +10,8 @@ pub struct PostgresValue(pub Value);
 #[derive(Clone, Debug, PartialEq)]
 pub struct PostgresValues(pub Vec<PostgresValue>);
 
-impl<'a> PostgresValues {
-    pub fn as_params(&'a self) -> Vec<&'a (dyn ToSql + Sync)> {
+impl PostgresValues {
+    pub fn as_params(&self) -> Vec<&(dyn ToSql + Sync)> {
         self.0
             .iter()
             .map(|x| {
@@ -47,6 +47,7 @@ impl_postgres_binder!(SelectStatement);
 impl_postgres_binder!(UpdateStatement);
 impl_postgres_binder!(InsertStatement);
 impl_postgres_binder!(DeleteStatement);
+impl_postgres_binder!(WithQuery);
 
 impl ToSql for PostgresValue {
     fn to_sql(

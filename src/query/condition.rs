@@ -636,8 +636,10 @@ impl ConditionHolder {
 #[cfg(test)]
 mod test {
     use crate::{tests_cfg::*, *};
+    use pretty_assertions::assert_eq;
 
     #[test]
+    #[cfg(feature = "backend-mysql")]
     fn test_blank_condition() {
         let query = Query::select()
             .column(Glyph::Image)

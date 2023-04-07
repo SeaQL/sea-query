@@ -38,7 +38,7 @@
 //! ```toml
 //! # Cargo.toml
 //! [dependencies]
-//! sea-query = "^0"
+//! sea-query = "0"
 //! ```
 //!
 //! SeaQuery is very lightweight, all dependencies are optional.
@@ -456,7 +456,7 @@
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::select()
-//!     .expr(Func::sum(Expr::tbl(Char::Table, Char::SizeH)))
+//!     .expr(Func::sum(Expr::col((Char::Table, Char::SizeH))))
 //!     .from(Char::Table)
 //!     .to_owned();
 //! assert_eq!(
@@ -683,10 +683,7 @@
 //!     table.to_string(PostgresQueryBuilder),
 //!     r#"TRUNCATE TABLE "font""#
 //! );
-//! assert_eq!(
-//!     table.to_string(SqliteQueryBuilder),
-//!     r#"TRUNCATE TABLE "font""#
-//! );
+//! // Sqlite does not support the TRUNCATE statement
 //! ```
 //!
 //! ### Foreign Key Create
@@ -826,26 +823,24 @@ pub mod index;
 pub mod prepare;
 pub mod query;
 pub mod schema;
-mod shim;
 pub mod table;
-pub mod tests_cfg;
 pub mod token;
 pub mod types;
 pub mod value;
 
+#[doc(hidden)]
+#[cfg(feature = "tests-cfg")]
+pub mod tests_cfg;
+
 pub use backend::*;
-//pub use extension::*;
-pub use foreign_key::*;
-pub use index::*;
-pub use query::*;
-pub use table::*;
-// pub use error::*;
 pub use expr::*;
+pub use foreign_key::*;
 pub use func::*;
+pub use index::*;
 pub use prepare::*;
+pub use query::*;
 pub use schema::*;
-//pub use shim::*;
-//pub use tests_cfg::*;
+pub use table::*;
 pub use token::*;
 pub use types::*;
 pub use value::*;

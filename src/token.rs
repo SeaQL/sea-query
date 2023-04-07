@@ -46,7 +46,7 @@ impl Tokenizer {
         while !self.end() {
             let c = self.get();
             if Self::is_space(c) {
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
             } else {
                 break;
             }
@@ -65,11 +65,11 @@ impl Tokenizer {
         while !self.end() {
             let c = self.get();
             if Self::is_alphanumeric(c) {
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
                 first = false;
                 self.inc();
             } else if !first && Self::is_identifier(c) {
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
                 self.inc();
             } else {
                 break;
@@ -90,12 +90,12 @@ impl Tokenizer {
         while !self.end() {
             let c = self.get();
             if first && Self::is_string_delimiter_start(c) {
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
                 first = false;
                 start = c;
                 self.inc();
             } else if !first && !escape && Self::is_string_delimiter_end_for(start, c) {
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
                 self.inc();
                 if self.end() {
                     break;
@@ -112,7 +112,7 @@ impl Tokenizer {
                 } else {
                     escape = false;
                 }
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
                 self.inc();
             } else {
                 break;
@@ -145,7 +145,7 @@ impl Tokenizer {
                 if !Self::is_string_escape_for(start, self.get()) {
                     break;
                 } else {
-                    write!(string, "{}", c).unwrap();
+                    write!(string, "{c}").unwrap();
                     self.inc();
                 }
             } else if !first {
@@ -154,7 +154,7 @@ impl Tokenizer {
                 } else {
                     escape = false;
                 }
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
                 self.inc();
             } else {
                 break;
@@ -168,7 +168,7 @@ impl Tokenizer {
         if !self.end() {
             let c = self.get();
             if !Self::is_space(c) && !Self::is_alphanumeric(c) {
-                write!(string, "{}", c).unwrap();
+                write!(string, "{c}").unwrap();
                 self.inc();
             }
         }
@@ -293,6 +293,7 @@ impl std::fmt::Display for Token {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_0() {
@@ -382,7 +383,7 @@ mod tests {
         let string = r#""a\"bc""#;
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"".to_string()),]);
+        assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"".to_string())]);
         assert_eq!(
             string,
             tokens.iter().map(|x| x.to_string()).collect::<String>()
@@ -394,7 +395,7 @@ mod tests {
         let string = "abc123";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Unquoted(string.to_string()),]);
+        assert_eq!(tokens, vec![Token::Unquoted(string.to_string())]);
         assert_eq!(
             string,
             tokens.iter().map(|x| x.to_string()).collect::<String>()
@@ -602,7 +603,7 @@ mod tests {
         let string = "abc_$123";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Unquoted(string.to_string()),]);
+        assert_eq!(tokens, vec![Token::Unquoted(string.to_string())]);
         assert_eq!(
             string,
             tokens.iter().map(|x| x.to_string()).collect::<String>()

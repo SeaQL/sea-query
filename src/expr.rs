@@ -100,56 +100,9 @@ impl Expr {
         }
     }
 
-    /// Express the asterisk without table prefix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::asterisk())
-    ///     .from(Char::Table)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT * FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// ```
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).eq(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
-    /// );
-    /// ```
+    #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
     pub fn asterisk() -> Self {
-        Self::col(ColumnRef::Asterisk)
+        Self::col(Asterisk)
     }
 
     /// Express the target column without table prefix.
@@ -245,69 +198,12 @@ impl Expr {
         ))
     }
 
-    /// Express the asterisk with table prefix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::asterisk())
-    ///     .from(Char::Table)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT * FROM `character`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT * FROM "character""#
-    /// );
-    /// ```
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::table_asterisk(Char::Table))
-    ///     .column((Font::Table, Font::Name))
-    ///     .from(Char::Table)
-    ///     .inner_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
-    /// );
-    /// ```
+    #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
     pub fn table_asterisk<T>(t: T) -> Self
     where
         T: IntoIden,
     {
-        Self::col(ColumnRef::TableAsterisk(t.into_iden()))
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::col`]")]
-    pub fn tbl<T, C>(t: T, c: C) -> Self
-    where
-        T: IntoIden,
-        C: IntoIden,
-    {
-        Self::col((t.into_iden(), c.into_iden()))
+        Self::col((t.into_iden(), Asterisk))
     }
 
     /// Express a [`Value`], returning a [`Expr`].
@@ -440,8 +336,11 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// ```
-    pub fn cust(s: &str) -> SimpleExpr {
-        SimpleExpr::Custom(s.to_owned())
+    pub fn cust<T>(s: T) -> SimpleExpr
+    where
+        T: Into<String>,
+    {
+        SimpleExpr::Custom(s.into())
     }
 
     /// Express any custom expression with [`Value`]. Use this if your expression needs variables.
@@ -514,13 +413,14 @@ impl Expr {
     ///     r#"SELECT data @? ('hello'::JSONPATH)"#
     /// );
     /// ```
-    pub fn cust_with_values<V, I>(s: &str, v: I) -> SimpleExpr
+    pub fn cust_with_values<T, V, I>(s: T, v: I) -> SimpleExpr
     where
+        T: Into<String>,
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
         SimpleExpr::CustomWithExpr(
-            s.to_owned(),
+            s.into(),
             v.into_iter()
                 .map(|v| Into::<Value>::into(v).into())
                 .collect(),
@@ -535,12 +435,15 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
+    ///     .expr(Expr::val(1).add(2))
     ///     .expr(Expr::cust_with_expr("data @? ($1::JSONPATH)", "hello"))
     ///     .to_owned();
+    /// let (sql, values) = query.build(PostgresQueryBuilder);
     ///
+    /// assert_eq!(sql, r#"SELECT $1 + $2, data @? ($3::JSONPATH)"#);
     /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT data @? ('hello'::JSONPATH)"#
+    ///     values,
+    ///     Values(vec![1i32.into(), 2i32.into(), "hello".into()])
     /// );
     /// ```
     /// ```
@@ -558,19 +461,21 @@ impl Expr {
     ///     r#"SELECT json_agg(DISTINCT "character")"#
     /// );
     /// ```
-    pub fn cust_with_expr<T>(s: &str, expr: T) -> SimpleExpr
+    pub fn cust_with_expr<T, E>(s: T, expr: E) -> SimpleExpr
     where
-        T: Into<SimpleExpr>,
+        T: Into<String>,
+        E: Into<SimpleExpr>,
     {
-        SimpleExpr::CustomWithExpr(s.to_owned(), vec![expr.into()])
+        SimpleExpr::CustomWithExpr(s.into(), vec![expr.into()])
     }
 
     /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
-    pub fn cust_with_exprs<I>(s: &str, v: I) -> SimpleExpr
+    pub fn cust_with_exprs<T, I>(s: T, v: I) -> SimpleExpr
     where
+        T: Into<String>,
         I: IntoIterator<Item = SimpleExpr>,
     {
-        SimpleExpr::CustomWithExpr(s.to_owned(), v.into_iter().collect())
+        SimpleExpr::CustomWithExpr(s.into(), v.into_iter().collect())
     }
 
     /// Express an equal (`=`) expression.
@@ -1190,7 +1095,7 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::Character)).like(LikeExpr::str(r"|_Our|_").escape('|')))
+    ///     .and_where(Expr::col((Char::Table, Char::Character)).like(LikeExpr::new(r"|_Our|_").escape('|')))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -2116,46 +2021,6 @@ impl Expr {
     {
         Expr::new_with_left(Keyword::Custom(i.into_iden()))
     }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gt`]")]
-    pub fn greater_than<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::GreaterThan, expr)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::gte`]")]
-    pub fn greater_or_equal<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::GreaterThanOrEqual, expr)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lt`]")]
-    pub fn less_than<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::SmallerThan, expr)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`Expr::lte`]")]
-    pub fn less_or_equal<T>(self, expr: T) -> SimpleExpr
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::SmallerThanOrEqual, expr)
-    }
-
-    #[deprecated(
-        since = "0.28.0",
-        note = "Please use the [`Into::<SimpleExpr>::into()`]"
-    )]
-    pub fn into_simple_expr(self) -> SimpleExpr {
-        self.into()
-    }
 }
 
 impl From<Expr> for SimpleExpr {
@@ -2372,22 +2237,6 @@ impl SimpleExpr {
         V: Into<SimpleExpr>,
     {
         self.binary(BinOper::NotEqual, v)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`SimpleExpr::eq`]")]
-    pub fn equals<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::Equal, right)
-    }
-
-    #[deprecated(since = "0.28.0", note = "Please use the [`SimpleExpr::ne`]")]
-    pub fn not_equals<T>(self, right: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        self.binary(BinOper::NotEqual, right)
     }
 
     /// Perform addition with another [`SimpleExpr`].

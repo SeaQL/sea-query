@@ -1,7 +1,7 @@
 use crate::SqlxValues;
 use sea_query::Value;
 
-impl<'q> sqlx::IntoArguments<'q, sqlx::mysql::MySql> for SqlxValues {
+impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
     fn into_arguments(self) -> sqlx::mysql::MySqlArguments {
         let mut args = sqlx::mysql::MySqlArguments::default();
         for arg in self.0.into_iter() {

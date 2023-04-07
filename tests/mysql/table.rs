@@ -1,4 +1,5 @@
 use super::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn create_1() {
@@ -82,6 +83,12 @@ fn create_3() {
                     .integer()
                     .default(Value::Int(None))
             )
+            .col(
+                ColumnDef::new(Char::CreatedAt)
+                    .timestamp()
+                    .default(Expr::current_timestamp())
+                    .not_null()
+            )
             .foreign_key(
                 ForeignKey::create()
                     .name("FK_2e303c3a712662f1fc2a4d0aad6")
@@ -102,6 +109,7 @@ fn create_3() {
             "`size_w` int UNSIGNED NOT NULL,",
             "`size_h` int UNSIGNED NOT NULL,",
             "`font_id` int DEFAULT NULL,",
+            "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,",
             "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE RESTRICT",
@@ -319,5 +327,40 @@ fn alter_7() {
             .rename_column(Font::Name, Alias::new("name_new"))
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` DROP COLUMN `new_column`, RENAME COLUMN `name` TO `name_new`"
+    );
+}
+
+#[test]
+fn create_with_check_constraint() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .check(Expr::col(Glyph::Id).gt(10))
+            )
+            .check(Expr::col(Glyph::Id).lt(20))
+            .check(Expr::col(Glyph::Id).ne(15))
+            .to_string(MysqlQueryBuilder),
+        r#"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10), CHECK (`id` < 20), CHECK (`id` <> 15) )"#,
+    );
+}
+
+#[test]
+fn alter_with_check_constraint() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .integer()
+                    .not_null()
+                    .default(101)
+                    .check(Expr::col(Glyph::Aspect).gt(100))
+            )
+            .to_string(MysqlQueryBuilder),
+        r#"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CHECK (`aspect` > 100)"#,
     );
 }

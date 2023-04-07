@@ -23,6 +23,7 @@ pub enum Character {
     FontId,
     Ascii,
     CreatedAt,
+    UserData,
 }
 
 /// A shorthand for [`Character`]
@@ -43,6 +44,7 @@ impl Iden for Character {
                 Self::FontId => "font_id",
                 Self::Ascii => "ascii",
                 Self::CreatedAt => "created_at",
+                Self::UserData => "user_data",
             }
         )
         .unwrap();
@@ -91,6 +93,7 @@ pub enum Glyph {
     Id,
     Image,
     Aspect,
+    Tokens,
 }
 
 impl Iden for Glyph {
@@ -103,6 +106,7 @@ impl Iden for Glyph {
                 Self::Id => "id",
                 Self::Image => "image",
                 Self::Aspect => "aspect",
+                Self::Tokens => "tokens",
             }
         )
         .unwrap();

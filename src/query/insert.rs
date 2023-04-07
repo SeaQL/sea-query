@@ -1,8 +1,9 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, OnConflict, QueryStatementBuilder,
-    QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryStatement,
+    QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryStatement, Values,
     WithClause, WithQuery,
 };
+use inherent::inherent;
 
 /// Represents a value source that can be used in an insert query.
 ///
@@ -253,25 +254,6 @@ impl InsertStatement {
         I: IntoIterator<Item = SimpleExpr>,
     {
         self.values(values).unwrap()
-    }
-
-    #[deprecated(since = "0.27.0", note = "Please use the [`InsertStatement::values`]")]
-    pub fn exprs<I>(&mut self, values: I) -> Result<&mut Self>
-    where
-        I: IntoIterator<Item = SimpleExpr>,
-    {
-        self.values(values)
-    }
-
-    #[deprecated(
-        since = "0.27.0",
-        note = "Please use the [`InsertStatement::values_panic`]"
-    )]
-    pub fn exprs_panic<I>(&mut self, values: I) -> &mut Self
-    where
-        I: IntoIterator<Item = SimpleExpr>,
-    {
-        self.values_panic(values)
     }
 
     /// ON CONFLICT expression
@@ -536,18 +518,39 @@ impl InsertStatement {
     }
 }
 
+#[inherent]
 impl QueryStatementBuilder for InsertStatement {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) {
         query_builder.prepare_insert_statement(self, sql);
     }
 
-    fn into_sub_query_statement(self) -> SubQueryStatement {
+    pub fn into_sub_query_statement(self) -> SubQueryStatement {
         SubQueryStatement::InsertStatement(self)
     }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
+    pub fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
 }
 
+#[inherent]
 impl QueryStatementWriter for InsertStatement {
-    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
         query_builder.prepare_insert_statement(self, sql);
     }
+
+    pub fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 }

@@ -10,7 +10,14 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(name) = &create.index.name {
-            write!(sql, "CONSTRAINT {}{}{} ", self.quote(), name, self.quote()).unwrap();
+            write!(
+                sql,
+                "CONSTRAINT {}{}{} ",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
 
         self.prepare_index_prefix(create, sql);
@@ -43,7 +50,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     /// Write the column index prefix.
     fn write_column_index_prefix(&self, col_prefix: &Option<u32>, sql: &mut dyn SqlWriter) {
         if let Some(prefix) = col_prefix {
-            write!(sql, " ({})", prefix).unwrap();
+            write!(sql, " ({prefix})").unwrap();
         }
     }
 

@@ -25,6 +25,10 @@ pub enum PgBinOper {
     SimilarityDistance,
     WordSimilarityDistance,
     StrictWordSimilarityDistance,
+    /// `->`. Retrieves JSON field as JSON value.
+    GetJsonField,
+    /// `->>`. Retrieves JSON field and casts it to an appropriate SQL type.
+    CastJsonField,
 }
 
 impl From<PgBinOper> for BinOper {

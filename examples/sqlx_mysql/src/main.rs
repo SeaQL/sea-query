@@ -41,7 +41,7 @@ async fn main() {
         .build(MysqlQueryBuilder);
 
     let result = sqlx::query(&sql).execute(&mut pool).await;
-    println!("Create table character: {:?}\n", result);
+    println!("Create table character: {result:?}\n");
 
     // Create
 
@@ -69,7 +69,11 @@ async fn main() {
                 .unwrap()
                 .with_scale(3)
                 .into(),
-            NaiveDate::from_ymd(2020, 8, 20).and_hms(0, 0, 0).into(),
+            NaiveDate::from_ymd_opt(2020, 8, 20)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .into(),
         ])
         .values_panic([
             Uuid::new_v4().into(),
@@ -89,7 +93,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
-    println!("Insert into character: {:?}\n", result);
+    println!("Insert into character: {result:?}\n");
     let id = result.unwrap().last_insert_id();
 
     // Read
@@ -116,7 +120,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -126,7 +130,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -139,7 +143,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
-    println!("Update character: {:?}\n", result);
+    println!("Update character: {result:?}\n");
 
     // Read
 
@@ -165,7 +169,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -175,7 +179,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -194,7 +198,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
-    println!("Insert into character (with upsert): {:?}\n", result);
+    println!("Insert into character (with upsert): {result:?}\n");
     let id = result.unwrap().last_insert_id();
 
     // Read
@@ -220,7 +224,7 @@ async fn main() {
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -230,7 +234,7 @@ async fn main() {
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -247,7 +251,7 @@ async fn main() {
         .unwrap();
     print!("Count character: ");
     let count: i64 = row.try_get(0).unwrap();
-    println!("{}", count);
+    println!("{count}");
     println!();
 
     // Delete
@@ -258,7 +262,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let result = sqlx::query_with(&sql, values).execute(&mut pool).await;
-    println!("Delete character: {:?}", result);
+    println!("Delete character: {result:?}");
 }
 
 #[derive(Iden)]
