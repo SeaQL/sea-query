@@ -245,6 +245,39 @@ impl TypeDropStatement {
         self
     }
 
+    /// Drop multiple types
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::Type, *};
+    ///
+    /// #[derive(Iden)]
+    /// enum KycStatus {
+    ///     #[iden = "kyc_status"]
+    ///     Type,
+    ///     Pending,
+    ///     Approved,
+    /// }
+    ///
+    /// #[derive(Iden)]
+    /// enum FontFamily {
+    ///     #[iden = "font_family"]
+    ///     Type,
+    ///     Aerial,
+    ///     Forte,
+    /// }
+    ///
+    /// assert_eq!(
+    ///     Type::drop()
+    ///         .if_exists()
+    ///         .names([
+    ///             SeaRc::new(KycStatus::Type) as DynIden,
+    ///             SeaRc::new(FontFamily::Type) as DynIden,
+    ///         ])
+    ///         .cascade()
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"DROP TYPE IF EXISTS "kyc_status", "font_family" CASCADE"#
+    /// );
+    /// ```
     pub fn names<T, I>(&mut self, names: I) -> &mut Self
     where
         T: IntoTypeRef,
