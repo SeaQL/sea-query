@@ -49,6 +49,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Fix quoted string bug while inserting array of strings to Postgres https://github.com/SeaQL/sea-query/pull/576
 * `ALTER TABLE` now panic if has multiple column for Sqlite https://github.com/SeaQL/sea-query/pull/595
 
+## 0.28.4 - Pending
+
+### Bug fixes
+
+* Added comma if multiple names are passed to `TypeDropStatement` https://github.com/SeaQL/sea-query/pull/623
+
 ## 0.28.3 - 2023-01-18
 
 ### Enhancements
@@ -68,10 +74,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Bug fixes
 
-* Fixed Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
-  - `PgFunction::GetRandomUUID` -> `PgFunction::GenRandomUUID`
-  - `PgFunc::get_random_uuid` -> `PgFunc::gen_random_uuid`
- 
+* Fixes Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
+
 ## 0.28.0 - 2022-12-09
 
 ### New Features
