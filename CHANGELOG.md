@@ -47,13 +47,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Bug fixes
 
-* Fix quoted string bug while inserting array of strings to Postgres https://github.com/SeaQL/sea-query/pull/576
 * `ALTER TABLE` now panic if has multiple column for Sqlite https://github.com/SeaQL/sea-query/pull/595
 
 ## 0.28.4 - Pending
 
 ### Bug fixes
 
+* Fix quoted string bug while inserting array of strings to Postgres https://github.com/SeaQL/sea-query/pull/576
 * Added comma if multiple names are passed to `TypeDropStatement` https://github.com/SeaQL/sea-query/pull/623
 
 ## 0.28.3 - 2023-01-18
