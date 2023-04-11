@@ -39,7 +39,7 @@ use inherent::inherent;
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// ```
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
     pub(crate) selects: Vec<SelectExpr>,
@@ -57,7 +57,7 @@ pub struct SelectStatement {
 }
 
 /// List of distinct keywords that can be used in select statement
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SelectDistinct {
     All,
     Distinct,
@@ -66,7 +66,7 @@ pub enum SelectDistinct {
 }
 
 /// Window type in [`SelectExpr`]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WindowSelectType {
     /// Name in [`SelectStatement`]
     Name(DynIden),
@@ -75,7 +75,7 @@ pub enum WindowSelectType {
 }
 
 /// Select expression used in select statement
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SelectExpr {
     pub expr: SimpleExpr,
     pub alias: Option<DynIden>,
@@ -83,7 +83,7 @@ pub struct SelectExpr {
 }
 
 /// Join expression used in select statement
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JoinExpr {
     pub join: JoinType,
     pub table: Box<TableRef>,
@@ -109,7 +109,7 @@ pub enum LockBehavior {
     SkipLocked,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LockClause {
     pub(crate) r#type: LockType,
     pub(crate) tables: Vec<TableRef>,

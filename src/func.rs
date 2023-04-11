@@ -6,7 +6,7 @@ use crate::{expr::*, types::*};
 pub use crate::extension::postgres::{PgFunc, PgFunction};
 
 /// Functions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Function {
     Max,
     Min,
@@ -29,7 +29,7 @@ pub enum Function {
 }
 
 /// Function call.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FunctionCall {
     pub(crate) func: Function,
     pub(crate) args: Vec<SimpleExpr>,

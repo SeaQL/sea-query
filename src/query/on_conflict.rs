@@ -1,6 +1,6 @@
 use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, SimpleExpr};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct OnConflict {
     pub(crate) target: Option<OnConflictTarget>,
     pub(crate) target_where: ConditionHolder,
@@ -9,14 +9,14 @@ pub struct OnConflict {
 }
 
 /// Represents ON CONFLICT (upsert) targets
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictTarget {
     /// A list of columns with unique constraint
     ConflictColumns(Vec<DynIden>),
 }
 
 /// Represents ON CONFLICT (upsert) actions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictAction {
     /// Do nothing
     DoNothing,
@@ -25,7 +25,7 @@ pub enum OnConflictAction {
 }
 
 /// Represents strategies to update column in ON CONFLICT (upsert) actions
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictUpdate {
     /// Update column value of existing row with inserting value
     Column(DynIden),
