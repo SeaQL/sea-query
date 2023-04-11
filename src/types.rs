@@ -59,10 +59,10 @@ where
     I: ?Sized;
 
 impl ops::Deref for SeaRc<dyn Iden> {
-    type Target = RcOrArc<dyn Iden>;
+    type Target = dyn Iden;
 
-    fn deref(&self) -> &RcOrArc<dyn Iden> {
-        &self.0
+    fn deref(&self) -> &Self::Target {
+        ops::Deref::deref(&self.0)
     }
 }
 
