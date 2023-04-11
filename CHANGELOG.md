@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * `ALTER TABLE` now panic if has multiple column for Sqlite https://github.com/SeaQL/sea-query/pull/595
 
-## 0.28.4 - Pending
+## 0.28.4 - 2023-04-11
 
 ### Bug fixes
 
