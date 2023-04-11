@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `TableCreateStatement::comment` and `ColumnDef::comment` for MySQL comments https://github.com/SeaQL/sea-query/pull/622
 * Added `PgExpr::get_json_field` and `PgExpr::cast_json_field` methods for constructing Postgres JSON expressions https://github.com/SeaQL/sea-query/pull/630
 
+### Enhancements
+
+* Implemented `PartialEq` for `DynIden`, `SimpleExpr` and related types https://github.com/SeaQL/sea-query/pull/620
+
 ### Breaking changes
 
 * Removed `Expr::tbl`, `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than`, `Expr::less_or_equal`, `Expr::into_simple_expr` https://github.com/SeaQL/sea-query/pull/551
@@ -35,6 +39,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Deprecated `Expr::asteriks` and `Expr::table_asteriks` https://github.com/SeaQL/sea-query/pull/596
 * `Expr::cust`, `Expr::cust_with_values`, `Expr::cust_with_expr`, `Expr::cust_with_exprs`, `TableForeignKey::name`, `ForeignKeyCreateStatement::name`, `ForeignKeyDropStatement::name`, `TableIndex::name`, `IndexCreateStatement::name`, `IndexDropStatement::name`, `SqlWriterValues::new`, `ColumnType::custom`, `TableCreateStatement::engine`, `TableCreateStatement::collate`, `TableCreateStatement::character_set`, `TableRef::new`, `LikeExpr::str` now accept `T: Into<String>` https://github.com/SeaQL/sea-query/pull/594
 * `OnConflict::values` and `OnConflict::update_columns` will append the new values keeping the old values intact instead of erasing them https://github.com/SeaQL/sea-query/pull/609
+* As part of https://github.com/SeaQL/sea-query/pull/620, `SeaRc` now becomes a wrapper type.
+If you used `SeaRc` for something other than `dyn Iden`, you now have to use `RcOrArc`.
+However be reminded that it is not an intended use of the API anyway.
+```rust
+// new definition
+struct SeaRc<I>(RcOrArc<I>);
+// remains unchanged
+type DynIden = SeaRc<dyn Iden>;
+
+// if you did:
+let _: DynIden = Rc::new(Alias::new("char"));
+// replace with:
+let _: DynIden = SeaRc::new(Alias::new("char"));
+```
 
 ### House keeping
 
