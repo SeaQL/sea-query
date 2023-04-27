@@ -1048,7 +1048,7 @@ fn select_coalesce() {
             Query::select()
                 .from(Char::Table)
                 .expr(Func::max(Expr::col(Character::Id)))
-                .to_owned()
+                .take()
                 .into_sub_query_expr(),
             1.into(),
             Value::Bool(None).into(),
