@@ -2317,3 +2317,9 @@ impl ConditionalStatement for SelectStatement {
         self
     }
 }
+
+impl IntoSimpleExpr for SelectStatement {
+    fn into_sub_query_expr(self) -> SimpleExpr {
+        SimpleExpr::SubQuery(None, Box::new(self.into_sub_query_statement()))
+    }
+}

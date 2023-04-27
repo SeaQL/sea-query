@@ -411,7 +411,7 @@ impl Func {
     ///             .from(Char::Table)
     ///             .expr(Func::max(Expr::col(Char::SizeW)))
     ///             .take()
-    ///             .into(),
+    ///             .into_sub_query_expr(),
     ///         Expr::col(Char::SizeH).into(),
     ///         Expr::val(12).into(),
     ///     ]))

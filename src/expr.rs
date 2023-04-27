@@ -37,6 +37,10 @@ pub enum SimpleExpr {
     Constant(Value),
 }
 
+pub trait IntoSimpleExpr {
+    fn into_sub_query_expr(self) -> SimpleExpr;
+}
+
 pub(crate) mod private {
     use crate::{BinOper, LikeExpr, SimpleExpr, UnOper};
 
@@ -2160,12 +2164,6 @@ impl Expression for SimpleExpr {
         T: Into<SimpleExpr>,
     {
         SimpleExpr::Binary(Box::new(self), op.into(), Box::new(right.into()))
-    }
-}
-
-impl From<SelectStatement> for SimpleExpr {
-    fn from(sel: SelectStatement) -> Self {
-        SimpleExpr::SubQuery(None, Box::new(sel.into_sub_query_statement()))
     }
 }
 

@@ -1012,8 +1012,8 @@ fn select_coalesce() {
             Query::select()
                 .from(Char::Table)
                 .expr(Func::max(Expr::col(Character::Id)))
-                .to_owned()
-                .into(),
+                .take()
+                .into_sub_query_expr(),
             1.into(),
             Value::Bool(None).into(),
         ]))
@@ -1304,7 +1304,7 @@ fn insert_coalesce() {
                 .from(Glyph::Table)
                 .expr(Func::max(Expr::col(Glyph::Aspect)))
                 .take()
-                .into(),
+                .into_sub_query_expr(),
                 1.into(),
                 Value::Bool(None).into(),
             ])
