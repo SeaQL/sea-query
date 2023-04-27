@@ -1296,32 +1296,6 @@ fn insert_on_conflict_4() {
 }
 
 #[test]
-fn insert_coalesce() {
-    assert_eq!(Query::insert()
-        .into_table(Glyph::Table)
-        .columns([Glyph::Image, Glyph::Aspect])
-        .values_panic([
-            "04108048005887010020060000204E0180400400".into(),
-            Func::coalesce([Query::select()
-                .from(Glyph::Table)
-                .expr(Func::max(Expr::col(Glyph::Aspect)))
-                .take()
-                .into_sub_query_expr(),
-                1.into(),
-                Value::Bool(None).into(),
-            ])
-            .into(),
-        ])
-        .to_string(MysqlQueryBuilder),
-        [
-            r#"INSERT INTO `glyph` (`image`, `aspect`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', COALESCE((SELECT MAX(`aspect`) FROM `glyph`), 1, NULL))"#,
-        ]
-        .join(" ")
-    );
-}
-
-#[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_5() {
     assert_eq!(
@@ -1372,6 +1346,32 @@ fn insert_on_conflict_6() {
             r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
         ]
         .join(" ")
+    );
+}
+
+#[test]
+fn insert_coalesce() {
+    assert_eq!(Query::insert()
+                   .into_table(Glyph::Table)
+                   .columns([Glyph::Image, Glyph::Aspect])
+                   .values_panic([
+                       "04108048005887010020060000204E0180400400".into(),
+                       Func::coalesce([Query::select()
+                           .from(Glyph::Table)
+                           .expr(Func::max(Expr::col(Glyph::Aspect)))
+                           .take()
+                           .into_sub_query_expr(),
+                           1.into(),
+                           Value::Bool(None).into(),
+                       ])
+                           .into(),
+                   ])
+                   .to_string(MysqlQueryBuilder),
+               [
+                   r#"INSERT INTO `glyph` (`image`, `aspect`)"#,
+                   r#"VALUES ('04108048005887010020060000204E0180400400', COALESCE((SELECT MAX(`aspect`) FROM `glyph`), 1, NULL))"#,
+               ]
+                   .join(" ")
     );
 }
 
