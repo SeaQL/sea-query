@@ -1,4 +1,5 @@
 use crate::{expr::*, query::*, types::*};
+use inherent::inherent;
 
 pub trait OverStatement {
     #[doc(hidden)]
@@ -39,7 +40,7 @@ pub trait OverStatement {
 }
 
 /// frame_start or frame_end clause
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Frame {
     UnboundedPreceding,
     Preceding(u32),
@@ -49,14 +50,14 @@ pub enum Frame {
 }
 
 /// Frame type
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum FrameType {
     Range,
     Rows,
 }
 
 /// Frame clause
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FrameClause {
     pub(crate) r#type: FrameType,
     pub(crate) start: Frame,
@@ -70,7 +71,7 @@ pub struct FrameClause {
 /// 1. <https://dev.mysql.com/doc/refman/8.0/en/window-function-descriptions.html>
 /// 2. <https://www.sqlite.org/windowfunctions.html>
 /// 3. <https://www.postgresql.org/docs/current/tutorial-window.html>
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct WindowStatement {
     pub(crate) partition_by: Vec<SimpleExpr>,
     pub(crate) order_by: Vec<OrderExpr>,
@@ -108,26 +109,6 @@ impl WindowStatement {
     {
         let mut window = Self::new();
         window.add_partition_by(SimpleExpr::Custom(col.to_string()));
-        window
-    }
-
-    /// Construct a new [`WindowStatement`] with ORDER BY column
-    pub fn order_by<T>(col: T, order: Order) -> Self
-    where
-        T: IntoColumnRef,
-    {
-        let mut window = Self::new();
-        window.order_by_expr(SimpleExpr::Column(col.into_column_ref()), order);
-        window
-    }
-
-    /// Construct a new [`WindowStatement`] with ORDER BY custom
-    pub fn order_by_custom<T>(col: T, order: Order) -> Self
-    where
-        T: ToString,
-    {
-        let mut window = Self::new();
-        window.order_by_expr(SimpleExpr::Custom(col.to_string()), order);
         window
     }
 
@@ -213,14 +194,51 @@ impl OverStatement for WindowStatement {
     }
 }
 
+#[inherent]
 impl OrderedStatement for WindowStatement {
-    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.order_by.push(order);
         self
     }
 
-    fn clear_order_by(&mut self) -> &mut Self {
+    pub fn clear_order_by(&mut self) -> &mut Self {
         self.order_by = Vec::new();
         self
     }
+
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
+    where
+        T: IntoColumnRef;
+
+    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_with_nulls<T>(
+        &mut self,
+        col: T,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self
+    where
+        T: IntoColumnRef;
+    pub fn order_by_expr_with_nulls(
+        &mut self,
+        expr: SimpleExpr,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self;
+    pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+    pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
 }

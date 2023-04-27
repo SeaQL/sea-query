@@ -1,28 +1,31 @@
 //! Base types used throughout sea-query.
 
 use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
-use std::fmt;
+use std::{fmt, mem, ops};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
 use crate::extension::sqlite::SqliteBinOper;
 #[cfg(not(feature = "thread-safe"))]
-pub use std::rc::Rc as SeaRc;
+pub use std::rc::Rc as RcOrArc;
 #[cfg(feature = "thread-safe")]
-pub use std::sync::Arc as SeaRc;
+pub use std::sync::Arc as RcOrArc;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Quote(pub(crate) u8, pub(crate) u8);
 
 macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
         pub trait Iden where $(Self: $bounds),* {
-            fn prepare(&self, s: &mut dyn fmt::Write, q: char) {
-                write!(s, "{}{}{}", q, self.quoted(q), q).unwrap();
+            fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
+                write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
             }
 
-            fn quoted(&self, q: char) -> String {
-                let mut b = [0; 4];
-                let qq: &str = q.encode_utf8(&mut b);
+            fn quoted(&self, q: Quote) -> String {
+                let byte = [q.1];
+                let qq: &str = std::str::from_utf8(&byte).unwrap();
                 self.to_string().replace(qq, qq.repeat(2).as_str())
             }
 
@@ -49,6 +52,46 @@ iden_trait!();
 
 pub type DynIden = SeaRc<dyn Iden>;
 
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
+where
+    I: ?Sized;
+
+impl ops::Deref for SeaRc<dyn Iden> {
+    type Target = dyn Iden;
+
+    fn deref(&self) -> &Self::Target {
+        ops::Deref::deref(&self.0)
+    }
+}
+
+impl Clone for SeaRc<dyn Iden> {
+    fn clone(&self) -> SeaRc<dyn Iden> {
+        SeaRc(RcOrArc::clone(&self.0))
+    }
+}
+
+impl PartialEq for SeaRc<dyn Iden> {
+    fn eq(&self, other: &Self) -> bool {
+        let (self_vtable, other_vtable) = unsafe {
+            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
+            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
+            (self_vtable, other_vtable)
+        };
+        self_vtable == other_vtable && self.to_string() == other.to_string()
+    }
+}
+
+impl SeaRc<dyn Iden> {
+    pub fn new<I>(i: I) -> SeaRc<dyn Iden>
+    where
+        I: Iden + 'static,
+    {
+        SeaRc(RcOrArc::new(i))
+    }
+}
+
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
 }
@@ -67,7 +110,7 @@ impl fmt::Debug for dyn Iden {
 }
 
 /// Column references
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
@@ -82,7 +125,7 @@ pub trait IntoColumnRef {
 
 /// Table references
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TableRef {
     /// Table identifier without any schema / database prefix
     Table(DynIden),
@@ -149,7 +192,7 @@ pub enum BinOper {
 }
 
 /// Logical chain operator
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
     And(SimpleExpr),
     Or(SimpleExpr),
@@ -174,7 +217,7 @@ pub enum NullOrdering {
 }
 
 /// Order expression
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
@@ -182,7 +225,7 @@ pub struct OrderExpr {
 }
 
 /// Join on types
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
     Columns(Vec<SimpleExpr>),
@@ -204,8 +247,64 @@ pub struct Alias(String);
 #[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;
 
+/// Asterisk ("*")
+///
+/// Express the asterisk without table prefix.
+///
+/// # Examples
+///
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let query = Query::select()
+///     .column(Asterisk)
+///     .from(Char::Table)
+///     .to_owned();
+///
+/// assert_eq!(
+///     query.to_string(MysqlQueryBuilder),
+///     r#"SELECT * FROM `character`"#
+/// );
+/// assert_eq!(
+///     query.to_string(PostgresQueryBuilder),
+///     r#"SELECT * FROM "character""#
+/// );
+/// assert_eq!(
+///     query.to_string(SqliteQueryBuilder),
+///     r#"SELECT * FROM "character""#
+/// );
+/// ```
+///
+/// Express the asterisk with table prefix.
+///
+/// Examples
+///
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let query = Query::select()
+///     .column((Char::Table, Asterisk))
+///     .from(Char::Table)
+///     .to_owned();
+///
+/// assert_eq!(
+///     query.to_string(MysqlQueryBuilder),
+///     r#"SELECT `character`.* FROM `character`"#
+/// );
+/// assert_eq!(
+///     query.to_string(PostgresQueryBuilder),
+///     r#"SELECT "character".* FROM "character""#
+/// );
+/// assert_eq!(
+///     query.to_string(SqliteQueryBuilder),
+///     r#"SELECT "character".* FROM "character""#
+/// );
+/// ```
+#[derive(Default, Debug, Clone, Copy)]
+pub struct Asterisk;
+
 /// SQL Keywords
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     Null,
     CurrentDate,
@@ -226,7 +325,7 @@ pub trait IntoLikeExpr {
 }
 
 /// SubQuery operators
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum SubQueryOper {
     Exists,
     Any,
@@ -235,6 +334,44 @@ pub enum SubQueryOper {
 }
 
 // Impl begins
+
+impl Quote {
+    pub fn new(c: u8) -> Self {
+        Self(c, c)
+    }
+
+    pub fn left(&self) -> char {
+        char::try_from(self.0).unwrap()
+    }
+
+    pub fn right(&self) -> char {
+        char::try_from(self.1).unwrap()
+    }
+}
+
+impl From<char> for Quote {
+    fn from(c: char) -> Self {
+        (c as u8).into()
+    }
+}
+
+impl From<(char, char)> for Quote {
+    fn from((l, r): (char, char)) -> Self {
+        (l as u8, r as u8).into()
+    }
+}
+
+impl From<u8> for Quote {
+    fn from(u8: u8) -> Self {
+        Quote::new(u8)
+    }
+}
+
+impl From<(u8, u8)> for Quote {
+    fn from((l, r): (u8, u8)) -> Self {
+        Quote(l, r)
+    }
+}
 
 impl<T: 'static> IntoIden for T
 where
@@ -302,6 +439,12 @@ where
     }
 }
 
+impl IntoColumnRef for Asterisk {
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::Asterisk
+    }
+}
+
 impl<S: 'static, T: 'static> IntoColumnRef for (S, T)
 where
     S: IntoIden,
@@ -309,6 +452,15 @@ where
 {
     fn into_column_ref(self) -> ColumnRef {
         ColumnRef::TableColumn(self.0.into_iden(), self.1.into_iden())
+    }
+}
+
+impl<T: 'static> IntoColumnRef for (T, Asterisk)
+where
+    T: IntoIden,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        ColumnRef::TableAsterisk(self.0.into_iden())
     }
 }
 
@@ -388,8 +540,11 @@ impl TableRef {
 }
 
 impl Alias {
-    pub fn new(n: &str) -> Self {
-        Self(n.to_owned())
+    pub fn new<T>(n: T) -> Self
+    where
+        T: Into<String>,
+    {
+        Self(n.into())
     }
 }
 
@@ -410,16 +565,23 @@ impl Iden for NullAlias {
 }
 
 impl LikeExpr {
-    pub fn new(pattern: String) -> Self {
+    pub fn new<T>(pattern: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            pattern,
+            pattern: pattern.into(),
             escape: None,
         }
     }
 
-    pub fn str(pattern: &str) -> Self {
+    #[deprecated(since = "0.29.0", note = "Please use the [`LikeExpr::new`] method")]
+    pub fn str<T>(pattern: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            pattern: pattern.to_owned(),
+            pattern: pattern.into(),
             escape: None,
         }
     }
@@ -438,13 +600,10 @@ impl IntoLikeExpr for LikeExpr {
     }
 }
 
-impl IntoLikeExpr for &str {
-    fn into_like_expr(self) -> LikeExpr {
-        LikeExpr::str(self)
-    }
-}
-
-impl IntoLikeExpr for String {
+impl<T> IntoLikeExpr for T
+where
+    T: Into<String>,
+{
     fn into_like_expr(self) -> LikeExpr {
         LikeExpr::new(self)
     }
@@ -452,7 +611,9 @@ impl IntoLikeExpr for String {
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    pub use crate::{tests_cfg::*, *};
+    use pretty_assertions::assert_eq;
+    pub use Character as CharReexport;
 
     #[test]
     fn test_identifier() {
@@ -507,6 +668,48 @@ mod tests {
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
             r#"SELECT "hel""""lo""#
+        );
+    }
+
+    #[test]
+    fn test_cmp_identifier() {
+        type CharLocal = Character;
+
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Character::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Char::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(CharLocal::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(CharReexport::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Alias::new("id").into_iden()),
+            ColumnRef::Column(Alias::new("id").into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Alias::new("id").into_iden()),
+            ColumnRef::Column(Alias::new("id_").into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Alias::new("id").into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Character::Table.into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Font::Id.into_iden())
         );
     }
 }

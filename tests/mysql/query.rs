@@ -74,10 +74,10 @@ fn select_5() {
 fn select_6() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
-            .exprs([Expr::col(Glyph::Image).max(),])
+            .columns([Glyph::Aspect])
+            .exprs([Expr::col(Glyph::Image).max()])
             .from(Glyph::Table)
-            .group_by_columns([Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(MysqlQueryBuilder),
         "SELECT `aspect`, MAX(`image`) FROM `glyph` GROUP BY `aspect` HAVING `aspect` > 2"
@@ -88,7 +88,7 @@ fn select_6() {
 fn select_7() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .to_string(MysqlQueryBuilder),
@@ -243,7 +243,7 @@ fn select_16() {
 fn select_17() {
     assert_eq!(
         Query::select()
-            .columns([(Glyph::Table, Glyph::Image),])
+            .columns([(Glyph::Table, Glyph::Image)])
             .from(Glyph::Table)
             .and_where(Expr::col((Glyph::Table, Glyph::Aspect)).between(3, 5))
             .to_string(MysqlQueryBuilder),
@@ -487,7 +487,7 @@ fn select_34a() {
             .column(Glyph::Aspect)
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_columns([Glyph::Aspect,])
+            .group_by_columns([Glyph::Aspect])
             .cond_having(any![
                 Expr::col(Glyph::Aspect)
                     .gt(2)
@@ -792,7 +792,7 @@ fn select_48a() {
 #[test]
 fn select_49() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .to_string(MysqlQueryBuilder);
 
@@ -802,7 +802,7 @@ fn select_49() {
 #[test]
 fn select_50() {
     let statement = Query::select()
-        .expr(Expr::table_asterisk(Char::Table))
+        .column((Char::Table, Asterisk))
         .column((Font::Table, Font::Name))
         .from(Char::Table)
         .inner_join(
@@ -821,7 +821,7 @@ fn select_50() {
 fn select_51() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
@@ -848,7 +848,7 @@ fn select_51() {
 fn select_52() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls([
@@ -873,7 +873,7 @@ fn select_52() {
 fn select_53() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by_columns_with_nulls([
@@ -901,7 +901,7 @@ fn select_53() {
 #[test]
 fn select_54() {
     let statement = Query::select()
-        .expr(Expr::asterisk())
+        .column(Asterisk)
         .from(Char::Table)
         .from(Font::Table)
         .and_where(Expr::col((Font::Table, Font::Id)).equals((Char::Table, Char::FontId)))
@@ -917,12 +917,12 @@ fn select_54() {
 fn select_55() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by(
                 Glyph::Id,
-                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into(),]))
+                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into()]))
             )
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(MysqlQueryBuilder),
@@ -946,13 +946,13 @@ fn select_55() {
 fn select_56() {
     assert_eq!(
         Query::select()
-            .columns([Glyph::Aspect,])
+            .columns([Glyph::Aspect])
             .from(Glyph::Table)
             .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .order_by(
                 Glyph::Id,
-                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into(),]))
+                Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into()]))
             )
             .to_string(MysqlQueryBuilder),
         [
@@ -995,7 +995,7 @@ fn select_58() {
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .and_where(Expr::col(Char::Character).like(LikeExpr::str("A").escape('\\')))
+            .and_where(Expr::col(Char::Character).like(LikeExpr::new("A").escape('\\')))
             .build(MysqlQueryBuilder),
         (
             r#"SELECT `character` FROM `character` WHERE `character` LIKE ? ESCAPE '\\'"#
@@ -1075,7 +1075,9 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic([chrono::NaiveDateTime::from_timestamp(0, 0).into()])
+            .values_panic([chrono::NaiveDateTime::from_timestamp_opt(0, 0)
+                .unwrap()
+                .into()])
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` (`image`) VALUES ('1970-01-01 00:00:00')"
     );
@@ -1320,6 +1322,60 @@ fn insert_coalesce() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_5() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .value(Glyph::Aspect, Expr::val("04108048005887010020060000204E0180400400"))
+                    .update_column(Glyph::Image)
+                    .to_owned()
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = VALUES(`image`)"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_6() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .update_column(Glyph::Aspect)
+                    .value(Glyph::Image, Expr::val(1).add(2))
+                    .to_owned()
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
@@ -1453,5 +1509,29 @@ fn union_1() {
             "LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` ORDER BY `font`.`id` ASC)"
         ]
         .join(" ")
+    );
+}
+
+#[test]
+fn sub_query_with_fn() {
+    #[derive(Iden)]
+    #[iden = "ARRAY"]
+    pub struct ArrayFunc;
+
+    let sub_select = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .to_owned();
+
+    let select = Query::select()
+        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
+            None,
+            Box::new(sub_select.into_sub_query_statement()),
+        )))
+        .to_owned();
+
+    assert_eq!(
+        select.to_string(MysqlQueryBuilder),
+        "SELECT ARRAY((SELECT * FROM `character`))"
     );
 }

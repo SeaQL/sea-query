@@ -62,7 +62,6 @@ impl QueryBuilder for SqliteQueryBuilder {
     fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql);
-            write!(sql, " ").unwrap();
         }
         self.prepare_order(order_expr, sql);
         match order_expr.nulls {

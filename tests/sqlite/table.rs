@@ -1,4 +1,5 @@
 use super::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn create_1() {
@@ -329,6 +330,7 @@ fn drop_1() {
 }
 
 #[test]
+#[should_panic(expected = "Sqlite doesn't support TRUNCATE statement")]
 fn truncate_1() {
     assert_eq!(
         Table::truncate()
@@ -402,6 +404,7 @@ fn alter_6() {
 }
 
 #[test]
+#[should_panic(expected = "Sqlite doesn't support multiple alter options")]
 fn alter_7() {
     let _ = Table::alter()
         .table(Font::Table)

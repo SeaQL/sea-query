@@ -15,7 +15,6 @@ mod on_conflict;
 mod ordered;
 mod returning;
 mod select;
-mod shim;
 mod traits;
 mod update;
 mod window;
@@ -47,7 +46,7 @@ pub enum QueryStatement {
     Delete(DeleteStatement),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SubQueryStatement {
     SelectStatement(SelectStatement),
     InsertStatement(InsertStatement),

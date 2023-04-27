@@ -1,14 +1,15 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, OnConflict, QueryStatementBuilder,
-    QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryStatement,
+    QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryStatement, Values,
     WithClause, WithQuery,
 };
+use inherent::inherent;
 
 /// Represents a value source that can be used in an insert query.
 ///
 /// [`InsertValueSource`] is a node in the expression tree and can represent a raw value set
 /// ('VALUES') or a select query.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum InsertValueSource {
     Values(Vec<Vec<SimpleExpr>>),
     Select(Box<SelectStatement>),
@@ -41,7 +42,7 @@ pub(crate) enum InsertValueSource {
 ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
 /// ```
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct InsertStatement {
     pub(crate) replace: bool,
     pub(crate) table: Option<Box<TableRef>>,
@@ -517,18 +518,39 @@ impl InsertStatement {
     }
 }
 
+#[inherent]
 impl QueryStatementBuilder for InsertStatement {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) {
         query_builder.prepare_insert_statement(self, sql);
     }
 
-    fn into_sub_query_statement(self) -> SubQueryStatement {
+    pub fn into_sub_query_statement(self) -> SubQueryStatement {
         SubQueryStatement::InsertStatement(self)
     }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
+    pub fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
 }
 
+#[inherent]
 impl QueryStatementWriter for InsertStatement {
-    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
         query_builder.prepare_insert_statement(self, sql);
     }
+
+    pub fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 }

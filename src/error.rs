@@ -16,8 +16,7 @@ impl std::fmt::Display for Error {
         match self {
             Self::ColValNumMismatch { col_len, val_len } => write!(
                 f,
-                "Columns and values length mismatch: {} != {}",
-                col_len, val_len
+                "Columns and values length mismatch: {col_len} != {val_len}"
             ),
         }
     }

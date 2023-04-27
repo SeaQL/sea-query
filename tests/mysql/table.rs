@@ -1,4 +1,5 @@
 use super::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn create_1() {
@@ -82,6 +83,12 @@ fn create_3() {
                     .integer()
                     .default(Value::Int(None))
             )
+            .col(
+                ColumnDef::new(Char::CreatedAt)
+                    .timestamp()
+                    .default(Expr::current_timestamp())
+                    .not_null()
+            )
             .foreign_key(
                 ForeignKey::create()
                     .name("FK_2e303c3a712662f1fc2a4d0aad6")
@@ -102,6 +109,7 @@ fn create_3() {
             "`size_w` int UNSIGNED NOT NULL,",
             "`size_h` int UNSIGNED NOT NULL,",
             "`font_id` int DEFAULT NULL,",
+            "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,",
             "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE RESTRICT",

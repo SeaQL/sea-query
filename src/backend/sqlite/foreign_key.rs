@@ -20,7 +20,14 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
 
         write!(sql, "DROP FOREIGN KEY ").unwrap();
         if let Some(name) = &drop.foreign_key.name {
-            write!(sql, "`{}`", name).unwrap();
+            write!(
+                sql,
+                "{}{}{}",
+                self.quote().left(),
+                name,
+                self.quote().right()
+            )
+            .unwrap();
         }
     }
 

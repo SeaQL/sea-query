@@ -1,3 +1,5 @@
+use inherent::inherent;
+
 use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder, TableIndex};
 
 /// Drop an index for an existing table
@@ -29,6 +31,7 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder, TableIndex
 pub struct IndexDropStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
+    pub(crate) if_exists: bool,
 }
 
 impl IndexDropStatement {
@@ -38,7 +41,10 @@ impl IndexDropStatement {
     }
 
     /// Set index name
-    pub fn name(&mut self, name: &str) -> &mut Self {
+    pub fn name<T>(&mut self, name: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.index.name(name);
         self
     }
@@ -51,18 +57,26 @@ impl IndexDropStatement {
         self.table = Some(table.into_table_ref());
         self
     }
+
+    pub fn if_exists(&mut self) -> &mut Self {
+        self.if_exists = true;
+        self
+    }
 }
 
+#[inherent]
 impl SchemaStatementBuilder for IndexDropStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql
     }
 
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql
     }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
 }

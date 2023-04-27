@@ -7,7 +7,7 @@ pub enum ConditionType {
 }
 
 /// Represents the value of an [`Condition::any`] or [`Condition::all`]: a set of disjunctive or conjunctive conditions.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Condition {
     pub(crate) negate: bool,
     pub(crate) condition_type: ConditionType,
@@ -23,13 +23,13 @@ pub type Cond = Condition;
 /// Represents anything that can be passed to an [`Condition::any`] or [`Condition::all`]'s [`Condition::add`] method.
 ///
 /// The arguments are automatically converted to the right enum.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ConditionExpression {
     Condition(Condition),
     SimpleExpr(SimpleExpr),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub enum ConditionHolderContents {
     #[default]
     Empty,
@@ -37,7 +37,7 @@ pub enum ConditionHolderContents {
     Condition(Condition),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ConditionHolder {
     pub contents: ConditionHolderContents,
 }
@@ -636,8 +636,10 @@ impl ConditionHolder {
 #[cfg(test)]
 mod test {
     use crate::{tests_cfg::*, *};
+    use pretty_assertions::assert_eq;
 
     #[test]
+    #[cfg(feature = "backend-mysql")]
     fn test_blank_condition() {
         let query = Query::select()
             .column(Glyph::Image)

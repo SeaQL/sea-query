@@ -7,12 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.29.0 - Pending
 
++ 2023-03-22: `0.29.0-rc.1`
+
 ### New Features
 
-* Added `Cow<str>` conversion to `Value` https://github.com/SeaQL/sea-query/pull/550
-* Added convert various `UUID` defined in `uuid::fmt` module into `sea_query::Value::Uuid` https://github.com/SeaQL/sea-query/pull/563
 * Added `ValueTuple::Many` for tuple with length up to 12 https://github.com/SeaQL/sea-query/pull/564
 * Added create Table `CHECK` Constraints https://github.com/SeaQL/sea-query/pull/567
+* Added support generated column spec https://github.com/SeaQL/sea-query/pull/581
+* Added `BIT_AND`, `BIT_OR` functions https://github.com/SeaQL/sea-query/pull/582
+* Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
+* Added new type `Asteriks` https://github.com/SeaQL/sea-query/pull/596
+* Added `IF NOT EXISTS` for `DROP INDEX` in Postgres and Sqlite https://github.com/SeaQL/sea-query/pull/610
+* Added `->` and `->>` operators for Postgres https://github.com/SeaQL/sea-query/pull/617/files
+* Added `TableCreateStatement::set_extra` and `TableCreateStatement::get_extra` https://github.com/SeaQL/sea-query/pull/611
+* Added `TableCreateStatement::comment` and `ColumnDef::comment` for MySQL comments https://github.com/SeaQL/sea-query/pull/622
+* Added `PgExpr::get_json_field` and `PgExpr::cast_json_field` methods for constructing Postgres JSON expressions https://github.com/SeaQL/sea-query/pull/630
+
+### Enhancements
+
+* Implemented `PartialEq` for `DynIden`, `SimpleExpr` and related types https://github.com/SeaQL/sea-query/pull/620
 
 ### Breaking changes
 
@@ -22,15 +35,59 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Removed `OnConflict::update_value`, `OnConflict::update_values`, `OnConflict::update_expr`, `OnConflict::update_exprs` https://github.com/SeaQL/sea-query/pull/551
 * Removed `UpdateStatement::exprs`, `UpdateStatement::col_expr`, `UpdateStatement::value_expr` https://github.com/SeaQL/sea-query/pull/551
 * `BigInteger` now maps to `bigint` instead of `integer` on SQLite https://github.com/SeaQL/sea-query/pull/556
-* Fixed Postgres `GEN_RANDOM_UUID` https://github.com/SeaQL/sea-query/issues/568
-  - `PgFunction::GetRandomUUID` -> `PgFunction::GenRandomUUID`
-  - `PgFunc::get_random_uuid` -> `PgFunc::gen_random_uuid`
+* `Table::truncate` now panic for Sqlite https://github.com/SeaQL/sea-query/pull/590
+* Deprecated `Expr::asteriks` and `Expr::table_asteriks` https://github.com/SeaQL/sea-query/pull/596
+* `Expr::cust`, `Expr::cust_with_values`, `Expr::cust_with_expr`, `Expr::cust_with_exprs`, `TableForeignKey::name`, `ForeignKeyCreateStatement::name`, `ForeignKeyDropStatement::name`, `TableIndex::name`, `IndexCreateStatement::name`, `IndexDropStatement::name`, `SqlWriterValues::new`, `ColumnType::custom`, `TableCreateStatement::engine`, `TableCreateStatement::collate`, `TableCreateStatement::character_set`, `TableRef::new`, `LikeExpr::str` now accept `T: Into<String>` https://github.com/SeaQL/sea-query/pull/594
+* `OnConflict::values` and `OnConflict::update_columns` will append the new values keeping the old values intact instead of erasing them https://github.com/SeaQL/sea-query/pull/609
+* As part of https://github.com/SeaQL/sea-query/pull/620, `SeaRc` now becomes a wrapper type.
+If you used `SeaRc` for something other than `dyn Iden`, you now have to use `RcOrArc`.
+However be reminded that it is not an intended use of the API anyway.
+```rust
+// new definition
+struct SeaRc<I>(RcOrArc<I>);
+// remains unchanged
+type DynIden = SeaRc<dyn Iden>;
+
+// if you did:
+let _: DynIden = Rc::new(Alias::new("char"));
+// replace with:
+let _: DynIden = SeaRc::new(Alias::new("char"));
+```
 
 ### House keeping
 
 * Elided unnecessary lifetimes https://github.com/SeaQL/sea-query/pull/552
 * Changed all `version = "^x.y.z"` into `version = "x.y.z"` in all Cargo.toml https://github.com/SeaQL/sea-query/pull/547/
 * Disabled default features and enable only the needed ones https://github.com/SeaQL/sea-query/pull/547/
+* `tests_cfg` module is available only if you enabled `tests-cfg` feature https://github.com/SeaQL/sea-query/pull/584
+* Removed hard coded quotes https://github.com/SeaQL/sea-query/pull/613
+* Enabled required `syn` v1 features https://github.com/SeaQL/sea-query/pull/624
+
+### Bug fixes
+
+* `ALTER TABLE` now panic if has multiple column for Sqlite https://github.com/SeaQL/sea-query/pull/595
+
+## 0.28.4 - 2023-04-11
+
+### Bug fixes
+
+* Fix quoted string bug while inserting array of strings to Postgres https://github.com/SeaQL/sea-query/pull/576
+* Added comma if multiple names are passed to `TypeDropStatement` https://github.com/SeaQL/sea-query/pull/623
+
+## 0.28.3 - 2023-01-18
+
+### Enhancements
+
+* Added getter for the `UpdateStatement::values` field https://github.com/SeaQL/sea-query/pull/578
+* Implements `PartialEq` for `ColumnType` https://github.com/SeaQL/sea-query/pull/579
+* Added helper function to construct `ColumnType::Custom` https://github.com/SeaQL/sea-query/pull/579
+
+## 0.28.2 - 2023-01-04
+
+### Enhancements
+
+* Added `Cow<str>` conversion to `Value` https://github.com/SeaQL/sea-query/pull/550
+* Added convert various `UUID` defined in `uuid::fmt` module into `sea_query::Value::Uuid` https://github.com/SeaQL/sea-query/pull/563
 
 ## 0.28.1 - 2022-12-29
 

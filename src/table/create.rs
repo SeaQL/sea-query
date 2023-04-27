@@ -1,3 +1,5 @@
+use inherent::inherent;
+
 use crate::{
     backend::SchemaBuilder, foreign_key::*, index::*, types::*, ColumnDef, SchemaStatementBuilder,
     SimpleExpr,
@@ -13,8 +15,9 @@ use crate::{
 /// let table = Table::create()
 ///     .table(Char::Table)
 ///     .if_not_exists()
+///     .comment("table's comment")
 ///     .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
-///     .col(ColumnDef::new(Char::FontSize).integer().not_null())
+///     .col(ColumnDef::new(Char::FontSize).integer().not_null().comment("font's size"))
 ///     .col(ColumnDef::new(Char::Character).string().not_null())
 ///     .col(ColumnDef::new(Char::SizeW).integer().not_null())
 ///     .col(ColumnDef::new(Char::SizeH).integer().not_null())
@@ -34,7 +37,7 @@ use crate::{
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
 ///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
-///             r#"`font_size` int NOT NULL,"#,
+///             r#"`font_size` int NOT NULL COMMENT 'font\'s size',"#,
 ///             r#"`character` varchar(255) NOT NULL,"#,
 ///             r#"`size_w` int NOT NULL,"#,
 ///             r#"`size_h` int NOT NULL,"#,
@@ -42,7 +45,7 @@ use crate::{
 ///             r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
 ///                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 ///                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
-///         r#")"#,
+///         r#") COMMENT 'table\'s comment'"#,
 ///     ].join(" ")
 /// );
 /// assert_eq!(
@@ -86,6 +89,8 @@ pub struct TableCreateStatement {
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
     pub(crate) check: Vec<SimpleExpr>,
+    pub(crate) comment: Option<String>,
+    pub(crate) extra: Option<String>,
 }
 
 /// All available table options
@@ -118,6 +123,15 @@ impl TableCreateStatement {
         T: IntoTableRef,
     {
         self.table = Some(table.into_table_ref());
+        self
+    }
+
+    /// Set table comment
+    pub fn comment<T>(&mut self, comment: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.comment = Some(comment.into());
         self
     }
 
@@ -222,20 +236,29 @@ impl TableCreateStatement {
     }
 
     /// Set database engine. MySQL only.
-    pub fn engine(&mut self, string: &str) -> &mut Self {
+    pub fn engine<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.opt(TableOpt::Engine(string.into()));
         self
     }
 
     /// Set database collate. MySQL only.
-    pub fn collate(&mut self, string: &str) -> &mut Self {
+    pub fn collate<T>(&mut self, string: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
         self.opt(TableOpt::Collate(string.into()));
         self
     }
 
     /// Set database character set. MySQL only.
-    pub fn character_set(&mut self, string: &str) -> &mut Self {
-        self.opt(TableOpt::CharacterSet(string.into()));
+    pub fn character_set<T>(&mut self, name: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.opt(TableOpt::CharacterSet(name.into()));
         self
     }
 
@@ -258,12 +281,62 @@ impl TableCreateStatement {
         self.columns.as_ref()
     }
 
+    pub fn get_comment(&self) -> Option<&String> {
+        self.comment.as_ref()
+    }
+
     pub fn get_foreign_key_create_stmts(&self) -> &Vec<ForeignKeyCreateStatement> {
         self.foreign_keys.as_ref()
     }
 
     pub fn get_indexes(&self) -> &Vec<IndexCreateStatement> {
         self.indexes.as_ref()
+    }
+
+    /// Rewriting extra param. You should take care self about concat extra params. Add extra after options.
+    /// Example for PostgresSQL [Citus](https://github.com/citusdata/citus) extension:
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(
+    ///         ColumnDef::new(Char::Id)
+    ///             .uuid()
+    ///             .extra("DEFAULT uuid_generate_v4()")
+    ///             .primary_key()
+    ///             .not_null(),
+    ///     )
+    ///     .col(
+    ///         ColumnDef::new(Char::CreatedAt)
+    ///             .timestamp_with_time_zone()
+    ///             .extra("DEFAULT NOW()")
+    ///             .not_null(),
+    ///     )
+    ///     .col(ColumnDef::new(Char::UserData).json_binary().not_null())
+    ///     .extra("USING columnar")
+    ///     .to_owned();
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
+    ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL,"#,
+    ///         r#""user_data" jsonb NOT NULL"#,
+    ///         r#") USING columnar"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
+    pub fn extra<T>(&mut self, extra: T) -> &mut Self
+    where
+        T: Into<String>,
+    {
+        self.extra = Some(extra.into());
+        self
+    }
+
+    pub fn get_extra(&self) -> Option<&String> {
+        self.extra.as_ref()
     }
 
     pub fn take(&mut self) -> Self {
@@ -276,20 +349,25 @@ impl TableCreateStatement {
             foreign_keys: std::mem::take(&mut self.foreign_keys),
             if_not_exists: self.if_not_exists,
             check: std::mem::take(&mut self.check),
+            comment: std::mem::take(&mut self.comment),
+            extra: std::mem::take(&mut self.extra),
         }
     }
 }
 
+#[inherent]
 impl SchemaStatementBuilder for TableCreateStatement {
-    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
         sql
     }
 
-    fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
         sql
     }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
 }

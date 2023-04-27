@@ -32,7 +32,7 @@ async fn main() {
         .build(SqliteQueryBuilder);
 
     let result = sqlx::query(&sql).execute(&pool).await;
-    println!("Create table character: {:?}\n", result);
+    println!("Create table character: {result:?}\n");
 
     // Create
     let (sql, values) = Query::insert()
@@ -74,7 +74,7 @@ async fn main() {
     let row = sqlx::query_with(&sql, values).execute(&pool).await.unwrap();
 
     let id: i64 = row.last_insert_rowid();
-    println!("Insert into character: last_insert_id = {}\n", id);
+    println!("Insert into character: last_insert_id = {id}\n");
 
     // Read
     let (sql, values) = Query::select()
@@ -97,7 +97,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -107,7 +107,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}\n", row);
+        println!("{row:?}\n");
     }
     println!();
 
@@ -119,7 +119,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     let result = sqlx::query_with(&sql, values).execute(&pool).await;
-    println!("Update character: {:?}\n", result);
+    println!("Update character: {result:?}\n");
 
     // Read
     let (sql, values) = Query::select()
@@ -142,7 +142,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}\n", row);
+        println!("{row:?}\n");
     }
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
         .fetch_all(&pool)
@@ -150,7 +150,7 @@ async fn main() {
         .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
-        println!("{:?}\n", row);
+        println!("{row:?}\n");
     }
     println!();
 
@@ -166,7 +166,7 @@ async fn main() {
         .unwrap();
 
     let count: i64 = row.try_get(0).unwrap();
-    println!("Count character: {}\n", count);
+    println!("Count character: {count}\n");
 
     // Upsert
     let (sql, values) = Query::insert()
@@ -182,7 +182,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     let result = sqlx::query_with(&sql, values).execute(&pool).await;
-    println!("Insert into character (with upsert): {:?}\n", result);
+    println!("Insert into character (with upsert): {result:?}\n");
 
     // Read
     let (sql, values) = Query::select()
@@ -204,7 +204,7 @@ async fn main() {
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
@@ -213,7 +213,7 @@ async fn main() {
         .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
-        println!("{:?}", row);
+        println!("{row:?}");
     }
     println!();
 
@@ -225,7 +225,7 @@ async fn main() {
 
     let result = sqlx::query_with(&sql, values).execute(&pool).await;
 
-    println!("Delete character: {:?}", result);
+    println!("Delete character: {result:?}");
 }
 
 #[derive(Iden)]

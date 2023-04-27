@@ -1,6 +1,6 @@
-use sea_query::{extension::postgres::Type, Alias, PostgresQueryBuilder};
-
 use super::*;
+use pretty_assertions::assert_eq;
+use sea_query::{extension::postgres::Type, Alias, PostgresQueryBuilder};
 
 #[test]
 fn create_1() {

@@ -8,6 +8,7 @@ use crate::{
     FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
     WithClause, WithQuery,
 };
+use inherent::inherent;
 
 /// Select rows from an existing table
 ///
@@ -38,7 +39,7 @@ use crate::{
 ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
 /// );
 /// ```
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
     pub(crate) selects: Vec<SelectExpr>,
@@ -56,7 +57,7 @@ pub struct SelectStatement {
 }
 
 /// List of distinct keywords that can be used in select statement
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SelectDistinct {
     All,
     Distinct,
@@ -65,7 +66,7 @@ pub enum SelectDistinct {
 }
 
 /// Window type in [`SelectExpr`]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WindowSelectType {
     /// Name in [`SelectStatement`]
     Name(DynIden),
@@ -74,7 +75,7 @@ pub enum WindowSelectType {
 }
 
 /// Select expression used in select statement
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SelectExpr {
     pub expr: SimpleExpr,
     pub alias: Option<DynIden>,
@@ -82,7 +83,7 @@ pub struct SelectExpr {
 }
 
 /// Join expression used in select statement
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JoinExpr {
     pub join: JoinType,
     pub table: Box<TableRef>,
@@ -108,7 +109,7 @@ pub enum LockBehavior {
     SkipLocked,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LockClause {
     pub(crate) r#type: LockType,
     pub(crate) tables: Vec<TableRef>,
@@ -2275,47 +2276,109 @@ impl SelectStatement {
     }
 }
 
+#[inherent]
 impl QueryStatementBuilder for SelectStatement {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_any_into(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) {
         query_builder.prepare_select_statement(self, sql);
     }
 
-    fn into_sub_query_statement(self) -> SubQueryStatement {
+    pub fn into_sub_query_statement(self) -> SubQueryStatement {
         SubQueryStatement::SelectStatement(self)
     }
+
+    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
+    pub fn build_collect_any(
+        &self,
+        query_builder: &dyn QueryBuilder,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
 }
 
+#[inherent]
 impl QueryStatementWriter for SelectStatement {
-    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
         query_builder.prepare_select_statement(self, sql);
     }
+
+    pub fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 }
 
+#[inherent]
 impl OrderedStatement for SelectStatement {
-    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.orders.push(order);
         self
     }
 
-    fn clear_order_by(&mut self) -> &mut Self {
+    pub fn clear_order_by(&mut self) -> &mut Self {
         self.orders = Vec::new();
         self
     }
+
+    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
+    where
+        T: IntoColumnRef;
+
+    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order)>;
+    pub fn order_by_with_nulls<T>(
+        &mut self,
+        col: T,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self
+    where
+        T: IntoColumnRef;
+    pub fn order_by_expr_with_nulls(
+        &mut self,
+        expr: SimpleExpr,
+        order: Order,
+        nulls: NullOrdering,
+    ) -> &mut Self;
+    pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: ToString,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+    pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        T: IntoColumnRef,
+        I: IntoIterator<Item = (T, Order, NullOrdering)>;
 }
 
+#[inherent]
 impl ConditionalStatement for SelectStatement {
-    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+    pub fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
         self.r#where.add_and_or(condition);
         self
     }
 
-    fn cond_where<C>(&mut self, condition: C) -> &mut Self
+    pub fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
         C: IntoCondition,
     {
         self.r#where.add_condition(condition.into_condition());
         self
     }
+
+    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
+    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
 }
 
 impl IntoSimpleExpr for SelectStatement {

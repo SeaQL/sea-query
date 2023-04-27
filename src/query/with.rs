@@ -53,7 +53,7 @@ use std::ops::Deref;
 ///     DELETE FROM table WHERE table.a = cte_name.a)
 ///
 /// It is mandatory to set the [Self::table_name] and the [Self::query].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
     pub(crate) cols: Vec<DynIden>,
@@ -139,7 +139,7 @@ impl CommonTableExpression {
     }
 
     fn set_table_name_from_select(&mut self, iden: &DynIden) {
-        self.table_name = Some(Alias::new(&format!("cte_{}", iden.to_string())).into_iden())
+        self.table_name = Some(Alias::new(format!("cte_{}", iden.to_string())).into_iden())
     }
 
     /// Set up the columns of the CTE to match the given [SelectStatement] selected columns.
@@ -162,15 +162,11 @@ impl CommonTableExpression {
                         SimpleExpr::Column(column) => match column {
                             ColumnRef::Column(iden) => Some(iden.clone()),
                             ColumnRef::TableColumn(table, column) => Some(
-                                Alias::new(&format!(
-                                    "{}_{}",
-                                    table.to_string(),
-                                    column.to_string()
-                                ))
-                                .into_iden(),
+                                Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
+                                    .into_iden(),
                             ),
                             ColumnRef::SchemaTableColumn(schema, table, column) => Some(
-                                Alias::new(&format!(
+                                Alias::new(format!(
                                     "{}_{}_{}",
                                     schema.to_string(),
                                     table.to_string(),
@@ -197,7 +193,7 @@ impl CommonTableExpression {
 
 /// For recursive [WithQuery] [WithClause]s the traversing order can be specified in some databases
 /// that support this functionality.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SearchOrder {
     /// Breadth first traversal during the execution of the recursive query.
     BREADTH,
@@ -215,7 +211,7 @@ pub enum SearchOrder {
 ///
 /// Setting [Self::order] and [Self::expr] is mandatory. The [SelectExpr] used must specify an alias
 /// which will be the name that you can use to order the result of the [CommonTableExpression].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Search {
     pub(crate) order: Option<SearchOrder>,
     pub(crate) expr: Option<SelectExpr>,
@@ -273,7 +269,7 @@ impl Search {
 /// A query can have both SEARCH and CYCLE clauses.
 ///
 /// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Cycle {
     pub(crate) expr: Option<SimpleExpr>,
     pub(crate) set_as: Option<DynIden>,
@@ -437,7 +433,7 @@ impl Cycle {
 ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
 /// );
 /// ```
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct WithClause {
     pub(crate) recursive: bool,
     pub(crate) search: Option<Search>,
@@ -537,7 +533,7 @@ impl WithClause {
 ///     DELETE FROM table WHERE table.a = cte_name.a)
 ///
 /// It is mandatory to set the [Self::cte] and the [Self::query].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct WithQuery {
     pub(crate) with_clause: WithClause,
     pub(crate) query: Option<Box<SubQueryStatement>>,

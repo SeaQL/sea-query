@@ -1,6 +1,15 @@
 use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
+    fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+        // comment
+        if let Some(comment) = &create.comment {
+            let comment = self.escape_string(comment);
+            write!(sql, " COMMENT '{comment}'").unwrap();
+        }
+        self.prepare_table_opt_def(create, sql)
+    }
+
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
         column_def.name.prepare(sql.as_writer(), self.quote());
 
@@ -21,11 +30,11 @@ impl TableBuilder for MysqlQueryBuilder {
             "{}",
             match column_type {
                 ColumnType::Char(length) => match length {
-                    Some(length) => format!("char({})", length),
+                    Some(length) => format!("char({length})"),
                     None => "char".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("varchar({})", length),
+                    Some(length) => format!("varchar({length})"),
                     None => "varchar(255)".into(),
                 },
                 ColumnType::Text => "text".into(),
@@ -36,7 +45,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::Float => "float".into(),
                 ColumnType::Double => "double".into(),
                 ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
                     None => "decimal".into(),
                 },
                 ColumnType::DateTime => "datetime".into(),
@@ -58,26 +67,26 @@ impl TableBuilder for MysqlQueryBuilder {
                     BlobSize::Tiny => "tinyblob".into(),
                     BlobSize::Blob(length) => {
                         match length {
-                            Some(length) => format!("binary({})", length),
+                            Some(length) => format!("binary({length})"),
                             None => "blob".into(),
                         }
                     }
                     BlobSize::Medium => "mediumblob".into(),
                     BlobSize::Long => "longblob".into(),
                 },
-                ColumnType::VarBinary(length) => format!("varbinary({})", length),
+                ColumnType::VarBinary(length) => format!("varbinary({length})"),
                 ColumnType::Bit(length) => {
                     match length {
-                        Some(length) => format!("bit({})", length),
+                        Some(length) => format!("bit({length})"),
                         None => "bit".into(),
                     }
                 }
                 ColumnType::VarBit(length) => {
-                    format!("bit({})", length)
+                    format!("bit({length})")
                 }
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({}, {})", precision, scale),
+                    Some((precision, scale)) => format!("money({precision}, {scale})"),
                     None => "money".into(),
                 },
                 ColumnType::Json => "json".into(),
@@ -190,5 +199,11 @@ impl TableBuilder for MysqlQueryBuilder {
         if let Some(to_name) = &rename.to_name {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
+    }
+
+    /// column comment
+    fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
+        let comment = self.escape_string(comment);
+        write!(sql, "COMMENT '{comment}'").unwrap()
     }
 }
