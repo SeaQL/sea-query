@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "sea-query-derive"]
+members = [".", "sea-query-derive", "sea-query-derive-internal"]
 
 [package]
 name = "sea-query"

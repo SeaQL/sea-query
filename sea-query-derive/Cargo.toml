@@ -15,13 +15,4 @@ rust-version = "1.60"
 proc-macro = true
 
 [dependencies]
-syn = { version = "1", default-features = false, features = ["parsing", "proc-macro", "derive", "printing"] }
-quote = { version = "1", default-features = false }
-heck = { version = "0.4", default-features = false }
-proc-macro2 = { version = "1", default-features = false }
-thiserror = { version = "1.0", default-features = false }
-
-[dev-dependencies]
-trybuild = "1.0"
-sea-query = { version = "0", path = ".." }
-strum = { version = "0.24", features = ["derive"] }
+sea-query-derive-internal = { version = "0.3", path = "../sea-query-derive-internal" }
