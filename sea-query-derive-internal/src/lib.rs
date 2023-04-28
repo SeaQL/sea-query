@@ -3,7 +3,7 @@ use std::convert::{TryFrom, TryInto};
 use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
-use syn::{Attribute, DataEnum, DataStruct, DeriveInput, Fields, Variant};
+use syn::{Attribute, DataEnum, DataStruct, DeriveInput, Fields, Path, Variant};
 
 mod error;
 mod iden_attr;
@@ -47,6 +47,7 @@ fn must_be_valid_iden(name: &str) -> bool {
 fn impl_iden_for_unit_struct(
     ident: &proc_macro2::Ident,
     table_name: &str,
+    sea_query_path: &Path,
 ) -> proc_macro2::TokenStream {
     let prepare = if must_be_valid_iden(table_name) {
         quote! {
@@ -74,6 +75,7 @@ fn impl_iden_for_enum<'a, T>(
     ident: &proc_macro2::Ident,
     table_name: &str,
     variants: T,
+    sea_query_path: &Path,
 ) -> proc_macro2::TokenStream
 where
     T: Iterator<Item = &'a Variant>,
@@ -118,7 +120,7 @@ where
     }
 }
 
-pub fn derive_iden(derived_input: DeriveInput) -> TokenStream {
+pub fn derive_iden(derived_input: DeriveInput, sea_query_path: &Path) -> TokenStream {
     let DeriveInput {
         ident, data, attrs, ..
     } = derived_input;
@@ -134,7 +136,7 @@ pub fn derive_iden(derived_input: DeriveInput) -> TokenStream {
             syn::Data::Struct(DataStruct {
                 fields: Fields::Unit,
                 ..
-            }) => return impl_iden_for_unit_struct(&ident, &table_name).into(),
+            }) => return impl_iden_for_unit_struct(&ident, &table_name, sea_query_path).into(),
             _ => return quote_spanned! {
                 ident.span() => compile_error!("you can only derive Iden on enums or unit structs");
             }
@@ -145,12 +147,12 @@ pub fn derive_iden(derived_input: DeriveInput) -> TokenStream {
         return TokenStream::new();
     }
 
-    let output = impl_iden_for_enum(&ident, &table_name, variants.iter());
+    let output = impl_iden_for_enum(&ident, &table_name, variants.iter(), sea_query_path);
 
     output
 }
 
-pub fn derive_iden_static(derived_input: DeriveInput) -> TokenStream {
+pub fn derive_iden_static(derived_input: DeriveInput, sea_query_path: &Path) -> TokenStream {
     let DeriveInput {
         ident, data, attrs, ..
     } = derived_input;
@@ -168,7 +170,7 @@ pub fn derive_iden_static(derived_input: DeriveInput) -> TokenStream {
                 fields: Fields::Unit,
                 ..
             }) => {
-                let impl_iden = impl_iden_for_unit_struct(&ident, &table_name);
+                let impl_iden = impl_iden_for_unit_struct(&ident, &table_name, sea_query_path);
 
                 return quote! {
                     #impl_iden
@@ -197,7 +199,7 @@ pub fn derive_iden_static(derived_input: DeriveInput) -> TokenStream {
         return TokenStream::new();
     }
 
-    let impl_iden = impl_iden_for_enum(&ident, &table_name, variants.iter());
+    let impl_iden = impl_iden_for_enum(&ident, &table_name, variants.iter(), sea_query_path);
 
     let match_arms = match variants
         .iter()
@@ -232,20 +234,22 @@ pub fn derive_iden_static(derived_input: DeriveInput) -> TokenStream {
 
 #[macro_export]
 macro_rules! impl_proc_macro_derives {
-    () => {
+    ($sea_query_path:expr) => {
         use proc_macro::TokenStream;
-        use sea_query_derive_internal::syn::parse_macro_input;
+        use sea_query_derive_internal::syn::{parse_macro_input, parse_quote};
 
         #[proc_macro_derive(Iden, attributes(iden, method))]
         pub fn derive_iden(input: TokenStream) -> TokenStream {
             let derived_input = parse_macro_input!(input);
-            sea_query_derive_internal::derive_iden(derived_input).into()
+            let sea_query_path = parse_quote!($sea_query_path);
+            sea_query_derive_internal::derive_iden(derived_input, &sea_query_path).into()
         }
 
         #[proc_macro_derive(IdenStatic, attributes(iden, method))]
         pub fn derive_iden_static(input: TokenStream) -> TokenStream {
             let derived_input = parse_macro_input!(input);
-            sea_query_derive_internal::derive_iden_static(derived_input).into()
+            let sea_query_path = parse_quote!($sea_query_path);
+            sea_query_derive_internal::derive_iden_static(derived_input, &sea_query_path).into()
         }
     };
 }
