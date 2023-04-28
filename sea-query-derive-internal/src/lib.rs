@@ -234,20 +234,23 @@ pub fn derive_iden_static(derived_input: DeriveInput, sea_query_path: &Path) -> 
 #[macro_export]
 macro_rules! impl_proc_macro_derives {
     ($sea_query_path:expr) => {
-        use proc_macro::TokenStream;
-        use sea_query_derive_internal::syn::{parse_macro_input, parse_quote};
-
         #[proc_macro_derive(Iden, attributes(iden, method))]
-        pub fn derive_iden(input: TokenStream) -> TokenStream {
+        pub fn derive_iden(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+            use sea_query_derive_internal::syn::{parse_macro_input, parse_quote};
+
             let derived_input = parse_macro_input!(input);
             let sea_query_path = parse_quote!($sea_query_path);
+
             sea_query_derive_internal::derive_iden(derived_input, &sea_query_path).into()
         }
 
         #[proc_macro_derive(IdenStatic, attributes(iden, method))]
-        pub fn derive_iden_static(input: TokenStream) -> TokenStream {
+        pub fn derive_iden_static(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+            use sea_query_derive_internal::syn::{parse_macro_input, parse_quote};
+
             let derived_input = parse_macro_input!(input);
             let sea_query_path = parse_quote!($sea_query_path);
+
             sea_query_derive_internal::derive_iden_static(derived_input, &sea_query_path).into()
         }
     };
