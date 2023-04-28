@@ -143,6 +143,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --package sea-query-derive-internal --all-features
+      - run: cargo test --package sea-query-derive-internal --all-features
       - run: cargo build --package sea-query-derive --all-features
       - run: cargo test --package sea-query-derive --all-features
 
