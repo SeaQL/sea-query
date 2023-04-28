@@ -1,7 +1,7 @@
 use std::convert::{TryFrom, TryInto};
 
 use heck::ToSnakeCase;
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::{Attribute, DataEnum, DataStruct, DeriveInput, Fields, Variant};
 
