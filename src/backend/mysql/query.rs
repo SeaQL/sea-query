@@ -14,6 +14,51 @@ impl QueryBuilder for MysqlQueryBuilder {
         };
     }
 
+    fn prepare_index_hints(&self, indexes: &[IndexHint], sql: &mut dyn SqlWriter) {
+        indexes.iter().fold(true, |first, index| {
+            if !first {
+                write!(sql, " ").unwrap()
+            }
+            match index {
+                IndexHint::Use(index_name, hint_type) => {
+                    write!(sql, "USE INDEX ",).unwrap();
+                    self.prepare_index_hint_type(hint_type, sql);
+                    write!(sql, "(").unwrap();
+                    index_name.prepare(sql.as_writer(), self.quote());
+                }
+                IndexHint::Ignore(index_name, hint_type) => {
+                    write!(sql, "IGNORE INDEX ",).unwrap();
+                    self.prepare_index_hint_type(hint_type, sql);
+                    write!(sql, "(").unwrap();
+                    index_name.prepare(sql.as_writer(), self.quote());
+                }
+                IndexHint::Force(index_name, hint_type) => {
+                    write!(sql, "FORCE INDEX ",).unwrap();
+                    self.prepare_index_hint_type(hint_type, sql);
+                    write!(sql, "(").unwrap();
+                    index_name.prepare(sql.as_writer(), self.quote());
+                }
+            }
+            write!(sql, ")").unwrap();
+            false
+        });
+    }
+
+    fn prepare_index_hint_type(&self, index_hint_type: &IndexHintType, sql: &mut dyn SqlWriter) {
+        match index_hint_type {
+            IndexHintType::Join => {
+                write!(sql, "FOR JOIN ").unwrap();
+            }
+            IndexHintType::OrderBy => {
+                write!(sql, "FOR ORDER BY ").unwrap();
+            }
+            IndexHintType::GroupBy => {
+                write!(sql, "FOR GROUP BY ").unwrap();
+            }
+            IndexHintType::All => {}
+        }
+    }
+
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
     }

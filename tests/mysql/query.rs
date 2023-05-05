@@ -1006,6 +1006,60 @@ fn select_58() {
 }
 
 #[test]
+fn select_59() {
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
+            .from(Char::Table)
+            .ignore_index(IndexName::new("IDX_123456"), IndexHintType::All)
+            .limit(10)
+            .offset(100)
+            .to_string(MysqlQueryBuilder),
+        "SELECT `character`, `size_w`, `size_h` FROM `character` IGNORE INDEX (`IDX_123456`) LIMIT 10 OFFSET 100"
+    );
+}
+
+#[test]
+fn select_60() {
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
+            .from(Char::Table)
+            .ignore_index(IndexName::new("IDX_123456"), IndexHintType::All)
+            .ignore_index(IndexName::new("IDX_789ABC"), IndexHintType::All)
+            .limit(10)
+            .offset(100)
+            .to_string(MysqlQueryBuilder),
+        "SELECT `character`, `size_w`, `size_h` FROM `character` IGNORE INDEX (`IDX_123456`) IGNORE INDEX (`IDX_789ABC`) LIMIT 10 OFFSET 100"
+    );
+}
+
+#[test]
+fn select_61() {
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
+            .from(Char::Table)
+            .ignore_index(IndexName::new("IDX_123456"), IndexHintType::Join)
+            .use_index(IndexName::new("IDX_789ABC"), IndexHintType::GroupBy)
+            .force_index(IndexName::new("IDX_DEFGHI"), IndexHintType::OrderBy)
+            .limit(10)
+            .offset(100)
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"SELECT `character`, `size_w`, `size_h`"#,
+            r#"FROM `character`"#,
+            r#"IGNORE INDEX FOR JOIN (`IDX_123456`)"#,
+            r#"USE INDEX FOR GROUP BY (`IDX_789ABC`)"#,
+            r#"FORCE INDEX FOR ORDER BY (`IDX_DEFGHI`)"#,
+            r#"LIMIT 10"#,
+            r#"OFFSET 100"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
