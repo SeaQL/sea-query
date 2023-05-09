@@ -55,7 +55,8 @@ pretty_assertions = { version = "1" }
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
-default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
+backend-bigquery = []
+default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite", "backend-bigquery"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
 hashable-value = ["derivative", "ordered-float"]
@@ -86,6 +87,11 @@ required-features = ["tests-cfg"]
 name = "test-mysql"
 path = "tests/mysql/mod.rs"
 required-features = ["tests-cfg", "backend-mysql"]
+
+[[test]]
+name = "test-bigquery"
+path = "tests/bigquery/mod.rs"
+required-features = ["tests-cfg", "backend-bigquery"]
 
 [[test]]
 name = "test-postgres"

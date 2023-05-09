@@ -426,6 +426,12 @@ impl ColumnDef {
         self
     }
 
+    #[cfg(feature = "backend-bigquery")]
+    pub fn interval_bq(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::Interval(None, None));
+        self
+    }
+
     /// Set column type as timestamp
     pub fn timestamp(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Timestamp);
