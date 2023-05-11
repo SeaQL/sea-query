@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-binder"
-version = "0.3.0"
+version = "0.3.1"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2021"
 description = "Binder traits for connecting sea-query with SQL engines"
