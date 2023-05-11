@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.28.5 - 2023-05-11
 
 * Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
+    * `sea-query-binder` `0.3.1`
+    * `sea-query-postgres` `0.2.1`
+    * `sea-query-rusqlite` `0.2.1`
 
 ## 0.28.4 - 2023-04-11
 
