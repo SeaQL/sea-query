@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.28.5 - 2023-05-11
+
+* Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
+
 ## 0.28.4 - 2023-04-11
 
 ### Bug fixes
