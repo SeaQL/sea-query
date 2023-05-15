@@ -84,14 +84,21 @@ pub struct SelectExpr {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum IndexHint {
-    Use(DynIden, IndexHintType),
-    Ignore(DynIden, IndexHintType),
-    Force(DynIden, IndexHintType),
+pub struct IndexHint {
+    pub index: DynIden,
+    pub r#type: IndexHintType,
+    pub scope: IndexHintScope,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum IndexHintType {
+    Use,
+    Ignore,
+    Force,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum IndexHintType {
+pub enum IndexHintScope {
     Join,
     OrderBy,
     GroupBy,
@@ -331,7 +338,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .use_index(IndexName::new("IDX_123456"), IndexHintType::All)
+    ///     .use_index(IndexName::new("IDX_123456"), IndexHintScope::All)
     ///     .column(Char::SizeW)
     ///     .to_owned();
     ///
@@ -340,12 +347,15 @@ impl SelectStatement {
     ///     r#"SELECT `size_w` FROM `character` USE INDEX (`IDX_123456`)"#
     /// );
     /// ```
-    pub fn use_index<I>(&mut self, index: I, hint_type: IndexHintType) -> &mut Self
+    pub fn use_index<I>(&mut self, index: I, scope: IndexHintScope) -> &mut Self
     where
         I: IntoIden,
     {
-        self.index_hints
-            .push(IndexHint::Use(index.into_iden(), hint_type));
+        self.index_hints.push(IndexHint {
+            index: index.into_iden(),
+            r#type: IndexHintType::Use,
+            scope,
+        });
         self
     }
 
@@ -361,7 +371,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .force_index(IndexName::new("IDX_123456"), IndexHintType::All)
+    ///     .force_index(IndexName::new("IDX_123456"), IndexHintScope::All)
     ///     .column(Char::SizeW)
     ///     .to_owned();
     ///
@@ -370,12 +380,15 @@ impl SelectStatement {
     ///     r#"SELECT `size_w` FROM `character` FORCE INDEX (`IDX_123456`)"#
     /// );
     /// ```
-    pub fn force_index<I>(&mut self, index: I, hint_type: IndexHintType) -> &mut Self
+    pub fn force_index<I>(&mut self, index: I, scope: IndexHintScope) -> &mut Self
     where
         I: IntoIden,
     {
-        self.index_hints
-            .push(IndexHint::Force(index.into_iden(), hint_type));
+        self.index_hints.push(IndexHint {
+            index: index.into_iden(),
+            r#type: IndexHintType::Force,
+            scope,
+        });
         self
     }
 
@@ -391,7 +404,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .ignore_index(IndexName::new("IDX_123456"), IndexHintType::All)
+    ///     .ignore_index(IndexName::new("IDX_123456"), IndexHintScope::All)
     ///     .column(Char::SizeW)
     ///     .to_owned();
     ///
@@ -400,12 +413,15 @@ impl SelectStatement {
     ///     r#"SELECT `size_w` FROM `character` IGNORE INDEX (`IDX_123456`)"#
     /// )
     /// ```
-    pub fn ignore_index<I>(&mut self, index: I, hint_type: IndexHintType) -> &mut Self
+    pub fn ignore_index<I>(&mut self, index: I, scope: IndexHintScope) -> &mut Self
     where
         I: IntoIden,
     {
-        self.index_hints
-            .push(IndexHint::Ignore(index.into_iden(), hint_type));
+        self.index_hints.push(IndexHint {
+            index: index.into_iden(),
+            r#type: IndexHintType::Ignore,
+            scope,
+        });
         self
     }
 

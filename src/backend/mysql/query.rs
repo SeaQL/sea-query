@@ -14,29 +14,29 @@ impl QueryBuilder for MysqlQueryBuilder {
         };
     }
 
-    fn prepare_index_hints(&self, indexes: &[IndexHint], sql: &mut dyn SqlWriter) {
-        indexes.iter().fold(true, |first, index| {
+    fn prepare_index_hints(&self, hints: &[IndexHint], sql: &mut dyn SqlWriter) {
+        hints.iter().fold(true, |first, hint| {
             if !first {
                 write!(sql, " ").unwrap()
             }
-            match index {
-                IndexHint::Use(index_name, hint_type) => {
+            match hint.r#type {
+                IndexHintType::Use => {
                     write!(sql, "USE INDEX ",).unwrap();
-                    self.prepare_index_hint_type(hint_type, sql);
+                    self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    index_name.prepare(sql.as_writer(), self.quote());
+                    hint.index.prepare(sql.as_writer(), self.quote());
                 }
-                IndexHint::Ignore(index_name, hint_type) => {
+                IndexHintType::Ignore => {
                     write!(sql, "IGNORE INDEX ",).unwrap();
-                    self.prepare_index_hint_type(hint_type, sql);
+                    self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    index_name.prepare(sql.as_writer(), self.quote());
+                    hint.index.prepare(sql.as_writer(), self.quote());
                 }
-                IndexHint::Force(index_name, hint_type) => {
+                IndexHintType::Force => {
                     write!(sql, "FORCE INDEX ",).unwrap();
-                    self.prepare_index_hint_type(hint_type, sql);
+                    self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    index_name.prepare(sql.as_writer(), self.quote());
+                    hint.index.prepare(sql.as_writer(), self.quote());
                 }
             }
             write!(sql, ")").unwrap();
@@ -44,18 +44,18 @@ impl QueryBuilder for MysqlQueryBuilder {
         });
     }
 
-    fn prepare_index_hint_type(&self, index_hint_type: &IndexHintType, sql: &mut dyn SqlWriter) {
-        match index_hint_type {
-            IndexHintType::Join => {
+    fn prepare_index_hint_scope(&self, index_hint_scope: &IndexHintScope, sql: &mut dyn SqlWriter) {
+        match index_hint_scope {
+            IndexHintScope::Join => {
                 write!(sql, "FOR JOIN ").unwrap();
             }
-            IndexHintType::OrderBy => {
+            IndexHintScope::OrderBy => {
                 write!(sql, "FOR ORDER BY ").unwrap();
             }
-            IndexHintType::GroupBy => {
+            IndexHintScope::GroupBy => {
                 write!(sql, "FOR GROUP BY ").unwrap();
             }
-            IndexHintType::All => {}
+            IndexHintScope::All => {}
         }
     }
 

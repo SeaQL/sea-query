@@ -1011,7 +1011,7 @@ fn select_59() {
         Query::select()
             .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
-            .ignore_index(IndexName::new("IDX_123456"), IndexHintType::All)
+            .ignore_index(IndexName::new("IDX_123456"), IndexHintScope::All)
             .limit(10)
             .offset(100)
             .to_string(MysqlQueryBuilder),
@@ -1025,8 +1025,8 @@ fn select_60() {
         Query::select()
             .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
-            .ignore_index(IndexName::new("IDX_123456"), IndexHintType::All)
-            .ignore_index(IndexName::new("IDX_789ABC"), IndexHintType::All)
+            .ignore_index(IndexName::new("IDX_123456"), IndexHintScope::All)
+            .ignore_index(IndexName::new("IDX_789ABC"), IndexHintScope::All)
             .limit(10)
             .offset(100)
             .to_string(MysqlQueryBuilder),
@@ -1040,9 +1040,9 @@ fn select_61() {
         Query::select()
             .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
-            .ignore_index(IndexName::new("IDX_123456"), IndexHintType::Join)
-            .use_index(IndexName::new("IDX_789ABC"), IndexHintType::GroupBy)
-            .force_index(IndexName::new("IDX_DEFGHI"), IndexHintType::OrderBy)
+            .ignore_index(IndexName::new("IDX_123456"), IndexHintScope::Join)
+            .use_index(IndexName::new("IDX_789ABC"), IndexHintScope::GroupBy)
+            .force_index(IndexName::new("IDX_DEFGHI"), IndexHintScope::OrderBy)
             .limit(10)
             .offset(100)
             .to_string(MysqlQueryBuilder),

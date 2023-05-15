@@ -412,10 +412,15 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     }
 
     /// Translate [`IndexHint`] into SQL statement.
-    fn prepare_index_hints(&self, _indexes: &[IndexHint], _sql: &mut dyn SqlWriter) {}
+    fn prepare_index_hints(&self, _hints: &[IndexHint], _sql: &mut dyn SqlWriter) {}
 
     /// Translate [`IndexHintType`] into SQL statement.
-    fn prepare_index_hint_type(&self, _index_hint_type: &IndexHintType, _sql: &mut dyn SqlWriter) {}
+    fn prepare_index_hint_scope(
+        &self,
+        _index_hint_scope: &IndexHintScope,
+        _sql: &mut dyn SqlWriter,
+    ) {
+    }
 
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut dyn SqlWriter) {
