@@ -235,7 +235,11 @@ impl IndexCreateStatement {
         }
         let prefix = if self.is_primary_key() {
             "pri"
-        } else if self.is_unique_key() { "uni" } else { "idx" };
+        } else if self.is_unique_key() {
+            "uni"
+        } else {
+            "idx"
+        };
         format!("{}-{}", prefix, self.index.get_column_names().join("-"))
     }
 
