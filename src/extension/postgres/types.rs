@@ -463,7 +463,6 @@ impl TypeAlterOpt {
     }
 }
 
-#[macro_export]
 macro_rules! impl_type_statement_builder {
     ( $struct_name: ident, $func_name: ident ) => {
         impl $struct_name {
