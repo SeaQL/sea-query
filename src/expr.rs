@@ -2521,7 +2521,7 @@ impl SimpleExpr {
 
     pub(crate) fn get_bin_oper(&self) -> Option<BinOper> {
         match self {
-            Self::Binary(_, oper, _) => Some(*oper),
+            Self::Binary(_, oper, _) => Some(oper.clone()),
             _ => None,
         }
     }

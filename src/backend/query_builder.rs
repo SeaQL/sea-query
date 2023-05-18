@@ -546,6 +546,11 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     }
 
     fn prepare_bin_oper_common(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
+        if let BinOper::Custom(cst) = bin_oper {
+            cst.unquoted(sql.as_writer());
+            return;
+        }
+
         write!(
             sql,
             "{}",

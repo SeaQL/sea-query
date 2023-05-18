@@ -1733,6 +1733,30 @@ fn select_pgtrgm_strict_word_similarity_distance() {
 }
 
 #[test]
+fn select_custom_operator() {
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Font::Name).binary(
+                BinOper::Custom(Alias::new("~*").into_iden()),
+                Expr::value("serif")
+            ))
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" ~* 'serif' FROM "font""#
+    );
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Font::Name).binary(
+                BinOper::Custom(Alias::new("~").into_iden()),
+                Expr::value("serif")
+            ))
+            .from(Font::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "name" ~ 'serif' FROM "font""#
+    );
+}
+
+#[test]
 fn union_1() {
     assert_eq!(
         Query::select()
@@ -1812,6 +1836,39 @@ fn cast_json_field_bin_oper() {
             .build(PostgresQueryBuilder),
         (
             r#"SELECT "character" FROM "character" WHERE "character" ->> $1"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
+fn regex_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).binary(PgBinOper::Regex, Expr::val("test")))
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" ~ $1"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
+fn regex_case_insensitive_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character)
+                    .binary(PgBinOper::RegexCaseInsensitive, Expr::val("test"))
+            )
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" ~* $1"#.to_owned(),
             Values(vec!["test".into()])
         )
     );
