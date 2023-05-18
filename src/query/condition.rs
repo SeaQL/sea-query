@@ -301,7 +301,7 @@ impl From<SimpleExpr> for ConditionExpression {
 macro_rules! any {
     ( $( $x:expr ),* $(,)?) => {
         {
-            let mut tmp = sea_query::Condition::any();
+            let mut tmp = $crate::Condition::any();
             $(
                 tmp = tmp.add($x);
             )*
@@ -336,7 +336,7 @@ macro_rules! any {
 macro_rules! all {
     ( $( $x:expr ),* $(,)?) => {
         {
-            let mut tmp = sea_query::Condition::all();
+            let mut tmp = $crate::Condition::all();
             $(
                 tmp = tmp.add($x);
             )*
