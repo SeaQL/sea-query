@@ -1,16 +1,16 @@
 //! Base types used throughout sea-query.
 
 use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
-use std::fmt;
+use std::{fmt, mem, ops};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
 use crate::extension::sqlite::SqliteBinOper;
 #[cfg(not(feature = "thread-safe"))]
-pub use std::rc::Rc as SeaRc;
+pub use std::rc::Rc as RcOrArc;
 #[cfg(feature = "thread-safe")]
-pub use std::sync::Arc as SeaRc;
+pub use std::sync::Arc as RcOrArc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Quote(pub(crate) u8, pub(crate) u8);
@@ -52,6 +52,46 @@ iden_trait!();
 
 pub type DynIden = SeaRc<dyn Iden>;
 
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
+where
+    I: ?Sized;
+
+impl ops::Deref for SeaRc<dyn Iden> {
+    type Target = dyn Iden;
+
+    fn deref(&self) -> &Self::Target {
+        ops::Deref::deref(&self.0)
+    }
+}
+
+impl Clone for SeaRc<dyn Iden> {
+    fn clone(&self) -> SeaRc<dyn Iden> {
+        SeaRc(RcOrArc::clone(&self.0))
+    }
+}
+
+impl PartialEq for SeaRc<dyn Iden> {
+    fn eq(&self, other: &Self) -> bool {
+        let (self_vtable, other_vtable) = unsafe {
+            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
+            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
+            (self_vtable, other_vtable)
+        };
+        self_vtable == other_vtable && self.to_string() == other.to_string()
+    }
+}
+
+impl SeaRc<dyn Iden> {
+    pub fn new<I>(i: I) -> SeaRc<dyn Iden>
+    where
+        I: Iden + 'static,
+    {
+        SeaRc(RcOrArc::new(i))
+    }
+}
+
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
 }
@@ -70,7 +110,7 @@ impl fmt::Debug for dyn Iden {
 }
 
 /// Column references
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
@@ -85,7 +125,7 @@ pub trait IntoColumnRef {
 
 /// Table references
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TableRef {
     /// Table identifier without any schema / database prefix
     Table(DynIden),
@@ -152,7 +192,7 @@ pub enum BinOper {
 }
 
 /// Logical chain operator
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
     And(SimpleExpr),
     Or(SimpleExpr),
@@ -177,7 +217,7 @@ pub enum NullOrdering {
 }
 
 /// Order expression
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OrderExpr {
     pub(crate) expr: SimpleExpr,
     pub(crate) order: Order,
@@ -185,7 +225,7 @@ pub struct OrderExpr {
 }
 
 /// Join on types
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
     Columns(Vec<SimpleExpr>),
@@ -264,7 +304,7 @@ pub struct NullAlias;
 pub struct Asterisk;
 
 /// SQL Keywords
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     Null,
     CurrentDate,
@@ -285,7 +325,7 @@ pub trait IntoLikeExpr {
 }
 
 /// SubQuery operators
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum SubQueryOper {
     Exists,
     Any,
@@ -571,8 +611,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    pub use crate::{tests_cfg::*, *};
     use pretty_assertions::assert_eq;
+    pub use Character as CharReexport;
 
     #[test]
     fn test_identifier() {
@@ -627,6 +668,48 @@ mod tests {
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
             r#"SELECT "hel""""lo""#
+        );
+    }
+
+    #[test]
+    fn test_cmp_identifier() {
+        type CharLocal = Character;
+
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Character::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Char::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(CharLocal::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(CharReexport::Id.into_iden())
+        );
+        assert_eq!(
+            ColumnRef::Column(Alias::new("id").into_iden()),
+            ColumnRef::Column(Alias::new("id").into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Alias::new("id").into_iden()),
+            ColumnRef::Column(Alias::new("id_").into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Alias::new("id").into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Character::Table.into_iden())
+        );
+        assert_ne!(
+            ColumnRef::Column(Character::Id.into_iden()),
+            ColumnRef::Column(Font::Id.into_iden())
         );
     }
 }

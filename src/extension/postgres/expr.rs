@@ -144,6 +144,56 @@ pub trait PgExpr: Expression {
     {
         self.like_like(PgBinOper::NotILike, like.into_like_expr())
     }
+
+    /// Express a postgres retrieves JSON field as JSON value (`->`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Font::Variant)
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::col(Font::Variant).get_json_field("a"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "variant" FROM "font" WHERE "variant" -> 'a'"#
+    /// );
+    /// ```
+    fn get_json_field<T>(self, right: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_op(PgBinOper::GetJsonField, right)
+    }
+
+    /// Express a postgres retrieves JSON field and casts it to an appropriate SQL type (`->>`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Font::Variant)
+    ///     .from(Font::Table)
+    ///     .and_where(Expr::col(Font::Variant).cast_json_field("a"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "variant" FROM "font" WHERE "variant" ->> 'a'"#
+    /// );
+    /// ```
+    fn cast_json_field<T>(self, right: T) -> SimpleExpr
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.bin_op(PgBinOper::CastJsonField, right)
+    }
 }
 
 impl PgExpr for Expr {}

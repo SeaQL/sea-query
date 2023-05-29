@@ -41,7 +41,7 @@
 //! sea-query = "0"
 //! ```
 //!
-//! SeaQuery is very lightweight, all dependencies are optional.
+//! SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
 //!
 //! ### Feature flags
 //!
