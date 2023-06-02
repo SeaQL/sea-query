@@ -1736,20 +1736,14 @@ fn select_pgtrgm_strict_word_similarity_distance() {
 fn select_custom_operator() {
     assert_eq!(
         Query::select()
-            .expr(Expr::col(Font::Name).binary(
-                BinOper::Custom(Alias::new("~*").into_iden()),
-                Expr::value("serif")
-            ))
+            .expr(Expr::col(Font::Name).binary(BinOper::Custom("~*"), Expr::value("serif")))
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "name" ~* 'serif' FROM "font""#
     );
     assert_eq!(
         Query::select()
-            .expr(Expr::col(Font::Name).binary(
-                BinOper::Custom(Alias::new("~").into_iden()),
-                Expr::value("serif")
-            ))
+            .expr(Expr::col(Font::Name).binary(BinOper::Custom("~"), Expr::value("serif")))
             .from(Font::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "name" ~ 'serif' FROM "font""#

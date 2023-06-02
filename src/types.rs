@@ -72,8 +72,6 @@ impl Clone for SeaRc<dyn Iden> {
     }
 }
 
-impl Eq for SeaRc<dyn Iden> {}
-
 impl PartialEq for SeaRc<dyn Iden> {
     fn eq(&self, other: &Self) -> bool {
         let (self_vtable, other_vtable) = unsafe {
@@ -160,7 +158,7 @@ pub enum UnOper {
 }
 
 /// Binary operator
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOper {
     And,
     Or,
@@ -187,7 +185,7 @@ pub enum BinOper {
     RShift,
     As,
     Escape,
-    Custom(DynIden),
+    Custom(&'static str),
     #[cfg(feature = "backend-postgres")]
     PgOperator(PgBinOper),
     #[cfg(feature = "backend-sqlite")]
