@@ -556,7 +556,7 @@ impl Iden for Alias {
 
 impl NullAlias {
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 }
 
