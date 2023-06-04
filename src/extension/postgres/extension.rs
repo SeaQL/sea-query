@@ -12,7 +12,7 @@ pub(crate) enum ExtensionOperation {
 /// # Examples
 ///
 /// ```
-/// use sea_query::extension::postgres::{ExtensionStatement, CreateExtensionBuilder};
+/// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
 /// use sea_query::tests_cfg::*;
 ///
 /// let mut query = String::new();
@@ -138,7 +138,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{ExtensionStatement, CreateExtensionBuilder};
+    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -148,10 +148,7 @@ impl ExtensionStatement {
     ///
     /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
-    /// assert_eq!(
-    ///     query,
-    ///     r#"CREATE EXTENSION ltree WITH SCHEMA public"#
-    /// );
+    /// assert_eq!(query, r#"CREATE EXTENSION ltree WITH SCHEMA public"#);
     /// ```
     pub fn schema(&mut self, schema: &str) -> &mut Self {
         self.schema = Some(schema.to_string());
@@ -163,7 +160,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{ExtensionStatement, CreateExtensionBuilder};
+    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -185,7 +182,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{ExtensionStatement, CreateExtensionBuilder};
+    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -195,7 +192,7 @@ impl ExtensionStatement {
     ///
     /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
-    /// assert_eq!(query,  r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
+    /// assert_eq!(query, r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
     /// ```
     pub fn if_not_exists(&mut self) -> &mut Self {
         if matches!(self.operation, ExtensionOperation::Create) {
@@ -211,7 +208,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{ExtensionStatement, CreateExtensionBuilder};
+    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -221,7 +218,7 @@ impl ExtensionStatement {
     ///
     /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
-    /// assert_eq!(query,  r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
+    /// assert_eq!(query, r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
     /// ```
     pub fn if_exists(&mut self) -> &mut Self {
         if matches!(self.operation, ExtensionOperation::Drop) {
@@ -237,17 +234,15 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{ExtensionStatement, CreateExtensionBuilder};
+    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
-    /// let stmt = ExtensionStatement::create("ltree")
-    ///     .cascade()
-    ///     .to_owned();
+    /// let stmt = ExtensionStatement::create("ltree").cascade().to_owned();
     ///
     /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
-    /// assert_eq!(query,  r#"CREATE EXTENSION ltree CASCADE"#);
+    /// assert_eq!(query, r#"CREATE EXTENSION ltree CASCADE"#);
     /// ```
     pub fn cascade(&mut self) -> &mut Self {
         self.cascade = true;
