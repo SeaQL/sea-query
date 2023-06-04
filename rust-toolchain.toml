@@ -1,0 +1,4 @@
+[toolchain]
+# https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file
+channel = "nightly-2023-06-03"
+profile = "default"
