@@ -21,7 +21,7 @@ pub struct Returning;
 impl Returning {
     /// Constructs a new [`Returning`].
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 
     /// Constructs a new [`ReturningClause::All`].
