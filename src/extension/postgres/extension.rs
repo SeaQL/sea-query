@@ -23,7 +23,7 @@ pub(crate) enum ExtensionOperation {
 ///     .version("v0.1.0")
 ///     .to_owned();
 ///
-/// stmt.prepare_extension_create_statement(&stmt, &mut query);
+/// stmt.prepare_extension_statement(&stmt, &mut query);
 ///
 /// assert_eq!(
 ///     query,
@@ -61,87 +61,57 @@ pub struct ExtensionStatement {
     pub(crate) operation: ExtensionOperation,
 }
 
-pub trait CreateExtensionBuilder {
-    /// Translate [`ExtensionStatement`] into a PostgreSQL's `CREATE EXTENSION` statement
-    ///
-    /// PostgreSQL Syntax
-    ///
-    /// ```ignore
-    /// CREATE EXTENSION [ IF NOT EXISTS ] extension_name
-    ///     [ WITH ] [ SCHEMA schema_name ]
-    ///              [ VERSION version ]
-    ///              [ CASCADE ]
-    /// ```
+pub trait ExtensionBuilder {
+    /// Translate [`ExtensionStatement`] into a PostgreSQL's `CREATE` or `DROP`
+    /// `EXTENSION` statement.
     ///
     /// ## Refer
     ///
     /// https://www.postgresql.org/docs/current/sql-createextension.html
-    fn prepare_extension_create_statement(
-        &self,
-        stmt: &ExtensionStatement,
-        sql: &mut dyn SqlWriter,
-    );
-
-    /// Translate [`ExtensionStatement`] into a PostgreSQL's `DROP EXTENSION` statement
-    ///
-    /// PostgreSQL Syntax
-    ///
-    /// ```ignore
-    /// DROP EXTENSION [ IF EXISTS ] name [, ...] [ CASCADE | RESTRICT ]
-    /// ```
-    ///
-    /// ## Refer
-    ///
-    ///  https://www.postgresql.org/docs/current/sql-createextension.html
-    fn prepare_extension_drop_statement(&self, stmt: &ExtensionStatement, sql: &mut dyn SqlWriter);
+    fn prepare_extension_statement(&self, sql: &mut dyn SqlWriter);
 }
 
-impl CreateExtensionBuilder for ExtensionStatement {
-    fn prepare_extension_create_statement(
-        &self,
-        _stmt: &ExtensionStatement,
-        sql: &mut dyn SqlWriter,
-    ) {
-        write!(sql, "CREATE EXTENSION ").unwrap();
+impl ExtensionBuilder for ExtensionStatement {
+    fn prepare_extension_statement(&self, sql: &mut dyn SqlWriter) {
+        match self.operation {
+            ExtensionOperation::Create => {
+                write!(sql, "CREATE EXTENSION ").unwrap();
 
-        if self.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap()
-        }
+                if self.if_not_exists {
+                    write!(sql, "IF NOT EXISTS ").unwrap()
+                }
 
-        write!(sql, "{}", self.name).unwrap();
+                write!(sql, "{}", self.name).unwrap();
 
-        if let Some(schema) = self.schema.as_ref() {
-            write!(sql, " WITH SCHEMA {}", schema).unwrap();
-        }
+                if let Some(schema) = self.schema.as_ref() {
+                    write!(sql, " WITH SCHEMA {}", schema).unwrap();
+                }
 
-        if let Some(version) = self.version.as_ref() {
-            write!(sql, " VERSION {}", version).unwrap();
-        }
+                if let Some(version) = self.version.as_ref() {
+                    write!(sql, " VERSION {}", version).unwrap();
+                }
 
-        if self.cascade {
-            write!(sql, " CASCADE").unwrap();
-        }
-    }
+                if self.cascade {
+                    write!(sql, " CASCADE").unwrap();
+                }
+            }
+            ExtensionOperation::Drop => {
+                write!(sql, "DROP EXTENSION ").unwrap();
 
-    fn prepare_extension_drop_statement(
-        &self,
-        _stmt: &ExtensionStatement,
-        sql: &mut dyn SqlWriter,
-    ) {
-        write!(sql, "DROP EXTENSION ").unwrap();
+                if self.if_exists {
+                    write!(sql, "IF EXISTS ").unwrap();
+                }
 
-        if self.if_exists {
-            write!(sql, "IF EXISTS ").unwrap();
-        }
+                write!(sql, "{}", self.name).unwrap();
 
-        write!(sql, "{}", self.name).unwrap();
+                if self.cascade {
+                    write!(sql, " CASCADE").unwrap();
+                }
 
-        if self.cascade {
-            write!(sql, " CASCADE").unwrap();
-        }
-
-        if self.restrict {
-            write!(sql, "  RESTRICT").unwrap();
+                if self.restrict {
+                    write!(sql, "  RESTRICT").unwrap();
+                }
+            }
         }
     }
 }
@@ -176,7 +146,7 @@ impl ExtensionStatement {
     ///     .schema("public")
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_create_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
     /// assert_eq!(
     ///     query,
@@ -201,7 +171,7 @@ impl ExtensionStatement {
     ///     .version("v0.1.0")
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_create_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
     /// assert_eq!(query, r#"CREATE EXTENSION ltree VERSION v0.1.0"#);
     /// ```
@@ -223,7 +193,7 @@ impl ExtensionStatement {
     ///     .if_not_exists()
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_create_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
     /// assert_eq!(query,  r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
     /// ```
@@ -249,7 +219,7 @@ impl ExtensionStatement {
     ///     .if_not_exists()
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_create_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
     /// assert_eq!(query,  r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
     /// ```
@@ -275,7 +245,7 @@ impl ExtensionStatement {
     ///     .cascade()
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_create_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&stmt, &mut query);
     ///
     /// assert_eq!(query,  r#"CREATE EXTENSION ltree CASCADE"#);
     /// ```
@@ -299,11 +269,24 @@ mod test {
             .version("v0.1.0")
             .to_owned();
 
-        stmt.prepare_extension_create_statement(&stmt, &mut writer);
+        stmt.prepare_extension_statement(&mut writer);
 
         assert_eq!(
             writer,
             r#"CREATE EXTENSION IF NOT EXISTS ltree WITH SCHEMA public VERSION v0.1.0 CASCADE"#
         );
+    }
+
+    #[test]
+    fn drop_extension_statement() {
+        let mut writer = String::new();
+        let stmt = ExtensionStatement::drop("ltree")
+            .if_exists()
+            .cascade()
+            .to_owned();
+
+        stmt.prepare_extension_statement(&mut writer);
+
+        assert_eq!(writer, r#"DROP EXTENSION IF EXISTS ltree CASCADE"#);
     }
 }
