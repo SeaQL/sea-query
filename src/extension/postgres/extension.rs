@@ -12,7 +12,7 @@ pub(crate) enum ExtensionOperation {
 /// # Examples
 ///
 /// ```
-/// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
+/// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
 /// use sea_query::tests_cfg::*;
 ///
 /// let mut query = String::new();
@@ -138,7 +138,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
+    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -160,7 +160,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
+    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -182,7 +182,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
+    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -208,7 +208,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
+    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
@@ -234,7 +234,7 @@ impl ExtensionStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::extension::postgres::{CreateExtensionBuilder, ExtensionStatement};
+    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
     /// use sea_query::tests_cfg::*;
     ///
     /// let mut query = String::new();
