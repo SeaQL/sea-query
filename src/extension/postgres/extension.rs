@@ -23,7 +23,7 @@ pub(crate) enum ExtensionOperation {
 ///     .version("v0.1.0")
 ///     .to_owned();
 ///
-/// stmt.prepare_extension_statement(&stmt, &mut query);
+/// stmt.prepare_extension_statement(&mut query);
 ///
 /// assert_eq!(
 ///     query,
@@ -146,7 +146,7 @@ impl ExtensionStatement {
     ///     .schema("public")
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&mut query);
     ///
     /// assert_eq!(query, r#"CREATE EXTENSION ltree WITH SCHEMA public"#);
     /// ```
@@ -168,7 +168,7 @@ impl ExtensionStatement {
     ///     .version("v0.1.0")
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&mut query);
     ///
     /// assert_eq!(query, r#"CREATE EXTENSION ltree VERSION v0.1.0"#);
     /// ```
@@ -190,7 +190,7 @@ impl ExtensionStatement {
     ///     .if_not_exists()
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&mut query);
     ///
     /// assert_eq!(query, r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
     /// ```
@@ -216,7 +216,7 @@ impl ExtensionStatement {
     ///     .if_not_exists()
     ///     .to_owned();
     ///
-    /// stmt.prepare_extension_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&mut query);
     ///
     /// assert_eq!(query, r#"CREATE EXTENSION IF NOT EXISTS ltree"#);
     /// ```
@@ -240,7 +240,7 @@ impl ExtensionStatement {
     /// let mut query = String::new();
     /// let stmt = ExtensionStatement::create("ltree").cascade().to_owned();
     ///
-    /// stmt.prepare_extension_statement(&stmt, &mut query);
+    /// stmt.prepare_extension_statement(&mut query);
     ///
     /// assert_eq!(query, r#"CREATE EXTENSION ltree CASCADE"#);
     /// ```
