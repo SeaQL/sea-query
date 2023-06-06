@@ -2,20 +2,10 @@ use super::*;
 
 impl TableBuilder for PostgresQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
-        column_def.name.prepare(sql.as_writer(), self.quote());
-
-        self.prepare_column_type_check_auto_increment(column_def, sql);
-
-        for column_spec in column_def.spec.iter() {
-            if let ColumnSpec::AutoIncrement = column_spec {
-                continue;
-            }
-            if let ColumnSpec::Comment(_) = column_spec {
-                continue;
-            }
-            write!(sql, " ").unwrap();
-            self.prepare_column_spec(column_spec, sql);
-        }
+        let f = |column_def: &ColumnDef, sql: &mut dyn SqlWriter| {
+            self.prepare_column_type_check_auto_increment(column_def, sql);
+        };
+        self.prepare_column_def_common(column_def, sql, f);
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
@@ -119,14 +109,20 @@ impl TableBuilder for PostgresQueryBuilder {
                     if *if_not_exists {
                         write!(sql, "IF NOT EXISTS ").unwrap();
                     }
-                    self.prepare_column_def(column, sql);
+                    let f = |column_def: &ColumnDef, sql: &mut dyn SqlWriter| {
+                        if let Some(column_type) = &column_def.types {
+                            write!(sql, " ").unwrap();
+                            self.prepare_column_type(column_type, sql);
+                        }
+                    };
+                    self.prepare_column_def_common(column, sql, f);
                 }
                 TableAlterOption::ModifyColumn(column_def) => {
-                    if column_def.types.is_some() {
+                    if let Some(column_type) = &column_def.types {
                         write!(sql, "ALTER COLUMN ").unwrap();
                         column_def.name.prepare(sql.as_writer(), self.quote());
-                        write!(sql, " TYPE").unwrap();
-                        self.prepare_column_type_check_auto_increment(column_def, sql);
+                        write!(sql, " TYPE ").unwrap();
+                        self.prepare_column_type(column_type, sql);
                     }
                     let first = column_def.types.is_none();
 
@@ -252,6 +248,26 @@ impl PostgresQueryBuilder {
                 write!(sql, " ").unwrap();
                 self.prepare_column_type(column_type, sql);
             }
+        }
+    }
+
+    fn prepare_column_def_common<F>(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter, f: F)
+    where
+        F: Fn(&ColumnDef, &mut dyn SqlWriter),
+    {
+        column_def.name.prepare(sql.as_writer(), self.quote());
+
+        f(column_def, sql);
+
+        for column_spec in column_def.spec.iter() {
+            if let ColumnSpec::AutoIncrement = column_spec {
+                continue;
+            }
+            if let ColumnSpec::Comment(_) = column_spec {
+                continue;
+            }
+            write!(sql, " ").unwrap();
+            self.prepare_column_spec(column_spec, sql);
         }
     }
 }
