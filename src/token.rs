@@ -107,11 +107,7 @@ impl Tokenizer {
                     self.inc();
                 }
             } else if !first {
-                if !escape && Self::is_escape_char(c) {
-                    escape = true;
-                } else {
-                    escape = false;
-                }
+                escape = !escape && Self::is_escape_char(c);
                 write!(string, "{c}").unwrap();
                 self.inc();
             } else {
@@ -149,11 +145,7 @@ impl Tokenizer {
                     self.inc();
                 }
             } else if !first {
-                if !escape && Self::is_escape_char(c) {
-                    escape = true;
-                } else {
-                    escape = false;
-                }
+                escape = !escape && Self::is_escape_char(c);
                 write!(string, "{c}").unwrap();
                 self.inc();
             } else {
