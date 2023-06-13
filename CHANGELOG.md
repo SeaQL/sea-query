@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `TableCreateStatement::set_extra` and `TableCreateStatement::get_extra` https://github.com/SeaQL/sea-query/pull/611
 * Added `TableCreateStatement::comment` and `ColumnDef::comment` for MySQL comments https://github.com/SeaQL/sea-query/pull/622
 * Added `PgExpr::get_json_field` and `PgExpr::cast_json_field` methods for constructing Postgres JSON expressions https://github.com/SeaQL/sea-query/pull/630
+* Added `PgBinOper::Regex` and `PgBinOper::RegexCaseInsensitive` for Postgres Regex operators
+* Added `BinOper::Custom` for defining custom binary operators
 
 ### Enhancements
 
