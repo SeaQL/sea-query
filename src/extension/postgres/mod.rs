@@ -31,6 +31,10 @@ pub enum PgBinOper {
     GetJsonField,
     /// `->>`. Retrieves JSON field and casts it to an appropriate SQL type.
     CastJsonField,
+    /// `~` Regex operator.
+    Regex,
+    /// `~*`. Regex operator with case insensitive matching.
+    RegexCaseInsensitive,
 }
 
 impl From<PgBinOper> for BinOper {

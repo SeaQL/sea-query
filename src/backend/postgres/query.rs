@@ -55,6 +55,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgBinOper::StrictWordSimilarityDistance => "<<<->",
                     PgBinOper::GetJsonField => "->",
                     PgBinOper::CastJsonField => "->>",
+                    PgBinOper::Regex => "~",
+                    PgBinOper::RegexCaseInsensitive => "~*",
                 }
             )
             .unwrap(),

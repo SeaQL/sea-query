@@ -185,6 +185,7 @@ pub enum BinOper {
     RShift,
     As,
     Escape,
+    Custom(&'static str),
     #[cfg(feature = "backend-postgres")]
     PgOperator(PgBinOper),
     #[cfg(feature = "backend-sqlite")]
