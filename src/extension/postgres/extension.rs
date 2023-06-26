@@ -29,28 +29,6 @@ impl Extension {
 ///              [ CASCADE ]
 /// ```
 ///
-/// # Examples
-///
-/// ```
-/// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
-/// use sea_query::tests_cfg::*;
-///
-/// let mut query = String::new();
-/// let stmt = ExtensionStatement::create("ltree")
-///     .if_not_exists()
-///     .cascade()
-///     .schema("public")
-///     .version("v0.1.0")
-///     .to_owned();
-///
-/// stmt.prepare_extension_statement(&mut query);
-///
-/// assert_eq!(
-///     query,
-///     r#"CREATE EXTENSION IF NOT EXISTS ltree WITH SCHEMA public VERSION v0.1.0 CASCADE"#
-/// );
-/// ```
-///
 /// # References
 ///
 /// [Refer to the PostgreSQL Documentation][1]
@@ -72,6 +50,12 @@ pub struct ExtensionCreateStatement {
 impl ExtensionCreateStatement {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Sets the name of the extension to be created.
+    pub fn name(&mut self, name: &str) -> &mut Self {
+        self.name = name.to_string();
+        self
     }
 
     /// Uses "WITH SCHEMA" on Create Extension Statement.
@@ -97,72 +81,30 @@ impl ExtensionCreateStatement {
     }
 
     /// Uses "VERSION" on Create Extension Statement.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
-    /// use sea_query::tests_cfg::*;
-    ///
-    /// let mut query = String::new();
-    /// let stmt = ExtensionCreateStatement::create("ltree")
-    ///     .version("v0.1.0")
-    ///     .to_owned();
-    ///
-    /// stmt.prepare_extension_statement(&mut query);
-    ///
-    /// assert_eq!(query, r#"CREATE EXTENSION ltree VERSION v0.1.0"#);
-    /// ```
     pub fn version(&mut self, version: &str) -> &mut Self {
         self.version = Some(version.to_string());
         self
     }
 
     /// Uses "CASCADE" on Create Extension Statement.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
-    /// use sea_query::tests_cfg::*;
-    ///
-    /// let mut query = String::new();
-    /// let stmt = ExtensionCreateStatement::create("ltree")
-    ///     .cascade()
-    ///     .to_owned();
-    ///
-    /// stmt.prepare_extension_statement(&mut query);
-    ///
-    /// assert_eq!(query, r#"CREATE EXTENSION ltree CASCADE"#);
-    /// ```
     pub fn cascade(&mut self) -> &mut Self {
         self.cascade = true;
+        self
+    }
+
+    /// Uses "IF NOT EXISTS" on Create Extension Statement.
+    pub fn if_not_exists(&mut self) -> &mut Self {
+        self.if_not_exists = true;
         self
     }
 }
 
 /// Creates a new "DROP EXTENSION" statement for PostgreSQL
 ///
-/// # Examples
+/// # Synopsis
 ///
-/// ```
-/// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
-/// use sea_query::tests_cfg::*;
-///
-/// let mut query = String::new();
-/// let stmt = ExtensionStatement::create("ltree")
-///     .if_not_exists()
-///     .cascade()
-///     .schema("public")
-///     .version("v0.1.0")
-///     .to_owned();
-///
-/// stmt.prepare_extension_statement(&mut query);
-///
-/// assert_eq!(
-///     query,
-///     r#"CREATE EXTENSION IF NOT EXISTS ltree WITH SCHEMA public VERSION v0.1.0 CASCADE"#
-/// );
+/// ```ignore
+/// DROP EXTENSION [ IF EXISTS ] name [, ...] [ CASCADE | RESTRICT ]
 /// ```
 ///
 /// # References
@@ -182,7 +124,7 @@ pub struct ExtensionDropStatement {
     /// Determines the presence of the `RESTRICT` statement.
     pub(crate) restrict: bool,
 
-    /// Determines the presence of the `RESTRICT` statement
+    /// Determines the presence of the `CASCADE` statement
     pub(crate) cascade: bool,
 }
 
@@ -191,25 +133,27 @@ impl ExtensionDropStatement {
         Self::default()
     }
 
-    /// Uses "IF NOT EXISTS" on Create Extension Statement.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
-    /// use sea_query::tests_cfg::*;
-    ///
-    /// let mut query = String::new();
-    /// let stmt = ExtensionStatement::create("ltree")
-    ///     .if_not_exists()
-    ///     .to_owned();
-    ///
-    /// stmt.prepare_extension_statement(&mut query);
-    ///
-    /// assert_eq!(query, r#"DROP EXTENSION IF EXISTS ltree"#);
-    /// ```
+    /// Sets the name of the extension to be dropped.
+    pub fn name(&mut self, name: &str) -> &mut Self {
+        self.name = name.to_string();
+        self
+    }
+
+    /// Uses "IF EXISTS" on Drop Extension Statement.
     pub fn if_exists(&mut self) -> &mut Self {
         self.if_exists = true;
+        self
+    }
+
+    /// Uses "CASCADE" on Drop Extension Statement.
+    pub fn cascade(&mut self) -> &mut Self {
+        self.cascade = true;
+        self
+    }
+
+    /// Uses "RESTRICT" on Drop Extension Statement.
+    pub fn restrict(&mut self) -> &mut Self {
+        self.restrict = true;
         self
     }
 }
@@ -269,38 +213,39 @@ macro_rules! impl_extension_statement_builder {
 impl_extension_statement_builder!(ExtensionCreateStatement, prepare_extension_create_statement);
 impl_extension_statement_builder!(ExtensionDropStatement, prepare_extension_drop_statement);
 
-// #[cfg(test)]
-// mod test {
-//     use super::*;
+#[cfg(test)]
+mod test {
+    use super::*;
 
-//     #[test]
-//     fn create_extension_statement() {
-//         let mut writer = String::new();
-//         let stmt = ExtensionStatement::create("ltree")
-//             .if_not_exists()
-//             .cascade()
-//             .schema("public")
-//             .version("v0.1.0")
-//             .to_owned();
+    #[test]
+    fn creates_a_stmt_for_create_extension() {
+        let create_extension_stmt = Extension::create()
+            .name("ltree")
+            .schema("public")
+            .version("v0.1.0")
+            .cascade()
+            .if_not_exists()
+            .to_owned();
 
-//         stmt.prepare_extension_statement(&mut writer);
+        assert_eq!(create_extension_stmt.name, "ltree");
+        assert_eq!(create_extension_stmt.schema, Some("public".to_string()));
+        assert_eq!(create_extension_stmt.version, Some("v0.1.0".to_string()));
+        assert_eq!(create_extension_stmt.cascade, true);
+        assert_eq!(create_extension_stmt.if_not_exists, true);
+    }
 
-//         assert_eq!(
-//             writer,
-//             r#"CREATE EXTENSION IF NOT EXISTS ltree WITH SCHEMA public VERSION v0.1.0 CASCADE"#
-//         );
-//     }
+    #[test]
+    fn creates_a_stmt_for_drop_extension() {
+        let drop_extension_stmt = Extension::drop()
+            .name("ltree")
+            .cascade()
+            .if_exists()
+            .restrict()
+            .to_owned();
 
-//     #[test]
-//     fn drop_extension_statement() {
-//         let mut writer = String::new();
-//         let stmt = ExtensionStatement::drop("ltree")
-//             .if_exists()
-//             .cascade()
-//             .to_owned();
-
-//         stmt.prepare_extension_statement(&mut writer);
-
-//         assert_eq!(writer, r#"DROP EXTENSION IF EXISTS ltree CASCADE"#);
-//     }
-// }
+        assert_eq!(drop_extension_stmt.name, "ltree");
+        assert_eq!(drop_extension_stmt.cascade, true);
+        assert_eq!(drop_extension_stmt.if_exists, true);
+        assert_eq!(drop_extension_stmt.restrict, true);
+    }
+}
