@@ -29,6 +29,25 @@ impl Extension {
 ///              [ CASCADE ]
 /// ```
 ///
+/// # Example
+///
+/// Creates the "ltree" extension if it doesn't exists.
+///
+/// ```
+/// use sea_query::{extension::postgres::Extension, *};
+///
+/// assert_eq!(
+///     Extension::create()
+///         .name("ltree")
+///         .schema("public")
+///         .version("v0.1.0")
+///         .cascade()
+///         .if_not_exists()
+///         .to_string(PostgresQueryBuilder),
+///     r#"CREATE EXTENSION IF NOT EXISTS ltree WITH SCHEMA public VERSION v0.1.0 CASCADE"#
+/// );
+/// ```
+///
 /// # References
 ///
 /// [Refer to the PostgreSQL Documentation][1]
@@ -59,22 +78,6 @@ impl ExtensionCreateStatement {
     }
 
     /// Uses "WITH SCHEMA" on Create Extension Statement.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::extension::postgres::{ExtensionBuilder, ExtensionStatement};
-    /// use sea_query::tests_cfg::*;
-    ///
-    /// let mut query = String::new();
-    /// let stmt = ExtensionStatement::create("ltree")
-    ///     .schema("public")
-    ///     .to_owned();
-    ///
-    /// stmt.prepare_extension_statement(&mut query);
-    ///
-    /// assert_eq!(query, r#"CREATE EXTENSION ltree WITH SCHEMA public"#);
-    /// ```
     pub fn schema(&mut self, schema: &str) -> &mut Self {
         self.schema = Some(schema.to_string());
         self
@@ -105,6 +108,23 @@ impl ExtensionCreateStatement {
 ///
 /// ```ignore
 /// DROP EXTENSION [ IF EXISTS ] name [, ...] [ CASCADE | RESTRICT ]
+/// ```
+///
+/// # Example
+///
+/// Drops the "ltree" extension if it exists.
+///
+/// ```
+/// use sea_query::{extension::postgres::Extension, *};
+///
+/// assert_eq!(
+///     Extension::drop()
+///         .name("ltree")
+///         .cascade()
+///         .if_exists()
+///         .to_string(PostgresQueryBuilder),
+///     r#"DROP EXTENSION IF EXISTS ltree CASCADE"#
+/// );
 /// ```
 ///
 /// # References
@@ -230,8 +250,8 @@ mod test {
         assert_eq!(create_extension_stmt.name, "ltree");
         assert_eq!(create_extension_stmt.schema, Some("public".to_string()));
         assert_eq!(create_extension_stmt.version, Some("v0.1.0".to_string()));
-        assert_eq!(create_extension_stmt.cascade, true);
-        assert_eq!(create_extension_stmt.if_not_exists, true);
+        assert!(create_extension_stmt.cascade);
+        assert!(create_extension_stmt.if_not_exists);
     }
 
     #[test]
@@ -244,8 +264,8 @@ mod test {
             .to_owned();
 
         assert_eq!(drop_extension_stmt.name, "ltree");
-        assert_eq!(drop_extension_stmt.cascade, true);
-        assert_eq!(drop_extension_stmt.if_exists, true);
-        assert_eq!(drop_extension_stmt.restrict, true);
+        assert!(drop_extension_stmt.cascade);
+        assert!(drop_extension_stmt.if_exists);
+        assert!(drop_extension_stmt.restrict);
     }
 }
