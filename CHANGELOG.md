@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `PgExpr::get_json_field` and `PgExpr::cast_json_field` methods for constructing Postgres JSON expressions https://github.com/SeaQL/sea-query/pull/630
 * Added `PgBinOper::Regex` and `PgBinOper::RegexCaseInsensitive` for Postgres Regex operators
 * Added `BinOper::Custom` for defining custom binary operators
+* Added `GLOB` operator for Sqlite https://github.com/SeaQL/sea-query/pull/651/
 
 ### Enhancements
 
