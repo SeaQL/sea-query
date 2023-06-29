@@ -72,20 +72,20 @@ impl ExtensionCreateStatement {
     }
 
     /// Sets the name of the extension to be created.
-    pub fn name(&mut self, name: &str) -> &mut Self {
-        self.name = name.to_string();
+    pub fn name<T: Into<String>>(&mut self, name: T) -> &mut Self {
+        self.name = name.into();
         self
     }
 
     /// Uses "WITH SCHEMA" on Create Extension Statement.
-    pub fn schema(&mut self, schema: &str) -> &mut Self {
-        self.schema = Some(schema.to_string());
+    pub fn schema<T: Into<String>>(&mut self, schema: T) -> &mut Self {
+        self.schema = Some(schema.into());
         self
     }
 
     /// Uses "VERSION" on Create Extension Statement.
-    pub fn version(&mut self, version: &str) -> &mut Self {
-        self.version = Some(version.to_string());
+    pub fn version<T: Into<String>>(&mut self, version: T) -> &mut Self {
+        self.version = Some(version.into());
         self
     }
 
@@ -154,8 +154,8 @@ impl ExtensionDropStatement {
     }
 
     /// Sets the name of the extension to be dropped.
-    pub fn name(&mut self, name: &str) -> &mut Self {
-        self.name = name.to_string();
+    pub fn name<T: Into<String>>(&mut self, name: T) -> &mut Self {
+        self.name = name.into();
         self
     }
 
