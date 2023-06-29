@@ -46,7 +46,7 @@ impl ExtensionBuilder for PostgresQueryBuilder {
         }
 
         if drop.restrict {
-            write!(sql, "  RESTRICT").unwrap();
+            write!(sql, " RESTRICT").unwrap();
         }
     }
 }
