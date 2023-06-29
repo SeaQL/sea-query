@@ -26,6 +26,7 @@ impl QueryBuilder for SqliteQueryBuilder {
                 sql,
                 "{}",
                 match bin_oper {
+                    SqliteBinOper::Glob => "GLOB",
                     SqliteBinOper::Match => "MATCH",
                     SqliteBinOper::GetJsonField => "->",
                     SqliteBinOper::CastJsonField => "->>",

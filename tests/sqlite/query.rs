@@ -993,6 +993,21 @@ fn select_58() {
 }
 
 #[test]
+fn glob_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).binary(SqliteBinOper::Glob, Expr::val("test")))
+            .build(SqliteQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" GLOB ?"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
 fn match_bin_oper() {
     assert_eq!(
         Query::select()

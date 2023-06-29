@@ -7,6 +7,8 @@ mod expr;
 /// Sqlite-specific binary operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SqliteBinOper {
+    /// `GLOB`
+    Glob,
     /// `MATCH`.
     Match,
     /// `->`. Retrieves JSON field as JSON value.
