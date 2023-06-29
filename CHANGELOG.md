@@ -70,6 +70,7 @@ let _: DynIden = SeaRc::new(Alias::new("char"));
 ### Bug fixes
 
 * `ALTER TABLE` now panic if has multiple column for Sqlite https://github.com/SeaQL/sea-query/pull/595
+* Fixed alter primary key column statements for Postgres https://github.com/SeaQL/sea-query/pull/646
 
 ## 0.28.5 - 2023-05-11
 
