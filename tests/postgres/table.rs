@@ -493,6 +493,7 @@ fn alter_8() {
 
 #[test]
 fn alter_9() {
+    // https://dbfiddle.uk/98Vd8pmn
     assert_eq!(
         Table::alter()
             .table(Glyph::Table)
@@ -507,10 +508,33 @@ fn alter_9() {
             .to_string(PostgresQueryBuilder),
         [
             r#"ALTER TABLE "glyph""#,
-            r#"ALTER COLUMN "aspect" TYPE serial,"#,
+            r#"ALTER COLUMN "aspect" TYPE integer,"#,
             r#"ALTER COLUMN "aspect" SET NOT NULL,"#,
             r#"ADD UNIQUE ("aspect"),"#,
             r#"ADD PRIMARY KEY ("aspect")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn alter_10() {
+    // https://dbfiddle.uk/PQksflGf
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .unique_key()
+                    .primary_key()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "glyph""#,
+            r#"ADD COLUMN "aspect" integer NOT NULL UNIQUE PRIMARY KEY"#,
         ]
         .join(" ")
     );
