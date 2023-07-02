@@ -1,3 +1,4 @@
+pub(crate) mod extension;
 pub(crate) mod foreign_key;
 pub(crate) mod index;
 pub(crate) mod query;
