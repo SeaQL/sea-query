@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `PgBinOper::Regex` and `PgBinOper::RegexCaseInsensitive` for Postgres Regex operators
 * Added `BinOper::Custom` for defining custom binary operators
 * Added `GLOB` operator for Sqlite https://github.com/SeaQL/sea-query/pull/651/
+* Added `CREATE` and `DROP` for Postgres extesions https://github.com/SeaQL/sea-query/pull/616
 
 ### Enhancements
 
