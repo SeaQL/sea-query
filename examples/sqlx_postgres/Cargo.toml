@@ -16,7 +16,7 @@ bigdecimal = { version = "0.3" }
 ipnetwork = { version = "0.19" }
 mac_address = { version = "1.1" }
 async-std = { version = "1.8", features = [ "attributes" ] }
-sqlx = "0.6"
+sqlx = "0.7"
 sea-query = { path = "../../" }
 sea-query-binder = { path = "../../sea-query-binder", features = [
     "sqlx-postgres",
