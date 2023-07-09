@@ -47,6 +47,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgBinOper::Contains => "@>",
                     PgBinOper::Contained => "<@",
                     PgBinOper::Concatenate => "||",
+                    PgBinOper::Overlap => "&&",
                     PgBinOper::Similarity => "%",
                     PgBinOper::WordSimilarity => "<%",
                     PgBinOper::StrictWordSimilarity => "<<%",

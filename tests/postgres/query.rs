@@ -1802,6 +1802,51 @@ fn sub_query_with_fn() {
 }
 
 #[test]
+fn select_array_contains_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).binary(PgBinOper::Contains, Expr::val("test")))
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" @> $1"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
+fn select_array_contained_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).binary(PgBinOper::Contained, Expr::val("test")))
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" <@ $1"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
+fn select_array_overlap_bin_oper() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).binary(PgBinOper::Overlap, Expr::val("test")))
+            .build(PostgresQueryBuilder),
+        (
+            r#"SELECT "character" FROM "character" WHERE "character" && $1"#.to_owned(),
+            Values(vec!["test".into()])
+        )
+    );
+}
+
+#[test]
 fn get_json_field_bin_oper() {
     assert_eq!(
         Query::select()
