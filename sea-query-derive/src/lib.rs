@@ -46,9 +46,15 @@ fn impl_iden_for_unit_struct(
     ident: &proc_macro2::Ident,
     table_name: &str,
 ) -> proc_macro2::TokenStream {
+    let flagged_path = if cfg!(feature = "sea-orm") {
+        quote!(sea_orm::sea_query)
+    } else {
+        quote!(sea_query)
+    };
+
     let prepare = if must_be_valid_iden(table_name) {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: sea_query::Quote) {
+            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #flagged_path::Quote) {
                 write!(s, "{}", q.left()).unwrap();
                 self.unquoted(s);
                 write!(s, "{}", q.right()).unwrap();
@@ -57,8 +63,9 @@ fn impl_iden_for_unit_struct(
     } else {
         quote! {}
     };
+
     quote! {
-        impl sea_query::Iden for #ident {
+        impl #flagged_path::Iden for #ident {
             #prepare
 
             fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
@@ -91,9 +98,14 @@ where
         Err(e) => return e.to_compile_error(),
     };
 
+    let flagged_path = if cfg!(feature = "sea-orm") {
+        quote!(sea_orm::sea_query)
+    } else {
+        quote!(sea_query)
+    };
     let prepare = if is_all_valid {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: sea_query::Quote) {
+            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #flagged_path::Quote) {
                 write!(s, "{}", q.left()).unwrap();
                 self.unquoted(s);
                 write!(s, "{}", q.right()).unwrap();
@@ -104,7 +116,7 @@ where
     };
 
     quote! {
-        impl sea_query::Iden for #ident {
+        impl #flagged_path::Iden for #ident {
             #prepare
 
             fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
