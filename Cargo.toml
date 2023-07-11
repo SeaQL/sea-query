@@ -71,7 +71,6 @@ with-time = ["time"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
 tests-cfg = []
-sea-orm = []
 
 [[test]]
 name = "test-derive"
