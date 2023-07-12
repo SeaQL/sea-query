@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.29.1 - 2023-07-13
+## 0.29.1 - 2023-07-12
 
 + `0.29.0-rc.1`: 2023-03-22
 + `0.29.0`: Yanked
@@ -60,6 +60,22 @@ type DynIden = SeaRc<dyn Iden>;
 let _: DynIden = Rc::new(Alias::new("char"));
 // replace with:
 let _: DynIden = SeaRc::new(Alias::new("char"));
+```
+* Added new type `Quote` and changed the `Iden` trait:
+```rust
+struct Quote(pub(crate) u8, pub(crate) u8);
+
+trait Iden {
+    // then:
+    fn prepare(&self, s: &mut dyn fmt::Write, q: char);
+    // now:
+    fn prepare(&self, s: &mut dyn fmt::Write, q: Quote);
+
+    // then:
+    fn quoted(&self, q: char) -> String;
+    // now:
+    fn quoted(&self, q: Quote) -> String;
+}
 ```
 
 ### House keeping
