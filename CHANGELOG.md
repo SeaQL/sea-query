@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `GLOB` operator for Sqlite https://github.com/SeaQL/sea-query/pull/651/
 * Added `CREATE` and `DROP` for Postgres extesions https://github.com/SeaQL/sea-query/pull/616
 * Added `sea-orm` feature to `sea-query-derive` which generate the path of SeaQuery traits, for example, `sea_query::Iden` as `sea_orm::sea_query::Iden` https://github.com/SeaQL/sea-query/pull/655
+* Added `PgBinOper::Overlap` for Postgres operators https://github.com/SeaQL/sea-query/pull/653
 
 ### Enhancements
 
