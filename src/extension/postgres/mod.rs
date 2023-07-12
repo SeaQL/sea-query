@@ -21,6 +21,7 @@ pub enum PgBinOper {
     Contains,
     Contained,
     Concatenate,
+    Overlap,
     Similarity,
     WordSimilarity,
     StrictWordSimilarity,
