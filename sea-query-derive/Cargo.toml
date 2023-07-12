@@ -24,7 +24,7 @@ thiserror = { version = "1.0", default-features = false }
 [dev-dependencies]
 trybuild = "1.0"
 sea-query = { version = "0", path = ".." }
-strum = { version = "0.24", features = ["derive"] }
+strum = { version = "0.25", features = ["derive"] }
 
 [features]
 sea-orm = []
