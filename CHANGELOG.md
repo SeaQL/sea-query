@@ -5,13 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.29.1 - Pending
+## 0.29.1 - 2023-07-13
 
-* Added `PgBinOper::Overlap` for Postgres operators https://github.com/SeaQL/sea-query/pull/653
-
-## 0.29.0 - 2023-07-12
-
-+ 2023-03-22: `0.29.0-rc.1`
++ `0.29.0-rc.1`: 2023-03-22
++ `0.29.0`: Yanked
 
 ### New Features
 
@@ -31,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `GLOB` operator for Sqlite https://github.com/SeaQL/sea-query/pull/651/
 * Added `CREATE or DROP EXTENSION` statements for Postgres https://github.com/SeaQL/sea-query/pull/616
 * Added a feature flag `hashable-value`, which will `impl Hash for Value`; when enabled, `Value::Float(NaN) == Value::Float(NaN)` would be true https://github.com/SeaQL/sea-query/pull/598
+* Added `PgBinOper::Overlap` for Postgres operators https://github.com/SeaQL/sea-query/pull/653
 
 ### Enhancements
 
