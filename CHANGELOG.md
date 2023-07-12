@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.29.0 - Pending
+## 0.29.0 - 2023-07-12
 
 + 2023-03-22: `0.29.0-rc.1`
 
