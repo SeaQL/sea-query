@@ -12,21 +12,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 * Added `ValueTuple::Many` for tuple with length up to 12 https://github.com/SeaQL/sea-query/pull/564
-* Added create Table `CHECK` Constraints https://github.com/SeaQL/sea-query/pull/567
+* Added `CREATE TABLE CHECK` constraints https://github.com/SeaQL/sea-query/pull/567
 * Added support generated column spec https://github.com/SeaQL/sea-query/pull/581
 * Added `BIT_AND`, `BIT_OR` functions https://github.com/SeaQL/sea-query/pull/582
 * Added implementation `SqlxBinder`, `RusqliteBinder` and `PostgresBinder` for `WithQuery` https://github.com/SeaQL/sea-query/pull/580
 * Added new type `Asteriks` https://github.com/SeaQL/sea-query/pull/596
 * Added `IF NOT EXISTS` for `DROP INDEX` in Postgres and Sqlite https://github.com/SeaQL/sea-query/pull/610
-* Added `->` and `->>` operators for Postgres https://github.com/SeaQL/sea-query/pull/617/files
+* Added `->` and `->>` operators for Postgres https://github.com/SeaQL/sea-query/pull/617
 * Added `TableCreateStatement::set_extra` and `TableCreateStatement::get_extra` https://github.com/SeaQL/sea-query/pull/611
 * Added `TableCreateStatement::comment` and `ColumnDef::comment` for MySQL comments https://github.com/SeaQL/sea-query/pull/622
 * Added `PgExpr::get_json_field` and `PgExpr::cast_json_field` methods for constructing Postgres JSON expressions https://github.com/SeaQL/sea-query/pull/630
 * Added `PgBinOper::Regex` and `PgBinOper::RegexCaseInsensitive` for Postgres Regex operators
 * Added `BinOper::Custom` for defining custom binary operators
 * Added `GLOB` operator for Sqlite https://github.com/SeaQL/sea-query/pull/651/
-* Added `CREATE` and `DROP` for Postgres extesions https://github.com/SeaQL/sea-query/pull/616
-* Added `sea-orm` feature to `sea-query-derive` which generate the path of SeaQuery traits, for example, `sea_query::Iden` as `sea_orm::sea_query::Iden` https://github.com/SeaQL/sea-query/pull/655
+* Added `CREATE or DROP EXTENSION` statements for Postgres https://github.com/SeaQL/sea-query/pull/616
+* Added a feature flag `hashable-value`, which will `impl Hash for Value`; when enabled, `Value::Float(NaN) == Value::Float(NaN)` would be true https://github.com/SeaQL/sea-query/pull/598
 
 ### Enhancements
 
@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Breaking changes
 
+* Removed variants `Four, Five, Six` from `enum ValueTuple` as part of https://github.com/SeaQL/sea-query/pull/564
 * Removed `Expr::tbl`, `Expr::greater_than`, `Expr::greater_or_equal`, `Expr::less_than`, `Expr::less_or_equal`, `Expr::into_simple_expr` https://github.com/SeaQL/sea-query/pull/551
 * Removed `SimpleExpr::equals` and `SimpleExpr::not_equals` https://github.com/SeaQL/sea-query/pull/551
 * Removed `InsertStatement::exprs`, `InsertStatement::exprs_panic` https://github.com/SeaQL/sea-query/pull/551
@@ -597,7 +598,7 @@ In order to co-exist with the `time` crate, `Date`, `Time`, `DateTime` etc are r
 
 ### Bug Fixes
 
-* Fix PostgreSQL `ColumnType::TinyInteger` mapping by @billy1624 in https://github.com/SeaQL/sea-query/pull/207
+* Fix Postgres `ColumnType::TinyInteger` mapping by @billy1624 in https://github.com/SeaQL/sea-query/pull/207
 * PR without clippy warmings in file changed tab by @billy1624 in https://github.com/SeaQL/sea-query/pull/212
 
 **Full Changelog**: https://github.com/SeaQL/sea-query/compare/0.20.0...0.21.0
