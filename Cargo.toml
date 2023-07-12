@@ -30,7 +30,7 @@ path = "src/lib.rs"
 [dependencies]
 inherent = "1.0"
 sea-query-attr = { version = "0.1.1", path = "sea-query-attr", default-features = false, optional = true }
-sea-query-derive = { version = "0.3.1", path = "sea-query-derive", default-features = false, optional = true }
+sea-query-derive = { version = "0.4.0", path = "sea-query-derive", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 derivative = { version = "2.2", default-features = false, optional = true }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }
