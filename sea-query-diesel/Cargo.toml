@@ -18,17 +18,34 @@ rust-version = "1.60"
 
 [dependencies]
 sea-query = { version = "0.29", path = "..", default-features = false }
-diesel = { version = "2" }
+diesel = { git = "https://github.com/caido/dependency-diesel", branch = "fix/expose-push-bind-value" }
+bigdecimal = { version = "0.3", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 
 [features]
-postgres = ["diesel/postgres"]
-mysql = ["diesel/mysql"]
-sqlite = ["diesel/sqlite"]
+default = ["sqlite", "extras"]
+extras = [
+  "with-chrono",
+  "with-json",
+  "with-rust_decimal",
+  "with-bigdecimal",
+  "with-uuid",
+  "with-time",
+  "with-ipnetwork",
+  "with-mac_address",
+  "postgres-array",
+]
+postgres = ["diesel/postgres", "sea-query/backend-postgres"]
+mysql = ["diesel/mysql", "sea-query/backend-mysql"]
+sqlite = ["diesel/sqlite", "sea-query/backend-sqlite"]
 with-chrono = ["diesel/chrono", "sea-query/with-chrono"]
 with-json = ["diesel/serde_json", "sea-query/with-json"]
 with-rust_decimal = ["sea-query/with-rust_decimal", "rust_decimal/diesel2"]
-with-bigdecimal = ["diesel/bigdecimal", "sea-query/with-bigdecimal"]
+with-bigdecimal = [
+  "diesel/bigdecimal",
+  "sea-query/with-bigdecimal",
+  "bigdecimal",
+]
 with-uuid = ["diesel/uuid", "sea-query/with-uuid"]
 with-time = ["diesel/time", "sea-query/with-time"]
 with-ipnetwork = ["diesel/network-address", "sea-query/with-ipnetwork"]
