@@ -70,7 +70,6 @@ jobs:
       - run: cargo build --workspace --features=with-mac_address
       - run: cargo build --workspace --features=postgres-array
       - run: cargo build --workspace --features=thread-safe
-      - run: cargo build --manifest-path examples/sqlx_any/Cargo.toml
 
   binder-build:
     name: Build `sea-query-binder`
@@ -248,3 +247,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  any:
+    name: Any
+    runs-on: ubuntu-latest
+    needs: ["test", "derive-test", "binder-build"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path examples/sqlx_any/Cargo.toml
