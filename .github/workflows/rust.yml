@@ -70,6 +70,7 @@ jobs:
       - run: cargo build --workspace --features=with-mac_address
       - run: cargo build --workspace --features=postgres-array
       - run: cargo build --workspace --features=thread-safe
+      - run: cargo build --manifest-path examples/sqlx_any/Cargo.toml
 
   binder-build:
     name: Build `sea-query-binder`

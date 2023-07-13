@@ -7,6 +7,7 @@ use sea_query::{
 use sea_query_binder::SqlxBinder;
 use sqlx::{PgPool, Row};
 use std::net::{IpAddr, Ipv4Addr};
+use std::ops::DerefMut;
 use time::{
     macros::{date, time},
     PrimitiveDateTime,
@@ -47,7 +48,7 @@ async fn main() {
         .col(ColumnDef::new(Character::MacAddress).mac_address())
         .build(PostgresQueryBuilder);
 
-    let result = sqlx::query(&sql).execute(&pool).await;
+    let result = sqlx::query(&sql).execute(pool.deref_mut()).await;
     println!("Create table character: {result:?}\n");
 
     // Create
@@ -111,7 +112,7 @@ async fn main() {
         .build_sqlx(PostgresQueryBuilder);
 
     let row = sqlx::query_with(&sql, values)
-        .fetch_one(&pool)
+        .fetch_one(pool.deref_mut())
         .await
         .unwrap();
     let id: i32 = row.try_get(0).unwrap();
@@ -138,7 +139,7 @@ async fn main() {
         .build_sqlx(PostgresQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&pool)
+        .fetch_all(pool.deref_mut())
         .await
         .unwrap();
     println!("Select one from character:");
@@ -148,7 +149,7 @@ async fn main() {
     println!();
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&pool)
+        .fetch_all(pool.deref_mut())
         .await
         .unwrap();
     println!("Select one from character:");
@@ -165,7 +166,9 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&pool).await;
+    let result = sqlx::query_with(&sql, values)
+        .execute(pool.deref_mut())
+        .await;
     println!("Update character: {result:?}\n");
 
     // Read
@@ -189,7 +192,7 @@ async fn main() {
         .build_sqlx(PostgresQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&pool)
+        .fetch_all(pool.deref_mut())
         .await
         .unwrap();
     println!("Select one from character:");
@@ -199,7 +202,7 @@ async fn main() {
     println!();
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&pool)
+        .fetch_all(pool.deref_mut())
         .await
         .unwrap();
     println!("Select one from character:");
@@ -216,7 +219,7 @@ async fn main() {
         .build_sqlx(PostgresQueryBuilder);
 
     let row = sqlx::query_with(&sql, values)
-        .fetch_one(&pool)
+        .fetch_one(pool.deref_mut())
         .await
         .unwrap();
     print!("Count character: ");
@@ -238,7 +241,9 @@ async fn main() {
         )
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&pool).await;
+    let result = sqlx::query_with(&sql, values)
+        .execute(pool.deref_mut())
+        .await;
     println!("Insert into character (with upsert): {result:?}\n");
 
     // Read
@@ -261,7 +266,7 @@ async fn main() {
         .build_sqlx(PostgresQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&pool)
+        .fetch_all(pool.deref_mut())
         .await
         .unwrap();
     println!("Select all characters:");
@@ -271,7 +276,7 @@ async fn main() {
     println!();
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&pool)
+        .fetch_all(pool.deref_mut())
         .await
         .unwrap();
     println!("Select all characters:");
@@ -287,7 +292,9 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&pool).await;
+    let result = sqlx::query_with(&sql, values)
+        .execute(pool.deref_mut())
+        .await;
     println!("Delete character: {result:?}");
 }
 
