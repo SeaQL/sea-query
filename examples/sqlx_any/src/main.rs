@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDate;
 use sea_query::{
     ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, PostgresQueryBuilder, Query,
     QueryBuilder, SchemaBuilder, SqliteQueryBuilder, Table,
@@ -243,5 +243,5 @@ struct CharacterStructChrono {
     id: i32,
     character: String,
     font_size: i32,
-    created: NaiveDateTime,
+    created: String,
 }
