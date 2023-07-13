@@ -3,7 +3,6 @@ use sea_query::{ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQue
 use sea_query_binder::SqlxBinder;
 use serde_json::{json, Value as Json};
 use sqlx::{Row, SqlitePool};
-use std::ops::DerefMut;
 use time::{
     macros::{date, time},
     PrimitiveDateTime,
@@ -32,7 +31,7 @@ async fn main() {
         .col(ColumnDef::new(Character::Created).date_time())
         .build(SqliteQueryBuilder);
 
-    let result = sqlx::query(&sql).execute(pool.deref_mut()).await;
+    let result = sqlx::query(&sql).execute(&pool).await;
     println!("Create table character: {result:?}\n");
 
     // Create
@@ -72,10 +71,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     //TODO: Implement RETURNING (returning_col) for the Sqlite driver.
-    let row = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await
-        .unwrap();
+    let row = sqlx::query_with(&sql, values).execute(&pool).await.unwrap();
 
     let id: i64 = row.last_insert_rowid();
     println!("Insert into character: last_insert_id = {id}\n");
@@ -96,7 +92,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -106,7 +102,7 @@ async fn main() {
     println!();
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -122,9 +118,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(SqliteQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&pool).await;
     println!("Update character: {result:?}\n");
 
     // Read
@@ -143,7 +137,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -151,7 +145,7 @@ async fn main() {
         println!("{row:?}\n");
     }
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -167,7 +161,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     let row = sqlx::query_with(&sql, values)
-        .fetch_one(pool.deref_mut())
+        .fetch_one(&pool)
         .await
         .unwrap();
 
@@ -187,9 +181,7 @@ async fn main() {
         )
         .build_sqlx(SqliteQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&pool).await;
     println!("Insert into character (with upsert): {result:?}\n");
 
     // Read
@@ -207,7 +199,7 @@ async fn main() {
         .build_sqlx(SqliteQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select all characters:");
@@ -216,7 +208,7 @@ async fn main() {
     }
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&pool)
         .await
         .unwrap();
     println!("Select all characters:");
@@ -231,9 +223,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(SqliteQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&pool).await;
 
     println!("Delete character: {result:?}");
 }
