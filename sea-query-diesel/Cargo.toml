@@ -1,0 +1,36 @@
+[workspace]
+# A separate workspace
+
+[package]
+name = "sea-query-diesel"
+version = "0.1.0"
+authors = ["Emile Fugulin <emile@caido.io>"]
+edition = "2021"
+description = "Binder traits for connecting sea-query with diesel"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = ["database"]
+keywords = ["database", "sql", "diesel"]
+rust-version = "1.60"
+
+[lib]
+
+[dependencies]
+sea-query = { version = "0.29", path = "..", default-features = false }
+diesel = { version = "2" }
+rust_decimal = { version = "1", default-features = false, optional = true }
+
+[features]
+postgres = ["diesel/postgres"]
+mysql = ["diesel/mysql"]
+sqlite = ["diesel/sqlite"]
+with-chrono = ["diesel/chrono", "sea-query/with-chrono"]
+with-json = ["diesel/serde_json", "sea-query/with-json"]
+with-rust_decimal = ["sea-query/with-rust_decimal", "rust_decimal/diesel2"]
+with-bigdecimal = ["diesel/bigdecimal", "sea-query/with-bigdecimal"]
+with-uuid = ["diesel/uuid", "sea-query/with-uuid"]
+with-time = ["diesel/time", "sea-query/with-time"]
+with-ipnetwork = ["diesel/network-address", "sea-query/with-ipnetwork"]
+with-mac_address = ["sea-query/with-mac_address"]
+postgres-array = ["sea-query/postgres-array"]
