@@ -22,7 +22,7 @@ sea-query-diesel = { path = "../../sea-query-diesel", features = [
 ] }
 
 [patch.crates-io]
-diesel = { git = "https://github.com/caido/dependency-diesel", branch = "fix/expose-push-bind-value" }
+diesel = { git = "https://github.com/diesel-rs/diesel", rev = "860e2ffff4c4fb8cf981dcb9fe5884baf0fa824e" }
 
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "0"}
