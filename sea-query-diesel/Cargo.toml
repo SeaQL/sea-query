@@ -23,11 +23,11 @@ bigdecimal = { version = "0.3", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 
 [features]
-default = ["sqlite", "extras"]
+default = ["sqlite", "mysql", "extras"]
 extras = [
   "with-chrono",
   "with-json",
-  "with-rust_decimal",
+  "with-rust_decimal-mysql",
   "with-bigdecimal",
   "with-uuid",
   "with-time",
@@ -40,12 +40,13 @@ mysql = ["diesel/mysql", "sea-query/backend-mysql"]
 sqlite = ["diesel/sqlite", "sea-query/backend-sqlite"]
 with-chrono = ["diesel/chrono", "sea-query/with-chrono"]
 with-json = ["diesel/serde_json", "sea-query/with-json"]
-with-rust_decimal = ["sea-query/with-rust_decimal", "rust_decimal/diesel2"]
-with-bigdecimal = [
-  "diesel/bigdecimal",
-  "sea-query/with-bigdecimal",
-  "bigdecimal",
+with-rust_decimal = ["sea-query/with-rust_decimal"]
+with-rust_decimal-mysql = ["with-rust_decimal", "rust_decimal/db-diesel2-mysql"]
+with-rust_decimal-postgres = [
+  "with-rust_decimal",
+  "rust_decimal/db-diesel2-postgres",
 ]
+with-bigdecimal = ["diesel/numeric", "sea-query/with-bigdecimal", "bigdecimal"]
 with-uuid = ["diesel/uuid", "sea-query/with-uuid"]
 with-time = ["diesel/time", "sea-query/with-time"]
 with-ipnetwork = ["diesel/network-address", "sea-query/with-ipnetwork"]

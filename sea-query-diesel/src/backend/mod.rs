@@ -36,7 +36,7 @@ mod macros {
     }
 
     macro_rules! build {
-        ($type: ident, $value: expr) => {
+        ($type: ty, $value: expr) => {
             $crate::value::SeaValue::<::diesel::sql_types::Nullable<$type>, _>::build($value)
         };
     }
