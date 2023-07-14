@@ -14,7 +14,7 @@ mod value;
 
 pub trait DieselBinder {
     fn build_diesel<DB: Backend + ExtractBuilder + TransformValue>(
-        self,
+        &self,
     ) -> QueryResult<SeaQuery<DB>>;
 }
 
@@ -22,7 +22,7 @@ macro_rules! impl_diesel_binder {
     ($statement: ident) => {
         impl DieselBinder for $statement {
             fn build_diesel<DB: Backend + ExtractBuilder + TransformValue>(
-                self,
+                &self,
             ) -> QueryResult<SeaQuery<DB>> {
                 let query_builder = DB::builder();
                 let (query, values) = self.build(query_builder);

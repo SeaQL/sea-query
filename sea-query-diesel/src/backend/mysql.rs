@@ -54,8 +54,7 @@ impl TransformValue for Mysql {
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => build!(Timestamp, v.map(|v| *v)),
             #[cfg(feature = "with-uuid")]
-            // UUID are generally stored as VARCHAR(36)
-            Value::Uuid(v) => build!(Text, v.map(|v| v.to_string())),
+            Value::Uuid(v) => build!(Blob, v.map(|v| v.as_bytes().to_vec())),
             #[cfg(feature = "with-rust_decimal-mysql")]
             Value::Decimal(v) => build!(Numeric, v.map(|v| *v)),
             #[cfg(feature = "with-bigdecimal")]
