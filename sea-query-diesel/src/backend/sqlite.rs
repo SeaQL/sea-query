@@ -27,7 +27,16 @@ impl TransformValue for Sqlite {
             Value::TinyUnsigned(v) => build!(SmallInt, v.map(i16::from)),
             Value::SmallUnsigned(v) => build!(Integer, v.map(i32::from)),
             Value::Unsigned(v) => build!(BigInt, v.map(i64::from)),
-            Value::BigUnsigned(_) => bail!("Sqlite doesn't support BigUnsigned arguments"),
+            // There is no i128 support, so hope the unsigned can be converted
+            Value::BigUnsigned(v) => {
+                let v = v
+                    .map(|v| {
+                        i64::try_from(v)
+                            .map_err(|_| err!("BigDecimal cannot be represented as Double"))
+                    })
+                    .transpose()?;
+                build!(BigInt, v)
+            }
             Value::Float(v) => build!(Float, v),
             Value::Double(v) => build!(Double, v),
             Value::String(v) => build!(Text, v.map(|v| *v)),
@@ -38,7 +47,8 @@ impl TransformValue for Sqlite {
             #[cfg(feature = "with-chrono")]
             Value::ChronoTime(v) => build!(Time, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(v) => build!(Timestamptz, v.map(|v| *v)),
+            // Prefer Timestamp because https://github.com/diesel-rs/diesel/issues/3693
+            Value::ChronoDateTime(v) => build!(Timestamp, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(v) => build!(Timestamptz, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
@@ -50,12 +60,14 @@ impl TransformValue for Sqlite {
             #[cfg(feature = "with-time")]
             Value::TimeTime(v) => build!(Time, v.map(|t| *t)),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(t) => build!(Timestamptz, t.map(|t| *t)),
+            // Prefer Timestamp because https://github.com/diesel-rs/diesel/issues/3693
+            Value::TimeDateTime(t) => build!(Timestamp, t.map(|t| *t)),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(t) => build!(Timestamptz, t.map(|t| *t)),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => build!(Blob, v.map(|v| v.as_bytes().to_vec())),
             #[cfg(feature = "with-rust_decimal")]
+            // Diesel recommends to use double for this
             Value::Decimal(v) => {
                 use rust_decimal::prelude::ToPrimitive;
                 let v = v
@@ -67,6 +79,7 @@ impl TransformValue for Sqlite {
                 build!(Double, v)
             }
             #[cfg(feature = "with-bigdecimal")]
+            // Diesel recommends to use double for this
             Value::BigDecimal(v) => {
                 use bigdecimal::ToPrimitive;
                 let v = v
