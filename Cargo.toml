@@ -36,12 +36,12 @@ derivative = { version = "2.2", default-features = false, optional = true }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
-bigdecimal = { version = "0.3", default-features = false, optional = true }
+bigdecimal = { version = ">=0.3,<0.5", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
 proc-macro2 = { version = "1", default-features = false, optional = true }
 quote = { version = "1", default-features = false, optional = true }
 time = { version = "0.3", default-features = false, optional = true, features = ["macros", "formatting"] }
-ipnetwork = { version = "0.19", default-features = false, optional = true }
+ipnetwork = { version = ">=0.19,<0.21", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 ordered-float = { version = "3.4", default-features = false, optional = true }
 
