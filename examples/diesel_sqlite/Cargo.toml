@@ -1,0 +1,29 @@
+[workspace]
+# A separate workspace
+
+[package]
+name = "sea-query-diesel-sqlite-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+time = { version = "0.3", features = ["parsing", "macros"] }
+serde_json = { version = "1" }
+uuid = { version = "1", features = ["serde", "v4"] }
+diesel = { version = "2", features = ["sqlite"] }
+sea-query = { path = "../.." }
+sea-query-diesel = { path = "../../sea-query-diesel", features = [
+  "sqlite",
+  "with-chrono",
+  "with-json",
+  "with-uuid",
+  "with-time",
+] }
+
+[patch.crates-io]
+diesel = { git = "https://github.com/caido/dependency-diesel", branch = "fix/expose-push-bind-value" }
+
+# NOTE: if you are copying this example into your own project, use the following line instead:
+# sea-query = { version = "0"}
+# sea-query-diesel = { version = "0", features = [...] }
