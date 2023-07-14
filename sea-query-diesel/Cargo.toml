@@ -23,13 +23,19 @@ diesel = { version = "2", features = [
 ] }
 bigdecimal = { version = "0.3", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
+chrono = { version = "0.4", default-features = false, optional = true }
+time = { version = "0.3", default-features = false, optional = true }
+uuid = { version = "1", default-features = false, optional = true }
+serde_json = { version = "1", default-features = false, optional = true }
+ipnetwork = { version = "0.19", default-features = false, optional = true }
+mac_address = { version = "1.1", default-features = false, optional = true }
 
 [features]
-default = ["sqlite", "mysql", "extras"]
+default = ["sqlite", "postgres", "extras"]
 extras = [
   "with-chrono",
   "with-json",
-  "with-rust_decimal-mysql",
+  "with-rust_decimal-postgres",
   "with-bigdecimal",
   "with-uuid",
   "with-time",
@@ -40,8 +46,8 @@ extras = [
 postgres = ["diesel/postgres", "sea-query/backend-postgres"]
 mysql = ["diesel/mysql", "sea-query/backend-mysql"]
 sqlite = ["diesel/sqlite", "sea-query/backend-sqlite"]
-with-chrono = ["diesel/chrono", "sea-query/with-chrono"]
-with-json = ["diesel/serde_json", "sea-query/with-json"]
+with-chrono = ["diesel/chrono", "sea-query/with-chrono", "chrono"]
+with-json = ["diesel/serde_json", "sea-query/with-json", "serde_json"]
 with-rust_decimal = ["sea-query/with-rust_decimal"]
 with-rust_decimal-mysql = ["with-rust_decimal", "rust_decimal/db-diesel2-mysql"]
 with-rust_decimal-postgres = [
@@ -49,10 +55,14 @@ with-rust_decimal-postgres = [
   "rust_decimal/db-diesel2-postgres",
 ]
 with-bigdecimal = ["diesel/numeric", "sea-query/with-bigdecimal", "bigdecimal"]
-with-uuid = ["diesel/uuid", "sea-query/with-uuid"]
-with-time = ["diesel/time", "sea-query/with-time"]
-with-ipnetwork = ["diesel/network-address", "sea-query/with-ipnetwork"]
-with-mac_address = ["sea-query/with-mac_address"]
+with-uuid = ["diesel/uuid", "sea-query/with-uuid", "uuid"]
+with-time = ["diesel/time", "sea-query/with-time", "time"]
+with-ipnetwork = [
+  "diesel/network-address",
+  "sea-query/with-ipnetwork",
+  "ipnetwork",
+]
+with-mac_address = ["sea-query/with-mac_address", "mac_address"]
 postgres-array = ["sea-query/postgres-array"]
 
 [patch.crates-io]

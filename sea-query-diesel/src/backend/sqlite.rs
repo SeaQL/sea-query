@@ -1,7 +1,6 @@
 use diesel::query_builder::QueryFragment;
 use diesel::result::QueryResult;
 use diesel::sql_types::*;
-use diesel::sqlite::sql_types::*;
 use diesel::sqlite::Sqlite;
 use sea_query::{SqliteQueryBuilder, Value};
 
@@ -32,7 +31,7 @@ impl TransformValue for Sqlite {
                 let v = v
                     .map(|v| {
                         i64::try_from(v)
-                            .map_err(|_| err!("BigUnsigned cannot be represented as BigInt"))
+                            .map_err(|_| err!("BigUnsigned cannot be represented as i64"))
                     })
                     .transpose()?;
                 build!(BigInt, v)
@@ -50,11 +49,11 @@ impl TransformValue for Sqlite {
             // Prefer Timestamp because https://github.com/diesel-rs/diesel/issues/3693
             Value::ChronoDateTime(v) => build!(Timestamp, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::ChronoDateTimeUtc(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::ChronoDateTimeLocal(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::ChronoDateTimeWithTimeZone(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
             Value::TimeDate(v) => build!(Date, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
@@ -63,7 +62,7 @@ impl TransformValue for Sqlite {
             // Prefer Timestamp because https://github.com/diesel-rs/diesel/issues/3693
             Value::TimeDateTime(v) => build!(Timestamp, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::TimeDateTimeWithTimeZone(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => build!(Blob, v.map(|v| v.as_bytes().to_vec())),
             #[cfg(feature = "with-rust_decimal")]
@@ -73,7 +72,7 @@ impl TransformValue for Sqlite {
                 let v = v
                     .map(|v| {
                         v.to_f64()
-                            .ok_or(err!("Decimal cannot be represented as Double"))
+                            .ok_or(err!("Decimal cannot be represented as f64"))
                     })
                     .transpose()?;
                 build!(Double, v)
@@ -85,7 +84,7 @@ impl TransformValue for Sqlite {
                 let v = v
                     .map(|v| {
                         v.to_f64()
-                            .ok_or(err!("BigDecimal cannot be represented as Double"))
+                            .ok_or(err!("BigDecimal cannot be represented as f64"))
                     })
                     .transpose()?;
                 build!(Double, v)

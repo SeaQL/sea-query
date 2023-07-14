@@ -5,6 +5,7 @@ use diesel::result::QueryResult;
 use diesel::sql_types::*;
 use sea_query::{MysqlQueryBuilder, Value};
 
+#[allow(unused_imports)]
 use super::macros::{bail, build};
 use super::{ExtractBuilder, TransformValue};
 
@@ -57,6 +58,11 @@ impl TransformValue for Mysql {
             Value::Uuid(v) => build!(Blob, v.map(|v| v.as_bytes().to_vec())),
             #[cfg(feature = "with-rust_decimal-mysql")]
             Value::Decimal(v) => build!(Numeric, v.map(|v| *v)),
+            #[cfg(all(
+                feature = "with-rust_decimal",
+                not(feature = "with-rust_decimal-mysql")
+            ))]
+            Value::Decimal(_) => bail!("Enable feature with-rust_decimal-mysql"),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => build!(Numeric, v.map(|v| *v)),
             #[cfg(feature = "with-json")]
