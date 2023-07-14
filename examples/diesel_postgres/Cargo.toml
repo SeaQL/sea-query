@@ -23,6 +23,11 @@ sea-query-diesel = { path = "../../sea-query-diesel", features = [
   "with-json",
   "with-uuid",
   "with-time",
+  "with-rust_decimal-postgres",
+  "with-bigdecimal",
+  "with-ipnetwork",
+  "with-mac_address",
+  "postgres-array",
 ] }
 
 [patch.crates-io]
