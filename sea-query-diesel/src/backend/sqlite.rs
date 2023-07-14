@@ -32,7 +32,7 @@ impl TransformValue for Sqlite {
                 let v = v
                     .map(|v| {
                         i64::try_from(v)
-                            .map_err(|_| err!("BigDecimal cannot be represented as Double"))
+                            .map_err(|_| err!("BigUnsigned cannot be represented as BigInt"))
                     })
                     .transpose()?;
                 build!(BigInt, v)
@@ -52,18 +52,18 @@ impl TransformValue for Sqlite {
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(v) => build!(Timestamptz, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(t) => build!(Timestamptz, t.map(|t| *t)),
+            Value::ChronoDateTimeLocal(v) => build!(Timestamptz, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(t) => build!(Timestamptz, t.map(|t| *t)),
+            Value::ChronoDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
-            Value::TimeDate(v) => build!(Date, v.map(|t| *t)),
+            Value::TimeDate(v) => build!(Date, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(v) => build!(Time, v.map(|t| *t)),
+            Value::TimeTime(v) => build!(Time, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
             // Prefer Timestamp because https://github.com/diesel-rs/diesel/issues/3693
-            Value::TimeDateTime(t) => build!(Timestamp, t.map(|t| *t)),
+            Value::TimeDateTime(v) => build!(Timestamp, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(t) => build!(Timestamptz, t.map(|t| *t)),
+            Value::TimeDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => build!(Blob, v.map(|v| v.as_bytes().to_vec())),
             #[cfg(feature = "with-rust_decimal")]
