@@ -4,6 +4,7 @@ use diesel::sql_types::*;
 use diesel::sqlite::Sqlite;
 use sea_query::{SqliteQueryBuilder, Value};
 
+#[allow(unused_imports)]
 use super::macros::{bail, build, err};
 use super::{ExtractBuilder, TransformValue};
 

@@ -22,6 +22,7 @@ pub trait TransformValue: Backend {
     fn transform_value(value: Value) -> QueryResult<Box<dyn QueryFragment<Self> + Send>>;
 }
 
+#[allow(unused_macros, unused_imports)]
 mod macros {
     macro_rules! err {
         ($msg: expr) => {

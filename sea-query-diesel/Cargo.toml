@@ -31,11 +31,11 @@ ipnetwork = { version = "0.19", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 
 [features]
-default = ["sqlite", "postgres", "extras"]
+default = []
 extras = [
   "with-chrono",
   "with-json",
-  "with-rust_decimal-postgres",
+  "with-rust_decimal",
   "with-bigdecimal",
   "with-uuid",
   "with-time",

@@ -3,12 +3,12 @@ use diesel::pg::Pg;
 use diesel::query_builder::QueryFragment;
 use diesel::result::QueryResult;
 use diesel::sql_types::*;
+#[allow(unused_imports)]
 use sea_query::{ArrayType, PostgresQueryBuilder, Value};
 
 #[allow(unused_imports)]
-use super::macros::{bail, build, err};
+use super::macros::{bail, build, err, refine};
 use super::{ExtractBuilder, TransformValue};
-use crate::backend::macros::refine;
 
 impl ExtractBuilder for Pg {
     type Builder = PostgresQueryBuilder;
