@@ -50,24 +50,24 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     args.add(b.map(|b| *b));
                 }
                 #[cfg(feature = "with-chrono")]
-                Value::ChronoDate(d) => {
-                    args.add(d.map(|d| *d));
+                Value::ChronoDate(t) => {
+                    args.add(Value::ChronoDate(t).chrono_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
-                    args.add(t.map(|t| *t));
+                    args.add(Value::ChronoTime(t).chrono_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
-                    args.add(t.map(|t| *t));
+                    args.add(Value::ChronoDateTime(t).chrono_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
-                    args.add(t.map(|t| *t));
+                    args.add(Value::ChronoDateTimeUtc(t).chrono_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
-                    args.add(t.map(|t| *t));
+                    args.add(Value::ChronoDateTimeLocal(t).chrono_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {

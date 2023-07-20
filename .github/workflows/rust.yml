@@ -33,10 +33,18 @@ jobs:
         with:
           toolchain: nightly
           components: rustfmt
-      - run: cargo fmt --all -- --check
+      - run: cargo fmt --manifest-path Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path sea-query-attr/Cargo.toml --all -- --check
       - run: cargo fmt --manifest-path sea-query-binder/Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path sea-query-rusqlite/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path sea-query-derive/Cargo.toml --all -- --check
       - run: cargo fmt --manifest-path sea-query-postgres/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path sea-query-rusqlite/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/sqlx_sqlite/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/sqlx_any/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/rusqlite/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/sqlx_postgres/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/postgres/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/sqlx_mysql/Cargo.toml --all -- --check
 
   clippy:
     name: Clippy
@@ -247,3 +255,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  any:
+    name: Any
+    runs-on: ubuntu-latest
+    needs: ["test", "derive-test", "binder-build"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --manifest-path examples/sqlx_any/Cargo.toml
