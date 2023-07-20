@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.30.0 - 2023-07-20
+
+This is a small (but major) upgrade, the only changes are:
+
+* Upgrade [SQLx to `0.7`](https://github.com/launchbadge/sqlx/blob/main/CHANGELOG.md#071---2023-07-14)
+* Upgrade ipnetwork to `0.20`
+
+### Versions
+
++ [`sea-query-binder`/`0.5.0`](https://crates.io/crates/sea-query-binder/0.5.0)
+
 ## 0.29.1 - 2023-07-12
 
 ### Versions
@@ -12,9 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 + `sea-query`/`0.29.0-rc.1`: 2023-03-22
 + `sea-query`/`0.29.0` (Yanked)
 + `sea-query`/`0.29.1`: 2023-07-12
-+ `sea-query-binder`/`0.4.0`
-+ `sea-query-postgres`/`0.3.0`
-+ `sea-query-rusqlite`/`0.3.0`
++ [`sea-query-binder`/`0.4.0`](https://crates.io/crates/sea-query-binder/0.4.0)
++ [`sea-query-postgres`/`0.3.0`](https://crates.io/crates/sea-query-postgres/0.3.0)
++ [`sea-query-rusqlite`/`0.3.0`](https://crates.io/crates/sea-query-rusqlite/0.3.0)
 
 ### New Features
 
