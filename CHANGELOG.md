@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 This is a small (but major) upgrade, the only changes are:
 
-* Upgrade [SQLx to `0.7`](https://github.com/launchbadge/sqlx/blob/main/CHANGELOG.md#071---2023-07-14)
+* Upgrade [SQLx to `0.7`](https://github.com/launchbadge/sqlx/blob/main/CHANGELOG.md#071---2023-07-14) https://github.com/SeaQL/sea-query/pull/652
 * Upgrade ipnetwork to `0.20`
 
 ### Versions
