@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.29.1 - 2023-07-12
 
-+ `0.29.0-rc.1`: 2023-03-22
-+ `0.29.0`: Yanked
+### Versions
+
++ `sea-query`/`0.29.0-rc.1`: 2023-03-22
++ `sea-query`/`0.29.0` (Yanked)
++ `sea-query`/`0.29.1`: 2023-07-12
++ `sea-query-binder`/`0.4.0`
++ `sea-query-postgres`/`0.3.0`
++ `sea-query-rusqlite`/`0.3.0`
 
 ### New Features
 
