@@ -17,7 +17,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "0.29", path = "..", default-features = false }
+sea-query = { version = "0.30", path = "..", default-features = false }
 rusqlite = { version = "0.28", default-features = false, features = ["bundled"] }
 
 [features]
