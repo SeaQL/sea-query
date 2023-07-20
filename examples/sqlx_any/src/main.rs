@@ -5,7 +5,6 @@ use sea_query::{
 };
 use sqlx::{AnyPool, Row};
 use std::env;
-use std::ops::DerefMut;
 
 use sea_query_binder::SqlxBinder;
 
@@ -66,7 +65,7 @@ async fn main() {
         .col(ColumnDef::new(Character::Created).date_time())
         .build_any(schema_builder);
 
-    let result = sqlx::query(&sql).execute(pool.deref_mut()).await;
+    let result = sqlx::query(&sql).execute(&mut *pool).await;
     println!("Create table character: {result:?}\n");
 
     // Create
@@ -91,7 +90,7 @@ async fn main() {
         .build_any_sqlx(query_builder);
 
     let row = sqlx::query_with(&sql, values)
-        .fetch_one(pool.deref_mut())
+        .fetch_one(&mut *pool)
         .await
         .unwrap();
     let id: i32 = row.try_get(0).unwrap();
@@ -112,7 +111,7 @@ async fn main() {
         .build_any_sqlx(query_builder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values)
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -129,9 +128,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_any_sqlx(query_builder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
     println!("Update character: {result:?}\n");
 
     // Read
@@ -149,7 +146,7 @@ async fn main() {
         .build_any_sqlx(query_builder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values)
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -166,7 +163,7 @@ async fn main() {
         .build_any_sqlx(query_builder);
 
     let row = sqlx::query_with(&sql, values)
-        .fetch_one(pool.deref_mut())
+        .fetch_one(&mut *pool)
         .await
         .unwrap();
     print!("Count character: ");
@@ -187,9 +184,7 @@ async fn main() {
         )
         .build_any_sqlx(query_builder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
     println!("Insert into character (with upsert): {result:?}\n");
 
     // Read
@@ -206,7 +201,7 @@ async fn main() {
         .build_any_sqlx(query_builder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values)
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select all characters:");
@@ -222,9 +217,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_any_sqlx(query_builder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
     println!("Delete character: {result:?}");
 }
 

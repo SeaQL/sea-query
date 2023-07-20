@@ -4,7 +4,6 @@ use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
 use sea_query_binder::SqlxBinder;
 use sqlx::{types::chrono::NaiveDateTime, MySqlPool, Row};
-use std::ops::DerefMut;
 use time::{
     macros::{date, time},
     PrimitiveDateTime,
@@ -41,7 +40,7 @@ async fn main() {
         .col(ColumnDef::new(Character::Created).date_time())
         .build(MysqlQueryBuilder);
 
-    let result = sqlx::query(&sql).execute(pool.deref_mut()).await;
+    let result = sqlx::query(&sql).execute(&mut *pool).await;
     println!("Create table character: {result:?}\n");
 
     // Create
@@ -93,9 +92,7 @@ async fn main() {
         ])
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
     println!("Insert into character: {result:?}\n");
     let id = result.unwrap().last_insert_id();
 
@@ -118,7 +115,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -128,7 +125,7 @@ async fn main() {
     println!();
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -145,9 +142,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
     println!("Update character: {result:?}\n");
 
     // Read
@@ -169,7 +164,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -179,7 +174,7 @@ async fn main() {
     println!();
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select one from character:");
@@ -202,9 +197,7 @@ async fn main() {
         )
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
     println!("Insert into character (with upsert): {result:?}\n");
     let id = result.unwrap().last_insert_id();
 
@@ -226,7 +219,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select all characters:");
@@ -236,7 +229,7 @@ async fn main() {
     println!();
 
     let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(pool.deref_mut())
+        .fetch_all(&mut *pool)
         .await
         .unwrap();
     println!("Select all characters:");
@@ -253,7 +246,7 @@ async fn main() {
         .build_sqlx(MysqlQueryBuilder);
 
     let row = sqlx::query_with(&sql, values)
-        .fetch_one(pool.deref_mut())
+        .fetch_one(&mut *pool)
         .await
         .unwrap();
     print!("Count character: ");
@@ -268,9 +261,7 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values)
-        .execute(pool.deref_mut())
-        .await;
+    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
     println!("Delete character: {result:?}");
 }
 
