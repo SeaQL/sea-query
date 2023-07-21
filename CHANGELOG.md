@@ -16,6 +16,10 @@ This is a small (but major) upgrade, the only changes are:
 
 + [`sea-query-binder`/`0.5.0`](https://crates.io/crates/sea-query-binder/0.5.0)
 
+### Notes
+
+`sea-query 0.29` has a number of breaking changes, so it might be easier for you to first upgrade to `0.29`, then upgrade `sqlx` by bumping to `0.30`.
+
 ## 0.29.1 - 2023-07-12
 
 ### Versions
