@@ -123,6 +123,15 @@ impl QueryBuilder for PostgresQueryBuilder {
         write!(buffer, "{string}").unwrap()
     }
 
+    fn write_bytes(&self, bytes: &Box<Vec<u8>>, buffer: &mut String) {
+        write!(
+            buffer,
+            "'\\x{}'",
+            bytes.iter().map(|b| format!("{b:02X}")).collect::<String>()
+        )
+        .unwrap()
+    }
+
     fn if_null_function(&self) -> &str {
         "COALESCE"
     }
