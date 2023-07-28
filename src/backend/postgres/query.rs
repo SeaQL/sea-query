@@ -123,7 +123,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         write!(buffer, "{string}").unwrap()
     }
 
-    fn write_bytes(&self, bytes: &Vec<u8>, buffer: &mut String) {
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
         write!(
             buffer,
             "'\\x{}'",
