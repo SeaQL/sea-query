@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.31.0 - Pending
+
+### New Features
+
+* Added `Func::round` and `Func::round_with_precision` https://github.com/SeaQL/sea-query/pull/671
+
+
 ## 0.30.0 - 2023-07-20
 
 This is a small (but major) upgrade, the only changes are:
