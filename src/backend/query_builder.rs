@@ -659,6 +659,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                     Function::BitOr => "BIT_OR",
                     Function::Custom(_) => "",
                     Function::Random => self.random_function(),
+                    Function::Round => "ROUND",
                     #[cfg(feature = "backend-postgres")]
                     Function::PgFunction(_) => unimplemented!(),
                 }

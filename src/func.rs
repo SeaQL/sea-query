@@ -24,6 +24,7 @@ pub enum Function {
     BitAnd,
     BitOr,
     Random,
+    Round,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -577,6 +578,30 @@ impl Func {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::BitOr).arg(expr)
+    }
+
+    /// Call `ROUND` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::tests_cfg::Character::Character;
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select().expr(Func::round(5.654, 2)).to_owned();
+    ///
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT ROUND(5.654, 2)"#);
+    ///
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT ROUND(5.654, 2)"#);
+    ///
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT ROUND(5.654, 2)"#);
+    /// ```
+    pub fn round<A, B>(a: A, b: B) -> FunctionCall
+    where
+        A: Into<SimpleExpr>,
+        B: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::Round).args([a.into(), b.into()])
     }
 
     /// Call `RANDOM` function.
