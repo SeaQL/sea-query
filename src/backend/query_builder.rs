@@ -1027,12 +1027,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
             }
-            Value::Bytes(Some(v)) => write!(
-                s,
-                "x'{}'",
-                v.iter().map(|b| format!("{b:02X}")).collect::<String>()
-            )
-            .unwrap(),
+            Value::Bytes(Some(v)) => self.write_bytes(v, &mut s),
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-chrono")]
@@ -1419,6 +1414,17 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
         write!(buffer, "'{}'", self.escape_string(string)).unwrap()
+    }
+
+    #[doc(hidden)]
+    /// Write bytes enclosed with engine specific byte syntax
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
+        write!(
+            buffer,
+            "x'{}'",
+            bytes.iter().map(|b| format!("{b:02X}")).collect::<String>()
+        )
+        .unwrap()
     }
 
     #[doc(hidden)]
