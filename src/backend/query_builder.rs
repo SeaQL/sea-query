@@ -1388,6 +1388,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         right: &SimpleExpr,
         sql: &mut dyn SqlWriter,
     ) {
+        // If left has higher precedence than op, we can drop parentheses around left
         let drop_left_higher_precedence =
             simple_expr_greater_precedence_than_op(left, &op.clone().into()).unwrap_or(false);
 
@@ -1418,7 +1419,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         self.prepare_bin_oper(op, sql);
         write!(sql, " ").unwrap();
 
-        // Due to higher precedence, we can drop parentheses around NOT
+        // If right has higher precedence than op, we can drop parentheses around right
         let drop_right_higher_precedence =
             simple_expr_greater_precedence_than_op(right, &op.clone().into()).unwrap_or(false);
 
