@@ -1,3 +1,4 @@
+use crate::extension::postgres::PgBinOper;
 use crate::*;
 use std::ops::Deref;
 
@@ -296,7 +297,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             SimpleExpr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql);
                 write!(sql, " ").unwrap();
+                let drop_expr_paren =
+                    simple_expr_greater_precedence_than_op(expr, &op.clone().into())
+                        .unwrap_or(false);
+                if !drop_expr_paren {
+                    write!(sql, "(").unwrap();
+                }
                 self.prepare_simple_expr(expr, sql);
+                if !drop_expr_paren {
+                    write!(sql, ")").unwrap();
+                }
             }
             SimpleExpr::FunctionCall(func) => {
                 self.prepare_function(&func.func, sql);
@@ -1378,11 +1388,24 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         right: &SimpleExpr,
         sql: &mut dyn SqlWriter,
     ) {
-        let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
-        let left_paren = left.need_parentheses()
-            && left.is_binary()
-            && op != left.get_bin_oper().unwrap()
-            && !no_paren;
+        let drop_left_higher_precedence =
+            simple_expr_greater_precedence_than_op(left, &op.clone().into()).unwrap_or(false);
+
+        //Figure out if left associativity rules allow us to drop the left parenthesis
+        let drop_left_assoc = left.is_binary()
+            && op == left.get_bin_oper().unwrap()
+            && matches!(
+                op,
+                BinOper::And
+                    | BinOper::Or
+                    | BinOper::Add
+                    | BinOper::Sub
+                    | BinOper::Mul
+                    | BinOper::Mod
+                    | BinOper::PgOperator(PgBinOper::Concatenate)
+            );
+
+        let left_paren = !drop_left_higher_precedence && !drop_left_assoc;
         if left_paren {
             write!(sql, "(").unwrap();
         }
@@ -1390,17 +1413,32 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         if left_paren {
             write!(sql, ")").unwrap();
         }
+
         write!(sql, " ").unwrap();
         self.prepare_bin_oper(op, sql);
         write!(sql, " ").unwrap();
-        let no_right_paren = matches!(
-            op,
-            BinOper::Between | BinOper::NotBetween | BinOper::Like | BinOper::NotLike
-        );
-        let right_paren = (right.need_parentheses()
-            || right.is_binary() && op != left.get_bin_oper().unwrap())
-            && !no_right_paren
-            && !no_paren;
+
+        // Due to higher precedence, we can drop parentheses around NOT
+        let drop_right_higher_precedence =
+            simple_expr_greater_precedence_than_op(right, &op.clone().into()).unwrap_or(false);
+
+        // Due to representation of trinary op between as nested binary ops.
+        let drop_right_between_hack = (op == &BinOper::Between || op == &BinOper::NotBetween)
+            && right.is_binary()
+            && right.get_bin_oper().unwrap() == &BinOper::And;
+
+        // Due to representation of trinary op like with optional arg escape as nested binary ops.
+        let drop_right_escape_hack = (op == &BinOper::Like || op == &BinOper::NotLike)
+            && right.is_binary()
+            && right.get_bin_oper().unwrap() == &BinOper::Escape;
+
+        // Due to custom representation of casting AS datatype
+        let drop_right_as_hack = (op == &BinOper::As) && matches!(right, SimpleExpr::Custom(_));
+
+        let right_paren = !drop_right_higher_precedence
+            && !drop_right_escape_hack
+            && !drop_right_between_hack
+            && !drop_right_as_hack;
         if right_paren {
             write!(sql, "(").unwrap();
         }
@@ -1512,3 +1550,125 @@ impl QuotedBuilder for CommonSqlQueryBuilder {
 impl EscapeBuilder for CommonSqlQueryBuilder {}
 
 impl TableRefBuilder for CommonSqlQueryBuilder {}
+
+#[derive(Debug, PartialEq)]
+enum Oper {
+    UnOper(UnOper),
+    BinOper(BinOper),
+}
+
+impl From<UnOper> for Oper {
+    fn from(value: UnOper) -> Self {
+        Oper::UnOper(value.clone())
+    }
+}
+
+impl From<BinOper> for Oper {
+    fn from(value: BinOper) -> Self {
+        Oper::BinOper(value.clone())
+    }
+}
+
+fn simple_expr_greater_precedence_than_op(se: &SimpleExpr, op: &Oper) -> Option<bool> {
+    let arithmetic_shifts = |x: &Oper| {
+        matches!(
+            x,
+            Oper::BinOper(
+                BinOper::Mul
+                    | BinOper::Div
+                    | BinOper::Mod
+                    | BinOper::Add
+                    | BinOper::Sub
+                    | BinOper::LShift
+                    | BinOper::RShift
+            )
+        )
+    };
+    let comparison = |x: &Oper| {
+        matches!(
+            x,
+            Oper::BinOper(
+                BinOper::SmallerThan
+                    | BinOper::SmallerThanOrEqual
+                    | BinOper::Equal
+                    | BinOper::GreaterThanOrEqual
+                    | BinOper::GreaterThan,
+            )
+        )
+    };
+    let is_isnot = |x: &Oper| {
+        matches!(
+            x,
+            Oper::BinOper(BinOper::Is) | Oper::BinOper(BinOper::IsNot)
+        )
+    };
+    let between_in_like_matches = |x: &Oper| {
+        matches!(
+            x,
+            Oper::BinOper(
+                BinOper::Between
+                    | BinOper::In
+                    | BinOper::Like
+                    | BinOper::NotBetween
+                    | BinOper::NotIn
+                    | BinOper::NotLike
+                    | BinOper::PgOperator(PgBinOper::ILike)
+                    | BinOper::PgOperator(PgBinOper::NotILike),
+            )
+        )
+    };
+    let logical = |x: &Oper| {
+        matches!(
+            x,
+            Oper::BinOper(BinOper::And | BinOper::Or) | Oper::UnOper(UnOper::Not)
+        )
+    };
+    let binary_logical_or_and = |x: &Oper| matches!(x, Oper::BinOper(BinOper::And | BinOper::Or));
+    let unary_logical_not = |x: &Oper| matches!(x, Oper::UnOper(UnOper::Not));
+
+    match se {
+        SimpleExpr::Column(_) => Some(true),
+        SimpleExpr::Tuple(_) => Some(true),
+        SimpleExpr::Constant(_) => Some(true),
+        SimpleExpr::FunctionCall(_) => Some(true),
+        SimpleExpr::AsEnum(_, _) => Some(true),
+        SimpleExpr::Value(_) => Some(true),
+        SimpleExpr::Keyword(_) => Some(true),
+        SimpleExpr::SubQuery(_, _) => Some(true),
+        SimpleExpr::Binary(_, se_op, _) => {
+            let se_op: Oper = se_op.clone().into();
+            if arithmetic_shifts(&se_op) {
+                if comparison(op) || between_in_like_matches(op) || logical(op) {
+                    Some(true)
+                } else {
+                    None
+                }
+            } else if comparison(&se_op) {
+                if binary_logical_or_and(op) {
+                    //See preference in test_postgres, query, select_10
+                    Some(false)
+                } else if unary_logical_not(op) {
+                    //See preference in documentation of SimpleExpr.not()
+                    Some(true)
+                } else {
+                    None
+                }
+            } else if between_in_like_matches(&se_op) {
+                if logical(op) {
+                    Some(true)
+                } else {
+                    None
+                }
+            } else if is_isnot(&se_op) {
+                if logical(op) {
+                    Some(true)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
