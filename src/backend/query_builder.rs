@@ -1,4 +1,6 @@
+#[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
+
 use crate::*;
 use std::ops::Deref;
 
@@ -298,8 +300,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 self.prepare_un_oper(op, sql);
                 write!(sql, " ").unwrap();
                 let drop_expr_paren =
-                    simple_expr_greater_precedence_than_op(expr, &op.clone().into())
-                        .unwrap_or(false);
+                    inner_greater_precedence_than_outer(expr, &op.clone().into()).unwrap_or(false);
                 if !drop_expr_paren {
                     write!(sql, "(").unwrap();
                 }
@@ -1271,53 +1272,8 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     #[doc(hidden)]
     /// Translate part of a condition to part of a "WHERE" clause.
     fn prepare_condition_where(&self, condition: &Condition, sql: &mut dyn SqlWriter) {
-        if condition.negate {
-            write!(sql, "NOT ").unwrap()
-        }
-
-        if condition.is_empty() {
-            match condition.condition_type {
-                ConditionType::All => self.prepare_constant_true(sql),
-                ConditionType::Any => self.prepare_constant_false(sql),
-            }
-            return;
-        }
-
-        if condition.negate {
-            write!(sql, "(").unwrap();
-        }
-        condition.conditions.iter().fold(true, |first, cond| {
-            if !first {
-                match condition.condition_type {
-                    ConditionType::Any => write!(sql, " OR ").unwrap(),
-                    ConditionType::All => write!(sql, " AND ").unwrap(),
-                }
-            }
-            match cond {
-                ConditionExpression::Condition(c) => {
-                    if condition.conditions.len() > 1 {
-                        write!(sql, "(").unwrap();
-                    }
-                    self.prepare_condition_where(c, sql);
-                    if condition.conditions.len() > 1 {
-                        write!(sql, ")").unwrap();
-                    }
-                }
-                ConditionExpression::SimpleExpr(e) => {
-                    if condition.conditions.len() > 1 && (e.is_logical() || e.is_between()) {
-                        write!(sql, "(").unwrap();
-                    }
-                    self.prepare_simple_expr(e, sql);
-                    if condition.conditions.len() > 1 && (e.is_logical() || e.is_between()) {
-                        write!(sql, ")").unwrap();
-                    }
-                }
-            }
-            false
-        });
-        if condition.negate {
-            write!(sql, ")").unwrap();
-        }
+        let simple_expr = condition.to_simple_expr();
+        self.prepare_simple_expr(&simple_expr, sql);
     }
 
     #[doc(hidden)]
@@ -1390,21 +1346,21 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     ) {
         // If left has higher precedence than op, we can drop parentheses around left
         let drop_left_higher_precedence =
-            simple_expr_greater_precedence_than_op(left, &op.clone().into()).unwrap_or(false);
+            inner_greater_precedence_than_outer(left, &op.clone().into()).unwrap_or(false);
+
+        let known_assoc_op = matches!(
+            op,
+            BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod
+        );
+
+        #[cfg(feature = "backend-postgres")]
+        let assoc_op = known_assoc_op || matches!(op, BinOper::PgOperator(PgBinOper::Concatenate));
+
+        #[cfg(not(feature = "backend-postgres"))]
+        let assoc_op = known_assoc_op;
 
         //Figure out if left associativity rules allow us to drop the left parenthesis
-        let drop_left_assoc = left.is_binary()
-            && op == left.get_bin_oper().unwrap()
-            && matches!(
-                op,
-                BinOper::And
-                    | BinOper::Or
-                    | BinOper::Add
-                    | BinOper::Sub
-                    | BinOper::Mul
-                    | BinOper::Mod
-                    | BinOper::PgOperator(PgBinOper::Concatenate)
-            );
+        let drop_left_assoc = left.is_binary() && op == left.get_bin_oper().unwrap() && assoc_op;
 
         let left_paren = !drop_left_higher_precedence && !drop_left_assoc;
         if left_paren {
@@ -1421,7 +1377,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         // If right has higher precedence than op, we can drop parentheses around right
         let drop_right_higher_precedence =
-            simple_expr_greater_precedence_than_op(right, &op.clone().into()).unwrap_or(false);
+            inner_greater_precedence_than_outer(right, &op.clone().into()).unwrap_or(false);
 
         // Due to representation of trinary op between as nested binary ops.
         let drop_right_between_hack = (op == &BinOper::Between || op == &BinOper::NotBetween)
@@ -1570,64 +1526,124 @@ impl From<BinOper> for Oper {
     }
 }
 
-fn simple_expr_greater_precedence_than_op(se: &SimpleExpr, op: &Oper) -> Option<bool> {
-    let arithmetic_shifts = |x: &Oper| {
-        matches!(
-            x,
-            Oper::BinOper(
-                BinOper::Mul
-                    | BinOper::Div
-                    | BinOper::Mod
-                    | BinOper::Add
-                    | BinOper::Sub
-                    | BinOper::LShift
-                    | BinOper::RShift
-            )
-        )
-    };
-    let comparison = |x: &Oper| {
-        matches!(
-            x,
-            Oper::BinOper(
-                BinOper::SmallerThan
-                    | BinOper::SmallerThanOrEqual
-                    | BinOper::Equal
-                    | BinOper::GreaterThanOrEqual
-                    | BinOper::GreaterThan,
-            )
-        )
-    };
-    let is_isnot = |x: &Oper| {
-        matches!(
-            x,
-            Oper::BinOper(BinOper::Is) | Oper::BinOper(BinOper::IsNot)
-        )
-    };
-    let between_in_like_matches = |x: &Oper| {
-        matches!(
-            x,
-            Oper::BinOper(
-                BinOper::Between
-                    | BinOper::In
-                    | BinOper::Like
-                    | BinOper::NotBetween
-                    | BinOper::NotIn
-                    | BinOper::NotLike
-                    | BinOper::PgOperator(PgBinOper::ILike)
-                    | BinOper::PgOperator(PgBinOper::NotILike),
-            )
-        )
-    };
-    let logical = |x: &Oper| {
-        matches!(
-            x,
-            Oper::BinOper(BinOper::And | BinOper::Or) | Oper::UnOper(UnOper::Not)
-        )
-    };
-    let binary_logical_or_and = |x: &Oper| matches!(x, Oper::BinOper(BinOper::And | BinOper::Or));
-    let unary_logical_not = |x: &Oper| matches!(x, Oper::UnOper(UnOper::Not));
+impl Oper {
+    pub(crate) fn is_logical(&self) -> bool {
+        match self {
+            Oper::UnOper(UnOper::Not) => true,
+            Oper::BinOper(BinOper::And) => true,
+            Oper::BinOper(BinOper::Or) => true,
+            _ => false,
+        }
+    }
 
-    match se {
+    pub(crate) fn is_between(&self) -> bool {
+        match self {
+            Oper::BinOper(BinOper::Between) => true,
+            Oper::BinOper(BinOper::NotBetween) => true,
+            _ => false,
+        }
+    }
+
+    pub(crate) fn is_like(&self) -> bool {
+        let out = match self {
+            Oper::BinOper(BinOper::Like) => true,
+            Oper::BinOper(BinOper::NotLike) => true,
+            _ => false,
+        };
+
+        #[cfg(feature = "backend-postgres")]
+        return out || self.is_ilike();
+
+        #[cfg(not(feature = "backend-postgres"))]
+        return out;
+    }
+
+    pub(crate) fn is_in(&self) -> bool {
+        match self {
+            Oper::BinOper(BinOper::In) => true,
+            Oper::BinOper(BinOper::NotIn) => true,
+            _ => false,
+        }
+    }
+
+    #[cfg(feature = "backend-postgres")]
+    pub(crate) fn is_ilike(&self) -> bool {
+        match self {
+            Oper::BinOper(BinOper::PgOperator(PgBinOper::ILike)) => true,
+            Oper::BinOper(BinOper::PgOperator(PgBinOper::NotILike)) => true,
+            _ => false,
+        }
+    }
+
+    pub(crate) fn is_is(&self) -> bool {
+        match self {
+            Oper::BinOper(BinOper::Is) => true,
+            Oper::BinOper(BinOper::IsNot) => true,
+            _ => false,
+        }
+    }
+
+    pub(crate) fn is_shift(&self) -> bool {
+        match self {
+            Oper::BinOper(BinOper::LShift) => true,
+            Oper::BinOper(BinOper::RShift) => true,
+            _ => false,
+        }
+    }
+
+    pub(crate) fn is_arithmetic(&self) -> bool {
+        match self {
+            Oper::BinOper(b) => {
+                matches!(
+                    b,
+                    BinOper::Mul | BinOper::Div | BinOper::Mod | BinOper::Add | BinOper::Sub
+                )
+            }
+            _ => false,
+        }
+    }
+
+    pub(crate) fn is_comparison(&self) -> bool {
+        let out = match self {
+            Oper::BinOper(b) => {
+                matches!(
+                    b,
+                    BinOper::SmallerThan
+                        | BinOper::SmallerThanOrEqual
+                        | BinOper::Equal
+                        | BinOper::GreaterThanOrEqual
+                        | BinOper::GreaterThan
+                        | BinOper::NotEqual
+                )
+            }
+            _ => false,
+        };
+        #[cfg(feature = "backend-postgres")]
+        return out || self.is_pg_comparison();
+
+        #[cfg(not(feature = "backend-postgres"))]
+        return out;
+    }
+
+    #[cfg(feature = "backend-postgres")]
+    pub(crate) fn is_pg_comparison(&self) -> bool {
+        match self {
+            Oper::BinOper(b) => match b {
+                BinOper::PgOperator(PgBinOper::Contained) => true,
+                BinOper::PgOperator(PgBinOper::Contains) => true,
+                BinOper::PgOperator(PgBinOper::Similarity) => true,
+                BinOper::PgOperator(PgBinOper::WordSimilarity) => true,
+                BinOper::PgOperator(PgBinOper::StrictWordSimilarity) => true,
+                BinOper::PgOperator(PgBinOper::Matches) => true,
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+}
+
+fn inner_greater_precedence_than_outer(inner: &SimpleExpr, outer_oper: &Oper) -> Option<bool> {
+    match inner {
         SimpleExpr::Column(_) => Some(true),
         SimpleExpr::Tuple(_) => Some(true),
         SimpleExpr::Constant(_) => Some(true),
@@ -1636,32 +1652,25 @@ fn simple_expr_greater_precedence_than_op(se: &SimpleExpr, op: &Oper) -> Option<
         SimpleExpr::Value(_) => Some(true),
         SimpleExpr::Keyword(_) => Some(true),
         SimpleExpr::SubQuery(_, _) => Some(true),
-        SimpleExpr::Binary(_, se_op, _) => {
-            let se_op: Oper = se_op.clone().into();
-            if arithmetic_shifts(&se_op) {
-                if comparison(op) || between_in_like_matches(op) || logical(op) {
+        SimpleExpr::Binary(_, inner_oper, _) => {
+            let inner_oper: Oper = inner_oper.clone().into();
+            if inner_oper.is_arithmetic() || inner_oper.is_shift() {
+                if outer_oper.is_comparison()
+                    || outer_oper.is_between()
+                    || outer_oper.is_in()
+                    || outer_oper.is_like()
+                    || outer_oper.is_logical()
+                {
                     Some(true)
                 } else {
                     None
                 }
-            } else if comparison(&se_op) {
-                if binary_logical_or_and(op) {
-                    //See preference in test_postgres, query, select_10
-                    Some(false)
-                } else if unary_logical_not(op) {
-                    //See preference in documentation of SimpleExpr.not()
-                    Some(true)
-                } else {
-                    None
-                }
-            } else if between_in_like_matches(&se_op) {
-                if logical(op) {
-                    Some(true)
-                } else {
-                    None
-                }
-            } else if is_isnot(&se_op) {
-                if logical(op) {
+            } else if inner_oper.is_comparison()
+                || inner_oper.is_in()
+                || inner_oper.is_like()
+                || inner_oper.is_is()
+            {
+                if outer_oper.is_logical() {
                     Some(true)
                 } else {
                     None

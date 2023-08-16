@@ -142,7 +142,7 @@ fn select_10() {
                     .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             )
             .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
+        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     );
 }
 
@@ -484,8 +484,8 @@ fn select_34a() {
             .to_string(PostgresQueryBuilder),
         [
             r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
-            r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
-            r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
+            r#"HAVING "aspect" > 2 OR "aspect" < 8"#,
+            r#"OR ("aspect" > 12 AND "aspect" < 18)"#,
             r#"OR "aspect" > 32"#,
         ]
         .join(" ")
@@ -530,10 +530,7 @@ fn select_37() {
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
         .build(PostgresQueryBuilder);
 
-    assert_eq!(
-        statement,
-        r#"SELECT "id" FROM "glyph" WHERE (TRUE) OR (FALSE)"#
-    );
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE TRUE OR FALSE"#);
     assert_eq!(values.0, vec![]);
 }
 
@@ -672,7 +669,7 @@ fn select_44() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT "aspect" < 8"#
     );
 }
 
@@ -709,7 +706,7 @@ fn select_46() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT "aspect" < 8"#
     );
 }
 
@@ -1918,10 +1915,10 @@ fn test_issue_674_nested_logical() {
     let t = SimpleExpr::Value(true.into());
     let f = SimpleExpr::Value(false.into());
 
-    let x_op_y = |x,op,y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
-    let t_or_t = x_op_y(t.clone(),BinOper::Or, t.clone());
-    let t_or_t_or_f = x_op_y(t_or_t,BinOper::Or, f);
-    let t_or_t_or_t_and_t = x_op_y(t_or_t_or_f.clone(),BinOper::And, t);
+    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let t_or_t = x_op_y(t.clone(), BinOper::Or, t.clone());
+    let t_or_t_or_f = x_op_y(t_or_t, BinOper::Or, f);
+    let t_or_t_or_t_and_t = x_op_y(t_or_t_or_f.clone(), BinOper::And, t);
 
     assert_eq!(
         Query::select()
@@ -1939,9 +1936,9 @@ fn test_issue_674_nested_comparison() {
     let int0 = SimpleExpr::Value(0i32.into());
     let int1 = SimpleExpr::Value(1i32.into());
 
-    let x_op_y = |x,op,y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
-    let t_smaller_than_t = x_op_y(int100,BinOper::SmallerThan, int0);
-    let t_smaller_than_t_smaller_than_f = x_op_y(t_smaller_than_t,BinOper::SmallerThan, int1);
+    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let t_smaller_than_t = x_op_y(int100, BinOper::SmallerThan, int0);
+    let t_smaller_than_t_smaller_than_f = x_op_y(t_smaller_than_t, BinOper::SmallerThan, int1);
 
     assert_eq!(
         Query::select()
@@ -1958,8 +1955,8 @@ fn test_issue_674_and_inside_not() {
     let t = SimpleExpr::Value(true.into());
     let f = SimpleExpr::Value(false.into());
 
-    let op_x = |op,x| SimpleExpr::Unary(op, Box::new(x));
-    let x_op_y = |x,op,y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let op_x = |op, x| SimpleExpr::Unary(op, Box::new(x));
+    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
     let f_and_t = x_op_y(f, BinOper::And, t);
     let not_f_and_t = op_x(UnOper::Not, f_and_t);
 
