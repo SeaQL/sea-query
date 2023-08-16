@@ -300,7 +300,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 self.prepare_un_oper(op, sql);
                 write!(sql, " ").unwrap();
                 let drop_expr_paren =
-                    inner_greater_precedence_than_outer(expr, &op.clone().into()).unwrap_or(false);
+                    inner_greater_precedence_than_outer(expr, &(*op).into()).unwrap_or(false);
                 if !drop_expr_paren {
                     write!(sql, "(").unwrap();
                 }
@@ -1346,7 +1346,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     ) {
         // If left has higher precedence than op, we can drop parentheses around left
         let drop_left_higher_precedence =
-            inner_greater_precedence_than_outer(left, &op.clone().into()).unwrap_or(false);
+            inner_greater_precedence_than_outer(left, &(*op).into()).unwrap_or(false);
 
         let known_assoc_op = matches!(
             op,
@@ -1377,7 +1377,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         // If right has higher precedence than op, we can drop parentheses around right
         let drop_right_higher_precedence =
-            inner_greater_precedence_than_outer(right, &op.clone().into()).unwrap_or(false);
+            inner_greater_precedence_than_outer(right, &(*op).into()).unwrap_or(false);
 
         // Due to representation of trinary op between as nested binary ops.
         let drop_right_between_hack = (op == &BinOper::Between || op == &BinOper::NotBetween)
@@ -1516,40 +1516,36 @@ enum Oper {
 
 impl From<UnOper> for Oper {
     fn from(value: UnOper) -> Self {
-        Oper::UnOper(value.clone())
+        Oper::UnOper(value)
     }
 }
 
 impl From<BinOper> for Oper {
     fn from(value: BinOper) -> Self {
-        Oper::BinOper(value.clone())
+        Oper::BinOper(value)
     }
 }
 
 impl Oper {
     pub(crate) fn is_logical(&self) -> bool {
-        match self {
-            Oper::UnOper(UnOper::Not) => true,
-            Oper::BinOper(BinOper::And) => true,
-            Oper::BinOper(BinOper::Or) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Oper::UnOper(UnOper::Not) | Oper::BinOper(BinOper::And) | Oper::BinOper(BinOper::Or)
+        )
     }
 
     pub(crate) fn is_between(&self) -> bool {
-        match self {
-            Oper::BinOper(BinOper::Between) => true,
-            Oper::BinOper(BinOper::NotBetween) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Oper::BinOper(BinOper::Between) | Oper::BinOper(BinOper::NotBetween)
+        )
     }
 
     pub(crate) fn is_like(&self) -> bool {
-        let out = match self {
-            Oper::BinOper(BinOper::Like) => true,
-            Oper::BinOper(BinOper::NotLike) => true,
-            _ => false,
-        };
+        let out = matches!(
+            self,
+            Oper::BinOper(BinOper::Like) | Oper::BinOper(BinOper::NotLike)
+        );
 
         #[cfg(feature = "backend-postgres")]
         return out || self.is_ilike();
@@ -1559,36 +1555,33 @@ impl Oper {
     }
 
     pub(crate) fn is_in(&self) -> bool {
-        match self {
-            Oper::BinOper(BinOper::In) => true,
-            Oper::BinOper(BinOper::NotIn) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Oper::BinOper(BinOper::In) | Oper::BinOper(BinOper::NotIn)
+        )
     }
 
     #[cfg(feature = "backend-postgres")]
     pub(crate) fn is_ilike(&self) -> bool {
-        match self {
-            Oper::BinOper(BinOper::PgOperator(PgBinOper::ILike)) => true,
-            Oper::BinOper(BinOper::PgOperator(PgBinOper::NotILike)) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Oper::BinOper(BinOper::PgOperator(PgBinOper::ILike))
+                | Oper::BinOper(BinOper::PgOperator(PgBinOper::NotILike))
+        )
     }
 
     pub(crate) fn is_is(&self) -> bool {
-        match self {
-            Oper::BinOper(BinOper::Is) => true,
-            Oper::BinOper(BinOper::IsNot) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Oper::BinOper(BinOper::Is) | Oper::BinOper(BinOper::IsNot)
+        )
     }
 
     pub(crate) fn is_shift(&self) -> bool {
-        match self {
-            Oper::BinOper(BinOper::LShift) => true,
-            Oper::BinOper(BinOper::RShift) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Oper::BinOper(BinOper::LShift) | Oper::BinOper(BinOper::RShift)
+        )
     }
 
     pub(crate) fn is_arithmetic(&self) -> bool {
@@ -1628,15 +1621,15 @@ impl Oper {
     #[cfg(feature = "backend-postgres")]
     pub(crate) fn is_pg_comparison(&self) -> bool {
         match self {
-            Oper::BinOper(b) => match b {
-                BinOper::PgOperator(PgBinOper::Contained) => true,
-                BinOper::PgOperator(PgBinOper::Contains) => true,
-                BinOper::PgOperator(PgBinOper::Similarity) => true,
-                BinOper::PgOperator(PgBinOper::WordSimilarity) => true,
-                BinOper::PgOperator(PgBinOper::StrictWordSimilarity) => true,
-                BinOper::PgOperator(PgBinOper::Matches) => true,
-                _ => false,
-            },
+            Oper::BinOper(b) => matches!(
+                b,
+                BinOper::PgOperator(PgBinOper::Contained)
+                    | BinOper::PgOperator(PgBinOper::Contains)
+                    | BinOper::PgOperator(PgBinOper::Similarity)
+                    | BinOper::PgOperator(PgBinOper::WordSimilarity)
+                    | BinOper::PgOperator(PgBinOper::StrictWordSimilarity)
+                    | BinOper::PgOperator(PgBinOper::Matches)
+            ),
             _ => false,
         }
     }
@@ -1653,7 +1646,7 @@ fn inner_greater_precedence_than_outer(inner: &SimpleExpr, outer_oper: &Oper) ->
         SimpleExpr::Keyword(_) => Some(true),
         SimpleExpr::SubQuery(_, _) => Some(true),
         SimpleExpr::Binary(_, inner_oper, _) => {
-            let inner_oper: Oper = inner_oper.clone().into();
+            let inner_oper: Oper = (*inner_oper).into();
             if inner_oper.is_arithmetic() || inner_oper.is_shift() {
                 if outer_oper.is_comparison()
                     || outer_oper.is_between()
