@@ -1,12 +1,11 @@
-#[cfg(feature = "backend-postgres")]
-use crate::extension::postgres::PgBinOper;
-
 use crate::*;
 use std::ops::Deref;
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
-pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
+pub trait QueryBuilder:
+    QuotedBuilder + EscapeBuilder + TableRefBuilder + OperLeftAssocDecider + PrecedenceDecider
+{
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
         ("?", false)
@@ -300,7 +299,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
                 self.prepare_un_oper(op, sql);
                 write!(sql, " ").unwrap();
                 let drop_expr_paren =
-                    inner_greater_precedence_than_outer(expr, &(*op).into()).unwrap_or(false);
+                    self.inner_expr_well_known_greater_precedence(expr, &(*op).into());
                 if !drop_expr_paren {
                     write!(sql, "(").unwrap();
                 }
@@ -1346,21 +1345,12 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     ) {
         // If left has higher precedence than op, we can drop parentheses around left
         let drop_left_higher_precedence =
-            inner_greater_precedence_than_outer(left, &(*op).into()).unwrap_or(false);
-
-        let known_assoc_op = matches!(
-            op,
-            BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod
-        );
-
-        #[cfg(feature = "backend-postgres")]
-        let assoc_op = known_assoc_op || matches!(op, BinOper::PgOperator(PgBinOper::Concatenate));
-
-        #[cfg(not(feature = "backend-postgres"))]
-        let assoc_op = known_assoc_op;
+            self.inner_expr_well_known_greater_precedence(left, &(*op).into());
 
         //Figure out if left associativity rules allow us to drop the left parenthesis
-        let drop_left_assoc = left.is_binary() && op == left.get_bin_oper().unwrap() && assoc_op;
+        let drop_left_assoc = left.is_binary()
+            && op == left.get_bin_oper().unwrap()
+            && self.well_known_left_associative(op);
 
         let left_paren = !drop_left_higher_precedence && !drop_left_assoc;
         if left_paren {
@@ -1377,7 +1367,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
         // If right has higher precedence than op, we can drop parentheses around right
         let drop_right_higher_precedence =
-            inner_greater_precedence_than_outer(right, &(*op).into()).unwrap_or(false);
+            self.inner_expr_well_known_greater_precedence(right, &(*op).into());
 
         // Due to representation of trinary op between as nested binary ops.
         let drop_right_between_hack = (op == &BinOper::Between || op == &BinOper::NotBetween)
@@ -1488,6 +1478,22 @@ impl SubQueryStatement {
 
 pub(crate) struct CommonSqlQueryBuilder;
 
+impl OperLeftAssocDecider for CommonSqlQueryBuilder {
+    fn well_known_left_associative(&self, op: &BinOper) -> bool {
+        common_well_known_left_associative(op)
+    }
+}
+
+impl PrecedenceDecider for CommonSqlQueryBuilder {
+    fn inner_expr_well_known_greater_precedence(
+        &self,
+        inner: &SimpleExpr,
+        outer_oper: &Oper,
+    ) -> bool {
+        common_inner_expr_well_known_greater_precedence(inner, outer_oper)
+    }
+}
+
 impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
@@ -1508,170 +1514,44 @@ impl EscapeBuilder for CommonSqlQueryBuilder {}
 
 impl TableRefBuilder for CommonSqlQueryBuilder {}
 
-#[derive(Debug, PartialEq)]
-enum Oper {
-    UnOper(UnOper),
-    BinOper(BinOper),
-}
-
-impl From<UnOper> for Oper {
-    fn from(value: UnOper) -> Self {
-        Oper::UnOper(value)
-    }
-}
-
-impl From<BinOper> for Oper {
-    fn from(value: BinOper) -> Self {
-        Oper::BinOper(value)
-    }
-}
-
-impl Oper {
-    pub(crate) fn is_logical(&self) -> bool {
-        matches!(
-            self,
-            Oper::UnOper(UnOper::Not) | Oper::BinOper(BinOper::And) | Oper::BinOper(BinOper::Or)
-        )
-    }
-
-    pub(crate) fn is_between(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::Between) | Oper::BinOper(BinOper::NotBetween)
-        )
-    }
-
-    pub(crate) fn is_like(&self) -> bool {
-        let out = matches!(
-            self,
-            Oper::BinOper(BinOper::Like) | Oper::BinOper(BinOper::NotLike)
-        );
-
-        #[cfg(feature = "backend-postgres")]
-        return out || self.is_ilike();
-
-        #[cfg(not(feature = "backend-postgres"))]
-        return out;
-    }
-
-    pub(crate) fn is_in(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::In) | Oper::BinOper(BinOper::NotIn)
-        )
-    }
-
-    #[cfg(feature = "backend-postgres")]
-    pub(crate) fn is_ilike(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::PgOperator(PgBinOper::ILike))
-                | Oper::BinOper(BinOper::PgOperator(PgBinOper::NotILike))
-        )
-    }
-
-    pub(crate) fn is_is(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::Is) | Oper::BinOper(BinOper::IsNot)
-        )
-    }
-
-    pub(crate) fn is_shift(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::LShift) | Oper::BinOper(BinOper::RShift)
-        )
-    }
-
-    pub(crate) fn is_arithmetic(&self) -> bool {
-        match self {
-            Oper::BinOper(b) => {
-                matches!(
-                    b,
-                    BinOper::Mul | BinOper::Div | BinOper::Mod | BinOper::Add | BinOper::Sub
-                )
-            }
-            _ => false,
-        }
-    }
-
-    pub(crate) fn is_comparison(&self) -> bool {
-        let out = match self {
-            Oper::BinOper(b) => {
-                matches!(
-                    b,
-                    BinOper::SmallerThan
-                        | BinOper::SmallerThanOrEqual
-                        | BinOper::Equal
-                        | BinOper::GreaterThanOrEqual
-                        | BinOper::GreaterThan
-                        | BinOper::NotEqual
-                )
-            }
-            _ => false,
-        };
-        #[cfg(feature = "backend-postgres")]
-        return out || self.is_pg_comparison();
-
-        #[cfg(not(feature = "backend-postgres"))]
-        return out;
-    }
-
-    #[cfg(feature = "backend-postgres")]
-    pub(crate) fn is_pg_comparison(&self) -> bool {
-        match self {
-            Oper::BinOper(b) => matches!(
-                b,
-                BinOper::PgOperator(PgBinOper::Contained)
-                    | BinOper::PgOperator(PgBinOper::Contains)
-                    | BinOper::PgOperator(PgBinOper::Similarity)
-                    | BinOper::PgOperator(PgBinOper::WordSimilarity)
-                    | BinOper::PgOperator(PgBinOper::StrictWordSimilarity)
-                    | BinOper::PgOperator(PgBinOper::Matches)
-            ),
-            _ => false,
-        }
-    }
-}
-
-fn inner_greater_precedence_than_outer(inner: &SimpleExpr, outer_oper: &Oper) -> Option<bool> {
+pub(crate) fn common_inner_expr_well_known_greater_precedence(
+    inner: &SimpleExpr,
+    outer_oper: &Oper,
+) -> bool {
     match inner {
-        SimpleExpr::Column(_) => Some(true),
-        SimpleExpr::Tuple(_) => Some(true),
-        SimpleExpr::Constant(_) => Some(true),
-        SimpleExpr::FunctionCall(_) => Some(true),
-        SimpleExpr::AsEnum(_, _) => Some(true),
-        SimpleExpr::Value(_) => Some(true),
-        SimpleExpr::Keyword(_) => Some(true),
-        SimpleExpr::SubQuery(_, _) => Some(true),
+        SimpleExpr::Column(_) => true,
+        SimpleExpr::Tuple(_) => true,
+        SimpleExpr::Constant(_) => true,
+        SimpleExpr::FunctionCall(_) => true,
+        SimpleExpr::AsEnum(_, _) => true,
+        SimpleExpr::Value(_) => true,
+        SimpleExpr::Keyword(_) => true,
+        SimpleExpr::SubQuery(_, _) => true,
         SimpleExpr::Binary(_, inner_oper, _) => {
             let inner_oper: Oper = (*inner_oper).into();
             if inner_oper.is_arithmetic() || inner_oper.is_shift() {
-                if outer_oper.is_comparison()
+                outer_oper.is_comparison()
                     || outer_oper.is_between()
                     || outer_oper.is_in()
                     || outer_oper.is_like()
                     || outer_oper.is_logical()
-                {
-                    Some(true)
-                } else {
-                    None
-                }
             } else if inner_oper.is_comparison()
                 || inner_oper.is_in()
                 || inner_oper.is_like()
                 || inner_oper.is_is()
             {
-                if outer_oper.is_logical() {
-                    Some(true)
-                } else {
-                    None
-                }
+                outer_oper.is_logical()
             } else {
-                None
+                false
             }
         }
-        _ => None,
+        _ => false,
     }
+}
+
+pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
+    matches!(
+        op,
+        BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod
+    )
 }
