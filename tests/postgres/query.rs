@@ -1969,3 +1969,17 @@ fn test_issue_674_and_inside_not() {
         r#"SELECT "character" FROM "character" WHERE NOT (FALSE AND TRUE)"#
     );
 }
+
+#[test]
+fn test_issue_674_nested_logical_panic() {
+    let e = SimpleExpr::from(true).and(SimpleExpr::from(true).and(true.into()).and(true.into()));
+
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(e)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE TRUE AND (TRUE AND TRUE AND TRUE)"#
+    );
+}
