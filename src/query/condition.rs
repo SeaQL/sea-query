@@ -262,22 +262,16 @@ impl Condition {
     }
 
     pub(crate) fn to_simple_expr(&self) -> SimpleExpr {
-        let expr = if self.conditions.is_empty() {
-            SimpleExpr::Constant(match self.condition_type {
-                ConditionType::Any => false.into(),
-                ConditionType::All => true.into(),
-            })
-        } else {
-            let mut inner_exprs = vec![];
-            for ce in &self.conditions {
-                inner_exprs.push(match ce {
-                    ConditionExpression::Condition(c) => c.to_simple_expr(),
-                    ConditionExpression::SimpleExpr(e) => e.clone(),
-                });
-            }
-            let mut inner_exprs_into_iter = inner_exprs.into_iter();
-            // Guaranteed to exist a next() by case distinction on conditions empty
-            let mut out_expr = inner_exprs_into_iter.next().unwrap();
+        let mut inner_exprs = vec![];
+        for ce in &self.conditions {
+            inner_exprs.push(match ce {
+                ConditionExpression::Condition(c) => c.to_simple_expr(),
+                ConditionExpression::SimpleExpr(e) => e.clone(),
+            });
+        }
+        let mut inner_exprs_into_iter = inner_exprs.into_iter();
+        let expr = if let Some(first_expr) = inner_exprs_into_iter.next() {
+            let mut out_expr = first_expr;
             for e in inner_exprs_into_iter {
                 out_expr = match self.condition_type {
                     ConditionType::Any => out_expr.or(e),
@@ -285,6 +279,11 @@ impl Condition {
                 };
             }
             out_expr
+        } else {
+            SimpleExpr::Constant(match self.condition_type {
+                ConditionType::Any => false.into(),
+                ConditionType::All => true.into(),
+            })
         };
         if self.negate {
             expr.not()

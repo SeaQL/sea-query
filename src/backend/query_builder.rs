@@ -1347,7 +1347,7 @@ pub trait QueryBuilder:
         let drop_left_higher_precedence =
             self.inner_expr_well_known_greater_precedence(left, &(*op).into());
 
-        //Figure out if left associativity rules allow us to drop the left parenthesis
+        // Figure out if left associativity rules allow us to drop the left parenthesis
         let drop_left_assoc = left.is_binary()
             && op == left.get_bin_oper().unwrap()
             && self.well_known_left_associative(op);
@@ -1369,15 +1369,16 @@ pub trait QueryBuilder:
         let drop_right_higher_precedence =
             self.inner_expr_well_known_greater_precedence(right, &(*op).into());
 
+        let op_as_oper = Oper::BinOper(*op);
         // Due to representation of trinary op between as nested binary ops.
-        let drop_right_between_hack = (op == &BinOper::Between || op == &BinOper::NotBetween)
+        let drop_right_between_hack = op_as_oper.is_between()
             && right.is_binary()
-            && right.get_bin_oper().unwrap() == &BinOper::And;
+            && matches!(right.get_bin_oper(), Some(&BinOper::And));
 
-        // Due to representation of trinary op like with optional arg escape as nested binary ops.
-        let drop_right_escape_hack = (op == &BinOper::Like || op == &BinOper::NotLike)
+        // Due to representation of trinary op like/not like with optional arg escape as nested binary ops.
+        let drop_right_escape_hack = op_as_oper.is_like()
             && right.is_binary()
-            && right.get_bin_oper().unwrap() == &BinOper::Escape;
+            && matches!(right.get_bin_oper(), Some(&BinOper::Escape));
 
         // Due to custom representation of casting AS datatype
         let drop_right_as_hack = (op == &BinOper::As) && matches!(right, SimpleExpr::Custom(_));
@@ -1519,14 +1520,18 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
     outer_oper: &Oper,
 ) -> bool {
     match inner {
-        SimpleExpr::Column(_) => true,
-        SimpleExpr::Tuple(_) => true,
-        SimpleExpr::Constant(_) => true,
-        SimpleExpr::FunctionCall(_) => true,
-        SimpleExpr::AsEnum(_, _) => true,
-        SimpleExpr::Value(_) => true,
-        SimpleExpr::Keyword(_) => true,
-        SimpleExpr::SubQuery(_, _) => true,
+        // We only consider the case where an inner expression is contained in either a
+        // unary or binary expression (with an outer_oper).
+        // We do not need to wrap with parentheses:
+        // Columns, tuples (already wrapped), constants, function calls, values,
+        // keywords, subqueries (already wrapped)
+        SimpleExpr::Column(_)
+        | SimpleExpr::Tuple(_)
+        | SimpleExpr::Constant(_)
+        | SimpleExpr::FunctionCall(_)
+        | SimpleExpr::Value(_)
+        | SimpleExpr::Keyword(_)
+        | SimpleExpr::SubQuery(_, _) => true,
         SimpleExpr::Binary(_, inner_oper, _) => {
             let inner_oper: Oper = (*inner_oper).into();
             if inner_oper.is_arithmetic() || inner_oper.is_shift() {
