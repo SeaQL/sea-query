@@ -30,10 +30,20 @@ impl QueryBuilder for MysqlQueryBuilder {
         // MySQL doesn't support declaring materialization in SQL for with query.
     }
 
-    fn prepare_ignore(&self, on_conflict: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
+    fn prepare_insert(
+        &self,
+        replace: bool,
+        on_conflict: &Option<OnConflict>,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if replace {
+            write!(sql, "REPLACE").unwrap();
+        } else {
+            write!(sql, "INSERT").unwrap();
+        }
         if let Some(on_conflict) = on_conflict {
             if on_conflict.action == Some(OnConflictAction::DoNothing) {
-                write!(sql, " IGNORE ").unwrap();
+                write!(sql, " IGNORE").unwrap();
             }
         }
     }

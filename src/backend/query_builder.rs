@@ -16,9 +16,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
     /// Translate [`InsertStatement`] into SQL statement.
     fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut dyn SqlWriter) {
-        self.prepare_insert(insert.replace, sql);
-
-        self.prepare_ignore(&insert.on_conflict, sql);
+        self.prepare_insert(insert.replace, &insert.on_conflict, sql);
 
         if let Some(table) = &insert.table {
             write!(sql, " INTO ").unwrap();
@@ -827,16 +825,13 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         }
     }
 
-    fn prepare_insert(&self, replace: bool, sql: &mut dyn SqlWriter) {
+    fn prepare_insert(&self, replace: bool, _: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
         if replace {
             write!(sql, "REPLACE").unwrap();
         } else {
             write!(sql, "INSERT").unwrap();
         }
     }
-
-    /// helper function, adding IGNORE in insert statement for MySQL
-    fn prepare_ignore(&self, _: &Option<OnConflict>, _: &mut dyn SqlWriter) {}
 
     fn prepare_function(&self, function: &Function, sql: &mut dyn SqlWriter) {
         self.prepare_function_common(function, sql)
