@@ -30,6 +30,14 @@ impl QueryBuilder for MysqlQueryBuilder {
         // MySQL doesn't support declaring materialization in SQL for with query.
     }
 
+    fn prepare_ignore(&self, on_conflict: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
+        if let Some(on_conflict) = on_conflict {
+            if on_conflict.action == Some(OnConflictAction::DoNothing) {
+                write!(sql, " IGNORE ").unwrap();
+            }
+        }
+    }
+
     fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
         match join_type {
             JoinType::FullOuterJoin => panic!("Mysql does not support FULL OUTER JOIN"),
@@ -57,6 +65,21 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
         sql.push_param(value.clone(), self as _);
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT expression
+    fn prepare_on_conflict(&self, on_conflict: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
+        if let Some(on_conflict) = on_conflict {
+            if on_conflict.action == Some(OnConflictAction::DoNothing) {
+                return;
+            }
+            self.prepare_on_conflict_keywords(sql);
+            self.prepare_on_conflict_target(&on_conflict.target, sql);
+            self.prepare_on_conflict_condition(&on_conflict.target_where, sql);
+            self.prepare_on_conflict_action(&on_conflict.action, sql);
+            self.prepare_on_conflict_condition(&on_conflict.action_where, sql);
+        }
     }
 
     fn prepare_on_conflict_target(&self, _: &Option<OnConflictTarget>, _: &mut dyn SqlWriter) {
