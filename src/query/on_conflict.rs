@@ -64,6 +64,51 @@ impl OnConflict {
         }
     }
 
+    /// Set ON CONFLICT do nothing
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_panic(["abcd".into(), 3.1415.into()])
+    ///     .on_conflict(
+    ///         OnConflict::columns([Glyph::Id, Glyph::Aspect])
+    ///             .do_nothing()
+    ///             .to_owned(),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"INSERT IGNORE INTO `glyph` (`aspect`, `image`)"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id", "aspect") DO NOTHING"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id", "aspect") DO NOTHING"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn do_nothing(&mut self) -> &mut Self {
         self.action = Some(OnConflictAction::DoNothing);
         self
