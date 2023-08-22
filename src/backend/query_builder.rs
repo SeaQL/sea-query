@@ -16,7 +16,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
 
     /// Translate [`InsertStatement`] into SQL statement.
     fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut dyn SqlWriter) {
-        self.prepare_insert(insert.replace, sql);
+        self.prepare_insert(insert.replace, &insert.on_conflict, sql);
 
         if let Some(table) = &insert.table {
             write!(sql, " INTO ").unwrap();
@@ -826,7 +826,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         }
     }
 
-    fn prepare_insert(&self, replace: bool, sql: &mut dyn SqlWriter) {
+    fn prepare_insert(&self, replace: bool, _: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
         if replace {
             write!(sql, "REPLACE").unwrap();
         } else {

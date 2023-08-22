@@ -1143,6 +1143,27 @@ fn insert_from_select() {
 
 #[test]
 #[allow(clippy::approx_constant)]
+fn insert_on_conflict_do_nothing() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(OnConflict::new().do_nothing().to_owned())
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT IGNORE INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
 fn insert_on_conflict_0() {
     assert_eq!(
         Query::insert()
