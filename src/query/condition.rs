@@ -62,7 +62,7 @@ impl Condition {
     ///     .to_string(PostgresQueryBuilder);
     /// assert_eq!(
     ///     statement,
-    ///     r#"SELECT "id" FROM "glyph" WHERE (NOT ("aspect" = 0)) AND (NOT ("id" = 0))"#
+    ///     r#"SELECT "id" FROM "glyph" WHERE (NOT "aspect" = 0) AND (NOT "id" = 0)"#
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
@@ -259,6 +259,37 @@ impl Condition {
     /// ```
     pub fn len(&self) -> usize {
         self.conditions.len()
+    }
+
+    pub(crate) fn to_simple_expr(&self) -> SimpleExpr {
+        let mut inner_exprs = vec![];
+        for ce in &self.conditions {
+            inner_exprs.push(match ce {
+                ConditionExpression::Condition(c) => c.to_simple_expr(),
+                ConditionExpression::SimpleExpr(e) => e.clone(),
+            });
+        }
+        let mut inner_exprs_into_iter = inner_exprs.into_iter();
+        let expr = if let Some(first_expr) = inner_exprs_into_iter.next() {
+            let mut out_expr = first_expr;
+            for e in inner_exprs_into_iter {
+                out_expr = match self.condition_type {
+                    ConditionType::Any => out_expr.or(e),
+                    ConditionType::All => out_expr.and(e),
+                };
+            }
+            out_expr
+        } else {
+            SimpleExpr::Constant(match self.condition_type {
+                ConditionType::Any => false.into(),
+                ConditionType::All => true.into(),
+            })
+        };
+        if self.negate {
+            expr.not()
+        } else {
+            expr
+        }
     }
 }
 
