@@ -30,24 +30,6 @@ impl QueryBuilder for MysqlQueryBuilder {
         // MySQL doesn't support declaring materialization in SQL for with query.
     }
 
-    fn prepare_insert(
-        &self,
-        replace: bool,
-        on_conflict: &Option<OnConflict>,
-        sql: &mut dyn SqlWriter,
-    ) {
-        if replace {
-            write!(sql, "REPLACE").unwrap();
-        } else {
-            write!(sql, "INSERT").unwrap();
-        }
-        if let Some(on_conflict) = on_conflict {
-            if on_conflict.action == Some(OnConflictAction::DoNothing) {
-                write!(sql, " IGNORE").unwrap();
-            }
-        }
-    }
-
     fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
         match join_type {
             JoinType::FullOuterJoin => panic!("Mysql does not support FULL OUTER JOIN"),
@@ -81,14 +63,54 @@ impl QueryBuilder for MysqlQueryBuilder {
     /// Write ON CONFLICT expression
     fn prepare_on_conflict(&self, on_conflict: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
         if let Some(on_conflict) = on_conflict {
-            if on_conflict.action == Some(OnConflictAction::DoNothing) {
-                return;
-            }
             self.prepare_on_conflict_keywords(sql);
             self.prepare_on_conflict_target(&on_conflict.target, sql);
             self.prepare_on_conflict_condition(&on_conflict.target_where, sql);
             self.prepare_on_conflict_action(&on_conflict.action, sql);
             self.prepare_on_conflict_condition(&on_conflict.action_where, sql);
+        }
+    }
+
+    fn prepare_on_conflict_action(
+        &self,
+        on_conflict_action: &Option<OnConflictAction>,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if let Some(action) = on_conflict_action {
+            self.prepare_on_conflict_do_update_keywords(sql);
+            match action {
+                OnConflictAction::DoNothing(pk_cols) => {
+                    pk_cols.iter().fold(true, |first, pk_col| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        pk_col.prepare(sql.as_writer(), self.quote());
+                        write!(sql, " = ").unwrap();
+                        self.prepare_on_conflict_excluded_table(pk_col, sql);
+                        false
+                    });
+                }
+                OnConflictAction::Update(update_strats) => {
+                    update_strats.iter().fold(true, |first, update_strat| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        match update_strat {
+                            OnConflictUpdate::Column(col) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_on_conflict_excluded_table(col, sql);
+                            }
+                            OnConflictUpdate::Expr(col, expr) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_simple_expr(expr, sql);
+                            }
+                        }
+                        false
+                    });
+                }
+            }
         }
     }
 

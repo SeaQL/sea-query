@@ -19,7 +19,7 @@ pub enum OnConflictTarget {
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictAction {
     /// Do nothing
-    DoNothing,
+    DoNothing(Vec<DynIden>),
     /// Update column value of existing row
     Update(Vec<OnConflictUpdate>),
 }
@@ -64,7 +64,8 @@ impl OnConflict {
         }
     }
 
-    /// Set ON CONFLICT do nothing
+    /// Set ON CONFLICT do nothing.
+    /// Please use do_nothing_mysql() and provide pkcols if you are using MySql
     ///
     /// # Examples
     ///
@@ -82,14 +83,6 @@ impl OnConflict {
     ///     )
     ///     .to_owned();
     ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     [
-    ///         r#"INSERT IGNORE INTO `glyph` (`aspect`, `image`)"#,
-    ///         r#"VALUES ('abcd', 3.1415)"#,
-    ///     ]
-    ///     .join(" ")
-    /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     [
@@ -110,7 +103,43 @@ impl OnConflict {
     /// );
     /// ```
     pub fn do_nothing(&mut self) -> &mut Self {
-        self.action = Some(OnConflictAction::DoNothing);
+        self.action = Some(OnConflictAction::DoNothing(vec![]));
+        self
+    }
+
+    /// Set ON CONFLICT do nothing specifically for MySql.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_panic(["abcd".into(), 3.1415.into()])
+    ///     .on_conflict(
+    ///         OnConflict::columns([Glyph::Id, Glyph::Aspect])
+    ///             .do_nothing_mysql(vec![Glyph::Id])
+    ///             .to_owned(),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON DUPLICATE KEY UPDATE `id` = VALUES(`id`)"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    pub fn do_nothing_mysql<C, I>(&mut self, pk_cols: I) -> &mut Self 
+    where
+        C: IntoIden,
+        I: IntoIterator<Item = C>,
+    {
+        self.action = Some(OnConflictAction::DoNothing(pk_cols.into_iter().map(IntoIden::into_iden).collect()));
         self
     }
 
@@ -219,7 +248,7 @@ impl OnConflict {
             Some(OnConflictAction::Update(v)) => {
                 v.append(&mut update_strats);
             }
-            Some(OnConflictAction::DoNothing) | None => {
+            Some(OnConflictAction::DoNothing(_)) | None => {
                 self.action = Some(OnConflictAction::Update(update_strats));
             }
         };
@@ -274,7 +303,7 @@ impl OnConflict {
             Some(OnConflictAction::Update(v)) => {
                 v.append(&mut update_exprs);
             }
-            Some(OnConflictAction::DoNothing) | None => {
+            Some(OnConflictAction::DoNothing(_)) | None => {
                 self.action = Some(OnConflictAction::Update(update_exprs));
             }
         };

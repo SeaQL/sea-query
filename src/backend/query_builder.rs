@@ -1142,7 +1142,7 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
     ) {
         if let Some(action) = on_conflict_action {
             match action {
-                OnConflictAction::DoNothing => {
+                OnConflictAction::DoNothing(_) => {
                     write!(sql, " DO NOTHING").unwrap();
                 }
                 OnConflictAction::Update(update_strats) => {

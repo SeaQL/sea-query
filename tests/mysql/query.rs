@@ -1152,11 +1152,12 @@ fn insert_on_conflict_do_nothing() {
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .on_conflict(OnConflict::new().do_nothing().to_owned())
+            .on_conflict(OnConflict::new().do_nothing_mysql(vec![Glyph::Id]).to_owned())
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT IGNORE INTO `glyph` (`aspect`, `image`)"#,
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `id` = VALUES(`id`)"#,
         ]
         .join(" ")
     );
