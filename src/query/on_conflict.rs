@@ -134,12 +134,14 @@ impl OnConflict {
     ///     ]
     ///     .join(" ")
     /// );
-    pub fn do_nothing_mysql<C, I>(&mut self, pk_cols: I) -> &mut Self 
+    pub fn do_nothing_mysql<C, I>(&mut self, pk_cols: I) -> &mut Self
     where
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        self.action = Some(OnConflictAction::DoNothing(pk_cols.into_iter().map(IntoIden::into_iden).collect()));
+        self.action = Some(OnConflictAction::DoNothing(
+            pk_cols.into_iter().map(IntoIden::into_iden).collect(),
+        ));
         self
     }
 
