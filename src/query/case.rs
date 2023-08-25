@@ -132,3 +132,29 @@ impl Into<SimpleExpr> for CaseStatement {
         SimpleExpr::Case(Box::new(self))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::*;
+
+    #[test]
+    #[cfg(feature = "backend-postgres")]
+    fn test_where_case_eq() {
+        let case_statement: SimpleExpr = Expr::case(
+            Expr::col(Alias::new("col")).lt(5),
+            Expr::col(Alias::new("othercol")),
+        )
+        .finally(Expr::col(Alias::new("finalcol")))
+        .into();
+
+        let result = Query::select()
+            .column(Asterisk)
+            .from(Alias::new("tbl"))
+            .and_where(case_statement.eq(10))
+            .to_string(PostgresQueryBuilder);
+        assert_eq!(
+            result,
+            r#"SELECT * FROM "tbl" WHERE (CASE WHEN ("col" < 5) THEN "othercol" ELSE "finalcol" END) = 10"#
+        );
+    }
+}

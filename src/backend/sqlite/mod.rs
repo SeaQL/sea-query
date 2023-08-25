@@ -32,3 +32,19 @@ impl EscapeBuilder for SqliteQueryBuilder {
 }
 
 impl TableRefBuilder for SqliteQueryBuilder {}
+
+impl PrecedenceDecider for SqliteQueryBuilder {
+    fn inner_expr_well_known_greater_precedence(
+        &self,
+        inner: &SimpleExpr,
+        outer_oper: &Oper,
+    ) -> bool {
+        common_inner_expr_well_known_greater_precedence(inner, outer_oper)
+    }
+}
+
+impl OperLeftAssocDecider for SqliteQueryBuilder {
+    fn well_known_left_associative(&self, op: &BinOper) -> bool {
+        common_well_known_left_associative(op)
+    }
+}

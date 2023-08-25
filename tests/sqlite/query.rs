@@ -142,7 +142,7 @@ fn select_10() {
                     .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))),
             )
             .to_string(SqliteQueryBuilder),
-        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
+        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     );
 }
 
@@ -315,7 +315,7 @@ fn select_22() {
                     )
             )
             .to_string(SqliteQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
+        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR ("character" LIKE 'D' AND "character" LIKE 'E')) AND ("character" LIKE 'F' OR "character" LIKE 'G')"#
     );
 }
 
@@ -484,8 +484,8 @@ fn select_34a() {
             .to_string(SqliteQueryBuilder),
         [
             r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
-            r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
-            r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
+            r#"HAVING "aspect" > 2 OR "aspect" < 8"#,
+            r#"OR ("aspect" > 12 AND "aspect" < 18)"#,
             r#"OR "aspect" > 32"#,
         ]
         .join(" ")
@@ -530,10 +530,7 @@ fn select_37() {
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
         .build(SqliteQueryBuilder);
 
-    assert_eq!(
-        statement,
-        r#"SELECT "id" FROM "glyph" WHERE (TRUE) OR (FALSE)"#
-    );
+    assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE TRUE OR FALSE"#);
     assert_eq!(values.0, vec![]);
 }
 
@@ -672,7 +669,7 @@ fn select_44() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT "aspect" < 8"#
     );
 }
 
@@ -709,7 +706,7 @@ fn select_46() {
 
     assert_eq!(
         statement,
-        r#"SELECT "id" FROM "glyph" WHERE NOT ("aspect" < 8)"#
+        r#"SELECT "id" FROM "glyph" WHERE NOT "aspect" < 8"#
     );
 }
 
