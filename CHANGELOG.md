@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug Fixes
 
 * Fixed bytea literal syntax for Postgres https://github.com/SeaQL/sea-query/pull/666
-* Fix issues with semantics of parenthesis removal https://github.com/SeaQL/sea-query/pull/675
+* Fixed issues with semantics of parenthesis removal https://github.com/SeaQL/sea-query/pull/675
 
 ## 0.30.0 - 2023-07-20
 
