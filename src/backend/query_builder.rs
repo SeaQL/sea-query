@@ -1524,13 +1524,14 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
         // unary or binary expression (with an outer_oper).
         // We do not need to wrap with parentheses:
         // Columns, tuples (already wrapped), constants, function calls, values,
-        // keywords, subqueries (already wrapped)
+        // keywords, subqueries (already wrapped), case (already wrapped)
         SimpleExpr::Column(_)
         | SimpleExpr::Tuple(_)
         | SimpleExpr::Constant(_)
         | SimpleExpr::FunctionCall(_)
         | SimpleExpr::Value(_)
         | SimpleExpr::Keyword(_)
+        | SimpleExpr::Case(_)
         | SimpleExpr::SubQuery(_, _) => true,
         SimpleExpr::Binary(_, inner_oper, _) => {
             let inner_oper: Oper = (*inner_oper).into();
