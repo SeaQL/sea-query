@@ -1918,13 +1918,13 @@ fn test_issue_674_nested_logical() {
     let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
     let t_or_t = x_op_y(t.clone(), BinOper::Or, t.clone());
     let t_or_t_or_f = x_op_y(t_or_t, BinOper::Or, f);
-    let t_or_t_or_t_and_t = x_op_y(t_or_t_or_f.clone(), BinOper::And, t);
+    let t_or_t_or_f_and_t = x_op_y(t_or_t_or_f.clone(), BinOper::And, t);
 
     assert_eq!(
         Query::select()
             .columns([Char::Character])
             .from(Char::Table)
-            .and_where(t_or_t_or_t_and_t)
+            .and_where(t_or_t_or_f_and_t)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE (TRUE OR TRUE OR FALSE) AND TRUE"#
     );
