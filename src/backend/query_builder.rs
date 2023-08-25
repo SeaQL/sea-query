@@ -3,7 +3,9 @@ use std::ops::Deref;
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
-pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
+pub trait QueryBuilder:
+    QuotedBuilder + EscapeBuilder + TableRefBuilder + OperLeftAssocDecider + PrecedenceDecider
+{
     /// The type of placeholder the builder uses for values, and whether it is numbered.
     fn placeholder(&self) -> (&str, bool) {
         ("?", false)
@@ -296,7 +298,15 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             SimpleExpr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql);
                 write!(sql, " ").unwrap();
+                let drop_expr_paren =
+                    self.inner_expr_well_known_greater_precedence(expr, &(*op).into());
+                if !drop_expr_paren {
+                    write!(sql, "(").unwrap();
+                }
                 self.prepare_simple_expr(expr, sql);
+                if !drop_expr_paren {
+                    write!(sql, ")").unwrap();
+                }
             }
             SimpleExpr::FunctionCall(func) => {
                 self.prepare_function(&func.func, sql);
@@ -1378,11 +1388,16 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         right: &SimpleExpr,
         sql: &mut dyn SqlWriter,
     ) {
-        let no_paren = matches!(op, BinOper::Equal | BinOper::NotEqual);
-        let left_paren = left.need_parentheses()
-            && left.is_binary()
-            && op != left.get_bin_oper().unwrap()
-            && !no_paren;
+        // If left has higher precedence than op, we can drop parentheses around left
+        let drop_left_higher_precedence =
+            self.inner_expr_well_known_greater_precedence(left, &(*op).into());
+
+        // Figure out if left associativity rules allow us to drop the left parenthesis
+        let drop_left_assoc = left.is_binary()
+            && op == left.get_bin_oper().unwrap()
+            && self.well_known_left_associative(op);
+
+        let left_paren = !drop_left_higher_precedence && !drop_left_assoc;
         if left_paren {
             write!(sql, "(").unwrap();
         }
@@ -1390,17 +1405,33 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
         if left_paren {
             write!(sql, ")").unwrap();
         }
+
         write!(sql, " ").unwrap();
         self.prepare_bin_oper(op, sql);
         write!(sql, " ").unwrap();
-        let no_right_paren = matches!(
-            op,
-            BinOper::Between | BinOper::NotBetween | BinOper::Like | BinOper::NotLike
-        );
-        let right_paren = (right.need_parentheses()
-            || right.is_binary() && op != left.get_bin_oper().unwrap())
-            && !no_right_paren
-            && !no_paren;
+
+        // If right has higher precedence than op, we can drop parentheses around right
+        let drop_right_higher_precedence =
+            self.inner_expr_well_known_greater_precedence(right, &(*op).into());
+
+        let op_as_oper = Oper::BinOper(*op);
+        // Due to representation of trinary op between as nested binary ops.
+        let drop_right_between_hack = op_as_oper.is_between()
+            && right.is_binary()
+            && matches!(right.get_bin_oper(), Some(&BinOper::And));
+
+        // Due to representation of trinary op like/not like with optional arg escape as nested binary ops.
+        let drop_right_escape_hack = op_as_oper.is_like()
+            && right.is_binary()
+            && matches!(right.get_bin_oper(), Some(&BinOper::Escape));
+
+        // Due to custom representation of casting AS datatype
+        let drop_right_as_hack = (op == &BinOper::As) && matches!(right, SimpleExpr::Custom(_));
+
+        let right_paren = !drop_right_higher_precedence
+            && !drop_right_escape_hack
+            && !drop_right_between_hack
+            && !drop_right_as_hack;
         if right_paren {
             write!(sql, "(").unwrap();
         }
@@ -1493,6 +1524,22 @@ impl SubQueryStatement {
 
 pub(crate) struct CommonSqlQueryBuilder;
 
+impl OperLeftAssocDecider for CommonSqlQueryBuilder {
+    fn well_known_left_associative(&self, op: &BinOper) -> bool {
+        common_well_known_left_associative(op)
+    }
+}
+
+impl PrecedenceDecider for CommonSqlQueryBuilder {
+    fn inner_expr_well_known_greater_precedence(
+        &self,
+        inner: &SimpleExpr,
+        outer_oper: &Oper,
+    ) -> bool {
+        common_inner_expr_well_known_greater_precedence(inner, outer_oper)
+    }
+}
+
 impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
@@ -1512,3 +1559,50 @@ impl QuotedBuilder for CommonSqlQueryBuilder {
 impl EscapeBuilder for CommonSqlQueryBuilder {}
 
 impl TableRefBuilder for CommonSqlQueryBuilder {}
+
+pub(crate) fn common_inner_expr_well_known_greater_precedence(
+    inner: &SimpleExpr,
+    outer_oper: &Oper,
+) -> bool {
+    match inner {
+        // We only consider the case where an inner expression is contained in either a
+        // unary or binary expression (with an outer_oper).
+        // We do not need to wrap with parentheses:
+        // Columns, tuples (already wrapped), constants, function calls, values,
+        // keywords, subqueries (already wrapped), case (already wrapped)
+        SimpleExpr::Column(_)
+        | SimpleExpr::Tuple(_)
+        | SimpleExpr::Constant(_)
+        | SimpleExpr::FunctionCall(_)
+        | SimpleExpr::Value(_)
+        | SimpleExpr::Keyword(_)
+        | SimpleExpr::Case(_)
+        | SimpleExpr::SubQuery(_, _) => true,
+        SimpleExpr::Binary(_, inner_oper, _) => {
+            let inner_oper: Oper = (*inner_oper).into();
+            if inner_oper.is_arithmetic() || inner_oper.is_shift() {
+                outer_oper.is_comparison()
+                    || outer_oper.is_between()
+                    || outer_oper.is_in()
+                    || outer_oper.is_like()
+                    || outer_oper.is_logical()
+            } else if inner_oper.is_comparison()
+                || inner_oper.is_in()
+                || inner_oper.is_like()
+                || inner_oper.is_is()
+            {
+                outer_oper.is_logical()
+            } else {
+                false
+            }
+        }
+        _ => false,
+    }
+}
+
+pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
+    matches!(
+        op,
+        BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod
+    )
+}

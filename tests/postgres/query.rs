@@ -142,7 +142,7 @@ fn select_10() {
                     .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             )
             .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON ("character"."font_id" = "font"."id") AND ("character"."font_id" = "font"."id")"#
+        r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     );
 }
 
@@ -315,7 +315,7 @@ fn select_22() {
                     )
             )
             .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR (("character" LIKE 'D') AND ("character" LIKE 'E'))) AND (("character" LIKE 'F') OR ("character" LIKE 'G'))"#
+        r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR ("character" LIKE 'D' AND "character" LIKE 'E')) AND ("character" LIKE 'F' OR "character" LIKE 'G')"#
     );
 }
 
@@ -484,8 +484,8 @@ fn select_34a() {
             .to_string(PostgresQueryBuilder),
         [
             r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect""#,
-            r#"HAVING (("aspect" > 2) OR ("aspect" < 8))"#,
-            r#"OR (("aspect" > 12) AND ("aspect" < 18))"#,
+            r#"HAVING ("aspect" > 2 OR "aspect" < 8)"#,
+            r#"OR ("aspect" > 12 AND "aspect" < 18)"#,
             r#"OR "aspect" > 32"#,
         ]
         .join(" ")
@@ -1910,5 +1910,79 @@ fn regex_case_insensitive_bin_oper() {
             r#"SELECT "character" FROM "character" WHERE "character" ~* $1"#.to_owned(),
             Values(vec!["test".into()])
         )
+    );
+}
+
+#[test]
+fn test_issue_674_nested_logical() {
+    let t = SimpleExpr::Value(true.into());
+    let f = SimpleExpr::Value(false.into());
+
+    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let t_or_t = x_op_y(t.clone(), BinOper::Or, t.clone());
+    let t_or_t_or_f = x_op_y(t_or_t, BinOper::Or, f);
+    let t_or_t_or_t_and_t = x_op_y(t_or_t_or_f.clone(), BinOper::And, t);
+
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(t_or_t_or_t_and_t)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE (TRUE OR TRUE OR FALSE) AND TRUE"#
+    );
+}
+
+#[test]
+fn test_issue_674_nested_comparison() {
+    let int100 = SimpleExpr::Value(100i32.into());
+    let int0 = SimpleExpr::Value(0i32.into());
+    let int1 = SimpleExpr::Value(1i32.into());
+
+    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let t_smaller_than_t = x_op_y(int100, BinOper::SmallerThan, int0);
+    let t_smaller_than_t_smaller_than_f = x_op_y(t_smaller_than_t, BinOper::SmallerThan, int1);
+
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(t_smaller_than_t_smaller_than_f)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE (100 < 0) < 1"#
+    );
+}
+
+#[test]
+fn test_issue_674_and_inside_not() {
+    let t = SimpleExpr::Value(true.into());
+    let f = SimpleExpr::Value(false.into());
+
+    let op_x = |op, x| SimpleExpr::Unary(op, Box::new(x));
+    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let f_and_t = x_op_y(f, BinOper::And, t);
+    let not_f_and_t = op_x(UnOper::Not, f_and_t);
+
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(not_f_and_t)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE NOT (FALSE AND TRUE)"#
+    );
+}
+
+#[test]
+fn test_issue_674_nested_logical_panic() {
+    let e = SimpleExpr::from(true).and(SimpleExpr::from(true).and(true.into()).and(true.into()));
+
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(e)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE TRUE AND (TRUE AND TRUE AND TRUE)"#
     );
 }

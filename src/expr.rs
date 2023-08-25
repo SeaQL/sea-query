@@ -2127,15 +2127,15 @@ impl SimpleExpr {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) AND (`size_h` = 2)) OR ((`size_w` = 3) AND (`size_h` = 4))"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` = 1 AND `size_h` = 2) OR (`size_w` = 3 AND `size_h` = 4)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) AND ("size_h" = 2)) OR (("size_w" = 3) AND ("size_h" = 4))"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" = 1 AND "size_h" = 2) OR ("size_w" = 3 AND "size_h" = 4)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) AND ("size_h" = 2)) OR (("size_w" = 3) AND ("size_h" = 4))"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" = 1 AND "size_h" = 2) OR ("size_w" = 3 AND "size_h" = 4)"#
     /// );
     /// ```
     pub fn and(self, right: SimpleExpr) -> Self {
@@ -2158,15 +2158,15 @@ impl SimpleExpr {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE ((`size_w` = 1) OR (`size_h` = 2)) AND ((`size_w` = 3) OR (`size_h` = 4))"#
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` = 1 OR `size_h` = 2) AND (`size_w` = 3 OR `size_h` = 4)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) OR ("size_h" = 2)) AND (("size_w" = 3) OR ("size_h" = 4))"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" = 1 OR "size_h" = 2) AND ("size_w" = 3 OR "size_h" = 4)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (("size_w" = 1) OR ("size_h" = 2)) AND (("size_w" = 3) OR ("size_h" = 4))"#
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" = 1 OR "size_h" = 2) AND ("size_w" = 3 OR "size_h" = 4)"#
     /// );
     /// ```
     pub fn or(self, right: SimpleExpr) -> Self {
@@ -2486,17 +2486,6 @@ impl SimpleExpr {
     /// Express a `NOT LIKE` expression
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> Self {
         self.like_like(BinOper::NotLike, like.into_like_expr())
-    }
-
-    pub(crate) fn need_parentheses(&self) -> bool {
-        match self {
-            Self::Binary(left, oper, _) => !matches!(
-                (left.as_ref(), oper),
-                (Self::Binary(_, BinOper::And, _), BinOper::And)
-                    | (Self::Binary(_, BinOper::Or, _), BinOper::Or)
-            ),
-            _ => false,
-        }
     }
 
     pub(crate) fn is_binary(&self) -> bool {

@@ -1,6 +1,38 @@
 use super::*;
 use crate::extension::postgres::*;
 
+impl OperLeftAssocDecider for PostgresQueryBuilder {
+    fn well_known_left_associative(&self, op: &BinOper) -> bool {
+        let common_answer = common_well_known_left_associative(op);
+        let pg_specific_answer = matches!(op, BinOper::PgOperator(PgBinOper::Concatenate));
+        common_answer || pg_specific_answer
+    }
+}
+
+impl PrecedenceDecider for PostgresQueryBuilder {
+    fn inner_expr_well_known_greater_precedence(
+        &self,
+        inner: &SimpleExpr,
+        outer_oper: &Oper,
+    ) -> bool {
+        let common_answer = common_inner_expr_well_known_greater_precedence(inner, outer_oper);
+        let pg_specific_answer = match inner {
+            SimpleExpr::Binary(_, inner_bin_oper, _) => {
+                let inner_oper: Oper = (*inner_bin_oper).into();
+                if inner_oper.is_arithmetic() || inner_oper.is_shift() {
+                    is_ilike(inner_bin_oper)
+                } else if is_pg_comparison(inner_bin_oper) {
+                    outer_oper.is_logical()
+                } else {
+                    false
+                }
+            }
+            _ => false,
+        };
+        common_answer || pg_specific_answer
+    }
+}
+
 impl QueryBuilder for PostgresQueryBuilder {
     fn placeholder(&self) -> (&str, bool) {
         ("$", true)
@@ -135,4 +167,23 @@ impl QueryBuilder for PostgresQueryBuilder {
     fn if_null_function(&self) -> &str {
         "COALESCE"
     }
+}
+
+fn is_pg_comparison(b: &BinOper) -> bool {
+    matches!(
+        b,
+        BinOper::PgOperator(PgBinOper::Contained)
+            | BinOper::PgOperator(PgBinOper::Contains)
+            | BinOper::PgOperator(PgBinOper::Similarity)
+            | BinOper::PgOperator(PgBinOper::WordSimilarity)
+            | BinOper::PgOperator(PgBinOper::StrictWordSimilarity)
+            | BinOper::PgOperator(PgBinOper::Matches)
+    )
+}
+
+fn is_ilike(b: &BinOper) -> bool {
+    matches!(
+        b,
+        BinOper::PgOperator(PgBinOper::ILike) | BinOper::PgOperator(PgBinOper::NotILike)
+    )
 }

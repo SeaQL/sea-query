@@ -26,3 +26,19 @@ impl QuotedBuilder for MysqlQueryBuilder {
 impl EscapeBuilder for MysqlQueryBuilder {}
 
 impl TableRefBuilder for MysqlQueryBuilder {}
+
+impl PrecedenceDecider for MysqlQueryBuilder {
+    fn inner_expr_well_known_greater_precedence(
+        &self,
+        inner: &SimpleExpr,
+        outer_oper: &Oper,
+    ) -> bool {
+        common_inner_expr_well_known_greater_precedence(inner, outer_oper)
+    }
+}
+
+impl OperLeftAssocDecider for MysqlQueryBuilder {
+    fn well_known_left_associative(&self, op: &BinOper) -> bool {
+        common_well_known_left_associative(op)
+    }
+}
