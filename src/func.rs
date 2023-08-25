@@ -59,6 +59,14 @@ impl FunctionCall {
         self.args = args.into_iter().collect();
         self
     }
+
+    pub fn get_func(&self) -> &Function {
+        &self.func
+    }
+
+    pub fn get_args(&self) -> &Vec<SimpleExpr> {
+        &self.args
+    }
 }
 
 /// Function call helper.
