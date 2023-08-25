@@ -1,4 +1,4 @@
-use sea_query::{Iden, Quote};
+use sea_query::Iden;
 
 #[derive(Copy, Clone, Iden)]
 pub struct SomeType;

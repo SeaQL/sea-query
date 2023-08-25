@@ -1,4 +1,4 @@
-use sea_query::{Iden, Quote};
+use sea_query::Iden;
 use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Iden, EnumIter)]
