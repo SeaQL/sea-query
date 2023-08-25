@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.30.1 - 2023-08-25
 
+### Versions
+
++ [`sea-query-postgres`/`0.4.0`](https://crates.io/crates/sea-query-postgres/0.4.0)
++ [`sea-query-rusqlite`/`0.4.0`](https://crates.io/crates/sea-query-rusqlite/0.4.0)
+
 ### New Features
 
 * Added `Func::round` and `Func::round_with_precision` https://github.com/SeaQL/sea-query/pull/671
