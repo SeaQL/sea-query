@@ -64,7 +64,7 @@ impl FunctionCall {
         &self.func
     }
 
-    pub fn get_args(&self) -> &Vec<SimpleExpr> {
+    pub fn get_args(&self) -> &[SimpleExpr] {
         &self.args
     }
 }

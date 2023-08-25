@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Added `Func::round` and `Func::round_with_precision` https://github.com/SeaQL/sea-query/pull/671
 
+### Enhancements
+
+* Added some getters to `FunctionCall` https://github.com/SeaQL/sea-query/pull/677
+
 ### Bug Fixes
 
 * Fixed bytea literal syntax for Postgres https://github.com/SeaQL/sea-query/pull/666
