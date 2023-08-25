@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.30.1 - Pending
+## 0.30.1 - 2023-08-25
+
+### Versions
+
++ [`sea-query-postgres`/`0.4.0`](https://crates.io/crates/sea-query-postgres/0.4.0)
++ [`sea-query-rusqlite`/`0.4.0`](https://crates.io/crates/sea-query-rusqlite/0.4.0)
 
 ### New Features
 
@@ -18,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Bug Fixes
 
 * Fixed bytea literal syntax for Postgres https://github.com/SeaQL/sea-query/pull/666
+* Fix issues with semantics of parenthesis removal https://github.com/SeaQL/sea-query/pull/675
 
 ## 0.30.0 - 2023-07-20
 
