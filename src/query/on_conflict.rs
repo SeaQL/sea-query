@@ -108,6 +108,7 @@ impl OnConflict {
     }
 
     /// Set ON CONFLICT do nothing specifically for MySql.
+    /// 
     ///
     /// # Examples
     ///
@@ -130,7 +131,7 @@ impl OnConflict {
     ///     [
     ///         r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
     ///         r#"VALUES ('abcd', 3.1415)"#,
-    ///         r#"ON DUPLICATE KEY UPDATE `id` = VALUES(`id`)"#,
+    ///         r#"ON DUPLICATE KEY UPDATE `id` = `id`"#,
     ///     ]
     ///     .join(" ")
     /// );
@@ -172,7 +173,7 @@ impl OnConflict {
     ///     [
     ///         r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
     ///         r#"VALUES ('abcd', 3.1415)"#,
-    ///         r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
+    ///         r#"ON DUPLICATE KEY UPDATE `aspect` = `aspect`, `image` = 1 + 2"#,
     ///     ]
     ///     .join(" ")
     /// );
@@ -225,7 +226,7 @@ impl OnConflict {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `aspect` = `aspect`, `image` = `image`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
