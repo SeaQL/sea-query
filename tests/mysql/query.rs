@@ -1154,7 +1154,7 @@ fn insert_on_conflict_do_nothing() {
             ])
             .on_conflict(
                 OnConflict::new()
-                    .do_nothing_mysql(vec![Glyph::Id])
+                    .do_nothing_on(vec![Glyph::Id])
                     .to_owned()
             )
             .to_string(MysqlQueryBuilder),

@@ -65,7 +65,7 @@ impl OnConflict {
     }
 
     /// Set ON CONFLICT do nothing.
-    /// Please use do_nothing_mysql() and provide pkcols if you are using MySql
+    /// Please use do_nothing_on() and provide primary keys if you are using MySql.
     ///
     /// # Examples
     ///
@@ -107,8 +107,8 @@ impl OnConflict {
         self
     }
 
-    /// Set ON CONFLICT do nothing specifically for MySql.
-    ///
+    /// Set ON CONFLICT do nothing. 
+    /// MySql only.
     ///
     /// # Examples
     ///
@@ -121,7 +121,7 @@ impl OnConflict {
     ///     .values_panic(["abcd".into(), 3.1415.into()])
     ///     .on_conflict(
     ///         OnConflict::columns([Glyph::Id, Glyph::Aspect])
-    ///             .do_nothing_mysql(vec![Glyph::Id])
+    ///             .do_nothing_on(vec![Glyph::Id])
     ///             .to_owned(),
     ///     )
     ///     .to_owned();
@@ -135,7 +135,8 @@ impl OnConflict {
     ///     ]
     ///     .join(" ")
     /// );
-    pub fn do_nothing_mysql<C, I>(&mut self, pk_cols: I) -> &mut Self
+    #[cfg(feature = "backend-mysql")]
+    pub fn do_nothing_on<C, I>(&mut self, pk_cols: I) -> &mut Self
     where
         C: IntoIden,
         I: IntoIterator<Item = C>,
