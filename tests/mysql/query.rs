@@ -1152,11 +1152,7 @@ fn insert_on_conflict_do_nothing() {
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .on_conflict(
-                OnConflict::new()
-                    .do_nothing_on(vec![Glyph::Id])
-                    .to_owned()
-            )
+            .on_conflict(OnConflict::new().do_nothing_on(vec![Glyph::Id]).to_owned())
             .to_string(MysqlQueryBuilder),
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,

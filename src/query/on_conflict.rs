@@ -107,7 +107,7 @@ impl OnConflict {
         self
     }
 
-    /// Set ON CONFLICT do nothing. 
+    /// Set ON CONFLICT do nothing.
     /// MySql only.
     ///
     /// # Examples
