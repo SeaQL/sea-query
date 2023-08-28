@@ -108,7 +108,7 @@ impl OnConflict {
     }
 
     /// Set ON CONFLICT do nothing specifically for MySql.
-    /// 
+    ///
     ///
     /// # Examples
     ///
