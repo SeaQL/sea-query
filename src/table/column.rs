@@ -581,6 +581,22 @@ impl ColumnDef {
     }
 
     /// Set constraints as SimpleExpr
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Glyph::Id)
+    ///                 .integer()
+    ///                 .not_null()
+    ///                 .check(Expr::col(Glyph::Id).gt(10))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10) )"#,
+    /// );
+    /// ```
     pub fn check<T>(&mut self, value: T) -> &mut Self
     where
         T: Into<SimpleExpr>,
