@@ -48,7 +48,7 @@ impl FunctionCall {
     where
         T: Into<SimpleExpr>,
     {
-        self.args = vec![arg.into()];
+        self.args.push(arg.into());
         self
     }
 
