@@ -533,7 +533,8 @@ mod with_chrono {
 
     impl From<DateTime<FixedOffset>> for Value {
         fn from(x: DateTime<FixedOffset>) -> Value {
-            let v = DateTime::<FixedOffset>::from_utc(x.naive_utc(), x.offset().fix());
+            let v =
+                DateTime::<FixedOffset>::from_naive_utc_and_offset(x.naive_utc(), x.offset().fix());
             Value::ChronoDateTimeWithTimeZone(Some(Box::new(v)))
         }
     }
@@ -1723,7 +1724,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_utc_value() {
-        let timestamp = DateTime::<Utc>::from_utc(
+        let timestamp = DateTime::<Utc>::from_naive_utc_and_offset(
             NaiveDate::from_ymd_opt(2022, 1, 2)
                 .unwrap()
                 .and_hms_opt(3, 4, 5)
@@ -1738,7 +1739,7 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn test_chrono_local_value() {
-        let timestamp_utc = DateTime::<Utc>::from_utc(
+        let timestamp_utc = DateTime::<Utc>::from_naive_utc_and_offset(
             NaiveDate::from_ymd_opt(2022, 1, 2)
                 .unwrap()
                 .and_hms_opt(3, 4, 5)
