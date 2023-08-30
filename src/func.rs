@@ -44,6 +44,7 @@ impl FunctionCall {
         }
     }
 
+    /// Append an argument to the function call
     pub fn arg<T>(mut self, arg: T) -> Self
     where
         T: Into<SimpleExpr>,
@@ -52,6 +53,7 @@ impl FunctionCall {
         self
     }
 
+    /// Replace the arguments of the function call
     pub fn args<I>(mut self, args: I) -> Self
     where
         I: IntoIterator<Item = SimpleExpr>,

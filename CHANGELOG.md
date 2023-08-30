@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Fixed bytea literal syntax for Postgres https://github.com/SeaQL/sea-query/pull/666
 * Fixed issues with semantics of parenthesis removal https://github.com/SeaQL/sea-query/pull/675
+* Fixed behaviour in `FunctionCall` when calling `arg` multiple times https://github.com/SeaQL/sea-query/pull/687
+
+### Breaking changes
+
+* As part of https://github.com/SeaQL/sea-query/pull/687, calling `FunctionCall::arg` multiple times will append the arguments instead of replacing old values
 
 ## 0.30.0 - 2023-07-20
 
