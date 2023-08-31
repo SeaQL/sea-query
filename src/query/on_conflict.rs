@@ -77,16 +77,13 @@ impl OnConflict {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
-    ///     .values_panic([
-    ///         "abcd".into(),
-    ///         3.1415.into(),
-    ///     ])
+    ///     .values_panic(["abcd".into(), 3.1415.into()])
     ///     .on_conflict(
     ///         OnConflict::new()
     ///             .expr(Expr::col(Glyph::Id))
     ///             .update_column(Glyph::Aspect)
     ///             .value(Glyph::Image, Expr::val(1).add(2))
-    ///             .to_owned()
+    ///             .to_owned(),
     ///     )
     ///     .to_owned();
     ///
