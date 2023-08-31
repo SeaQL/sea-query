@@ -141,17 +141,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: |
-          cargo update --manifest-path sea-query-diesel/Cargo.toml --workspace -p bigdecimal:0.4.1 --precise 0.3.1
-          cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+      - run: cargo update --manifest-path sea-query-diesel/Cargo.toml --workspace -p bigdecimal:0.4.1 --precise 0.3.1
+      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-json
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-rust_decimal
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres --features=with-rust_decimal-postgres
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features mysql --features=with-rust_decimal-mysql
-      - run: |
-          cargo update --manifest-path sea-query-diesel/Cargo.toml --workspace -p bigdecimal:0.4.1 --precise 0.3.1
-          cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-bigdecimal
+      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-bigdecimal
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-uuid
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-time
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-ipnetwork
