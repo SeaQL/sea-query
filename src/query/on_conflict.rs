@@ -2,7 +2,7 @@ use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, SimpleExpr};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct OnConflict {
-    pub(crate) target: Option<OnConflictTarget>,
+    pub(crate) targets: Vec<OnConflictTarget>,
     pub(crate) target_where: ConditionHolder,
     pub(crate) action: Option<OnConflictAction>,
     pub(crate) action_where: ConditionHolder,
@@ -11,8 +11,10 @@ pub struct OnConflict {
 /// Represents ON CONFLICT (upsert) targets
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictTarget {
-    /// A list of columns with unique constraint
-    ConflictColumns(Vec<DynIden>),
+    /// A column
+    ConflictColumn(DynIden),
+    /// An expression `(LOWER(column), ...)`
+    ConflictExpr(SimpleExpr),
 }
 
 /// Represents ON CONFLICT (upsert) actions
@@ -55,13 +57,79 @@ impl OnConflict {
         I: IntoIterator<Item = C>,
     {
         Self {
-            target: Some(OnConflictTarget::ConflictColumns(
-                columns.into_iter().map(IntoIden::into_iden).collect(),
-            )),
+            targets: columns.into_iter().map(|c| OnConflictTarget::ConflictColumn(c.into_iden())).collect(),
             target_where: ConditionHolder::new(),
             action: None,
             action_where: ConditionHolder::new(),
         }
+    }
+
+    /// Set ON CONFLICT target expression
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_panic([
+    ///         "abcd".into(),
+    ///         3.1415.into(),
+    ///     ])
+    ///     .on_conflict(
+    ///         OnConflict::new()
+    ///             .expr(Expr::col(Glyph::Id))
+    ///             .update_column(Glyph::Aspect)
+    ///             .value(Glyph::Image, Expr::val(1).add(2))
+    ///             .to_owned()
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO "glyph" ("aspect", "image")"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
+    pub fn expr<T>(&mut self, expr: T) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        Self::exprs(self, [expr])
+    }
+
+    /// Set multiple target expressions for ON CONFLICT. See [`OnConflict::expr`]
+    pub fn exprs<I, T>(&mut self, exprs: I) -> &mut Self
+    where
+        T: Into<SimpleExpr>,
+        I: IntoIterator<Item = T>,
+    {
+        self.targets.append(&mut exprs.into_iter().map(|e: T| OnConflictTarget::ConflictExpr(e.into())).collect());
+        self
     }
 
     pub fn do_nothing(&mut self) -> &mut Self {

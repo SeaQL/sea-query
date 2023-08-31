@@ -1108,7 +1108,7 @@ pub trait QueryBuilder:
     fn prepare_on_conflict(&self, on_conflict: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
         if let Some(on_conflict) = on_conflict {
             self.prepare_on_conflict_keywords(sql);
-            self.prepare_on_conflict_target(&on_conflict.target, sql);
+            self.prepare_on_conflict_target(&on_conflict.targets, sql);
             self.prepare_on_conflict_condition(&on_conflict.target_where, sql);
             self.prepare_on_conflict_action(&on_conflict.action, sql);
             self.prepare_on_conflict_condition(&on_conflict.action_where, sql);
@@ -1119,24 +1119,30 @@ pub trait QueryBuilder:
     /// Write ON CONFLICT target
     fn prepare_on_conflict_target(
         &self,
-        on_conflict_target: &Option<OnConflictTarget>,
+        on_conflict_targets: &[OnConflictTarget],
         sql: &mut dyn SqlWriter,
     ) {
-        if let Some(target) = on_conflict_target {
+        if on_conflict_targets.is_empty() {
+            return;
+        }
+
+        write!(sql, "(").unwrap();
+        on_conflict_targets.iter().fold(true, |first, target| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
             match target {
-                OnConflictTarget::ConflictColumns(columns) => {
-                    write!(sql, "(").unwrap();
-                    columns.iter().fold(true, |first, col| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
-                        }
-                        col.prepare(sql.as_writer(), self.quote());
-                        false
-                    });
-                    write!(sql, ")").unwrap();
+                OnConflictTarget::ConflictColumn(col) => {
+                    col.prepare(sql.as_writer(), self.quote());
+                }
+
+                OnConflictTarget::ConflictExpr(expr) => {
+                    self.prepare_simple_expr(expr, sql);
                 }
             }
-        }
+            false
+        });
+        write!(sql, ")").unwrap();
     }
 
     #[doc(hidden)]
