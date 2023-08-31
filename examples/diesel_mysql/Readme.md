@@ -1,4 +1,4 @@
-# SeaQuery Diesel Sqlite example
+# SeaQuery Diesel MySQL example
 
 Running:
 

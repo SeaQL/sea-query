@@ -274,7 +274,7 @@ where
 }
 
 #[derive(Debug)]
-#[warn(clippy::upper_case_acronyms)]
+#[allow(clippy::upper_case_acronyms)]
 struct UUID(uuid::Uuid);
 
 impl<DB> FromSql<Blob, DB> for UUID

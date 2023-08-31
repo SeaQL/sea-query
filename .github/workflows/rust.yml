@@ -147,7 +147,10 @@ jobs:
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-rust_decimal
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres --features=with-rust_decimal-postgres
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features mysql --features=with-rust_decimal-mysql
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-bigdecimal
+      - run: |
+          cargo install --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-bigdecimal
+          cargo update --manifest-path sea-query-diesel/Cargo.toml --workspace -p bigdecimal:0.4.1 --precise 0.3.1
+          cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-bigdecimal
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-uuid
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-time
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-ipnetwork
@@ -274,6 +277,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - if: ${{ matrix.example == "diesel_postgres" }}
+        run: cargo update --manifest-path examples/${{ matrix.example }}/Cargo.toml -p bigdecimal:0.4.1 --precise 0.3.1
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 

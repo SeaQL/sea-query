@@ -11,7 +11,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 time = { version = "0.3", features = ["parsing", "macros"] }
 serde_json = { version = "1" }
 uuid = { version = "1", features = ["serde", "v4"] }
-diesel = { version = "2", features = ["mysql"] }
+diesel = { version = "2.1.1", features = ["mysql"] }
 sea-query = { path = "../.." }
 sea-query-diesel = { path = "../../sea-query-diesel", features = [
   "mysql",
@@ -20,9 +20,6 @@ sea-query-diesel = { path = "../../sea-query-diesel", features = [
   "with-uuid",
   "with-time",
 ] }
-
-[patch.crates-io]
-diesel = { git = "https://github.com/diesel-rs/diesel", rev = "860e2ffff4c4fb8cf981dcb9fe5884baf0fa824e" }
 
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "0"}
