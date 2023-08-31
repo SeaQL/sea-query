@@ -57,7 +57,10 @@ impl OnConflict {
         I: IntoIterator<Item = C>,
     {
         Self {
-            targets: columns.into_iter().map(|c| OnConflictTarget::ConflictColumn(c.into_iden())).collect(),
+            targets: columns
+                .into_iter()
+                .map(|c| OnConflictTarget::ConflictColumn(c.into_iden()))
+                .collect(),
             target_where: ConditionHolder::new(),
             action: None,
             action_where: ConditionHolder::new(),
@@ -128,7 +131,12 @@ impl OnConflict {
         T: Into<SimpleExpr>,
         I: IntoIterator<Item = T>,
     {
-        self.targets.append(&mut exprs.into_iter().map(|e: T| OnConflictTarget::ConflictExpr(e.into())).collect());
+        self.targets.append(
+            &mut exprs
+                .into_iter()
+                .map(|e: T| OnConflictTarget::ConflictExpr(e.into()))
+                .collect(),
+        );
         self
     }
 
