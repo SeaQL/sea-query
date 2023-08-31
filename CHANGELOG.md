@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 + [`sea-query-postgres`/`0.4.0`](https://crates.io/crates/sea-query-postgres/0.4.0)
 + [`sea-query-rusqlite`/`0.4.0`](https://crates.io/crates/sea-query-rusqlite/0.4.0)
++ [`sea-query-rbatis`/`0.1.0`](https://crates.io/crates/sea-query-rbatis/0.1.0)
 
 ### New Features
 
