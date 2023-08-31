@@ -141,7 +141,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+      - run: |
+          cargo install --manifest-path sea-query-diesel/Cargo.toml --workspace -features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
+          cargo update --manifest-path sea-query-diesel/Cargo.toml --workspace -p bigdecimal:0.4.1 --precise 0.3.1
+          cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-json
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-rust_decimal

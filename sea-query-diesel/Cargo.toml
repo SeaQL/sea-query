@@ -48,7 +48,7 @@ mysql = ["diesel/mysql", "sea-query/backend-mysql"]
 sqlite = ["diesel/sqlite", "sea-query/backend-sqlite"]
 with-chrono = ["diesel/chrono", "sea-query/with-chrono", "chrono"]
 with-json = ["diesel/serde_json", "sea-query/with-json", "serde_json"]
-with-rust_decimal = ["sea-query/with-rust_decimal"]
+with-rust_decimal = ["sea-query/with-rust_decimal", "rust_decimal"]
 with-rust_decimal-mysql = ["with-rust_decimal", "rust_decimal/db-diesel2-mysql"]
 with-rust_decimal-postgres = [
   "with-rust_decimal",
