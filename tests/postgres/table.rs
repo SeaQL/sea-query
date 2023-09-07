@@ -519,7 +519,7 @@ fn alter_9() {
 
 #[test]
 fn alter_10() {
-    // https://dbfiddle.uk/PQksflGf
+    // https://dbfiddle.uk/BeiZPvBe
     assert_eq!(
         Table::alter()
             .table(Glyph::Table)
@@ -534,7 +534,7 @@ fn alter_10() {
             .to_string(PostgresQueryBuilder),
         [
             r#"ALTER TABLE "glyph""#,
-            r#"ADD COLUMN "aspect" integer NOT NULL UNIQUE PRIMARY KEY"#,
+            r#"ADD COLUMN "aspect" serial NOT NULL UNIQUE PRIMARY KEY"#,
         ]
         .join(" ")
     );
