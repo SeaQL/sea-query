@@ -112,7 +112,11 @@ impl TableBuilder for PostgresQueryBuilder {
                     let f = |column_def: &ColumnDef, sql: &mut dyn SqlWriter| {
                         if let Some(column_type) = &column_def.types {
                             write!(sql, " ").unwrap();
-                            if column_def.spec.iter().any(|v| matches!(v, ColumnSpec::AutoIncrement)) {
+                            if column_def
+                                .spec
+                                .iter()
+                                .any(|v| matches!(v, ColumnSpec::AutoIncrement))
+                            {
                                 self.prepare_column_auto_increment(column_type, sql);
                             } else {
                                 self.prepare_column_type(column_type, sql);
