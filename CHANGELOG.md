@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.30.2 - Pending
+
+### Bug Fixes
+
+* Fixed incorrect behavior when adding an autoincrement column for Postgres https://github.com/SeaQL/sea-query/pull/697
+
 ## 0.30.1 - 2023-08-25
 
 ### Versions
