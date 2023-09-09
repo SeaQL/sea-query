@@ -597,3 +597,27 @@ fn alter_with_check_constraint() {
         r#"ALTER TABLE "glyph" ADD COLUMN "aspect" integer NOT NULL DEFAULT 101 CHECK ("aspect" > 100)"#,
     );
 }
+
+#[test]
+fn create_16() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .col(ColumnDef::new(Glyph::Tokens).ltree())
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE "glyph" ("#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""tokens" ltree"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
