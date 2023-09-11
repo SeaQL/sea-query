@@ -1430,6 +1430,35 @@ impl Expr {
         Func::count(self.left).into()
     }
 
+    /// Express a `COUNT` function with the DISTINCT modifier.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).count_distinct())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT COUNT(DISTINCT `character`.`size_w`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COUNT(DISTINCT "character"."size_w") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT COUNT(DISTINCT "character"."size_w") FROM "character""#
+    /// );
+    /// ```
+    pub fn count_distinct(self) -> SimpleExpr {
+        Func::count_distinct(self.left).into()
+    }
+
     /// Express a `IF NULL` function.
     ///
     /// # Examples

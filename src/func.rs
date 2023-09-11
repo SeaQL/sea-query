@@ -33,6 +33,7 @@ pub enum Function {
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionCall {
     pub(crate) func: Function,
+    pub(crate) distinct: bool,
     pub(crate) args: Vec<SimpleExpr>,
 }
 
@@ -40,6 +41,7 @@ impl FunctionCall {
     pub(crate) fn new(func: Function) -> Self {
         Self {
             func,
+            distinct: false,
             args: Vec::new(),
         }
     }
@@ -59,6 +61,12 @@ impl FunctionCall {
         I: IntoIterator<Item = SimpleExpr>,
     {
         self.args = args.into_iter().collect();
+        self
+    }
+
+    /// Add the `DISTINCT` modifier to the first argument
+    pub fn distinct(mut self) -> Self {
+        self.distinct = true;
         self
     }
 
@@ -305,6 +313,38 @@ impl Func {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::Count).arg(expr)
+    }
+
+    /// Call `COUNT` function with the `DISTINCT` modifier.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::count_distinct(Expr::col((Char::Table, Char::Id))))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT COUNT(DISTINCT `character`.`id`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COUNT(DISTINCT "character"."id") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT COUNT(DISTINCT "character"."id") FROM "character""#
+    /// );
+    /// ```
+    pub fn count_distinct<T>(expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::Count).arg(expr).distinct()
     }
 
     /// Call `CHAR_LENGTH` function.

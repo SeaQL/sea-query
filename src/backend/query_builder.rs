@@ -310,7 +310,12 @@ pub trait QueryBuilder:
             }
             SimpleExpr::FunctionCall(func) => {
                 self.prepare_function(&func.func, sql);
-                self.prepare_tuple(&func.args, sql);
+                write!(sql, "(").unwrap();
+                if func.distinct {
+                    write!(sql, "DISTINCT ").unwrap();
+                }
+                self.prepare_comma_seperated_sequence(&func.args, sql);
+                write!(sql, ")").unwrap();
             }
             SimpleExpr::Binary(left, op, right) => match (op, right.as_ref()) {
                 (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => {
@@ -510,8 +515,12 @@ pub trait QueryBuilder:
             }
             TableRef::FunctionCall(func, alias) => {
                 self.prepare_function(&func.func, sql);
-                self.prepare_tuple(&func.args, sql);
-                write!(sql, " AS ").unwrap();
+                write!(sql, "(").unwrap();
+                if func.distinct {
+                    write!(sql, "DISTINCT ").unwrap();
+                }
+                self.prepare_comma_seperated_sequence(&func.args, sql);
+                write!(sql, ") AS ").unwrap();
                 alias.prepare(sql.as_writer(), self.quote());
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
@@ -946,9 +955,8 @@ pub trait QueryBuilder:
         });
     }
 
-    /// Translate [`SimpleExpr::Tuple`] into SQL statement.
-    fn prepare_tuple(&self, exprs: &[SimpleExpr], sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
+    /// Write a comma seperated sequence of [`SimpleExpr`]s.
+    fn prepare_comma_seperated_sequence(&self, exprs: &[SimpleExpr], sql: &mut dyn SqlWriter) {
         exprs.iter().fold(true, |first, expr| {
             if !first {
                 write!(sql, ", ").unwrap();
@@ -956,6 +964,12 @@ pub trait QueryBuilder:
             self.prepare_simple_expr(expr, sql);
             false
         });
+    }
+
+    /// Translate [`SimpleExpr::Tuple`] into SQL statement.
+    fn prepare_tuple(&self, exprs: &[SimpleExpr], sql: &mut dyn SqlWriter) {
+        write!(sql, "(").unwrap();
+        self.prepare_comma_seperated_sequence(exprs, sql);
         write!(sql, ")").unwrap();
     }
 
