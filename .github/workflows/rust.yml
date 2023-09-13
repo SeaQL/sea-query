@@ -3,8 +3,8 @@ name: tests
 on:
   pull_request:
     paths-ignore:
-      - "**.md"
-      - ".github/ISSUE_TEMPLATE/**"
+      - '**.md'
+      - '.github/ISSUE_TEMPLATE/**'
       - .gitignore
   push:
     branches:
@@ -13,8 +13,8 @@ on:
       - pr/**/ci
       - ci-*
     paths-ignore:
-      - "**.md"
-      - ".github/ISSUE_TEMPLATE/**"
+      - '**.md'
+      - '.github/ISSUE_TEMPLATE/**'
       - .gitignore
 
 concurrency:
@@ -136,26 +136,6 @@ jobs:
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-mac_address
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-array
 
-  diesel-build:
-    name: Build `sea-query-diesel`
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo update --manifest-path sea-query-diesel/Cargo.toml --workspace -p bigdecimal:0.4.1 --precise 0.3.1
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-json
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-rust_decimal
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres --features=with-rust_decimal-postgres
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features mysql --features=with-rust_decimal-mysql
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-bigdecimal
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-uuid
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-time
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-ipnetwork
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-mac_address
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=postgres-array
-
   test:
     name: Unit Test
     runs-on: ubuntu-latest
@@ -178,11 +158,10 @@ jobs:
   sqlite:
     name: SQLite
     runs-on: ubuntu-latest
-    needs:
-      ["test", "derive-test", "rusqlite-build", "binder-build", "diesel-build"]
+    needs: ["test", "derive-test", "rusqlite-build", "binder-build"]
     strategy:
       matrix:
-        example: [rusqlite, sqlx_sqlite, diesel_sqlite]
+        example: [rusqlite, sqlx_sqlite]
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -192,11 +171,11 @@ jobs:
   mysql:
     name: MySQL
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test", "binder-build", "diesel-build"]
+    needs: ["test", "derive-test", "binder-build"]
     strategy:
       matrix:
         version: [8.0, 5.7]
-        example: [sqlx_mysql, diesel_mysql]
+        example: [sqlx_mysql]
     services:
       mysql:
         image: mysql:${{ matrix.version }}
@@ -222,11 +201,11 @@ jobs:
   mariadb:
     name: MariaDB
     runs-on: ubuntu-latest
-    needs: ["test", "derive-test", "binder-build", "diesel-build"]
+    needs: ["test", "derive-test", "binder-build"]
     strategy:
       matrix:
         version: [10.6]
-        example: [sqlx_mysql, diesel_mysql]
+        example: [sqlx_mysql]
     services:
       mariadb:
         image: mariadb:${{ matrix.version }}
@@ -252,12 +231,11 @@ jobs:
   postgres:
     name: PostgreSQL
     runs-on: ubuntu-latest
-    needs:
-      ["test", "derive-test", "binder-build", "postgres-build", "diesel-build"]
+    needs: ["test", "derive-test", "binder-build", "postgres-build"]
     strategy:
       matrix:
         version: [14.4, 13.7, 12.11]
-        example: [postgres, sqlx_postgres, diesel_postgres]
+        example: [postgres, sqlx_postgres]
     services:
       postgres:
         image: postgres:${{ matrix.version }}
@@ -276,8 +254,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - if: ${{ matrix.example == 'diesel_postgres' }}
-        run: cargo update --manifest-path examples/${{ matrix.example }}/Cargo.toml -p bigdecimal:0.4.1 --precise 0.3.1
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
