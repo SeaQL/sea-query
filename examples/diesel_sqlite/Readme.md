@@ -25,4 +25,3 @@ Count character: 1
 
 Delete character: Ok(1)
 ```
-
