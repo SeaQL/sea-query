@@ -282,6 +282,7 @@ impl std::fmt::Display for ValueTypeErr {
 pub struct Values(pub Vec<Value>);
 
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "hashable-value", derive(Hash, Eq))]
 pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
