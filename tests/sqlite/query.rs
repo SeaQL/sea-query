@@ -1171,6 +1171,29 @@ fn insert_from_select() {
 }
 
 #[test]
+fn insert_from_select_2() {
+    let sql = Query::insert()
+        .into_table(Glyph::Table)
+        .columns([Glyph::Image])
+        .select_from(
+            Query::select()
+                .expr(Expr::val("hello"))
+                .cond_where(Cond::all().not().add(Expr::exists(
+                    Query::select().expr(Expr::val("world")).to_owned(),
+                )))
+                .to_owned(),
+        )
+        .unwrap()
+        .to_owned()
+        .to_string(SqliteQueryBuilder);
+
+    assert_eq!(
+        sql,
+        r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
+    );
+}
+
+#[test]
 #[cfg(feature = "with-uuid")]
 fn insert_5() {
     assert_eq!(

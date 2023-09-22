@@ -148,6 +148,28 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
     /// );
     /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Image])
+    ///     .select_from(
+    ///         Query::select()
+    ///             .expr(Expr::val("hello"))
+    ///             .cond_where(Cond::all().not().add(Expr::exists(
+    ///                 Query::select().expr(Expr::val("world")).to_owned(),
+    ///             )))
+    ///             .to_owned(),
+    ///     )
+    ///     .unwrap()
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
+    /// );
+    /// ```
     pub fn select_from<S>(&mut self, select: S) -> Result<&mut Self>
     where
         S: Into<SelectStatement>,
