@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Fixed incorrect behavior when adding an autoincrement column for Postgres https://github.com/SeaQL/sea-query/pull/697
 
+### Enhancements
+
+* Make `ValueTuple` hashable
+
 ## 0.30.1 - 2023-08-25
 
 ### Versions
