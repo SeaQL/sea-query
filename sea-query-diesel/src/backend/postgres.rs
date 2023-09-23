@@ -56,6 +56,8 @@ impl TransformValue for Pg {
             Value::ChronoDateTimeLocal(v) => build!(Timestamptz, v.map(|v| *v)),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
+            #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+            Value::ChronoDuration(v) => build!(Interval, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
             Value::TimeDate(v) => build!(Date, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
@@ -64,6 +66,8 @@ impl TransformValue for Pg {
             Value::TimeDateTime(v) => build!(Timestamp, v.map(|v| *v)),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
+            #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+            Value::TimeDuration(v) => build!(Interval, v.map(|v| *v)),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => build!(Uuid, v.map(|v| *v)),
             #[cfg(feature = "with-rust_decimal-postgres")]

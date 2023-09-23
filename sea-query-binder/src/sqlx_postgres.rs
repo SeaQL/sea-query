@@ -262,7 +262,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     }
                     #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
                     ArrayType::ChronoDuration => {
-                        let value: Option<Vec<Duration>> = Value::Array(ty, v)
+                        let value: Option<Vec<chrono::Duration>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::ChronoDuration");
                         args.add(value);
                     }
@@ -293,7 +293,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     }
                     #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
                     ArrayType::TimeDuration => {
-                        let value: Option<Vec<Duration>> = Value::Array(ty, v)
+                        let value: Option<Vec<time::Duration>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::TimeDuration");
                         args.add(value);
                     }
