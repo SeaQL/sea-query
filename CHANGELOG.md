@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.30.2 - Pending
+## 0.30.2 - 2023-09-23
+
++ [`sea-query-diesel`/`0.1.0`](https://crates.io/crates/sea-query-diesel/0.1.0)
 
 ### Bug Fixes
 
