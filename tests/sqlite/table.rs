@@ -318,6 +318,102 @@ fn create_with_unique_index_constraint() {
 }
 
 #[test]
+fn create_big_integer_default() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(
+                ColumnDef::new(Task::Id)
+                    .big_integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .col(ColumnDef::new(Task::IsDone).boolean().not_null())
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "task" ("#,
+            r#""id" bigint NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""is_done" boolean NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_big_unsigned_default() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(
+                ColumnDef::new(Task::Id)
+                    .big_unsigned()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .col(ColumnDef::new(Task::IsDone).boolean().not_null())
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "task" ("#,
+            r#""id" bigint NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""is_done" boolean NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_big_integer_exact() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(
+                ColumnDef::new(Task::Id)
+                    .big_integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .col(ColumnDef::new(Task::IsDone).boolean().not_null())
+            .to_string(SqliteTypedQueryBuilder::<ExactTypeMapper>::default()),
+        [
+            r#"CREATE TABLE "task" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""is_done" boolean NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_big_unsigned_exact() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(
+                ColumnDef::new(Task::Id)
+                    .big_unsigned()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .col(ColumnDef::new(Task::IsDone).boolean().not_null())
+            .to_string(SqliteTypedQueryBuilder::<ExactTypeMapper>::default()),
+        [
+            r#"CREATE TABLE "task" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""is_done" boolean NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
