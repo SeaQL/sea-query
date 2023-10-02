@@ -81,7 +81,7 @@ pub enum ArrayType {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone,
 
-    #[cfg(all(feature = "with-chrono", feature = "postgres-interval"))]
+    #[cfg(feature = "postgres-interval")]
     Interval,
 
     #[cfg(feature = "with-time")]
@@ -1477,7 +1477,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(all(feature = "with-chrono", feature = "postgres-interval"))]
+        #[cfg(feature = "postgres-interval")]
         Value::Interval(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
