@@ -1002,6 +1002,8 @@ pub trait QueryBuilder:
             Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "postgres-interval")]
+            Value::Interval(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDate(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
@@ -1059,6 +1061,34 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+            }
+            #[cfg(feature = "postgres-interval")]
+            Value::Interval(Some(v)) => {
+                let mut space = false;
+
+                write!(s, "'").unwrap();
+
+                if v.months > 0 {
+                    write!(s, "{} MONTHS", v.days).unwrap();
+                    space = true;
+                }
+
+                if v.days > 0 {
+                    if space {
+                        write!(s, " ").unwrap();
+                    }
+                    write!(s, "{} DAYS", v.days).unwrap();
+                    space = true;
+                }
+
+                if v.microseconds > 0 {
+                    if space {
+                        write!(s, " ").unwrap();
+                    }
+                    write!(s, "{} MICROSECONDS", v.microseconds).unwrap();
+                }
+
+                write!(s, "'::interval").unwrap();
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {

@@ -18,7 +18,7 @@ rust-version = "1.60"
 
 [dependencies]
 sea-query = { version = "0.31", path = "..", default-features = false, features = ["thread-safe"] }
-sqlx = { version = "0.7", default-features = false, optional = true }
+sqlx = { git = "https://github.com/yasamoka/sqlx", branch = "pg-interval-hash", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }
 rust_decimal = { version = "1", default-features = false, optional = true }
@@ -42,6 +42,7 @@ with-time = ["sqlx?/time", "sea-query/with-time", "time"]
 with-ipnetwork = ["sqlx?/ipnetwork", "sea-query/with-ipnetwork", "ipnetwork"]
 with-mac_address = ["sqlx?/mac_address", "sea-query/with-mac_address", "mac_address"]
 postgres-array = ["sea-query/postgres-array"]
+postgres-interval = ["sqlx-postgres", "sqlx/chrono"]
 runtime-async-std-native-tls = ["sqlx?/runtime-async-std-native-tls"]
 runtime-async-std-rustls = ["sqlx?/runtime-async-std-rustls", ]
 runtime-actix-native-tls = ["sqlx?/runtime-tokio-native-tls"]

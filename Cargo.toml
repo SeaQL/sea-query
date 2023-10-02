@@ -44,6 +44,7 @@ time = { version = "0.3", default-features = false, optional = true, features = 
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 ordered-float = { version = "3.4", default-features = false, optional = true }
+sqlx = { git = "https://github.com/yasamoka/sqlx", branch = "pg-interval-hash", default-features = false, optional = true }
 
 [dev-dependencies]
 sea-query = { path = ".", features = ["tests-cfg"] }
@@ -60,7 +61,7 @@ derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
 hashable-value = ["derivative", "ordered-float"]
 postgres-array = []
-postgres-interval = ["proc-macro2", "quote"]
+postgres-interval = ["proc-macro2", "quote", "sqlx/postgres"]
 thread-safe = []
 with-chrono = ["chrono"]
 with-json = ["serde_json"]

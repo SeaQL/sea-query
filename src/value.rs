@@ -32,6 +32,8 @@ use std::net::IpAddr;
 use mac_address::MacAddress;
 
 use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
+#[cfg(feature = "postgres-interval")]
+use sqlx::postgres::types::PgInterval;
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -78,6 +80,9 @@ pub enum ArrayType {
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone,
+
+    #[cfg(all(feature = "with-chrono", feature = "postgres-interval"))]
+    Interval,
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
@@ -201,6 +206,9 @@ pub enum Value {
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+
+    #[cfg(feature = "postgres-interval")]
+    Interval(Option<Box<PgInterval>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
@@ -540,6 +548,13 @@ mod with_chrono {
         }
     }
 
+    #[cfg(feature = "postgres-interval")]
+    impl From<PgInterval> for Value {
+        fn from(v: PgInterval) -> Self {
+            Value::Interval(Some(Box::new(v)))
+        }
+    }
+
     impl Nullable for DateTime<Utc> {
         fn null() -> Value {
             Value::ChronoDateTimeUtc(None)
@@ -591,6 +606,28 @@ mod with_chrono {
 
         fn column_type() -> ColumnType {
             ColumnType::TimestampWithTimeZone
+        }
+    }
+
+    #[cfg(feature = "postgres-interval")]
+    impl ValueType for PgInterval {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::Interval(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(PgInterval).to_owned()
+        }
+
+        fn array_type() -> ArrayType {
+            ArrayType::Interval
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::Interval(None, None)
         }
     }
 
@@ -804,6 +841,9 @@ pub mod with_array {
 
     #[cfg(feature = "with-chrono")]
     impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
+
+    #[cfg(feature = "postgres-interval")]
+    impl NotU8 for PgInterval {}
 
     #[cfg(feature = "with-time")]
     impl NotU8 for time::Date {}
@@ -1161,6 +1201,20 @@ impl Value {
     }
 }
 
+#[cfg(feature = "postgres-interval")]
+impl Value {
+    pub fn is_interval(&self) -> bool {
+        matches!(self, Self::Interval(_))
+    }
+
+    pub fn as_ref_interval(&self) -> Option<&PgInterval> {
+        match self {
+            Self::Interval(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Interval"),
+        }
+    }
+}
+
 #[cfg(feature = "with-ipnetwork")]
 impl Value {
     pub fn is_ipnetwork(&self) -> bool {
@@ -1423,6 +1477,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(all(feature = "with-chrono", feature = "postgres-interval"))]
+        Value::Interval(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]

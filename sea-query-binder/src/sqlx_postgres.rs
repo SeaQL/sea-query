@@ -10,6 +10,8 @@ use mac_address::MacAddress;
 use rust_decimal::Decimal;
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
+#[cfg(feature = "postgres-interval")]
+use sqlx::postgres::types::PgInterval;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
@@ -87,6 +89,10 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
+                    args.add(t.as_deref());
+                }
+                #[cfg(feature = "postgres-interval")]
+                Value::Interval(t) => {
                     args.add(t.as_deref());
                 }
                 #[cfg(feature = "with-time")]
@@ -250,6 +256,12 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         let value: Option<Vec<DateTime<Local>>> = Value::Array(ty, v).expect(
                             "This Value::Array should consist of Value::ChronoDateTimeWithTimeZone",
                         );
+                        args.add(value);
+                    }
+                    #[cfg(feature = "postgres-interval")]
+                    ArrayType::Interval => {
+                        let value: Option<Vec<PgInterval>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::Interval");
                         args.add(value);
                     }
                     #[cfg(feature = "with-time")]
