@@ -18,9 +18,9 @@ use self::{
 };
 
 fn find_attr(attrs: &[Attribute]) -> Option<&Attribute> {
-    attrs
-        .iter()
-        .find(|attr| attr.path.is_ident(&IdenPath::Iden) || attr.path.is_ident(&IdenPath::Method))
+    attrs.iter().find(|attr| {
+        attr.path().is_ident(&IdenPath::Iden) || attr.path().is_ident(&IdenPath::Method)
+    })
 }
 
 fn get_table_name(ident: &proc_macro2::Ident, attrs: Vec<Attribute>) -> Result<String, syn::Error> {
