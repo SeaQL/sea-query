@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Make `ValueTuple` hashable
 
+### Breaking changes
+
+* Remove `ToTokens` for `PgInterval` https://github.com/SeaQL/sea-query/pull/710
+
 ## 0.30.1 - 2023-08-25
 
 ### Versions
