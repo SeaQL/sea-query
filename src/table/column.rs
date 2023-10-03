@@ -561,6 +561,30 @@ impl ColumnDef {
 
     /// Set column type as `ltree`
     /// This is only supported on Postgres.
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Glyph::Id)
+    ///                 .integer()
+    ///                 .not_null()
+    ///                 .auto_increment()
+    ///                 .primary_key()
+    ///         )
+    ///         .col(ColumnDef::new(Glyph::Tokens).ltree())
+    ///         .to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "glyph" ("#,
+    ///         r#""id" serial NOT NULL PRIMARY KEY,"#,
+    ///         r#""tokens" ltree"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn ltree(&mut self) -> &mut Self {
         self.types = Some(ColumnType::LTree);
         self
