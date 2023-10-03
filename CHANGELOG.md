@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Main Branch
 
+### New Features
+
+* Added `LTree` column type https://github.com/SeaQL/sea-query/pull/604
+
 ### Upgrades
 
 * Upgrade to `syn` 2
+
+### Breaking changes
+
+* Remove `ToTokens` for `PgInterval` https://github.com/SeaQL/sea-query/pull/710
 
 ## 0.30.2 - 2023-09-23
 
@@ -22,10 +30,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * Make `ValueTuple` hashable
-
-### Breaking changes
-
-* Remove `ToTokens` for `PgInterval` https://github.com/SeaQL/sea-query/pull/710
 
 ## 0.30.1 - 2023-08-25
 
