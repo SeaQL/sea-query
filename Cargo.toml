@@ -38,8 +38,6 @@ postgres-types = { version = "0", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.3", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
-proc-macro2 = { version = "1", default-features = false, optional = true }
-quote = { version = "1", default-features = false, optional = true }
 time = { version = "0.3", default-features = false, optional = true, features = ["macros", "formatting"] }
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
@@ -60,7 +58,7 @@ derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
 hashable-value = ["derivative", "ordered-float"]
 postgres-array = []
-postgres-interval = ["proc-macro2", "quote"]
+postgres-interval = []
 thread-safe = []
 with-chrono = ["chrono"]
 with-json = ["serde_json"]

@@ -148,28 +148,6 @@ pub enum BlobSize {
     Long,
 }
 
-#[cfg(feature = "postgres-interval")]
-impl quote::ToTokens for PgInterval {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        use quote::{quote, TokenStreamExt};
-        tokens.append_all(match self {
-            PgInterval::Year => quote! { PgInterval::Year },
-            PgInterval::Month => quote! { PgInterval::Month },
-            PgInterval::Day => quote! { PgInterval::Day },
-            PgInterval::Hour => quote! { PgInterval::Hour },
-            PgInterval::Minute => quote! { PgInterval::Minute },
-            PgInterval::Second => quote! { PgInterval::Second },
-            PgInterval::YearToMonth => quote! { PgInterval::YearToMonth },
-            PgInterval::DayToHour => quote! { PgInterval::DayToHour },
-            PgInterval::DayToMinute => quote! { PgInterval::DayToMinute },
-            PgInterval::DayToSecond => quote! { PgInterval::DayToSecond },
-            PgInterval::HourToMinute => quote! { PgInterval::HourToMinute },
-            PgInterval::HourToSecond => quote! { PgInterval::HourToSecond },
-            PgInterval::MinuteToSecond => quote! { PgInterval::MinuteToSecond },
-        });
-    }
-}
-
 impl ColumnDef {
     /// Construct a table column
     pub fn new<T>(name: T) -> Self
