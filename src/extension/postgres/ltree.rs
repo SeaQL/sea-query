@@ -1,4 +1,4 @@
-use std::fmt;
+use crate::Iden;
 
 /// PostgreSQL `ltree` extension type.
 ///
@@ -50,8 +50,14 @@ use std::fmt;
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PgLTree;
 
-impl fmt::Display for PgLTree {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ltree")
+impl Iden for PgLTree {
+    fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+        write!(s, "ltree").unwrap();
+    }
+}
+
+impl From<PgLTree> for String {
+    fn from(l: PgLTree) -> Self {
+        l.to_string()
     }
 }

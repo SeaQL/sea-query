@@ -235,12 +235,13 @@ impl_extension_statement_builder!(ExtensionDropStatement, prepare_extension_drop
 
 #[cfg(test)]
 mod test {
+    use super::super::PgLTree;
     use super::*;
 
     #[test]
     fn creates_a_stmt_for_create_extension() {
         let create_extension_stmt = Extension::create()
-            .name("ltree")
+            .name(PgLTree)
             .schema("public")
             .version("v0.1.0")
             .cascade()
@@ -257,7 +258,7 @@ mod test {
     #[test]
     fn creates_a_stmt_for_drop_extension() {
         let drop_extension_stmt = Extension::drop()
-            .name("ltree")
+            .name(PgLTree)
             .cascade()
             .if_exists()
             .restrict()
