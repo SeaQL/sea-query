@@ -995,8 +995,7 @@ fn select_58() {
             .and_where(Expr::col(Char::Character).like(LikeExpr::new("A").escape('\\')))
             .build(MysqlQueryBuilder),
         (
-            r#"SELECT `character` FROM `character` WHERE `character` LIKE ? ESCAPE '\\'"#
-                .to_owned(),
+            r"SELECT `character` FROM `character` WHERE `character` LIKE ? ESCAPE '\\'".to_owned(),
             Values(vec!["A".into()])
         )
     );

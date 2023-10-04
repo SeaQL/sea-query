@@ -52,6 +52,7 @@ pub enum ColumnType {
     Cidr,
     Inet,
     MacAddr,
+    LTree,
 }
 
 impl PartialEq for ColumnType {
@@ -555,6 +556,13 @@ impl ColumnDef {
     /// This is only supported on Postgres.
     pub fn mac_address(&mut self) -> &mut Self {
         self.types = Some(ColumnType::MacAddr);
+        self
+    }
+
+    /// Set column type as `ltree`
+    /// This is only supported on Postgres.
+    pub fn ltree(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::LTree);
         self
     }
 
