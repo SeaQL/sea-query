@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Main Branch
+
+### New Features
+
+* Added `LTree` column type https://github.com/SeaQL/sea-query/pull/604
+
+### Upgrades
+
+* Upgrade to `syn` 2
+
+### Breaking changes
+
+* Remove `ToTokens` for `PgInterval` https://github.com/SeaQL/sea-query/pull/710
+
 ## 0.30.2 - 2023-09-23
 
 + [`sea-query-diesel`/`0.1.0`](https://crates.io/crates/sea-query-diesel/0.1.0)

@@ -52,6 +52,7 @@ pub enum ColumnType {
     Cidr,
     Inet,
     MacAddr,
+    LTree,
 }
 
 impl PartialEq for ColumnType {
@@ -146,28 +147,6 @@ pub enum BlobSize {
     Blob(Option<u32>),
     Medium,
     Long,
-}
-
-#[cfg(feature = "postgres-interval")]
-impl quote::ToTokens for PgInterval {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        use quote::{quote, TokenStreamExt};
-        tokens.append_all(match self {
-            PgInterval::Year => quote! { PgInterval::Year },
-            PgInterval::Month => quote! { PgInterval::Month },
-            PgInterval::Day => quote! { PgInterval::Day },
-            PgInterval::Hour => quote! { PgInterval::Hour },
-            PgInterval::Minute => quote! { PgInterval::Minute },
-            PgInterval::Second => quote! { PgInterval::Second },
-            PgInterval::YearToMonth => quote! { PgInterval::YearToMonth },
-            PgInterval::DayToHour => quote! { PgInterval::DayToHour },
-            PgInterval::DayToMinute => quote! { PgInterval::DayToMinute },
-            PgInterval::DayToSecond => quote! { PgInterval::DayToSecond },
-            PgInterval::HourToMinute => quote! { PgInterval::HourToMinute },
-            PgInterval::HourToSecond => quote! { PgInterval::HourToSecond },
-            PgInterval::MinuteToSecond => quote! { PgInterval::MinuteToSecond },
-        });
-    }
 }
 
 impl ColumnDef {
@@ -577,6 +556,37 @@ impl ColumnDef {
     /// This is only supported on Postgres.
     pub fn mac_address(&mut self) -> &mut Self {
         self.types = Some(ColumnType::MacAddr);
+        self
+    }
+
+    /// Set column type as `ltree`
+    /// This is only supported on Postgres.
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Glyph::Id)
+    ///                 .integer()
+    ///                 .not_null()
+    ///                 .auto_increment()
+    ///                 .primary_key()
+    ///         )
+    ///         .col(ColumnDef::new(Glyph::Tokens).ltree())
+    ///         .to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "glyph" ("#,
+    ///         r#""id" serial NOT NULL PRIMARY KEY,"#,
+    ///         r#""tokens" ltree"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
+    pub fn ltree(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::LTree);
         self
     }
 
