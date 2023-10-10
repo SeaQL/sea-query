@@ -73,8 +73,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::ChronoDateTimeWithTimeZone(t) => {
                     args.add(t.map(|t| *t));
                 }
-                #[cfg(feature = "postgres-interval")]
-                Value::Interval(_) => {}
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
                     args.add(t.map(|t| *t));
@@ -91,6 +89,8 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     args.add(t.map(|t| *t));
                 }
+                #[cfg(feature = "postgres-interval")]
+                Value::Interval(_) => {}
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     args.add(uuid.map(|uuid| *uuid));

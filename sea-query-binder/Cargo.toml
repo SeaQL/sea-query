@@ -18,7 +18,7 @@ rust-version = "1.60"
 
 [dependencies]
 sea-query = { version = "0.31", path = "..", default-features = false, features = ["thread-safe"] }
-sqlx = { git = "https://github.com/yasamoka/sqlx", branch = "pg-interval-hash", default-features = false, optional = true }
+sqlx = { version = "0.7", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }
 rust_decimal = { version = "1", default-features = false, optional = true }

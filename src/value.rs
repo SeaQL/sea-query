@@ -32,8 +32,6 @@ use std::net::IpAddr;
 use mac_address::MacAddress;
 
 use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
-#[cfg(feature = "postgres-interval")]
-use sqlx::postgres::types::PgInterval;
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -81,9 +79,6 @@ pub enum ArrayType {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone,
 
-    #[cfg(feature = "postgres-interval")]
-    Interval,
-
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDate,
@@ -99,6 +94,9 @@ pub enum ArrayType {
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone,
+
+    #[cfg(feature = "postgres-interval")]
+    Interval,
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -207,9 +205,6 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
 
-    #[cfg(feature = "postgres-interval")]
-    Interval(Option<Box<PgInterval>>),
-
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDate(Option<Box<time::Date>>),
@@ -225,6 +220,9 @@ pub enum Value {
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
+
+    #[cfg(feature = "postgres-interval")]
+    Interval(Option<Box<PgIntervalValue>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -510,6 +508,14 @@ impl ValueType for Cow<'_, str> {
 type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
 type_to_box_value!(String, String, String(None));
 
+#[cfg(feature = "postgres-interval")]
+#[derive(Debug, Eq, PartialEq, Clone, Hash)]
+    pub struct PgIntervalValue {
+        pub months: i32,
+        pub days: i32,
+        pub microseconds: i64,
+    }
+
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
@@ -545,13 +551,6 @@ mod with_chrono {
             let v =
                 DateTime::<FixedOffset>::from_naive_utc_and_offset(x.naive_utc(), x.offset().fix());
             Value::ChronoDateTimeWithTimeZone(Some(Box::new(v)))
-        }
-    }
-
-    #[cfg(feature = "postgres-interval")]
-    impl From<PgInterval> for Value {
-        fn from(v: PgInterval) -> Self {
-            Value::Interval(Some(Box::new(v)))
         }
     }
 
@@ -606,28 +605,6 @@ mod with_chrono {
 
         fn column_type() -> ColumnType {
             ColumnType::TimestampWithTimeZone
-        }
-    }
-
-    #[cfg(feature = "postgres-interval")]
-    impl ValueType for PgInterval {
-        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-            match v {
-                Value::Interval(Some(x)) => Ok(*x),
-                _ => Err(ValueTypeErr),
-            }
-        }
-
-        fn type_name() -> String {
-            stringify!(PgInterval).to_owned()
-        }
-
-        fn array_type() -> ArrayType {
-            ArrayType::Interval
-        }
-
-        fn column_type() -> ColumnType {
-            ColumnType::Interval(None, None)
         }
     }
 
@@ -714,6 +691,38 @@ mod with_time {
 
         fn column_type() -> ColumnType {
             ColumnType::TimestampWithTimeZone
+        }
+    }
+}
+
+#[cfg(feature = "postgres-interval")]
+mod with_postgres_interval {
+    use super::*;
+
+    impl From<PgIntervalValue> for Value {
+        fn from(v: PgIntervalValue) -> Self {
+            Value::Interval(Some(Box::new(v)))
+        }
+    }
+
+    impl ValueType for PgIntervalValue {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::Interval(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(PgIntervalValue).to_owned()
+        }
+
+        fn array_type() -> ArrayType {
+            ArrayType::Interval
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::Interval(None, None)
         }
     }
 }
@@ -842,9 +851,6 @@ pub mod with_array {
     #[cfg(feature = "with-chrono")]
     impl<Tz> NotU8 for DateTime<Tz> where Tz: chrono::TimeZone {}
 
-    #[cfg(feature = "postgres-interval")]
-    impl NotU8 for PgInterval {}
-
     #[cfg(feature = "with-time")]
     impl NotU8 for time::Date {}
 
@@ -856,6 +862,9 @@ pub mod with_array {
 
     #[cfg(feature = "with-time")]
     impl NotU8 for OffsetDateTime {}
+
+    #[cfg(feature = "postgres-interval")]
+    impl NotU8 for PgIntervalValue {}
 
     #[cfg(feature = "with-rust_decimal")]
     impl NotU8 for Decimal {}
@@ -1135,6 +1144,20 @@ impl Value {
     }
 }
 
+#[cfg(feature = "postgres-interval")]
+impl Value {
+    pub fn is_interval(&self) -> bool {
+        matches!(self, Self::Interval(_))
+    }
+
+    pub fn as_ref_interval(&self) -> Option<&PgIntervalValue> {
+        match self {
+            Self::Interval(v) => box_to_opt_ref!(v),
+            _ => panic!("not Value::Interval"),
+        }
+    }
+}
+
 #[cfg(feature = "with-rust_decimal")]
 impl Value {
     pub fn is_decimal(&self) -> bool {
@@ -1197,20 +1220,6 @@ impl Value {
         match self {
             Self::Array(_, v) => box_to_opt_ref!(v),
             _ => panic!("not Value::Array"),
-        }
-    }
-}
-
-#[cfg(feature = "postgres-interval")]
-impl Value {
-    pub fn is_interval(&self) -> bool {
-        matches!(self, Self::Interval(_))
-    }
-
-    pub fn as_ref_interval(&self) -> Option<&PgInterval> {
-        match self {
-            Self::Interval(v) => box_to_opt_ref!(v),
-            _ => panic!("not Value::Interval"),
         }
     }
 }
@@ -1477,8 +1486,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::ChronoDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDateTimeLocal(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
-        #[cfg(feature = "postgres-interval")]
-        Value::Interval(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
@@ -1487,6 +1494,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "postgres-interval")]
+        Value::Interval(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;

@@ -1002,8 +1002,6 @@ pub trait QueryBuilder:
             Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "postgres-interval")]
-            Value::Interval(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDate(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
@@ -1012,6 +1010,8 @@ pub trait QueryBuilder:
             Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "postgres-interval")]
+            Value::Interval(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
@@ -1062,6 +1062,25 @@ pub trait QueryBuilder:
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
+            #[cfg(feature = "with-time")]
+            Value::TimeDate(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::TimeTime(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTime(Some(v)) => {
+                write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
+            }
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
+                s,
+                "'{}'",
+                v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
+            )
+            .unwrap(),
             #[cfg(feature = "postgres-interval")]
             Value::Interval(Some(v)) => {
                 let mut space = false;
@@ -1090,25 +1109,6 @@ pub trait QueryBuilder:
 
                 write!(s, "'::interval").unwrap();
             }
-            #[cfg(feature = "with-time")]
-            Value::TimeDate(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
-            }
-            #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
-            }
-            #[cfg(feature = "with-time")]
-            Value::TimeDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
-            }
-            #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
-            )
-            .unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
