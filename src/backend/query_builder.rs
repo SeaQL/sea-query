@@ -1088,7 +1088,7 @@ pub trait QueryBuilder:
                 write!(s, "'").unwrap();
 
                 if v.months > 0 {
-                    write!(s, "{} MONTHS", v.days).unwrap();
+                    write!(s, "{} MONTHS", v.months).unwrap();
                     space = true;
                 }
 

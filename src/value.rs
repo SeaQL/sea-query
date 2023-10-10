@@ -509,12 +509,12 @@ type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
 type_to_box_value!(String, String, String(None));
 
 #[cfg(feature = "postgres-interval")]
-#[derive(Debug, Eq, PartialEq, Clone, Hash)]
-    pub struct PgIntervalValue {
-        pub months: i32,
-        pub days: i32,
-        pub microseconds: i64,
-    }
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
+pub struct PgIntervalValue {
+    pub months: i32,
+    pub days: i32,
+    pub microseconds: i64,
+}
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -1918,6 +1918,116 @@ mod tests {
             query.to_string(SqliteQueryBuilder),
             format!("SELECT '{formatted}'")
         );
+    }
+
+    #[test]
+    #[cfg(feature = "postgres-interval")]
+    fn test_pginterval_value() {
+        let interval = PgIntervalValue {
+            months: 1,
+            days: 2,
+            microseconds: 300,
+        };
+        let value: Value = interval.into();
+        let out: PgIntervalValue = value.unwrap();
+        assert_eq!(out, interval);
+    }
+
+    #[test]
+    #[cfg(feature = "postgres-interval")]
+    fn test_pginterval_query() {
+        use crate::*;
+
+        const VALUES: [(PgIntervalValue, &str); 10] = [
+            (
+                PgIntervalValue {
+                    months: 0,
+                    days: 0,
+                    microseconds: 1,
+                },
+                "1 MICROSECONDS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 0,
+                    days: 0,
+                    microseconds: 100,
+                },
+                "100 MICROSECONDS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 0,
+                    days: 1,
+                    microseconds: 0,
+                },
+                "1 DAYS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 0,
+                    days: 2,
+                    microseconds: 0,
+                },
+                "2 DAYS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 0,
+                    days: 2,
+                    microseconds: 100,
+                },
+                "2 DAYS 100 MICROSECONDS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 1,
+                    days: 0,
+                    microseconds: 0,
+                },
+                "1 MONTHS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 2,
+                    days: 0,
+                    microseconds: 0,
+                },
+                "2 MONTHS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 2,
+                    days: 0,
+                    microseconds: 100,
+                },
+                "2 MONTHS 100 MICROSECONDS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 2,
+                    days: 2,
+                    microseconds: 0,
+                },
+                "2 MONTHS 2 DAYS",
+            ),
+            (
+                PgIntervalValue {
+                    months: 2,
+                    days: 2,
+                    microseconds: 100,
+                },
+                "2 MONTHS 2 DAYS 100 MICROSECONDS",
+            ),
+        ];
+
+        for (interval, formatted) in VALUES {
+            let query = Query::select().expr(interval).to_owned();
+            assert_eq!(
+                query.to_string(PostgresQueryBuilder),
+                format!("SELECT '{formatted}'::interval")
+            );
+        }
     }
 
     #[test]
