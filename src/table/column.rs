@@ -635,7 +635,7 @@ impl ColumnDef {
     ///     .col(
     ///         ColumnDef::new(Char::Id)
     ///             .uuid()
-    ///             .extra("DEFAULT uuid_generate_v4()")
+    ///             .extra("DEFAULT gen_random_uuid()")
     ///             .primary_key()
     ///             .not_null(),
     ///     )
@@ -650,7 +650,7 @@ impl ColumnDef {
     ///     table.to_string(PostgresQueryBuilder),
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
-    ///         r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
+    ///         r#""id" uuid DEFAULT gen_random_uuid() PRIMARY KEY NOT NULL,"#,
     ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL"#,
     ///         r#")"#,
     ///     ]
