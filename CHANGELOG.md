@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Added `LTree` column type https://github.com/SeaQL/sea-query/pull/604
 
-### Upgrades
-
-* Upgrade to `syn` 2
-
 ### Breaking changes
 
 * Remove `ToTokens` for `PgInterval` https://github.com/SeaQL/sea-query/pull/710
