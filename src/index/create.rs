@@ -1,10 +1,9 @@
 use inherent::inherent;
 
 use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
-use crate::{ConditionHolder, ConditionalStatement};
+use crate::{ConditionHolder, ConditionalStatement, IntoCondition};
 
 use super::common::*;
-use crate::IntoCondition;
 
 /// Create an index for an existing table
 ///
