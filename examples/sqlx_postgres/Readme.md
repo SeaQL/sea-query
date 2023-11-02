@@ -9,6 +9,8 @@ Example output:
 ```
 Create table character: Ok(PgQueryResult { rows_affected: 0 })
 
+Create partial index: Ok(PgQueryResult { rows_affected: 0 })
+
 Insert into character: Ok(PgQueryResult { rows_affected: 1 })
 
 Select one from character:
