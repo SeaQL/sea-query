@@ -159,7 +159,10 @@ impl QueryBuilder for PostgresQueryBuilder {
         write!(
             buffer,
             "'\\x{}'",
-            bytes.iter().map(|b| format!("{b:02X}")).collect::<String>()
+            bytes.iter().fold(String::new(), |mut output, b| {
+                let _ = write!(output, "{b:02X}");
+                output
+            })
         )
         .unwrap()
     }
