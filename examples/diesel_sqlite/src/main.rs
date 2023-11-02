@@ -5,7 +5,10 @@ use diesel::deserialize::{self, FromSql};
 use diesel::sql_types::BigInt;
 use diesel::sql_types::{Blob, Text};
 use diesel::{Connection, QueryableByName, RunQueryDsl, SqliteConnection};
-use sea_query::{Alias, ColumnDef, ConditionalStatement, Expr, Func, Iden, Index, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{
+    Alias, ColumnDef, ConditionalStatement, Expr, Func, Iden, Index, Order, Query,
+    SqliteQueryBuilder, Table,
+};
 use sea_query_diesel::DieselBinder;
 use serde_json::json;
 use time::macros::{date, time};

@@ -1,6 +1,9 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rusqlite::{Connection, Result, Row};
-use sea_query::{ColumnDef, ConditionalStatement, Expr, Func, Iden, Index, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{
+    ColumnDef, ConditionalStatement, Expr, Func, Iden, Index, Order, Query, SqliteQueryBuilder,
+    Table,
+};
 use sea_query_rusqlite::RusqliteBinder;
 use serde_json::{json, Value as Json};
 use time::{
@@ -36,7 +39,8 @@ fn main() -> Result<()> {
             .col(ColumnDef::new(Character::Meta).json())
             .col(ColumnDef::new(Character::Created).date_time())
             .build(SqliteQueryBuilder),
-        Index::create().name("partial_index_small_font")
+        Index::create()
+            .name("partial_index_small_font")
             .table(Character::Table)
             .col(Character::FontSize)
             .and_where(Expr::col(Character::FontSize).lt(11).not())
