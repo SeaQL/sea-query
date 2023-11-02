@@ -84,6 +84,21 @@ fn create_6() {
 }
 
 #[test]
+fn create_7() {
+    assert_eq!(
+        Index::create()
+            .unique()
+            .nulls_not_distinct()
+            .name("partial-index-glyph-image-not-null")
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .and_where(Expr::col(Glyph::Image).is_not_null())
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE UNIQUE INDEX "partial-index-glyph-image-not-null" ON "glyph" ("image") NULLS NOT DISTINCT WHERE "image" IS NOT NULL"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()
