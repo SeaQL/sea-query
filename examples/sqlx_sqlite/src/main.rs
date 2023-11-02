@@ -1,5 +1,5 @@
 use chrono::{NaiveDate, NaiveDateTime};
-use sea_query::{ColumnDef, Expr, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{ColumnDef, ConditionalStatement, Expr, Func, Iden, Index, OnConflict, Order, Query, SqliteQueryBuilder, Table};
 use sea_query_binder::SqlxBinder;
 use serde_json::{json, Value as Json};
 use sqlx::{Row, SqlitePool};
@@ -33,6 +33,17 @@ async fn main() {
 
     let result = sqlx::query(&sql).execute(&pool).await;
     println!("Create table character: {result:?}\n");
+
+    // Partial Index
+    let partial_index = Index::create()
+        .name("partial_index_small_font")
+        .table(Character::Table)
+        .col(Character::FontSize)
+        .and_where(Expr::col(Character::FontSize).lt(11).not())
+        .build(SqliteQueryBuilder);
+
+    let index = sqlx::query(&partial_index).execute(&pool).await;
+    println!("Create partial index: {index:?}\n");
 
     // Create
     let (sql, values) = Query::insert()

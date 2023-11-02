@@ -5,7 +5,7 @@ use diesel::deserialize::{self, FromSql};
 use diesel::sql_types::BigInt;
 use diesel::sql_types::{Blob, Text};
 use diesel::{Connection, QueryableByName, RunQueryDsl, SqliteConnection};
-use sea_query::{Alias, ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{Alias, ColumnDef, ConditionalStatement, Expr, Func, Iden, Index, Order, Query, SqliteQueryBuilder, Table};
 use sea_query_diesel::DieselBinder;
 use serde_json::json;
 use time::macros::{date, time};
@@ -39,6 +39,13 @@ fn main() {
             .col(ColumnDef::new(Character::Name).string().not_null())
             .col(ColumnDef::new(Character::Meta).json().not_null())
             .col(ColumnDef::new(Character::Created).date_time())
+            .build(SqliteQueryBuilder),
+        Index::create()
+            .name("partial_index_small_font")
+            .if_not_exists()
+            .table(Character::Table)
+            .col(Character::FontSize)
+            .and_where(Expr::col(Character::FontSize).lt(11).not())
             .build(SqliteQueryBuilder),
     ]
     .join("; ");
