@@ -43,6 +43,21 @@ fn create_3() {
 }
 
 #[test]
+fn create_4() {
+    assert_eq!(
+        Index::create()
+            .if_not_exists()
+            .unique()
+            .name("partial-index-glyph-image-not-null")
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .and_where(Expr::col(Glyph::Image).is_not_null())
+            .to_string(SqliteQueryBuilder),
+        r#"CREATE UNIQUE INDEX IF NOT EXISTS "partial-index-glyph-image-not-null" ON "glyph" ("image") WHERE "image" IS NOT NULL"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()
