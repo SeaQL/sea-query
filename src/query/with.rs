@@ -10,7 +10,6 @@ use crate::SqlWriter;
 use crate::SubQueryStatement;
 use crate::TableRef;
 use crate::{Alias, QueryBuilder};
-use std::ops::Deref;
 
 /// A table definition inside a WITH clause ([WithClause]).
 ///
@@ -122,7 +121,7 @@ impl CommonTableExpression {
         let mut cte = Self::default();
         cte.try_set_cols_from_selects(&select.selects);
         if let Some(from) = select.from.get(0) {
-            match from.deref() {
+            match from {
                 TableRef::Table(iden) => cte.set_table_name_from_select(iden),
                 TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden),
                 TableRef::DatabaseSchemaTable(_, _, iden) => cte.set_table_name_from_select(iden),
