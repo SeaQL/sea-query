@@ -1407,7 +1407,7 @@ pub trait QueryBuilder:
     fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
         write!(buffer, "x'").unwrap();
         for b in bytes {
-            format!("{b:02X}");
+            write!(buffer, "{b:02X}").unwrap();
         }
         write!(buffer, "'").unwrap();
     }
