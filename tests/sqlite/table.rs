@@ -173,6 +173,28 @@ fn create_6() {
 }
 
 #[test]
+fn create_7() {
+    assert_eq!(
+        Table::create()
+            .table(Task::Table)
+            .col(
+                ColumnDef::new(Task::Id)
+                    .big_integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key()
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE "task" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn create_with_unique_index() {
     assert_eq!(
         Table::create()

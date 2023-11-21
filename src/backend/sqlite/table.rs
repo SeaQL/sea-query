@@ -6,7 +6,7 @@ impl TableBuilder for SqliteQueryBuilder {
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
-            self.prepare_column_type(column_type, sql);
+            self.prepare_column_type(&column_def.spec, column_type, sql);
         }
 
         let mut is_primary_key = false;
@@ -39,61 +39,7 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match column_type {
-                ColumnType::Char(length) => match length {
-                    Some(length) => format!("text({length})"),
-                    None => "text".into(),
-                },
-                ColumnType::String(length) => match length {
-                    Some(length) => format!("text({length})"),
-                    None => "text".into(),
-                },
-                ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "integer".into(),
-                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "integer".into(),
-                ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
-                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
-                ColumnType::Float => "real".into(),
-                ColumnType::Double => "real".into(),
-                ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("real({precision}, {scale})"),
-                    None => "real".into(),
-                },
-                ColumnType::DateTime => "text".into(),
-                ColumnType::Timestamp => "text".into(),
-                ColumnType::TimestampWithTimeZone => "text".into(),
-                ColumnType::Time => "text".into(),
-                ColumnType::Date => "text".into(),
-                ColumnType::Interval(_, _) => "unsupported".into(),
-                ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Blob(Some(length)) => format!("binary({length})"),
-                    _ => "blob".into(),
-                },
-                ColumnType::VarBinary(length) => format!("binary({length})"),
-                ColumnType::Boolean => "boolean".into(),
-                ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("integer({precision}, {scale})"),
-                    None => "integer".into(),
-                },
-                ColumnType::Json => "text".into(),
-                ColumnType::JsonBinary => "text".into(),
-                ColumnType::Uuid => "text(36)".into(),
-                ColumnType::Custom(iden) => iden.to_string(),
-                ColumnType::Enum { .. } => "text".into(),
-                ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
-                ColumnType::Cidr => unimplemented!("Cidr is not available in Sqlite."),
-                ColumnType::Inet => unimplemented!("Inet is not available in Sqlite."),
-                ColumnType::MacAddr => unimplemented!("MacAddr is not available in Sqlite."),
-                ColumnType::Year(_) => unimplemented!("Year is not available in Sqlite."),
-                ColumnType::Bit(_) => unimplemented!("Bit is not available in Sqlite."),
-                ColumnType::VarBit(_) => unimplemented!("VarBit is not available in Sqlite."),
-                ColumnType::LTree => unimplemented!("LTree is not available in Sqlite."),
-            }
-        )
-        .unwrap()
+        self.prepare_column_type(&[], column_type, sql)
     }
 
     fn column_spec_auto_increment_keyword(&self) -> &str {
@@ -167,5 +113,78 @@ impl TableBuilder for SqliteQueryBuilder {
         if let Some(to_name) = &rename.to_name {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
+    }
+}
+
+impl SqliteQueryBuilder {
+    fn prepare_column_type(
+        &self,
+        column_specs: &[ColumnSpec],
+        column_type: &ColumnType,
+        sql: &mut dyn SqlWriter,
+    ) {
+        let is_auto_increment = column_specs
+            .iter()
+            .any(|s| matches!(s, ColumnSpec::AutoIncrement));
+        write!(
+            sql,
+            "{}",
+            match column_type {
+                ColumnType::Char(length) => match length {
+                    Some(length) => format!("text({length})"),
+                    None => "text".into(),
+                },
+                ColumnType::String(length) => match length {
+                    Some(length) => format!("text({length})"),
+                    None => "text".into(),
+                },
+                ColumnType::Text => "text".into(),
+                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "integer".into(),
+                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "integer".into(),
+                ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
+                ColumnType::BigInteger | ColumnType::BigUnsigned => if is_auto_increment {
+                    "integer"
+                } else {
+                    "bigint"
+                }
+                .into(),
+                ColumnType::Float => "real".into(),
+                ColumnType::Double => "real".into(),
+                ColumnType::Decimal(precision) => match precision {
+                    Some((precision, scale)) => format!("real({precision}, {scale})"),
+                    None => "real".into(),
+                },
+                ColumnType::DateTime => "text".into(),
+                ColumnType::Timestamp => "text".into(),
+                ColumnType::TimestampWithTimeZone => "text".into(),
+                ColumnType::Time => "text".into(),
+                ColumnType::Date => "text".into(),
+                ColumnType::Interval(_, _) => "unsupported".into(),
+                ColumnType::Binary(blob_size) => match blob_size {
+                    BlobSize::Blob(Some(length)) => format!("binary({length})"),
+                    _ => "blob".into(),
+                },
+                ColumnType::VarBinary(length) => format!("binary({length})"),
+                ColumnType::Boolean => "boolean".into(),
+                ColumnType::Money(precision) => match precision {
+                    Some((precision, scale)) => format!("integer({precision}, {scale})"),
+                    None => "integer".into(),
+                },
+                ColumnType::Json => "text".into(),
+                ColumnType::JsonBinary => "text".into(),
+                ColumnType::Uuid => "text(36)".into(),
+                ColumnType::Custom(iden) => iden.to_string(),
+                ColumnType::Enum { .. } => "text".into(),
+                ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
+                ColumnType::Cidr => unimplemented!("Cidr is not available in Sqlite."),
+                ColumnType::Inet => unimplemented!("Inet is not available in Sqlite."),
+                ColumnType::MacAddr => unimplemented!("MacAddr is not available in Sqlite."),
+                ColumnType::Year(_) => unimplemented!("Year is not available in Sqlite."),
+                ColumnType::Bit(_) => unimplemented!("Bit is not available in Sqlite."),
+                ColumnType::VarBit(_) => unimplemented!("VarBit is not available in Sqlite."),
+                ColumnType::LTree => unimplemented!("LTree is not available in Sqlite."),
+            }
+        )
+        .unwrap()
     }
 }
