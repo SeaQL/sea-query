@@ -1405,12 +1405,11 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Write bytes enclosed with engine specific byte syntax
     fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
-        write!(
-            buffer,
-            "x'{}'",
-            bytes.iter().map(|b| format!("{b:02X}")).collect::<String>()
-        )
-        .unwrap()
+        write!(buffer, "x'").unwrap();
+        for b in bytes {
+            format!("{b:02X}");
+        }
+        write!(buffer, "'").unwrap();
     }
 
     #[doc(hidden)]

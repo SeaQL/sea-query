@@ -156,12 +156,11 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 
     fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
-        write!(
-            buffer,
-            "'\\x{}'",
-            bytes.iter().map(|b| format!("{b:02X}")).collect::<String>()
-        )
-        .unwrap()
+        write!(buffer, "'\\x").unwrap();
+        for b in bytes {
+            format!("{b:02X}");
+        }
+        write!(buffer, "'").unwrap();
     }
 
     fn if_null_function(&self) -> &str {
