@@ -5,15 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Main Branch
+## 0.30.3 - 2023-11-22
 
 ### New Features
 
 * Added `LTree` column type https://github.com/SeaQL/sea-query/pull/604
+* Improved parenthesis omission logic https://github.com/SeaQL/sea-query/pull/675
+
+### Bug Fixes
+
+* Fixed `BIGINT PRIMARY KEY AUTOINCREMENT` for SQLite https://github.com/SeaQL/sea-query/issues/689
+
+### Upgrades
+
+* Upgrade `chrono` to `0.4.27`
 
 ### Breaking changes
 
-* Remove `ToTokens` for `PgInterval` https://github.com/SeaQL/sea-query/pull/710
+* Removed `ToTokens` for `PgInterval` https://github.com/SeaQL/sea-query/pull/710
 
 ### `sea-query-derive` 0.4.1 - 2023-10-19
 
