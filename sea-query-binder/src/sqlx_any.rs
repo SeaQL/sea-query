@@ -107,15 +107,15 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(_) => {
-                    panic!("SeaQuery doesn't support IpNetwork arguments for Any");
+                    panic!("SQLx doesn't support IpNetwork arguments for Any");
                 }
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(_) => {
-                    panic!("SeaQuery doesn't support MacAddress arguments for Any");
+                    panic!("SQLx doesn't support MacAddress arguments for Any");
                 }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(_, _) => {
-                    panic!("SeaQuery doesn't support array arguments for Any");
+                    panic!("SQLx doesn't support array arguments for Any");
                 }
             }
         }

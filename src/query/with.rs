@@ -1,15 +1,9 @@
-use crate::ColumnRef;
-use crate::DynIden;
-use crate::IntoIden;
-use crate::QueryStatementBuilder;
-use crate::QueryStatementWriter;
-use crate::SelectExpr;
-use crate::SelectStatement;
-use crate::SimpleExpr;
-use crate::SqlWriter;
-use crate::SubQueryStatement;
-use crate::TableRef;
-use crate::{Alias, QueryBuilder};
+use crate::{
+    ColumnRef, DynIden, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
+    SelectStatement, SimpleExpr, SqlWriter, SubQueryStatement, TableRef, Values,
+    {Alias, QueryBuilder},
+};
+use inherent::inherent;
 
 /// A table definition inside a WITH clause ([WithClause]).
 ///
@@ -594,8 +588,17 @@ impl QueryStatementBuilder for WithQuery {
     }
 }
 
+#[inherent]
 impl QueryStatementWriter for WithQuery {
-    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
         query_builder.prepare_with_query(self, sql);
     }
+
+    pub fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut dyn SqlWriter,
+    ) -> String;
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 }
