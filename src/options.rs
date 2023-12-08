@@ -1,30 +1,20 @@
-static mut GLOBAL_OPTIONS: GlobalOptions = GlobalOptions {
-    prefer_more_parentheses: false,
-    prefer_more_parentheses_set: false,
-};
+use std::sync::atomic::{AtomicBool, Ordering};
 
-#[derive(Default)]
-struct GlobalOptions {
-    prefer_more_parentheses: bool,
-    prefer_more_parentheses_set: bool,
-}
+static PREFER_MORE_PARENTHESES: AtomicBool = AtomicBool::new(false);
+static PREFER_MORE_PARENTHESES_SET: AtomicBool = AtomicBool::new(false);
 
-/// Safety: this can only be set once during process startup.
-///
 /// ### Panics
 ///
-/// Setting twice would result in panic.
+/// This can only be set once during process startup. Setting twice would result in panic.
 pub fn set_prefer_more_parentheses(v: bool) {
-    unsafe {
-        if GLOBAL_OPTIONS.prefer_more_parentheses_set {
-            panic!("Can't set the same global option `prefer_more_parentheses` twice");
-        }
-        GLOBAL_OPTIONS.prefer_more_parentheses = v;
-        GLOBAL_OPTIONS.prefer_more_parentheses_set = true;
+    if PREFER_MORE_PARENTHESES_SET.load(Ordering::SeqCst) {
+        panic!("Can't set the same global option `PREFER_MORE_PARENTHESES` twice");
     }
+    PREFER_MORE_PARENTHESES_SET.store(true, Ordering::SeqCst);
+    PREFER_MORE_PARENTHESES.store(v, Ordering::SeqCst);
 }
 
 #[inline]
 pub fn get_prefer_more_parentheses() -> bool {
-    unsafe { GLOBAL_OPTIONS.prefer_more_parentheses }
+    PREFER_MORE_PARENTHESES.load(Ordering::SeqCst)
 }
