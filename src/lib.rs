@@ -820,6 +820,8 @@ pub mod extension;
 pub mod foreign_key;
 pub mod func;
 pub mod index;
+#[cfg(feature = "runtime-options")]
+pub mod options;
 pub mod prepare;
 pub mod query;
 pub mod schema;

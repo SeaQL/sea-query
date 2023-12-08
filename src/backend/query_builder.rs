@@ -1533,6 +1533,10 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
         | SimpleExpr::Case(_)
         | SimpleExpr::SubQuery(_, _) => true,
         SimpleExpr::Binary(_, inner_oper, _) => {
+            #[cfg(feature = "runtime-options")]
+            if crate::options::get_prefer_more_parentheses() {
+                return false;
+            }
             let inner_oper: Oper = (*inner_oper).into();
             if inner_oper.is_arithmetic() || inner_oper.is_shift() {
                 outer_oper.is_comparison()

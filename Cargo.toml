@@ -60,6 +60,7 @@ hashable-value = ["derivative", "ordered-float"]
 postgres-array = []
 postgres-interval = []
 thread-safe = []
+runtime-options = []
 with-chrono = ["chrono"]
 with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
@@ -94,6 +95,11 @@ required-features = ["tests-cfg", "backend-postgres"]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
 required-features = ["tests-cfg", "backend-sqlite"]
+
+[[test]]
+name = "test-runtime-options"
+path = "tests/runtime-options.rs"
+required-features = ["tests-cfg", "runtime-options", "backend-mysql"]
 
 [[bench]]
 name = "basic"
