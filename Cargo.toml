@@ -60,7 +60,6 @@ hashable-value = ["derivative", "ordered-float"]
 postgres-array = []
 postgres-interval = []
 thread-safe = []
-runtime-options = []
 with-chrono = ["chrono"]
 with-json = ["serde_json"]
 with-rust_decimal = ["rust_decimal"]
@@ -70,6 +69,29 @@ with-time = ["time"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
 tests-cfg = []
+all-features = [
+    "backend-mysql",
+    "backend-postgres",
+    "backend-sqlite",
+    "derive",
+    "attr",
+    "hashable-value",
+    "thread-safe",
+    "all-types",
+] # everything except option-*
+all-types = [
+    "postgres-array",
+    "postgres-interval",
+    "with-chrono",
+    "with-json",
+    "with-rust_decimal",
+    "with-bigdecimal",
+    "with-uuid",
+    "with-time",
+    "with-ipnetwork",
+    "with-mac_address",
+]
+option-more-parentheses = []
 
 [[test]]
 name = "test-derive"
@@ -97,9 +119,9 @@ path = "tests/sqlite/mod.rs"
 required-features = ["tests-cfg", "backend-sqlite"]
 
 [[test]]
-name = "test-runtime-options"
-path = "tests/runtime-options.rs"
-required-features = ["tests-cfg", "runtime-options", "backend-mysql"]
+name = "test-more-parentheses"
+path = "tests/more-parentheses.rs"
+required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
 
 [[bench]]
 name = "basic"
