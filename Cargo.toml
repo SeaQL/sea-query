@@ -69,6 +69,29 @@ with-time = ["time"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
 tests-cfg = []
+all-features = [
+    "backend-mysql",
+    "backend-postgres",
+    "backend-sqlite",
+    "derive",
+    "attr",
+    "hashable-value",
+    "thread-safe",
+    "all-types",
+] # everything except option-*
+all-types = [
+    "postgres-array",
+    "postgres-interval",
+    "with-chrono",
+    "with-json",
+    "with-rust_decimal",
+    "with-bigdecimal",
+    "with-uuid",
+    "with-time",
+    "with-ipnetwork",
+    "with-mac_address",
+]
+option-more-parentheses = []
 
 [[test]]
 name = "test-derive"
@@ -94,6 +117,11 @@ required-features = ["tests-cfg", "backend-postgres"]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
 required-features = ["tests-cfg", "backend-sqlite"]
+
+[[test]]
+name = "test-more-parentheses"
+path = "tests/more-parentheses.rs"
+required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
 
 [[bench]]
 name = "basic"

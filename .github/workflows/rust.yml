@@ -56,7 +56,7 @@ jobs:
         with:
           toolchain: stable
           components: clippy
-      - run: cargo clippy --all-features --workspace -- -D warnings
+      - run: cargo clippy --features=all-features --workspace -- -D warnings
       - run: cargo clippy --manifest-path sea-query-binder/Cargo.toml --workspace --features runtime-async-std-rustls --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array -- -D warnings
       - run: cargo clippy --manifest-path sea-query-rusqlite/Cargo.toml --all-features --workspace -- -D warnings
       - run: cargo clippy --manifest-path sea-query-postgres/Cargo.toml --all-features --workspace -- -D warnings
@@ -143,7 +143,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --all-features
+      - run: cargo test --features=all-features
+      - run: cargo test --test test-more-parentheses --features=tests-cfg,option-more-parentheses
 
   derive-test:
     name: Derive Tests
