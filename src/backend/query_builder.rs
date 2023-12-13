@@ -1514,6 +1514,10 @@ impl EscapeBuilder for CommonSqlQueryBuilder {}
 
 impl TableRefBuilder for CommonSqlQueryBuilder {}
 
+#[cfg_attr(
+    feature = "option-more-parentheses",
+    allow(unreachable_code, unused_variables)
+)]
 pub(crate) fn common_inner_expr_well_known_greater_precedence(
     inner: &SimpleExpr,
     outer_oper: &Oper,
