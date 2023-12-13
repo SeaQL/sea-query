@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Main Branch
+
+### New Features
+
+* Added feature flag `option-more-parentheses` to have more parentheses in expressions https://github.com/SeaQL/sea-query/pull/723
+
+### Breaking Changes
+
+* Caution: do not use the `--all-features` param in Cargo. If you want to enable all features, use the `all-features` feature flag instead.
+
 ## 0.30.4 - 2023-12-01
 
 ### Enhancements
