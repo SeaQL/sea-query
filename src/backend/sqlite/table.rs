@@ -142,6 +142,7 @@ impl SqliteQueryBuilder {
                 ColumnType::TinyInteger | ColumnType::TinyUnsigned => "integer".into(),
                 ColumnType::SmallInteger | ColumnType::SmallUnsigned => "integer".into(),
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
+                #[allow(clippy::if_same_then_else)]
                 ColumnType::BigInteger | ColumnType::BigUnsigned => if is_auto_increment {
                     "integer"
                 } else if cfg!(feature = "option-sqlite-exact-column-type") {
