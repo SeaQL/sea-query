@@ -5,12 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Main Branch
+## 0.30.5 - 2023-12-14
 
 ### New Features
 
 * Added feature flag `option-more-parentheses` to have more parentheses in expressions https://github.com/SeaQL/sea-query/pull/723
 * Added feature flag `option-sqlite-exact-column-type` to only use `integer` for SQLite
+* Support `COUNT(DISTINCT "column")` https://github.com/SeaQL/sea-query/pull/700
+* Support index hints for MySQL (via `extension::mysql::MySqlSelectStatementExt`) https://github.com/SeaQL/sea-query/pull/636
+* Support expressions for `ON CONFLICT` targets https://github.com/SeaQL/sea-query/pull/692
 
 ### Enhancements
 
