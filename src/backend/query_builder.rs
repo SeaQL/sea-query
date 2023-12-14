@@ -117,6 +117,10 @@ pub trait QueryBuilder:
                 self.prepare_table_ref(table_ref, sql);
                 false
             });
+            if !select.index_hints.is_empty() {
+                write!(sql, " ").unwrap();
+                self.prepare_index_hints(&select.index_hints, sql);
+            }
         }
 
         if !select.join.is_empty() {
@@ -420,6 +424,17 @@ pub trait QueryBuilder:
             SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
             _ => {}
         }
+    }
+
+    /// Translate [`IndexHint`] into SQL statement.
+    fn prepare_index_hints(&self, _hints: &[IndexHint], _sql: &mut dyn SqlWriter) {}
+
+    /// Translate [`IndexHintType`] into SQL statement.
+    fn prepare_index_hint_scope(
+        &self,
+        _index_hint_scope: &IndexHintScope,
+        _sql: &mut dyn SqlWriter,
+    ) {
     }
 
     /// Translate [`LockType`] into SQL statement.

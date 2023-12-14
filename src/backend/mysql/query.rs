@@ -14,6 +14,51 @@ impl QueryBuilder for MysqlQueryBuilder {
         };
     }
 
+    fn prepare_index_hints(&self, hints: &[IndexHint], sql: &mut dyn SqlWriter) {
+        hints.iter().fold(true, |first, hint| {
+            if !first {
+                write!(sql, " ").unwrap()
+            }
+            match hint.r#type {
+                IndexHintType::Use => {
+                    write!(sql, "USE INDEX ",).unwrap();
+                    self.prepare_index_hint_scope(&hint.scope, sql);
+                    write!(sql, "(").unwrap();
+                    hint.index.prepare(sql.as_writer(), self.quote());
+                }
+                IndexHintType::Ignore => {
+                    write!(sql, "IGNORE INDEX ",).unwrap();
+                    self.prepare_index_hint_scope(&hint.scope, sql);
+                    write!(sql, "(").unwrap();
+                    hint.index.prepare(sql.as_writer(), self.quote());
+                }
+                IndexHintType::Force => {
+                    write!(sql, "FORCE INDEX ",).unwrap();
+                    self.prepare_index_hint_scope(&hint.scope, sql);
+                    write!(sql, "(").unwrap();
+                    hint.index.prepare(sql.as_writer(), self.quote());
+                }
+            }
+            write!(sql, ")").unwrap();
+            false
+        });
+    }
+
+    fn prepare_index_hint_scope(&self, index_hint_scope: &IndexHintScope, sql: &mut dyn SqlWriter) {
+        match index_hint_scope {
+            IndexHintScope::Join => {
+                write!(sql, "FOR JOIN ").unwrap();
+            }
+            IndexHintScope::OrderBy => {
+                write!(sql, "FOR ORDER BY ").unwrap();
+            }
+            IndexHintScope::GroupBy => {
+                write!(sql, "FOR GROUP BY ").unwrap();
+            }
+            IndexHintScope::All => {}
+        }
+    }
+
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
     }
