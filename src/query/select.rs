@@ -44,7 +44,6 @@ pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
     pub(crate) selects: Vec<SelectExpr>,
     pub(crate) from: Vec<TableRef>,
-    pub(crate) index_hints: Vec<IndexHint>,
     pub(crate) join: Vec<JoinExpr>,
     pub(crate) r#where: ConditionHolder,
     pub(crate) groups: Vec<SimpleExpr>,
@@ -55,6 +54,8 @@ pub struct SelectStatement {
     pub(crate) offset: Option<Value>,
     pub(crate) lock: Option<LockClause>,
     pub(crate) window: Option<(DynIden, WindowStatement)>,
+    #[cfg(feature = "backend-mysql")]
+    pub(crate) index_hints: Vec<crate::extension::mysql::IndexHint>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -81,28 +82,6 @@ pub struct SelectExpr {
     pub expr: SimpleExpr,
     pub alias: Option<DynIden>,
     pub window: Option<WindowSelectType>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct IndexHint {
-    pub index: DynIden,
-    pub r#type: IndexHintType,
-    pub scope: IndexHintScope,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum IndexHintType {
-    Use,
-    Ignore,
-    Force,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum IndexHintScope {
-    Join,
-    OrderBy,
-    GroupBy,
-    All,
 }
 
 /// Join expression used in select statement
@@ -173,7 +152,6 @@ impl SelectStatement {
             distinct: self.distinct.take(),
             selects: std::mem::take(&mut self.selects),
             from: std::mem::take(&mut self.from),
-            index_hints: std::mem::take(&mut self.index_hints),
             join: std::mem::take(&mut self.join),
             r#where: std::mem::replace(&mut self.r#where, ConditionHolder::new()),
             groups: std::mem::take(&mut self.groups),
@@ -184,6 +162,8 @@ impl SelectStatement {
             offset: self.offset.take(),
             lock: self.lock.take(),
             window: self.window.take(),
+            #[cfg(feature = "backend-mysql")]
+            index_hints: std::mem::take(&mut self.index_hints),
         }
     }
 
@@ -323,105 +303,6 @@ impl SelectStatement {
     /// Select distinct
     pub fn distinct(&mut self) -> &mut Self {
         self.distinct = Some(SelectDistinct::Distinct);
-        self
-    }
-
-    /// Use index hint for *MYSQL ONLY*
-    ///
-    /// Give the optimizer information about how to choose indexes during query processing.
-    /// See [MySQL reference manual for Index Hints](https://dev.mysql.com/doc/refman/8.0/en/index-hints.html)
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .use_index(IndexName::new("IDX_123456"), IndexHintScope::All)
-    ///     .column(Char::SizeW)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `size_w` FROM `character` USE INDEX (`IDX_123456`)"#
-    /// );
-    /// ```
-    pub fn use_index<I>(&mut self, index: I, scope: IndexHintScope) -> &mut Self
-    where
-        I: IntoIden,
-    {
-        self.index_hints.push(IndexHint {
-            index: index.into_iden(),
-            r#type: IndexHintType::Use,
-            scope,
-        });
-        self
-    }
-
-    /// Force index hint for *MYSQL ONLY*
-    ///
-    /// Give the optimizer information about how to choose indexes during query processing.
-    /// See [MySQL reference manual for Index Hints](https://dev.mysql.com/doc/refman/8.0/en/index-hints.html)
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .force_index(IndexName::new("IDX_123456"), IndexHintScope::All)
-    ///     .column(Char::SizeW)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `size_w` FROM `character` FORCE INDEX (`IDX_123456`)"#
-    /// );
-    /// ```
-    pub fn force_index<I>(&mut self, index: I, scope: IndexHintScope) -> &mut Self
-    where
-        I: IntoIden,
-    {
-        self.index_hints.push(IndexHint {
-            index: index.into_iden(),
-            r#type: IndexHintType::Force,
-            scope,
-        });
-        self
-    }
-
-    /// Ignore index hint for *MYSQL ONLY*
-    ///
-    /// Give the optimizer information about how to choose indexes during query processing.
-    /// See [MySQL reference manual for Index Hints](https://dev.mysql.com/doc/refman/8.0/en/index-hints.html)
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .from(Char::Table)
-    ///     .ignore_index(IndexName::new("IDX_123456"), IndexHintScope::All)
-    ///     .column(Char::SizeW)
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `size_w` FROM `character` IGNORE INDEX (`IDX_123456`)"#
-    /// )
-    /// ```
-    pub fn ignore_index<I>(&mut self, index: I, scope: IndexHintScope) -> &mut Self
-    where
-        I: IntoIden,
-    {
-        self.index_hints.push(IndexHint {
-            index: index.into_iden(),
-            r#type: IndexHintType::Ignore,
-            scope,
-        });
         self
     }
 

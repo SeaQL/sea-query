@@ -1003,6 +1003,8 @@ fn select_58() {
 
 #[test]
 fn select_59() {
+    use crate::extension::mysql::*;
+
     assert_eq!(
         Query::select()
             .columns([Char::Character, Char::SizeW, Char::SizeH])
@@ -1017,6 +1019,8 @@ fn select_59() {
 
 #[test]
 fn select_60() {
+    use crate::extension::mysql::*;
+
     assert_eq!(
         Query::select()
             .columns([Char::Character, Char::SizeW, Char::SizeH])
@@ -1032,6 +1036,8 @@ fn select_60() {
 
 #[test]
 fn select_61() {
+    use crate::extension::mysql::*;
+
     assert_eq!(
         Query::select()
             .columns([Char::Character, Char::SizeW, Char::SizeH])

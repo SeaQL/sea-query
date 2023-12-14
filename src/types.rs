@@ -244,9 +244,6 @@ pub enum Order {
 #[derive(Debug, Clone)]
 pub struct Alias(String);
 
-/// Helper for create index names
-pub type IndexName = Alias;
-
 /// Null Alias
 #[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;

@@ -1,4 +1,5 @@
 use super::*;
+use crate::extension::mysql::*;
 
 impl QueryBuilder for MysqlQueryBuilder {
     fn values_list_tuple_prefix(&self) -> &str {
@@ -14,9 +15,12 @@ impl QueryBuilder for MysqlQueryBuilder {
         };
     }
 
-    fn prepare_index_hints(&self, hints: &[IndexHint], sql: &mut dyn SqlWriter) {
-        hints.iter().fold(true, |first, hint| {
-            if !first {
+    fn prepare_index_hints(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        if !select.index_hints.is_empty() {
+            write!(sql, " ").unwrap();
+        }
+        for (i, hint) in select.index_hints.iter().enumerate() {
+            if i != 0 {
                 write!(sql, " ").unwrap()
             }
             match hint.r#type {
@@ -40,22 +44,6 @@ impl QueryBuilder for MysqlQueryBuilder {
                 }
             }
             write!(sql, ")").unwrap();
-            false
-        });
-    }
-
-    fn prepare_index_hint_scope(&self, index_hint_scope: &IndexHintScope, sql: &mut dyn SqlWriter) {
-        match index_hint_scope {
-            IndexHintScope::Join => {
-                write!(sql, "FOR JOIN ").unwrap();
-            }
-            IndexHintScope::OrderBy => {
-                write!(sql, "FOR ORDER BY ").unwrap();
-            }
-            IndexHintScope::GroupBy => {
-                write!(sql, "FOR GROUP BY ").unwrap();
-            }
-            IndexHintScope::All => {}
         }
     }
 
@@ -132,5 +120,22 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn insert_default_keyword(&self) -> &str {
         "()"
+    }
+}
+
+impl MysqlQueryBuilder {
+    fn prepare_index_hint_scope(&self, index_hint_scope: &IndexHintScope, sql: &mut dyn SqlWriter) {
+        match index_hint_scope {
+            IndexHintScope::Join => {
+                write!(sql, "FOR JOIN ").unwrap();
+            }
+            IndexHintScope::OrderBy => {
+                write!(sql, "FOR ORDER BY ").unwrap();
+            }
+            IndexHintScope::GroupBy => {
+                write!(sql, "FOR GROUP BY ").unwrap();
+            }
+            IndexHintScope::All => {}
+        }
     }
 }

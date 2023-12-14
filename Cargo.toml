@@ -120,7 +120,7 @@ path = "tests/sqlite/mod.rs"
 required-features = ["tests-cfg", "backend-sqlite"]
 
 [[test]]
-name = "test-more-parentheses"
+name = "option-more-parentheses"
 path = "tests/more-parentheses.rs"
 required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
 
