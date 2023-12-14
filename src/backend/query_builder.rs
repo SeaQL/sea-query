@@ -18,7 +18,7 @@ pub trait QueryBuilder:
 
     /// Translate [`InsertStatement`] into SQL statement.
     fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut dyn SqlWriter) {
-        self.prepare_insert(insert.replace, sql);
+        self.prepare_insert(insert.replace, &insert.on_conflict, sql);
 
         if let Some(table) = &insert.table {
             write!(sql, " INTO ").unwrap();
@@ -860,7 +860,7 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_insert(&self, replace: bool, sql: &mut dyn SqlWriter) {
+    fn prepare_insert(&self, replace: bool, _: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
         if replace {
             write!(sql, "REPLACE").unwrap();
         } else {
@@ -1177,7 +1177,7 @@ pub trait QueryBuilder:
     ) {
         if let Some(action) = on_conflict_action {
             match action {
-                OnConflictAction::DoNothing => {
+                OnConflictAction::DoNothing(_) => {
                     write!(sql, " DO NOTHING").unwrap();
                 }
                 OnConflictAction::Update(update_strats) => {

@@ -104,6 +104,61 @@ impl QueryBuilder for MysqlQueryBuilder {
         sql.push_param(value.clone(), self as _);
     }
 
+    #[doc(hidden)]
+    /// Write ON CONFLICT expression
+    fn prepare_on_conflict(&self, on_conflict: &Option<OnConflict>, sql: &mut dyn SqlWriter) {
+        if let Some(on_conflict) = on_conflict {
+            self.prepare_on_conflict_keywords(sql);
+            self.prepare_on_conflict_target(&on_conflict.target, sql);
+            self.prepare_on_conflict_condition(&on_conflict.target_where, sql);
+            self.prepare_on_conflict_action(&on_conflict.action, sql);
+            self.prepare_on_conflict_condition(&on_conflict.action_where, sql);
+        }
+    }
+
+    fn prepare_on_conflict_action(
+        &self,
+        on_conflict_action: &Option<OnConflictAction>,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if let Some(action) = on_conflict_action {
+            self.prepare_on_conflict_do_update_keywords(sql);
+            match action {
+                OnConflictAction::DoNothing(pk_cols) => {
+                    pk_cols.iter().fold(true, |first, pk_col| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        pk_col.prepare(sql.as_writer(), self.quote());
+                        write!(sql, " = ").unwrap();
+                        self.prepare_on_conflict_excluded_table(pk_col, sql);
+                        false
+                    });
+                }
+                OnConflictAction::Update(update_strats) => {
+                    update_strats.iter().fold(true, |first, update_strat| {
+                        if !first {
+                            write!(sql, ", ").unwrap()
+                        }
+                        match update_strat {
+                            OnConflictUpdate::Column(col) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_on_conflict_excluded_table(col, sql);
+                            }
+                            OnConflictUpdate::Expr(col, expr) => {
+                                col.prepare(sql.as_writer(), self.quote());
+                                write!(sql, " = ").unwrap();
+                                self.prepare_simple_expr(expr, sql);
+                            }
+                        }
+                        false
+                    });
+                }
+            }
+        }
+    }
+
     fn prepare_on_conflict_target(&self, _: &Option<OnConflictTarget>, _: &mut dyn SqlWriter) {
         // MySQL doesn't support declaring ON CONFLICT target.
     }
@@ -117,9 +172,7 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
-        write!(sql, "VALUES(").unwrap();
         col.prepare(sql.as_writer(), self.quote());
-        write!(sql, ")").unwrap();
     }
 
     fn prepare_on_conflict_condition(&self, _: &ConditionHolder, _: &mut dyn SqlWriter) {}

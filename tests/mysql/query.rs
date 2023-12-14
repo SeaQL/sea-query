@@ -1193,6 +1193,28 @@ fn insert_from_select() {
 
 #[test]
 #[allow(clippy::approx_constant)]
+fn insert_on_conflict_do_nothing() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic([
+                "04108048005887010020060000204E0180400400".into(),
+                3.1415.into(),
+            ])
+            .on_conflict(OnConflict::new().do_nothing_on(vec![Glyph::Id]).to_owned())
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `id` = `id`"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
 fn insert_on_conflict_0() {
     assert_eq!(
         Query::insert()
@@ -1211,7 +1233,7 @@ fn insert_on_conflict_0() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = `aspect`, `image` = `image`"#,
         ]
         .join(" ")
     );
@@ -1237,7 +1259,7 @@ fn insert_on_conflict_1() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = `aspect`"#,
         ]
         .join(" ")
     );
@@ -1263,7 +1285,7 @@ fn insert_on_conflict_2() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = `aspect`, `image` = `image`"#,
         ]
         .join(" ")
     );
@@ -1345,7 +1367,7 @@ fn insert_on_conflict_5() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = VALUES(`image`)"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = `image`"#,
         ]
         .join(" ")
     );
@@ -1372,7 +1394,7 @@ fn insert_on_conflict_6() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
+            r#"ON DUPLICATE KEY UPDATE `aspect` = `aspect`, `image` = 1 + 2"#,
         ]
         .join(" ")
     );
