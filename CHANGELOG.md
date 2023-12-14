@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 * Added feature flag `option-more-parentheses` to have more parentheses in expressions https://github.com/SeaQL/sea-query/pull/723
-* Added feature flag `option-sqlite-exact-column-type` to only use `integer`
+* Added feature flag `option-sqlite-exact-column-type` to only use `integer` for SQLite
 
 ### Enhancements
 
