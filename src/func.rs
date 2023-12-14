@@ -352,13 +352,7 @@ impl Func {
     where
         T: Into<SimpleExpr>,
     {
-        FunctionCall::new(Function::Count).arg_with(
-            expr,
-            FuncArgMod {
-                distinct: true,
-                ..Default::default()
-            },
-        )
+        FunctionCall::new(Function::Count).arg_with(expr, FuncArgMod { distinct: true })
     }
 
     /// Call `CHAR_LENGTH` function.
