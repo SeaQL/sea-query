@@ -144,6 +144,8 @@ impl SqliteQueryBuilder {
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
                 ColumnType::BigInteger | ColumnType::BigUnsigned => if is_auto_increment {
                     "integer"
+                } else if cfg!(feature = "option-sqlite-exact-column-type") {
+                    "integer"
                 } else {
                     "bigint"
                 }

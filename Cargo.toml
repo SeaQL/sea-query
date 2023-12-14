@@ -92,6 +92,7 @@ all-types = [
     "with-mac_address",
 ]
 option-more-parentheses = []
+option-sqlite-exact-column-type = []
 
 [[test]]
 name = "test-derive"
