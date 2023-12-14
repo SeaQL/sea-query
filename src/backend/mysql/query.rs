@@ -104,7 +104,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         sql.push_param(value.clone(), self as _);
     }
 
-    fn prepare_on_conflict_target(&self, _: &Option<OnConflictTarget>, _: &mut dyn SqlWriter) {
+    fn prepare_on_conflict_target(&self, _: &[OnConflictTarget], _: &mut dyn SqlWriter) {
         // MySQL doesn't support declaring ON CONFLICT target.
     }
 
