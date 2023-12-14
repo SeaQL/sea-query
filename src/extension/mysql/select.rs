@@ -24,7 +24,7 @@ impl MySqlSelectStatementExt for SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *, extension::mysql::*};
+    /// use sea_query::{extension::mysql::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
@@ -57,7 +57,7 @@ impl MySqlSelectStatementExt for SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *, extension::mysql::*};
+    /// use sea_query::{extension::mysql::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
@@ -90,7 +90,7 @@ impl MySqlSelectStatementExt for SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *, extension::mysql::*};
+    /// use sea_query::{extension::mysql::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)

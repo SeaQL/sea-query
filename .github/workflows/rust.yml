@@ -144,7 +144,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --features=all-features
-      - run: cargo test --test test-more-parentheses --features=tests-cfg,option-more-parentheses
+      - run: cargo test --test option-more-parentheses --features=tests-cfg,option-more-parentheses
 
   derive-test:
     name: Derive Tests
