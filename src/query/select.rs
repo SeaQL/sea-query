@@ -987,6 +987,38 @@ impl SelectStatement {
         self.from_from(TableRef::FunctionCall(func, alias.into_iden()))
     }
 
+    /// Clears all current from clauses.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(ColumnRef::Asterisk)
+    ///     .from(Char::Table)
+    ///     .from_clear()
+    ///     .from(Font::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT * FROM `font`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT * FROM "font""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT * FROM "font""#
+    /// );
+    /// ```
+    pub fn from_clear(&mut self) -> &mut Self {
+        self.from.clear();
+        self
+    }
+
     #[allow(clippy::wrong_self_convention)]
     fn from_from(&mut self, select: TableRef) -> &mut Self {
         self.from.push(select);
