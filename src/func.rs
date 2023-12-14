@@ -33,25 +33,38 @@ pub enum Function {
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionCall {
     pub(crate) func: Function,
-    pub(crate) distinct: bool,
     pub(crate) args: Vec<SimpleExpr>,
+    pub(crate) mods: Vec<FuncArgMod>,
+}
+
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub(crate) struct FuncArgMod {
+    pub(crate) distinct: bool,
 }
 
 impl FunctionCall {
     pub(crate) fn new(func: Function) -> Self {
         Self {
             func,
-            distinct: false,
             args: Vec::new(),
+            mods: Vec::new(),
         }
     }
 
     /// Append an argument to the function call
-    pub fn arg<T>(mut self, arg: T) -> Self
+    pub fn arg<T>(self, arg: T) -> Self
+    where
+        T: Into<SimpleExpr>,
+    {
+        self.arg_with(arg, Default::default())
+    }
+
+    pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
     where
         T: Into<SimpleExpr>,
     {
         self.args.push(arg.into());
+        self.mods.push(mod_);
         self
     }
 
@@ -61,12 +74,7 @@ impl FunctionCall {
         I: IntoIterator<Item = SimpleExpr>,
     {
         self.args = args.into_iter().collect();
-        self
-    }
-
-    /// Add the `DISTINCT` modifier to the first argument
-    pub fn distinct(mut self) -> Self {
-        self.distinct = true;
+        self.mods = vec![Default::default(); self.args.len()];
         self
     }
 
@@ -344,7 +352,13 @@ impl Func {
     where
         T: Into<SimpleExpr>,
     {
-        FunctionCall::new(Function::Count).arg(expr).distinct()
+        FunctionCall::new(Function::Count).arg_with(
+            expr,
+            FuncArgMod {
+                distinct: true,
+                ..Default::default()
+            },
+        )
     }
 
     /// Call `CHAR_LENGTH` function.

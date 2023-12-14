@@ -101,7 +101,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_function(&self, function: &Function, sql: &mut dyn SqlWriter) {
+    fn prepare_function_name(&self, function: &Function, sql: &mut dyn SqlWriter) {
         match function {
             Function::PgFunction(function) => write!(
                 sql,
@@ -125,7 +125,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                 }
             )
             .unwrap(),
-            _ => self.prepare_function_common(function, sql),
+            _ => self.prepare_function_name_common(function, sql),
         }
     }
 

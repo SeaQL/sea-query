@@ -313,13 +313,8 @@ pub trait QueryBuilder:
                 }
             }
             SimpleExpr::FunctionCall(func) => {
-                self.prepare_function(&func.func, sql);
-                write!(sql, "(").unwrap();
-                if func.distinct {
-                    write!(sql, "DISTINCT ").unwrap();
-                }
-                self.prepare_comma_seperated_sequence(&func.args, sql);
-                write!(sql, ")").unwrap();
+                self.prepare_function_name(&func.func, sql);
+                self.prepare_function_arguments(func, sql);
             }
             SimpleExpr::Binary(left, op, right) => match (op, right.as_ref()) {
                 (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => {
@@ -529,13 +524,9 @@ pub trait QueryBuilder:
                 alias.prepare(sql.as_writer(), self.quote());
             }
             TableRef::FunctionCall(func, alias) => {
-                self.prepare_function(&func.func, sql);
-                write!(sql, "(").unwrap();
-                if func.distinct {
-                    write!(sql, "DISTINCT ").unwrap();
-                }
-                self.prepare_comma_seperated_sequence(&func.args, sql);
-                write!(sql, ") AS ").unwrap();
+                self.prepare_function_name(&func.func, sql);
+                self.prepare_function_arguments(func, sql);
+                write!(sql, " AS ").unwrap();
                 alias.prepare(sql.as_writer(), self.quote());
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
@@ -669,7 +660,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Function`] into SQL statement.
-    fn prepare_function_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
+    fn prepare_function_name_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
         if let Function::Custom(iden) = function {
             iden.unquoted(sql.as_writer());
         } else {
@@ -700,6 +691,20 @@ pub trait QueryBuilder:
             )
             .unwrap();
         }
+    }
+
+    fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut dyn SqlWriter) {
+        write!(sql, "(").unwrap();
+        for (i, expr) in func.args.iter().enumerate() {
+            if i != 0 {
+                write!(sql, ", ").unwrap();
+            }
+            if func.mods[i].distinct {
+                write!(sql, "DISTINCT ").unwrap();
+            }
+            self.prepare_simple_expr(expr, sql);
+        }
+        write!(sql, ")").unwrap();
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
@@ -868,8 +873,8 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_function(&self, function: &Function, sql: &mut dyn SqlWriter) {
-        self.prepare_function_common(function, sql)
+    fn prepare_function_name(&self, function: &Function, sql: &mut dyn SqlWriter) {
+        self.prepare_function_name_common(function, sql)
     }
 
     /// Translate [`JoinType`] into SQL statement.
@@ -970,21 +975,15 @@ pub trait QueryBuilder:
         });
     }
 
-    /// Write a comma seperated sequence of [`SimpleExpr`]s.
-    fn prepare_comma_seperated_sequence(&self, exprs: &[SimpleExpr], sql: &mut dyn SqlWriter) {
-        exprs.iter().fold(true, |first, expr| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            self.prepare_simple_expr(expr, sql);
-            false
-        });
-    }
-
     /// Translate [`SimpleExpr::Tuple`] into SQL statement.
     fn prepare_tuple(&self, exprs: &[SimpleExpr], sql: &mut dyn SqlWriter) {
         write!(sql, "(").unwrap();
-        self.prepare_comma_seperated_sequence(exprs, sql);
+        for (i, expr) in exprs.iter().enumerate() {
+            if i != 0 {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_simple_expr(expr, sql);
+        }
         write!(sql, ")").unwrap();
     }
 
