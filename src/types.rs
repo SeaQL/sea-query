@@ -342,11 +342,11 @@ impl Quote {
     }
 
     pub fn left(&self) -> char {
-        char::try_from(self.0).unwrap()
+        char::from(self.0)
     }
 
     pub fn right(&self) -> char {
-        char::try_from(self.1).unwrap()
+        char::from(self.1)
     }
 }
 

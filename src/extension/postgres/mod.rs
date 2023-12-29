@@ -1,7 +1,6 @@
 pub use expr::*;
 pub use extension::*;
 pub use func::*;
-pub use interval::*;
 pub use ltree::*;
 pub use types::*;
 
