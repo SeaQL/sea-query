@@ -5,9 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Main Branch
+
+### House keeping
+
+* Fix clippy warnings on Rust 1.75 https://github.com/SeaQL/sea-query/pull/729
+
 ## `sea-query-rusqlite` 0.5.0 - 2023-12-29
 
-* Upgrade `rusqlite` to `0.30`
+* Upgrade `rusqlite` to `0.30` https://github.com/SeaQL/sea-query/pull/728
 
 ## 0.30.5 - 2023-12-14
 
