@@ -1,8 +1,6 @@
 pub use expr::*;
 pub use extension::*;
 pub use func::*;
-#[allow(unused_imports)]
-pub use interval::*;
 pub use ltree::*;
 pub use types::*;
 
