@@ -214,6 +214,44 @@ impl SelectStatement {
         self
     }
 
+    /// Construct part of the select statement in another function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let common_expr = |q: &mut SelectStatement| {
+    ///     q.and_where(Expr::col(Char::FontId).eq(5));
+    /// };
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .apply(common_expr)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5"#
+    /// );
+    /// ```
+    pub fn apply<F>(&mut self, func: F) -> &mut Self
+    where
+        F: FnOnce(&mut Self),
+    {
+        func(self);
+        self
+    }
+
     /// Clear the select list
     pub fn clear_selects(&mut self) -> &mut Self {
         self.selects = Vec::new();
