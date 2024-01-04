@@ -47,7 +47,7 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_table_drop_opt(&self, _drop_opt: &TableDropOpt, _sql: &mut dyn SqlWriter) {
-        // SQLite does not support table drop options
+        // Sqlite does not support table drop options
     }
 
     fn prepare_table_truncate_statement(
@@ -131,16 +131,16 @@ impl SqliteQueryBuilder {
             "{}",
             match column_type {
                 ColumnType::Char(length) => match length {
-                    Some(length) => format!("text({length})"),
-                    None => "text".into(),
+                    Some(length) => format!("char({length})"),
+                    None => "char".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("text({length})"),
-                    None => "text".into(),
+                    Some(length) => format!("varchar({length})"),
+                    None => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "integer".into(),
-                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "integer".into(),
+                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "tinyint".into(),
+                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
                 #[allow(clippy::if_same_then_else)]
                 ColumnType::BigInteger | ColumnType::BigUnsigned => if is_auto_increment {
@@ -151,33 +151,37 @@ impl SqliteQueryBuilder {
                     "bigint"
                 }
                 .into(),
-                ColumnType::Float => "real".into(),
-                ColumnType::Double => "real".into(),
+                ColumnType::Float => "float".into(),
+                ColumnType::Double => "double".into(),
                 ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("real({precision}, {scale})"),
-                    None => "real".into(),
+                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
+                    None => "decimal".into(),
                 },
-                ColumnType::DateTime => "text".into(),
-                ColumnType::Timestamp => "text".into(),
-                ColumnType::TimestampWithTimeZone => "text".into(),
-                ColumnType::Time => "text".into(),
-                ColumnType::Date => "text".into(),
-                ColumnType::Interval(_, _) => "unsupported".into(),
+                ColumnType::DateTime => "datetime_text".into(),
+                ColumnType::Timestamp => "timestamp_text".into(),
+                ColumnType::TimestampWithTimeZone => "timestamp_with_timezone_text".into(),
+                ColumnType::Time => "time_text".into(),
+                ColumnType::Date => "date_text".into(),
+                ColumnType::Interval(_, _) =>
+                    unimplemented!("Interval is not available in Sqlite."),
                 ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Blob(Some(length)) => format!("binary({length})"),
-                    _ => "blob".into(),
+                    BlobSize::Tiny => "tinyblob".into(),
+                    BlobSize::Blob(Some(length)) => format!("blob({length})"),
+                    BlobSize::Blob(None) => "blob".into(),
+                    BlobSize::Medium => "mediumblob".into(),
+                    BlobSize::Long => "longblob".into(),
                 },
-                ColumnType::VarBinary(length) => format!("binary({length})"),
+                ColumnType::VarBinary(length) => format!("varbinary_blob({length})"),
                 ColumnType::Boolean => "boolean".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("integer({precision}, {scale})"),
-                    None => "integer".into(),
+                    Some((precision, scale)) => format!("money({precision}, {scale})"),
+                    None => "money".into(),
                 },
-                ColumnType::Json => "text".into(),
-                ColumnType::JsonBinary => "text".into(),
-                ColumnType::Uuid => "text(36)".into(),
+                ColumnType::Json => "json_text".into(),
+                ColumnType::JsonBinary => "jsonb_text".into(),
+                ColumnType::Uuid => "uuid_text".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
-                ColumnType::Enum { .. } => "text".into(),
+                ColumnType::Enum { .. } => "enum_text".into(),
                 ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in Sqlite."),
                 ColumnType::Inet => unimplemented!("Inet is not available in Sqlite."),
