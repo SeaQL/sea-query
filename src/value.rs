@@ -495,12 +495,12 @@ impl ValueType for Cow<'_, str> {
     }
 
     fn column_type() -> ColumnType {
-        ColumnType::String(None)
+        ColumnType::String(Default::default())
     }
 }
 
 type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
-type_to_box_value!(String, String, String(None));
+type_to_box_value!(String, String, String(Default::default()));
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
