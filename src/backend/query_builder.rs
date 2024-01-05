@@ -989,6 +989,10 @@ pub trait QueryBuilder:
 
     /// Convert a SQL value into syntax-specific string
     fn value_to_string(&self, v: &Value) -> String {
+        self.value_to_string_common(v)
+    }
+
+    fn value_to_string_common(&self, v: &Value) -> String {
         let mut s = String::new();
         match v {
             Value::Bool(None)
