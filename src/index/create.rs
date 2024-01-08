@@ -109,19 +109,20 @@ use super::common::*;
 ///     .table(Glyph::Table)
 ///     .col((Glyph::Image, IndexOrder::Asc))
 ///     .col((Glyph::Aspect, IndexOrder::Desc))
+///     .unique()
 ///     .to_owned();
 ///
 /// assert_eq!(
 ///     index.to_string(MysqlQueryBuilder),
-///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`image` ASC, `aspect` DESC)"#
+///     r#"CREATE UNIQUE INDEX `idx-glyph-aspect` ON `glyph` (`image` ASC, `aspect` DESC)"#
 /// );
 /// assert_eq!(
 ///     index.to_string(PostgresQueryBuilder),
-///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("image" ASC, "aspect" DESC)"#
+///     r#"CREATE UNIQUE INDEX "idx-glyph-aspect" ON "glyph" ("image" ASC, "aspect" DESC)"#
 /// );
 /// assert_eq!(
 ///     index.to_string(SqliteQueryBuilder),
-///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("image" ASC, "aspect" DESC)"#
+///     r#"CREATE UNIQUE INDEX "idx-glyph-aspect" ON "glyph" ("image" ASC, "aspect" DESC)"#
 /// );
 /// ```
 /// Index with prefix and order
