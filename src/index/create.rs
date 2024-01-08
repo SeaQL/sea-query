@@ -100,6 +100,30 @@ use super::common::*;
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" DESC)"#
 /// );
 /// ```
+/// Index on multi-columns
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let index = Index::create()
+///     .name("idx-glyph-aspect")
+///     .table(Glyph::Table)
+///     .col((Glyph::Image, IndexOrder::Asc))
+///     .col((Glyph::Aspect, IndexOrder::Desc))
+///     .to_owned();
+///
+/// assert_eq!(
+///     index.to_string(MysqlQueryBuilder),
+///     r#"CREATE INDEX `idx-glyph-aspect` ON `glyph` (`image` ASC, `aspect` DESC)"#
+/// );
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("image" ASC, "aspect" DESC)"#
+/// );
+/// assert_eq!(
+///     index.to_string(SqliteQueryBuilder),
+///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("image" ASC, "aspect" DESC)"#
+/// );
+/// ```
 /// Index with prefix and order
 /// ```
 /// use sea_query::{tests_cfg::*, *};
