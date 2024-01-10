@@ -1407,7 +1407,7 @@ fn insert_on_conflict_7() {
                     .update_column(Glyph::Aspect)
                     .to_owned()
             )
-            .to_string(PostgresQueryBuilder),
+            .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
@@ -1434,7 +1434,7 @@ fn insert_on_conflict_8() {
                     .update_column(Glyph::Aspect)
                     .to_owned()
             )
-            .to_string(PostgresQueryBuilder),
+            .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
@@ -1461,7 +1461,7 @@ fn insert_on_conflict_9() {
                     .update_column(Glyph::Aspect)
                     .to_owned()
             )
-            .to_string(PostgresQueryBuilder),
+            .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
