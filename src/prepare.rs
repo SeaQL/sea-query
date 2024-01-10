@@ -117,7 +117,7 @@ where
 
 #[cfg(test)]
 #[cfg(feature = "backend-mysql")]
-mod tests {
+mod tests_mysql {
     use super::*;
     use pretty_assertions::assert_eq;
 
@@ -152,6 +152,21 @@ mod tests {
     #[test]
     fn inject_parameters_4() {
         assert_eq!(
+            inject_parameters("?", [vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
+            "x'ABCDEF'"
+        );
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "backend-postgres")]
+mod tests_postgres {
+    use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn inject_parameters_5() {
+        assert_eq!(
             inject_parameters(
                 "WHERE A = $1 AND C = $2",
                 ["B".into(), "D".into()],
@@ -162,7 +177,7 @@ mod tests {
     }
 
     #[test]
-    fn inject_parameters_5() {
+    fn inject_parameters_6() {
         assert_eq!(
             inject_parameters(
                 "WHERE A = $2 AND C = $1",
@@ -174,18 +189,10 @@ mod tests {
     }
 
     #[test]
-    fn inject_parameters_6() {
+    fn inject_parameters_7() {
         assert_eq!(
             inject_parameters("WHERE A = $1", ["B'C".into()], &PostgresQueryBuilder),
             "WHERE A = E'B\\'C'"
-        );
-    }
-
-    #[test]
-    fn inject_parameters_7() {
-        assert_eq!(
-            inject_parameters("?", [vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
-            "x'ABCDEF'"
         );
     }
 }
