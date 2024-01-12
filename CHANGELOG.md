@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.30.7 - 2024-01-12
+
+### Enhancements
+
+* Added `SelectStatement::apply` https://github.com/SeaQL/sea-query/pull/730
+
+### House keeping
+
+* Slight refactors and documentation update
+
 ## 0.30.6 - 2024-01-01
 
 ### House keeping
