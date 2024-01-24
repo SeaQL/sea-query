@@ -154,8 +154,13 @@ impl SqliteQueryBuilder {
                 ColumnType::Float => "float".into(),
                 ColumnType::Double => "double".into(),
                 ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal_text({precision}, {scale})"),
-                    None => "decimal_text".into(),
+                    Some((precision, scale)) => {
+                        if precision > &16 {
+                            panic!("precision cannot be larger than 16");
+                        }
+                        format!("real({precision}, {scale})")
+                    }
+                    None => "real".into(),
                 },
                 ColumnType::DateTime => "datetime_text".into(),
                 ColumnType::Timestamp => "timestamp_text".into(),
