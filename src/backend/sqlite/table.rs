@@ -139,16 +139,14 @@ impl SqliteQueryBuilder {
                     None => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "tinyint".into(),
-                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
+                ColumnType::TinyInteger | ColumnType::TinyUnsigned => integer("tinyint").into(),
+                ColumnType::SmallInteger | ColumnType::SmallUnsigned => integer("smallint").into(),
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
                 #[allow(clippy::if_same_then_else)]
                 ColumnType::BigInteger | ColumnType::BigUnsigned => if is_auto_increment {
                     "integer"
-                } else if cfg!(feature = "option-sqlite-exact-column-type") {
-                    "integer"
                 } else {
-                    "bigint"
+                    integer("bigint")
                 }
                 .into(),
                 ColumnType::Float => "float".into(),
@@ -198,5 +196,13 @@ impl SqliteQueryBuilder {
             }
         )
         .unwrap()
+    }
+}
+
+fn integer(ty: &str) -> &str {
+    if cfg!(feature = "option-sqlite-exact-column-type") {
+        "integer"
+    } else {
+        ty
     }
 }
