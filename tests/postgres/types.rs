@@ -25,6 +25,38 @@ fn create_2() {
 }
 
 #[test]
+fn create_3() {
+    assert_eq!(
+        Type::create()
+            .as_enum(Tea::Enum)
+            .values([Tea::EverydayTea, Tea::BreakfastTea])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TYPE "tea" AS ENUM ('EverydayTea', 'BreakfastTea')"#
+    );
+
+    enum Tea {
+        Enum,
+        EverydayTea,
+        BreakfastTea,
+    }
+
+    impl sea_query::Iden for Tea {
+        fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+            write!(
+                s,
+                "{}",
+                match self {
+                    Self::Enum => "tea",
+                    Self::EverydayTea => "EverydayTea",
+                    Self::BreakfastTea => "BreakfastTea",
+                }
+            )
+            .unwrap();
+        }
+    }
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Type::drop()
