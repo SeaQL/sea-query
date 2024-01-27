@@ -232,10 +232,10 @@ fn create_10() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(
-                ColumnDef::new(Glyph::Id)
-                    .enumeration(Alias::new("tea"), [Alias::new("EverydayTea"), Alias::new("BreakfastTea")]),
-            )
+            .col(ColumnDef::new(Glyph::Id).enumeration(
+                Alias::new("tea"),
+                [Alias::new("EverydayTea"), Alias::new("BreakfastTea")]
+            ),)
             .to_string(MysqlQueryBuilder),
         "CREATE TABLE `glyph` ( `id` ENUM('EverydayTea', 'BreakfastTea') )"
     );
