@@ -228,6 +228,20 @@ fn create_9() {
 }
 
 #[test]
+fn create_10() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .enumeration(Alias::new("tea"), [Alias::new("EverydayTea"), Alias::new("BreakfastTea")]),
+            )
+            .to_string(MysqlQueryBuilder),
+        "CREATE TABLE `glyph` ( `id` ENUM('EverydayTea', 'BreakfastTea') )"
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
