@@ -101,6 +101,10 @@ pub enum TableOpt {
     CharacterSet(String),
 }
 
+pub trait IntoColumnDef {
+    fn into_column_def(self) -> ColumnDef;
+}
+
 /// All available table partition options
 #[derive(Debug, Clone)]
 pub enum TablePartition {}
@@ -136,8 +140,8 @@ impl TableCreateStatement {
     }
 
     /// Add a new table column
-    pub fn col(&mut self, column: &mut ColumnDef) -> &mut Self {
-        let mut column = column.take();
+    pub fn col<C: IntoColumnDef>(&mut self, column: C) -> &mut Self {
+        let mut column = column.into_column_def();
         column.table = self.table.clone();
         self.columns.push(column);
         self
@@ -370,4 +374,16 @@ impl SchemaStatementBuilder for TableCreateStatement {
     }
 
     pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
+}
+
+impl IntoColumnDef for &mut ColumnDef {
+    fn into_column_def(self) -> ColumnDef {
+        self.take()
+    }
+}
+
+impl IntoColumnDef for ColumnDef {
+    fn into_column_def(self) -> ColumnDef {
+        self
+    }
 }
