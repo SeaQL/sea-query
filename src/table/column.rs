@@ -9,6 +9,10 @@ pub struct ColumnDef {
     pub(crate) spec: Vec<ColumnSpec>,
 }
 
+pub trait IntoColumnDef {
+    fn into_column_def(self) -> ColumnDef;
+}
+
 /// All column types
 ///
 /// | ColumnType            | MySQL data type   | PostgreSQL data type        | SQLite data type             |
@@ -726,5 +730,17 @@ impl ColumnDef {
             types: self.types.take(),
             spec: std::mem::take(&mut self.spec),
         }
+    }
+}
+
+impl IntoColumnDef for &mut ColumnDef {
+    fn into_column_def(self) -> ColumnDef {
+        self.take()
+    }
+}
+
+impl IntoColumnDef for ColumnDef {
+    fn into_column_def(self) -> ColumnDef {
+        self
     }
 }

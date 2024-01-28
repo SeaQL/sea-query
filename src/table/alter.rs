@@ -1,4 +1,7 @@
-use crate::{backend::SchemaBuilder, types::*, ColumnDef, SchemaStatementBuilder, TableForeignKey};
+use crate::{
+    backend::SchemaBuilder, types::*, ColumnDef, IntoColumnDef, SchemaStatementBuilder,
+    TableForeignKey,
+};
 use inherent::inherent;
 
 /// Alter a table
@@ -100,10 +103,10 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
     /// );
     /// ```
-    pub fn add_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
+    pub fn add_column<C: IntoColumnDef>(&mut self, column_def: C) -> &mut Self {
         self.options
             .push(TableAlterOption::AddColumn(AddColumnOption {
-                column: column_def.take(),
+                column: column_def.into_column_def(),
                 if_not_exists: false,
             }));
         self
@@ -139,10 +142,10 @@ impl TableAlterStatement {
     ///     r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#,
     /// );
     /// ```
-    pub fn add_column_if_not_exists(&mut self, column_def: &mut ColumnDef) -> &mut Self {
+    pub fn add_column_if_not_exists<C: IntoColumnDef>(&mut self, column_def: C) -> &mut Self {
         self.options
             .push(TableAlterOption::AddColumn(AddColumnOption {
-                column: column_def.take(),
+                column: column_def.into_column_def(),
                 if_not_exists: true,
             }));
         self
@@ -179,8 +182,8 @@ impl TableAlterStatement {
     /// );
     /// // Sqlite not support modifying table column
     /// ```
-    pub fn modify_column(&mut self, column_def: &mut ColumnDef) -> &mut Self {
-        self.add_alter_option(TableAlterOption::ModifyColumn(column_def.take()))
+    pub fn modify_column<C: IntoColumnDef>(&mut self, column_def: C) -> &mut Self {
+        self.add_alter_option(TableAlterOption::ModifyColumn(column_def.into_column_def()))
     }
 
     /// Rename a column in an existing table

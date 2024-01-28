@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    backend::SchemaBuilder, foreign_key::*, index::*, types::*, ColumnDef, SchemaStatementBuilder,
-    SimpleExpr,
+    backend::SchemaBuilder, foreign_key::*, index::*, types::*, ColumnDef, IntoColumnDef,
+    SchemaStatementBuilder, SimpleExpr,
 };
 
 /// Create a table
@@ -99,10 +99,6 @@ pub enum TableOpt {
     Engine(String),
     Collate(String),
     CharacterSet(String),
-}
-
-pub trait IntoColumnDef {
-    fn into_column_def(self) -> ColumnDef;
 }
 
 /// All available table partition options
@@ -374,16 +370,4 @@ impl SchemaStatementBuilder for TableCreateStatement {
     }
 
     pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
-}
-
-impl IntoColumnDef for &mut ColumnDef {
-    fn into_column_def(self) -> ColumnDef {
-        self.take()
-    }
-}
-
-impl IntoColumnDef for ColumnDef {
-    fn into_column_def(self) -> ColumnDef {
-        self
-    }
 }
