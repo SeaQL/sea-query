@@ -278,6 +278,44 @@ impl InsertStatement {
         self.values(values).unwrap()
     }
 
+    /// Add rows to be inserted from an iterator, variation of [`InsertStatement::values_panic`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let rows = vec![[2.1345.into(), "24B".into()], [5.15.into(), "12A".into()]];
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect, Glyph::Image])
+    ///     .values_from_panic(rows)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2.1345, '24B'), (5.15, '12A')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
+    /// );
+    /// ```
+    pub fn values_from_panic<I>(&mut self, values_iter: impl IntoIterator<Item = I>) -> &mut Self
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        values_iter.into_iter().for_each(|values| {
+            self.values_panic(values);
+        });
+        self
+    }
+
     /// ON CONFLICT expression
     ///
     /// # Examples
