@@ -70,7 +70,7 @@ use crate::{
 ///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
 ///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
 ///            r#""font_size" integer NOT NULL,"#,
-///            r#""character" text NOT NULL,"#,
+///            r#""character" varchar NOT NULL,"#,
 ///            r#""size_w" integer NOT NULL,"#,
 ///            r#""size_h" integer NOT NULL,"#,
 ///            r#""font_id" integer DEFAULT NULL,"#,
@@ -215,7 +215,7 @@ impl TableCreateStatement {
     ///     [
     ///         r#"CREATE TABLE "glyph" ("#,
     ///         r#""id" integer NOT NULL,"#,
-    ///         r#""image" text NOT NULL,"#,
+    ///         r#""image" varchar NOT NULL,"#,
     ///         r#"PRIMARY KEY ("id", "image")"#,
     ///         r#")"#,
     ///     ]

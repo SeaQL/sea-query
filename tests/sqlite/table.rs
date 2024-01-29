@@ -19,7 +19,7 @@ fn create_1() {
         [
             r#"CREATE TABLE "glyph" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-            r#""aspect" real NOT NULL,"#,
+            r#""aspect" double NOT NULL,"#,
             r#""image" text"#,
             r#")"#,
         ]
@@ -46,9 +46,9 @@ fn create_2() {
         [
             r#"CREATE TABLE "font" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-            r#""name" text NOT NULL,"#,
-            r#""variant" text NOT NULL,"#,
-            r#""language" text NOT NULL"#,
+            r#""name" varchar NOT NULL,"#,
+            r#""variant" varchar NOT NULL,"#,
+            r#""language" varchar NOT NULL"#,
             r#")"#,
         ]
         .join(" ")
@@ -89,7 +89,7 @@ fn create_3() {
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
-            r#""character" text NOT NULL,"#,
+            r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,
             r#""size_h" integer NOT NULL,"#,
             r#""font_id" integer DEFAULT NULL,"#,
@@ -115,13 +115,13 @@ fn create_4() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "binary_type" ("#,
-            r#""binlen" binary(32),"#,
+            r#""binlen" blob(32),"#,
             r#""bin" blob,"#,
-            r#""defb" binary(32),"#,
-            r#""tb" blob,"#,
+            r#""defb" blob(32),"#,
+            r#""tb" tinyblob,"#,
             r#""b" blob,"#,
-            r#""mb" blob,"#,
-            r#""lb" blob"#,
+            r#""mb" mediumblob,"#,
+            r#""lb" longblob"#,
             r#")"#,
         ]
         .join(" ")
@@ -140,8 +140,8 @@ fn create_5() {
         [
             r#"CREATE TABLE "character" ("#,
             r#""character" blob,"#,
-            r#""font_size" binary(10),"#,
-            r#""size_w" binary(10)"#,
+            r#""font_size" blob(10),"#,
+            r#""size_w" varbinary_blob(10)"#,
             r#")"#,
         ]
         .join(" ")
@@ -229,7 +229,7 @@ fn create_with_unique_index() {
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
-            r#""character" text NOT NULL,"#,
+            r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,
             r#""size_h" integer NOT NULL,"#,
             r#""font_id" integer DEFAULT NULL,"#,
@@ -274,7 +274,7 @@ fn create_with_primary_unique_index() {
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL,"#,
             r#""font_size" integer NOT NULL,"#,
-            r#""character" text NOT NULL,"#,
+            r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,
             r#""size_h" integer NOT NULL,"#,
             r#""font_id" integer DEFAULT NULL,"#,
@@ -328,7 +328,7 @@ fn create_with_unique_index_constraint() {
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
-            r#""character" text NOT NULL,"#,
+            r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,
             r#""size_h" integer NOT NULL,"#,
             r#""font_id" integer DEFAULT NULL,"#,
