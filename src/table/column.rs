@@ -276,12 +276,6 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as string with maximum length
-    pub fn string_max(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::String(StringLen::Max));
-        self
-    }
-
     /// Set column type as string
     pub fn string(&mut self) -> &mut Self {
         self.types = Some(ColumnType::String(Default::default()));
