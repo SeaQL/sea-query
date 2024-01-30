@@ -11,44 +11,44 @@ pub struct ColumnDef {
 
 /// All column types
 ///
-/// | ColumnType            | MySQL data type  | PostgreSQL data type        | SQLite data type             |
-/// |-----------------------|------------------|-----------------------------|------------------------------|
-/// | Char                  | char             | char                        | char                         |
-/// | String                | varchar          | varchar                     | varchar                      |
-/// | Text                  | text             | text                        | text                         |
-/// | TinyInteger           | tinyint          | smallint                    | tinyint                      |
-/// | SmallInteger          | smallint         | smallint                    | smallint                     |
-/// | Integer               | int              | integer                     | integer                      |
-/// | BigInteger            | bigint           | bigint                      | integer                      |
-/// | TinyUnsigned          | tinyint          | smallint                    | tinyint                      |
-/// | SmallUnsigned         | smallint         | smallint                    | smallint                     |
-/// | Unsigned              | int              | integer                     | integer                      |
-/// | BigUnsigned           | bigint           | bigint                      | integer                      |
-/// | Float                 | float            | real                        | float                        |
-/// | Double                | double           | double precision            | double                       |
-/// | Decimal               | decimal          | decimal                     | real                         |
-/// | DateTime              | datetime         | timestamp without time zone | datetime_text                |
-/// | Timestamp             | timestamp        | timestamp                   | timestamp_text               |
-/// | TimestampWithTimeZone | timestamp        | timestamp with time zone    | timestamp_with_timezone_text |
-/// | Time                  | time             | time                        | time_text                    |
-/// | Date                  | date             | date                        | date_text                    |
-/// | Year                  | year             | N/A                         | N/A                          |
-/// | Interval              | N/A              | interval                    | N/A                          |
-/// | Binary                | blob             | bytea                       | blob                         |
-/// | VarBinary             | varbinary        | bit varying                 | varbinary_blob               |
-/// | Bit                   | bit              | bit                         | N/A                          |
-/// | VarBit                | bit              | varbit                      | N/A                          |
-/// | Boolean               | bool             | bool                        | boolean                      |
-/// | Money                 | money            | money                       | money                        |
-/// | Json                  | json             | json                        | json_text                    |
-/// | JsonBinary            | json             | jsonb                       | jsonb_text                   |
-/// | Uuid                  | binary(16)       | uuid                        | uuid_text                    |
-/// | Enum                  | ENUM(...)        | ENUM_NAME                   | enum_text                    |
-/// | Array                 | N/A              | DATA_TYPE[]                 | N/A                          |
-/// | Cidr                  | N/A              | cidr                        | N/A                          |
-/// | Inet                  | N/A              | inet                        | N/A                          |
-/// | MacAddr               | N/A              | macaddr                     | N/A                          |
-/// | LTree                 | N/A              | ltree                       | N/A                          |
+/// | ColumnType            | MySQL data type   | PostgreSQL data type        | SQLite data type             |
+/// |-----------------------|-------------------|-----------------------------|------------------------------|
+/// | Char                  | char              | char                        | char                         |
+/// | String                | varchar           | varchar                     | varchar                      |
+/// | Text                  | text              | text                        | text                         |
+/// | TinyInteger           | tinyint           | smallint                    | tinyint                      |
+/// | SmallInteger          | smallint          | smallint                    | smallint                     |
+/// | Integer               | int               | integer                     | integer                      |
+/// | BigInteger            | bigint            | bigint                      | integer                      |
+/// | TinyUnsigned          | tinyint unsigned  | smallint                    | tinyint                      |
+/// | SmallUnsigned         | smallint unsigned | smallint                    | smallint                     |
+/// | Unsigned              | int unsigned      | integer                     | integer                      |
+/// | BigUnsigned           | bigint unsigned   | bigint                      | integer                      |
+/// | Float                 | float             | real                        | float                        |
+/// | Double                | double            | double precision            | double                       |
+/// | Decimal               | decimal           | decimal                     | real                         |
+/// | DateTime              | datetime          | timestamp without time zone | datetime_text                |
+/// | Timestamp             | timestamp         | timestamp                   | timestamp_text               |
+/// | TimestampWithTimeZone | timestamp         | timestamp with time zone    | timestamp_with_timezone_text |
+/// | Time                  | time              | time                        | time_text                    |
+/// | Date                  | date              | date                        | date_text                    |
+/// | Year                  | year              | N/A                         | N/A                          |
+/// | Interval              | N/A               | interval                    | N/A                          |
+/// | Binary                | blob              | bytea                       | blob                         |
+/// | VarBinary             | varbinary         | bit varying                 | varbinary_blob               |
+/// | Bit                   | bit               | bit                         | N/A                          |
+/// | VarBit                | bit               | varbit                      | N/A                          |
+/// | Boolean               | bool              | bool                        | boolean                      |
+/// | Money                 | money             | money                       | money                        |
+/// | Json                  | json              | json                        | json_text                    |
+/// | JsonBinary            | json              | jsonb                       | jsonb_text                   |
+/// | Uuid                  | binary(16)        | uuid                        | uuid_text                    |
+/// | Enum                  | ENUM(...)         | ENUM_NAME                   | enum_text                    |
+/// | Array                 | N/A               | DATA_TYPE[]                 | N/A                          |
+/// | Cidr                  | N/A               | cidr                        | N/A                          |
+/// | Inet                  | N/A               | inet                        | N/A                          |
+/// | MacAddr               | N/A               | macaddr                     | N/A                          |
+/// | LTree                 | N/A               | ltree                       | N/A                          |
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum ColumnType {
