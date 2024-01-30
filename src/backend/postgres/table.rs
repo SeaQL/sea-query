@@ -50,7 +50,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Binary(_) | ColumnType::VarBinary(_) => "bytea".into(),
                 ColumnType::Bit(length) => {
                     match length {
-                        Some(length) => format!("varbit({length})"),
+                        Some(length) => format!("bit({length})"),
                         None => "bit".into(),
                     }
                 }
