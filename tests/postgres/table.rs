@@ -258,11 +258,13 @@ fn create_12() {
     assert_eq!(
         Table::create()
             .table(BinaryType::Table)
-            .col(ColumnDef::new(BinaryType::BinaryLen).binary(32))
+            .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
+            .col(ColumnDef::new(BinaryType::Binary).binary())
             .to_string(PostgresQueryBuilder),
         [
             r#"CREATE TABLE "binary_type" ("#,
-            r#""binlen" bytea"#,
+            r#""binlen" bytea,"#,
+            r#""bin" bytea"#,
             r#")"#,
         ]
         .join(" ")
@@ -274,11 +276,13 @@ fn create_13() {
     assert_eq!(
         Table::create()
             .table(Char::Table)
-            .col(ColumnDef::new(Char::FontSize).binary(10))
+            .col(ColumnDef::new(Char::Character).binary())
+            .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))
             .to_string(PostgresQueryBuilder),
         [
             r#"CREATE TABLE "character" ("#,
+            r#""character" bytea,"#,
             r#""font_size" bytea,"#,
             r#""size_w" bit varying(10)"#,
             r#")"#,

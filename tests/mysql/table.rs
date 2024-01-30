@@ -163,8 +163,9 @@ fn create_6() {
     assert_eq!(
         Table::create()
             .table(BinaryType::Table)
-            .col(ColumnDef::new(BinaryType::BinaryLen).binary(32))
-            .col(ColumnDef::new(BinaryType::Binary).custom(MySqlType::Blob))
+            .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
+            .col(ColumnDef::new(BinaryType::Binary).binary())
+            .col(ColumnDef::new(BinaryType::Blob).custom(MySqlType::Blob))
             .col(ColumnDef::new(BinaryType::TinyBlob).custom(MySqlType::TinyBlob))
             .col(ColumnDef::new(BinaryType::MediumBlob).custom(MySqlType::MediumBlob))
             .col(ColumnDef::new(BinaryType::LongBlob).custom(MySqlType::LongBlob))
@@ -172,7 +173,8 @@ fn create_6() {
         [
             "CREATE TABLE `binary_type` (",
             "`binlen` binary(32),",
-            "`bin` blob,",
+            "`bin` binary(1),",
+            "`b` blob,",
             "`tb` tinyblob,",
             "`mb` mediumblob,",
             "`lb` longblob",
@@ -187,13 +189,13 @@ fn create_7() {
     assert_eq!(
         Table::create()
             .table(Char::Table)
-            .col(ColumnDef::new(Char::Character).custom(MySqlType::Blob))
-            .col(ColumnDef::new(Char::FontSize).binary(10))
+            .col(ColumnDef::new(Char::Character).binary())
+            .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `character` (",
-            "`character` blob,",
+            "`character` binary(1),",
             "`font_size` binary(10),",
             "`size_w` varbinary(10)",
             ")",

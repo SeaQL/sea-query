@@ -449,20 +449,19 @@ impl ColumnDef {
     }
 
     /// Set column type as binary with custom length
-    pub fn binary(&mut self, length: u32) -> &mut Self {
+    pub fn binary_len(&mut self, length: u32) -> &mut Self {
         self.types = Some(ColumnType::Binary(length));
         self
+    }
+
+    /// Set column type as binary with default length of 1
+    pub fn binary(&mut self) -> &mut Self {
+        self.binary_len(1)
     }
 
     /// Set column type as binary with variable length
     pub fn var_binary(&mut self, length: u32) -> &mut Self {
         self.types = Some(ColumnType::VarBinary(StringLen::N(length)));
-        self
-    }
-
-    /// Set column type as binary with maximum length
-    pub fn var_binary_max(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::VarBinary(StringLen::Max));
         self
     }
 

@@ -105,11 +105,13 @@ fn create_4() {
     assert_eq!(
         Table::create()
             .table(BinaryType::Table)
-            .col(ColumnDef::new(BinaryType::BinaryLen).binary(32))
+            .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
+            .col(ColumnDef::new(BinaryType::Binary).binary())
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "binary_type" ("#,
-            r#""binlen" blob(32)"#,
+            r#""binlen" blob(32),"#,
+            r#""bin" blob(1)"#,
             r#")"#,
         ]
         .join(" ")
@@ -121,11 +123,13 @@ fn create_5() {
     assert_eq!(
         Table::create()
             .table(Char::Table)
-            .col(ColumnDef::new(Char::FontSize).binary(10))
+            .col(ColumnDef::new(Char::Character).binary())
+            .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "character" ("#,
+            r#""character" blob(1),"#,
             r#""font_size" blob(10),"#,
             r#""size_w" varbinary_blob(10)"#,
             r#")"#,
