@@ -34,8 +34,8 @@ pub struct ColumnDef {
 /// | Date                  | date              | date                        | date_text                    |
 /// | Year                  | year              | N/A                         | N/A                          |
 /// | Interval              | N/A               | interval                    | N/A                          |
-/// | Binary                | blob              | bytea                       | blob                         |
-/// | VarBinary             | varbinary         | bit varying                 | varbinary_blob               |
+/// | Binary                | binary            | bytea                       | blob                         |
+/// | VarBinary             | varbinary         | bytea                       | varbinary_blob               |
 /// | Bit                   | bit               | bit                         | N/A                          |
 /// | VarBit                | bit               | varbit                      | N/A                          |
 /// | Boolean               | bool              | bool                        | boolean                      |
