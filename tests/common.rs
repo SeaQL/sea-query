@@ -11,6 +11,7 @@ use sea_query::Iden;
 ///
 /// [`Iden`]: crate::types::Iden
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum BinaryType {
     Table,
     BinaryLen,

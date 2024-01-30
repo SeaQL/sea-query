@@ -260,21 +260,11 @@ fn create_12() {
             .table(BinaryType::Table)
             .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
             .col(ColumnDef::new(BinaryType::Binary).binary())
-            .col(ColumnDef::new(BinaryType::BlobSize).blob(BlobSize::Blob(Some(32))))
-            .col(ColumnDef::new(BinaryType::TinyBlob).blob(BlobSize::Tiny))
-            .col(ColumnDef::new(BinaryType::Blob).blob(BlobSize::Blob(None)))
-            .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
-            .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
             .to_string(PostgresQueryBuilder),
         [
             r#"CREATE TABLE "binary_type" ("#,
             r#""binlen" bytea,"#,
-            r#""bin" bytea,"#,
-            r#""defb" bytea,"#,
-            r#""tb" bytea,"#,
-            r#""b" bytea,"#,
-            r#""mb" bytea,"#,
-            r#""lb" bytea"#,
+            r#""bin" bytea"#,
             r#")"#,
         ]
         .join(" ")
@@ -294,7 +284,7 @@ fn create_13() {
             r#"CREATE TABLE "character" ("#,
             r#""character" bytea,"#,
             r#""font_size" bytea,"#,
-            r#""size_w" bit varying(10)"#,
+            r#""size_w" bytea"#,
             r#")"#,
         ]
         .join(" ")

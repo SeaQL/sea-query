@@ -10,6 +10,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Breaking Changes
 
 * Rework SQLite type mapping https://github.com/SeaQL/sea-query/pull/735
+* MySQL blob types moved to `sea_query::extension::mysql::MySqlType`
+```rust
+assert_eq!(
+    Table::create()
+        .table(BinaryType::Table)
+        .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
+        .col(ColumnDef::new(BinaryType::Binary).binary())
+        .col(ColumnDef::new(BinaryType::Blob).custom(MySqlType::Blob))
+        .col(ColumnDef::new(BinaryType::TinyBlob).custom(MySqlType::TinyBlob))
+        .col(ColumnDef::new(BinaryType::MediumBlob).custom(MySqlType::MediumBlob))
+        .col(ColumnDef::new(BinaryType::LongBlob).custom(MySqlType::LongBlob))
+        .to_string(MysqlQueryBuilder),
+    [
+        "CREATE TABLE `binary_type` (",
+            "`binlen` binary(32),",
+            "`bin` binary(1),",
+            "`b` blob,",
+            "`tb` tinyblob,",
+            "`mb` mediumblob,",
+            "`lb` longblob",
+        ")",
+    ]
+    .join(" ")
+);
+```
 
 ## 0.30.8 - Pending
 

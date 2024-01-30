@@ -107,21 +107,11 @@ fn create_4() {
             .table(BinaryType::Table)
             .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
             .col(ColumnDef::new(BinaryType::Binary).binary())
-            .col(ColumnDef::new(BinaryType::BlobSize).blob(BlobSize::Blob(Some(32))))
-            .col(ColumnDef::new(BinaryType::TinyBlob).blob(BlobSize::Tiny))
-            .col(ColumnDef::new(BinaryType::Blob).blob(BlobSize::Blob(None)))
-            .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
-            .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "binary_type" ("#,
             r#""binlen" blob(32),"#,
-            r#""bin" blob,"#,
-            r#""defb" blob(32),"#,
-            r#""tb" tinyblob,"#,
-            r#""b" blob,"#,
-            r#""mb" mediumblob,"#,
-            r#""lb" longblob"#,
+            r#""bin" blob(1)"#,
             r#")"#,
         ]
         .join(" ")
@@ -139,7 +129,7 @@ fn create_5() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "character" ("#,
-            r#""character" blob,"#,
+            r#""character" blob(1),"#,
             r#""font_size" blob(10),"#,
             r#""size_w" varbinary_blob(10)"#,
             r#")"#,

@@ -18,8 +18,8 @@ impl TableBuilder for PostgresQueryBuilder {
                     None => "char".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("varchar({length})"),
-                    None => "varchar".into(),
+                    StringLen::N(length) => format!("varchar({length})"),
+                    _ => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
                 ColumnType::TinyInteger | ColumnType::TinyUnsigned => "smallint".into(),
@@ -47,11 +47,10 @@ impl TableBuilder for PostgresQueryBuilder {
                     }
                     typ
                 }
-                ColumnType::Binary(_) => "bytea".into(),
-                ColumnType::VarBinary(length) => format!("bit varying({length})"),
+                ColumnType::Binary(_) | ColumnType::VarBinary(_) => "bytea".into(),
                 ColumnType::Bit(length) => {
                     match length {
-                        Some(length) => format!("varbit({length})"),
+                        Some(length) => format!("bit({length})"),
                         None => "bit".into(),
                     }
                 }

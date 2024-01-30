@@ -34,12 +34,12 @@ pub struct ColumnDef {
 /// | Date                  | date              | date                        | date_text                    |
 /// | Year                  | year              | N/A                         | N/A                          |
 /// | Interval              | N/A               | interval                    | N/A                          |
-/// | Binary                | blob              | bytea                       | blob                         |
-/// | VarBinary             | varbinary         | bit varying                 | varbinary_blob               |
+/// | Binary                | binary            | bytea                       | blob                         |
+/// | VarBinary             | varbinary         | bytea                       | varbinary_blob               |
 /// | Bit                   | bit               | bit                         | N/A                          |
 /// | VarBit                | bit               | varbit                      | N/A                          |
 /// | Boolean               | bool              | bool                        | boolean                      |
-/// | Money                 | money             | money                       | money                        |
+/// | Money                 | money             | money                       | real_money                   |
 /// | Json                  | json              | json                        | json_text                    |
 /// | JsonBinary            | json              | jsonb                       | jsonb_text                   |
 /// | Uuid                  | binary(16)        | uuid                        | uuid_text                    |
@@ -53,7 +53,7 @@ pub struct ColumnDef {
 #[derive(Debug, Clone)]
 pub enum ColumnType {
     Char(Option<u32>),
-    String(Option<u32>),
+    String(StringLen),
     Text,
     TinyInteger,
     SmallInteger,
@@ -73,8 +73,8 @@ pub enum ColumnType {
     Date,
     Year(Option<MySqlYear>),
     Interval(Option<PgInterval>, Option<u32>),
-    Binary(BlobSize),
-    VarBinary(u32),
+    Binary(u32),
+    VarBinary(StringLen),
     Bit(Option<u32>),
     VarBit(u32),
     Boolean,
@@ -92,6 +92,16 @@ pub enum ColumnType {
     Inet,
     MacAddr,
     LTree,
+}
+
+/// Length for var-char/binary; default to 255
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum StringLen {
+    /// String size
+    N(u32),
+    Max,
+    #[default]
+    None,
 }
 
 impl PartialEq for ColumnType {
@@ -177,15 +187,6 @@ pub enum PgInterval {
 pub enum MySqlYear {
     Two,
     Four,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum BlobSize {
-    Tiny,
-    /// MySQL & SQLite support `binary(length)` column type
-    Blob(Option<u32>),
-    Medium,
-    Long,
 }
 
 impl ColumnDef {
@@ -305,13 +306,13 @@ impl ColumnDef {
 
     /// Set column type as string with custom length
     pub fn string_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::String(Some(length)));
+        self.types = Some(ColumnType::String(StringLen::N(length)));
         self
     }
 
     /// Set column type as string
     pub fn string(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::String(None));
+        self.types = Some(ColumnType::String(Default::default()));
         self
     }
 
@@ -477,25 +478,18 @@ impl ColumnDef {
 
     /// Set column type as binary with custom length
     pub fn binary_len(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::Binary(BlobSize::Blob(Some(length))));
+        self.types = Some(ColumnType::Binary(length));
         self
     }
 
-    /// Set column type as binary
+    /// Set column type as binary with default length of 1
     pub fn binary(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::Binary(BlobSize::Blob(None)));
-        self
-    }
-
-    /// Set column type as blob, but when given BlobSize::Blob(size) argument, this column map to binary(size) type instead.
-    pub fn blob(&mut self, size: BlobSize) -> &mut Self {
-        self.types = Some(ColumnType::Binary(size));
-        self
+        self.binary_len(1)
     }
 
     /// Set column type as binary with variable length
     pub fn var_binary(&mut self, length: u32) -> &mut Self {
-        self.types = Some(ColumnType::VarBinary(length));
+        self.types = Some(ColumnType::VarBinary(StringLen::N(length)));
         self
     }
 

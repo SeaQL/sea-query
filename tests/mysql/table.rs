@@ -165,18 +165,17 @@ fn create_6() {
             .table(BinaryType::Table)
             .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
             .col(ColumnDef::new(BinaryType::Binary).binary())
-            .col(ColumnDef::new(BinaryType::BlobSize).blob(BlobSize::Blob(Some(32))))
-            .col(ColumnDef::new(BinaryType::TinyBlob).blob(BlobSize::Tiny))
-            .col(ColumnDef::new(BinaryType::Blob).blob(BlobSize::Blob(None)))
-            .col(ColumnDef::new(BinaryType::MediumBlob).blob(BlobSize::Medium))
-            .col(ColumnDef::new(BinaryType::LongBlob).blob(BlobSize::Long))
+            .col(ColumnDef::new(BinaryType::Blob).custom(MySqlType::Blob))
+            .col(ColumnDef::new(BinaryType::TinyBlob).custom(MySqlType::TinyBlob))
+            .col(ColumnDef::new(BinaryType::MediumBlob).custom(MySqlType::MediumBlob))
+            .col(ColumnDef::new(BinaryType::LongBlob).custom(MySqlType::LongBlob))
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `binary_type` (",
             "`binlen` binary(32),",
-            "`bin` blob, `defb` binary(32),",
-            "`tb` tinyblob,",
+            "`bin` binary(1),",
             "`b` blob,",
+            "`tb` tinyblob,",
             "`mb` mediumblob,",
             "`lb` longblob",
             ")",
@@ -196,7 +195,7 @@ fn create_7() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `character` (",
-            "`character` blob,",
+            "`character` binary(1),",
             "`font_size` binary(10),",
             "`size_w` varbinary(10)",
             ")",

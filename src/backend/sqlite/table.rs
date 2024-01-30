@@ -135,8 +135,8 @@ impl SqliteQueryBuilder {
                     None => "char".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("varchar({length})"),
-                    None => "varchar".into(),
+                    StringLen::N(length) => format!("varchar({length})"),
+                    _ => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
                 ColumnType::TinyInteger | ColumnType::TinyUnsigned => integer("tinyint").into(),
@@ -167,18 +167,15 @@ impl SqliteQueryBuilder {
                 ColumnType::Date => "date_text".into(),
                 ColumnType::Interval(_, _) =>
                     unimplemented!("Interval is not available in Sqlite."),
-                ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Tiny => "tinyblob".into(),
-                    BlobSize::Blob(Some(length)) => format!("blob({length})"),
-                    BlobSize::Blob(None) => "blob".into(),
-                    BlobSize::Medium => "mediumblob".into(),
-                    BlobSize::Long => "longblob".into(),
+                ColumnType::Binary(length) => format!("blob({length})"),
+                ColumnType::VarBinary(length) => match length {
+                    StringLen::N(length) => format!("varbinary_blob({length})"),
+                    _ => "varbinary_blob".into(),
                 },
-                ColumnType::VarBinary(length) => format!("varbinary_blob({length})"),
                 ColumnType::Boolean => "boolean".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({precision}, {scale})"),
-                    None => "money".into(),
+                    Some((precision, scale)) => format!("real_money({precision}, {scale})"),
+                    None => "real_money".into(),
                 },
                 ColumnType::Json => "json_text".into(),
                 ColumnType::JsonBinary => "jsonb_text".into(),

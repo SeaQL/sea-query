@@ -34,8 +34,9 @@ impl TableBuilder for MysqlQueryBuilder {
                     None => "char".into(),
                 },
                 ColumnType::String(length) => match length {
-                    Some(length) => format!("varchar({length})"),
-                    None => "varchar(255)".into(),
+                    StringLen::N(length) => format!("varchar({length})"),
+                    StringLen::None => "varchar(255)".into(),
+                    StringLen::Max => "varchar(65535)".into(),
                 },
                 ColumnType::Text => "text".into(),
                 ColumnType::TinyInteger | ColumnType::TinyUnsigned => "tinyint".into(),
@@ -63,18 +64,12 @@ impl TableBuilder for MysqlQueryBuilder {
                     }
                 }
                 ColumnType::Interval(_, _) => "unsupported".into(),
-                ColumnType::Binary(blob_size) => match blob_size {
-                    BlobSize::Tiny => "tinyblob".into(),
-                    BlobSize::Blob(length) => {
-                        match length {
-                            Some(length) => format!("binary({length})"),
-                            None => "blob".into(),
-                        }
-                    }
-                    BlobSize::Medium => "mediumblob".into(),
-                    BlobSize::Long => "longblob".into(),
+                ColumnType::Binary(length) => format!("binary({length})"),
+                ColumnType::VarBinary(length) => match length {
+                    StringLen::N(length) => format!("varbinary({length})"),
+                    StringLen::None => "varbinary(255)".into(),
+                    StringLen::Max => "varbinary(65535)".into(),
                 },
-                ColumnType::VarBinary(length) => format!("varbinary({length})"),
                 ColumnType::Bit(length) => {
                     match length {
                         Some(length) => format!("bit({length})"),
