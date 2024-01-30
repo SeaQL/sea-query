@@ -31,7 +31,7 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
-use crate::{BlobSize, ColumnType, CommonSqlQueryBuilder, QueryBuilder};
+use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -495,12 +495,12 @@ impl ValueType for Cow<'_, str> {
     }
 
     fn column_type() -> ColumnType {
-        ColumnType::String(None)
+        ColumnType::String(StringLen::Max)
     }
 }
 
-type_to_box_value!(Vec<u8>, Bytes, Binary(BlobSize::Blob(None)));
-type_to_box_value!(String, String, String(None));
+type_to_box_value!(Vec<u8>, Bytes, VarBinary(StringLen::Max));
+type_to_box_value!(String, String, String(StringLen::Max));
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
