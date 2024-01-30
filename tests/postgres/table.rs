@@ -284,7 +284,7 @@ fn create_13() {
             r#"CREATE TABLE "character" ("#,
             r#""character" bytea,"#,
             r#""font_size" bytea,"#,
-            r#""size_w" bit varying(10)"#,
+            r#""size_w" bytea"#,
             r#")"#,
         ]
         .join(" ")

@@ -47,11 +47,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     }
                     typ
                 }
-                ColumnType::Binary(_) => "bytea".into(),
-                ColumnType::VarBinary(length) => match length {
-                    StringLen::N(length) => format!("bit varying({length})"),
-                    _ => "bit varying".into(),
-                },
+                ColumnType::Binary(_) | ColumnType::VarBinary(_) => "bytea".into(),
                 ColumnType::Bit(length) => {
                     match length {
                         Some(length) => format!("varbit({length})"),
