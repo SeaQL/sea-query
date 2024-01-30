@@ -174,8 +174,8 @@ impl SqliteQueryBuilder {
                 },
                 ColumnType::Boolean => "boolean".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({precision}, {scale})"),
-                    None => "money".into(),
+                    Some((precision, scale)) => format!("real_money({precision}, {scale})"),
+                    None => "real_money".into(),
                 },
                 ColumnType::Json => "json_text".into(),
                 ColumnType::JsonBinary => "jsonb_text".into(),
