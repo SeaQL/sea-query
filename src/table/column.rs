@@ -56,18 +56,13 @@ pub enum ColumnType {
 }
 
 /// Length for var-char/binary; default to 255
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum StringLen {
     /// String size
     N(u32),
     Max,
+    #[default]
     None,
-}
-
-impl Default for StringLen {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl PartialEq for ColumnType {
