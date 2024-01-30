@@ -23,10 +23,11 @@ pub trait QueryBuilder:
         if let Some(table) = &insert.table {
             write!(sql, " INTO ").unwrap();
             self.prepare_table_ref(table, sql);
-            write!(sql, " ").unwrap();
         }
 
         self.prepare_output(&insert.returning, sql);
+
+        write!(sql, " ").unwrap();
 
         if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
             let num_rows = insert.default_values.unwrap();
