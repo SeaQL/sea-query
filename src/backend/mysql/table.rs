@@ -81,8 +81,8 @@ impl TableBuilder for MysqlQueryBuilder {
                 }
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({precision}, {scale})"),
-                    None => "money".into(),
+                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
+                    None => "decimal".into(),
                 },
                 ColumnType::Json => "json".into(),
                 ColumnType::JsonBinary => "json".into(),
