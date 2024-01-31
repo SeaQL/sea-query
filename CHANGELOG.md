@@ -10,7 +10,66 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Breaking Changes
 
 * Rework SQLite type mapping https://github.com/SeaQL/sea-query/pull/735
-* MySQL blob types moved to `sea_query::extension::mysql::MySqlType`
+```rust
+assert_eq!(
+    Table::create()
+        .table(Alias::new("strange"))
+        .col(ColumnDef::new(Alias::new("id")).integer().not_null().auto_increment().primary_key())
+        .col(ColumnDef::new(Alias::new("int1")).integer())
+        .col(ColumnDef::new(Alias::new("int2")).tiny_integer())
+        .col(ColumnDef::new(Alias::new("int3")).small_integer())
+        .col(ColumnDef::new(Alias::new("int4")).big_integer())
+        .col(ColumnDef::new(Alias::new("string1")).string())
+        .col(ColumnDef::new(Alias::new("string2")).string_len(24))
+        .col(ColumnDef::new(Alias::new("char1")).char())
+        .col(ColumnDef::new(Alias::new("char2")).char_len(24))
+        .col(ColumnDef::new(Alias::new("text_col")).text())
+        .col(ColumnDef::new(Alias::new("json_col")).json())
+        .col(ColumnDef::new(Alias::new("uuid_col")).uuid())
+        .col(ColumnDef::new(Alias::new("decimal1")).decimal())
+        .col(ColumnDef::new(Alias::new("decimal2")).decimal_len(12, 4))
+        .col(ColumnDef::new(Alias::new("money1")).money())
+        .col(ColumnDef::new(Alias::new("money2")).money_len(12, 4))
+        .col(ColumnDef::new(Alias::new("float_col")).float())
+        .col(ColumnDef::new(Alias::new("double_col")).double())
+        .col(ColumnDef::new(Alias::new("date_col")).date())
+        .col(ColumnDef::new(Alias::new("time_col")).time())
+        .col(ColumnDef::new(Alias::new("datetime_col")).date_time())
+        .col(ColumnDef::new(Alias::new("boolean_col")).boolean())
+        .col(ColumnDef::new(Alias::new("binary2")).binary_len(1024))
+        .col(ColumnDef::new(Alias::new("binary3")).var_binary(1024))
+        .to_string(SqliteQueryBuilder),
+    [
+        r#"CREATE TABLE "strange" ( "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""int1" integer,"#,
+            r#""int2" tinyint,"#,
+            r#""int3" smallint,"#,
+            r#""int4" bigint,"#,
+            r#""string1" varchar,"#,
+            r#""string2" varchar(24),"#,
+            r#""char1" char,"#,
+            r#""char2" char(24),"#,
+            r#""text_col" text,"#,
+            r#""json_col" json_text,"#,
+            r#""uuid_col" uuid_text,"#,
+            r#""decimal1" real,"#,
+            r#""decimal2" real(12, 4),"#,
+            r#""money1" real_money,"#,
+            r#""money2" real_money(12, 4),"#,
+            r#""float_col" float,"#,
+            r#""double_col" double,"#,
+            r#""date_col" date_text,"#,
+            r#""time_col" time_text,"#,
+            r#""datetime_col" datetime_text,"#,
+            r#""boolean_col" boolean,"#,
+            r#""binary2" blob(1024),"#,
+            r#""binary3" varbinary_blob(1024)"#,
+        r#")"#,
+    ]
+    .join(" ")
+);
+```
+* MySQL blob types moved to `sea_query::extension::mysql::MySqlType` 
 ```rust
 assert_eq!(
     Table::create()
@@ -35,6 +94,34 @@ assert_eq!(
     .join(" ")
 );
 ```
+* `ColumnDef::binary()` set column type as binary with default length of 1
+* Removed `ColumnDef::blob()` function
+* Removed `BlobSize` enum
+* Added `StringLen` to represent length of var-char/binary
+```rust
+/// Length for var-char/binary; default to 255
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum StringLen {
+    /// String size
+    N(u32),
+    Max,
+    #[default]
+    None,
+}
+```
+* `ValueType::columntype()` of `Vec<u8>` maps to `VarBinary(StringLen::Max)`
+* `ValueType::columntype()` of `String` maps to `String(StringLen::Max)`
+* `ColumnType::Bit` maps to `bit` for Postgres
+* `ColumnType::Binary` and `ColumnType::VarBinary` map to `bytea` for Postgres
+* `Value::Decimal` and `Value::BigDecimal` bind as `String` for SQLite
+
+### Enhancements
+
+* Added `IntoColumnDef` trait, allowing `&mut ColumnDef` / `ColumnDef` as argument
+
+### House keeping
+
+* Added `ColumnType` mapping documentation
 
 ## 0.30.8 - Pending
 
