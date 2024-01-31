@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.31.0 - Pending
 
+### Versions
+
++ `sea-query`/`0.31.0-rc.1`: 2024-01-31
++ `sea-query-binder`/`0.6.0-rc.1`: 2024-01-31
+
 ### Breaking Changes
 
 * Rework SQLite type mapping https://github.com/SeaQL/sea-query/pull/735
