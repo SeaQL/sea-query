@@ -75,7 +75,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Cidr => "cidr".into(),
                 ColumnType::Inet => "inet".into(),
                 ColumnType::MacAddr => "macaddr".into(),
-                ColumnType::Year(_) => unimplemented!("Year is not available in Postgres."),
+                ColumnType::Year => unimplemented!("Year is not available in Postgres."),
                 ColumnType::LTree => "ltree".into(),
             }
         )

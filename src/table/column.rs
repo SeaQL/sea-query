@@ -75,7 +75,7 @@ pub enum ColumnType {
     TimestampWithTimeZone,
     Time,
     Date,
-    Year(Option<MySqlYear>),
+    Year,
     Interval(Option<PgInterval>, Option<u32>),
     Binary(u32),
     VarBinary(StringLen),
@@ -114,7 +114,6 @@ impl PartialEq for ColumnType {
             (Self::Char(l0), Self::Char(r0)) => l0 == r0,
             (Self::String(l0), Self::String(r0)) => l0 == r0,
             (Self::Decimal(l0), Self::Decimal(r0)) => l0 == r0,
-            (Self::Year(l0), Self::Year(r0)) => l0 == r0,
             (Self::Interval(l0, l1), Self::Interval(r0, r1)) => l0 == r0 && l1 == r1,
             (Self::Binary(l0), Self::Binary(r0)) => l0 == r0,
             (Self::VarBinary(l0), Self::VarBinary(r0)) => l0 == r0,
@@ -195,13 +194,6 @@ pub enum PgInterval {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
-}
-
-// All MySQL year type field length sizes
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum MySqlYear {
-    Two,
-    Four,
 }
 
 impl ColumnDef {
@@ -486,8 +478,8 @@ impl ColumnDef {
 
     /// Set column type as year
     /// Only MySQL supports year
-    pub fn year(&mut self, length: Option<MySqlYear>) -> &mut Self {
-        self.types = Some(ColumnType::Year(length));
+    pub fn year(&mut self) -> &mut Self {
+        self.types = Some(ColumnType::Year);
         self
     }
 
