@@ -119,6 +119,7 @@ pub enum StringLen {
 * `ColumnType::Bit` maps to `bit` for Postgres
 * `ColumnType::Binary` and `ColumnType::VarBinary` map to `bytea` for Postgres
 * `Value::Decimal` and `Value::BigDecimal` bind as `String` for SQLite
+* `ColumnType::Year(Option<MySqlYear>)` changed to `ColumnType::Year`
 
 ### Enhancements
 
