@@ -43,7 +43,7 @@ pub trait IntoColumnDef {
 /// | Bit                   | bit               | bit                         | N/A                          |
 /// | VarBit                | bit               | varbit                      | N/A                          |
 /// | Boolean               | bool              | bool                        | boolean                      |
-/// | Money                 | money             | money                       | real_money                   |
+/// | Money                 | decimal           | money                       | real_money                   |
 /// | Json                  | json              | json                        | json_text                    |
 /// | JsonBinary            | json              | jsonb                       | jsonb_text                   |
 /// | Uuid                  | binary(16)        | uuid                        | uuid_text                    |
