@@ -158,6 +158,10 @@ impl ColumnType {
             None => ColumnType::String(StringLen::None),
         }
     }
+
+    pub fn var_binary(length: u32) -> ColumnType {
+        ColumnType::VarBinary(StringLen::N(s))
+    }
 }
 
 /// All column specification keywords
