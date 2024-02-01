@@ -123,6 +123,7 @@ pub enum StringLen {
 ### Enhancements
 
 * Added `IntoColumnDef` trait, allowing `&mut ColumnDef` / `ColumnDef` as argument
+* Added `ColumnType::string()` and `ColumnType::var_binary()` to mimic the old behavior
 
 ### House keeping
 
