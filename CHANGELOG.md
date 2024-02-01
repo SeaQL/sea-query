@@ -74,7 +74,7 @@ assert_eq!(
     .join(" ")
 );
 ```
-* MySQL blob types moved to `sea_query::extension::mysql::MySqlType` 
+* MySQL blob types moved to `sea_query::extension::mysql::MySqlType`; `ColumnDef::blob()` now takes no parameters
 ```rust
 assert_eq!(
     Table::create()
@@ -100,7 +100,6 @@ assert_eq!(
 );
 ```
 * `ColumnDef::binary()` set column type as binary with default length of 1
-* Removed `ColumnDef::blob()` function
 * Removed `BlobSize` enum
 * Added `StringLen` to represent length of var-char/binary
 ```rust

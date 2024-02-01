@@ -512,6 +512,12 @@ impl ColumnDef {
         self
     }
 
+    #[cfg(feature = "backend-mysql")]
+    /// Set column type as blob. MySQL only.
+    pub fn blob(&mut self) -> &mut Self {
+        self.custom(crate::extension::mysql::MySqlType::Blob)
+    }
+
     /// Set column type as boolean
     pub fn boolean(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Boolean);
