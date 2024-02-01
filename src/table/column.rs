@@ -151,6 +151,13 @@ impl ColumnType {
     {
         ColumnType::Custom(Alias::new(ty).into_iden())
     }
+
+    pub fn string(length: Option<u32>) -> ColumnType {
+        match length {
+            Some(s) => ColumnType::String(StringLen::N(s)),
+            None => ColumnType::String(StringLen::None),
+        }
+    }
 }
 
 /// All column specification keywords
