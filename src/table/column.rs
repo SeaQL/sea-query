@@ -160,7 +160,7 @@ impl ColumnType {
     }
 
     pub fn var_binary(length: u32) -> ColumnType {
-        ColumnType::VarBinary(StringLen::N(s))
+        ColumnType::VarBinary(StringLen::N(length))
     }
 }
 
