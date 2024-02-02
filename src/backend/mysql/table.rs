@@ -54,15 +54,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::TimestampWithTimeZone => "timestamp".into(),
                 ColumnType::Time => "time".into(),
                 ColumnType::Date => "date".into(),
-                ColumnType::Year(length) => {
-                    match length {
-                        Some(length) => match length {
-                            MySqlYear::Two => "year(2)".into(),
-                            MySqlYear::Four => "year(4)".into(),
-                        },
-                        None => "year".into(),
-                    }
-                }
+                ColumnType::Year => "year".into(),
                 ColumnType::Interval(_, _) => "unsupported".into(),
                 ColumnType::Binary(length) => format!("binary({length})"),
                 ColumnType::VarBinary(length) => match length {
@@ -81,8 +73,8 @@ impl TableBuilder for MysqlQueryBuilder {
                 }
                 ColumnType::Boolean => "bool".into(),
                 ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({precision}, {scale})"),
-                    None => "money".into(),
+                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
+                    None => "decimal".into(),
                 },
                 ColumnType::Json => "json".into(),
                 ColumnType::JsonBinary => "json".into(),

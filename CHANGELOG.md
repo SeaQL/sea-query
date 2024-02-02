@@ -74,7 +74,7 @@ assert_eq!(
     .join(" ")
 );
 ```
-* MySQL blob types moved to `sea_query::extension::mysql::MySqlType` 
+* MySQL blob types moved to `sea_query::extension::mysql::MySqlType`; `ColumnDef::blob()` now takes no parameters
 ```rust
 assert_eq!(
     Table::create()
@@ -100,7 +100,6 @@ assert_eq!(
 );
 ```
 * `ColumnDef::binary()` set column type as binary with default length of 1
-* Removed `ColumnDef::blob()` function
 * Removed `BlobSize` enum
 * Added `StringLen` to represent length of var-char/binary
 ```rust
@@ -119,10 +118,12 @@ pub enum StringLen {
 * `ColumnType::Bit` maps to `bit` for Postgres
 * `ColumnType::Binary` and `ColumnType::VarBinary` map to `bytea` for Postgres
 * `Value::Decimal` and `Value::BigDecimal` bind as `String` for SQLite
+* `ColumnType::Year(Option<MySqlYear>)` changed to `ColumnType::Year`
 
 ### Enhancements
 
 * Added `IntoColumnDef` trait, allowing `&mut ColumnDef` / `ColumnDef` as argument
+* Added `ColumnType::string()` and `ColumnType::var_binary()` to mimic the old behavior
 
 ### House keeping
 
