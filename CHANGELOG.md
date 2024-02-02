@@ -114,8 +114,8 @@ pub enum StringLen {
     None,
 }
 ```
-* `ValueType::columntype()` of `Vec<u8>` maps to `VarBinary(StringLen::Max)`
-* `ValueType::columntype()` of `String` maps to `String(StringLen::Max)`
+* `ValueType::columntype()` of `Vec<u8>` maps to `VarBinary(StringLen::None)`
+* `ValueType::columntype()` of `String` maps to `String(StringLen::None)`
 * `ColumnType::Bit` maps to `bit` for Postgres
 * `ColumnType::Binary` and `ColumnType::VarBinary` map to `bytea` for Postgres
 * `Value::Decimal` and `Value::BigDecimal` bind as `real` for SQLite
