@@ -74,6 +74,7 @@ assert_eq!(
     .join(" ")
 );
 ```
+* MySQL money type maps to decimal
 * MySQL blob types moved to `sea_query::extension::mysql::MySqlType`; `ColumnDef::blob()` now takes no parameters
 ```rust
 assert_eq!(
