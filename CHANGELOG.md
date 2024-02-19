@@ -130,6 +130,10 @@ pub enum StringLen {
 
 * Added `ColumnType` mapping documentation
 
+### Upgrades
+
+* Upgrade `rusqlite` to `0.31` https://github.com/SeaQL/sea-query/pull/755
+
 ## 0.30.8 - Pending
 
 ### Enhancements

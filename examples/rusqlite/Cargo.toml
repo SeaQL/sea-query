@@ -13,7 +13,7 @@ time = { version = "0.3", features = ["parsing", "macros"] }
 serde_json = { version = "1" }
 # rusqlite only supports uuid 0
 uuid = { version = "1", features = ["serde", "v4"] }
-rusqlite = "0.31"
+rusqlite = { version = "0.31" }
 sea-query = { path = "../.."}
 sea-query-rusqlite = { path = "../../sea-query-rusqlite", features = [
     "with-chrono",
