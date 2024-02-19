@@ -18,7 +18,7 @@ rust-version = "1.60"
 
 [dependencies]
 sea-query = { version = "0.31.0-rc.4", path = "..", default-features = false }
-rusqlite = { version = "0.30", default-features = false, features = ["bundled"] }
+rusqlite = { version = "0.31", default-features = false, features = ["bundled"] }
 
 [features]
 with-chrono = ["rusqlite/chrono", "sea-query/with-chrono"]
