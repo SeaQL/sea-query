@@ -1,3 +1,5 @@
+mod databend;
+
 use sea_query::{tests_cfg::Glyph, Cond, Expr, MysqlQueryBuilder, Query};
 
 #[test]

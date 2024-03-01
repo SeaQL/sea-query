@@ -11,6 +11,7 @@ mod postgres;
 #[cfg(feature = "backend-sqlite")]
 #[cfg_attr(docsrs, doc(cfg(feature = "backend-sqlite")))]
 mod sqlite;
+pub mod databend;
 
 #[cfg(feature = "backend-mysql")]
 pub use mysql::*;
