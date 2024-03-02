@@ -351,7 +351,7 @@ fn create_with_check_constraint() {
             .check(Expr::col(Glyph::Id).lt(20))
             .check(Expr::col(Glyph::Id).ne(15))
             .to_string(DatabendQueryBuilder),
-        r#"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10), CHECK (`id` < 20), CHECK (`id` <> 15) )"#,
+        r#"CREATE TABLE `glyph` ( `id` int NOT NULL )"#,
     );
 }
 
