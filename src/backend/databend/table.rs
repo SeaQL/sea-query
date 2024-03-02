@@ -37,7 +37,7 @@ impl TableBuilder for DatabendQueryBuilder {
         }
 
         for column_spec in column_def.spec.iter() {
-            let mut s=String::new();
+            let mut s = String::new();
             self.prepare_column_spec(column_spec, &mut s);
             if !s.is_empty() {
                 write!(sql, " {s}").unwrap();
@@ -169,7 +169,47 @@ impl TableBuilder for DatabendQueryBuilder {
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
-        MysqlQueryBuilder.prepare_table_alter_statement(alter, sql)
+        if alter.options.is_empty() {
+            panic!("No alter option found")
+        };
+        write!(sql, "ALTER TABLE ").unwrap();
+        if let Some(table) = &alter.table {
+            self.prepare_table_ref_table_stmt(table, sql);
+            write!(sql, " ").unwrap();
+        }
+        alter.options.iter().fold(true, |first, option| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            };
+            match option {
+                TableAlterOption::AddColumn(AddColumnOption {
+                    column,
+                    if_not_exists,
+                }) => {
+                    write!(sql, "ADD COLUMN ").unwrap();
+                    if *if_not_exists {
+                        write!(sql, "IF NOT EXISTS ").unwrap();
+                    }
+                    self.prepare_column_def(column, sql);
+                }
+                TableAlterOption::ModifyColumn(column_def) => {
+                    write!(sql, "MODIFY COLUMN ").unwrap();
+                    self.prepare_column_def(column_def, sql);
+                }
+                TableAlterOption::RenameColumn(from_name, to_name) => {
+                    write!(sql, "RENAME COLUMN ").unwrap();
+                    from_name.prepare(sql.as_writer(), self.quote());
+                    write!(sql, " TO ").unwrap();
+                    to_name.prepare(sql.as_writer(), self.quote());
+                }
+                TableAlterOption::DropColumn(column_name) => {
+                    write!(sql, "DROP COLUMN ").unwrap();
+                    column_name.prepare(sql.as_writer(), self.quote());
+                }
+                _ => {}
+            };
+            false
+        });
     }
 
     fn prepare_table_rename_statement(

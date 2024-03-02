@@ -101,7 +101,9 @@ impl QueryBuilder for DatabendQueryBuilder {
     }
 
     fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+        let v = self.value_to_string(value);
+        write!(sql, "{v}").unwrap();
+        // sql.push_param(value.clone(), self as _);
     }
 
     fn char_length_function(&self) -> &str {

@@ -368,6 +368,6 @@ fn alter_with_check_constraint() {
                     .check(Expr::col(Glyph::Aspect).gt(100))
             )
             .to_string(DatabendQueryBuilder),
-        r#"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CHECK (`aspect` > 100)"#,
+        r#"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101"#,
     );
 }
