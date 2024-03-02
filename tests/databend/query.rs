@@ -1002,7 +1002,6 @@ fn select_58() {
     );
 }
 
-
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
@@ -1142,20 +1141,24 @@ fn insert_from_select() {
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_0() {
+    let q = Query::insert()
+        .replace()
+        .into_table(Glyph::Table)
+        .columns([Glyph::Aspect, Glyph::Image])
+        .values_panic([
+            "04108048005887010020060000204E0180400400".into(),
+            3.1415.into(),
+        ])
+        .on_conflict(
+            OnConflict::columns([Glyph::Id])
+                .update_columns([Glyph::Aspect, Glyph::Image])
+                .to_owned(),
+        ).to_owned();
+        let (sql,v) = q.build(DatabendQueryBuilder);
+        println!("{sql},{v:#?}");
     assert_eq!(
-        Query::insert().replace()
-            .into_table(Glyph::Table)
-            .columns([Glyph::Aspect, Glyph::Image])
-            .values_panic([
-                "04108048005887010020060000204E0180400400".into(),
-                3.1415.into(),
-            ])
-            .on_conflict(
-                OnConflict::columns([Glyph::Id])
-                    .update_columns([Glyph::Aspect, Glyph::Image])
-                    .to_owned()
-            )
-            .to_string(DatabendQueryBuilder),
+
+            q.to_string(DatabendQueryBuilder),
         [
             r#"REPLACE INTO `glyph` (`aspect`, `image`)"#,
             r#"ON (`id`)"#,
@@ -1170,7 +1173,7 @@ fn insert_on_conflict_0() {
 fn insert_on_conflict_1() {
     assert_eq!(
         Query::insert()
-        .replace()
+            .replace()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Image])
             .values_panic([
@@ -1420,7 +1423,10 @@ fn escape_2() {
 #[test]
 fn escape_3() {
     let test = "a\\b";
-    assert_eq!(DatabendQueryBuilder.escape_string(test), "a\\\\b".to_owned());
+    assert_eq!(
+        DatabendQueryBuilder.escape_string(test),
+        "a\\\\b".to_owned()
+    );
     assert_eq!(
         DatabendQueryBuilder.unescape_string(DatabendQueryBuilder.escape_string(test).as_str()),
         test
@@ -1430,7 +1436,10 @@ fn escape_3() {
 #[test]
 fn escape_4() {
     let test = "a\"b";
-    assert_eq!(DatabendQueryBuilder.escape_string(test), "a\\\"b".to_owned());
+    assert_eq!(
+        DatabendQueryBuilder.escape_string(test),
+        "a\\\"b".to_owned()
+    );
     assert_eq!(
         DatabendQueryBuilder.unescape_string(DatabendQueryBuilder.escape_string(test).as_str()),
         test
