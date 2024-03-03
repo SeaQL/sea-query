@@ -38,7 +38,7 @@ fn select_3() {
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
             .to_string(DatabendQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 AND `size_h` = 4"
+        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` = 3) AND (`size_h` = 4)"
     );
 }
 

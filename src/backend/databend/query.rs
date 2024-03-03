@@ -71,26 +71,14 @@ impl QueryBuilder for DatabendQueryBuilder {
 
     fn prepare_select_lock(&self, _select_lock: &LockClause, _sql: &mut dyn SqlWriter) {}
 
-    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
-        MysqlQueryBuilder.prepare_sub_query_oper(oper, sql)
-    }
-
-    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
-        MysqlQueryBuilder.prepare_bin_oper(bin_oper, sql)
-    }
-
-    fn prepare_union_statement(
-        &self,
-        union_type: UnionType,
-        select_statement: &SelectStatement,
-        sql: &mut dyn SqlWriter,
-    ) {
-        MysqlQueryBuilder.prepare_union_statement(union_type, select_statement, sql)
-    }
-
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
         query.prepare_statement(self, sql);
     }
+
+    fn prepare_on_conflict_condition(&self, _: &ConditionHolder, _: &mut dyn SqlWriter) {}
+
+    fn prepare_returning(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
+
 
     fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut dyn SqlWriter) {
         // Sqlite doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
@@ -106,11 +94,5 @@ impl QueryBuilder for DatabendQueryBuilder {
         // sql.push_param(value.clone(), self as _);
     }
 
-    fn char_length_function(&self) -> &str {
-        MysqlQueryBuilder.char_length_function()
-    }
-
-    fn insert_default_values(&self, num_rows: u32, sql: &mut dyn SqlWriter) {
-        MysqlQueryBuilder.insert_default_values(num_rows, sql)
-    }
+    
 }

@@ -160,13 +160,6 @@ impl TableBuilder for DatabendQueryBuilder {
         .unwrap();
     }
 
-    fn prepare_table_truncate_statement(
-        &self,
-        truncate: &TableTruncateStatement,
-        sql: &mut dyn SqlWriter,
-    ) {
-        MysqlQueryBuilder.prepare_table_truncate_statement(truncate, sql)
-    }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
