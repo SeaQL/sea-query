@@ -1,7 +1,5 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{databend::DatabendQueryBuilder, extension::mysql::MySqlType};
-use table::common::BinaryType;
 
 #[test]
 fn create_1() {

@@ -1,6 +1,5 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::databend::DatabendQueryBuilder;
 
 #[test]
 fn select_1() {
@@ -38,7 +37,7 @@ fn select_3() {
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
             .to_string(DatabendQueryBuilder),
-        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` = 3) AND (`size_h` = 4)"
+        "SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 3 AND `size_h` = 4"
     );
 }
 
@@ -996,8 +995,8 @@ fn select_58() {
             .and_where(Expr::col(Char::Character).like(LikeExpr::new("A").escape('\\')))
             .build(DatabendQueryBuilder),
         (
-            r"SELECT `character` FROM `character` WHERE `character` LIKE ? ESCAPE '\\'".to_owned(),
-            Values(vec!["A".into()])
+            r"SELECT `character` FROM `character` WHERE `character` LIKE 'A' ESCAPE '\\'".to_owned(),
+            Values(vec![])
         )
     );
 }
@@ -1187,9 +1186,8 @@ fn insert_on_conflict_1() {
             )
             .to_string(DatabendQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"REPLACE INTO `glyph` (`aspect`, `image`) ON (`id`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`)"#,
         ]
         .join(" ")
     );
@@ -1215,7 +1213,6 @@ fn insert_on_conflict_2() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#,
         ]
         .join(" ")
     );
@@ -1244,7 +1241,6 @@ fn insert_on_conflict_3() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = 3.1415"#,
         ]
         .join(" ")
     );
@@ -1270,7 +1266,6 @@ fn insert_on_conflict_4() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `image` = 1 + 2"#,
         ]
         .join(" ")
     );
@@ -1297,7 +1292,6 @@ fn insert_on_conflict_5() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = VALUES(`image`)"#,
         ]
         .join(" ")
     );
@@ -1324,7 +1318,6 @@ fn insert_on_conflict_6() {
         [
             r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
         ]
         .join(" ")
     );

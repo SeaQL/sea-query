@@ -94,5 +94,7 @@ impl QueryBuilder for DatabendQueryBuilder {
         // sql.push_param(value.clone(), self as _);
     }
 
-    
+    fn insert_default_keyword(&self) -> &str {
+        "()"
+    }
 }
