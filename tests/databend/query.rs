@@ -995,7 +995,8 @@ fn select_58() {
             .and_where(Expr::col(Char::Character).like(LikeExpr::new("A").escape('\\')))
             .build(DatabendQueryBuilder),
         (
-            r"SELECT `character` FROM `character` WHERE `character` LIKE 'A' ESCAPE '\\'".to_owned(),
+            r"SELECT `character` FROM `character` WHERE `character` LIKE 'A' ESCAPE '\\'"
+                .to_owned(),
             Values(vec![])
         )
     );
@@ -1152,12 +1153,12 @@ fn insert_on_conflict_0() {
             OnConflict::columns([Glyph::Id])
                 .update_columns([Glyph::Aspect, Glyph::Image])
                 .to_owned(),
-        ).to_owned();
-        let (sql,v) = q.build(DatabendQueryBuilder);
-        println!("{sql},{v:#?}");
+        )
+        .to_owned();
+    let (sql, v) = q.build(DatabendQueryBuilder);
+    println!("{sql},{v:#?}");
     assert_eq!(
-
-            q.to_string(DatabendQueryBuilder),
+        q.to_string(DatabendQueryBuilder),
         [
             r#"REPLACE INTO `glyph` (`aspect`, `image`)"#,
             r#"ON (`id`)"#,
@@ -1232,7 +1233,10 @@ fn insert_on_conflict_3() {
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
                     .values([
-                        (Glyph::Aspect, "04108048005887010020060000204E0180400400".into()),
+                        (
+                            Glyph::Aspect,
+                            "04108048005887010020060000204E0180400400".into()
+                        ),
                         (Glyph::Image, 3.1415.into()),
                     ])
                     .to_owned()
@@ -1284,7 +1288,10 @@ fn insert_on_conflict_5() {
             ])
             .on_conflict(
                 OnConflict::columns([Glyph::Id, Glyph::Aspect])
-                    .value(Glyph::Aspect, Expr::val("04108048005887010020060000204E0180400400"))
+                    .value(
+                        Glyph::Aspect,
+                        Expr::val("04108048005887010020060000204E0180400400")
+                    )
                     .update_column(Glyph::Image)
                     .to_owned()
             )

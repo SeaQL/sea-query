@@ -144,12 +144,7 @@ fn create_5() {
             .col(ColumnDef::new(Glyph::Id).integer().not_null())
             .index(Index::create().unique().name("idx-glyph-id").col(Glyph::Id))
             .to_string(DatabendQueryBuilder),
-        [
-            "CREATE TABLE `glyph` (",
-            "`id` int NOT NULL",
-            ")",
-        ]
-        .join(" ")
+        ["CREATE TABLE `glyph` (", "`id` int NOT NULL", ")",].join(" ")
     );
 }
 
@@ -321,7 +316,6 @@ fn alter_5() {
         "RENAME TABLE `font` TO `font_new`"
     );
 }
-
 
 #[test]
 fn alter_7() {

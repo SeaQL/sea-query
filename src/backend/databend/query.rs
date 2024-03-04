@@ -79,7 +79,6 @@ impl QueryBuilder for DatabendQueryBuilder {
 
     fn prepare_returning(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
 
-
     fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut dyn SqlWriter) {
         // Sqlite doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
     }

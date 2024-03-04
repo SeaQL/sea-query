@@ -160,7 +160,6 @@ impl TableBuilder for DatabendQueryBuilder {
         .unwrap();
     }
 
-
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
