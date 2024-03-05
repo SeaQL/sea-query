@@ -25,14 +25,13 @@ pub trait QueryBuilder:
             self.prepare_table_ref(table, sql);
         }
 
-        self.prepare_output(&insert.returning, sql);
-
-        write!(sql, " ").unwrap();
-
         if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
+            self.prepare_output(&insert.returning, sql);
+            write!(sql, " ").unwrap();
             let num_rows = insert.default_values.unwrap();
             self.insert_default_values(num_rows, sql);
         } else {
+            write!(sql, " ").unwrap();
             write!(sql, "(").unwrap();
             insert.columns.iter().fold(true, |first, col| {
                 if !first {
@@ -42,6 +41,8 @@ pub trait QueryBuilder:
                 false
             });
             write!(sql, ")").unwrap();
+
+            self.prepare_output(&insert.returning, sql);
 
             if let Some(source) = &insert.source {
                 write!(sql, " ").unwrap();
