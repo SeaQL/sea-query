@@ -7,5 +7,5 @@ pub struct Hello {
 }
 
 fn main() {
-    println!("{:?}", HelloIden::Table.to_string());
+    assert_eq!("HelloTable".to_string(), HelloIden::Table.to_string());
 }
