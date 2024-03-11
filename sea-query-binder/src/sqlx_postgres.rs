@@ -8,6 +8,8 @@ use ipnetwork::IpNetwork;
 use mac_address::MacAddress;
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
+#[cfg(feature = "postgres-interval")]
+use sea_query::types::PgInterval;
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
 #[cfg(feature = "with-uuid")]
@@ -103,6 +105,10 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
+                    args.add(t.as_deref());
+                }
+                #[cfg(feature = "postgres-interval")]
+                Value::Interval(t) => {
                     args.add(t.as_deref());
                 }
                 #[cfg(feature = "with-uuid")]
@@ -275,6 +281,12 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         let value: Option<Vec<time::OffsetDateTime>> = Value::Array(ty, v).expect(
                             "This Value::Array should consist of Value::TimeDateTimeWithTimeZone",
                         );
+                        args.add(value);
+                    }
+                    #[cfg(feature = "postgres-interval")]
+                    ArrayType::Interval => {
+                        let value: Option<Vec<PgInterval>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::Interval");
                         args.add(value);
                     }
                     #[cfg(feature = "with-uuid")]
