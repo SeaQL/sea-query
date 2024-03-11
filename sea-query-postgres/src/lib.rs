@@ -89,6 +89,8 @@ impl ToSql for PostgresValue {
             Value::ChronoDateTimeLocal(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
+            #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+            Value::ChronoDuration(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-time")]
             Value::TimeDate(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-time")]
@@ -97,6 +99,8 @@ impl ToSql for PostgresValue {
             Value::TimeDateTime(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
+            #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+            Value::TimeDuration(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-bigdecimal")]

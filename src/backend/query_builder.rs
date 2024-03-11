@@ -1025,6 +1025,8 @@ pub trait QueryBuilder:
             Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+            Value::ChronoDuration(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDate(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
@@ -1033,6 +1035,8 @@ pub trait QueryBuilder:
             Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+            Value::TimeDuration(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
@@ -1083,6 +1087,8 @@ pub trait QueryBuilder:
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
                 write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
+            #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+            Value::ChronoDuration(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
                 write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
@@ -1102,6 +1108,11 @@ pub trait QueryBuilder:
                 v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
             )
             .unwrap(),
+            #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+            Value::TimeDuration(Some(v)) => self.write_string_quoted(
+                &time_duration_format::ISO8601Duration::from(v).to_string(),
+                &mut s,
+            ),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
