@@ -5,3 +5,4 @@ Cargo.lock
 .vscode
 wip/
 .idea/*
+.DS_Store
