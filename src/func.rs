@@ -38,8 +38,8 @@ pub struct FunctionCall {
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
-pub(crate) struct FuncArgMod {
-    pub(crate) distinct: bool,
+pub struct FuncArgMod {
+    pub distinct: bool,
 }
 
 impl FunctionCall {
@@ -84,6 +84,10 @@ impl FunctionCall {
 
     pub fn get_args(&self) -> &[SimpleExpr] {
         &self.args
+    }
+
+    pub fn get_mods(&self) -> &[FuncArgMod] {
+        &self.mods
     }
 }
 
