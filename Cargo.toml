@@ -32,7 +32,7 @@ inherent = "1.0"
 sea-query-attr = { version = "0.1.1", path = "sea-query-attr", default-features = false, optional = true }
 sea-query-derive = { version = "0.4.0", path = "sea-query-derive", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
-derivative = { version = "2.2", default-features = false, optional = true }
+educe = { version = "0.5.11", default-features = false, optional = true, features = ["Hash", "PartialEq", "Eq"] }
 chrono = { version = "0.4.27", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
@@ -56,7 +56,7 @@ backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
-hashable-value = ["derivative", "ordered-float"]
+hashable-value = ["educe", "ordered-float"]
 postgres-array = []
 postgres-interval = []
 thread-safe = []
