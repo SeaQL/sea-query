@@ -1175,9 +1175,17 @@ pub trait QueryBuilder:
         on_conflict_action: &Option<OnConflictAction>,
         sql: &mut dyn SqlWriter,
     ) {
+        self.prepare_on_conflict_action_common(on_conflict_action, sql);
+    }
+
+    fn prepare_on_conflict_action_common(
+        &self,
+        on_conflict_action: &Option<OnConflictAction>,
+        sql: &mut dyn SqlWriter,
+    ) {
         if let Some(action) = on_conflict_action {
             match action {
-                OnConflictAction::DoNothing => {
+                OnConflictAction::DoNothing(_) => {
                     write!(sql, " DO NOTHING").unwrap();
                 }
                 OnConflictAction::Update(update_strats) => {
