@@ -18,6 +18,8 @@ struct GenEnumArgs {
     #[darling(default)]
     pub suffix: Option<String>,
     #[darling(default)]
+    pub rename: Option<String>,
+    #[darling(default)]
     pub crate_name: Option<String>,
 }
 
@@ -31,6 +33,7 @@ impl Default for GenEnumArgs {
             prefix: Some(DEFAULT_PREFIX.to_string()),
             suffix: Some(DEFAULT_SUFFIX.to_string()),
             crate_name: Some(DEFAULT_CRATE_NAME.to_string()),
+            rename: None,
         }
     }
 }
@@ -66,7 +69,9 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
         .collect();
 
     let table_name = Ident::new(
-        input.ident.to_string().to_snake_case().as_str(),
+        args.rename
+            .unwrap_or(input.ident.to_string().to_snake_case())
+            .as_str(),
         input.ident.span(),
     );
 
