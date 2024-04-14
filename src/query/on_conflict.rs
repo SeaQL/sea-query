@@ -139,7 +139,7 @@ impl OnConflict {
 
     /// Set ON CONFLICT do nothing.
     ///
-    /// Please use [`Self::do_nothing_on()`] and provide primary keys if you are using MySql.
+    /// Please use [`Self::do_nothing_on()`] and provide primary keys if you are using MySQL.
     ///
     /// # Examples
     ///
@@ -157,6 +157,16 @@ impl OnConflict {
     ///     )
     ///     .to_owned();
     ///
+    /// // Sadly this is not valid today.
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+    ///         r#"VALUES ('abcd', 3.1415)"#,
+    ///         r#"ON DUPLICATE KEY IGNORE"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     [
@@ -181,7 +191,7 @@ impl OnConflict {
         self
     }
 
-    /// Set ON CONFLICT do nothing. MySQL only.
+    /// Set ON CONFLICT do nothing, but with MySQL specific polyfill.
     ///
     /// # Examples
     ///
