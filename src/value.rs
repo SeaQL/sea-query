@@ -126,8 +126,8 @@ pub enum ArrayType {
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
 #[cfg_attr(
     feature = "hashable-value",
-    derive(derivative::Derivative),
-    derivative(Hash, PartialEq, Eq)
+    derive(educe::Educe),
+    educe(Hash, PartialEq, Eq)
 )]
 pub enum Value {
     Bool(Option<bool>),
@@ -142,9 +142,9 @@ pub enum Value {
     Float(
         #[cfg_attr(
             feature = "hashable-value",
-            derivative(
-                Hash(hash_with = "hashable_value::hash_f32"),
-                PartialEq(compare_with = "hashable_value::cmp_f32")
+            educe(
+                Hash(method(hashable_value::hash_f32)),
+                PartialEq(method(hashable_value::cmp_f32))
             )
         )]
         Option<f32>,
@@ -152,9 +152,9 @@ pub enum Value {
     Double(
         #[cfg_attr(
             feature = "hashable-value",
-            derivative(
-                Hash(hash_with = "hashable_value::hash_f64"),
-                PartialEq(compare_with = "hashable_value::cmp_f64")
+            educe(
+                Hash(method(hashable_value::hash_f64)),
+                PartialEq(method(hashable_value::cmp_f64))
             )
         )]
         Option<f64>,
@@ -170,9 +170,9 @@ pub enum Value {
     Json(
         #[cfg_attr(
             feature = "hashable-value",
-            derivative(
-                Hash(hash_with = "hashable_value::hash_json"),
-                PartialEq(compare_with = "hashable_value::cmp_json")
+            educe(
+                Hash(method(hashable_value::hash_json)),
+                PartialEq(method(hashable_value::cmp_json))
             )
         )]
         Option<Box<Json>>,
