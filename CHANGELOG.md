@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 + `sea-query-binder`/`0.6.0-rc.1`: 2024-01-31
 + `sea-query-rusqlite`/`0.6.0-rc.1`: 2024-02-19
 
+### New Features
+
+* Added `table_name` attribute to `enum_def` macro https://github.com/SeaQL/sea-query/pull/759
+
 ### Breaking Changes
 
 * Rework SQLite type mapping https://github.com/SeaQL/sea-query/pull/735
@@ -125,11 +129,13 @@ pub enum StringLen {
 ### Enhancements
 
 * Added `IntoColumnDef` trait, allowing `&mut ColumnDef` / `ColumnDef` as argument
-* Added `ColumnType::string()` and `ColumnType::var_binary()` to mimic the old behavior
+* Added `ColumnType::string()` and `ColumnType::var_binary()` as shim for old API
+* Added `ON DUPLICATE KEY DO NOTHING` polyfill for MySQL https://github.com/SeaQL/sea-query/pull/765
 
 ### House keeping
 
 * Added `ColumnType` mapping documentation
+* Replace `derivative` with `educe` https://github.com/SeaQL/sea-query/pull/763
 
 ### Upgrades
 
