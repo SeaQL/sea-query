@@ -96,6 +96,28 @@ impl QueryBuilder for MysqlQueryBuilder {
         // MySQL doesn't support declaring ON CONFLICT target.
     }
 
+    fn prepare_on_conflict_action(
+        &self,
+        on_conflict_action: &Option<OnConflictAction>,
+        sql: &mut dyn SqlWriter,
+    ) {
+        match dbg!(on_conflict_action) {
+            Some(OnConflictAction::DoNothing(pk_cols)) => {
+                self.prepare_on_conflict_do_update_keywords(sql);
+                pk_cols.iter().fold(true, |first, pk_col| {
+                    if !first {
+                        write!(sql, ", ").unwrap()
+                    }
+                    pk_col.prepare(sql.as_writer(), self.quote());
+                    write!(sql, " = ").unwrap();
+                    pk_col.prepare(sql.as_writer(), self.quote());
+                    false
+                });
+            }
+            _ => self.prepare_on_conflict_action_common(on_conflict_action, sql),
+        }
+    }
+
     fn prepare_on_conflict_keywords(&self, sql: &mut dyn SqlWriter) {
         write!(sql, " ON DUPLICATE KEY").unwrap();
     }

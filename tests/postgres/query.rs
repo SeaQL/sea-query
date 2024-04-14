@@ -1519,6 +1519,52 @@ fn insert_on_conflict_9() {
 
 #[test]
 #[allow(clippy::approx_constant)]
+fn insert_on_conflict_do_nothing() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic(["abcd".into(), 3.1415.into()])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .do_nothing()
+                    .to_owned(),
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('abcd', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO NOTHING"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_do_nothing_on() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic(["abcd".into(), 3.1415.into()])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .do_nothing_on([Glyph::Id])
+                    .to_owned(),
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "glyph" ("aspect", "image")"#,
+            r#"VALUES ('abcd', 3.1415)"#,
+            r#"ON CONFLICT ("id", "aspect") DO NOTHING"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+#[allow(clippy::approx_constant)]
 fn insert_returning_all_columns() {
     assert_eq!(
         Query::insert()

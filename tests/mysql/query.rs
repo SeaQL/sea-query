@@ -1385,6 +1385,29 @@ fn insert_on_conflict_6() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
+fn insert_on_conflict_do_nothing_on() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Image])
+            .values_panic(["abcd".into(), 3.1415.into()])
+            .on_conflict(
+                OnConflict::columns([Glyph::Id, Glyph::Aspect])
+                    .do_nothing_on([Glyph::Id])
+                    .to_owned(),
+            )
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
+            r#"VALUES ('abcd', 3.1415)"#,
+            r#"ON DUPLICATE KEY UPDATE `id` = `id`"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn update_1() {
     assert_eq!(
         Query::update()
