@@ -38,6 +38,7 @@ impl Default for GenEnumArgs {
     }
 }
 
+#[deprecated(since = "0.1.2", note = "use #[enum_def] attr defined in `sea-query-derive` crate")]
 #[proc_macro_attribute]
 pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
@@ -84,7 +85,6 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
     let pascal_def_names2 = pascal_def_names.clone();
     let default_names = field_names.iter().map(|field| &field.default);
-    let default_names2 = default_names.clone();
     let import_name = Ident::new(
         args.crate_name
             .unwrap_or_else(|| DEFAULT_CRATE_NAME.to_string())
@@ -101,24 +101,12 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
             #(#pascal_def_names,)*
         }
 
-        impl #import_name::IdenStatic for #enum_name {
-            fn as_str(&self) -> &'static str {
-                match self {
-                    #enum_name::Table => stringify!(#table_name),
-                    #(#enum_name::#pascal_def_names2 => stringify!(#default_names2)),*
-                }
-            }
-        }
-
         impl #import_name::Iden for #enum_name {
             fn unquoted(&self, s: &mut dyn sea_query::Write) {
-                write!(s, "{}", <Self as #import_name::IdenStatic>::as_str(&self)).unwrap();
-            }
-        }
-
-        impl ::std::convert::AsRef<str> for #enum_name {
-            fn as_ref(&self) -> &str {
-                <Self as #import_name::IdenStatic>::as_str(&self)
+                write!(s, "{}", match self {
+                    #enum_name::Table => stringify!(#table_name),
+                    #(#enum_name::#pascal_def_names2 => stringify!(#default_names)),*
+                }).unwrap();
             }
         }
     })
