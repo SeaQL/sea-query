@@ -35,6 +35,7 @@ serde_json = { version = "1", default-features = false, optional = true, feature
 educe = { version = "0.5.11", default-features = false, optional = true, features = ["Hash", "PartialEq", "Eq"] }
 chrono = { version = "0.4.27", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
+pgvector = { version = "0", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.3", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
@@ -58,6 +59,7 @@ derive = ["sea-query-derive"]
 attr = ["sea-query-attr"]
 hashable-value = ["educe", "ordered-float"]
 postgres-array = []
+postgres-vector = ["pgvector"]
 postgres-interval = []
 thread-safe = []
 with-chrono = ["chrono"]
@@ -80,6 +82,7 @@ all-features = [
     "all-types",
 ] # everything except option-*
 all-types = [
+    "postgres-vector",
     "postgres-array",
     "postgres-interval",
     "with-chrono",

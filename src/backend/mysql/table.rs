@@ -89,6 +89,7 @@ impl TableBuilder for MysqlQueryBuilder {
                         .join("', '")
                 ),
                 ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
+                ColumnType::Vector => unimplemented!("Vector is not available in MySQL."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in MySQL."),
                 ColumnType::Inet => unimplemented!("Inet is not available in MySQL."),
                 ColumnType::MacAddr => unimplemented!("MacAddr is not available in MySQL."),

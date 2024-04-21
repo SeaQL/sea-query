@@ -92,6 +92,7 @@ pub enum ColumnType {
         variants: Vec<DynIden>,
     },
     Array(RcOrArc<ColumnType>),
+    Vector,
     Cidr,
     Inet,
     MacAddr,
