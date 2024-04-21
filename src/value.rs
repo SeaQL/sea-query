@@ -940,7 +940,7 @@ pub mod with_vector {
         }
 
         fn column_type() -> ColumnType {
-            ColumnType::Vector
+            ColumnType::Vector(None)
         }
     }
 }
