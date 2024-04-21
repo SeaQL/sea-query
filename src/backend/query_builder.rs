@@ -1130,7 +1130,7 @@ pub trait QueryBuilder:
                     write!(s, "{element}").unwrap();
                 }
                 write!(s, "]'").unwrap();
-            },
+            }
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "with-mac_address")]

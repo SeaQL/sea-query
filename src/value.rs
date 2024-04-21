@@ -236,7 +236,16 @@ pub enum Value {
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
-    Vector(Option<Box<pgvector::Vector>>),
+    Vector(
+        #[cfg_attr(
+            feature = "hashable-value",
+            educe(
+                Hash(method(hashable_value::hash_vector)),
+                PartialEq(method(hashable_value::cmp_vector))
+            )
+        )]
+        Option<Box<pgvector::Vector>>,
+    ),
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
@@ -902,22 +911,19 @@ pub mod with_array {
 pub mod with_vector {
     use super::*;
 
-    impl From<pgvector::Vector> for Value
-    {
+    impl From<pgvector::Vector> for Value {
         fn from(x: pgvector::Vector) -> Value {
             Value::Vector(Some(Box::new(x)))
         }
     }
 
-    impl Nullable for pgvector::Vector
-    {
+    impl Nullable for pgvector::Vector {
         fn null() -> Value {
             Value::Vector(None)
         }
     }
 
-    impl ValueType for pgvector::Vector
-    {
+    impl ValueType for pgvector::Vector {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
                 Value::Vector(Some(x)) => Ok(*x),
@@ -1496,9 +1502,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
         }
         #[cfg(feature = "postgres-array")]
-        Value::Vector(Some(v)) => {
-            Json::Array(v.as_slice().iter().map(|&v| v.into()).collect())
-        }
+        Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
@@ -2016,6 +2020,41 @@ mod hashable_value {
             (Some(l), Some(r)) => serde_json::to_string(l)
                 .unwrap()
                 .eq(&serde_json::to_string(r).unwrap()),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    #[cfg(feature = "postgres-vector")]
+    pub fn hash_vector<H: Hasher>(v: &Option<Box<pgvector::Vector>>, state: &mut H) {
+        match v {
+            Some(v) => {
+                for &value in v.as_slice().iter() {
+                    hash_f32(&Some(value), state);
+                }
+            }
+            None => "null".hash(state),
+        }
+    }
+
+    #[cfg(feature = "postgres-vector")]
+    pub fn cmp_vector(
+        l: &Option<Box<pgvector::Vector>>,
+        r: &Option<Box<pgvector::Vector>>,
+    ) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => {
+                let (l, r) = (l.as_slice(), r.as_slice());
+                if l.len() != r.len() {
+                    return false;
+                }
+                for (l, r) in l.iter().zip(r.iter()) {
+                    if !cmp_f32(&Some(*l), &Some(*r)) {
+                        return false;
+                    }
+                }
+                true
+            }
             (None, None) => true,
             _ => false,
         }

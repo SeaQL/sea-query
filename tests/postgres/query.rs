@@ -2117,7 +2117,9 @@ fn test_pgvector_select() {
         Query::select()
             .columns([Char::Character])
             .from(Char::Table)
-            .and_where(Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0]))))
+            .and_where(
+                Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0])))
+            )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
     );
