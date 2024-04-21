@@ -1501,7 +1501,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Array(_, Some(v)) => {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
         }
-        #[cfg(feature = "postgres-array")]
+        #[cfg(feature = "postgres-vector")]
         Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
