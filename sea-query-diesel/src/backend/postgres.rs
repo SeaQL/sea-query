@@ -205,6 +205,8 @@ impl TransformValue for Pg {
                     )
                 }
             },
+            #[cfg(feature = "postgres-vector")]
+            Value::Vector(v) => build!(pgvector::sql_types::Vector, v.map(|v| *v)),
         };
         Ok(transformed)
     }
