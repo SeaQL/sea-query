@@ -454,6 +454,12 @@ impl ColumnDef {
         self
     }
 
+    #[cfg(feature = "postgres-vector")]
+    pub fn vector(&mut self, size: Option<u32>) -> &mut Self {
+        self.types = Some(ColumnType::Vector(size));
+        self
+    }
+
     /// Set column type as timestamp
     pub fn timestamp(&mut self) -> &mut Self {
         self.types = Some(ColumnType::Timestamp);
