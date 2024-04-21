@@ -130,6 +130,10 @@ impl ToSql for RusqliteValue {
             Value::Array(_, _) => {
                 panic!("Rusqlite doesn't support Array arguments");
             }
+            #[cfg(feature = "postgres-vector")]
+            Value::Vector(_) => {
+                panic!("Rusqlite doesn't support Vector arguments");
+            }
         }
     }
 }
