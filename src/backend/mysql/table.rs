@@ -89,6 +89,7 @@ impl TableBuilder for MysqlQueryBuilder {
                         .join("', '")
                 ),
                 ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
+                #[cfg(feature = "postgres-vector")]
                 ColumnType::Vector => unimplemented!("Vector is not available in MySQL."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in MySQL."),
                 ColumnType::Inet => unimplemented!("Inet is not available in MySQL."),

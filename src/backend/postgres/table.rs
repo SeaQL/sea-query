@@ -70,6 +70,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     self.prepare_column_type(elem_type, &mut sql);
                     format!("{sql}[]")
                 }
+                #[cfg(feature = "postgres-vector")]
                 ColumnType::Vector => "vector".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { name, .. } => name.to_string(),
