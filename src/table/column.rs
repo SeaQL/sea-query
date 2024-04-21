@@ -93,7 +93,6 @@ pub enum ColumnType {
         variants: Vec<DynIden>,
     },
     Array(RcOrArc<ColumnType>),
-    #[cfg(feature = "postgres-vector")]
     Vector,
     Cidr,
     Inet,

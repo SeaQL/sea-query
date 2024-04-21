@@ -183,7 +183,6 @@ impl SqliteQueryBuilder {
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { .. } => "enum_text".into(),
                 ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
-                #[cfg(feature = "postgres-vector")]
                 ColumnType::Vector => unimplemented!("Vector is not available in Sqlite."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in Sqlite."),
                 ColumnType::Inet => unimplemented!("Inet is not available in Sqlite."),
