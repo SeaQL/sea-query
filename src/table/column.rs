@@ -38,6 +38,7 @@ pub trait IntoColumnDef {
 /// | Date                  | date              | date                        | date_text                    |
 /// | Year                  | year              | N/A                         | N/A                          |
 /// | Interval              | N/A               | interval                    | N/A                          |
+/// | Blob                  | blob              | bytea                       | blob                         |
 /// | Binary                | binary            | bytea                       | blob                         |
 /// | VarBinary             | varbinary         | bytea                       | varbinary_blob               |
 /// | Bit                   | bit               | bit                         | N/A                          |
@@ -59,6 +60,7 @@ pub enum ColumnType {
     Char(Option<u32>),
     String(StringLen),
     Text,
+    Blob,
     TinyInteger,
     SmallInteger,
     Integer,
@@ -512,10 +514,10 @@ impl ColumnDef {
         self
     }
 
-    #[cfg(feature = "backend-mysql")]
-    /// Set column type as blob. MySQL only.
+    /// Set column type as blob
     pub fn blob(&mut self) -> &mut Self {
-        self.custom(crate::extension::mysql::MySqlType::Blob)
+        self.types = Some(ColumnType::Blob);
+        self
     }
 
     /// Set column type as boolean

@@ -52,6 +52,7 @@ assert_eq!(
         .col(ColumnDef::new(Alias::new("boolean_col")).boolean())
         .col(ColumnDef::new(Alias::new("binary2")).binary_len(1024))
         .col(ColumnDef::new(Alias::new("binary3")).var_binary(1024))
+        .col(ColumnDef::new(Alias::new("binary4")).blob())
         .to_string(SqliteQueryBuilder),
     [
         r#"CREATE TABLE "strange" ( "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -77,7 +78,8 @@ assert_eq!(
             r#""datetime_col" datetime_text,"#,
             r#""boolean_col" boolean,"#,
             r#""binary2" blob(1024),"#,
-            r#""binary3" varbinary_blob(1024)"#,
+            r#""binary3" varbinary_blob(1024),"#,
+            r#""binary4" blob"#,
         r#")"#,
     ]
     .join(" ")
@@ -91,7 +93,7 @@ assert_eq!(
         .table(BinaryType::Table)
         .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
         .col(ColumnDef::new(BinaryType::Binary).binary())
-        .col(ColumnDef::new(BinaryType::Blob).custom(MySqlType::Blob))
+        .col(ColumnDef::new(BinaryType::Blob).blob())
         .col(ColumnDef::new(BinaryType::TinyBlob).custom(MySqlType::TinyBlob))
         .col(ColumnDef::new(BinaryType::MediumBlob).custom(MySqlType::MediumBlob))
         .col(ColumnDef::new(BinaryType::LongBlob).custom(MySqlType::LongBlob))
