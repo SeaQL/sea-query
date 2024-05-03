@@ -1,6 +1,5 @@
 pub use expr::*;
 pub use func::*;
-pub use interval::*;
 pub use types::*;
 
 use crate::types::BinOper;

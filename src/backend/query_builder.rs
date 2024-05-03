@@ -993,7 +993,10 @@ pub trait QueryBuilder: QuotedBuilder + EscapeBuilder + TableRefBuilder {
             Value::Bytes(Some(v)) => write!(
                 s,
                 "x'{}'",
-                v.iter().map(|b| format!("{:02X}", b)).collect::<String>()
+                v.iter().fold(String::new(), |mut output, b| {
+                    let _ = write!(output, "{:02X}", b);
+                    output
+                })
             )
             .unwrap(),
             #[cfg(feature = "with-json")]
