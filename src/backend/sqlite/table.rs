@@ -172,6 +172,7 @@ impl SqliteQueryBuilder {
                     StringLen::N(length) => format!("varbinary_blob({length})"),
                     _ => "varbinary_blob".into(),
                 },
+                ColumnType::Blob => "blob".into(),
                 ColumnType::Boolean => "boolean".into(),
                 ColumnType::Money(precision) => match precision {
                     Some((precision, scale)) => format!("real_money({precision}, {scale})"),

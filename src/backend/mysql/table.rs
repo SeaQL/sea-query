@@ -62,6 +62,7 @@ impl TableBuilder for MysqlQueryBuilder {
                     StringLen::None => "varbinary(255)".into(),
                     StringLen::Max => "varbinary(65535)".into(),
                 },
+                ColumnType::Blob => "blob".into(),
                 ColumnType::Bit(length) => {
                     match length {
                         Some(length) => format!("bit({length})"),
