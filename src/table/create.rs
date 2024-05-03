@@ -138,7 +138,7 @@ impl TableCreateStatement {
     /// Add a new table column
     pub fn col<C: IntoColumnDef>(&mut self, column: C) -> &mut Self {
         let mut column = column.into_column_def();
-        column.table = self.table.clone();
+        column.table.clone_from(&self.table);
         self.columns.push(column);
         self
     }
