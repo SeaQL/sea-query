@@ -11,7 +11,6 @@ use crate::SubQueryBuilder;
 use crate::SubQueryStatement;
 use crate::TableRef;
 use crate::{Alias, QueryBuilder};
-use std::ops::Deref;
 
 /// A table definition inside a WITH clause ([WithClause]).
 ///
@@ -122,8 +121,8 @@ impl CommonTableExpression {
     pub fn from_select(select: SelectStatement) -> Self {
         let mut cte = Self::default();
         cte.try_set_cols_from_selects(&select.selects);
-        if let Some(from) = select.from.get(0) {
-            match from.deref() {
+        if let Some(from) = select.from.first() {
+            match from {
                 TableRef::Table(iden) => cte.set_table_name_from_select(iden),
                 TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden),
                 TableRef::DatabaseSchemaTable(_, _, iden) => cte.set_table_name_from_select(iden),
