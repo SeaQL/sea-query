@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New Features
 
 * Added `table_name` attribute to `enum_def` macro https://github.com/SeaQL/sea-query/pull/759
+* Added `ColumnType::Blob` https://github.com/SeaQL/sea-query/pull/777
 
 ### Breaking Changes
 
