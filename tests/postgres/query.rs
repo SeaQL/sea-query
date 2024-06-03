@@ -2110,3 +2110,17 @@ fn test_issue_674_nested_logical_panic() {
         r#"SELECT "character" FROM "character" WHERE TRUE AND (TRUE AND TRUE AND TRUE)"#
     );
 }
+
+#[test]
+fn test_pgvector_select() {
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0])))
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
+    );
+}

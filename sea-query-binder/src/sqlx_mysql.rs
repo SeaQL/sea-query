@@ -109,6 +109,10 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::Array(_, _) => {
                     panic!("Mysql doesn't support array arguments");
                 }
+                #[cfg(feature = "postgres-vector")]
+                Value::Vector(_) => {
+                    panic!("Mysql doesn't support vector arguments");
+                }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(_) => {
                     panic!("Mysql doesn't support IpNetwork arguments");

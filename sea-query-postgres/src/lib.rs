@@ -116,6 +116,10 @@ impl ToSql for PostgresValue {
                 .to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, None) => Ok(IsNull::Yes),
+            #[cfg(feature = "postgres-vector")]
+            Value::Vector(Some(v)) => v.to_sql(ty, out),
+            #[cfg(feature = "postgres-vector")]
+            Value::Vector(None) => Ok(IsNull::Yes),
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(v) => {
                 use cidr::IpCidr;

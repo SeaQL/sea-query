@@ -90,6 +90,12 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgBinOper::CastJsonField => "->>",
                     PgBinOper::Regex => "~",
                     PgBinOper::RegexCaseInsensitive => "~*",
+                    #[cfg(feature = "postgres-vector")]
+                    PgBinOper::EuclideanDistance => "<->",
+                    #[cfg(feature = "postgres-vector")]
+                    PgBinOper::NegativeInnerProduct => "<#>",
+                    #[cfg(feature = "postgres-vector")]
+                    PgBinOper::CosineDistance => "<=>",
                 }
             )
             .unwrap(),

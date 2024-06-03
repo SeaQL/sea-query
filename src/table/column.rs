@@ -50,6 +50,7 @@ pub trait IntoColumnDef {
 /// | Uuid                  | binary(16)        | uuid                        | uuid_text                    |
 /// | Enum                  | ENUM(...)         | ENUM_NAME                   | enum_text                    |
 /// | Array                 | N/A               | DATA_TYPE[]                 | N/A                          |
+/// | Vector                | N/A               | vector                      | N/A                          |
 /// | Cidr                  | N/A               | cidr                        | N/A                          |
 /// | Inet                  | N/A               | inet                        | N/A                          |
 /// | MacAddr               | N/A               | macaddr                     | N/A                          |
@@ -94,6 +95,7 @@ pub enum ColumnType {
         variants: Vec<DynIden>,
     },
     Array(RcOrArc<ColumnType>),
+    Vector(Option<u32>),
     Cidr,
     Inet,
     MacAddr,
@@ -451,6 +453,12 @@ impl ColumnDef {
     #[cfg(feature = "backend-postgres")]
     pub fn interval(&mut self, fields: Option<PgInterval>, precision: Option<u32>) -> &mut Self {
         self.types = Some(ColumnType::Interval(fields, precision));
+        self
+    }
+
+    #[cfg(feature = "postgres-vector")]
+    pub fn vector(&mut self, size: Option<u32>) -> &mut Self {
+        self.types = Some(ColumnType::Vector(size));
         self
     }
 
