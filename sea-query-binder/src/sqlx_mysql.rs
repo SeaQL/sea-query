@@ -89,6 +89,8 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     args.add(t.as_deref());
                 }
+                #[cfg(feature = "postgres-interval")]
+                Value::Interval(_) => {}
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     args.add(uuid.as_deref());
