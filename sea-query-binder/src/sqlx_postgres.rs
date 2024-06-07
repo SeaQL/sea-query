@@ -89,6 +89,10 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::ChronoDateTimeWithTimeZone(t) => {
                     args.add(t.as_deref());
                 }
+                #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+                Value::ChronoDuration(t) => {
+                    args.add(t.as_deref());
+                }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
                     args.add(t.as_deref());
@@ -103,6 +107,10 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
+                    args.add(t.as_deref());
+                }
+                #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+                Value::TimeDuration(t) => {
                     args.add(t.as_deref());
                 }
                 #[cfg(feature = "with-uuid")]
@@ -252,6 +260,12 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         );
                         args.add(value);
                     }
+                    #[cfg(all(feature = "postgres-interval", feature = "with-chrono"))]
+                    ArrayType::ChronoDuration => {
+                        let value: Option<Vec<chrono::Duration>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::ChronoDuration");
+                        args.add(value);
+                    }
                     #[cfg(feature = "with-time")]
                     ArrayType::TimeDate => {
                         let value: Option<Vec<time::Date>> = Value::Array(ty, v)
@@ -275,6 +289,12 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         let value: Option<Vec<time::OffsetDateTime>> = Value::Array(ty, v).expect(
                             "This Value::Array should consist of Value::TimeDateTimeWithTimeZone",
                         );
+                        args.add(value);
+                    }
+                    #[cfg(all(feature = "postgres-interval", feature = "with-time"))]
+                    ArrayType::TimeDuration => {
+                        let value: Option<Vec<time::Duration>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::TimeDuration");
                         args.add(value);
                     }
                     #[cfg(feature = "with-uuid")]
