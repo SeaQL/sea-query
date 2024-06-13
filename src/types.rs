@@ -629,7 +629,7 @@ mod tests {
         );
         #[cfg(feature = "backend-postgres")]
         assert_eq!(
-            query.to_string(PostgresQueryBuilder),
+            query.to_string(OracleQueryBuilder),
             r#"SELECT "hello-World_""#
         );
         #[cfg(feature = "backend-sqlite")]
@@ -651,7 +651,7 @@ mod tests {
         let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
 
         #[cfg(feature = "backend-postgres")]
-        assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT "hel""lo""#);
+        assert_eq!(query.to_string(OracleQueryBuilder), r#"SELECT "hel""lo""#);
     }
 
     #[test]
@@ -666,10 +666,7 @@ mod tests {
         let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
 
         #[cfg(feature = "backend-postgres")]
-        assert_eq!(
-            query.to_string(PostgresQueryBuilder),
-            r#"SELECT "hel""""lo""#
-        );
+        assert_eq!(query.to_string(OracleQueryBuilder), r#"SELECT "hel""""lo""#);
     }
 
     #[test]
