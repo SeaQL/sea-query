@@ -12,6 +12,12 @@ mod postgres;
 #[cfg_attr(docsrs, doc(cfg(feature = "backend-sqlite")))]
 mod sqlite;
 
+#[cfg(feature = "backend-bigquery")]
+#[cfg_attr(docsrs, doc(cfg(feature = "backend-bigquery")))]
+mod bigquery;
+
+#[cfg(feature = "backend-bigquery")]
+pub use bigquery::*;
 #[cfg(feature = "backend-mysql")]
 pub use mysql::*;
 #[cfg(feature = "backend-postgres")]
