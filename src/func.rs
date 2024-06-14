@@ -723,7 +723,7 @@ impl Func {
         FunctionCall::new(Function::Random)
     }
 
-    /// Call `MD5` function.
+    /// Call `MD5` function, this is only available in Postgres and MySQL.
     ///
     /// # Examples
     ///
