@@ -25,6 +25,8 @@ pub enum Function {
     BitOr,
     Random,
     Round,
+    // only available in Postgres and MySQL
+    Md5,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
