@@ -362,8 +362,8 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::json_build_object(vec![
-    ///       (Expr::val("a"), Expr::val(1)),
-    ///       (Expr::val("b"), Expr::val("2")),
+    ///         (Expr::val("a"), Expr::val(1)),
+    ///         (Expr::val("b"), Expr::val("2")),
     ///     ]))
     ///     .to_owned();
     ///
