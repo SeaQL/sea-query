@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 + `sea-query`/`0.31.0-rc.5`: 2024-04-14
 + `sea-query`/`0.31.0-rc.6`: 2024-05-03
 + `sea-query`/`0.31.0-rc.7`: 2024-06-02
++ `sea-query`/`0.31.0-rc.8`: 2024-06-19
 + `sea-query-binder`/`0.6.0-rc.1`: 2024-01-31
 + `sea-query-binder`/`0.6.0-rc.2`: 2024-04-14
 + `sea-query-rusqlite`/`0.6.0-rc.1`: 2024-02-19
