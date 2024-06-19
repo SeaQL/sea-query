@@ -15,6 +15,7 @@ pub enum PgFunction {
     StartsWith,
     GenRandomUUID,
     JsonBuildObject,
+    JsonAgg,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -381,5 +382,29 @@ impl PgFunc {
             args.push(value.into());
         }
         FunctionCall::new(Function::PgFunction(PgFunction::JsonBuildObject)).args(args)
+    }
+
+    /// Call the `JSON_AGG` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr(PgFunc::json_agg(Expr::col(Char::SizeW)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT JSON_AGG("size_w") FROM "character""#
+    /// );
+    /// ```
+    pub fn json_agg<T>(expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::PgFunction(PgFunction::JsonAgg)).arg(expr)
     }
 }
