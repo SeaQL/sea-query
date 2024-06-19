@@ -14,6 +14,7 @@ pub enum PgFunction {
     TsRankCd,
     StartsWith,
     GenRandomUUID,
+    JsonBuildObject,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -349,5 +350,36 @@ impl PgFunc {
     /// ```
     pub fn gen_random_uuid() -> FunctionCall {
         FunctionCall::new(Function::PgFunction(PgFunction::GenRandomUUID))
+    }
+
+    /// Call the `JSON_BUILD_OBJECT` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::json_build_object(vec![
+    ///       (Expr::val("a"), Expr::val(1)),
+    ///       (Expr::val("b"), Expr::val("2")),
+    ///     ]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT JSON_BUILD_OBJECT('a', 1, 'b', '2')"#
+    /// );
+    /// ```
+    pub fn json_build_object<T>(pairs: Vec<(T, T)>) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        let mut args = vec![];
+        for (key, value) in pairs {
+            args.push(key.into());
+            args.push(value.into());
+        }
+        FunctionCall::new(Function::PgFunction(PgFunction::JsonBuildObject)).args(args)
     }
 }
