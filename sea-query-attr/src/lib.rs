@@ -1,3 +1,5 @@
+#![allow(clippy::manual_unwrap_or_default)]
+
 use darling::FromMeta;
 use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro::TokenStream;
