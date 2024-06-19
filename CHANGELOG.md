@@ -140,6 +140,7 @@ pub enum StringLen {
 * Added `IntoColumnDef` trait, allowing `&mut ColumnDef` / `ColumnDef` as argument
 * Added `ColumnType::string()` and `ColumnType::var_binary()` as shim for old API
 * Added `ON DUPLICATE KEY DO NOTHING` polyfill for MySQL https://github.com/SeaQL/sea-query/pull/765
+* Added non-TLS runtime https://github.com/SeaQL/sea-query/pull/783
 
 ### House keeping
 
