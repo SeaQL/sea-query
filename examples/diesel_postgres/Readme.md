@@ -1,7 +1,7 @@
 # SeaQuery Diesel Postgres example
 
 > WARN: If you enable `with-bigdecimal`, you HAVE to update the version used by default by `diesel`
-> otherwise it will fail to build. Use `cargo update -p bigdecimal:0.4.2 --precise 0.3.1`.
+> otherwise it will fail to build. Use `cargo update -p bigdecimal:0.4.5 --precise 0.3.1`.
 
 Running:
 
