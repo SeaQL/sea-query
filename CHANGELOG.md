@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 + `sea-query-binder`/`0.6.0-rc.1`: 2024-01-31
 + `sea-query-binder`/`0.6.0-rc.2`: 2024-04-14
 + `sea-query-binder`/`0.6.0-rc.3`: 2024-06-19
++ `sea-query-binder`/`0.6.0-rc.4`: 2024-06-25
 + `sea-query-rusqlite`/`0.6.0-rc.1`: 2024-02-19
 + `sea-query-attr`/`0.1.2`: 2024-04-14
 
@@ -152,6 +153,7 @@ pub enum StringLen {
 ### Upgrades
 
 * Upgrade `rusqlite` to `0.31` https://github.com/SeaQL/sea-query/pull/755
+* Upgrade `time` to `0.3.36` https://github.com/SeaQL/sea-query/pull/788
 
 ## 0.30.8 - Pending
 
