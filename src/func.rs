@@ -459,6 +459,44 @@ impl Func {
         ))
     }
 
+    /// Call `CAST` function with a case-sensitive custom type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::cast_as_quoted("hello", Alias::new("MyType"), '"'.into()))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MyType")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MyType")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MyType")"#
+    /// );
+    /// ```
+    pub fn cast_as_quoted<V, I>(expr: V, iden: I, q: Quote) -> FunctionCall
+    where
+        V: Into<SimpleExpr>,
+        I: IntoIden,
+    {
+        let expr: SimpleExpr = expr.into();
+        let mut quoted_type = String::new();
+        iden.into_iden().prepare(&mut quoted_type, q);
+        FunctionCall::new(Function::Cast).arg(expr.binary(
+            BinOper::As,
+            Expr::cust(quoted_type.as_str()),
+        ))
+    }
+
     /// Call `COALESCE` function.
     ///
     /// # Examples
