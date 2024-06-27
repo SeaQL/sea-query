@@ -18,6 +18,7 @@ proc-macro = true
 syn = { version = "2", default-features = false, features = ["parsing", "proc-macro", "derive", "printing"] }
 quote = { version = "1", default-features = false }
 heck = { version = "0.4", default-features = false }
+darling = { version = "0.20", default-features = false }
 proc-macro2 = { version = "1", default-features = false }
 thiserror = { version = "1.0", default-features = false }
 
