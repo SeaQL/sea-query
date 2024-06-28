@@ -676,6 +676,7 @@ pub trait QueryBuilder:
                     Function::Custom(_) => "",
                     Function::Random => self.random_function(),
                     Function::Round => "ROUND",
+                    Function::Md5 => "MD5",
                     #[cfg(feature = "backend-postgres")]
                     Function::PgFunction(_) => unimplemented!(),
                 }
