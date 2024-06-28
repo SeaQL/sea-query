@@ -192,7 +192,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();
-                    foreign_key.name(&name.to_string());
+                    foreign_key.name(name.to_string());
                     let drop = ForeignKeyDropStatement {
                         foreign_key,
                         table: None,
