@@ -1,7 +1,7 @@
 use super::PgBinOper;
-use crate::{expr::private::Expression, Expr, IntoLikeExpr, SimpleExpr};
+use crate::{expr::ExprTrait, IntoLikeExpr, SimpleExpr};
 
-pub trait PgExpr: Expression {
+pub trait PgExpr: ExprTrait {
     /// Express an postgres concatenate (`||`) expression.
     ///
     /// # Examples
@@ -24,7 +24,7 @@ pub trait PgExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(PgBinOper::Concatenate, right)
+        self.binary(PgBinOper::Concatenate, right)
     }
     /// Alias of [`PgExpr::concatenate`]
     fn concat<T>(self, right: T) -> SimpleExpr
@@ -57,7 +57,7 @@ pub trait PgExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(PgBinOper::Matches, expr)
+        self.binary(PgBinOper::Matches, expr)
     }
 
     /// Express an postgres fulltext search contains (`@>`) expression.
@@ -83,7 +83,7 @@ pub trait PgExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(PgBinOper::Contains, expr)
+        self.binary(PgBinOper::Contains, expr)
     }
 
     /// Express an postgres fulltext search contained (`<@`) expression.
@@ -109,7 +109,7 @@ pub trait PgExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(PgBinOper::Contained, expr)
+        self.binary(PgBinOper::Contained, expr)
     }
 
     /// Express a `ILIKE` expression.
@@ -134,7 +134,7 @@ pub trait PgExpr: Expression {
     where
         L: IntoLikeExpr,
     {
-        self.like_like(PgBinOper::ILike, like.into_like_expr())
+        self.binary(PgBinOper::ILike, like.into_like_expr())
     }
 
     /// Express a `NOT ILIKE` expression
@@ -142,7 +142,7 @@ pub trait PgExpr: Expression {
     where
         L: IntoLikeExpr,
     {
-        self.like_like(PgBinOper::NotILike, like.into_like_expr())
+        self.binary(PgBinOper::NotILike, like.into_like_expr())
     }
 
     /// Express a postgres retrieves JSON field as JSON value (`->`).
@@ -167,7 +167,7 @@ pub trait PgExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(PgBinOper::GetJsonField, right)
+        self.binary(PgBinOper::GetJsonField, right)
     }
 
     /// Express a postgres retrieves JSON field and casts it to an appropriate SQL type (`->>`).
@@ -192,10 +192,8 @@ pub trait PgExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(PgBinOper::CastJsonField, right)
+        self.binary(PgBinOper::CastJsonField, right)
     }
 }
 
-impl PgExpr for Expr {}
-
-impl PgExpr for SimpleExpr {}
+impl<T> PgExpr for T where T: ExprTrait {}

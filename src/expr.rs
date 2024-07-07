@@ -37,52 +37,306 @@ pub enum SimpleExpr {
     Constant(Value),
 }
 
-pub(crate) mod private {
-    use crate::{BinOper, LikeExpr, SimpleExpr, UnOper};
-
-    pub trait Expression: Sized {
-        fn un_op(self, o: UnOper) -> SimpleExpr;
-
-        fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
-        where
-            O: Into<BinOper>,
-            T: Into<SimpleExpr>;
-
-        fn like_like<O>(self, op: O, like: LikeExpr) -> SimpleExpr
-        where
-            O: Into<BinOper>,
-        {
-            self.bin_op(
-                op,
-                match like.escape {
-                    Some(escape) => SimpleExpr::Binary(
-                        Box::new(like.pattern.into()),
-                        BinOper::Escape,
-                        Box::new(SimpleExpr::Constant(escape.into())),
-                    ),
-                    None => like.pattern.into(),
-                },
-            )
-        }
-    }
-}
-
-use private::Expression;
-
-impl Expression for Expr {
-    fn un_op(mut self, o: UnOper) -> SimpleExpr {
-        self.uopr = Some(o);
-        self.into()
+/// "Operator" methods for building complex expressions.
+///
+/// ## Examples
+///
+/// ```no_run
+/// use sea_query::*;
+///
+/// let expr = 1_i32.cast_as(Alias::new("REAL"));
+///
+/// let expr = Func::char_length("abc").eq(3_i32);
+///
+/// let expr = Expr::current_date()
+///     .cast_as(Alias::new("TEXT"))
+///     .like("2024%");
+/// ```
+pub trait ExprTrait: Sized {
+    fn add<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::Add, right)
     }
 
-    fn bin_op<O, T>(mut self, op: O, right: T) -> SimpleExpr
+    #[allow(clippy::wrong_self_convention)]
+    fn as_enum<N>(self, type_name: N) -> SimpleExpr
+    where
+        N: IntoIden;
+
+    fn and<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::And, right)
+    }
+
+    fn between<A, B>(self, a: A, b: B) -> SimpleExpr
+    where
+        A: Into<SimpleExpr>,
+        B: Into<SimpleExpr>,
+    {
+        self.binary(
+            BinOper::Between,
+            SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
+        )
+    }
+
+    fn binary<O, R>(self, op: O, right: R) -> SimpleExpr
     where
         O: Into<BinOper>,
-        T: Into<SimpleExpr>,
+        R: Into<SimpleExpr>;
+
+    fn cast_as<N>(self, type_name: N) -> SimpleExpr
+    where
+        N: IntoIden;
+
+    fn div<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
     {
-        self.bopr = Some(op.into());
-        self.right = Some(right.into());
-        self.into()
+        ExprTrait::binary(self, BinOper::Div, right)
+    }
+
+    fn eq<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::Equal, right)
+    }
+
+    fn equals<C>(self, col: C) -> SimpleExpr
+    where
+        C: IntoColumnRef,
+    {
+        self.binary(BinOper::Equal, col.into_column_ref())
+    }
+
+    fn gt<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::GreaterThan, right)
+    }
+
+    fn gte<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::GreaterThanOrEqual, right)
+    }
+
+    fn in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+        self.binary(
+            BinOper::In,
+            SimpleExpr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
+        )
+    }
+
+    fn in_tuples<V, I>(self, v: I) -> SimpleExpr
+    where
+        V: IntoValueTuple,
+        I: IntoIterator<Item = V>,
+    {
+        self.binary(
+            BinOper::In,
+            SimpleExpr::Tuple(
+                v.into_iter()
+                    .map(|m| SimpleExpr::Values(m.into_value_tuple().into_iter().collect()))
+                    .collect(),
+            ),
+        )
+    }
+
+    fn is<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::Is, right)
+    }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn is_in<V, I>(self, v: I) -> SimpleExpr
+    where
+        V: Into<SimpleExpr>,
+        I: IntoIterator<Item = V>,
+    {
+        self.binary(
+            BinOper::In,
+            SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+        )
+    }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn is_not<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::IsNot, right)
+    }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn is_not_in<V, I>(self, v: I) -> SimpleExpr
+    where
+        V: Into<SimpleExpr>,
+        I: IntoIterator<Item = V>,
+    {
+        self.binary(
+            BinOper::NotIn,
+            SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+        )
+    }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn is_not_null(self) -> SimpleExpr {
+        self.binary(BinOper::IsNot, Keyword::Null)
+    }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn is_null(self) -> SimpleExpr {
+        self.binary(BinOper::Is, Keyword::Null)
+    }
+
+    fn left_shift<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::LShift, right)
+    }
+
+    fn like<L>(self, like: L) -> SimpleExpr
+    where
+        L: IntoLikeExpr,
+    {
+        ExprTrait::binary(self, BinOper::Like, like.into_like_expr())
+    }
+
+    fn lt<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::SmallerThan, right)
+    }
+
+    fn lte<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::SmallerThanOrEqual, right)
+    }
+
+    fn modulo<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::Mod, right)
+    }
+
+    fn mul<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::Mul, right)
+    }
+
+    fn ne<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::NotEqual, right)
+    }
+
+    fn not(self) -> SimpleExpr {
+        self.unary(UnOper::Not)
+    }
+
+    fn not_between<A, B>(self, a: A, b: B) -> SimpleExpr
+    where
+        A: Into<SimpleExpr>,
+        B: Into<SimpleExpr>,
+    {
+        self.binary(
+            BinOper::NotBetween,
+            SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
+        )
+    }
+
+    fn not_equals<C>(self, col: C) -> SimpleExpr
+    where
+        C: IntoColumnRef,
+    {
+        self.binary(BinOper::NotEqual, col.into_column_ref())
+    }
+
+    fn not_in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+        self.binary(
+            BinOper::NotIn,
+            SimpleExpr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
+        )
+    }
+
+    fn not_like<L>(self, like: L) -> SimpleExpr
+    where
+        L: IntoLikeExpr,
+    {
+        ExprTrait::binary(self, BinOper::NotLike, like.into_like_expr())
+    }
+
+    fn or<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::Or, right)
+    }
+
+    fn right_shift<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        self.binary(BinOper::RShift, right)
+    }
+
+    fn sub<R>(self, right: R) -> SimpleExpr
+    where
+        R: Into<SimpleExpr>,
+    {
+        ExprTrait::binary(self, BinOper::Sub, right)
+    }
+
+    fn unary(self, o: UnOper) -> SimpleExpr;
+}
+
+/// This generic implementation covers all expression types,
+/// including [ColumnRef], [Value], [FunctionCall], [SimpleExpr]...
+impl<T> ExprTrait for T
+where
+    T: Into<SimpleExpr>,
+{
+    fn as_enum<N>(self, type_name: N) -> SimpleExpr
+    where
+        N: IntoIden,
+    {
+        SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
+    }
+
+    fn binary<O, R>(self, op: O, right: R) -> SimpleExpr
+    where
+        O: Into<BinOper>,
+        R: Into<SimpleExpr>,
+    {
+        SimpleExpr::Binary(Box::new(self.into()), op.into(), Box::new(right.into()))
+    }
+
+    fn cast_as<N>(self, type_name: N) -> SimpleExpr
+    where
+        N: IntoIden,
+    {
+        SimpleExpr::FunctionCall(Func::cast_as(self, type_name))
+    }
+
+    fn unary(self, op: UnOper) -> SimpleExpr {
+        SimpleExpr::Unary(op, Box::new(self.into()))
     }
 }
 
@@ -532,7 +786,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Equal, v)
+        ExprTrait::eq(self, v)
     }
 
     /// Express a not equal (`<>`) expression.
@@ -566,7 +820,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::NotEqual, v)
+        ExprTrait::ne(self, v)
     }
 
     /// Express a equal expression between two table columns,
@@ -600,7 +854,7 @@ impl Expr {
     where
         C: IntoColumnRef,
     {
-        self.binary(BinOper::Equal, col.into_column_ref())
+        ExprTrait::equals(self, col)
     }
 
     /// Express a not equal expression between two table columns,
@@ -634,7 +888,7 @@ impl Expr {
     where
         C: IntoColumnRef,
     {
-        self.binary(BinOper::NotEqual, col.into_column_ref())
+        ExprTrait::not_equals(self, col)
     }
 
     /// Express a greater than (`>`) expression.
@@ -667,7 +921,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::GreaterThan, v.into())
+        ExprTrait::gt(self, v)
     }
 
     /// Express a greater than or equal (`>=`) expression.
@@ -700,7 +954,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::GreaterThanOrEqual, v)
+        ExprTrait::gte(self, v)
     }
 
     /// Express a less than (`<`) expression.
@@ -733,7 +987,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::SmallerThan, v)
+        ExprTrait::lt(self, v)
     }
 
     /// Express a less than or equal (`<=`) expression.
@@ -766,7 +1020,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::SmallerThanOrEqual, v)
+        ExprTrait::lte(self, v)
     }
 
     /// Express an arithmetic addition operation.
@@ -800,7 +1054,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Add, v)
+        ExprTrait::add(self, v)
     }
 
     /// Express an arithmetic subtraction operation.
@@ -834,7 +1088,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Sub, v)
+        ExprTrait::sub(self, v)
     }
 
     /// Express an arithmetic multiplication operation.
@@ -868,7 +1122,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Mul, v)
+        ExprTrait::mul(self, v)
     }
 
     /// Express an arithmetic division operation.
@@ -902,7 +1156,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Div, v)
+        ExprTrait::div(self, v)
     }
 
     /// Express an arithmetic modulo operation.
@@ -936,7 +1190,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Mod, v)
+        ExprTrait::modulo(self, v)
     }
 
     /// Express a bitwise left shift.
@@ -970,7 +1224,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::LShift, v)
+        ExprTrait::left_shift(self, v)
     }
 
     /// Express a bitwise right shift.
@@ -1004,7 +1258,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::RShift, v)
+        ExprTrait::right_shift(self, v)
     }
 
     /// Express a `BETWEEN` expression.
@@ -1037,7 +1291,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.between_or_not_between(BinOper::Between, a, b)
+        ExprTrait::between(self, a, b)
     }
 
     /// Express a `NOT BETWEEN` expression.
@@ -1070,17 +1324,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.between_or_not_between(BinOper::NotBetween, a, b)
-    }
-
-    fn between_or_not_between<V>(self, op: BinOper, a: V, b: V) -> SimpleExpr
-    where
-        V: Into<SimpleExpr>,
-    {
-        self.binary(
-            op,
-            SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
-        )
+        ExprTrait::not_between(self, a, b)
     }
 
     /// Express a `LIKE` expression.
@@ -1135,12 +1379,12 @@ impl Expr {
     /// );
     /// ```
     pub fn like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(BinOper::Like, like.into_like_expr())
+        ExprTrait::like(self, like)
     }
 
     /// Express a `NOT LIKE` expression
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        self.like_like(BinOper::NotLike, like.into_like_expr())
+        ExprTrait::not_like(self, like)
     }
 
     /// Express a `IS NULL` expression.
@@ -1171,7 +1415,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_null(self) -> SimpleExpr {
-        self.binary(BinOper::Is, Keyword::Null)
+        ExprTrait::is_null(self)
     }
 
     /// Express a `IS` expression.
@@ -1204,7 +1448,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Is, v)
+        ExprTrait::is(self, v)
     }
 
     /// Express a `IS NOT NULL` expression.
@@ -1235,7 +1479,7 @@ impl Expr {
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn is_not_null(self) -> SimpleExpr {
-        self.binary(BinOper::IsNot, Keyword::Null)
+        ExprTrait::is_not_null(self)
     }
 
     /// Express a `IS NOT` expression.
@@ -1268,7 +1512,7 @@ impl Expr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::IsNot, v)
+        ExprTrait::is_not(self, v)
     }
 
     /// Create any binary operation
@@ -1303,7 +1547,7 @@ impl Expr {
         O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        self.bin_op(op, right)
+        ExprTrait::binary(self, op, right)
     }
 
     /// Negates an expression with `NOT`.
@@ -1334,7 +1578,7 @@ impl Expr {
     /// ```
     #[allow(clippy::should_implement_trait)]
     pub fn not(self) -> SimpleExpr {
-        self.un_op(UnOper::Not)
+        ExprTrait::not(self)
     }
 
     /// Express a `MAX` function.
@@ -1564,14 +1808,12 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_in<V, I>(mut self, v: I) -> SimpleExpr
+    pub fn is_in<V, I>(self, v: I) -> SimpleExpr
     where
         V: Into<SimpleExpr>,
         I: IntoIterator<Item = V>,
     {
-        self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()));
-        self.into()
+        ExprTrait::is_in(self, v)
     }
 
     /// Express a `IN` sub expression.
@@ -1609,18 +1851,12 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn in_tuples<V, I>(mut self, v: I) -> SimpleExpr
+    pub fn in_tuples<V, I>(self, v: I) -> SimpleExpr
     where
         V: IntoValueTuple,
         I: IntoIterator<Item = V>,
     {
-        self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::Tuple(
-            v.into_iter()
-                .map(|m| SimpleExpr::Values(m.into_value_tuple().into_iter().collect()))
-                .collect(),
-        ));
-        self.into()
+        ExprTrait::in_tuples(self, v)
     }
 
     /// Express a `NOT IN` expression.
@@ -1673,14 +1909,12 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_not_in<V, I>(mut self, v: I) -> SimpleExpr
+    pub fn is_not_in<V, I>(self, v: I) -> SimpleExpr
     where
         V: Into<SimpleExpr>,
         I: IntoIterator<Item = V>,
     {
-        self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()));
-        self.into()
+        ExprTrait::is_not_in(self, v)
     }
 
     /// Express a `IN` sub-query expression.
@@ -1714,13 +1948,8 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
-        self.bopr = Some(BinOper::In);
-        self.right = Some(SimpleExpr::SubQuery(
-            None,
-            Box::new(sel.into_sub_query_statement()),
-        ));
-        self.into()
+    pub fn in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+        ExprTrait::in_subquery(self, sel)
     }
 
     /// Express a `NOT IN` sub-query expression.
@@ -1754,13 +1983,8 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn not_in_subquery(mut self, sel: SelectStatement) -> SimpleExpr {
-        self.bopr = Some(BinOper::NotIn);
-        self.right = Some(SimpleExpr::SubQuery(
-            None,
-            Box::new(sel.into_sub_query_statement()),
-        ));
-        self.into()
+    pub fn not_in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+        ExprTrait::not_in_subquery(self, sel)
     }
 
     /// Express a `EXISTS` sub-query expression.
@@ -1913,7 +2137,7 @@ impl Expr {
     where
         T: IntoIden,
     {
-        SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
+        ExprTrait::as_enum(self, type_name)
     }
 
     /// Adds new `CASE WHEN` to existing case statement.
@@ -1976,8 +2200,7 @@ impl Expr {
     where
         T: IntoIden,
     {
-        let func = Func::cast_as(self, type_name);
-        SimpleExpr::FunctionCall(func)
+        ExprTrait::cast_as(self, type_name)
     }
 
     /// Keyword `CURRENT_TIMESTAMP`.
@@ -2115,17 +2338,16 @@ impl From<Keyword> for SimpleExpr {
     }
 }
 
-impl Expression for SimpleExpr {
-    fn un_op(self, op: UnOper) -> SimpleExpr {
-        SimpleExpr::Unary(op, Box::new(self))
-    }
-
-    fn bin_op<O, T>(self, op: O, right: T) -> SimpleExpr
-    where
-        O: Into<BinOper>,
-        T: Into<SimpleExpr>,
-    {
-        SimpleExpr::Binary(Box::new(self), op.into(), Box::new(right.into()))
+impl From<LikeExpr> for SimpleExpr {
+    fn from(like: LikeExpr) -> Self {
+        match like.escape {
+            Some(escape) => SimpleExpr::Binary(
+                Box::new(like.pattern.into()),
+                BinOper::Escape,
+                Box::new(SimpleExpr::Constant(escape.into())),
+            ),
+            None => like.pattern.into(),
+        }
     }
 }
 
@@ -2158,7 +2380,7 @@ impl SimpleExpr {
     /// ```
     #[allow(clippy::should_implement_trait)]
     pub fn not(self) -> SimpleExpr {
-        self.un_op(UnOper::Not)
+        ExprTrait::not(self)
     }
 
     /// Express a logical `AND` operation.
@@ -2191,7 +2413,7 @@ impl SimpleExpr {
     /// );
     /// ```
     pub fn and(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::And, right)
+        ExprTrait::and(self, right)
     }
 
     /// Express a logical `OR` operation.
@@ -2222,7 +2444,7 @@ impl SimpleExpr {
     /// );
     /// ```
     pub fn or(self, right: SimpleExpr) -> Self {
-        self.binary(BinOper::Or, right)
+        ExprTrait::or(self, right)
     }
 
     /// Express an equal (`=`) expression.
@@ -2255,7 +2477,7 @@ impl SimpleExpr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Equal, v)
+        ExprTrait::eq(self, v)
     }
 
     /// Express a not equal (`<>`) expression.
@@ -2288,7 +2510,7 @@ impl SimpleExpr {
     where
         V: Into<SimpleExpr>,
     {
-        self.binary(BinOper::NotEqual, v)
+        ExprTrait::ne(self, v)
     }
 
     /// Perform addition with another [`SimpleExpr`].
@@ -2325,7 +2547,7 @@ impl SimpleExpr {
     where
         T: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Add, right)
+        ExprTrait::add(self, right)
     }
 
     /// Perform multiplication with another [`SimpleExpr`].
@@ -2362,7 +2584,7 @@ impl SimpleExpr {
     where
         T: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Mul, right.into())
+        ExprTrait::mul(self, right)
     }
 
     /// Perform division with another [`SimpleExpr`].
@@ -2399,7 +2621,7 @@ impl SimpleExpr {
     where
         T: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Div, right.into())
+        ExprTrait::div(self, right)
     }
 
     /// Perform subtraction with another [`SimpleExpr`].
@@ -2436,7 +2658,7 @@ impl SimpleExpr {
     where
         T: Into<SimpleExpr>,
     {
-        self.binary(BinOper::Sub, right)
+        ExprTrait::sub(self, right)
     }
 
     /// Express a `CAST AS` expression.
@@ -2467,8 +2689,7 @@ impl SimpleExpr {
     where
         T: IntoIden,
     {
-        let func = Func::cast_as(self, type_name);
-        Self::FunctionCall(func)
+        ExprTrait::cast_as(self, type_name)
     }
 
     /// Create any binary operation
@@ -2502,7 +2723,7 @@ impl SimpleExpr {
         O: Into<BinOper>,
         T: Into<SimpleExpr>,
     {
-        self.bin_op(op, right)
+        ExprTrait::binary(self, op, right)
     }
 
     /// Express a `LIKE` expression.
@@ -2532,12 +2753,12 @@ impl SimpleExpr {
     /// );
     /// ```
     pub fn like<L: IntoLikeExpr>(self, like: L) -> Self {
-        self.like_like(BinOper::Like, like.into_like_expr())
+        ExprTrait::like(self, like)
     }
 
     /// Express a `NOT LIKE` expression
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> Self {
-        self.like_like(BinOper::NotLike, like.into_like_expr())
+        ExprTrait::not_like(self, like)
     }
 
     pub(crate) fn is_binary(&self) -> bool {

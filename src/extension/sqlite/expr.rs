@@ -1,8 +1,8 @@
-use crate::{expr::private::Expression, Expr, SimpleExpr};
+use crate::{expr::ExprTrait, SimpleExpr};
 
 use super::SqliteBinOper;
 
-pub trait SqliteExpr: Expression {
+pub trait SqliteExpr: ExprTrait {
     /// Express an sqlite `GLOB` operator.
     ///
     /// # Examples
@@ -25,7 +25,7 @@ pub trait SqliteExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(SqliteBinOper::Glob, right)
+        self.binary(SqliteBinOper::Glob, right)
     }
 
     /// Express an sqlite `MATCH` operator.
@@ -50,7 +50,7 @@ pub trait SqliteExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(SqliteBinOper::Match, right)
+        self.binary(SqliteBinOper::Match, right)
     }
 
     /// Express an sqlite retrieves JSON field as JSON value (`->`).
@@ -75,7 +75,7 @@ pub trait SqliteExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(SqliteBinOper::GetJsonField, right)
+        self.binary(SqliteBinOper::GetJsonField, right)
     }
 
     /// Express an sqlite retrieves JSON field and casts it to an appropriate SQL type (`->>`).
@@ -100,10 +100,8 @@ pub trait SqliteExpr: Expression {
     where
         T: Into<SimpleExpr>,
     {
-        self.bin_op(SqliteBinOper::CastJsonField, right)
+        self.binary(SqliteBinOper::CastJsonField, right)
     }
 }
 
-impl SqliteExpr for Expr {}
-
-impl SqliteExpr for SimpleExpr {}
+impl<T> SqliteExpr for T where T: ExprTrait {}
