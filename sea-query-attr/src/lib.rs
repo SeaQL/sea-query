@@ -58,10 +58,18 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
         .iter()
         .map(|field| {
             let ident = &field.ident;
-            let string = ident
-                .as_ref()
-                .expect("#[enum_def] can only be used on structs with named fields")
-                .to_string();
+            let string = {
+                let mut inner = ident
+                    .as_ref()
+                    .expect("#[enum_def] can only be used on structs with named fields")
+                    .to_string();
+
+                if inner.starts_with("r#") {
+                    inner = (&inner[2..]).to_string();
+                }
+
+                inner
+            };
             let as_pascal = string.to_pascal_case();
             NamingHolder {
                 default: ident.as_ref().unwrap().clone(),
