@@ -1,5 +1,7 @@
 use super::PgBinOper;
-use crate::{expr::ExprTrait, IntoLikeExpr, SimpleExpr};
+use crate::{
+    ColumnRef, Expr, ExprTrait, FunctionCall, IntoLikeExpr, Keyword, LikeExpr, SimpleExpr, Value,
+};
 
 pub trait PgExpr: ExprTrait {
     /// Express an postgres concatenate (`||`) expression.
@@ -196,4 +198,12 @@ pub trait PgExpr: ExprTrait {
     }
 }
 
-impl<T> PgExpr for T where T: ExprTrait {}
+// TODO: https://github.com/SeaQL/sea-query/discussions/795:
+// replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
+impl PgExpr for Expr {}
+impl PgExpr for SimpleExpr {}
+impl PgExpr for FunctionCall {}
+impl PgExpr for ColumnRef {}
+impl PgExpr for Keyword {}
+impl PgExpr for LikeExpr {}
+impl PgExpr for Value {}

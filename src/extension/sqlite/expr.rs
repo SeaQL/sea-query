@@ -1,4 +1,4 @@
-use crate::{expr::ExprTrait, SimpleExpr};
+use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, Keyword, LikeExpr, SimpleExpr, Value};
 
 use super::SqliteBinOper;
 
@@ -104,4 +104,12 @@ pub trait SqliteExpr: ExprTrait {
     }
 }
 
-impl<T> SqliteExpr for T where T: ExprTrait {}
+// TODO: https://github.com/SeaQL/sea-query/discussions/795:
+// replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
+impl SqliteExpr for Expr {}
+impl SqliteExpr for SimpleExpr {}
+impl SqliteExpr for FunctionCall {}
+impl SqliteExpr for ColumnRef {}
+impl SqliteExpr for Keyword {}
+impl SqliteExpr for LikeExpr {}
+impl SqliteExpr for Value {}
