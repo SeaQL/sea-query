@@ -1062,6 +1062,16 @@ fn select_61() {
 }
 
 #[test]
+fn md5_fn() {
+    assert_eq!(
+        Query::select()
+            .expr(Func::md5(Expr::val("test")))
+            .to_string(MysqlQueryBuilder),
+        r#"SELECT MD5('test')"#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
