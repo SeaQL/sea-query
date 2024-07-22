@@ -53,6 +53,32 @@ pub enum SimpleExpr {
 ///     .like("2024%");
 /// ```
 pub trait ExprTrait: Sized {
+    /// Express an arithmetic addition operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(1.add(1).eq(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 + 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
+    /// );
+    /// ```
     fn add<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -60,6 +86,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::Add, right)
     }
 
+    /// Express a `AS enum` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Char::Table)
+    ///     .columns([Char::FontSize])
+    ///     .values_panic(["large".as_enum(Alias::new("FontSizeEnum"))])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `character` (`font_size`) VALUES ('large')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "character" ("font_size") VALUES ('large')"#
+    /// );
+    /// ```
     #[allow(clippy::wrong_self_convention)]
     fn as_enum<N>(self, type_name: N) -> SimpleExpr
     where
@@ -72,6 +124,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::And, right)
     }
 
+    /// Express a `BETWEEN` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().between(1, 10))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` BETWEEN 1 AND 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
+    /// );
+    /// ```
     fn between<A, B>(self, a: A, b: B) -> SimpleExpr
     where
         A: Into<SimpleExpr>,
@@ -83,15 +161,92 @@ pub trait ExprTrait: Sized {
         )
     }
 
+    /// Create any binary operation
+    ///
+    /// # Examples
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .cond_where(all![
+    ///         Char::SizeW.into_column_ref().binary(BinOper::SmallerThan, 10),
+    ///         Char::SizeW.into_column_ref().binary(BinOper::GreaterThan, Char::SizeH.into_column_ref())
+    ///     ])
+    ///     .to_owned();
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` < 10 AND `size_w` > `size_h`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
+    /// );
+    /// ```
     fn binary<O, R>(self, op: O, right: R) -> SimpleExpr
     where
         O: Into<BinOper>,
         R: Into<SimpleExpr>;
 
+    /// Express a `CAST AS` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr("1".cast_as(Alias::new("integer")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('1' AS integer)"#
+    /// );
+    /// ```
     fn cast_as<N>(self, type_name: N) -> SimpleExpr
     where
         N: IntoIden;
 
+    /// Express an arithmetic division operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(1.div(1).eq(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 / 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
+    /// );
+    /// ```
     fn div<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -99,6 +254,34 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::Div, right)
     }
 
+    /// Express an equal (`=`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     // Sometimes, you'll have to qualify the call because of conflicting std traits.
+    ///     .and_where(ExprTrait::eq("What!", "Nothing"))
+    ///     .and_where(Char::Id.into_column_ref().eq(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'What!' = 'Nothing' AND `id` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
+    /// );
+    /// ```
     fn eq<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -106,6 +289,33 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::Equal, right)
     }
 
+    /// Express a equal expression between two table columns,
+    /// you will mainly use this to relate identical value between two table columns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::FontId).into_column_ref().equals((Font::Table, Font::Id)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` = `font`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
+    /// );
+    /// ```
     fn equals<C>(self, col: C) -> SimpleExpr
     where
         C: IntoColumnRef,
@@ -113,6 +323,32 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::Equal, col.into_column_ref())
     }
 
+    /// Express a greater than (`>`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().gt(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` > 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
+    /// );
+    /// ```
     fn gt<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -120,6 +356,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::GreaterThan, right)
     }
 
+    /// Express a greater than or equal (`>=`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().gte(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` >= 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
+    /// );
+    /// ```
     fn gte<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -127,6 +389,36 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::GreaterThanOrEqual, right)
     }
 
+    /// Express a `IN` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().in_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
     fn in_subquery(self, sel: SelectStatement) -> SimpleExpr {
         self.binary(
             BinOper::In,
@@ -134,6 +426,42 @@ pub trait ExprTrait: Sized {
         )
     }
 
+    /// Express a `IN` sub expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::FontId])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         ExprTrait::in_tuples(
+    ///             Expr::tuple([
+    ///                 Expr::col(Char::Character).into(),
+    ///                 Expr::col(Char::FontId).into(),
+    ///             ]),
+    ///             [(1, String::from("1")), (2, String::from("2"))]
+    ///         )
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font_id` FROM `character` WHERE (`character`, `font_id`) IN ((1, '1'), (2, '2'))"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
+    /// );
+    /// ```
     fn in_tuples<V, I>(self, v: I) -> SimpleExpr
     where
         V: IntoValueTuple,
@@ -149,6 +477,32 @@ pub trait ExprTrait: Sized {
         )
     }
 
+    /// Express a `IS` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::Ascii).into_column_ref().is(true))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`ascii` IS TRUE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
+    /// );
+    /// ```
     fn is<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -156,6 +510,55 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::Is, right)
     }
 
+    /// Express a `IN` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_in([1, 2, 3]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` IN (1, 2, 3)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
+    /// );
+    /// ```
+    /// Empty value list
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_in(Vec::<u8>::new()))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 2"#
+    /// );
+    /// ```
     #[allow(clippy::wrong_self_convention)]
     fn is_in<V, I>(self, v: I) -> SimpleExpr
     where
@@ -168,6 +571,32 @@ pub trait ExprTrait: Sized {
         )
     }
 
+    /// Express a `IS NOT` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::Ascii).into_column_ref().is_not(true))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`ascii` IS NOT TRUE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS NOT TRUE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS NOT TRUE"#
+    /// );
+    /// ```
     #[allow(clippy::wrong_self_convention)]
     fn is_not<R>(self, right: R) -> SimpleExpr
     where
@@ -176,6 +605,55 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::IsNot, right)
     }
 
+    /// Express a `NOT IN` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_not_in([1, 2, 3]))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE `character`.`size_w` NOT IN (1, 2, 3)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" NOT IN (1, 2, 3)"#
+    /// );
+    /// ```
+    /// Empty value list
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_not_in(Vec::<u8>::new()))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `id` FROM `character` WHERE 1 = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE 1 = 1"#
+    /// );
+    /// ```
     #[allow(clippy::wrong_self_convention)]
     fn is_not_in<V, I>(self, v: I) -> SimpleExpr
     where
@@ -188,16 +666,94 @@ pub trait ExprTrait: Sized {
         )
     }
 
+    /// Express a `IS NOT NULL` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_not_null())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NOT NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NOT NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NOT NULL"#
+    /// );
+    /// ```
     #[allow(clippy::wrong_self_convention)]
     fn is_not_null(self) -> SimpleExpr {
         self.binary(BinOper::IsNot, Keyword::Null)
     }
 
+    /// Express a `IS NULL` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_null())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` IS NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" IS NULL"#
+    /// );
+    /// ```
     #[allow(clippy::wrong_self_convention)]
     fn is_null(self) -> SimpleExpr {
         self.binary(BinOper::Is, Keyword::Null)
     }
 
+    /// Express a bitwise left shift.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(1.left_shift(1).eq(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 << 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 << 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 << 1 = 2"#
+    /// );
+    /// ```
     fn left_shift<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -205,6 +761,57 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::LShift, right)
     }
 
+    /// Express a `LIKE` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::Character).into_column_ref().like("Ours'%"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE E'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
+    /// );
+    /// ```
+    ///
+    /// Like with ESCAPE
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::Character).into_column_ref().like(LikeExpr::new(r"|_Our|_").escape('|')))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
+    /// );
+    /// ```
     fn like<L>(self, like: L) -> SimpleExpr
     where
         L: IntoLikeExpr,
@@ -212,6 +819,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::Like, like.into_like_expr())
     }
 
+    /// Express a less than (`<`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().lt(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` < 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
+    /// );
+    /// ```
     fn lt<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -219,6 +852,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::SmallerThan, right)
     }
 
+    /// Express a less than or equal (`<=`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().lte(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` <= 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
+    /// );
+    /// ```
     fn lte<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -226,6 +885,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::SmallerThanOrEqual, right)
     }
 
+    /// Express an arithmetic modulo operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(1.modulo(1).eq(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 % 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 % 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 % 1 = 2"#
+    /// );
+    /// ```
     fn modulo<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -233,6 +918,32 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::Mod, right)
     }
 
+    /// Express an arithmetic multiplication operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(1.mul(1).eq(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 * 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
+    /// );
+    /// ```
     fn mul<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -240,6 +951,34 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::Mul, right)
     }
 
+    /// Express a not equal (`<>`) expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     // Sometimes, you'll have to qualify the call because of conflicting std traits.
+    ///     .and_where(ExprTrait::ne("Morning", "Good"))
+    ///     .and_where(Char::Id.into_column_ref().ne(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
+    /// );
+    /// ```
     fn ne<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -247,10 +986,62 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::NotEqual, right)
     }
 
+    /// Negates an expression with `NOT`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(ExprTrait::not(Expr::col((Char::Table, Char::SizeW)).is_null()))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
+    /// );
+    /// ```
     fn not(self) -> SimpleExpr {
         self.unary(UnOper::Not)
     }
 
+    /// Express a `NOT BETWEEN` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().not_between(1, 10))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` NOT BETWEEN 1 AND 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
+    /// );
+    /// ```
     fn not_between<A, B>(self, a: A, b: B) -> SimpleExpr
     where
         A: Into<SimpleExpr>,
@@ -262,6 +1053,33 @@ pub trait ExprTrait: Sized {
         )
     }
 
+    /// Express a not equal expression between two table columns,
+    /// you will mainly use this to relate identical value between two table columns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::FontId).into_column_ref().not_equals((Font::Table, Font::Id)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`font_id` <> `font`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" <> "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" <> "font"."id""#
+    /// );
+    /// ```
     fn not_equals<C>(self, col: C) -> SimpleExpr
     where
         C: IntoColumnRef,
@@ -269,6 +1087,36 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::NotEqual, col.into_column_ref())
     }
 
+    /// Express a `NOT IN` sub-query expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Char::SizeW.into_column_ref().not_in_subquery(
+    ///         Query::select()
+    ///             .expr(Expr::cust("3 + 2 * 2"))
+    ///             .take()
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` NOT IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
+    /// );
+    /// ```
     fn not_in_subquery(self, sel: SelectStatement) -> SimpleExpr {
         self.binary(
             BinOper::NotIn,
@@ -276,6 +1124,32 @@ pub trait ExprTrait: Sized {
         )
     }
 
+    /// Express a `NOT LIKE` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where((Char::Table, Char::Character).into_column_ref().not_like("Ours'%"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` NOT LIKE 'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" NOT LIKE E'Ours\'%'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" NOT LIKE 'Ours''%'"#
+    /// );
+    /// ```
     fn not_like<L>(self, like: L) -> SimpleExpr
     where
         L: IntoLikeExpr,
@@ -283,6 +1157,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::NotLike, like.into_like_expr())
     }
 
+    /// Express a logical `OR` operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(false.or(true))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE FALSE OR TRUE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE FALSE OR TRUE"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE FALSE OR TRUE"#
+    /// );
+    /// ```
     fn or<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -290,6 +1190,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::Or, right)
     }
 
+    /// Express a bitwise right shift.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(1.right_shift(1).eq(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 >> 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 >> 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 >> 1 = 2"#
+    /// );
+    /// ```
     fn right_shift<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -297,6 +1223,32 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::RShift, right)
     }
 
+    /// Express an arithmetic subtraction operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(1.sub(1).eq(2))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 - 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
+    /// );
+    /// ```
     fn sub<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
@@ -304,6 +1256,32 @@ pub trait ExprTrait: Sized {
         ExprTrait::binary(self, BinOper::Sub, right)
     }
 
+    /// Apply any unary operator to the expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_null().unary(UnOper::Not))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
+    /// );
+    /// ```
     fn unary(self, o: UnOper) -> SimpleExpr;
 }
 
@@ -757,6 +1735,8 @@ impl Expr {
 
     /// Express an equal (`=`) expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::eq] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -790,6 +1770,8 @@ impl Expr {
     }
 
     /// Express a not equal (`<>`) expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::ne] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -826,6 +1808,8 @@ impl Expr {
     /// Express a equal expression between two table columns,
     /// you will mainly use this to relate identical value between two table columns.
     ///
+    /// This is equivalent to a newer [ExprTrait::equals] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -860,6 +1844,8 @@ impl Expr {
     /// Express a not equal expression between two table columns,
     /// you will mainly use this to relate identical value between two table columns.
     ///
+    /// This is equivalent to a newer [ExprTrait::not_equals] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -892,6 +1878,8 @@ impl Expr {
     }
 
     /// Express a greater than (`>`) expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::gt] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -926,6 +1914,8 @@ impl Expr {
 
     /// Express a greater than or equal (`>=`) expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::gte] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -958,6 +1948,8 @@ impl Expr {
     }
 
     /// Express a less than (`<`) expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::lt] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -992,6 +1984,8 @@ impl Expr {
 
     /// Express a less than or equal (`<=`) expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::lte] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1024,6 +2018,8 @@ impl Expr {
     }
 
     /// Express an arithmetic addition operation.
+    ///
+    /// This is equivalent to a newer [ExprTrait::add] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1059,6 +2055,8 @@ impl Expr {
 
     /// Express an arithmetic subtraction operation.
     ///
+    /// This is equivalent to a newer [ExprTrait::sub] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1092,6 +2090,8 @@ impl Expr {
     }
 
     /// Express an arithmetic multiplication operation.
+    ///
+    /// This is equivalent to a newer [ExprTrait::mul] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1127,6 +2127,8 @@ impl Expr {
 
     /// Express an arithmetic division operation.
     ///
+    /// This is equivalent to a newer [ExprTrait::div] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1160,6 +2162,8 @@ impl Expr {
     }
 
     /// Express an arithmetic modulo operation.
+    ///
+    /// This is equivalent to a newer [ExprTrait::modulo] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1195,6 +2199,8 @@ impl Expr {
 
     /// Express a bitwise left shift.
     ///
+    /// This is equivalent to a newer [ExprTrait::left_shift] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1228,6 +2234,8 @@ impl Expr {
     }
 
     /// Express a bitwise right shift.
+    ///
+    /// This is equivalent to a newer [ExprTrait::right_shift] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1263,6 +2271,8 @@ impl Expr {
 
     /// Express a `BETWEEN` expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::between] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1296,6 +2306,8 @@ impl Expr {
 
     /// Express a `NOT BETWEEN` expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::not_between] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1328,6 +2340,8 @@ impl Expr {
     }
 
     /// Express a `LIKE` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::like] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1382,12 +2396,16 @@ impl Expr {
         ExprTrait::like(self, like)
     }
 
-    /// Express a `NOT LIKE` expression
+    /// Express a `NOT LIKE` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::not_like] and may require more some wrapping beforehand.
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
         ExprTrait::not_like(self, like)
     }
 
     /// Express a `IS NULL` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::is_null] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1419,6 +2437,8 @@ impl Expr {
     }
 
     /// Express a `IS` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::is] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1453,6 +2473,8 @@ impl Expr {
 
     /// Express a `IS NOT NULL` expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::is_not_null] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1483,6 +2505,8 @@ impl Expr {
     }
 
     /// Express a `IS NOT` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::is_not] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1516,6 +2540,8 @@ impl Expr {
     }
 
     /// Create any binary operation
+    ///
+    /// This is equivalent to a newer [ExprTrait::binary] and may require more some wrapping beforehand.
     ///
     /// # Examples
     /// ```
@@ -1551,6 +2577,8 @@ impl Expr {
     }
 
     /// Negates an expression with `NOT`.
+    ///
+    /// This is equivalent to a newer [ExprTrait::not] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1760,6 +2788,8 @@ impl Expr {
 
     /// Express a `IN` expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::is_in] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1818,6 +2848,8 @@ impl Expr {
 
     /// Express a `IN` sub expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::in_tuples] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1860,6 +2892,8 @@ impl Expr {
     }
 
     /// Express a `NOT IN` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::is_not_in] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -1919,6 +2953,8 @@ impl Expr {
 
     /// Express a `IN` sub-query expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::in_subquery] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1953,6 +2989,8 @@ impl Expr {
     }
 
     /// Express a `NOT IN` sub-query expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::not_in_subquery] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -2091,6 +3129,8 @@ impl Expr {
 
     /// Express a `AS enum` expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::as_enum] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2173,6 +3213,8 @@ impl Expr {
     }
 
     /// Express a `CAST AS` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::cast_as] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -2354,6 +3396,8 @@ impl From<LikeExpr> for SimpleExpr {
 impl SimpleExpr {
     /// Negates an expression with `NOT`.
     ///
+    /// This is equivalent to a newer [ExprTrait::not] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2418,6 +3462,8 @@ impl SimpleExpr {
 
     /// Express a logical `OR` operation.
     ///
+    /// This is equivalent to a newer [ExprTrait::or] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2448,6 +3494,8 @@ impl SimpleExpr {
     }
 
     /// Express an equal (`=`) expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::eq] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -2482,6 +3530,8 @@ impl SimpleExpr {
 
     /// Express a not equal (`<>`) expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::ne] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2514,6 +3564,8 @@ impl SimpleExpr {
     }
 
     /// Perform addition with another [`SimpleExpr`].
+    ///
+    /// This is equivalent to a newer [ExprTrait::add] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -2552,6 +3604,8 @@ impl SimpleExpr {
 
     /// Perform multiplication with another [`SimpleExpr`].
     ///
+    /// This is equivalent to a newer [ExprTrait::mul] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2588,6 +3642,8 @@ impl SimpleExpr {
     }
 
     /// Perform division with another [`SimpleExpr`].
+    ///
+    /// This is equivalent to a newer [ExprTrait::div] and may require more some wrapping beforehand.
     ///
     /// # Examples
     ///
@@ -2626,6 +3682,8 @@ impl SimpleExpr {
 
     /// Perform subtraction with another [`SimpleExpr`].
     ///
+    /// This is equivalent to a newer [ExprTrait::sub] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2663,6 +3721,8 @@ impl SimpleExpr {
 
     /// Express a `CAST AS` expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::cast_as] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2693,6 +3753,8 @@ impl SimpleExpr {
     }
 
     /// Create any binary operation
+    ///
+    /// This is equivalent to a newer [ExprTrait::add] and may require more some wrapping beforehand.
     ///
     /// # Examples
     /// ```
@@ -2728,6 +3790,8 @@ impl SimpleExpr {
 
     /// Express a `LIKE` expression.
     ///
+    /// This is equivalent to a newer [ExprTrait::like] and may require more some wrapping beforehand.
+    ///
     /// # Examples
     ///
     /// ```
@@ -2756,7 +3820,9 @@ impl SimpleExpr {
         ExprTrait::like(self, like)
     }
 
-    /// Express a `NOT LIKE` expression
+    /// Express a `NOT LIKE` expression.
+    ///
+    /// This is equivalent to a newer [ExprTrait::not_like] and may require more some wrapping beforehand.
     pub fn not_like<L: IntoLikeExpr>(self, like: L) -> Self {
         ExprTrait::not_like(self, like)
     }
