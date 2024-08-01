@@ -21,7 +21,7 @@ sea-query = { version = "0.31.0-rc.8", path = "..", default-features = false }
 postgres-types = { version = "0.2", default-features = false }
 bytes = { version = "1", default-features = false }
 rust_decimal = { version = "1", default-features = false, optional = true }
-bigdecimal = { version = "0.3", default-features = false, optional = true }
+bigdecimal = { version = "0.4", default-features = false, optional = true }
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 eui48 = { version = "1", default-features = false, optional = true }

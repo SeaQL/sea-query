@@ -21,7 +21,7 @@ sea-query = { version = "0.31.0-rc.8", path = "..", default-features = false }
 diesel = { version = "2.1.1", features = [
   "i-implement-a-third-party-backend-and-opt-into-breaking-changes",
 ] }
-bigdecimal = { version = "0.3", default-features = false, optional = true }
+bigdecimal = { version = "0.4", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 chrono = { version = "0.4", default-features = false, optional = true }
 time = { version = "0.3.36", default-features = false, optional = true }
