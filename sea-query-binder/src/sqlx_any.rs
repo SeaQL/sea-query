@@ -32,7 +32,8 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     let _ = args.add(i.map(Into::<i64>::into));
                 }
                 Value::BigUnsigned(i) => {
-                    let _ = args.add(i.map(|i| <i64 as std::convert::TryFrom<u64>>::try_from(i).unwrap()));
+                    let _ = args
+                        .add(i.map(|i| <i64 as std::convert::TryFrom<u64>>::try_from(i).unwrap()));
                 }
                 Value::Float(f) => {
                     let _ = args.add(f);
@@ -71,7 +72,8 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
-                    let _ = args.add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string());
+                    let _ = args
+                        .add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
@@ -87,7 +89,8 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    let _ = args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
+                    let _ =
+                        args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(_) => {

@@ -71,7 +71,8 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
-                    let _ = args.add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string());
+                    let _ = args
+                        .add(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
