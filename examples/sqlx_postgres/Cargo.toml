@@ -9,7 +9,7 @@ publish = false
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
-time = { version = "0.3", features = ["macros"] }
+time = { version = "0.3.36", features = ["macros"] }
 uuid = { version = "1", features = ["serde", "v4"] }
 serde_json = "1"
 rust_decimal = { version = "1" }

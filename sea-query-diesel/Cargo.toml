@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-diesel"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Emile Fugulin <emile@caido.io>"]
 edition = "2021"
 description = "Binder traits for connecting sea-query with diesel"
@@ -17,14 +17,14 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "0.31.0-rc.4", path = "..", default-features = false }
+sea-query = { version = "0.31.0", path = "..", default-features = false }
 diesel = { version = "2.1.1", features = [
   "i-implement-a-third-party-backend-and-opt-into-breaking-changes",
 ] }
 bigdecimal = { version = "0.3", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 chrono = { version = "0.4", default-features = false, optional = true }
-time = { version = "0.3", default-features = false, optional = true }
+time = { version = "0.3.36", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true }
 ipnetwork = { version = "0.20", default-features = false, optional = true }

@@ -62,6 +62,7 @@ impl TableBuilder for MysqlQueryBuilder {
                     StringLen::None => "varbinary(255)".into(),
                     StringLen::Max => "varbinary(65535)".into(),
                 },
+                ColumnType::Blob => "blob".into(),
                 ColumnType::Bit(length) => {
                     match length {
                         Some(length) => format!("bit({length})"),
@@ -153,7 +154,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();
-                    foreign_key.name(&name.to_string());
+                    foreign_key.name(name.to_string());
                     let drop = ForeignKeyDropStatement {
                         foreign_key,
                         table: None,

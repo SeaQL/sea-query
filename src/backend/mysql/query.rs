@@ -101,7 +101,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         on_conflict_action: &Option<OnConflictAction>,
         sql: &mut dyn SqlWriter,
     ) {
-        match dbg!(on_conflict_action) {
+        match on_conflict_action {
             Some(OnConflictAction::DoNothing(pk_cols)) => {
                 if !pk_cols.is_empty() {
                     self.prepare_on_conflict_do_update_keywords(sql);
