@@ -116,6 +116,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::TsRankCd => "TS_RANK_CD",
                     PgFunction::StartsWith => "STARTS_WITH",
                     PgFunction::GenRandomUUID => "GEN_RANDOM_UUID",
+                    PgFunction::JsonBuildObject => "JSON_BUILD_OBJECT",
+                    PgFunction::JsonAgg => "JSON_AGG",
                     #[cfg(feature = "postgres-array")]
                     PgFunction::Any => "ANY",
                     #[cfg(feature = "postgres-array")]
