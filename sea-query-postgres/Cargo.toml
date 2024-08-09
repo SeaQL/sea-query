@@ -17,7 +17,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "0.31.0-rc.4", path = "..", default-features = false }
+sea-query = { version = "0.31.0", path = "..", default-features = false }
 postgres-types = { version = "0.2", default-features = false }
 bytes = { version = "1", default-features = false }
 rust_decimal = { version = "1", default-features = false, optional = true }

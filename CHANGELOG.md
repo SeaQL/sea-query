@@ -5,21 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.31.0 - Pending
+## 0.31.0 - 2024-08-02
 
 ### Versions
 
 + `sea-query`/`0.31.0-rc.1`: 2024-01-31
 + `sea-query`/`0.31.0-rc.4`: 2024-02-02
 + `sea-query`/`0.31.0-rc.5`: 2024-04-14
++ `sea-query`/`0.31.0-rc.6`: 2024-05-03
++ `sea-query`/`0.31.0-rc.7`: 2024-06-02
++ `sea-query`/`0.31.0-rc.8`: 2024-06-19
 + `sea-query-binder`/`0.6.0-rc.1`: 2024-01-31
 + `sea-query-binder`/`0.6.0-rc.2`: 2024-04-14
++ `sea-query-binder`/`0.6.0-rc.3`: 2024-06-19
++ `sea-query-binder`/`0.6.0-rc.4`: 2024-06-25
++ `sea-query-binder`/`0.6.0`: 2024-08-02
 + `sea-query-rusqlite`/`0.6.0-rc.1`: 2024-02-19
++ `sea-query-rusqlite`/`0.6.0`: 2024-08-02
 + `sea-query-attr`/`0.1.2`: 2024-04-14
++ `sea-query-diesel`/`0.2.0`: 2024-08-02
 
 ### New Features
 
 * Added `table_name` attribute to `enum_def` macro https://github.com/SeaQL/sea-query/pull/759
+* Added `ColumnType::Blob` https://github.com/SeaQL/sea-query/pull/777
 
 ### Breaking Changes
 
@@ -52,6 +61,7 @@ assert_eq!(
         .col(ColumnDef::new(Alias::new("boolean_col")).boolean())
         .col(ColumnDef::new(Alias::new("binary2")).binary_len(1024))
         .col(ColumnDef::new(Alias::new("binary3")).var_binary(1024))
+        .col(ColumnDef::new(Alias::new("binary4")).blob())
         .to_string(SqliteQueryBuilder),
     [
         r#"CREATE TABLE "strange" ( "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
@@ -77,7 +87,8 @@ assert_eq!(
             r#""datetime_col" datetime_text,"#,
             r#""boolean_col" boolean,"#,
             r#""binary2" blob(1024),"#,
-            r#""binary3" varbinary_blob(1024)"#,
+            r#""binary3" varbinary_blob(1024),"#,
+            r#""binary4" blob"#,
         r#")"#,
     ]
     .join(" ")
@@ -91,7 +102,7 @@ assert_eq!(
         .table(BinaryType::Table)
         .col(ColumnDef::new(BinaryType::BinaryLen).binary_len(32))
         .col(ColumnDef::new(BinaryType::Binary).binary())
-        .col(ColumnDef::new(BinaryType::Blob).custom(MySqlType::Blob))
+        .col(ColumnDef::new(BinaryType::Blob).blob())
         .col(ColumnDef::new(BinaryType::TinyBlob).custom(MySqlType::TinyBlob))
         .col(ColumnDef::new(BinaryType::MediumBlob).custom(MySqlType::MediumBlob))
         .col(ColumnDef::new(BinaryType::LongBlob).custom(MySqlType::LongBlob))
@@ -135,6 +146,7 @@ pub enum StringLen {
 * Added `IntoColumnDef` trait, allowing `&mut ColumnDef` / `ColumnDef` as argument
 * Added `ColumnType::string()` and `ColumnType::var_binary()` as shim for old API
 * Added `ON DUPLICATE KEY DO NOTHING` polyfill for MySQL https://github.com/SeaQL/sea-query/pull/765
+* Added non-TLS runtime https://github.com/SeaQL/sea-query/pull/783
 
 ### House keeping
 
@@ -144,6 +156,7 @@ pub enum StringLen {
 ### Upgrades
 
 * Upgrade `rusqlite` to `0.31` https://github.com/SeaQL/sea-query/pull/755
+* Upgrade `time` to `0.3.36` https://github.com/SeaQL/sea-query/pull/788
 
 ## 0.30.8 - Pending
 

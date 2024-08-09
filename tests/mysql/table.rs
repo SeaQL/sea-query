@@ -189,7 +189,7 @@ fn create_7() {
     assert_eq!(
         Table::create()
             .table(Char::Table)
-            .col(ColumnDef::new(BinaryType::Blob).custom(MySqlType::Blob))
+            .col(ColumnDef::new(BinaryType::Blob).blob())
             .col(ColumnDef::new(Char::Character).binary())
             .col(ColumnDef::new(Char::FontSize).binary_len(10))
             .col(ColumnDef::new(Char::SizeW).var_binary(10))

@@ -53,9 +53,9 @@ impl Write for SqlWriterValues {
     }
 }
 
-impl ToString for SqlWriterValues {
-    fn to_string(&self) -> String {
-        self.string.clone()
+impl std::fmt::Display for SqlWriterValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.string)
     }
 }
 

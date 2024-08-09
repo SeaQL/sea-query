@@ -47,7 +47,8 @@ impl TableBuilder for PostgresQueryBuilder {
                     }
                     typ
                 }
-                ColumnType::Binary(_) | ColumnType::VarBinary(_) => "bytea".into(),
+                ColumnType::Binary(_) | ColumnType::VarBinary(_) | ColumnType::Blob =>
+                    "bytea".into(),
                 ColumnType::Bit(length) => {
                     match length {
                         Some(length) => format!("bit({length})"),
@@ -191,7 +192,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();
-                    foreign_key.name(&name.to_string());
+                    foreign_key.name(name.to_string());
                     let drop = ForeignKeyDropStatement {
                         foreign_key,
                         table: None,
