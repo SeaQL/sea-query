@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.32.0 - Pending
+
+### Versions
+
++ `sea-query`/`0.32.0-rc.1`: 2024-08-09
++ `sea-query-binder`/`0.7.0-rc.1`: 2024-08-09
++ `sea-query-rusqlite`/`0.7.0-rc.1`: 2024-08-09
++ `sea-query-postgres`/`0.5.0-rc.1`: 2024-08-09
+
+### New Features
+
+* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774
+```rust
+assert_eq!(
+    Query::select()
+        .columns([Char::Character])
+        .from(Char::Table)
+        .and_where(
+            Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0])))
+        )
+        .to_string(PostgresQueryBuilder),
+    r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
+);
+```
+* Added `postgres-vector` feature https://github.com/SeaQL/sea-query/pull/774
+* Added `Value::Vector` https://github.com/SeaQL/sea-query/pull/774
+* Added `ColumnType::Vector` https://github.com/SeaQL/sea-query/pull/774
+* Added `ColumnDef::vector()` https://github.com/SeaQL/sea-query/pull/774
+* Added `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance` https://github.com/SeaQL/sea-query/pull/774
+
+### Upgrades
+
+* Upgrade `sqlx` to `0.8` https://github.com/SeaQL/sea-query/pull/798
+* Upgrade `bigdecimal` to `0.4` https://github.com/SeaQL/sea-query/pull/798
+
 ## 0.31.0 - 2024-08-02
 
 ### Versions
