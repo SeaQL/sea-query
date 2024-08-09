@@ -293,26 +293,25 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
         }
     };
 
-    let fields = match &input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
-            ..
-        }) => &fields.named,
-        _ => panic!("#[enum_def] can only be used on structs"),
-    };
+    let fields =
+        match &input.data {
+            Data::Struct(DataStruct {
+                fields: Fields::Named(fields),
+                ..
+            }) => &fields.named,
+            _ => return quote_spanned! {
+                input.span() => compile_error!("you can only derive Iden on enums or unit structs");
+            }
+            .into(),
+        };
 
     let field_names: Vec<NamingHolder> = fields
         .iter()
         .map(|field| {
-            let ident = &field.ident;
-            let string = ident
-                .as_ref()
-                .expect("#[enum_def] can only be used on structs with named fields")
-                .to_string();
-            let as_pascal = string.to_pascal_case();
+            let ident = field.ident.as_ref().unwrap();
             NamingHolder {
-                default: ident.as_ref().unwrap().clone(),
-                pascal: Ident::new(as_pascal.as_str(), ident.span()),
+                default: ident.clone(),
+                pascal: Ident::new(ident.to_string().to_pascal_case().as_str(), ident.span()),
             }
         })
         .collect();
