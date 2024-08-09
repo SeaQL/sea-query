@@ -37,6 +37,12 @@ pub enum PgBinOper {
     Regex,
     /// `~*`. Regex operator with case insensitive matching.
     RegexCaseInsensitive,
+    #[cfg(feature = "postgres-vector")]
+    EuclideanDistance,
+    #[cfg(feature = "postgres-vector")]
+    NegativeInnerProduct,
+    #[cfg(feature = "postgres-vector")]
+    CosineDistance,
 }
 
 impl From<PgBinOper> for BinOper {

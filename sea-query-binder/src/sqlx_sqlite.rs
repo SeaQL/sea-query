@@ -120,6 +120,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Array(_, _) => {
                     panic!("Sqlite doesn't support array arguments");
                 }
+                #[cfg(feature = "postgres-vector")]
+                Value::Vector(_) => {
+                    panic!("Sqlite doesn't support vector arguments");
+                }
             }
         }
         args
