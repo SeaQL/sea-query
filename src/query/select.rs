@@ -214,6 +214,40 @@ impl SelectStatement {
         self
     }
 
+    /// A shorthand to express if ... else ... when constructing the select statement.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .apply_if(
+    ///         Some(5),
+    ///         |q, v| {
+    ///             q.and_where(Expr::col(Char::FontId).eq(v));
+    ///         }
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5"#
+    /// );
+    /// ```
+    pub fn apply_if<T, F>(&mut self, val: Option<T>, if_some: F) -> &mut Self
+    where
+        Self: Sized,
+        F: FnOnce(&mut Self, T),
+    {
+        if let Some(val) = val {
+            if_some(self, val);
+        }
+        self
+    }
+
     /// Construct part of the select statement in another function.
     ///
     /// # Examples
