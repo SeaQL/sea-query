@@ -19,6 +19,7 @@ rust-version = "1.60"
 [dependencies]
 sea-query = { version = "0.31.0", path = "..", default-features = false }
 postgres-types = { version = "0.2", default-features = false }
+pgvector = { version = "<0.4", default-features = false, optional = true }
 bytes = { version = "1", default-features = false }
 rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.3", default-features = false, optional = true }
@@ -35,5 +36,6 @@ with-bigdecimal = ["sea-query/with-bigdecimal", "bigdecimal"]
 with-uuid = ["postgres-types/with-uuid-1", "sea-query/with-uuid"]
 with-time = ["postgres-types/with-time-0_3", "sea-query/with-time"]
 postgres-array = ["postgres-types/array-impls", "sea-query/postgres-array"]
+postgres-vector = ["sea-query/postgres-vector", "pgvector/postgres"]
 with-ipnetwork = ["postgres-types/with-cidr-0_2", "sea-query/with-ipnetwork", "ipnetwork", "cidr"]
 with-mac_address = ["postgres-types/with-eui48-1", "sea-query/with-mac_address", "mac_address", "eui48"]

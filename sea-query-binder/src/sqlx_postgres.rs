@@ -314,6 +314,10 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         let _ = args.add(value);
                     }
                 },
+                #[cfg(feature = "postgres-vector")]
+                Value::Vector(v) => {
+                    let _ = args.add(v.as_deref());
+                }
             }
         }
         args

@@ -234,6 +234,19 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
     Array(ArrayType, Option<Box<Vec<Value>>>),
 
+    #[cfg(feature = "postgres-vector")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
+    Vector(
+        #[cfg_attr(
+            feature = "hashable-value",
+            educe(
+                Hash(method(hashable_value::hash_vector)),
+                PartialEq(method(hashable_value::cmp_vector))
+            )
+        )]
+        Option<Box<pgvector::Vector>>,
+    ),
+
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
     IpNetwork(Option<Box<IpNetwork>>),
@@ -893,6 +906,45 @@ pub mod with_array {
     }
 }
 
+#[cfg(feature = "postgres-vector")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
+pub mod with_vector {
+    use super::*;
+
+    impl From<pgvector::Vector> for Value {
+        fn from(x: pgvector::Vector) -> Value {
+            Value::Vector(Some(Box::new(x)))
+        }
+    }
+
+    impl Nullable for pgvector::Vector {
+        fn null() -> Value {
+            Value::Vector(None)
+        }
+    }
+
+    impl ValueType for pgvector::Vector {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::Vector(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(Vector).to_owned()
+        }
+
+        fn array_type() -> ArrayType {
+            unimplemented!("Vector does not have array type")
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::Vector(None)
+        }
+    }
+}
+
 #[allow(unused_macros)]
 macro_rules! box_to_opt_ref {
     ( $v: expr ) => {
@@ -1392,6 +1444,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Uuid(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
         Value::Array(_, None) => Json::Null,
+        #[cfg(feature = "postgres-vector")]
+        Value::Vector(None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
@@ -1447,6 +1501,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Array(_, Some(v)) => {
             Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
         }
+        #[cfg(feature = "postgres-vector")]
+        Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
@@ -1964,6 +2020,41 @@ mod hashable_value {
             (Some(l), Some(r)) => serde_json::to_string(l)
                 .unwrap()
                 .eq(&serde_json::to_string(r).unwrap()),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
+    #[cfg(feature = "postgres-vector")]
+    pub fn hash_vector<H: Hasher>(v: &Option<Box<pgvector::Vector>>, state: &mut H) {
+        match v {
+            Some(v) => {
+                for &value in v.as_slice().iter() {
+                    hash_f32(&Some(value), state);
+                }
+            }
+            None => "null".hash(state),
+        }
+    }
+
+    #[cfg(feature = "postgres-vector")]
+    pub fn cmp_vector(
+        l: &Option<Box<pgvector::Vector>>,
+        r: &Option<Box<pgvector::Vector>>,
+    ) -> bool {
+        match (l, r) {
+            (Some(l), Some(r)) => {
+                let (l, r) = (l.as_slice(), r.as_slice());
+                if l.len() != r.len() {
+                    return false;
+                }
+                for (l, r) in l.iter().zip(r.iter()) {
+                    if !cmp_f32(&Some(*l), &Some(*r)) {
+                        return false;
+                    }
+                }
+                true
+            }
             (None, None) => true,
             _ => false,
         }
