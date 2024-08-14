@@ -224,12 +224,9 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
-    ///     .apply_if(
-    ///         Some(5),
-    ///         |q, v| {
-    ///             q.and_where(Expr::col(Char::FontId).eq(v));
-    ///         }
-    ///     )
+    ///     .apply_if(Some(5), |q, v| {
+    ///         q.and_where(Expr::col(Char::FontId).eq(v));
+    ///     })
     ///     .to_owned();
     ///
     /// assert_eq!(
