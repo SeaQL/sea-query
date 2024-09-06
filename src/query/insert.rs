@@ -1,7 +1,7 @@
 use crate::{
     backend::QueryBuilder, error::*, prepare::*, types::*, OnConflict, QueryStatementBuilder,
     QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryStatement, Values,
-    WithClause, WithQuery,
+    WithClause,
 };
 use inherent::inherent;
 
@@ -51,6 +51,7 @@ pub struct InsertStatement {
     pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Option<ReturningClause>,
     pub(crate) default_values: Option<u32>,
+    pub(crate) with: Option<WithClause>,
 }
 
 impl InsertStatement {
@@ -425,7 +426,7 @@ impl InsertStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Specify a [WithClause] to execute this query with.
     ///
     /// # Examples
     ///
@@ -448,13 +449,13 @@ impl InsertStatement {
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
     ///         .from(Alias::new("cte"))
     ///         .to_owned();
-    ///     let mut insert = Query::insert();
-    ///     insert
+    ///     let mut query = Query::insert();
+    ///     query
     ///         .into_table(Glyph::Table)
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
     ///         .select_from(select)
-    ///         .unwrap();
-    ///     let query = insert.with(with_clause);
+    ///         .unwrap()
+    ///         .with(with_clause);
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -469,8 +470,9 @@ impl InsertStatement {
     ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
     /// );
     /// ```
-    pub fn with(self, clause: WithClause) -> WithQuery {
-        clause.query(self)
+    pub fn with(&mut self, clause: WithClause) -> &mut Self {
+        self.with = Some(clause);
+        self
     }
 
     /// Insert with default values if columns and values are not supplied.

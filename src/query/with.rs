@@ -400,18 +400,16 @@ impl Cycle {
 ///             .table_name(Alias::new("cte_traversal"))
 ///             .to_owned();
 ///
-/// let select = SelectStatement::new()
-///         .column(ColumnRef::Asterisk)
-///         .from(Alias::new("cte_traversal"))
-///         .to_owned();
-///
 /// let with_clause = WithClause::new()
 ///         .recursive(true)
 ///         .cte(common_table_expression)
 ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
 ///         .to_owned();
 ///
-/// let query = select.with(with_clause).to_owned();
+/// let query = SelectStatement::new()
+///         .column(ColumnRef::Asterisk)
+///         .from(Alias::new("cte_traversal"))
+///         .with(with_clause).to_owned();
 ///
 /// assert_eq!(
 ///     query.to_string(MysqlQueryBuilder),
@@ -475,130 +473,4 @@ impl WithClause {
         self.cte_expressions.push(cte);
         self
     }
-
-    /// You can turn this into a [WithQuery] using this function. The resulting WITH query will
-    /// execute the argument query with this WITH clause.
-    pub fn query<T>(self, query: T) -> WithQuery
-    where
-        T: QueryStatementBuilder + 'static,
-    {
-        WithQuery::new().with_clause(self).query(query).to_owned()
-    }
-}
-/// A WITH query. A simple SQL query that has a WITH clause ([WithClause]).
-///
-/// The [WithClause] can contain one or multiple common table expressions ([CommonTableExpression]).
-///
-/// These named queries can act as a "query local table" that are materialized during execution and
-/// then can be used by the query prefixed with the WITH clause.
-///
-/// A WITH clause can contain multiple of these [CommonTableExpression]. (Except in the case of
-/// recursive WITH query which can only contain one [CommonTableExpression]).
-///
-/// A [CommonTableExpression] is a name, column names and a query returning data for those columns.
-///
-/// Some databases (like sqlite) restrict the acceptable kinds of queries inside of the WITH clause
-/// common table expressions. These databases only allow [SelectStatement]s to form a common table
-/// expression.
-///
-/// Other databases like postgres allow modification queries (UPDATE, DELETE) inside of the WITH
-/// clause but they have to return a table. (They must have a RETURNING clause).
-///
-/// sea-query doesn't check this or restrict the kind of [CommonTableExpression] that you can create
-/// in rust. This means that you can put an UPDATE or DELETE queries into WITH clause and sea-query
-/// will succeed in generating that kind of sql query but the execution inside the database will
-/// fail because they are invalid.
-///
-/// It is your responsibility to ensure that the kind of WITH clause that you put together makes
-/// sense and valid for that database that you are using.
-///
-/// NOTE that for recursive WITH queries (in sql: "WITH RECURSIVE") you can only have a
-/// single [CommonTableExpression] inside of the WITH clause. That query must match certain
-/// requirements:
-///   * It is a query of UNION or UNION ALL of two queries.
-///   * The first part of the query (the left side of the UNION) must be executable first in itself.
-///     It must be non-recursive. (Cannot contain self reference)
-///   * The self reference must appear in the right hand side of the UNION.
-///   * The query can only have a single self-reference.
-///   * Recursive data-modifying statements are not supported, but you can use the results of a
-///     recursive SELECT query in a data-modifying statement. (like so: WITH RECURSIVE
-///     cte_name(a,b,c,d) AS (SELECT ... UNION SELECT ... FROM ... JOIN cte_name ON ... WHERE ...)
-///     DELETE FROM table WHERE table.a = cte_name.a)
-///
-/// It is mandatory to set the [Self::cte] and the [Self::query].
-#[derive(Debug, Clone, Default, PartialEq)]
-pub struct WithQuery {
-    pub(crate) with_clause: WithClause,
-    pub(crate) query: Option<Box<SubQueryStatement>>,
-}
-
-impl WithQuery {
-    /// Constructs a new empty [WithQuery].
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the whole [WithClause].
-    pub fn with_clause(&mut self, with_clause: WithClause) -> &mut Self {
-        self.with_clause = with_clause;
-        self
-    }
-
-    /// Set the [WithClause::recursive]. See that method for more information.
-    pub fn recursive(&mut self, recursive: bool) -> &mut Self {
-        self.with_clause.recursive = recursive;
-        self
-    }
-
-    /// Add the [WithClause::search]. See that method for more information.
-    pub fn search(&mut self, search: Search) -> &mut Self {
-        self.with_clause.search = Some(search);
-        self
-    }
-
-    /// Set the [WithClause::cycle]. See that method for more information.
-    pub fn cycle(&mut self, cycle: Cycle) -> &mut Self {
-        self.with_clause.cycle = Some(cycle);
-        self
-    }
-
-    /// Add a [CommonTableExpression] to the with clause. See [WithClause::cte].
-    pub fn cte(&mut self, cte: CommonTableExpression) -> &mut Self {
-        self.with_clause.cte_expressions.push(cte);
-        self
-    }
-
-    /// Set the query that you execute with the [WithClause].
-    pub fn query<T>(&mut self, query: T) -> &mut Self
-    where
-        T: QueryStatementBuilder,
-    {
-        self.query = Some(Box::new(query.into_sub_query_statement()));
-        self
-    }
-}
-
-impl QueryStatementBuilder for WithQuery {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
-        query_builder.prepare_with_query(self, sql);
-    }
-
-    fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::WithStatement(self)
-    }
-}
-
-#[inherent]
-impl QueryStatementWriter for WithQuery {
-    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
-        query_builder.prepare_with_query(self, sql);
-    }
-
-    pub fn build_collect<T: QueryBuilder>(
-        &self,
-        query_builder: T,
-        sql: &mut dyn SqlWriter,
-    ) -> String;
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
 }

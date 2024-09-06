@@ -47,7 +47,6 @@ impl_rusqlite_binder!(SelectStatement);
 impl_rusqlite_binder!(UpdateStatement);
 impl_rusqlite_binder!(InsertStatement);
 impl_rusqlite_binder!(DeleteStatement);
-impl_rusqlite_binder!(WithQuery);
 
 impl ToSql for RusqliteValue {
     fn to_sql(&self) -> Result<ToSqlOutput<'_>> {

@@ -994,12 +994,12 @@ fn select_58() {
         .table_name(Alias::new("cte"))
         .to_owned();
     let with_clause = WithClause::new().cte(cte).to_owned();
-    let select = SelectStatement::new()
-        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-        .from(Alias::new("cte"))
-        .to_owned();
     assert_eq!(
-        select.with(with_clause).to_string(PostgresQueryBuilder),
+        SelectStatement::new()
+            .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+            .from(Alias::new("cte"))
+            .with(with_clause)
+            .to_string(PostgresQueryBuilder),
         [
             r#"WITH "cte" AS"#,
             r#"(SELECT "id", "image", "aspect""#,
@@ -1076,12 +1076,12 @@ fn select_62() {
         .table_name(Alias::new("cte"))
         .to_owned();
     let with_clause = WithClause::new().cte(cte).to_owned();
-    let select = SelectStatement::new()
-        .columns([Alias::new("column1"), Alias::new("column2")])
-        .from(Alias::new("cte"))
-        .to_owned();
     assert_eq!(
-        select.with(with_clause).to_string(PostgresQueryBuilder),
+        SelectStatement::new()
+            .columns([Alias::new("column1"), Alias::new("column2")])
+            .from(Alias::new("cte"))
+            .with(with_clause)
+            .to_string(PostgresQueryBuilder),
         [
             r#"WITH "cte" AS"#,
             r#"(SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x")"#,

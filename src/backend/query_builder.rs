@@ -18,6 +18,10 @@ pub trait QueryBuilder:
 
     /// Translate [`InsertStatement`] into SQL statement.
     fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &insert.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
@@ -95,6 +99,9 @@ pub trait QueryBuilder:
 
     /// Translate [`SelectStatement`] into SQL statement.
     fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = select.with.as_ref() {
+            self.prepare_with_clause(with, sql);
+        }
         write!(sql, "SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
@@ -191,6 +198,10 @@ pub trait QueryBuilder:
 
     /// Translate [`UpdateStatement`] into SQL statement.
     fn prepare_update_statement(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &update.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "UPDATE ").unwrap();
 
         if let Some(table) = &update.table {
@@ -245,6 +256,10 @@ pub trait QueryBuilder:
 
     /// Translate [`DeleteStatement`] into SQL statement.
     fn prepare_delete_statement(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &delete.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "DELETE ").unwrap();
 
         if let Some(table) = &delete.table {
@@ -700,11 +715,6 @@ pub trait QueryBuilder:
 
     /// Translate [`QueryStatement`] into SQL statement.
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter);
-
-    fn prepare_with_query(&self, query: &WithQuery, sql: &mut dyn SqlWriter) {
-        self.prepare_with_clause(&query.with_clause, sql);
-        self.prepare_query_statement(query.query.as_ref().unwrap().deref(), sql);
-    }
 
     fn prepare_with_clause(&self, with_clause: &WithClause, sql: &mut dyn SqlWriter) {
         self.prepare_with_clause_start(with_clause, sql);
@@ -1521,7 +1531,6 @@ impl SubQueryStatement {
             InsertStatement(stmt) => query_builder.prepare_insert_statement(stmt, sql),
             UpdateStatement(stmt) => query_builder.prepare_update_statement(stmt, sql),
             DeleteStatement(stmt) => query_builder.prepare_delete_statement(stmt, sql),
-            WithStatement(stmt) => query_builder.prepare_with_query(stmt, sql),
         }
     }
 }

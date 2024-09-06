@@ -52,7 +52,6 @@ pub enum SubQueryStatement {
     InsertStatement(InsertStatement),
     UpdateStatement(UpdateStatement),
     DeleteStatement(DeleteStatement),
-    WithStatement(WithQuery),
 }
 
 impl Query {
