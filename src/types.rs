@@ -623,10 +623,7 @@ mod tests {
             .to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(
-            query.to_string(MysqlQueryBuilder),
-            r"SELECT `hello-World_`"
-        );
+        assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hello-World_`");
         #[cfg(feature = "backend-postgres")]
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
