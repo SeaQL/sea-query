@@ -147,6 +147,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test
       - run: cargo test --features=all-features
       - run: cargo test --test option-more-parentheses --features=tests-cfg,option-more-parentheses
 

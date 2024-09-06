@@ -2112,6 +2112,7 @@ fn test_issue_674_nested_logical_panic() {
 }
 
 #[test]
+#[cfg(feature = "postgres-vector")]
 fn test_pgvector_select() {
     assert_eq!(
         Query::select()
