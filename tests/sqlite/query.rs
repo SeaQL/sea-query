@@ -434,7 +434,7 @@ fn select_31() {
         Query::select()
             .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(i) }))
             .to_string(SqliteQueryBuilder),
-        r#"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"#
+        r"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"
     );
 }
 
@@ -910,12 +910,12 @@ fn select_55() {
             r#"SELECT "aspect""#,
             r#"FROM "glyph""#,
             r#"WHERE IFNULL("aspect", 0) > 2"#,
-            r#"ORDER BY CASE"#,
+            r"ORDER BY CASE",
             r#"WHEN "id"=4 THEN 0"#,
             r#"WHEN "id"=5 THEN 1"#,
             r#"WHEN "id"=1 THEN 2"#,
             r#"WHEN "id"=3 THEN 3"#,
-            r#"ELSE 4 END,"#,
+            r"ELSE 4 END,",
             r#""glyph"."aspect" ASC"#,
         ]
         .join(" ")
@@ -949,7 +949,7 @@ fn select_56() {
             r#"WHEN "id"=5 THEN 1"#,
             r#"WHEN "id"=1 THEN 2"#,
             r#"WHEN "id"=3 THEN 3"#,
-            r#"ELSE 4 END"#,
+            r"ELSE 4 END",
         ]
         .join(" ")
     );
@@ -1248,7 +1248,7 @@ fn insert_on_conflict_1() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect""#,
         ]
         .join(" ")
@@ -1274,7 +1274,7 @@ fn insert_on_conflict_2() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#,
         ]
         .join(" ")
@@ -1303,7 +1303,7 @@ fn insert_on_conflict_3() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = 3.1415"#,
         ]
         .join(" ")
@@ -1329,7 +1329,7 @@ fn insert_on_conflict_4() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "image" = 1 + 2"#,
         ]
         .join(" ")
@@ -1356,7 +1356,7 @@ fn insert_on_conflict_5() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = '04108048005887010020060000204E0180400400', "image" = "excluded"."image""#,
         ]
         .join(" ")
@@ -1383,7 +1383,7 @@ fn insert_on_conflict_6() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = 1 + 2"#,
         ]
         .join(" ")
@@ -1410,7 +1410,7 @@ fn insert_on_conflict_7() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect""#,
         ]
         .join(" ")
@@ -1437,7 +1437,7 @@ fn insert_on_conflict_8() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO UPDATE SET "aspect" = "excluded"."aspect""#,
         ]
         .join(" ")
@@ -1464,7 +1464,7 @@ fn insert_on_conflict_9() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
             r#"ON CONFLICT ("id", LOWER("tokens")) DO UPDATE SET "aspect" = "excluded"."aspect""#,
         ]
         .join(" ")
@@ -1487,7 +1487,7 @@ fn insert_on_conflict_do_nothing() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('abcd', 3.1415)"#,
+            r"VALUES ('abcd', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO NOTHING"#,
         ]
         .join(" ")
@@ -1510,7 +1510,7 @@ fn insert_on_conflict_do_nothing_on() {
             .to_string(SqliteQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
-            r#"VALUES ('abcd', 3.1415)"#,
+            r"VALUES ('abcd', 3.1415)",
             r#"ON CONFLICT ("id", "aspect") DO NOTHING"#,
         ]
         .join(" ")
