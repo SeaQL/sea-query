@@ -124,11 +124,6 @@ pub enum ArrayType {
 /// implementation of NaN != NaN.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
-#[cfg_attr(
-    feature = "hashable-value",
-    derive(educe::Educe),
-    educe(Hash, PartialEq, Eq)
-)]
 pub enum Value {
     Bool(Option<bool>),
     TinyInt(Option<i8>),
@@ -139,26 +134,8 @@ pub enum Value {
     SmallUnsigned(Option<u16>),
     Unsigned(Option<u32>),
     BigUnsigned(Option<u64>),
-    Float(
-        #[cfg_attr(
-            feature = "hashable-value",
-            educe(
-                Hash(method(hashable_value::hash_f32)),
-                PartialEq(method(hashable_value::cmp_f32))
-            )
-        )]
-        Option<f32>,
-    ),
-    Double(
-        #[cfg_attr(
-            feature = "hashable-value",
-            educe(
-                Hash(method(hashable_value::hash_f64)),
-                PartialEq(method(hashable_value::cmp_f64))
-            )
-        )]
-        Option<f64>,
-    ),
+    Float(Option<f32>),
+    Double(Option<f64>),
     String(Option<Box<String>>),
     Char(Option<char>),
 
@@ -167,16 +144,7 @@ pub enum Value {
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    Json(
-        #[cfg_attr(
-            feature = "hashable-value",
-            educe(
-                Hash(method(hashable_value::hash_json)),
-                PartialEq(method(hashable_value::cmp_json))
-            )
-        )]
-        Option<Box<Json>>,
-    ),
+    Json(Option<Box<Json>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
@@ -236,16 +204,7 @@ pub enum Value {
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
-    Vector(
-        #[cfg_attr(
-            feature = "hashable-value",
-            educe(
-                Hash(method(hashable_value::hash_vector)),
-                PartialEq(method(hashable_value::cmp_vector))
-            )
-        )]
-        Option<Box<pgvector::Vector>>,
-    ),
+    Vector(Option<Box<pgvector::Vector>>),
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
@@ -1974,23 +1933,172 @@ mod tests {
 mod hashable_value {
     use super::*;
     use ordered_float::OrderedFloat;
-    use std::hash::{Hash, Hasher};
+    use std::{
+        hash::{Hash, Hasher},
+        mem,
+    };
 
-    pub fn hash_f32<H: Hasher>(v: &Option<f32>, state: &mut H) {
+    impl PartialEq for Value {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Self::Bool(l), Self::Bool(r)) => l == r,
+                (Self::TinyInt(l), Self::TinyInt(r)) => l == r,
+                (Self::SmallInt(l), Self::SmallInt(r)) => l == r,
+                (Self::Int(l), Self::Int(r)) => l == r,
+                (Self::BigInt(l), Self::BigInt(r)) => l == r,
+                (Self::TinyUnsigned(l), Self::TinyUnsigned(r)) => l == r,
+                (Self::SmallUnsigned(l), Self::SmallUnsigned(r)) => l == r,
+                (Self::Unsigned(l), Self::Unsigned(r)) => l == r,
+                (Self::BigUnsigned(l), Self::BigUnsigned(r)) => l == r,
+                (Self::Float(l), Self::Float(r)) => cmp_f32(l, r),
+                (Self::Double(l), Self::Double(r)) => cmp_f64(l, r),
+                (Self::String(l), Self::String(r)) => l == r,
+                (Self::Char(l), Self::Char(r)) => l == r,
+                (Self::Bytes(l), Self::Bytes(r)) => l == r,
+
+                #[cfg(feature = "with-json")]
+                (Self::Json(l), Self::Json(r)) => cmp_json(l, r),
+
+                #[cfg(feature = "with-chrono")]
+                (Self::ChronoDate(l), Self::ChronoDate(r)) => l == r,
+                #[cfg(feature = "with-chrono")]
+                (Self::ChronoTime(l), Self::ChronoTime(r)) => l == r,
+                #[cfg(feature = "with-chrono")]
+                (Self::ChronoDateTime(l), Self::ChronoDateTime(r)) => l == r,
+                #[cfg(feature = "with-chrono")]
+                (Self::ChronoDateTimeUtc(l), Self::ChronoDateTimeUtc(r)) => l == r,
+                #[cfg(feature = "with-chrono")]
+                (Self::ChronoDateTimeLocal(l), Self::ChronoDateTimeLocal(r)) => l == r,
+                #[cfg(feature = "with-chrono")]
+                (Self::ChronoDateTimeWithTimeZone(l), Self::ChronoDateTimeWithTimeZone(r)) => {
+                    l == r
+                }
+
+                #[cfg(feature = "with-time")]
+                (Self::TimeDate(l), Self::TimeDate(r)) => l == r,
+                #[cfg(feature = "with-time")]
+                (Self::TimeTime(l), Self::TimeTime(r)) => l == r,
+                #[cfg(feature = "with-time")]
+                (Self::TimeDateTime(l), Self::TimeDateTime(r)) => l == r,
+                #[cfg(feature = "with-time")]
+                (Self::TimeDateTimeWithTimeZone(l), Self::TimeDateTimeWithTimeZone(r)) => l == r,
+
+                #[cfg(feature = "with-uuid")]
+                (Self::Uuid(l), Self::Uuid(r)) => l == r,
+
+                #[cfg(feature = "with-rust_decimal")]
+                (Self::Decimal(l), Self::Decimal(r)) => l == r,
+
+                #[cfg(feature = "with-bigdecimal")]
+                (Self::BigDecimal(l), Self::BigDecimal(r)) => l == r,
+
+                #[cfg(feature = "postgres-array")]
+                (Self::Array(ty_l, values_l), Self::Array(ty_r, values_r)) => {
+                    ty_l == ty_r && values_l == values_r
+                }
+
+                #[cfg(feature = "postgres-vector")]
+                (Self::Vector(l), Self::Vector(r)) => cmp_vector(l, r),
+
+                #[cfg(feature = "with-ipnetwork")]
+                (Self::IpNetwork(l), Self::IpNetwork(r)) => l == r,
+
+                #[cfg(feature = "with-mac_address")]
+                (Self::MacAddress(l), Self::MacAddress(r)) => l == r,
+
+                _ => false,
+            }
+        }
+    }
+
+    impl Eq for Value {}
+
+    impl Hash for Value {
+        fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+            mem::discriminant(self).hash(state);
+            match self {
+                Value::Bool(v) => v.hash(state),
+                Value::TinyInt(v) => v.hash(state),
+                Value::SmallInt(v) => v.hash(state),
+                Value::Int(v) => v.hash(state),
+                Value::BigInt(v) => v.hash(state),
+                Value::TinyUnsigned(v) => v.hash(state),
+                Value::SmallUnsigned(v) => v.hash(state),
+                Value::Unsigned(v) => v.hash(state),
+                Value::BigUnsigned(v) => v.hash(state),
+                Value::Float(v) => hash_f32(v, state),
+                Value::Double(v) => hash_f64(v, state),
+                Value::String(v) => v.hash(state),
+                Value::Char(v) => v.hash(state),
+                Value::Bytes(v) => v.hash(state),
+
+                #[cfg(feature = "with-json")]
+                Value::Json(value) => hash_json(value, state),
+
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDate(naive_date) => naive_date.hash(state),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoTime(naive_time) => naive_time.hash(state),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTime(naive_date_time) => naive_date_time.hash(state),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTimeUtc(date_time) => date_time.hash(state),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTimeLocal(date_time) => date_time.hash(state),
+                #[cfg(feature = "with-chrono")]
+                Value::ChronoDateTimeWithTimeZone(date_time) => date_time.hash(state),
+
+                #[cfg(feature = "with-time")]
+                Value::TimeDate(date) => date.hash(state),
+                #[cfg(feature = "with-time")]
+                Value::TimeTime(time) => time.hash(state),
+                #[cfg(feature = "with-time")]
+                Value::TimeDateTime(primitive_date_time) => primitive_date_time.hash(state),
+                #[cfg(feature = "with-time")]
+                Value::TimeDateTimeWithTimeZone(offset_date_time) => offset_date_time.hash(state),
+
+                #[cfg(feature = "with-uuid")]
+                Value::Uuid(uuid) => uuid.hash(state),
+
+                #[cfg(feature = "with-rust_decimal")]
+                Value::Decimal(decimal) => decimal.hash(state),
+
+                #[cfg(feature = "with-bigdecimal")]
+                Value::BigDecimal(big_decimal) => big_decimal.hash(state),
+
+                #[cfg(feature = "postgres-array")]
+                Value::Array(array_type, vec) => {
+                    array_type.hash(state);
+                    vec.hash(state);
+                }
+
+                #[cfg(feature = "postgres-vector")]
+                Value::Vector(vector) => hash_vector(vector, state),
+
+                #[cfg(feature = "with-ipnetwork")]
+                Value::IpNetwork(ip_network) => ip_network.hash(state),
+
+                #[cfg(feature = "with-mac_address")]
+                Value::MacAddress(mac_address) => mac_address.hash(state),
+            }
+        }
+    }
+
+    fn hash_f32<H: Hasher>(v: &Option<f32>, state: &mut H) {
         match v {
             Some(v) => OrderedFloat(*v).hash(state),
             None => "null".hash(state),
         }
     }
 
-    pub fn hash_f64<H: Hasher>(v: &Option<f64>, state: &mut H) {
+    fn hash_f64<H: Hasher>(v: &Option<f64>, state: &mut H) {
         match v {
             Some(v) => OrderedFloat(*v).hash(state),
             None => "null".hash(state),
         }
     }
 
-    pub fn cmp_f32(l: &Option<f32>, r: &Option<f32>) -> bool {
+    fn cmp_f32(l: &Option<f32>, r: &Option<f32>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
             (None, None) => true,
@@ -1998,7 +2106,7 @@ mod hashable_value {
         }
     }
 
-    pub fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
+    fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
             (None, None) => true,
@@ -2007,7 +2115,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "with-json")]
-    pub fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
+    fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
         match v {
             Some(v) => serde_json::to_string(v).unwrap().hash(state),
             None => "null".hash(state),
@@ -2015,7 +2123,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "with-json")]
-    pub fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
+    fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => serde_json::to_string(l)
                 .unwrap()
@@ -2026,7 +2134,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "postgres-vector")]
-    pub fn hash_vector<H: Hasher>(v: &Option<Box<pgvector::Vector>>, state: &mut H) {
+    fn hash_vector<H: Hasher>(v: &Option<Box<pgvector::Vector>>, state: &mut H) {
         match v {
             Some(v) => {
                 for &value in v.as_slice().iter() {
@@ -2038,10 +2146,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "postgres-vector")]
-    pub fn cmp_vector(
-        l: &Option<Box<pgvector::Vector>>,
-        r: &Option<Box<pgvector::Vector>>,
-    ) -> bool {
+    fn cmp_vector(l: &Option<Box<pgvector::Vector>>, r: &Option<Box<pgvector::Vector>>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => {
                 let (l, r) = (l.as_slice(), r.as_slice());
