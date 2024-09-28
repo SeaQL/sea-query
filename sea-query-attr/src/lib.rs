@@ -40,7 +40,10 @@ impl Default for GenEnumArgs {
     }
 }
 
-#[deprecated(since = "0.1.2", note = "use #[enum_def] attr defined in `sea-query-derive` crate")]
+#[deprecated(
+    since = "0.1.2",
+    note = "use #[enum_def] attr defined in `sea-query-derive` crate"
+)]
 #[proc_macro_attribute]
 pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args with AttributeArgs::parse_terminated);

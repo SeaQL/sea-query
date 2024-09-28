@@ -300,7 +300,7 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
                 ..
             }) => &fields.named,
             _ => return quote_spanned! {
-                input.span() => compile_error!("you can only derive Iden on enums or unit structs");
+                input.span() => compile_error!("#[enum_def] can only be used on non-tuple structs");
             }
             .into(),
         };
