@@ -42,7 +42,7 @@ SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
 
 ### Feature flags
 
-Macro: `derive` `attr`
+Macro: `derive`
 
 Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
@@ -247,7 +247,7 @@ assert_eq!(
         r#"SELECT "character" FROM "character""#,
         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
-        r#"AND (("character" LIKE 'D') AND ("character" LIKE 'E'))"#,
+        r#"AND ("character" LIKE 'D' AND "character" LIKE 'E')"#,
     ]
     .join(" ")
 );
@@ -557,7 +557,7 @@ assert_eq!(
        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
            r#""font_size" integer NOT NULL,"#,
-           r#""character" text NOT NULL,"#,
+           r#""character" varchar NOT NULL,"#,
            r#""size_w" integer NOT NULL,"#,
            r#""size_h" integer NOT NULL,"#,
            r#""font_id" integer DEFAULT NULL,"#,
