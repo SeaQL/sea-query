@@ -64,6 +64,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         if create.nulls_not_distinct {
             write!(sql, " NULLS NOT DISTINCT").unwrap();
         }
+        self.prepare_filter(&create.r#where, sql);
     }
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
@@ -127,5 +128,9 @@ impl IndexBuilder for PostgresQueryBuilder {
         if create.unique {
             write!(sql, "UNIQUE ").unwrap();
         }
+    }
+
+    fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut dyn SqlWriter) {
+        self.prepare_condition(condition, "WHERE", sql);
     }
 }

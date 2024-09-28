@@ -32,6 +32,7 @@ impl IndexBuilder for SqliteQueryBuilder {
 
         write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
+        self.prepare_filter(&create.r#where, sql);
     }
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
@@ -69,4 +70,8 @@ impl IndexBuilder for SqliteQueryBuilder {
     }
 
     fn write_column_index_prefix(&self, _col_prefix: &Option<u32>, _sql: &mut dyn SqlWriter) {}
+
+    fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut dyn SqlWriter) {
+        self.prepare_condition(condition, "WHERE", sql);
+    }
 }
