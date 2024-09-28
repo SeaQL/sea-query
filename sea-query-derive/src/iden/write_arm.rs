@@ -6,37 +6,13 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
-use crate::{error::ErrorMsg, find_attr, iden_attr::IdenAttr, must_be_valid_iden};
+use super::{attr::IdenAttr, error::ErrorMsg};
+use crate::{find_attr, must_be_valid_iden};
 
 pub(crate) trait WriteArm {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream;
     fn flattened(variant: TokenStream, name: &Ident) -> TokenStream;
 }
-
-pub(crate) struct DeriveIden;
-
-impl WriteArm for DeriveIden {
-    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
-        quote! { Self::#variant => write!(s, "{}", #name).unwrap() }
-    }
-
-    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
-        quote! { Self::#variant => #name.unquoted(s) }
-    }
-}
-
-pub(crate) struct DeriveIdenStatic;
-
-impl WriteArm for DeriveIdenStatic {
-    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
-        quote! { Self::#variant => #name }
-    }
-
-    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
-        quote! { Self::#variant => #name.as_str() }
-    }
-}
-
 pub(crate) struct IdenVariant<'a, T> {
     ident: &'a Ident,
     fields: &'a Fields,
@@ -183,7 +159,7 @@ where
         T::variant(variant, name)
     }
 
-    pub(super) fn must_be_valid_iden(&self) -> bool {
+    pub(crate) fn must_be_valid_iden(&self) -> bool {
         let name: String = match &self.attr {
             Some(a) => match a {
                 IdenAttr::Rename(name) => name.to_owned(),

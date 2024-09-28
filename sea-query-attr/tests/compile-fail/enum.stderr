@@ -1,0 +1,13 @@
+error: #[enum_def] can only be used on structs
+ --> tests/compile-fail/enum.rs:4:1
+  |
+4 | enum Hello {
+  | ^^^^
+
+warning: use of deprecated macro `enum_def`: use #[enum_def] attr defined in `sea-query-derive` crate
+ --> tests/compile-fail/enum.rs:3:3
+  |
+3 | #[enum_def]
+  |   ^^^^^^^^
+  |
+  = note: `#[warn(deprecated)]` on by default

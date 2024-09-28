@@ -45,7 +45,7 @@
 //!
 //! ### Feature flags
 //!
-//! Macro: `derive` `attr`
+//! Macro: `derive`
 //!
 //! Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 //!
@@ -180,10 +180,9 @@
 //! ```
 //!
 //! If you're okay with running another procedural macro, you can activate
-//! the `derive` or `attr` feature on the crate to save you some boilerplate.
+//! the `derive` feature on the crate to save you some boilerplate.
 //! For more usage information, look at
-//! [the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass)
-//! or [the attribute examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-attr/tests/pass).
+//! [the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
 //!
 //! ```rust
 //! #[cfg(feature = "derive")]
@@ -203,7 +202,7 @@
 //! ```
 //!
 //! ```rust
-//! #[cfg(feature = "attr")]
+//! #[cfg(feature = "derive")]
 //! # fn test() {
 //! use sea_query::{enum_def, Iden};
 //!
@@ -223,7 +222,7 @@
 //! assert_eq!(CharacterIden::Table.to_string(), "character");
 //! assert_eq!(CharacterIden::Foo.to_string(), "foo");
 //! # }
-//! # #[cfg(feature = "attr")]
+//! # #[cfg(feature = "derive")]
 //! # test();
 //! ```
 //!
@@ -846,7 +845,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::{Iden, IdenStatic};
+pub use sea_query_derive::{enum_def, Iden, IdenStatic};
 
-#[cfg(feature = "attr")]
-pub use sea_query_attr::enum_def;
+#[cfg(all(feature = "attr", not(feature = "derive")))]
+pub use sea_query_derive::enum_def;
