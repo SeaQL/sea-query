@@ -90,6 +90,7 @@ impl TableBuilder for MysqlQueryBuilder {
                         .join("', '")
                 ),
                 ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
+                ColumnType::Vector(_) => unimplemented!("Vector is not available in MySQL."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in MySQL."),
                 ColumnType::Inet => unimplemented!("Inet is not available in MySQL."),
                 ColumnType::MacAddr => unimplemented!("MacAddr is not available in MySQL."),
@@ -153,7 +154,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();
-                    foreign_key.name(&name.to_string());
+                    foreign_key.name(name.to_string());
                     let drop = ForeignKeyDropStatement {
                         foreign_key,
                         table: None,

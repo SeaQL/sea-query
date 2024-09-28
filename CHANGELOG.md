@@ -5,7 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.31.0 - Pending
+## 0.32.0 - Pending
+
+### Versions
+
++ `sea-query`/`0.32.0-rc.1`: 2024-08-09
++ `sea-query-binder`/`0.7.0-rc.1`: 2024-08-09
++ `sea-query-binder`/`0.7.0-rc.2`: 2024-08-09
++ `sea-query-rusqlite`/`0.7.0-rc.1`: 2024-08-09
++ `sea-query-postgres`/`0.5.0-rc.1`: 2024-08-09
+
+### New Features
+
+* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774
+```rust
+assert_eq!(
+    Query::select()
+        .columns([Char::Character])
+        .from(Char::Table)
+        .and_where(
+            Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0])))
+        )
+        .to_string(PostgresQueryBuilder),
+    r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
+);
+```
+* Added `postgres-vector` feature https://github.com/SeaQL/sea-query/pull/774
+* Added `Value::Vector` https://github.com/SeaQL/sea-query/pull/774
+* Added `ColumnType::Vector` https://github.com/SeaQL/sea-query/pull/774
+* Added `ColumnDef::vector()` https://github.com/SeaQL/sea-query/pull/774
+* Added `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance` https://github.com/SeaQL/sea-query/pull/774
+
+### Upgrades
+
+* Upgrade `sqlx` to `0.8` https://github.com/SeaQL/sea-query/pull/798
+* Upgrade `bigdecimal` to `0.4` https://github.com/SeaQL/sea-query/pull/798
+
+## 0.31.1 - Pending
+
+### Enhancements
+
+* Added Md5 function https://github.com/SeaQL/sea-query/pull/786
+* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+
+## 0.31.0 - 2024-08-02
 
 ### Versions
 
@@ -18,8 +61,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 + `sea-query-binder`/`0.6.0-rc.1`: 2024-01-31
 + `sea-query-binder`/`0.6.0-rc.2`: 2024-04-14
 + `sea-query-binder`/`0.6.0-rc.3`: 2024-06-19
++ `sea-query-binder`/`0.6.0-rc.4`: 2024-06-25
++ `sea-query-binder`/`0.6.0`: 2024-08-02
 + `sea-query-rusqlite`/`0.6.0-rc.1`: 2024-02-19
++ `sea-query-rusqlite`/`0.6.0`: 2024-08-02
 + `sea-query-attr`/`0.1.2`: 2024-04-14
++ `sea-query-diesel`/`0.2.0`: 2024-08-02
 
 ### New Features
 
@@ -152,6 +199,7 @@ pub enum StringLen {
 ### Upgrades
 
 * Upgrade `rusqlite` to `0.31` https://github.com/SeaQL/sea-query/pull/755
+* Upgrade `time` to `0.3.36` https://github.com/SeaQL/sea-query/pull/788
 
 ## 0.30.8 - Pending
 

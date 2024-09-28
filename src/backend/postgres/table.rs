@@ -71,6 +71,10 @@ impl TableBuilder for PostgresQueryBuilder {
                     self.prepare_column_type(elem_type, &mut sql);
                     format!("{sql}[]")
                 }
+                ColumnType::Vector(size) => match size {
+                    Some(size) => format!("vector({size})"),
+                    None => "vector".into(),
+                },
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { name, .. } => name.to_string(),
                 ColumnType::Cidr => "cidr".into(),
@@ -192,7 +196,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();
-                    foreign_key.name(&name.to_string());
+                    foreign_key.name(name.to_string());
                     let drop = ForeignKeyDropStatement {
                         foreign_key,
                         table: None,

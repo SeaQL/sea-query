@@ -8,13 +8,13 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
-time = { version = "0.3", features = ["parsing", "macros"] }
+time = { version = "0.3.36", features = ["parsing", "macros"] }
 serde_json = { version = "1" }
 uuid = { version = "1", features = ["serde", "v4"] }
 ipnetwork = { version = "0.20" }
 mac_address = { version = "1.1" }
 rust_decimal = { version = "1" }
-bigdecimal = { version = "0.3" }
+bigdecimal = { version = "0.4" }
 diesel = { version = "2.1.1", features = ["postgres"] }
 sea-query = { path = "../.." }
 sea-query-diesel = { path = "../../sea-query-diesel", features = [

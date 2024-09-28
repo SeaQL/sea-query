@@ -1926,6 +1926,16 @@ fn sub_query_with_fn() {
 }
 
 #[test]
+fn md5_fn() {
+    assert_eq!(
+        Query::select()
+            .expr(Func::md5(Expr::val("test")))
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT MD5('test')"#
+    );
+}
+
+#[test]
 fn select_array_contains_bin_oper() {
     assert_eq!(
         Query::select()
@@ -2108,5 +2118,20 @@ fn test_issue_674_nested_logical_panic() {
             .and_where(e)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE TRUE AND (TRUE AND TRUE AND TRUE)"#
+    );
+}
+
+#[test]
+#[cfg(feature = "postgres-vector")]
+fn test_pgvector_select() {
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0])))
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
     );
 }

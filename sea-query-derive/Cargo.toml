@@ -23,7 +23,7 @@ thiserror = { version = "1.0", default-features = false }
 
 [dev-dependencies]
 trybuild = "1.0"
-sea-query = { version = "0.31.0-rc.8", path = ".." }
+sea-query = { version = "0.32.0-rc.1", path = ".." }
 strum = { version = "0.25", features = ["derive"] }
 
 [features]

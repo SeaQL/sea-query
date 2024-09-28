@@ -25,6 +25,7 @@ pub enum Function {
     BitOr,
     Random,
     Round,
+    Md5,
     #[cfg(feature = "backend-postgres")]
     PgFunction(PgFunction),
 }
@@ -38,8 +39,8 @@ pub struct FunctionCall {
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
-pub(crate) struct FuncArgMod {
-    pub(crate) distinct: bool,
+pub struct FuncArgMod {
+    pub distinct: bool,
 }
 
 impl FunctionCall {
@@ -84,6 +85,10 @@ impl FunctionCall {
 
     pub fn get_args(&self) -> &[SimpleExpr] {
         &self.args
+    }
+
+    pub fn get_mods(&self) -> &[FuncArgMod] {
+        &self.mods
     }
 }
 
@@ -720,5 +725,34 @@ impl Func {
     /// ```
     pub fn random() -> FunctionCall {
         FunctionCall::new(Function::Random)
+    }
+
+    /// Call `MD5` function, this is only available in Postgres and MySQL.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::md5(Expr::col((Char::Table, Char::Character))))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT MD5(`character`.`character`) FROM `character`"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT MD5("character"."character") FROM "character""#
+    /// );
+    /// ```
+    pub fn md5<T>(expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::Md5).arg(expr)
     }
 }

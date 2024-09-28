@@ -90,6 +90,12 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgBinOper::CastJsonField => "->>",
                     PgBinOper::Regex => "~",
                     PgBinOper::RegexCaseInsensitive => "~*",
+                    #[cfg(feature = "postgres-vector")]
+                    PgBinOper::EuclideanDistance => "<->",
+                    #[cfg(feature = "postgres-vector")]
+                    PgBinOper::NegativeInnerProduct => "<#>",
+                    #[cfg(feature = "postgres-vector")]
+                    PgBinOper::CosineDistance => "<=>",
                 }
             )
             .unwrap(),
@@ -116,6 +122,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::TsRankCd => "TS_RANK_CD",
                     PgFunction::StartsWith => "STARTS_WITH",
                     PgFunction::GenRandomUUID => "GEN_RANDOM_UUID",
+                    PgFunction::JsonBuildObject => "JSON_BUILD_OBJECT",
+                    PgFunction::JsonAgg => "JSON_AGG",
                     #[cfg(feature = "postgres-array")]
                     PgFunction::Any => "ANY",
                     #[cfg(feature = "postgres-array")]
