@@ -2,8 +2,7 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
 use rust_decimal::Decimal;
 use sea_query::{
-    ColumnDef, ConditionalStatement, Expr, Func, Iden, Index, OnConflict, Order,
-    PostgresQueryBuilder, Query, Table,
+    ColumnDef, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
 };
 use sea_query_binder::SqlxBinder;
 use sqlx::{PgPool, Row};
@@ -50,18 +49,6 @@ async fn main() {
 
     let result = sqlx::query(&sql).execute(&mut *pool).await;
     println!("Create table character: {result:?}\n");
-
-    // Partial Index
-    let partial_index = Index::create()
-        .if_not_exists()
-        .name("partial_index_small_font")
-        .table(Character::Table)
-        .col(Character::FontSize)
-        .and_where(Expr::col(Character::FontSize).lt(11).not())
-        .build(PostgresQueryBuilder);
-
-    let index = sqlx::query(&partial_index).execute(&mut *pool).await;
-    println!("Create partial index: {index:?}\n");
 
     // Create
 

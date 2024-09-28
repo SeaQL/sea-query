@@ -9,8 +9,6 @@ Example output:
 ```
 Create table character: Ok(SqliteQueryResult { changes: 0, last_insert_rowid: 0 })
 
-Create partial index: Ok(SqliteQueryResult { changes: 0, last_insert_rowid: 0 })
-
 Insert into character: last_insert_id = 1
 
 Select one from character:

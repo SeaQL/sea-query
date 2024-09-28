@@ -2,10 +2,7 @@ use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
 
 use postgres::{Client, NoTls, Row};
 use rust_decimal::Decimal;
-use sea_query::{
-    ColumnDef, ColumnType, ConditionalStatement, Expr, Iden, Index, Order, PostgresQueryBuilder,
-    Query, Table,
-};
+use sea_query::{ColumnDef, ColumnType, Iden, Order, PostgresQueryBuilder, Query, Table};
 use sea_query_postgres::PostgresBinder;
 use time::{
     macros::{date, offset, time},
@@ -39,12 +36,6 @@ fn main() {
             .col(ColumnDef::new(Document::TimestampWithTimeZone).timestamp_with_time_zone())
             .col(ColumnDef::new(Document::Decimal).decimal())
             .col(ColumnDef::new(Document::Array).array(ColumnType::Integer))
-            .build(PostgresQueryBuilder),
-        Index::create()
-            .name("partial_index_small_decimal")
-            .table(Document::Table)
-            .col(Document::Decimal)
-            .and_where(Expr::col(Document::Decimal).lt(11).not())
             .build(PostgresQueryBuilder),
     ]
     .join("; ");
