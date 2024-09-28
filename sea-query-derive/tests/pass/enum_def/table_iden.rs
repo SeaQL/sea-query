@@ -1,5 +1,5 @@
 use sea_query::{Iden, IdenStatic};
-use sea_query_attr::enum_def;
+use sea_query_derive::enum_def;
 use std::convert::AsRef;
 
 #[enum_def(table_name = "HelloTable")]

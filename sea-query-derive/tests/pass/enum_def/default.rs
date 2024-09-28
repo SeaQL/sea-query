@@ -1,4 +1,4 @@
-use sea_query_attr::enum_def;
+use sea_query_derive::enum_def;
 
 #[enum_def]
 pub struct Hello {
@@ -6,5 +6,5 @@ pub struct Hello {
 }
 
 fn main() {
-    println!("{:?}", HelloIden::Name);
+    assert_eq!(format!("{:?}", HelloIden::Name), "Name");
 }

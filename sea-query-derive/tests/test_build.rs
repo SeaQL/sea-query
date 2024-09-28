@@ -5,6 +5,6 @@ fn build_tests() {
 
     // all of these are exactly the same as the examples in `examples/derive.rs`
     t.pass("./tests/pass/*.rs");
-    t.pass("./tests/pass/enum_attr/*.rs");
+    t.pass("./tests/pass/enum_def/*.rs");
     t.pass("./tests/pass-static/*.rs");
 }
