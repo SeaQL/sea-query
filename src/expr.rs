@@ -1980,7 +1980,7 @@ impl Expr {
         SimpleExpr::FunctionCall(func)
     }
 
-    /// Keyword `CURRENT_TIMESTAMP`.
+    /// Keyword `CURRENT_DATE`.
     ///
     /// # Examples
     ///
