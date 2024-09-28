@@ -41,6 +41,13 @@ assert_eq!(
 * Upgrade `sqlx` to `0.8` https://github.com/SeaQL/sea-query/pull/798
 * Upgrade `bigdecimal` to `0.4` https://github.com/SeaQL/sea-query/pull/798
 
+## 0.31.1 - Pending
+
+### Enhancements
+
+* Added Md5 function https://github.com/SeaQL/sea-query/pull/786
+* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+
 ## 0.31.0 - 2024-08-02
 
 ### Versions
