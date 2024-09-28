@@ -47,6 +47,13 @@ assert_eq!(
 
 * Added Md5 function https://github.com/SeaQL/sea-query/pull/786
 * Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+* `#[enum_def]` now impl additional `IdenStatic` and `AsRef<str>`
+
+### `sea-query-attr`
+
+* Updated `syn`, `heck` and `darling`
+* Merged `#[enum_def]` into `sea-query-derive`
+* `sea-query-attr` is now deprecated
 
 ## 0.31.0 - 2024-08-02
 
