@@ -1,6 +1,6 @@
 use syn::Ident;
 
-use crate::iden_path::IdenPath;
+use super::path::IdenPath;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ErrorMsg {

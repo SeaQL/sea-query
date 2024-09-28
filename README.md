@@ -175,10 +175,9 @@ impl Iden for Character {
 ```
 
 If you're okay with running another procedural macro, you can activate
-the `derive` or `attr` feature on the crate to save you some boilerplate.
+the `derive` feature on the crate to save you some boilerplate.
 For more usage information, look at
-[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass)
-or [the attribute examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-attr/tests/pass).
+[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
 
 ```rust
 #[cfg(feature = "derive")]
@@ -198,7 +197,7 @@ assert_eq!(Glyph.to_string(), "glyph");
 ```
 
 ```rust
-#[cfg(feature = "attr")]
+#[cfg(feature = "derive")]
 use sea_query::{enum_def, Iden};
 
 #[enum_def]

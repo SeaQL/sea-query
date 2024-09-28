@@ -3,7 +3,7 @@ use std::convert::{TryFrom, TryInto};
 use syn::spanned::Spanned;
 use syn::{Attribute, Error, Expr, ExprLit, Ident, Lit, LitStr, Meta};
 
-use crate::{error::ErrorMsg, iden_path::IdenPath};
+use super::{error::ErrorMsg, path::IdenPath};
 
 #[derive(PartialEq, Eq)]
 pub(crate) enum IdenAttr {
