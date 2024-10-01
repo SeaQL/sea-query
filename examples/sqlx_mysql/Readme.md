@@ -1,4 +1,4 @@
-# SeaQuery SQLx Postgres example
+# SeaQuery SQLx MySQL example
 
 Running:
 ```sh
