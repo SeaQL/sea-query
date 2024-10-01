@@ -241,7 +241,7 @@ pub enum Order {
 }
 
 /// Helper for create name alias
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Alias(String);
 
 /// Null Alias
