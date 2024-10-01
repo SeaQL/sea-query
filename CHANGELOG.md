@@ -41,6 +41,21 @@ assert_eq!(
 * Upgrade `sqlx` to `0.8` https://github.com/SeaQL/sea-query/pull/798
 * Upgrade `bigdecimal` to `0.4` https://github.com/SeaQL/sea-query/pull/798
 
+## 0.31.1 - Pending
+
+### Enhancements
+
+* Added Md5 function https://github.com/SeaQL/sea-query/pull/786
+* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+* `#[enum_def]` now impl additional `IdenStatic` and `AsRef<str>` https://github.com/SeaQL/sea-query/pull/769
+* Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
+
+### `sea-query-attr`
+
+* Updated `syn`, `heck` and `darling`
+* Merged `#[enum_def]` into `sea-query-derive`
+* `sea-query-attr` is now deprecated
+
 ## 0.31.0 - 2024-08-02
 
 ### Versions

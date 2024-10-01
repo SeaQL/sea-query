@@ -1,12 +1,12 @@
-#![allow(clippy::manual_unwrap_or_default)]
-
-use darling::FromMeta;
+use darling::{ast::NestedMeta, FromMeta};
 use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro::TokenStream;
 use syn::{
-    parse_macro_input, spanned::Spanned, AttributeArgs, Data, DataStruct, DeriveInput, Fields,
-    Ident,
+    parse_macro_input, punctuated::Punctuated, spanned::Spanned, Data, DataStruct, DeriveInput,
+    Fields, Ident,
 };
+
+type AttributeArgs = Punctuated<NestedMeta, syn::Token![,]>;
 
 struct NamingHolder {
     pub default: Ident,
@@ -40,35 +40,51 @@ impl Default for GenEnumArgs {
     }
 }
 
+#[deprecated(
+    since = "0.1.2",
+    note = "use #[enum_def] attr defined in `sea-query-derive` crate"
+)]
 #[proc_macro_attribute]
 pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(args as AttributeArgs);
+    let args = parse_macro_input!(args with AttributeArgs::parse_terminated);
     let input = parse_macro_input!(input as DeriveInput);
-    let args = GenEnumArgs::from_list(&args).unwrap_or_default();
 
+    expand(args, input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
+
+fn expand(attr_args: AttributeArgs, input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
+    let attr_args = attr_args.into_iter().collect::<Vec<_>>();
+    let args = GenEnumArgs::from_list(&attr_args)?;
     let fields = match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(fields),
             ..
         }) => &fields.named,
-        _ => panic!("#[enum_def] can only be used on structs"),
+        _ => {
+            return Err(syn::Error::new(
+                input.span(),
+                "#[enum_def] can only be used on structs",
+            ))
+        }
     };
 
-    let field_names: Vec<NamingHolder> = fields
+    let field_names = fields
         .iter()
         .map(|field| {
-            let ident = &field.ident;
-            let string = ident
-                .as_ref()
-                .expect("#[enum_def] can only be used on structs with named fields")
-                .to_string();
+            let ident = field.ident.as_ref().ok_or(syn::Error::new(
+                field.span(),
+                "#[enum_def] can only be used on structs with named fields",
+            ))?;
+            let string = ident.to_string();
             let as_pascal = string.to_pascal_case();
-            NamingHolder {
-                default: ident.as_ref().unwrap().clone(),
+            syn::Result::Ok(NamingHolder {
+                default: ident.clone(),
                 pascal: Ident::new(as_pascal.as_str(), ident.span()),
-            }
+            })
         })
-        .collect();
+        .collect::<syn::Result<Vec<NamingHolder>>>()?;
 
     let table_name = Ident::new(
         args.table_name
@@ -93,7 +109,7 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
         input.span(),
     );
 
-    TokenStream::from(quote::quote! {
+    Ok(quote::quote! {
         #input
 
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

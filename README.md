@@ -42,7 +42,7 @@ SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
 
 ### Feature flags
 
-Macro: `derive` `attr`
+Macro: `derive`
 
 Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 
@@ -175,10 +175,9 @@ impl Iden for Character {
 ```
 
 If you're okay with running another procedural macro, you can activate
-the `derive` or `attr` feature on the crate to save you some boilerplate.
+the `derive` feature on the crate to save you some boilerplate.
 For more usage information, look at
-[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass)
-or [the attribute examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-attr/tests/pass).
+[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
 
 ```rust
 #[cfg(feature = "derive")]
@@ -198,7 +197,7 @@ assert_eq!(Glyph.to_string(), "glyph");
 ```
 
 ```rust
-#[cfg(feature = "attr")]
+#[cfg(feature = "derive")]
 use sea_query::{enum_def, Iden};
 
 #[enum_def]
@@ -248,7 +247,7 @@ assert_eq!(
         r#"SELECT "character" FROM "character""#,
         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
-        r#"AND (("character" LIKE 'D') AND ("character" LIKE 'E'))"#,
+        r#"AND ("character" LIKE 'D' AND "character" LIKE 'E')"#,
     ]
     .join(" ")
 );
@@ -558,7 +557,7 @@ assert_eq!(
        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
            r#""font_size" integer NOT NULL,"#,
-           r#""character" text NOT NULL,"#,
+           r#""character" varchar NOT NULL,"#,
            r#""size_w" integer NOT NULL,"#,
            r#""size_h" integer NOT NULL,"#,
            r#""font_id" integer DEFAULT NULL,"#,

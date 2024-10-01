@@ -1926,6 +1926,16 @@ fn sub_query_with_fn() {
 }
 
 #[test]
+fn md5_fn() {
+    assert_eq!(
+        Query::select()
+            .expr(Func::md5(Expr::val("test")))
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT MD5('test')"#
+    );
+}
+
+#[test]
 fn select_array_contains_bin_oper() {
     assert_eq!(
         Query::select()
