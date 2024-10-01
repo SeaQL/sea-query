@@ -31,7 +31,6 @@ path = "src/lib.rs"
 inherent = "1.0"
 sea-query-derive = { version = "0.4.0", path = "sea-query-derive", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
-educe = { version = "=0.5.11", default-features = false, optional = true, features = ["Hash", "PartialEq", "Eq"] }
 chrono = { version = "0.4.27", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
 pgvector = { version = "~0.4", default-features = false, optional = true }
@@ -56,7 +55,7 @@ backend-sqlite = []
 default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-derive"]
-hashable-value = ["educe", "ordered-float"]
+hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
 postgres-interval = []
