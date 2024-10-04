@@ -88,7 +88,11 @@ pub enum TypeDropOpt {
 
 #[derive(Debug, Clone)]
 pub enum TypeAlterOpt {
-    Add(DynIden, Option<TypeAlterAddOpt>),
+    Add {
+        value: DynIden,
+        placement: Option<TypeAlterAddOpt>,
+        if_not_exists: bool,
+    },
     Rename(DynIden),
     RenameValue(DynIden, DynIden),
 }
@@ -361,7 +365,11 @@ impl TypeAlterStatement {
     where
         T: IntoIden,
     {
-        self.alter_option(TypeAlterOpt::Add(value.into_iden(), None))
+        self.alter_option(TypeAlterOpt::Add {
+            value: value.into_iden(),
+            placement: None,
+            if_not_exists: false,
+        })
     }
 
     /// Add a enum value before an existing value
@@ -394,6 +402,13 @@ impl TypeAlterStatement {
     {
         if let Some(option) = self.option {
             self.option = Some(option.after(value));
+        }
+        self
+    }
+
+    pub fn if_not_exists(mut self) -> Self {
+        if let Some(option) = self.option {
+            self.option = Some(option.if_not_exists());
         }
         self
     }
@@ -442,9 +457,15 @@ impl TypeAlterOpt {
         T: IntoIden,
     {
         match self {
-            TypeAlterOpt::Add(iden, _) => {
-                Self::Add(iden, Some(TypeAlterAddOpt::Before(value.into_iden())))
-            }
+            TypeAlterOpt::Add {
+                value: iden,
+                if_not_exists,
+                ..
+            } => Self::Add {
+                value: iden,
+                if_not_exists,
+                placement: Some(TypeAlterAddOpt::Before(value.into_iden())),
+            },
             _ => self,
         }
     }
@@ -455,9 +476,29 @@ impl TypeAlterOpt {
         T: IntoIden,
     {
         match self {
-            TypeAlterOpt::Add(iden, _) => {
-                Self::Add(iden, Some(TypeAlterAddOpt::After(value.into_iden())))
-            }
+            TypeAlterOpt::Add {
+                value: iden,
+                if_not_exists,
+                ..
+            } => Self::Add {
+                value: iden,
+                if_not_exists,
+                placement: Some(TypeAlterAddOpt::After(value.into_iden())),
+            },
+            _ => self,
+        }
+    }
+
+    /// Changes only `ADD VALUE x` options into `ADD VALUE IF NOT EXISTS x` options, does nothing otherwise
+    pub fn if_not_exists(self) -> Self {
+        match self {
+            TypeAlterOpt::Add {
+                value, placement, ..
+            } => Self::Add {
+                value,
+                placement,
+                if_not_exists: true,
+            },
             _ => self,
         }
     }
