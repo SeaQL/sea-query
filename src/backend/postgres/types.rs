@@ -88,22 +88,27 @@ impl PostgresQueryBuilder {
 
     fn prepare_alter_type_opt(&self, opt: &TypeAlterOpt, sql: &mut dyn SqlWriter) {
         match opt {
-            TypeAlterOpt::Add(value, placement) => {
+            TypeAlterOpt::Add {
+                value,
+                placement,
+                if_not_exists,
+            } => {
                 write!(sql, " ADD VALUE ").unwrap();
-                match placement {
-                    Some(add_option) => match add_option {
+                if *if_not_exists {
+                    write!(sql, "IF NOT EXISTS ").unwrap();
+                }
+                self.prepare_value(&value.to_string().into(), sql);
+                if let Some(add_option) = placement {
+                    match add_option {
                         TypeAlterAddOpt::Before(before_value) => {
-                            self.prepare_value(&value.to_string().into(), sql);
                             write!(sql, " BEFORE ").unwrap();
                             self.prepare_value(&before_value.to_string().into(), sql);
                         }
                         TypeAlterAddOpt::After(after_value) => {
-                            self.prepare_value(&value.to_string().into(), sql);
                             write!(sql, " AFTER ").unwrap();
                             self.prepare_value(&after_value.to_string().into(), sql);
                         }
-                    },
-                    None => self.prepare_value(&value.to_string().into(), sql),
+                    }
                 }
             }
             TypeAlterOpt::Rename(new_name) => {
