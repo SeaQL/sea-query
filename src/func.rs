@@ -496,10 +496,8 @@ impl Func {
         let expr: SimpleExpr = expr.into();
         let mut quoted_type = String::new();
         iden.into_iden().prepare(&mut quoted_type, q);
-        FunctionCall::new(Function::Cast).arg(expr.binary(
-            BinOper::As,
-            Expr::cust(quoted_type.as_str()),
-        ))
+        FunctionCall::new(Function::Cast)
+            .arg(expr.binary(BinOper::As, Expr::cust(quoted_type.as_str())))
     }
 
     /// Call `COALESCE` function.

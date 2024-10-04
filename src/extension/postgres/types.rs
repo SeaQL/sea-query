@@ -406,6 +406,21 @@ impl TypeAlterStatement {
         self
     }
 
+    /// Add a enum value if not already exists
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::Type, tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Type::alter()
+    ///         .name(Font::Table)
+    ///         .add_value(Alias::new("weight"))
+    ///         .if_not_exists()
+    ///         .after(Font::Variant)
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TYPE "font" ADD VALUE IF NOT EXISTS 'weight' AFTER 'variant'"#
+    /// )
+    /// ```
     pub fn if_not_exists(mut self) -> Self {
         if let Some(option) = self.option {
             self.option = Some(option.if_not_exists());
