@@ -91,7 +91,7 @@ impl PostgresQueryBuilder {
             TypeAlterOpt::Add {
                 value,
                 placement,
-                if_not_exists,
+                if_not_exists
             } => {
                 write!(sql, " ADD VALUE ").unwrap();
                 if *if_not_exists {
