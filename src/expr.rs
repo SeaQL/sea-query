@@ -1883,7 +1883,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST("font_size" AS text) FROM "character""#
+    ///     r#"SELECT CAST("font_size" AS "text") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -1902,7 +1902,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS "FontSizeEnum"))"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -2468,6 +2468,38 @@ impl SimpleExpr {
         T: IntoIden,
     {
         let func = Func::cast_as(self, type_name);
+        Self::FunctionCall(func)
+    }
+
+    /// Express a case-sensitive `CAST AS` expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::value("1").cast_as_quoted(Alias::new("MyType"), '"'.into()))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('1' AS "MyType")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('1' AS "MyType")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('1' AS "MyType")"#
+    /// );
+    /// ```
+    pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self
+    where
+        T: IntoIden,
+    {
+        let func = Func::cast_as_quoted(self, type_name, q);
         Self::FunctionCall(func)
     }
 
