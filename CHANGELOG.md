@@ -44,14 +44,17 @@ assert_eq!(
 
 ## 0.31.1 - Pending
 
-### Enhancements
+### New Features
 
-* Added Md5 function https://github.com/SeaQL/sea-query/pull/786
-* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
 * `#[enum_def]` now impl additional `IdenStatic` and `AsRef<str>` https://github.com/SeaQL/sea-query/pull/769
 * Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
-* Replace `Educe` with manual implementations https://github.com/SeaQL/sea-query/pull/817
+
+### Enhancements
+
+* Added `Func::md5` function https://github.com/SeaQL/sea-query/pull/786
+* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
 * Added `cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
+* Replace `Educe` with manual implementations https://github.com/SeaQL/sea-query/pull/817
 
 ### `sea-query-attr`
 
