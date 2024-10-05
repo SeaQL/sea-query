@@ -393,7 +393,10 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::date_trunc(PgDateTrunc::Day, Expr::val("2020-01-01")))
+    ///     .expr(PgFunc::date_trunc(
+    ///         PgDateTrunc::Day,
+    ///         Expr::val("2020-01-01"),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -402,7 +405,10 @@ impl PgFunc {
     /// );
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::date_trunc(PgDateTrunc::Microseconds, Expr::val("2020-01-01")))
+    ///     .expr(PgFunc::date_trunc(
+    ///         PgDateTrunc::Microseconds,
+    ///         Expr::val("2020-01-01"),
+    ///     ))
     ///     .to_owned();
     ///
     /// assert_eq!(
