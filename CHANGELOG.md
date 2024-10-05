@@ -35,6 +35,7 @@ assert_eq!(
 * Added `ColumnType::Vector` https://github.com/SeaQL/sea-query/pull/774
 * Added `ColumnDef::vector()` https://github.com/SeaQL/sea-query/pull/774
 * Added `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance` https://github.com/SeaQL/sea-query/pull/774
+* Added `ExprTrait` to unify `Expr` and `SimpleExpr` methods https://github.com/SeaQL/sea-query/pull/791
 
 ### Upgrades
 
