@@ -7,15 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.32.0 - Pending
 
-### Versions
+### Releases
 
-+ `sea-query`/`0.32.0-rc.1`: 2024-08-09
-+ `sea-query-binder`/`0.7.0-rc.1`: 2024-08-09
-+ `sea-query-binder`/`0.7.0-rc.2`: 2024-08-09
-+ `sea-query-rusqlite`/`0.7.0-rc.1`: 2024-08-09
-+ `sea-query-postgres`/`0.5.0-rc.1`: 2024-08-09
-+ `sea-query-attr`/`0.1.3`: 2024-10-05
-+ `sea-query-derive`/`0.4.2`: 2024-10-05
+#### 2024-08-09
+
++ `sea-query`/`0.32.0-rc.1`
++ `sea-query-binder`/`0.7.0-rc.1`
++ `sea-query-binder`/`0.7.0-rc.2`
++ `sea-query-rusqlite`/`0.7.0-rc.1`
++ `sea-query-postgres`/`0.5.0-rc.1`
+
+#### 2024-10-05
+
++ `sea-query`/`0.32.0-rc.2`
++ `sea-query-attr`/`0.1.3`
++ `sea-query-derive`/`0.4.2`
++ `sea-query-rusqlite`/`0.7.0-rc.2`
 
 ### New Features
 
@@ -55,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Upgrade `sqlx` to `0.8` https://github.com/SeaQL/sea-query/pull/798
 * Upgrade `bigdecimal` to `0.4` https://github.com/SeaQL/sea-query/pull/798
+* Upgrade `rusqlite` to `0.32` https://github.com/SeaQL/sea-query/pull/802
 
 ## 0.31.1 - 2024-10-05
 
