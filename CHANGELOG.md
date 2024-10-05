@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Added `Func::md5` function https://github.com/SeaQL/sea-query/pull/786
 * Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
 * Added `cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
+* Added `IF NOT EXISTS` to `ALTER TYPE ADD VALUE` https://github.com/SeaQL/sea-query/pull/803
 
 ## 0.31.0 - 2024-08-02
 
