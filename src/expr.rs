@@ -520,7 +520,11 @@ pub trait ExprTrait: Sized {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_in([1, 2, 3]))
+    ///     .and_where(
+    ///         (Char::Table, Char::SizeW)
+    ///             .into_column_ref()
+    ///             .is_in([1, 2, 3]),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -543,7 +547,11 @@ pub trait ExprTrait: Sized {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_in(Vec::<u8>::new()))
+    ///     .and_where(
+    ///         (Char::Table, Char::SizeW)
+    ///             .into_column_ref()
+    ///             .is_in(Vec::<u8>::new()),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -615,7 +623,11 @@ pub trait ExprTrait: Sized {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_not_in([1, 2, 3]))
+    ///     .and_where(
+    ///         (Char::Table, Char::SizeW)
+    ///             .into_column_ref()
+    ///             .is_not_in([1, 2, 3]),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -638,7 +650,11 @@ pub trait ExprTrait: Sized {
     /// let query = Query::select()
     ///     .columns([Char::Id])
     ///     .from(Char::Table)
-    ///     .and_where((Char::Table, Char::SizeW).into_column_ref().is_not_in(Vec::<u8>::new()))
+    ///     .and_where(
+    ///         (Char::Table, Char::SizeW)
+    ///             .into_column_ref()
+    ///             .is_not_in(Vec::<u8>::new()),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1162,7 +1178,7 @@ pub trait ExprTrait: Sized {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
