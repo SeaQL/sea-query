@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.31.0 - Pending
+## 0.31.1 - 2024-10-05
+
+### Enhancements
+
+* Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
+* Added `Func::md5` function https://github.com/SeaQL/sea-query/pull/786
+* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+* Added `cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
+
+## 0.31.0 - 2024-08-02
 
 ### Versions
 
