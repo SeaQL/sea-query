@@ -1,3 +1,5 @@
+use strum_macros::Display;
+
 use crate::{expr::*, types::*};
 
 /// Specification of a table column
@@ -198,6 +200,25 @@ pub enum PgInterval {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
+}
+
+// All possible inputs to DATE_TRUNC (https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC)
+#[derive(Debug, Clone, Eq, PartialEq, Display)]
+#[strum(serialize_all = "lowercase")]
+pub enum PgDateTrunc {
+    Microseconds,
+    Milliseconds,
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Week,
+    Month,
+    Quarter,
+    Year,
+    Decade,
+    Century,
+    Millennium,
 }
 
 impl ColumnDef {
