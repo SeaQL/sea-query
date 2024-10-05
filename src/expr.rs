@@ -3147,7 +3147,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST("font_size" AS "text") FROM "character""#
+    ///     r#"SELECT CAST("font_size" AS text) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -3166,7 +3166,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS "FontSizeEnum"))"#
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
