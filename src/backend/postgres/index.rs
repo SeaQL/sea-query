@@ -26,6 +26,11 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
+
+        if !create.include_columns.is_empty() {
+            write!(sql, " ").unwrap();
+            self.prepare_include_columns(&create.include_columns, sql);
+        }
     }
 
     fn prepare_index_create_statement(
@@ -60,6 +65,11 @@ impl IndexBuilder for PostgresQueryBuilder {
         self.prepare_index_type(&create.index_type, sql);
         write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
+
+        if !create.include_columns.is_empty() {
+            write!(sql, " ").unwrap();
+            self.prepare_include_columns(&create.include_columns, sql);
+        }
 
         if create.nulls_not_distinct {
             write!(sql, " NULLS NOT DISTINCT").unwrap();
@@ -132,5 +142,17 @@ impl IndexBuilder for PostgresQueryBuilder {
 
     fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut dyn SqlWriter) {
         self.prepare_condition(condition, "WHERE", sql);
+    }
+
+    fn prepare_include_columns(&self, columns: &[SeaRc<dyn Iden>], sql: &mut dyn SqlWriter) {
+        write!(sql, "INCLUDE (").unwrap();
+        columns.iter().fold(true, |first, col| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            col.prepare(sql.as_writer(), self.quote());
+            false
+        });
+        write!(sql, ")").unwrap();
     }
 }
