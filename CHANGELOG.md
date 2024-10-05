@@ -36,17 +36,23 @@ assert_eq!(
 * Added `ColumnDef::vector()` https://github.com/SeaQL/sea-query/pull/774
 * Added `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance` https://github.com/SeaQL/sea-query/pull/774
 * Added `ExprTrait` to unify `Expr` and `SimpleExpr` methods https://github.com/SeaQL/sea-query/pull/791
+* `#[enum_def]` now impl additional `IdenStatic` and `AsRef<str>` https://github.com/SeaQL/sea-query/pull/769
 
 ### Upgrades
 
 * Upgrade `sqlx` to `0.8` https://github.com/SeaQL/sea-query/pull/798
 * Upgrade `bigdecimal` to `0.4` https://github.com/SeaQL/sea-query/pull/798
 
+### `sea-query-attr`
+
+* Updated `syn`, `heck` and `darling`
+* Merged `#[enum_def]` into `sea-query-derive`
+* `sea-query-attr` is now deprecated
+
 ## 0.31.1 - Pending
 
 ### New Features
 
-* `#[enum_def]` now impl additional `IdenStatic` and `AsRef<str>` https://github.com/SeaQL/sea-query/pull/769
 * Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
 
 ### Enhancements
@@ -55,12 +61,6 @@ assert_eq!(
 * Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
 * Added `cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
 * Replace `Educe` with manual implementations https://github.com/SeaQL/sea-query/pull/817
-
-### `sea-query-attr`
-
-* Updated `syn`, `heck` and `darling`
-* Merged `#[enum_def]` into `sea-query-derive`
-* `sea-query-attr` is now deprecated
 
 ## 0.31.0 - 2024-08-02
 
