@@ -3,7 +3,7 @@ members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
-version = "0.32.0-rc.1"
+version = "0.32.0-rc.2"
 authors = [
     "Chris Tsang <chris.2y3@outlook.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
@@ -29,7 +29,7 @@ path = "src/lib.rs"
 
 [dependencies]
 inherent = "1.0"
-sea-query-derive = { version = "0.4.0", path = "sea-query-derive", default-features = false, optional = true }
+sea-query-derive = { version = "0.4.2", path = "sea-query-derive", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4.27", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
