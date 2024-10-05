@@ -170,6 +170,23 @@ use super::common::*;
 ///     r#"CREATE INDEX "idx-glyph-aspect" ON "glyph" ("aspect" ASC) WHERE "glyph"."aspect" IN (3, 4)"#
 /// );
 /// ```
+///
+/// Index include non-key columns
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let index = Index::create()
+///     .name("idx-font-name-include-language")
+///     .table(Font::Table)
+///     .col(Font::Name)
+///     .include(Font::Language)
+///     .to_owned();
+///
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX "idx-font-name-include-language" ON "font" ("name") INCLUDE ("language")"#
+/// )
+/// ```
 #[derive(Default, Debug, Clone)]
 pub struct IndexCreateStatement {
     pub(crate) table: Option<TableRef>,
@@ -180,6 +197,7 @@ pub struct IndexCreateStatement {
     pub(crate) index_type: Option<IndexType>,
     pub(crate) if_not_exists: bool,
     pub(crate) r#where: ConditionHolder,
+    pub(crate) include_columns: Vec<DynIden>,
 }
 
 /// Specification of a table index
@@ -203,6 +221,7 @@ impl IndexCreateStatement {
             index_type: None,
             if_not_exists: false,
             r#where: ConditionHolder::new(),
+            include_columns: vec![],
         }
     }
 
@@ -270,6 +289,14 @@ impl IndexCreateStatement {
         self
     }
 
+    pub fn include<C>(&mut self, col: C) -> &mut Self
+    where
+        C: IntoIden,
+    {
+        self.include_columns.push(col.into_iden());
+        self
+    }
+
     pub fn is_primary_key(&self) -> bool {
         self.primary
     }
@@ -296,6 +323,7 @@ impl IndexCreateStatement {
             index_type: self.index_type.take(),
             if_not_exists: self.if_not_exists,
             r#where: self.r#where.clone(),
+            include_columns: self.include_columns.clone(),
         }
     }
 }
