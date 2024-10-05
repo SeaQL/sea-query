@@ -1,6 +1,6 @@
 //! For calling built-in Postgres SQL functions.
 
-use crate::{expr::*, func::*, PgDateTrunc};
+use crate::{expr::*, func::*, PgDateTruncUnit};
 
 /// Functions
 #[derive(Debug, Clone, PartialEq)]
@@ -394,7 +394,7 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::date_trunc(
-    ///         PgDateTrunc::Day,
+    ///         PgDateTruncUnit::Day,
     ///         Expr::val("2020-01-01"),
     ///     ))
     ///     .to_owned();
@@ -406,7 +406,7 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(PgFunc::date_trunc(
-    ///         PgDateTrunc::Microseconds,
+    ///         PgDateTruncUnit::Microseconds,
     ///         Expr::val("2020-01-01"),
     ///     ))
     ///     .to_owned();
@@ -416,7 +416,7 @@ impl PgFunc {
     ///     r#"SELECT DATE_TRUNC('microseconds', '2020-01-01')"#
     /// );
     /// ```
-    pub fn date_trunc<T>(unit: PgDateTrunc, expr: T) -> FunctionCall
+    pub fn date_trunc<T>(unit: PgDateTruncUnit, expr: T) -> FunctionCall
     where
         T: Into<SimpleExpr>,
     {

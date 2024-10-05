@@ -205,7 +205,7 @@ pub enum PgInterval {
 // All possible inputs to DATE_TRUNC (https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC)
 #[derive(Debug, Clone, Eq, PartialEq, Display)]
 #[strum(serialize_all = "lowercase")]
-pub enum PgDateTrunc {
+pub enum PgDateTruncUnit {
     Microseconds,
     Milliseconds,
     Second,
