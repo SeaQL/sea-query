@@ -17,50 +17,52 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New Features
 
-* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774
-```rust
-assert_eq!(
-    Query::select()
-        .columns([Char::Character])
-        .from(Char::Table)
-        .and_where(
-            Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0])))
-        )
-        .to_string(PostgresQueryBuilder),
-    r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
-);
-```
-* Added `postgres-vector` feature https://github.com/SeaQL/sea-query/pull/774
-* Added `Value::Vector` https://github.com/SeaQL/sea-query/pull/774
-* Added `ColumnType::Vector` https://github.com/SeaQL/sea-query/pull/774
-* Added `ColumnDef::vector()` https://github.com/SeaQL/sea-query/pull/774
-* Added `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance` https://github.com/SeaQL/sea-query/pull/774
+* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774    
+    * Added `postgres-vector` feature flag
+    * Added `Value::Vector`, `ColumnType::Vector`, `ColumnDef::vector()`, `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance`
+    ```rust
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(Char::Table)
+            .and_where(
+                Expr::col(Char::Character).eq(Expr::val(pgvector::Vector::from(vec![1.0, 2.0])))
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
+    );
+    ```
 * Added `ExprTrait` to unify `Expr` and `SimpleExpr` methods https://github.com/SeaQL/sea-query/pull/791
+* Support partial index `CREATE INDEX .. WHERE ..` https://github.com/SeaQL/sea-query/pull/478
+
+### Enhancements
+
+* Replace `Educe` with manual implementations https://github.com/SeaQL/sea-query/pull/817
+
+#### `sea-query-derive`
+
+* Merged `#[enum_def]` into `sea-query-derive`
 * `#[enum_def]` now impl additional `IdenStatic` and `AsRef<str>` https://github.com/SeaQL/sea-query/pull/769
+
+#### `sea-query-attr`
+
+* Updated `syn`, `heck` and `darling`
+* `sea-query-attr` is now deprecated
 
 ### Upgrades
 
 * Upgrade `sqlx` to `0.8` https://github.com/SeaQL/sea-query/pull/798
 * Upgrade `bigdecimal` to `0.4` https://github.com/SeaQL/sea-query/pull/798
 
-### `sea-query-attr`
-
-* Updated `syn`, `heck` and `darling`
-* Merged `#[enum_def]` into `sea-query-derive`
-* `sea-query-attr` is now deprecated
-
-## 0.31.1 - Pending
-
-### New Features
-
-* Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
+## 0.31.1 - 2024-10-05
 
 ### Enhancements
 
+* Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
 * Added `Func::md5` function https://github.com/SeaQL/sea-query/pull/786
 * Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
 * Added `cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
-* Replace `Educe` with manual implementations https://github.com/SeaQL/sea-query/pull/817
+* Added `IF NOT EXISTS` to `ALTER TYPE ADD VALUE` https://github.com/SeaQL/sea-query/pull/803
 
 ## 0.31.0 - 2024-08-02
 
