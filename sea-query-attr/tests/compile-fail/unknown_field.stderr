@@ -3,11 +3,3 @@ error: Unknown field: `unknown_field`
   |
 3 | #[enum_def(unknown_field)]
   |            ^^^^^^^^^^^^^
-
-warning: use of deprecated macro `enum_def`: use #[enum_def] attr defined in `sea-query-derive` crate
- --> tests/compile-fail/unknown_field.rs:3:3
-  |
-3 | #[enum_def(unknown_field)]
-  |   ^^^^^^^^
-  |
-  = note: `#[warn(deprecated)]` on by default

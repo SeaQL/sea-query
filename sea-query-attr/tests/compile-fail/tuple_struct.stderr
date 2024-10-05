@@ -3,11 +3,3 @@ error: #[enum_def] can only be used on structs
   |
 4 | struct Hello(String);
   | ^^^^^^
-
-warning: use of deprecated macro `enum_def`: use #[enum_def] attr defined in `sea-query-derive` crate
- --> tests/compile-fail/tuple_struct.rs:3:3
-  |
-3 | #[enum_def]
-  |   ^^^^^^^^
-  |
-  = note: `#[warn(deprecated)]` on by default
