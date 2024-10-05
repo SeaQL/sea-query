@@ -80,9 +80,9 @@ all-features = [
     "all-types",
 ] # everything except option-*
 all-types = [
-    "postgres-vector",
     "postgres-array",
     "postgres-interval",
+    "postgres-vector",
     "with-chrono",
     "with-json",
     "with-rust_decimal",
