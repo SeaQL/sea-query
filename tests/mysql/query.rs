@@ -518,7 +518,7 @@ fn select_35() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"#
+        r"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"
     );
     assert_eq!(values.0, vec![]);
 }
@@ -533,7 +533,7 @@ fn select_36() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"#
+        r"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL"
     );
     assert_eq!(values.0, vec![]);
 }
@@ -546,7 +546,7 @@ fn select_37() {
         .cond_where(Cond::any().add(Cond::all()).add(Cond::any()))
         .build(MysqlQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT `id` FROM `glyph` WHERE TRUE OR FALSE"#);
+    assert_eq!(statement, r"SELECT `id` FROM `glyph` WHERE TRUE OR FALSE");
     assert_eq!(values.0, vec![]);
 }
 
@@ -565,7 +565,7 @@ fn select_37a() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT ((NOT TRUE) AND (NOT FALSE))"#
+        r"SELECT `id` FROM `glyph` WHERE NOT ((NOT TRUE) AND (NOT FALSE))"
     );
     assert_eq!(values.0, vec![]);
 }
@@ -584,7 +584,7 @@ fn select_38() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR `aspect` IS NOT NULL"#
+        r"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR `aspect` IS NOT NULL"
     );
     assert_eq!(values.0, vec![]);
 }
@@ -603,7 +603,7 @@ fn select_39() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL AND `aspect` IS NOT NULL"#
+        r"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL AND `aspect` IS NOT NULL"
     );
     assert_eq!(values.0, vec![]);
 }
@@ -624,7 +624,7 @@ fn select_40() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR (`aspect` IS NOT NULL AND `aspect` < 8)"#
+        r"SELECT `id` FROM `glyph` WHERE `aspect` IS NULL OR (`aspect` IS NOT NULL AND `aspect` < 8)"
     );
 }
 
@@ -656,7 +656,7 @@ fn select_42() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE `aspect` < 8 AND `aspect` IS NOT NULL"#
+        r"SELECT `id` FROM `glyph` WHERE `aspect` < 8 AND `aspect` IS NOT NULL"
     );
 }
 
@@ -685,7 +685,7 @@ fn select_44() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT `aspect` < 8"#
+        r"SELECT `id` FROM `glyph` WHERE NOT `aspect` < 8"
     );
 }
 
@@ -704,7 +704,7 @@ fn select_45() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8 OR `aspect` IS NOT NULL)"#
+        r"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8 OR `aspect` IS NOT NULL)"
     );
 }
 
@@ -722,7 +722,7 @@ fn select_46() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT `aspect` < 8"#
+        r"SELECT `id` FROM `glyph` WHERE NOT `aspect` < 8"
     );
 }
 
@@ -741,7 +741,7 @@ fn select_47() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8 AND `aspect` IS NOT NULL)"#
+        r"SELECT `id` FROM `glyph` WHERE NOT (`aspect` < 8 AND `aspect` IS NOT NULL)"
     );
 }
 
@@ -760,7 +760,7 @@ fn select_48() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE (`aspect`, 100) < (8, 100)"#
+        r"SELECT `id` FROM `glyph` WHERE (`aspect`, 100) < (8, 100)"
     );
 }
 
@@ -782,7 +782,7 @@ fn select_48a() {
 
     assert_eq!(
         statement,
-        r#"SELECT `id` FROM `glyph` WHERE (`aspect`, '100') IN ((8, '100'))"#
+        r"SELECT `id` FROM `glyph` WHERE (`aspect`, '100') IN ((8, '100'))"
     );
 }
 
@@ -793,7 +793,7 @@ fn select_49() {
         .from(Char::Table)
         .to_string(MysqlQueryBuilder);
 
-    assert_eq!(statement, r#"SELECT * FROM `character`"#);
+    assert_eq!(statement, r"SELECT * FROM `character`");
 }
 
 #[test]
@@ -810,7 +810,7 @@ fn select_50() {
 
     assert_eq!(
         statement,
-        r#"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+        r"SELECT `character`.*, `font`.`name` FROM `character` INNER JOIN `font` ON `character`.`font_id` = `font`.`id`"
     )
 }
 
@@ -829,13 +829,13 @@ fn select_51() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"SELECT `aspect`"#,
-            r#"FROM `glyph`"#,
-            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
-            r#"ORDER BY `image` IS NULL DESC,"#,
-            r#"`image` DESC,"#,
-            r#"`glyph`.`aspect` IS NULL ASC,"#,
-            r#"`glyph`.`aspect` ASC"#,
+            r"SELECT `aspect`",
+            r"FROM `glyph`",
+            r"WHERE IFNULL(`aspect`, 0) > 2",
+            r"ORDER BY `image` IS NULL DESC,",
+            r"`image` DESC,",
+            r"`glyph`.`aspect` IS NULL ASC,",
+            r"`glyph`.`aspect` ASC",
         ]
         .join(" ")
     );
@@ -854,13 +854,13 @@ fn select_52() {
             ])
             .to_string(MysqlQueryBuilder),
         [
-            r#"SELECT `aspect`"#,
-            r#"FROM `glyph`"#,
-            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
-            r#"ORDER BY `id` IS NULL DESC,"#,
-            r#"`id` ASC,"#,
-            r#"`aspect` IS NULL ASC,"#,
-            r#"`aspect` DESC"#,
+            r"SELECT `aspect`",
+            r"FROM `glyph`",
+            r"WHERE IFNULL(`aspect`, 0) > 2",
+            r"ORDER BY `id` IS NULL DESC,",
+            r"`id` ASC,",
+            r"`aspect` IS NULL ASC,",
+            r"`aspect` DESC",
         ]
         .join(" ")
     );
@@ -883,13 +883,13 @@ fn select_53() {
             ])
             .to_string(MysqlQueryBuilder),
         [
-            r#"SELECT `aspect`"#,
-            r#"FROM `glyph`"#,
-            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
-            r#"ORDER BY `glyph`.`id` IS NULL DESC,"#,
-            r#"`glyph`.`id` ASC,"#,
-            r#"`glyph`.`aspect` IS NULL ASC,"#,
-            r#"`glyph`.`aspect` DESC"#,
+            r"SELECT `aspect`",
+            r"FROM `glyph`",
+            r"WHERE IFNULL(`aspect`, 0) > 2",
+            r"ORDER BY `glyph`.`id` IS NULL DESC,",
+            r"`glyph`.`id` ASC,",
+            r"`glyph`.`aspect` IS NULL ASC,",
+            r"`glyph`.`aspect` DESC",
         ]
         .join(" ")
     );
@@ -906,7 +906,7 @@ fn select_54() {
 
     assert_eq!(
         statement,
-        r#"SELECT * FROM `character`, `font` WHERE `font`.`id` = `character`.`font_id`"#
+        r"SELECT * FROM `character`, `font` WHERE `font`.`id` = `character`.`font_id`"
     );
 }
 
@@ -924,16 +924,16 @@ fn select_55() {
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(MysqlQueryBuilder),
         [
-            r#"SELECT `aspect`"#,
-            r#"FROM `glyph`"#,
-            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
-            r#"ORDER BY CASE"#,
-            r#"WHEN `id`=4 THEN 0"#,
-            r#"WHEN `id`=5 THEN 1"#,
-            r#"WHEN `id`=1 THEN 2"#,
-            r#"WHEN `id`=3 THEN 3"#,
-            r#"ELSE 4 END,"#,
-            r#"`glyph`.`aspect` ASC"#,
+            r"SELECT `aspect`",
+            r"FROM `glyph`",
+            r"WHERE IFNULL(`aspect`, 0) > 2",
+            r"ORDER BY CASE",
+            r"WHEN `id`=4 THEN 0",
+            r"WHEN `id`=5 THEN 1",
+            r"WHEN `id`=1 THEN 2",
+            r"WHEN `id`=3 THEN 3",
+            r"ELSE 4 END,",
+            r"`glyph`.`aspect` ASC",
         ]
         .join(" ")
     );
@@ -953,15 +953,15 @@ fn select_56() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"SELECT `aspect`"#,
-            r#"FROM `glyph`"#,
-            r#"WHERE IFNULL(`aspect`, 0) > 2"#,
-            r#"ORDER BY `glyph`.`aspect` ASC,"#,
-            r#"CASE WHEN `id`=4 THEN 0"#,
-            r#"WHEN `id`=5 THEN 1"#,
-            r#"WHEN `id`=1 THEN 2"#,
-            r#"WHEN `id`=3 THEN 3"#,
-            r#"ELSE 4 END"#,
+            r"SELECT `aspect`",
+            r"FROM `glyph`",
+            r"WHERE IFNULL(`aspect`, 0) > 2",
+            r"ORDER BY `glyph`.`aspect` ASC,",
+            r"CASE WHEN `id`=4 THEN 0",
+            r"WHEN `id`=5 THEN 1",
+            r"WHEN `id`=1 THEN 2",
+            r"WHEN `id`=3 THEN 3",
+            r"ELSE 4 END",
         ]
         .join(" ")
     );
@@ -982,7 +982,7 @@ fn select_57() {
 
     assert_eq!(
         query.to_string(MysqlQueryBuilder),
-        r#"SELECT (CASE WHEN (`glyph`.`aspect` > 0) THEN 'positive' WHEN (`glyph`.`aspect` < 0) THEN 'negative' ELSE 'zero' END) AS `polarity` FROM `glyph`"#
+        r"SELECT (CASE WHEN (`glyph`.`aspect` > 0) THEN 'positive' WHEN (`glyph`.`aspect` < 0) THEN 'negative' ELSE 'zero' END) AS `polarity` FROM `glyph`"
     );
 }
 
@@ -1049,13 +1049,13 @@ fn select_61() {
             .offset(100)
             .to_string(MysqlQueryBuilder),
         [
-            r#"SELECT `character`, `size_w`, `size_h`"#,
-            r#"FROM `character`"#,
-            r#"IGNORE INDEX FOR JOIN (`IDX_123456`)"#,
-            r#"USE INDEX FOR GROUP BY (`IDX_789ABC`)"#,
-            r#"FORCE INDEX FOR ORDER BY (`IDX_DEFGHI`)"#,
-            r#"LIMIT 10"#,
-            r#"OFFSET 100"#,
+            r"SELECT `character`, `size_w`, `size_h`",
+            r"FROM `character`",
+            r"IGNORE INDEX FOR JOIN (`IDX_123456`)",
+            r"USE INDEX FOR GROUP BY (`IDX_789ABC`)",
+            r"FORCE INDEX FOR ORDER BY (`IDX_DEFGHI`)",
+            r"LIMIT 10",
+            r"OFFSET 100",
         ]
         .join(" ")
     );
@@ -1203,7 +1203,7 @@ fn insert_from_select() {
             .unwrap()
             .to_owned()
             .to_string(MysqlQueryBuilder),
-        r#"INSERT INTO `glyph` (`aspect`, `image`) SELECT `aspect`, `image` FROM `glyph` WHERE `image` LIKE '%'"#
+        r"INSERT INTO `glyph` (`aspect`, `image`) SELECT `aspect`, `image` FROM `glyph` WHERE `image` LIKE '%'"
     );
 }
 
@@ -1225,9 +1225,9 @@ fn insert_on_conflict_0() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)",
         ]
         .join(" ")
     );
@@ -1251,9 +1251,9 @@ fn insert_on_conflict_1() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`)"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`)",
         ]
         .join(" ")
     );
@@ -1277,9 +1277,9 @@ fn insert_on_conflict_2() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)",
         ]
         .join(" ")
     );
@@ -1306,9 +1306,9 @@ fn insert_on_conflict_3() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = 3.1415"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = 3.1415",
         ]
         .join(" ")
     );
@@ -1332,9 +1332,9 @@ fn insert_on_conflict_4() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `image` = 1 + 2"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `image` = 1 + 2",
         ]
         .join(" ")
     );
@@ -1359,9 +1359,9 @@ fn insert_on_conflict_5() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = VALUES(`image`)"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `aspect` = '04108048005887010020060000204E0180400400', `image` = VALUES(`image`)",
         ]
         .join(" ")
     );
@@ -1386,9 +1386,9 @@ fn insert_on_conflict_6() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('04108048005887010020060000204E0180400400', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = 1 + 2",
         ]
         .join(" ")
     );
@@ -1409,9 +1409,9 @@ fn insert_on_conflict_do_nothing_on() {
             )
             .to_string(MysqlQueryBuilder),
         [
-            r#"INSERT INTO `glyph` (`aspect`, `image`)"#,
-            r#"VALUES ('abcd', 3.1415)"#,
-            r#"ON DUPLICATE KEY UPDATE `id` = `id`"#,
+            r"INSERT INTO `glyph` (`aspect`, `image`)",
+            r"VALUES ('abcd', 3.1415)",
+            r"ON DUPLICATE KEY UPDATE `id` = `id`",
         ]
         .join(" ")
     );

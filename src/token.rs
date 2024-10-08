@@ -454,7 +454,7 @@ mod tests {
 
     #[test]
     fn test_9() {
-        let string = r#"[ab] "#;
+        let string = r"[ab] ";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
         assert_eq!(
@@ -491,7 +491,7 @@ mod tests {
 
     #[test]
     fn test_11() {
-        let string = r#" `a``b` "#;
+        let string = r" `a``b` ";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
         assert_eq!(
@@ -510,7 +510,7 @@ mod tests {
 
     #[test]
     fn test_12() {
-        let string = r#" 'a''b' "#;
+        let string = r" 'a''b' ";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
         assert_eq!(
@@ -529,7 +529,7 @@ mod tests {
 
     #[test]
     fn test_13() {
-        let string = r#"(?)"#;
+        let string = r"(?)";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
         assert_eq!(
@@ -548,7 +548,7 @@ mod tests {
 
     #[test]
     fn test_14() {
-        let string = r#"($1 = $2)"#;
+        let string = r"($1 = $2)";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
         assert_eq!(
