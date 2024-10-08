@@ -21,7 +21,7 @@ fn create_1() {
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""aspect" double NOT NULL,"#,
             r#""image" text"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -49,7 +49,7 @@ fn create_2() {
             r#""name" varchar NOT NULL,"#,
             r#""variant" varchar NOT NULL,"#,
             r#""language" varchar NOT NULL"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -94,7 +94,7 @@ fn create_3() {
             r#""size_h" integer NOT NULL,"#,
             r#""font_id" integer DEFAULT NULL,"#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -112,7 +112,7 @@ fn create_4() {
             r#"CREATE TABLE "binary_type" ("#,
             r#""binlen" blob(32),"#,
             r#""bin" blob(1)"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -132,7 +132,7 @@ fn create_5() {
             r#""character" blob(1),"#,
             r#""font_size" blob(10),"#,
             r#""size_w" varbinary_blob(10)"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -156,7 +156,7 @@ fn create_6() {
             r#"CREATE TABLE "task" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""is_done" boolean NOT NULL"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -178,7 +178,7 @@ fn create_7() {
         [
             r#"CREATE TABLE "task" ("#,
             r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -225,7 +225,7 @@ fn create_with_unique_index() {
             r#""font_id" integer DEFAULT NULL,"#,
             r#"UNIQUE ("size_h", "size_w"),"#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -270,7 +270,7 @@ fn create_with_primary_unique_index() {
             r#""font_id" integer DEFAULT NULL,"#,
             r#"PRIMARY KEY ("size_h", "size_w"),"#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
-            r")",
+            r#")"#,
         ]
         .join(" ")
     );
@@ -324,7 +324,7 @@ fn create_with_unique_index_constraint() {
             r#""font_id" integer DEFAULT NULL,"#,
             r#"CONSTRAINT "idx-sizehw" UNIQUE ("size_h", "size_w"),"#,
             r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
-            r")",
+            r#")"#,
         ].join(" ")
     );
 }
