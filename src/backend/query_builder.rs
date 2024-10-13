@@ -387,7 +387,22 @@ pub trait QueryBuilder:
             SimpleExpr::Constant(val) => {
                 self.prepare_constant(val, sql);
             }
+            SimpleExpr::IfElse(val) => {
+                self.prepare_if_else_statement(val, sql);
+            }
         }
+    }
+
+    fn prepare_if_else_statement(&self, val: &Box<IfElseStatement>, sql: &mut dyn SqlWriter) {
+        write!(sql, "IF ").unwrap();
+        self.prepare_simple_expr(&val.when, sql);
+        write!(sql, " THEN\n").unwrap();
+        self.prepare_simple_expr(&val.then, sql);
+        if let Some(otherwise) = &val.otherwise {
+            write!(sql, "\nELSE\n").unwrap();
+            self.prepare_simple_expr(otherwise, sql);
+        };
+        write!(sql, "\nEND IF").unwrap();
     }
 
     /// Translate [`CaseStatement`] into SQL statement.
