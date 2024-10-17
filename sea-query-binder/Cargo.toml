@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-binder"
-version = "0.7.0-rc.2"
+version = "0.7.0"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2021"
 description = "Driver library for using SeaQuery with SQLx"
