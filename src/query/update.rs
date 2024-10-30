@@ -6,7 +6,6 @@ use crate::{
     types::*,
     value::*,
     QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
-    WithQuery,
 };
 use inherent::inherent;
 
@@ -44,6 +43,7 @@ pub struct UpdateStatement {
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) returning: Option<ReturningClause>,
+    pub(crate) with: Option<WithClause>,
 }
 
 impl UpdateStatement {
@@ -247,7 +247,7 @@ impl UpdateStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Specify a [WithClause] to execute this query with.
     ///
     /// # Examples
     ///
@@ -265,12 +265,12 @@ impl UpdateStatement {
     ///         .table_name(Alias::new("cte"))
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
-    ///     let update = UpdateStatement::new()
+    ///     let query = UpdateStatement::new()
     ///         .table(Glyph::Table)
     ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
     ///         .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+    ///         .with(with_clause)
     ///         .to_owned();
-    ///     let query = update.with(with_clause);
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -285,8 +285,9 @@ impl UpdateStatement {
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
     /// ```
-    pub fn with(self, clause: WithClause) -> WithQuery {
-        clause.query(self)
+    pub fn with(&mut self, clause: WithClause) -> &mut Self {
+        self.with = Some(clause);
+        self
     }
 
     /// Get column values
