@@ -592,6 +592,8 @@ pub trait QueryBuilder:
                 BinOper::As => "AS",
                 BinOper::Escape => "ESCAPE",
                 BinOper::Custom(raw) => raw,
+                BinOper::BitAnd => "&",
+                BinOper::BitOr => "|",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }

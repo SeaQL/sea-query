@@ -181,6 +181,8 @@ pub enum BinOper {
     Mul,
     Div,
     Mod,
+    BitAnd,
+    BitOr,
     LShift,
     RShift,
     As,
