@@ -471,12 +471,9 @@ pub trait QueryBuilder:
             None => {}
         };
 
-        match &select_expr.alias {
-            Some(alias) => {
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql.as_writer(), self.quote());
-            }
-            None => {}
+        if let Some(alias) = &select_expr.alias {
+            write!(sql, " AS ").unwrap();
+            alias.prepare(sql.as_writer(), self.quote());
         };
     }
 
