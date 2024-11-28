@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Pending
+
+### House keeping
+
+* Remove unnecessary string hashes https://github.com/SeaQL/sea-query/pull/815
+
 ## 0.32.0 - 2024-10-17
 
 ### Releases
