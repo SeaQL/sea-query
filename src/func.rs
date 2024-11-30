@@ -15,6 +15,8 @@ pub enum Function {
     Abs,
     Count,
     IfNull,
+    Greatest,
+    Least,
     CharLength,
     Cast,
     Custom(DynIden),
@@ -390,6 +392,76 @@ impl Func {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::CharLength).arg(expr)
+    }
+
+    /// Call `GREATEST` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::greatest([
+    ///         Expr::col(Char::SizeW).into(),
+    ///         Expr::col(Char::SizeH).into(),
+    ///     ]))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT GREATEST(`size_w`, `size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT GREATEST("size_w", "size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MAX("size_w", "size_h") FROM "character""#
+    /// );
+    /// ```
+    pub fn greatest<I>(args: I) -> FunctionCall
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        FunctionCall::new(Function::Greatest).args(args)
+    }
+
+    /// Call `LEAST` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::least([
+    ///         Expr::col(Char::SizeW).into(),
+    ///         Expr::col(Char::SizeH).into(),
+    ///     ]))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT LEAST(`size_w`, `size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT LEAST("size_w", "size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MIN("size_w", "size_h") FROM "character""#
+    /// );
+    /// ```
+    pub fn least<I>(args: I) -> FunctionCall
+    where
+        I: IntoIterator<Item = SimpleExpr>,
+    {
+        FunctionCall::new(Function::Least).args(args)
     }
 
     /// Call `IF NULL` function.

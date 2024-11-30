@@ -664,6 +664,8 @@ pub trait QueryBuilder:
                     Function::Coalesce => "COALESCE",
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
+                    Function::Greatest => self.greatest_function(),
+                    Function::Least => self.least_function(),
                     Function::CharLength => self.char_length_function(),
                     Function::Cast => "CAST",
                     Function::Lower => "LOWER",
@@ -1464,6 +1466,18 @@ pub trait QueryBuilder:
     /// The name of the function that represents the "if null" condition.
     fn if_null_function(&self) -> &str {
         "IFNULL"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that represents the "greatest" function.
+    fn greatest_function(&self) -> &str {
+        "GREATEST"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that represents the "least" function.
+    fn least_function(&self) -> &str {
+        "LEAST"
     }
 
     #[doc(hidden)]
