@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 0.32.1 - 2024-12-01
 
-### Enhancements
+### New Features
 
 * Added `Value::as_null`
 ```rust
@@ -16,6 +16,23 @@ let n = v.as_null();
 
 assert_eq!(n, Value::Int(None));
 ```
+* Added bitwise and/or operators (`bit_and`, `bit_or`) https://github.com/SeaQL/sea-query/pull/841
+```rust
+let query = Query::select()
+    .expr(1.bit_and(2).eq(3))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT (1 & 2) = 3"#
+);
+```
+
+### Enhancements
+
+* Added `GREATEST` & `LEAST` function https://github.com/SeaQL/sea-query/pull/844
+* Added `ValueType::enum_type_name()` https://github.com/SeaQL/sea-query/pull/836
+* Removed "one common table" restriction on recursive CTE https://github.com/SeaQL/sea-query/pull/835
 
 ### House keeping
 

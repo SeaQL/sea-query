@@ -1308,6 +1308,15 @@ pub trait ExprTrait: Sized {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
+    ///     .expr(1.bit_and(2).eq(3))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT (1 & 2) = 3"#
+    /// );
+    ///
+    /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
     ///     .and_where(1.bit_and(1).eq(1))
