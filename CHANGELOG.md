@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Pending
+## 0.32.1 - 2024-12-01
+
+### Enhancements
+
+* Added `Value::as_null`
+```rust
+let v = Value::Int(Some(2));
+let n = v.as_null();
+
+assert_eq!(n, Value::Int(None));
+```
 
 ### House keeping
 
