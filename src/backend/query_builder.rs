@@ -774,15 +774,6 @@ pub trait QueryBuilder:
             "Cannot build a with query that has no common table expression!"
         );
 
-        if with_clause.recursive {
-            assert_eq!(
-                with_clause.cte_expressions.len(),
-                1,
-                "Cannot build a recursive query with more than one common table! \
-                A recursive with query must have a single cte inside it that has a union query of \
-                two queries!"
-            );
-        }
         for cte in &with_clause.cte_expressions {
             if !cte_first {
                 write!(sql, ", ").unwrap();
