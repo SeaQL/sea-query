@@ -237,6 +237,10 @@ pub trait ValueType: Sized {
     fn array_type() -> ArrayType;
 
     fn column_type() -> ColumnType;
+
+    fn enum_type_name() -> Option<&'static str> {
+        None
+    }
 }
 
 #[derive(Debug)]
