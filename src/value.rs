@@ -376,7 +376,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(ArrayType, _) => Self::Array(None),
+            Self::Array(ty, _) => Self::Array(ty.clone(), None),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
