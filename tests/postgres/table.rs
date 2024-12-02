@@ -611,3 +611,40 @@ fn create_16() {
         .join(" ")
     );
 }
+
+#[test]
+fn create_17() {
+    assert_eq!(
+        Table::create()
+        .table(Font::Table)
+        .col(
+            ColumnDef::new(Font::Id)
+                .integer()
+                .not_null()
+                .primary_key()
+                .auto_increment(),
+        )
+        .col(ColumnDef::new(Font::Name).string())
+        .col(ColumnDef::new(Font::Variant).string_len(255).not_null())
+        .col(ColumnDef::new(Font::Language).string_len(255).not_null())
+        .index(
+            Index::create()
+                .name("idx-font-name-include-language")
+                .unique()
+                .nulls_not_distinct()
+                .col(Font::Name)
+                .include(Font::Language),
+        )
+        .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE "font" ("#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""name" varchar,"#,
+            r#""variant" varchar(255) NOT NULL,"#,
+            r#""language" varchar(255) NOT NULL,"#,
+            r#"CONSTRAINT "idx-font-name-include-language" UNIQUE NULLS NOT DISTINCT ("name") INCLUDE ("language")"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
