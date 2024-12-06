@@ -210,6 +210,18 @@ pub trait QueryBuilder:
             false
         });
 
+        if !update.from.is_empty() {
+            write!(sql, " FROM ").unwrap();
+
+            update.from.iter().fold(true, |first, table_ref| {
+                if !first {
+                    write!(sql, ", ").unwrap()
+                }
+                self.prepare_table_ref(table_ref, sql);
+                false
+            });
+        }
+
         self.prepare_output(&update.returning, sql);
 
         self.prepare_condition(&update.r#where, "WHERE", sql);
