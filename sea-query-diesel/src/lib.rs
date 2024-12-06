@@ -2,7 +2,6 @@ use diesel::backend::Backend;
 use diesel::result::QueryResult;
 use sea_query::{
     DeleteStatement, InsertStatement, QueryStatementWriter, SelectStatement, UpdateStatement,
-    WithQuery,
 };
 
 use self::backend::{ExtractBuilder, TransformValue};
@@ -40,4 +39,3 @@ impl_diesel_binder!(SelectStatement);
 impl_diesel_binder!(UpdateStatement);
 impl_diesel_binder!(InsertStatement);
 impl_diesel_binder!(DeleteStatement);
-impl_diesel_binder!(WithQuery);

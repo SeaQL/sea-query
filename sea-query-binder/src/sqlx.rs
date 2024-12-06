@@ -25,4 +25,3 @@ impl_sqlx_binder!(SelectStatement);
 impl_sqlx_binder!(UpdateStatement);
 impl_sqlx_binder!(InsertStatement);
 impl_sqlx_binder!(DeleteStatement);
-impl_sqlx_binder!(WithQuery);
