@@ -304,6 +304,9 @@ impl Value {
     /// let n = v.as_null();
     ///
     /// assert_eq!(n, Value::Int(None));
+    ///
+    /// // one liner:
+    /// assert_eq!(Into::<Value>::into(2.2).as_null(), Value::Double(None));
     /// ```
     pub fn as_null(&self) -> Self {
         match self {
