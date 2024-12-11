@@ -124,6 +124,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::GenRandomUUID => "GEN_RANDOM_UUID",
                     PgFunction::JsonBuildObject => "JSON_BUILD_OBJECT",
                     PgFunction::JsonAgg => "JSON_AGG",
+                    PgFunction::ArrayAgg => "ARRAY_AGG",
                     #[cfg(feature = "postgres-array")]
                     PgFunction::Any => "ANY",
                     #[cfg(feature = "postgres-array")]
