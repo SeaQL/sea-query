@@ -1,3 +1,5 @@
+use inherent::inherent;
+
 use crate::{
     backend::QueryBuilder,
     expr::*,
@@ -8,7 +10,6 @@ use crate::{
     QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
     WithQuery,
 };
-use inherent::inherent;
 
 /// Update existing rows in the table
 ///
@@ -99,7 +100,7 @@ impl UpdateStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     "UPDATE `glyph` SET `tokens` = `character`.`character` FROM `character` WHERE `glyph`.`image` = `character`.`user_data`"
+    ///     "UPDATE `glyph` JOIN `character` ON `glyph`.`image` = `character`.`user_data` SET `glyph`.`tokens` = `character`.`character`"
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
