@@ -190,6 +190,24 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060'"#
     /// );
+    ///
+    /// let query = Query::update()
+    ///     .table(Glyph::Table)
+    ///     .value(Glyph::Aspect, Expr::value(Value::Int(None)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"UPDATE `glyph` SET `aspect` = NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"UPDATE "glyph" SET "aspect" = NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"UPDATE "glyph" SET "aspect" = NULL"#
+    /// );
     /// ```
     pub fn value<C, T>(&mut self, col: C, value: T) -> &mut Self
     where

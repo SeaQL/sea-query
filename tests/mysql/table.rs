@@ -359,7 +359,7 @@ fn create_with_check_constraint() {
             .check(Expr::col(Glyph::Id).lt(20))
             .check(Expr::col(Glyph::Id).ne(15))
             .to_string(MysqlQueryBuilder),
-        r#"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10), CHECK (`id` < 20), CHECK (`id` <> 15) )"#,
+        r"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10), CHECK (`id` < 20), CHECK (`id` <> 15) )",
     );
 }
 
@@ -376,6 +376,6 @@ fn alter_with_check_constraint() {
                     .check(Expr::col(Glyph::Aspect).gt(100))
             )
             .to_string(MysqlQueryBuilder),
-        r#"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CHECK (`aspect` > 100)"#,
+        r"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CHECK (`aspect` > 100)",
     );
 }

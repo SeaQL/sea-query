@@ -181,6 +181,8 @@ pub enum BinOper {
     Mul,
     Div,
     Mod,
+    BitAnd,
+    BitOr,
     LShift,
     RShift,
     As,
@@ -623,10 +625,7 @@ mod tests {
             .to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(
-            query.to_string(MysqlQueryBuilder),
-            r#"SELECT `hello-World_`"#
-        );
+        assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hello-World_`");
         #[cfg(feature = "backend-postgres")]
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
@@ -644,7 +643,7 @@ mod tests {
         let query = Query::select().column(Alias::new("hel`lo")).to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
+        assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel``lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel`lo""#);
 
@@ -659,7 +658,7 @@ mod tests {
         let query = Query::select().column(Alias::new("hel``lo")).to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
+        assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel````lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel``lo""#);
 
