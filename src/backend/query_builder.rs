@@ -483,12 +483,9 @@ pub trait QueryBuilder:
             None => {}
         };
 
-        match &select_expr.alias {
-            Some(alias) => {
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql.as_writer(), self.quote());
-            }
-            None => {}
+        if let Some(alias) = &select_expr.alias {
+            write!(sql, " AS ").unwrap();
+            alias.prepare(sql.as_writer(), self.quote());
         };
     }
 
@@ -604,6 +601,8 @@ pub trait QueryBuilder:
                 BinOper::As => "AS",
                 BinOper::Escape => "ESCAPE",
                 BinOper::Custom(raw) => raw,
+                BinOper::BitAnd => "&",
+                BinOper::BitOr => "|",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }
@@ -679,6 +678,8 @@ pub trait QueryBuilder:
                     Function::Coalesce => "COALESCE",
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
+                    Function::Greatest => self.greatest_function(),
+                    Function::Least => self.least_function(),
                     Function::CharLength => self.char_length_function(),
                     Function::Cast => "CAST",
                     Function::Lower => "LOWER",
@@ -789,15 +790,6 @@ pub trait QueryBuilder:
             "Cannot build a with query that has no common table expression!"
         );
 
-        if with_clause.recursive {
-            assert_eq!(
-                with_clause.cte_expressions.len(),
-                1,
-                "Cannot build a recursive query with more than one common table! \
-                A recursive with query must have a single cte inside it that has a union query of \
-                two queries!"
-            );
-        }
         for cte in &with_clause.cte_expressions {
             if !cte_first {
                 write!(sql, ", ").unwrap();
@@ -1479,6 +1471,18 @@ pub trait QueryBuilder:
     /// The name of the function that represents the "if null" condition.
     fn if_null_function(&self) -> &str {
         "IFNULL"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that represents the "greatest" function.
+    fn greatest_function(&self) -> &str {
+        "GREATEST"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that represents the "least" function.
+    fn least_function(&self) -> &str {
+        "LEAST"
     }
 
     #[doc(hidden)]
