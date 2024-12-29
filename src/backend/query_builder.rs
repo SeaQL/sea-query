@@ -1,5 +1,6 @@
-use crate::*;
 use std::ops::Deref;
+
+use crate::*;
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
@@ -211,15 +212,7 @@ pub trait QueryBuilder:
         });
 
         if !update.from.is_empty() {
-            write!(sql, " FROM ").unwrap();
-
-            update.from.iter().fold(true, |first, table_ref| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
-                self.prepare_table_ref(table_ref, sql);
-                false
-            });
+            self.prepare_update_from_table_refs(&update.from, sql);
         }
 
         self.prepare_output(&update.returning, sql);
@@ -231,6 +224,20 @@ pub trait QueryBuilder:
         self.prepare_update_limit(update, sql);
 
         self.prepare_returning(&update.returning, sql);
+    }
+
+    fn prepare_update_from_table_refs(&self, from: &[TableRef], sql: &mut dyn SqlWriter) {
+        write!(sql, " FROM ").unwrap();
+
+        from.iter().fold(true, |first, table_ref| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+
+            self.prepare_table_ref(table_ref, sql);
+
+            false
+        });
     }
 
     /// Translate ORDER BY expression in [`UpdateStatement`].
