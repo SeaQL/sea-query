@@ -51,6 +51,7 @@ pub struct InsertStatement {
     pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Option<ReturningClause>,
     pub(crate) default_values: Option<u32>,
+    pub(crate) with: Option<WithClause>,
 }
 
 impl InsertStatement {
@@ -471,6 +472,55 @@ impl InsertStatement {
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
+    }
+
+    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from(Glyph::Table)
+    ///         .to_owned();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .column(Glyph::Image)
+    ///         .column(Glyph::Aspect)
+    ///         .table_name(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from(Alias::new("cte"))
+    ///         .to_owned();
+    ///     let mut query = Query::insert();
+    ///     query
+    ///         .with_cte(with_clause)
+    ///         .into_table(Glyph::Table)
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .select_from(select)
+    ///         .unwrap();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`, `image`, `aspect`) AS (SELECT `id`, `image`, `aspect` FROM `glyph`) INSERT INTO `glyph` (`id`, `image`, `aspect`) SELECT `id`, `image`, `aspect` FROM `cte`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// ```
+    pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
+        self.with = Some(clause.into());
+        self
     }
 
     /// Insert with default values if columns and values are not supplied.
