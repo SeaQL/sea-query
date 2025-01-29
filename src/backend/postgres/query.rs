@@ -41,9 +41,7 @@ impl QueryBuilder for PostgresQueryBuilder {
     fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
         match simple_expr {
             SimpleExpr::AsEnum(type_name, expr) => {
-                let simple_expr = expr
-                    .clone()
-                    .cast_as_quoted(SeaRc::clone(type_name), '"'.into());
+                let simple_expr = expr.clone().cast_as_quoted(SeaRc::clone(type_name), '"');
                 self.prepare_simple_expr_common(&simple_expr, sql);
             }
             _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql),

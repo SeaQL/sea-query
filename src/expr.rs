@@ -3849,7 +3849,7 @@ impl SimpleExpr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::value("1").cast_as_quoted(Alias::new("MyType"), '"'.into()))
+    ///     .expr(Expr::value("1").cast_as_quoted(Alias::new("MyType"), '"'))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -3865,11 +3865,12 @@ impl SimpleExpr {
     ///     r#"SELECT CAST('1' AS "MyType")"#
     /// );
     /// ```
-    pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self
+    pub fn cast_as_quoted<T, Q>(self, type_name: T, q: Q) -> Self
     where
         T: IntoIden,
+        Q: Into<Quote>,
     {
-        let func = Func::cast_as_quoted(self, type_name, q);
+        let func = Func::cast_as_quoted(self, type_name, q.into());
         Self::FunctionCall(func)
     }
 
