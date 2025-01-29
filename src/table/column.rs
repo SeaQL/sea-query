@@ -1,4 +1,4 @@
-use strum_macros::Display;
+use std::fmt::Display;
 
 use crate::{expr::*, types::*};
 
@@ -203,8 +203,7 @@ pub enum PgInterval {
 }
 
 // All possible inputs to DATE_TRUNC (https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC)
-#[derive(Debug, Clone, Eq, PartialEq, Display)]
-#[strum(serialize_all = "lowercase")]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum PgDateTruncUnit {
     Microseconds,
     Milliseconds,
@@ -219,6 +218,27 @@ pub enum PgDateTruncUnit {
     Decade,
     Century,
     Millennium,
+}
+
+impl Display for PgDateTruncUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = match self {
+            PgDateTruncUnit::Microseconds => "microseconds",
+            PgDateTruncUnit::Milliseconds => "milliseconds",
+            PgDateTruncUnit::Second => "second",
+            PgDateTruncUnit::Minute => "minute",
+            PgDateTruncUnit::Hour => "hour",
+            PgDateTruncUnit::Day => "day",
+            PgDateTruncUnit::Week => "week",
+            PgDateTruncUnit::Month => "month",
+            PgDateTruncUnit::Quarter => "quarter",
+            PgDateTruncUnit::Year => "year",
+            PgDateTruncUnit::Decade => "decade",
+            PgDateTruncUnit::Century => "century",
+            PgDateTruncUnit::Millennium => "millennium",
+        };
+        write!(f, "{}", text)
+    }
 }
 
 impl ColumnDef {
