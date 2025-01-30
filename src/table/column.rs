@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt;
 
 use crate::{expr::*, types::*};
 
@@ -220,8 +220,8 @@ pub enum PgDateTruncUnit {
     Millennium,
 }
 
-impl Display for PgDateTruncUnit {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for PgDateTruncUnit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
             PgDateTruncUnit::Microseconds => "microseconds",
             PgDateTruncUnit::Milliseconds => "milliseconds",
