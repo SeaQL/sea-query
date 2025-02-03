@@ -849,7 +849,7 @@ pub mod with_array {
     use super::*;
     use crate::RcOrArc;
 
-    // We only imlement conversion from Vec<T> to Array when T is not u8.
+    // We only implement conversion from Vec<T> to Array when T is not u8.
     // This is because for u8's case, there is already conversion to Byte defined above.
     // TODO When negative trait becomes a stable feature, following code can be much shorter.
     pub trait NotU8 {}
