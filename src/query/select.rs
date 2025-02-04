@@ -54,6 +54,7 @@ pub struct SelectStatement {
     pub(crate) offset: Option<Value>,
     pub(crate) lock: Option<LockClause>,
     pub(crate) window: Option<(DynIden, WindowStatement)>,
+    pub(crate) with: Option<WithClause>,
     #[cfg(feature = "backend-mysql")]
     pub(crate) index_hints: Vec<crate::extension::mysql::IndexHint>,
 }
@@ -162,6 +163,7 @@ impl SelectStatement {
             offset: self.offset.take(),
             lock: self.lock.take(),
             window: self.window.take(),
+            with: self.with.take(),
             #[cfg(feature = "backend-mysql")]
             index_hints: std::mem::take(&mut self.index_hints),
         }
@@ -2344,6 +2346,72 @@ impl SelectStatement {
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
+    }
+
+    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let base_query = SelectStatement::new()
+    ///                     .column(Alias::new("id"))
+    ///                     .expr(1i32)
+    ///                     .column(Alias::new("next"))
+    ///                     .column(Alias::new("value"))
+    ///                     .from(Alias::new("table"))
+    ///                     .to_owned();
+    ///
+    /// let cte_referencing = SelectStatement::new()
+    ///                             .column(Alias::new("id"))
+    ///                             .expr(Expr::col(Alias::new("depth")).add(1i32))
+    ///                             .column(Alias::new("next"))
+    ///                             .column(Alias::new("value"))
+    ///                             .from(Alias::new("table"))
+    ///                             .join(
+    ///                                 JoinType::InnerJoin,
+    ///                                 Alias::new("cte_traversal"),
+    ///                                 Expr::col((Alias::new("cte_traversal"), Alias::new("next"))).equals((Alias::new("table"), Alias::new("id")))
+    ///                             )
+    ///                             .to_owned();
+    ///
+    /// let common_table_expression = CommonTableExpression::new()
+    ///             .query(
+    ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
+    ///             )
+    ///             .columns([Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
+    ///             .table_name(Alias::new("cte_traversal"))
+    ///             .to_owned();
+    ///
+    /// let with_clause = WithClause::new()
+    ///         .recursive(true)
+    ///         .cte(common_table_expression)
+    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
+    ///         .to_owned();
+    ///
+    /// let query = SelectStatement::new()
+    ///         .column(ColumnRef::Asterisk)
+    ///         .from(Alias::new("cte_traversal"))
+    ///         .with_cte(with_clause)
+    ///         .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `table` UNION ALL (SELECT `id`, `depth` + 1, `next`, `value` FROM `table` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `table`.`id`)) SELECT * FROM `cte_traversal`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL (SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id")) CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
+    /// );
+    /// ```
+    pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
+        self.with = Some(clause.into());
+        self
     }
 
     /// WINDOW

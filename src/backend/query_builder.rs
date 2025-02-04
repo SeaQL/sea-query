@@ -18,6 +18,10 @@ pub trait QueryBuilder:
 
     /// Translate [`InsertStatement`] into SQL statement.
     fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &insert.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
@@ -95,6 +99,10 @@ pub trait QueryBuilder:
 
     /// Translate [`SelectStatement`] into SQL statement.
     fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &select.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
@@ -191,6 +199,10 @@ pub trait QueryBuilder:
 
     /// Translate [`UpdateStatement`] into SQL statement.
     fn prepare_update_statement(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &update.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "UPDATE ").unwrap();
 
         if let Some(table) = &update.table {
@@ -245,6 +257,10 @@ pub trait QueryBuilder:
 
     /// Translate [`DeleteStatement`] into SQL statement.
     fn prepare_delete_statement(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &delete.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "DELETE ").unwrap();
 
         if let Some(table) = &delete.table {

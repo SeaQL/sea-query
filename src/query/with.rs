@@ -485,6 +485,13 @@ impl WithClause {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }
 }
+
+impl From<CommonTableExpression> for WithClause {
+    fn from(cte: CommonTableExpression) -> WithClause {
+        WithClause::new().cte(cte).to_owned()
+    }
+}
+
 /// A WITH query. A simple SQL query that has a WITH clause ([WithClause]).
 ///
 /// The [WithClause] can contain one or multiple common table expressions ([CommonTableExpression]).
