@@ -6,7 +6,7 @@ use crate::{
     types::*,
     value::*,
     FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
-    WithClause, WithQuery,
+    WithClause,
 };
 use inherent::inherent;
 
@@ -56,6 +56,7 @@ pub struct SelectStatement {
     pub(crate) window: Option<(DynIden, WindowStatement)>,
     #[cfg(feature = "backend-mysql")]
     pub(crate) index_hints: Vec<crate::extension::mysql::IndexHint>,
+    pub(crate) with: Option<WithClause>,
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -164,6 +165,7 @@ impl SelectStatement {
             window: self.window.take(),
             #[cfg(feature = "backend-mysql")]
             index_hints: std::mem::take(&mut self.index_hints),
+            with: self.with.take(),
         }
     }
 
@@ -2280,7 +2282,7 @@ impl SelectStatement {
         self
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Specify a [WithClause] to execute this query with.
     ///
     /// # Examples
     ///
@@ -2316,18 +2318,16 @@ impl SelectStatement {
     ///             .table_name(Alias::new("cte_traversal"))
     ///             .to_owned();
     ///
-    /// let select = SelectStatement::new()
-    ///         .column(ColumnRef::Asterisk)
-    ///         .from(Alias::new("cte_traversal"))
-    ///         .to_owned();
-    ///
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
     ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
     ///         .to_owned();
     ///
-    /// let query = select.with(with_clause).to_owned();
+    /// let query = SelectStatement::new()
+    ///         .column(ColumnRef::Asterisk)
+    ///         .from(Alias::new("cte_traversal"))
+    ///         .with(with_clause).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -2342,8 +2342,9 @@ impl SelectStatement {
     ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
     /// );
     /// ```
-    pub fn with(self, clause: WithClause) -> WithQuery {
-        clause.query(self)
+    pub fn with(&mut self, clause: WithClause) -> &mut Self {
+        self.with = Some(clause);
+        self
     }
 
     /// WINDOW
