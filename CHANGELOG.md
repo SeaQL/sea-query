@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Enhancements
 
-* add Expr::column (#852)
+* Added `Expr::column` https://github.com/SeaQL/sea-query/pull/852
+
+### Bug Fixes
+
+* Write empty Postgres array as '{}' https://github.com/SeaQL/sea-query/pull/854
 
 ## 0.32.1 - 2024-12-01
 
