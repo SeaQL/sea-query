@@ -6,6 +6,10 @@ impl QueryBuilder for MysqlQueryBuilder {
         "ROW"
     }
 
+    fn prepare_update_from_table_refs(&self, _: &[TableRef], _: &mut dyn SqlWriter) {
+        unimplemented!(r#""UPDATE ... FROM ..." syntax not yet supported for MySQL backend"#)
+    }
+
     fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {
         match select_distinct {
             SelectDistinct::All => write!(sql, "ALL").unwrap(),
