@@ -77,26 +77,13 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .value(
-    ///         Glyph::Tokens,
-    ///         SimpleExpr::Column(ColumnRef::TableColumn(
-    ///             SeaRc::new(Char::Table),
-    ///             SeaRc::new(Char::Character),
-    ///         )),
-    ///     )
+    ///     .value(Glyph::Tokens, Expr::column((Char::Table, Char::Character)))
     ///     .from(Char::Table)
     ///     .cond_where(
-    ///         SimpleExpr::Column(ColumnRef::TableColumn(
-    ///             SeaRc::new(Glyph::Table),
-    ///             SeaRc::new(Glyph::Image),
-    ///         ))
-    ///         .eq(SimpleExpr::Column(ColumnRef::TableColumn(
-    ///             SeaRc::new(Char::Table),
-    ///             SeaRc::new(Char::UserData),
-    ///         ))),
+    ///         Expr::col((Glyph::Table, Glyph::Image))
+    ///             .eq(Expr::col((Char::Table, Char::UserData))),
     ///     )
     ///     .to_owned();
-    ///
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
