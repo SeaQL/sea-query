@@ -115,7 +115,8 @@ assert_eq!(
 
 * Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
 * Added `Func::md5` function https://github.com/SeaQL/sea-query/pull/786
-* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+* Added Postgres Json functions `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+* Added Postgres function `ARRAY_AGG` https://github.com/SeaQL/sea-query/pull/846
 * Added `Func::cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
 * Added `IF NOT EXISTS` to `ALTER TYPE ADD VALUE` https://github.com/SeaQL/sea-query/pull/803
 

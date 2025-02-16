@@ -474,7 +474,6 @@ impl PgFunc {
         FunctionCall::new(Function::PgFunction(PgFunction::ArrayAgg)).arg(expr)
     }
 
-
     /// Call the `ARRAY_AGG` function with the `DISTINCT` modifier. Postgres only.
     ///
     /// # Examples
