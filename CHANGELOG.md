@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Enhancements
 
 * Added `Expr::column` https://github.com/SeaQL/sea-query/pull/852
+* Added Postgres function `DATE_TRUNC` https://github.com/SeaQL/sea-query/pull/825
+* Added `INCLUDE` clause for Postgres BTree index https://github.com/SeaQL/sea-query/pull/826
 
 ### Bug Fixes
 
