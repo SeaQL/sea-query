@@ -49,7 +49,7 @@ Async support: `thread-safe` (use `Arc` inplace of `Rc`)
 SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
 Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
-`with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`
+`with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`, `postgres-vector`
 
 ## Usage
 
