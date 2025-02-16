@@ -80,8 +80,4 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     #[doc(hidden)]
     // Write WHERE clause for partial index. This function is not available in MySQL.
     fn prepare_filter(&self, _condition: &ConditionHolder, _sql: &mut dyn SqlWriter) {}
-
-    #[doc(hidden)]
-    // Write INCLUDE clause for index. This function is only available in PostgreSQL.
-    fn prepare_include_columns(&self, _columns: &[SeaRc<dyn Iden>], _sql: &mut dyn SqlWriter) {}
 }

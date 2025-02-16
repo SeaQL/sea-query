@@ -143,7 +143,9 @@ impl IndexBuilder for PostgresQueryBuilder {
     fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut dyn SqlWriter) {
         self.prepare_condition(condition, "WHERE", sql);
     }
+}
 
+impl PostgresQueryBuilder {
     fn prepare_include_columns(&self, columns: &[SeaRc<dyn Iden>], sql: &mut dyn SqlWriter) {
         write!(sql, "INCLUDE (").unwrap();
         columns.iter().fold(true, |first, col| {
