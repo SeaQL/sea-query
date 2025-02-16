@@ -1,6 +1,6 @@
 //! For calling built-in Postgres SQL functions.
 
-use crate::{expr::*, func::*};
+use crate::{expr::*, func::*, PgDateTruncUnit};
 
 /// Functions
 #[derive(Debug, Clone, PartialEq)]
@@ -16,6 +16,7 @@ pub enum PgFunction {
     GenRandomUUID,
     JsonBuildObject,
     JsonAgg,
+    DateTrunc,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -382,6 +383,45 @@ impl PgFunc {
             args.push(value.into());
         }
         FunctionCall::new(Function::PgFunction(PgFunction::JsonBuildObject)).args(args)
+    }
+
+    /// Call the `DATE_TRUNC` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::date_trunc(
+    ///         PgDateTruncUnit::Day,
+    ///         Expr::val("2020-01-01"),
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DATE_TRUNC('day', '2020-01-01')"#
+    /// );
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::date_trunc(
+    ///         PgDateTruncUnit::Microseconds,
+    ///         Expr::val("2020-01-01"),
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DATE_TRUNC('microseconds', '2020-01-01')"#
+    /// );
+    /// ```
+    pub fn date_trunc<T>(unit: PgDateTruncUnit, expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::PgFunction(PgFunction::DateTrunc))
+            .args([Expr::val(unit.to_string()).into(), expr.into()])
     }
 
     /// Call the `JSON_AGG` function. Postgres only.
