@@ -1482,6 +1482,62 @@ impl Expr {
         Self::new_with_left(n.into_column_ref())
     }
 
+    /// Express the target column without table prefix, returning a [`SimpleExpr`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::column(Char::SizeW).eq(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
+    /// );
+    /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::column((Char::Table, Char::SizeW)).eq(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
+    /// );
+    /// ```
+    pub fn column<T>(n: T) -> SimpleExpr
+    where
+        T: IntoColumnRef,
+    {
+        SimpleExpr::Column(n.into_column_ref())
+    }
+
     /// Wraps tuple of `SimpleExpr`, can be used for tuple comparison
     ///
     /// # Examples
@@ -3841,30 +3897,8 @@ impl SimpleExpr {
         ExprTrait::cast_as(self, type_name)
     }
 
-    /// Express a case-sensitive `CAST AS` expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::value("1").cast_as_quoted(Alias::new("MyType"), '"'.into()))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// ```
+    /// Soft deprecated. This is not meant to be in the public API.
+    #[doc(hidden)]
     pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self
     where
         T: IntoIden,

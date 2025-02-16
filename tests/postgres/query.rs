@@ -1275,6 +1275,20 @@ fn insert_10() {
     );
 }
 
+// regression tests for https://github.com/SeaQL/sea-query/issues/853
+#[test]
+#[cfg(feature = "postgres-array")]
+fn insert_issue_853() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Glyph::Table)
+            .columns([Glyph::Aspect, Glyph::Tokens])
+            .values_panic([3.1415.into(), Vec::<String>::new().into()])
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, '{}')"#
+    );
+}
+
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_1() {

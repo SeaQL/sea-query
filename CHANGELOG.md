@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Pending
+
+### Enhancements
+
+* Added `Expr::column` https://github.com/SeaQL/sea-query/pull/852
+* Added Postgres function `DATE_TRUNC` https://github.com/SeaQL/sea-query/pull/825
+* Added `INCLUDE` clause for Postgres BTree index https://github.com/SeaQL/sea-query/pull/826
+
+### Bug Fixes
+
+* Write empty Postgres array as '{}' https://github.com/SeaQL/sea-query/pull/854
+
 ## 0.32.1 - 2024-12-01
 
 ### New Features
@@ -104,7 +116,7 @@ assert_eq!(
 * Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
 * Added `Func::md5` function https://github.com/SeaQL/sea-query/pull/786
 * Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
-* Added `cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
+* Added `Func::cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
 * Added `IF NOT EXISTS` to `ALTER TYPE ADD VALUE` https://github.com/SeaQL/sea-query/pull/803
 
 ## 0.31.0 - 2024-08-02
