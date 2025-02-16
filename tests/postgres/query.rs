@@ -1093,6 +1093,33 @@ fn select_62() {
 }
 
 #[test]
+fn select_63() {
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Glyph::Table)
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Alias::new("cte"))
+        .with_cte(cte)
+        .to_owned();
+    assert_eq!(
+        select.to_string(PostgresQueryBuilder),
+        [
+            r#"WITH "cte" AS"#,
+            r#"(SELECT "id", "image", "aspect""#,
+            r#"FROM "glyph")"#,
+            r#"SELECT "id", "image", "aspect" FROM "cte""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     assert_eq!(
@@ -1287,6 +1314,40 @@ fn insert_issue_853() {
             .to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, '{}')"#
     );
+}
+
+#[test]
+fn insert_11() -> error::Result<()> {
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Glyph::Table)
+        .to_owned();
+    let cte = CommonTableExpression::new()
+        .query(select)
+        .column(Glyph::Id)
+        .column(Glyph::Image)
+        .column(Glyph::Aspect)
+        .table_name(Alias::new("cte"))
+        .to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from(Alias::new("cte"))
+        .to_owned();
+    let mut insert = Query::insert();
+    insert
+        .into_table(Glyph::Table)
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .with_cte(cte)
+        .select_from(select)?;
+    let sql = insert.to_string(PostgresQueryBuilder);
+    assert_eq!(
+        sql.as_str(),
+        [
+            r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph")"#,
+            r#"INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#,
+        ].join(" ")
+    );
+    Ok(())
 }
 
 #[test]
