@@ -99,6 +99,22 @@ fn create_7() {
 }
 
 #[test]
+fn create_8() {
+    assert_eq!(
+        Index::create()
+            .name("idx-font-name-include-id-language")
+            .table(Font::Table)
+            .col(Font::Name)
+            .include(Font::Id)
+            .include(Font::Language)
+            .unique()
+            .nulls_not_distinct()
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE UNIQUE INDEX "idx-font-name-include-id-language" ON "font" ("name") INCLUDE ("id", "language") NULLS NOT DISTINCT"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

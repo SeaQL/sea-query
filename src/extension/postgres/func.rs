@@ -1,6 +1,6 @@
 //! For calling built-in Postgres SQL functions.
 
-use crate::{expr::*, func::*};
+use crate::{expr::*, func::*, PgDateTruncUnit};
 
 /// Functions
 #[derive(Debug, Clone, PartialEq)]
@@ -16,6 +16,8 @@ pub enum PgFunction {
     GenRandomUUID,
     JsonBuildObject,
     JsonAgg,
+    ArrayAgg,
+    DateTrunc,
     #[cfg(feature = "postgres-array")]
     Any,
     #[cfg(feature = "postgres-array")]
@@ -384,6 +386,45 @@ impl PgFunc {
         FunctionCall::new(Function::PgFunction(PgFunction::JsonBuildObject)).args(args)
     }
 
+    /// Call the `DATE_TRUNC` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::date_trunc(
+    ///         PgDateTruncUnit::Day,
+    ///         Expr::val("2020-01-01"),
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DATE_TRUNC('day', '2020-01-01')"#
+    /// );
+    ///
+    /// let query = Query::select()
+    ///     .expr(PgFunc::date_trunc(
+    ///         PgDateTruncUnit::Microseconds,
+    ///         Expr::val("2020-01-01"),
+    ///     ))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT DATE_TRUNC('microseconds', '2020-01-01')"#
+    /// );
+    /// ```
+    pub fn date_trunc<T>(unit: PgDateTruncUnit, expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::PgFunction(PgFunction::DateTrunc))
+            .args([Expr::val(unit.to_string()).into(), expr.into()])
+    }
+
     /// Call the `JSON_AGG` function. Postgres only.
     ///
     /// # Examples
@@ -406,5 +447,56 @@ impl PgFunc {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::JsonAgg)).arg(expr)
+    }
+
+    /// Call the `ARRAY_AGG` function. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr(PgFunc::array_agg(Expr::col(Char::Id)))
+    ///     .group_by_col(Char::Character)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT ARRAY_AGG("id") FROM "character" GROUP BY "character""#
+    /// );
+    /// ```
+    pub fn array_agg<T>(expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::PgFunction(PgFunction::ArrayAgg)).arg(expr)
+    }
+
+    /// Call the `ARRAY_AGG` function with the `DISTINCT` modifier. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .expr(PgFunc::array_agg_distinct(Expr::col(Char::Id)))
+    ///     .group_by_col(Char::Character)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT ARRAY_AGG(DISTINCT "id") FROM "character" GROUP BY "character""#
+    /// );
+    /// ```
+    pub fn array_agg_distinct<T>(expr: T) -> FunctionCall
+    where
+        T: Into<SimpleExpr>,
+    {
+        FunctionCall::new(Function::PgFunction(PgFunction::ArrayAgg))
+            .arg_with(expr, FuncArgMod { distinct: true })
     }
 }

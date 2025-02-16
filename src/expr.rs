@@ -105,7 +105,7 @@ pub trait ExprTrait: Sized {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS "FontSizeEnum"))"#
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -1480,6 +1480,62 @@ impl Expr {
         T: IntoColumnRef,
     {
         Self::new_with_left(n.into_column_ref())
+    }
+
+    /// Express the target column without table prefix, returning a [`SimpleExpr`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::column(Char::SizeW).eq(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 1"#
+    /// );
+    /// ```
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::column((Char::Table, Char::SizeW)).eq(1))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`size_w` = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
+    /// );
+    /// ```
+    pub fn column<T>(n: T) -> SimpleExpr
+    where
+        T: IntoColumnRef,
+    {
+        SimpleExpr::Column(n.into_column_ref())
     }
 
     /// Wraps tuple of `SimpleExpr`, can be used for tuple comparison
@@ -3236,7 +3292,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST("font_size" AS "text") FROM "character""#
+    ///     r#"SELECT CAST("font_size" AS text) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -3255,7 +3311,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS "FontSizeEnum"))"#
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -3841,36 +3897,13 @@ impl SimpleExpr {
         ExprTrait::cast_as(self, type_name)
     }
 
-    /// Express a case-sensitive `CAST AS` expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::value("1").cast_as_quoted(Alias::new("MyType"), '"'))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// ```
-    pub fn cast_as_quoted<T, Q>(self, type_name: T, q: Q) -> Self
+    /// Soft deprecated. This is not meant to be in the public API.
+    #[doc(hidden)]
+    pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self
     where
         T: IntoIden,
-        Q: Into<Quote>,
     {
-        let func = Func::cast_as_quoted(self, type_name, q.into());
+        let func = Func::cast_as_quoted(self, type_name, q);
         Self::FunctionCall(func)
     }
 
