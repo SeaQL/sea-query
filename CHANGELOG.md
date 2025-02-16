@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Pending
 
+### New Features
+
+* Added `with_cte` to use `WITH` clauses in all statements https://github.com/SeaQL/sea-query/pull/859
+```rust
+let select = SelectStatement::new()
+    .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    .from(Glyph::Table)
+    .to_owned();
+let cte = CommonTableExpression::new()
+    .query(select)
+    .table_name(Alias::new("cte"))
+    .to_owned();
+let select = SelectStatement::new()
+    .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    .from(Alias::new("cte"))
+    .with_cte(cte)
+    .to_owned();
+assert_eq!(
+    select.to_string(PostgresQueryBuilder),
+    [
+        r#"WITH "cte" AS"#,
+        r#"(SELECT "id", "image", "aspect""#,
+        r#"FROM "glyph")"#,
+        r#"SELECT "id", "image", "aspect" FROM "cte""#,
+    ]
+    .join(" ")
+);
+```
+
 ### Enhancements
 
 * Added `Expr::column` https://github.com/SeaQL/sea-query/pull/852
