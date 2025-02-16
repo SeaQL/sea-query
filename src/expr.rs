@@ -3897,30 +3897,8 @@ impl SimpleExpr {
         ExprTrait::cast_as(self, type_name)
     }
 
-    /// Express a case-sensitive `CAST AS` expression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::value("1").cast_as_quoted(Alias::new("MyType"), '"'.into()))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CAST('1' AS "MyType")"#
-    /// );
-    /// ```
+    /// Soft deprecated. This is not meant to be in the public API.
+    #[doc(hidden)]
     pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self
     where
         T: IntoIden,
