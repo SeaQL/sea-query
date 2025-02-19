@@ -3299,6 +3299,32 @@ impl Expr {
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     ///
+    /// struct TextArray;
+    ///
+    /// impl Iden for TextArray {
+    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+    ///         write!(s, "text[]").unwrap();
+    ///     }
+    /// }
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col(Char::FontSize).as_enum(TextArray))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `font_size` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST("font_size" AS text[]) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "font_size" FROM "character""#
+    /// );
+    ///
     /// let query = Query::insert()
     ///     .into_table(Char::Table)
     ///     .columns([Char::FontSize])
