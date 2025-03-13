@@ -1030,11 +1030,37 @@ impl SelectStatement {
         self.from_from(TableRef::SubQuery(query, alias.into_iden()))
     }
 
-    pub fn from_cust<T>(&mut self, cust: String, alias: T) -> &mut Self
+    /// From custom table reference.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Glyph::Image])
+    ///     .from_cust("(glyph TABLESAMPLE SYSTEM (10))", Alias::new("subglyph"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `image` FROM (glyph TABLESAMPLE SYSTEM (10)) AS `subglyph`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "image" FROM (glyph TABLESAMPLE SYSTEM (10)) AS "subglyph""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "image" FROM (glyph TABLESAMPLE SYSTEM (10)) AS "subglyph""#
+    /// );
+    /// ```
+    pub fn from_cust<T, I>(&mut self, cust: T, alias: I) -> &mut Self
     where
-        T: IntoIden,
+        T: Into<String>,
+        I: IntoIden,
     {
-        self.from_from(TableRef::Custom(cust, alias.into_iden()))
+        self.from_from(TableRef::Custom(cust.into(), alias.into_iden()))
     }
 
     /// From function call.
