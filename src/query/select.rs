@@ -1039,28 +1039,27 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .columns([Glyph::Image])
-    ///     .from_cust("(glyph TABLESAMPLE SYSTEM (10))", Alias::new("subglyph"))
+    ///     .from_cust("glyph TABLESAMPLE SYSTEM (10)")
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `image` FROM (glyph TABLESAMPLE SYSTEM (10)) AS `subglyph`"#
+    ///     r#"SELECT `image` FROM glyph TABLESAMPLE SYSTEM (10)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "image" FROM (glyph TABLESAMPLE SYSTEM (10)) AS "subglyph""#
+    ///     r#"SELECT "image" FROM glyph TABLESAMPLE SYSTEM (10)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "image" FROM (glyph TABLESAMPLE SYSTEM (10)) AS "subglyph""#
+    ///     r#"SELECT "image" FROM glyph TABLESAMPLE SYSTEM (10)"#
     /// );
     /// ```
-    pub fn from_cust<T, I>(&mut self, cust: T, alias: I) -> &mut Self
+    pub fn from_cust<T>(&mut self, cust: T) -> &mut Self
     where
         T: Into<String>,
-        I: IntoIden,
     {
-        self.from_from(TableRef::Custom(cust.into(), alias.into_iden()))
+        self.from_from(TableRef::Custom(cust.into()))
     }
 
     /// From function call.

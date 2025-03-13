@@ -40,7 +40,7 @@ pub trait TableRefBuilder: QuotedBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql.as_writer(), self.quote());
             }
-            TableRef::Custom(_, _)
+            TableRef::Custom(_)
             | TableRef::SubQuery(_, _)
             | TableRef::ValuesList(_, _)
             | TableRef::FunctionCall(_, _) => {
