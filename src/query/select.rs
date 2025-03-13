@@ -1030,6 +1030,13 @@ impl SelectStatement {
         self.from_from(TableRef::SubQuery(query, alias.into_iden()))
     }
 
+    pub fn from_cust<T>(&mut self, cust: String, alias: T) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.from_from(TableRef::Custom(cust, alias.into_iden()))
+    }
+
     /// From function call.
     ///
     /// # Examples
