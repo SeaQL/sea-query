@@ -139,6 +139,21 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
+    fn prepare_table_sample(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        let Some(table_sample) = select.table_sample else {
+            return;
+        };
+
+        match table_sample.method {
+            SampleMethod::BERNOULLI => write!(sql, " TABLESAMPLE BERNOULLI").unwrap(),
+            SampleMethod::SYSTEM => write!(sql, " TABLESAMPLE SYSTEM").unwrap(),
+        }
+        write!(sql, " ({})", table_sample.percentage).unwrap();
+        if let Some(repeatable) = table_sample.repeatable {
+            write!(sql, " REPEATABLE ({repeatable})").unwrap();
+        }
+    }
+
     fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql);

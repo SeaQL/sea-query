@@ -55,6 +55,8 @@ pub struct SelectStatement {
     pub(crate) lock: Option<LockClause>,
     pub(crate) window: Option<(DynIden, WindowStatement)>,
     pub(crate) with: Option<WithClause>,
+    #[cfg(feature = "backend-postgres")]
+    pub(crate) table_sample: Option<crate::extension::postgres::TableSample>,
     #[cfg(feature = "backend-mysql")]
     pub(crate) index_hints: Vec<crate::extension::mysql::IndexHint>,
 }
@@ -164,6 +166,8 @@ impl SelectStatement {
             lock: self.lock.take(),
             window: self.window.take(),
             with: self.with.take(),
+            #[cfg(feature = "backend-postgres")]
+            table_sample: std::mem::take(&mut self.table_sample),
             #[cfg(feature = "backend-mysql")]
             index_hints: std::mem::take(&mut self.index_hints),
         }
