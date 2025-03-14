@@ -55,6 +55,8 @@ pub struct SelectStatement {
     pub(crate) lock: Option<LockClause>,
     pub(crate) window: Option<(DynIden, WindowStatement)>,
     pub(crate) with: Option<WithClause>,
+    #[cfg(feature = "backend-postgres")]
+    pub(crate) table_sample: Option<crate::extension::postgres::TableSample>,
     #[cfg(feature = "backend-mysql")]
     pub(crate) index_hints: Vec<crate::extension::mysql::IndexHint>,
 }
@@ -164,6 +166,8 @@ impl SelectStatement {
             lock: self.lock.take(),
             window: self.window.take(),
             with: self.with.take(),
+            #[cfg(feature = "backend-postgres")]
+            table_sample: std::mem::take(&mut self.table_sample),
             #[cfg(feature = "backend-mysql")]
             index_hints: std::mem::take(&mut self.index_hints),
         }
@@ -1028,38 +1032,6 @@ impl SelectStatement {
         T: IntoIden,
     {
         self.from_from(TableRef::SubQuery(query, alias.into_iden()))
-    }
-
-    /// From custom table reference.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Glyph::Image])
-    ///     .from_cust("glyph TABLESAMPLE SYSTEM (10)")
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `image` FROM glyph TABLESAMPLE SYSTEM (10)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "image" FROM glyph TABLESAMPLE SYSTEM (10)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "image" FROM glyph TABLESAMPLE SYSTEM (10)"#
-    /// );
-    /// ```
-    pub fn from_cust<T>(&mut self, cust: T) -> &mut Self
-    where
-        T: Into<String>,
-    {
-        self.from_from(TableRef::Custom(cust.into()))
     }
 
     /// From function call.

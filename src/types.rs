@@ -145,8 +145,6 @@ pub enum TableRef {
     ValuesList(Vec<ValueTuple>, DynIden),
     /// Function call with alias
     FunctionCall(FunctionCall, DynIden),
-    /// Custom table reference
-    Custom(String),
 }
 
 pub trait IntoTableRef {
@@ -540,7 +538,6 @@ impl TableRef {
             Self::SubQuery(statement, _) => Self::SubQuery(statement, alias.into_iden()),
             Self::ValuesList(values, _) => Self::ValuesList(values, alias.into_iden()),
             Self::FunctionCall(func, _) => Self::FunctionCall(func, alias.into_iden()),
-            Self::Custom(cust) => Self::Custom(cust),
         }
     }
 }

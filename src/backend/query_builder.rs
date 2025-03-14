@@ -128,6 +128,7 @@ pub trait QueryBuilder:
                 false
             });
             self.prepare_index_hints(select, sql);
+            self.prepare_table_sample(select, sql);
         }
 
         if !select.join.is_empty() {
@@ -439,6 +440,9 @@ pub trait QueryBuilder:
     /// Translate [`IndexHint`] into SQL statement.
     fn prepare_index_hints(&self, _select: &SelectStatement, _sql: &mut dyn SqlWriter) {}
 
+    /// Translate [`TableSample`] into SQL statement.
+    fn prepare_table_sample(&self, _select: &SelectStatement, _sql: &mut dyn SqlWriter) {}
+
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut dyn SqlWriter) {
         write!(
@@ -532,9 +536,6 @@ pub trait QueryBuilder:
                 self.prepare_function_arguments(func, sql);
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql.as_writer(), self.quote());
-            }
-            TableRef::Custom(cust) => {
-                write!(sql, "{cust}").unwrap();
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
         }

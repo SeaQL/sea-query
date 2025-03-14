@@ -40,8 +40,7 @@ pub trait TableRefBuilder: QuotedBuilder {
                 write!(sql, " AS ").unwrap();
                 alias.prepare(sql.as_writer(), self.quote());
             }
-            TableRef::Custom(_)
-            | TableRef::SubQuery(_, _)
+            TableRef::SubQuery(_, _)
             | TableRef::ValuesList(_, _)
             | TableRef::FunctionCall(_, _) => {
                 panic!("TableRef with values is not support")
