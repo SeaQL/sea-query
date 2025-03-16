@@ -40,6 +40,17 @@ impl PostgresSelectStatementExt for SelectStatement {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "image" FROM "glyph" TABLESAMPLE SYSTEM (50)"#
     /// );
+    ///
+    /// let query = Query::select()
+    ///     .columns([Glyph::Image])
+    ///     .from(Glyph::Table)
+    ///     .table_sample(SampleMethod::SYSTEM, 50.0, Some(3.14))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "image" FROM "glyph" TABLESAMPLE SYSTEM (50) REPEATABLE (3.14)"#
+    /// );
     /// ```
     fn table_sample(
         &mut self,
