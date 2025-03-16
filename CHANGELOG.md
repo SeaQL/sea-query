@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.32.3 - 2025-03-16
+
+### New Features
+
+* Support `Update FROM ..` https://github.com/SeaQL/sea-query/pull/861
+```rust
+let query = Query::update()
+    .table(Glyph::Table)
+    .value(Glyph::Tokens, Expr::column((Char::Table, Char::Character)))
+    .from(Char::Table)
+    .cond_where(
+        Expr::col((Glyph::Table, Glyph::Image))
+            .eq(Expr::col((Char::Table, Char::UserData))),
+    )
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
+);
+```
+* Support `TABLESAMPLE` (Postgres) https://github.com/SeaQL/sea-query/pull/865
+```rust
+use sea_query::extension::postgres::PostgresSelectStatementExt;
+
+let query = Query::select()
+    .columns([Glyph::Image])
+    .from(Glyph::Table)
+    .table_sample(SampleMethod::SYSTEM, 50.0, None)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT "image" FROM "glyph" TABLESAMPLE SYSTEM (50)"#
+);
+```
+* Support `ALTER COLUMN USING ..` (Postgres) https://github.com/SeaQL/sea-query/pull/848
+```rust
+let table = Table::alter()
+    .table(Char::Table)
+    .modify_column(
+        ColumnDef::new(Char::Id)
+            .integer()
+            .using(Expr::col(Char::Id).cast_as(Alias::new("integer"))),
+    )
+    .to_owned();
+
+assert_eq!(
+    table.to_string(PostgresQueryBuilder),
+    [
+        r#"ALTER TABLE "character""#,
+        r#"ALTER COLUMN "id" TYPE integer USING CAST("id" AS integer)"#,
+    ]
+    .join(" ")
+);
+```
+
+### House Keeping
+
+* Updated `ordered-float` to `4`
+* Updated `thiserror` to `2`
+
 ## 0.32.2 - 2025-02-18
 
 ### New Features
