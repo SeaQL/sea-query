@@ -69,7 +69,12 @@ impl UpdateStatement {
         self
     }
 
-    /// From table.
+    /// Update using data from another table (`UPDATE .. FROM ..`).
+    ///
+    /// # MySQL Notes
+    ///
+    /// MySQL doesn't support the UPDATE FROM syntax. And the current implementation attempt to tranform it to the UPDATE JOIN syntax,
+    /// which only works for one join target.
     ///
     /// # Examples
     ///
