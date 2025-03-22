@@ -116,19 +116,6 @@ fn create_8() {
 
 #[test]
 fn create_9() {
-    let stmt = [
-        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-        r#""id" serial NOT NULL PRIMARY KEY,"#,
-        r#""created_at" timestamp with time zone NOT NULL"#,
-        r#""font_size" integer NOT NULL,"#,
-        r#""character" varchar(255) NOT NULL,"#,
-        r#""size_w" integer NOT NULL,"#,
-        r#""size_h" integer NOT NULL,"#,
-        r#""font_id" integer DEFAULT NULL,"#,
-        r#")"#,
-    ]
-    .join(" ");
-    println!("{}", stmt);
     assert_eq!(
         Index::create()
             .name("idx-character-area")
