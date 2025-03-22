@@ -9,11 +9,31 @@ pub struct TableIndex {
 }
 
 #[derive(Debug, Clone)]
-pub struct IndexColumn {
-    pub(crate) name: Option<DynIden>,
+pub enum IndexColumn {
+    TableColumn(IndexColumnTableColumn),
+    Expr(IndexColumnExpr),
+}
+
+#[derive(Debug, Clone)]
+pub struct IndexColumnTableColumn {
+    pub(crate) name: DynIden,
     pub(crate) prefix: Option<u32>,
     pub(crate) order: Option<IndexOrder>,
-    pub(crate) expr: Option<SimpleExpr>,
+}
+
+#[derive(Debug, Clone)]
+pub struct IndexColumnExpr {
+    pub(crate) expr: SimpleExpr,
+    pub(crate) order: Option<IndexOrder>,
+}
+
+impl IndexColumn {
+    pub(crate) fn name(&self) -> Option<&DynIden> {
+        match self {
+            IndexColumn::TableColumn(IndexColumnTableColumn { name, .. }) => Some(name),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -37,12 +57,11 @@ where
     I: IntoIden,
 {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: Some(self.into_iden()),
+        IndexColumn::TableColumn(IndexColumnTableColumn {
+            name: self.into_iden(),
             prefix: None,
             order: None,
-            expr: None,
-        }
+        })
     }
 }
 
@@ -51,12 +70,11 @@ where
     I: IntoIden,
 {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: Some(self.0.into_iden()),
+        IndexColumn::TableColumn(IndexColumnTableColumn {
+            name: self.0.into_iden(),
             prefix: Some(self.1),
             order: None,
-            expr: None,
-        }
+        })
     }
 }
 
@@ -65,12 +83,11 @@ where
     I: IntoIden,
 {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: Some(self.0.into_iden()),
+        IndexColumn::TableColumn(IndexColumnTableColumn {
+            name: self.0.into_iden(),
             prefix: None,
             order: Some(self.1),
-            expr: None,
-        }
+        })
     }
 }
 
@@ -79,56 +96,47 @@ where
     I: IntoIden,
 {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: Some(self.0.into_iden()),
+        IndexColumn::TableColumn(IndexColumnTableColumn {
+            name: self.0.into_iden(),
             prefix: Some(self.1),
             order: Some(self.2),
-            expr: None,
-        }
+        })
     }
 }
 
 impl IntoIndexColumn for FunctionCall {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: None,
-            prefix: None,
+        IndexColumn::Expr(IndexColumnExpr {
+            expr: self.into(),
             order: None,
-            expr: Some(self.into()),
-        }
+        })
     }
 }
 
 impl IntoIndexColumn for (FunctionCall, IndexOrder) {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: None,
-            prefix: None,
+        IndexColumn::Expr(IndexColumnExpr {
+            expr: self.0.into(),
             order: Some(self.1),
-            expr: Some(self.0.into()),
-        }
+        })
     }
 }
 
 impl IntoIndexColumn for SimpleExpr {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: None,
-            prefix: None,
+        IndexColumn::Expr(IndexColumnExpr {
+            expr: self,
             order: None,
-            expr: Some(self),
-        }
+        })
     }
 }
 
 impl IntoIndexColumn for (SimpleExpr, IndexOrder) {
     fn into_index_column(self) -> IndexColumn {
-        IndexColumn {
-            name: None,
-            prefix: None,
+        IndexColumn::Expr(IndexColumnExpr {
+            expr: self.0,
             order: Some(self.1),
-            expr: Some(self.0),
-        }
+        })
     }
 }
 
@@ -156,7 +164,7 @@ impl TableIndex {
     pub fn get_column_names(&self) -> Vec<String> {
         self.columns
             .iter()
-            .filter_map(|col| col.name.as_ref().map(|name| name.to_string()))
+            .filter_map(|col| col.name().map(|name| name.to_string()))
             .collect()
     }
 
