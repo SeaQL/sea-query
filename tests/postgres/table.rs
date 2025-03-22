@@ -648,3 +648,47 @@ fn create_17() {
         .join(" ")
     );
 }
+
+#[test]
+fn create_18() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Char::Id)
+                    .integer()
+                    .not_null()
+                    .primary_key()
+                    .auto_increment(),
+            )
+            .col(ColumnDef::new(Char::FontSize).integer().not_null())
+            .col(ColumnDef::new(Char::Character).string_len(255).not_null())
+            .col(ColumnDef::new(Char::SizeW).unsigned().not_null())
+            .col(ColumnDef::new(Char::SizeH).unsigned().not_null())
+            .col(
+                ColumnDef::new(Char::FontId)
+                    .integer()
+                    .default(Value::Int(None)),
+            )
+            .index(
+                Index::create()
+                    .name("idx-character-area")
+                    .table(Character::Table)
+                    .col(Expr::col(Character::SizeH).mul(Expr::col(Character::SizeW))),
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""font_size" integer NOT NULL,"#,
+            r#""character" varchar(255) NOT NULL,"#,
+            r#""size_w" integer NOT NULL,"#,
+            r#""size_h" integer NOT NULL,"#,
+            r#""font_id" integer DEFAULT NULL,"#,
+            r#"CONSTRAINT "idx-character-area" (("size_h" * "size_w"))"#,
+            r#")"#,
+        ]
+        .join(" "),
+    );
+}

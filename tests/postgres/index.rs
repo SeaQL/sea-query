@@ -115,6 +115,48 @@ fn create_8() {
 }
 
 #[test]
+fn create_9() {
+    let stmt = [
+        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
+        r#""id" serial NOT NULL PRIMARY KEY,"#,
+        r#""created_at" timestamp with time zone NOT NULL"#,
+        r#""font_size" integer NOT NULL,"#,
+        r#""character" varchar(255) NOT NULL,"#,
+        r#""size_w" integer NOT NULL,"#,
+        r#""size_h" integer NOT NULL,"#,
+        r#""font_id" integer DEFAULT NULL,"#,
+        r#")"#,
+    ]
+    .join(" ");
+    println!("{}", stmt);
+    assert_eq!(
+        Index::create()
+            .name("idx-character-area")
+            .table(Character::Table)
+            .col(Expr::col(Character::SizeH).mul(Expr::col(Character::SizeW)))
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX "idx-character-area" ON "character" (("size_h" * "size_w"))"#
+    )
+}
+
+#[test]
+fn create_10() {
+    assert_eq!(
+        Index::create()
+            .name("idx-character-character-area-desc-created_at")
+            .table(Character::Table)
+            .col(Func::upper(Expr::col(Character::Character)))
+            .col((
+                Expr::col(Character::SizeH).mul(Expr::col(Character::SizeW)),
+                IndexOrder::Desc,
+            ))
+            .col(Character::CreatedAt)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX "idx-character-character-area-desc-created_at" ON "character" ((UPPER("character")), ("size_h" * "size_w") DESC, "created_at")"#
+    )
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()
