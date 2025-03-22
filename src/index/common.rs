@@ -31,7 +31,7 @@ impl IndexColumn {
     pub(crate) fn name(&self) -> Option<&DynIden> {
         match self {
             IndexColumn::TableColumn(IndexColumnTableColumn { name, .. }) => Some(name),
-            _ => None,
+            IndexColumn::Expr(_) => None,
         }
     }
 }
