@@ -89,7 +89,7 @@ fn select_7() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .to_string(PostgresQueryBuilder),
         r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2"#
     );
@@ -152,7 +152,7 @@ fn select_11() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by(Glyph::Image, Order::Desc)
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(PostgresQueryBuilder),
@@ -166,7 +166,7 @@ fn select_12() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns([(Glyph::Id, Order::Asc), (Glyph::Aspect, Order::Desc)])
             .to_string(PostgresQueryBuilder),
         r#"SELECT "aspect" FROM "glyph" WHERE COALESCE("aspect", 0) > 2 ORDER BY "id" ASC, "aspect" DESC"#
@@ -179,7 +179,7 @@ fn select_13() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns([
                 ((Glyph::Table, Glyph::Id), Order::Asc),
                 ((Glyph::Table, Glyph::Aspect), Order::Desc),
@@ -372,9 +372,10 @@ fn select_26() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where(
-                Expr::expr(Expr::col(Char::SizeW).add(1))
+                Expr::col(Char::SizeW)
+                    .add(1)
                     .mul(2)
-                    .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                    .eq(Expr::col(Char::SizeH).div(2).sub(1))
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#
@@ -804,7 +805,7 @@ fn select_51() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
             .order_by_with_nulls(
                 (Glyph::Table, Glyph::Aspect),
@@ -829,7 +830,7 @@ fn select_52() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns_with_nulls([
                 (Glyph::Id, Order::Asc, NullOrdering::First),
                 (Glyph::Aspect, Order::Desc, NullOrdering::Last),
@@ -852,7 +853,7 @@ fn select_53() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns_with_nulls([
                 ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
                 (
@@ -880,7 +881,7 @@ fn select_54() {
             .distinct_on([Glyph::Aspect])
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns_with_nulls([
                 ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
                 (
@@ -922,7 +923,7 @@ fn select_56() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by(
                 Glyph::Id,
                 Order::Field(Values(vec![
@@ -956,7 +957,7 @@ fn select_57() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .order_by(
                 Glyph::Id,

@@ -229,7 +229,8 @@
 //!
 //! ### Expression
 //!
-//! Use [`Expr`] to construct select, join, where and having expression in query.
+//! Use [`Expr`] constructors and [`ExprTrait`] methods
+//! to construct `SELECT`, `JOIN`, `WHERE` and `HAVING` expression in query.
 //!
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
@@ -238,9 +239,10 @@
 //!         .column(Char::Character)
 //!         .from(Char::Table)
 //!         .and_where(
-//!             Expr::expr(Expr::col(Char::SizeW).add(1))
+//!             Expr::col(Char::SizeW)
+//!                 .add(1)
 //!                 .mul(2)
-//!                 .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+//!                 .eq(Expr::col(Char::SizeH).div(2).sub(1))
 //!         )
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(

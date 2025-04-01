@@ -90,7 +90,7 @@ fn select_7() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .to_string(MysqlQueryBuilder),
         "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2"
     );
@@ -150,7 +150,7 @@ fn select_11() {
                 Glyph::Aspect,
             ])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by(Glyph::Image, Order::Desc)
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(MysqlQueryBuilder),
@@ -166,7 +166,7 @@ fn select_12() {
                 Glyph::Aspect,
             ])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns([
                 (Glyph::Id, Order::Asc),
                 (Glyph::Aspect, Order::Desc),
@@ -184,7 +184,7 @@ fn select_13() {
                 Glyph::Aspect,
             ])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns([
                 ((Glyph::Table, Glyph::Id), Order::Asc),
                 ((Glyph::Table, Glyph::Aspect), Order::Desc),
@@ -383,9 +383,10 @@ fn select_26() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where(
-                Expr::expr(Expr::col(Char::SizeW).add(1))
+                Expr::col(Char::SizeW)
+                    .add(1)
                     .mul(2)
-                    .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                    .eq(Expr::col(Char::SizeH).div(2).sub(1))
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` WHERE (`size_w` + 1) * 2 = (`size_h` / 2) - 1"
@@ -820,7 +821,7 @@ fn select_51() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
             .order_by_with_nulls(
                 (Glyph::Table, Glyph::Aspect),
@@ -847,7 +848,7 @@ fn select_52() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns_with_nulls([
                 (Glyph::Id, Order::Asc, NullOrdering::First),
                 (Glyph::Aspect, Order::Desc, NullOrdering::Last),
@@ -872,7 +873,7 @@ fn select_53() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns_with_nulls([
                 ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
                 (
@@ -916,7 +917,7 @@ fn select_55() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by(
                 Glyph::Id,
                 Order::Field(Values(vec![4.into(), 5.into(), 1.into(), 3.into()]))
@@ -945,7 +946,7 @@ fn select_56() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .order_by(
                 Glyph::Id,
