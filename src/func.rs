@@ -644,7 +644,7 @@ impl Func {
     /// let query = Query::select()
     ///     .column(Font::Id)
     ///     .from(Font::Table)
-    ///     .and_where(Expr::expr(Func::lower(Expr::col(Font::Name))).eq("abc".trim().to_lowercase()))
+    ///     .and_where(Func::lower(Expr::col(Font::Name)).eq("abc".trim().to_lowercase()))
     ///     .take();
     ///
     /// assert_eq!(
