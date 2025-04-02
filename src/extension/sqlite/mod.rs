@@ -4,7 +4,9 @@ use crate::types::BinOper;
 
 mod expr;
 
-/// Sqlite-specific binary operator.
+/// SQLite-specific binary operators.
+///
+/// For all supported operators (including the standard ones), see [`BinOper`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SqliteBinOper {
     /// `GLOB`
