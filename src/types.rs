@@ -151,13 +151,15 @@ pub trait IntoTableRef {
     fn into_table_ref(self) -> TableRef;
 }
 
-/// Unary operator
+/// Unary operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnOper {
     Not,
 }
 
-/// Binary operator
+/// Binary operators.
+///
+/// If something is not supported here, you can use [`BinOper::Custom`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOper {
     And,
@@ -194,7 +196,7 @@ pub enum BinOper {
     SqliteOperator(SqliteBinOper),
 }
 
-/// Logical chain operator
+/// Logical chain operator: conjunction or disjunction.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
     And(SimpleExpr),
@@ -306,7 +308,9 @@ pub struct NullAlias;
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Asterisk;
 
-/// SQL Keywords
+/// Known SQL keywords that can be used as expressions.
+///
+/// If something is not supported here, you can use [`Keyword::Custom`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     Null,
