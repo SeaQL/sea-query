@@ -7,10 +7,19 @@ use std::{fmt, mem, ops};
 use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
 use crate::extension::sqlite::SqliteBinOper;
+
+/// A reference counted pointer: either [`Rc`][std::rc::Rc] or [`Arc`][std::sync::Arc],
+/// depending on the feature flags.
+///
+/// [`Arc`][std::sync::Arc] is used when `thread-safe` feature is activated.
 #[cfg(not(feature = "thread-safe"))]
-pub use std::rc::Rc as RcOrArc;
+pub type RcOrArc<T> = std::rc::Rc<T>;
+/// A reference counted pointer: either [`Rc`][std::rc::Rc] or [`Arc`][std::sync::Arc],
+/// depending on the feature flags.
+///
+/// [`Arc`][std::sync::Arc] is used when `thread-safe` feature is activated.
 #[cfg(feature = "thread-safe")]
-pub use std::sync::Arc as RcOrArc;
+pub type RcOrArc<T> = std::sync::Arc<T>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Quote(pub(crate) u8, pub(crate) u8);
