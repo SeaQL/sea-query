@@ -187,6 +187,22 @@ use super::common::*;
 ///     r#"CREATE INDEX "idx-font-name-include-language" ON "font" ("name") INCLUDE ("language")"#
 /// )
 /// ```
+///
+/// Functional Index
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let index = Index::create()
+///     .name("idx-character-area")
+///     .table(Character::Table)
+///     .col(Expr::col(Character::SizeH).mul(Expr::col(Character::SizeW)))
+///     .to_owned();
+///
+/// assert_eq!(
+///     index.to_string(PostgresQueryBuilder),
+///     r#"CREATE INDEX "idx-character-area" ON "character" (("size_h" * "size_w"))"#
+/// )
+/// ```
 #[derive(Default, Debug, Clone)]
 pub struct IndexCreateStatement {
     pub(crate) table: Option<TableRef>,

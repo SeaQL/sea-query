@@ -54,6 +54,35 @@ fn create_4() {
 }
 
 #[test]
+fn create_5() {
+    assert_eq!(
+        Index::create()
+            .name("idx-character-area")
+            .table(Character::Table)
+            .col(Expr::col(Character::SizeH).mul(Expr::col(Character::SizeW)))
+            .to_string(MysqlQueryBuilder),
+        "CREATE INDEX `idx-character-area` ON `character` ((`size_h` * `size_w`))"
+    )
+}
+
+#[test]
+fn create_6() {
+    assert_eq!(
+        Index::create()
+            .name("idx-character-character-area-desc-created_at")
+            .table(Character::Table)
+            .col(Func::upper(Expr::col(Character::Character)))
+            .col((
+                Expr::col(Character::SizeH).mul(Expr::col(Character::SizeW)),
+                IndexOrder::Desc,
+            ))
+            .col(Character::CreatedAt)
+            .to_string(MysqlQueryBuilder),
+        "CREATE INDEX `idx-character-character-area-desc-created_at` ON `character` ((UPPER(`character`)), (`size_h` * `size_w`) DESC, `created_at`)"
+    )
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()
