@@ -648,3 +648,53 @@ fn create_17() {
         .join(" ")
     );
 }
+
+
+#[test]
+fn create_18() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .col(
+                ColumnDef::new(Alias::new("effective"))
+                    .range(ColumnType::TimestampWithTimeZone)
+                    .not_null()
+            )
+            .col(
+                ColumnDef::new(Alias::new("asserted"))
+                    .range(ColumnType::Date)
+                    .not_null()
+            )
+            .col(
+                ColumnDef::new(Alias::new("int4_range"))
+                    .range(ColumnType::Integer)
+                    .not_null()
+            )
+            .col(
+                ColumnDef::new(Alias::new("int8_range"))
+                    .range(ColumnType::BigInteger)
+                    .not_null()
+            )
+            .col(
+                ColumnDef::new(Alias::new("decimal_range"))
+                    .range(ColumnType::Decimal(None))
+                    .not_null()
+            )
+            .col(
+                ColumnDef::new(Alias::new("bigdecimal_range"))
+                    .range(ColumnType::Decimal(Some((38,12))))
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TABLE "character" ("#,
+            r#""effective" tstzrange NOT NULL,"#,
+            r#""asserted" daterange NOT NULL,"#,
+            r#""int4_range" int4range NOT NULL,"#,
+            r#""int8_range" int8range NOT NULL,"#,
+            r#""decimal_range" numrange NOT NULL,"#,
+            r#""bigdecimal_range" numrange"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
