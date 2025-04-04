@@ -67,9 +67,16 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::JsonBinary => "jsonb".into(),
                 ColumnType::Uuid => "uuid".into(),
                 ColumnType::Range(elem_type) => {
-                    let mut sql = String::new();
-                    self.prepare_column_type(elem_type, &mut sql);
-                    format!("{sql}[]")
+                    match elem_type.as_ref() {
+                        ColumnType::SmallInteger => "int2range".into(),
+                        ColumnType::Integer => "int4range".into(),
+                        ColumnType::BigInteger => "int8range".into(),
+                        ColumnType::Decimal(_) => "numrange".into(),
+                        ColumnType::Date => "daterange".into(),
+                        ColumnType::DateTime | ColumnType::Timestamp => "tsrange".into(),
+                        ColumnType::TimestampWithTimeZone => "tstzrange".into(),
+                        other => panic!("unsupported Postgres range type: {:?}", other),
+                    }
                 }
                 ColumnType::Array(elem_type) => {
                     let mut sql = String::new();
