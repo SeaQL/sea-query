@@ -129,6 +129,89 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::MacAddress(mac) => {
                     let _ = args.add(mac.as_deref());
                 }
+                #[cfg(feature = "with-postgres-range")]
+                Value::Range(ty, range) => match (ty, range) {
+                    (_, None) => {
+                        let _ = args.add(range.as_deref());
+                    }
+
+                    (RangeType::Int, Some(v)) => {
+                        let value: Option<PgRange<i32>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    (RangeType::BigInt, Some(v)) => {
+                        let value: Option<PgRange<i64>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-chrono")]
+                    (RangeType::ChronoDate, Some(v)) => {
+                        let value: Option<PgRange<NaiveDate>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-chrono")]
+                    (RangeType::ChronoDateTime, Some(v)) => {
+                        let value: Option<PgRange<NaiveDateTime>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-chrono")]
+                    (RangeType::ChronoDateTimeUtc, Some(v)) => {
+                        let value: Option<PgRange<DateTime<Utc>>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-chrono")]
+                    (RangeType::ChronoDateTimeWithTimeZone, Some(v)) => {
+                        let value: Option<PgRange<DateTime<Local>>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-bigdecimal")]
+                    (RangeType::BigDecimal, Some(v)) => {
+                        let value: Option<PgRange<BigDecimal>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-rust_decimal")]
+                    (RangeType::Decimal, Some(v)) => {
+                        let value: Option<PgRange<Decimal>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-time")]
+                    (RangeType::TimeDate, Some(v)) => {
+                        let value: Option<PgRange<time::Date>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-time")]
+                    (RangeType::TimeDateTime, Some(v)) => {
+                        let value: Option<PgRange<time::PrimitiveDateTime>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    #[cfg(feature = "with-time")]
+                    (RangeType::TimeDateTimeWithTimeZone, Some(v)) => {
+                        let value: Option<PgRange<time::OffsetDateTime>> = Value::Range(ty, v)
+                            .expect("This Value::Range should consist of Value::TimeDate");
+                        let _ = args.add(value);
+                    }
+
+                    _ => unimplemented!("Range type {:?} is not implemented", ty),
+                },
                 #[cfg(feature = "postgres-array")]
                 Value::Array(ty, v) => match ty {
                     ArrayType::Bool => {
@@ -281,6 +364,42 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     ArrayType::Uuid => {
                         let value: Option<Vec<Uuid>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::Uuid");
+                        let _ = args.add(value);
+                    }
+                    #[cfg(all(feature = "with-postgres-range", feature = "with-time"))]
+                    ArrayType::TimestampWithTimeZoneRange => {
+                        let value: Option<Vec<PgRange<time::OffsetDateTime>>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::TimestampWithTimeZoneRange");
+                        let _ = args.add(value);
+                    }
+                    #[cfg(all(feature = "with-postgres-range", feature = "with-time"))]
+                    ArrayType::TimestampRange => {
+                        let value: Option<Vec<PgRange<time::PrimitiveDateTime>>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::TimestampRange");
+                        let _ = args.add(value);
+                    }
+                    #[cfg(all(feature = "with-postgres-range", feature = "with-time"))]
+                    ArrayType::DateRange => {
+                        let value: Option<Vec<PgRange<time::Date>>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::DateRange");
+                        let _ = args.add(value);
+                    }
+                    #[cfg(all(feature = "with-postgres-range", feature = "with-bigdecimal"))]
+                    ArrayType::NumRange => {
+                        let value: Option<Vec<PgRange<BigDecimal>>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::NumRange");
+                        let _ = args.add(value);
+                    }
+                    #[cfg(feature = "with-postgres-range")]
+                    ArrayType::Int8Range => {
+                        let value: Option<Vec<Int8Range>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::Int8Range");
+                        let _ = args.add(value);
+                    }
+                    #[cfg(feature = "with-postgres-range")]
+                    ArrayType::Int4Range => {
+                        let value: Option<Vec<Int4Range>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::Int4Range");
                         let _ = args.add(value);
                     }
                     #[cfg(feature = "with-rust_decimal")]

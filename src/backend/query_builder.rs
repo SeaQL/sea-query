@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::ops::{Bound, Deref};
 
 use crate::*;
 
@@ -1200,8 +1200,74 @@ pub trait QueryBuilder:
             Value::IpNetwork(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::Range(_, Some(pg_range)) => {
+                let format_bound = |bound: &Bound<Value>| -> String {
+                    match bound {
+                        Bound::Included(v) | Bound::Excluded(v) => {
+                            Self::format_range_inner(self, v)
+                        }
+                        Bound::Unbounded => String::new(),
+                    }
+                };
+
+                let formatted_start = format_bound(&pg_range.start);
+                let formatted_end = format_bound(&pg_range.end);
+
+                let start_bracket = match pg_range.start {
+                    Bound::Included(_) => "[",
+                    Bound::Excluded(_) => "(",
+                    Bound::Unbounded => "(",
+                };
+                let end_bracket = match pg_range.end {
+                    Bound::Included(_) => "]",
+                    Bound::Excluded(_) => ")",
+                    Bound::Unbounded => ")",
+                };
+
+                write!(
+                    s,
+                    "'{}{},{}{}'",
+                    start_bracket, formatted_start, formatted_end, end_bracket
+                )
+                .unwrap();
+            }
+            Value::Range(_, None) => {
+                write!(s, "'empty'").unwrap();
+            }
         };
         s
+    }
+
+    #[cfg(feature = "with-postgres-range")]
+    fn format_range_inner(&self, v: &Value) -> String {
+        match v {
+            #[cfg(feature = "with-chrono")]
+            Value::ChronoDate(Some(v)) => v.format("%Y-%m-%d").to_string(),
+            #[cfg(feature = "with-chrono")]
+            Value::ChronoTime(Some(v)) => v.format("%H:%M:%S").to_string(),
+            #[cfg(feature = "with-chrono")]
+            Value::ChronoDateTime(Some(v)) => v.format("%Y-%m-%d %H:%M:%S").to_string(),
+            #[cfg(feature = "with-chrono")]
+            Value::ChronoDateTimeUtc(Some(v)) => v.format("%Y-%m-%d %H:%M:%S %:z").to_string(),
+            #[cfg(feature = "with-chrono")]
+            Value::ChronoDateTimeLocal(Some(v)) => v.format("%Y-%m-%d %H:%M:%S %:z").to_string(),
+            #[cfg(feature = "with-chrono")]
+            Value::ChronoDateTimeWithTimeZone(Some(v)) => {
+                v.format("%Y-%m-%d %H:%M:%S %:z").to_string()
+            }
+
+            #[cfg(feature = "with-time")]
+            Value::TimeDate(Some(v)) => v.format(time_format::FORMAT_DATE).unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeTime(Some(v)) => v.format(time_format::FORMAT_TIME).unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTime(Some(v)) => v.format(time_format::FORMAT_DATETIME).unwrap(),
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTimeWithTimeZone(Some(v)) => {
+                v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
+            }
+            _ => v.to_string(),
+        }
     }
 
     #[doc(hidden)]

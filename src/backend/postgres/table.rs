@@ -66,6 +66,11 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Json => "json".into(),
                 ColumnType::JsonBinary => "jsonb".into(),
                 ColumnType::Uuid => "uuid".into(),
+                ColumnType::Range(elem_type) => {
+                    let mut sql = String::new();
+                    self.prepare_column_type(elem_type, &mut sql);
+                    format!("{sql}[]")
+                }
                 ColumnType::Array(elem_type) => {
                     let mut sql = String::new();
                     self.prepare_column_type(elem_type, &mut sql);

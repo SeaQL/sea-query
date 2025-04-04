@@ -89,6 +89,7 @@ impl TableBuilder for MysqlQueryBuilder {
                         .collect::<Vec<_>>()
                         .join("', '")
                 ),
+                ColumnType::Range(_) => unimplemented!("Range is not available in MySQL."),
                 ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
                 ColumnType::Vector(_) => unimplemented!("Vector is not available in MySQL."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in MySQL."),

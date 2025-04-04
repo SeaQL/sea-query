@@ -58,6 +58,7 @@ attr = ["sea-query-derive"]
 hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
+with-postgres-range = []
 postgres-interval = []
 thread-safe = []
 with-chrono = ["chrono"]
@@ -88,6 +89,7 @@ all-types = [
     "with-rust_decimal",
     "with-bigdecimal",
     "with-uuid",
+    "with-postgres-range",
     "with-time",
     "with-ipnetwork",
     "with-mac_address",

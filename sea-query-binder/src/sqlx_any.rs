@@ -92,6 +92,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     let _ =
                         args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
                 }
+                #[cfg(feature = "with-postgres-range")]
+                Value::Range(t) => {
+                    let _ = args.add(Value::Range(t).to_string());
+                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(_) => {
                     panic!("UUID support not implemented for Any");

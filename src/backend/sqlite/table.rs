@@ -183,6 +183,7 @@ impl SqliteQueryBuilder {
                 ColumnType::Uuid => "uuid_text".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { .. } => "enum_text".into(),
+                ColumnType::Range(_) => unimplemented!("Range is not available in Sqlite."),
                 ColumnType::Array(_) => unimplemented!("Array is not available in Sqlite."),
                 ColumnType::Vector(_) => unimplemented!("Vector is not available in Sqlite."),
                 ColumnType::Cidr => unimplemented!("Cidr is not available in Sqlite."),

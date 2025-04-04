@@ -97,6 +97,7 @@ pub enum ColumnType {
         variants: Vec<DynIden>,
     },
     Array(RcOrArc<ColumnType>),
+    Range(RcOrArc<ColumnType>),
     Vector(Option<u32>),
     Cidr,
     Inet,
@@ -633,6 +634,13 @@ impl ColumnDef {
     /// This is only supported on Postgres.
     pub fn array(&mut self, elem_type: ColumnType) -> &mut Self {
         self.types = Some(ColumnType::Array(RcOrArc::new(elem_type)));
+        self
+    }
+
+    /// Set column type as a range with a specified element type.
+    /// This is only supported on Postgres.
+    pub fn range(&mut self, elem_type: ColumnType) -> &mut Self {
+        self.types = Some(ColumnType::Range(RcOrArc::new(elem_type)));
         self
     }
 
