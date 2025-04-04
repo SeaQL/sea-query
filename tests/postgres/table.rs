@@ -661,6 +661,11 @@ fn create_18() {
                     .not_null()
             )
             .col(
+                ColumnDef::new(Alias::new("effective_naive"))
+                    .range(ColumnType::Timestamp)
+                    .not_null()
+            )
+            .col(
                 ColumnDef::new(Alias::new("asserted"))
                     .range(ColumnType::Date)
                     .not_null()
@@ -688,6 +693,7 @@ fn create_18() {
         [
             r#"CREATE TABLE "character" ("#,
             r#""effective" tstzrange NOT NULL,"#,
+            r#""effective_naive" tsrange NOT NULL,"#,
             r#""asserted" daterange NOT NULL,"#,
             r#""int4_range" int4range NOT NULL,"#,
             r#""int8_range" int8range NOT NULL,"#,
