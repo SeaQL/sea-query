@@ -366,42 +366,6 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                             .expect("This Value::Array should consist of Value::Uuid");
                         let _ = args.add(value);
                     }
-                    #[cfg(all(feature = "with-postgres-range", feature = "with-time"))]
-                    ArrayType::TimestampWithTimeZoneRange => {
-                        let value: Option<Vec<PgRange<time::OffsetDateTime>>> = Value::Array(ty, v)
-                            .expect("This Value::Array should consist of Value::TimestampWithTimeZoneRange");
-                        let _ = args.add(value);
-                    }
-                    #[cfg(all(feature = "with-postgres-range", feature = "with-time"))]
-                    ArrayType::TimestampRange => {
-                        let value: Option<Vec<PgRange<time::PrimitiveDateTime>>> = Value::Array(ty, v)
-                            .expect("This Value::Array should consist of Value::TimestampRange");
-                        let _ = args.add(value);
-                    }
-                    #[cfg(all(feature = "with-postgres-range", feature = "with-time"))]
-                    ArrayType::DateRange => {
-                        let value: Option<Vec<PgRange<time::Date>>> = Value::Array(ty, v)
-                            .expect("This Value::Array should consist of Value::DateRange");
-                        let _ = args.add(value);
-                    }
-                    #[cfg(all(feature = "with-postgres-range", feature = "with-bigdecimal"))]
-                    ArrayType::NumRange => {
-                        let value: Option<Vec<PgRange<BigDecimal>>> = Value::Array(ty, v)
-                            .expect("This Value::Array should consist of Value::NumRange");
-                        let _ = args.add(value);
-                    }
-                    #[cfg(feature = "with-postgres-range")]
-                    ArrayType::Int8Range => {
-                        let value: Option<Vec<Int8Range>> = Value::Array(ty, v)
-                            .expect("This Value::Array should consist of Value::Int8Range");
-                        let _ = args.add(value);
-                    }
-                    #[cfg(feature = "with-postgres-range")]
-                    ArrayType::Int4Range => {
-                        let value: Option<Vec<Int4Range>> = Value::Array(ty, v)
-                            .expect("This Value::Array should consist of Value::Int4Range");
-                        let _ = args.add(value);
-                    }
                     #[cfg(feature = "with-rust_decimal")]
                     ArrayType::Decimal => {
                         let value: Option<Vec<Decimal>> = Value::Array(ty, v)

@@ -182,14 +182,6 @@ pub enum ArrayType {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid,
 
-    #[cfg(feature = "with-postgres-range")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-range")))]
-    Int4Range,
-
-    #[cfg(feature = "with-postgres-range")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-range")))]
-    Int8Range,
-
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
     Decimal,
@@ -197,45 +189,6 @@ pub enum ArrayType {
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal,
-
-    #[cfg(feature = "with-rust_decimal")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
-    DecimalRange,
-
-    #[cfg(feature = "with-bigdecimal")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-    BigDecimalRange,
-    #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateRange,
-
-    #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTimeRange,
-
-    #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTimeUtcRange,
-
-    #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTimeLocalRange,
-
-    #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTimeWithTimeZoneRange,
-
-    #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDateRange,
-
-    #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDateTimeRange,
-
-    #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDateTimeWithTimeZoneRange,
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
@@ -1207,6 +1160,12 @@ pub mod with_postgres_range {
     impl RangeCompatible for i32 {}
     impl RangeCompatible for i64 {}
 
+    #[cfg(feature = "with-bigdecimal")]
+    impl RangeCompatible for BigDecimal {}
+
+    #[cfg(feature = "with-rust_decimal")]
+    impl RangeCompatible for Decimal {}
+
     #[cfg(feature = "with-chrono")]
     impl RangeCompatible for NaiveDate {}
 
@@ -1218,9 +1177,6 @@ pub mod with_postgres_range {
 
     #[cfg(feature = "with-time")]
     impl RangeCompatible for time::Date {}
-
-    #[cfg(feature = "with-time")]
-    impl RangeCompatible for time::Time {}
 
     #[cfg(feature = "with-time")]
     impl RangeCompatible for PrimitiveDateTime {}
