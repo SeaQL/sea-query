@@ -68,7 +68,6 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::Uuid => "uuid".into(),
                 ColumnType::Range(elem_type) => {
                     match elem_type.as_ref() {
-                        ColumnType::SmallInteger => "int2range".into(),
                         ColumnType::Integer => "int4range".into(),
                         ColumnType::BigInteger => "int8range".into(),
                         ColumnType::Decimal(_) => "numrange".into(),

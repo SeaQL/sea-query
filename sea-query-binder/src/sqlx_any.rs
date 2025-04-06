@@ -94,7 +94,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 }
                 #[cfg(feature = "with-postgres-range")]
                 Value::Range(t) => {
-                    let _ = args.add(Value::Range(t).to_string());
+                    panic!("SQLx doesn't support range arguments for Any");
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(_) => {
