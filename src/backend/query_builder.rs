@@ -1246,8 +1246,6 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(Some(v)) => v.format("%Y-%m-%d").to_string(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => v.format("%H:%M:%S").to_string(),
-            #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => v.format("%Y-%m-%d %H:%M:%S").to_string(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => v.format("%Y-%m-%d %H:%M:%S %:z").to_string(),
@@ -1260,8 +1258,6 @@ pub trait QueryBuilder:
 
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => v.format(time_format::FORMAT_DATE).unwrap(),
-            #[cfg(feature = "with-time")]
-            Value::TimeTime(Some(v)) => v.format(time_format::FORMAT_TIME).unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => v.format(time_format::FORMAT_DATETIME).unwrap(),
             #[cfg(feature = "with-time")]
