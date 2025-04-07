@@ -34,6 +34,7 @@ serde_json = { version = "1", default-features = false, optional = true, feature
 chrono = { version = "0.4.27", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
 pgvector = { version = "~0.4", default-features = false, optional = true }
+pgrange = { path = "../pgrange", default-features = false, optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.4", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
@@ -52,13 +53,13 @@ pretty_assertions = { version = "1" }
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
-default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
+default = ["all-features"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-derive"]
 hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
-with-postgres-range = []
+postgres-range = ["pgrange"]
 postgres-interval = []
 thread-safe = []
 with-chrono = ["chrono"]
@@ -83,13 +84,13 @@ all-features = [
 all-types = [
     "postgres-array",
     "postgres-interval",
+    "postgres-range",
     "postgres-vector",
     "with-chrono",
     "with-json",
     "with-rust_decimal",
     "with-bigdecimal",
     "with-uuid",
-    "with-postgres-range",
     "with-time",
     "with-ipnetwork",
     "with-mac_address",

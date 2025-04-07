@@ -31,13 +31,13 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
-#[cfg(feature = "with-postgres-range")]
-use crate::extension::postgres::range::PgRange;
+#[cfg(feature = "postgres-range")]
+use pgrange::PgRange;
 
 use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 
 /// [`Value`] types variant for Postgres range
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Copy)]
 pub enum RangeType {
     Bool,
     TinyInt,
@@ -273,9 +273,9 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Option<Box<Uuid>>),
 
-    #[cfg(all(feature = "with-postgres-range"))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-range")))]
-    Range(RangeType, Option<Box<PgRange<Value>>>),
+    #[cfg(all(feature = "postgres-range"))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+    Range(RangeType, Option<Box<pgrange::PgRange<Value>>>),
 
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
@@ -486,8 +486,8 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(None),
 
-            #[cfg(feature = "with-postgres-range")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-range")))]
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
             Self::Range(ty, _) => Self::Range(ty.clone(), None),
         }
     }
@@ -1148,8 +1148,8 @@ pub mod with_vector {
     }
 }
 
-#[cfg(feature = "with-postgres-range")]
-#[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-range")))]
+#[cfg(feature = "postgres-range")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
 pub mod with_postgres_range {
     use super::*;
     use crate::RcOrArc;
@@ -1222,6 +1222,22 @@ pub mod with_postgres_range {
     {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
+                // Value::Bytes(Some(boxed_inner_type)) => {
+                //     // let PgRange { start, end } = *boxed_inner_range;
+
+                //     // Ok(PgRange {
+                //     //     start: match start {
+                //     //         Bound::Included(inner) => Bound::Included(T::try_from(inner)?),
+                //     //         Bound::Excluded(inner) => Bound::Excluded(T::try_from(inner)?),
+                //     //         Bound::Unbounded => Bound::Unbounded,
+                //     //     },
+                //     //     end: match end {
+                //     //         Bound::Included(inner) => Bound::Included(T::try_from(inner)?),
+                //     //         Bound::Excluded(inner) => Bound::Excluded(T::try_from(inner)?),
+                //     //         Bound::Unbounded => Bound::Unbounded,
+                //     //     },
+                //     // })
+                // }
                 Value::Range(ty, Some(boxed_inner_range)) if T::range_type() == ty => {
                     let PgRange { start, end } = *boxed_inner_range;
 
@@ -1765,7 +1781,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
-        #[cfg(feature = "with-postgres-range")]
+        #[cfg(feature = "postgres-range")]
         Value::Range(_, None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
@@ -1814,7 +1830,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
-        #[cfg(feature = "with-postgres-range")]
+        #[cfg(feature = "postgres-range")]
         Value::Range(_, Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "postgres-array")]
         Value::Array(_, Some(v)) => {
@@ -2098,7 +2114,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "with-chrono", feature = "with-postgres-range"))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-range"))]
     fn test_chrono_date_range_value() {
         use chrono::Days;
 
@@ -2132,7 +2148,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "with-chrono", feature = "with-postgres-range"))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-range"))]
     fn test_chrono_utc_range_value() {
         use chrono::Days;
 
@@ -2172,7 +2188,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "with-chrono", feature = "with-postgres-range"))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-range"))]
     fn test_chrono_local_range_value() {
         use chrono::Days;
 
@@ -2231,7 +2247,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "with-chrono", feature = "with-postgres-range"))]
+    #[cfg(all(feature = "with-chrono", feature = "postgres-range"))]
     fn test_chrono_range_query() {
         use chrono::Days;
         use crate::*;
@@ -2272,7 +2288,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "with-time", feature = "with-postgres-range"))]
+    #[cfg(all(feature = "with-time", feature = "postgres-range"))]
     fn test_time_date_range_value() {
         use time::macros::date;
         use time::Date;
@@ -2301,7 +2317,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "with-time", feature = "with-postgres-range"))]
+    #[cfg(all(feature = "with-time", feature = "postgres-range"))]
     fn test_time_utc_range_value() {
         use time::macros::{date, time};
         use time::Duration;
@@ -2367,7 +2383,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "with-time", feature = "with-postgres-range"))]
+    #[cfg(all(feature = "with-time", feature = "postgres-range"))]
     fn test_time_range_query() {
         use crate::*;
         use time::{macros::datetime, Duration};
@@ -2518,7 +2534,7 @@ mod hashable_value {
                 #[cfg(feature = "with-bigdecimal")]
                 (Self::BigDecimal(l), Self::BigDecimal(r)) => l == r,
 
-                #[cfg(feature = "with-postgres-range")]
+                #[cfg(feature = "postgres-range")]
                 (Self::Range(ty_l, values_l), Self::Range(ty_r, values_r)) => {
                     ty_l == ty_r && values_l == values_r
                 }
@@ -2597,7 +2613,7 @@ mod hashable_value {
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(big_decimal) => big_decimal.hash(state),
 
-                #[cfg(feature = "with-postgres-range")]
+                #[cfg(feature = "postgres-range")]
                 Value::Range(range_type, range) => {
                     range_type.hash(state);
                     range.hash(state);

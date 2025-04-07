@@ -1200,7 +1200,7 @@ pub trait QueryBuilder:
             Value::IpNetwork(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => write!(s, "'{v}'").unwrap(),
-            #[cfg(feature = "with-postgres-range")]
+            #[cfg(feature = "postgres-range")]
             Value::Range(_, Some(pg_range)) => {
                 let format_bound = |bound: &Bound<Value>| -> String {
                     match bound {
@@ -1232,7 +1232,7 @@ pub trait QueryBuilder:
                 )
                 .unwrap();
             }
-            #[cfg(feature = "with-postgres-range")]
+            #[cfg(feature = "postgres-range")]
             Value::Range(_, None) => {
                 write!(s, "'empty'").unwrap();
             }
@@ -1240,7 +1240,7 @@ pub trait QueryBuilder:
         s
     }
 
-    #[cfg(feature = "with-postgres-range")]
+    #[cfg(feature = "postgres-range")]
     fn format_range_inner(&self, v: &Value) -> String {
         match v {
             #[cfg(feature = "with-chrono")]

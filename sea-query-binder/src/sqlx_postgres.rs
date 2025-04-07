@@ -13,7 +13,10 @@ use serde_json::Value as Json;
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
-use sea_query::{ArrayType, Value};
+
+use sea_query::{ArrayType, RangeType, Value};
+#[cfg(feature = "postgres-range")]
+use pgrange::PgRange;
 
 use crate::SqlxValues;
 
@@ -129,82 +132,78 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::MacAddress(mac) => {
                     let _ = args.add(mac.as_deref());
                 }
-                #[cfg(feature = "with-postgres-range")]
-                Value::Range(ty, range) => match (ty, range) {
-                    (_, None) => {
-                        let _ = args.add(range.as_deref());
-                    }
-
-                    (RangeType::Int, Some(v)) => {
+                #[cfg(feature = "postgres-range")]
+                Value::Range(ty, v) => match ty {
+                    RangeType::Int => {
                         let value: Option<PgRange<i32>> = Value::Range(ty, v)
-                            .expect("This Value::Range should consist of Value::TimeDate");
+                            .expect("This Value::Range should consist of Value::Int");
                         let _ = args.add(value);
                     }
 
-                    (RangeType::BigInt, Some(v)) => {
+                    RangeType::BigInt => {
                         let value: Option<PgRange<i64>> = Value::Range(ty, v)
-                            .expect("This Value::Range should consist of Value::TimeDate");
+                            .expect("This Value::Range should consist of Value::BigInt");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-chrono")]
-                    (RangeType::ChronoDate, Some(v)) => {
+                    RangeType::ChronoDate => {
                         let value: Option<PgRange<NaiveDate>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-chrono")]
-                    (RangeType::ChronoDateTime, Some(v)) => {
+                    RangeType::ChronoDateTime => {
                         let value: Option<PgRange<NaiveDateTime>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-chrono")]
-                    (RangeType::ChronoDateTimeUtc, Some(v)) => {
+                    RangeType::ChronoDateTimeUtc => {
                         let value: Option<PgRange<DateTime<Utc>>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-chrono")]
-                    (RangeType::ChronoDateTimeWithTimeZone, Some(v)) => {
+                    RangeType::ChronoDateTimeWithTimeZone => {
                         let value: Option<PgRange<DateTime<Local>>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-bigdecimal")]
-                    (RangeType::BigDecimal, Some(v)) => {
+                    RangeType::BigDecimal => {
                         let value: Option<PgRange<BigDecimal>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-rust_decimal")]
-                    (RangeType::Decimal, Some(v)) => {
+                    RangeType::Decimal => {
                         let value: Option<PgRange<Decimal>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-time")]
-                    (RangeType::TimeDate, Some(v)) => {
+                    RangeType::TimeDate => {
                         let value: Option<PgRange<time::Date>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-time")]
-                    (RangeType::TimeDateTime, Some(v)) => {
+                    RangeType::TimeDateTime => {
                         let value: Option<PgRange<time::PrimitiveDateTime>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);
                     }
 
                     #[cfg(feature = "with-time")]
-                    (RangeType::TimeDateTimeWithTimeZone, Some(v)) => {
+                    RangeType::TimeDateTimeWithTimeZone => {
                         let value: Option<PgRange<time::OffsetDateTime>> = Value::Range(ty, v)
                             .expect("This Value::Range should consist of Value::TimeDate");
                         let _ = args.add(value);

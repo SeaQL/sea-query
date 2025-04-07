@@ -120,7 +120,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Array(_, _) => {
                     panic!("Sqlite doesn't support array arguments");
                 }
-                #[cfg(feature = "with-postgres-range")]
+                #[cfg(feature = "postgres-range")]
                 Value::Range(_, _) => {
                     panic!("Sqlite doesn't support range arguments");
                 }

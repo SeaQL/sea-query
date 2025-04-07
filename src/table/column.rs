@@ -144,6 +144,7 @@ impl PartialEq for ColumnType {
                         .map(|v| v.to_string())
                         .eq(r_variants.iter().map(|v| v.to_string()))
             }
+            (Self::Range(l0), Self::Range(r0)) => l0 == r0,
             (Self::Array(l0), Self::Array(r0)) => l0 == r0,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }

@@ -17,7 +17,7 @@ rust-version = "1.60"
 [lib]
 
 [dependencies]
-sea-query = { version = "0.32.0", path = "..", default-features = false, features = ["thread-safe"] }
+sea-query = { version = "0.32.0", path = "..", default-features = false, features = ["thread-safe", "postgres-range", "with-chrono"] }
 sqlx = { version = "0.8", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }
@@ -28,8 +28,10 @@ time = { version = "0.3.36", default-features = false, optional = true, features
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 pgvector = { version = "~0.4", default-features = false, optional = true }
+pgrange = { path = "../../pgrange", default-features = false, optional = true, features = ["postgres", "with-chrono", "with-time","sqlx", "with-rust_decimal", "with-bigdecimal"]}
 
 [features]
+default = ["sqlx-postgres", "postgres-range"]
 sqlx-mysql = ["sqlx/mysql"]
 sqlx-postgres = ["sqlx/postgres"]
 sqlx-sqlite = ["sqlx/sqlite"]
@@ -44,6 +46,7 @@ with-ipnetwork = ["sqlx?/ipnetwork", "sea-query/with-ipnetwork", "ipnetwork"]
 with-mac_address = ["sqlx?/mac_address", "sea-query/with-mac_address", "mac_address"]
 postgres-array = ["sea-query/postgres-array"]
 postgres-vector = ["sea-query/postgres-vector", "pgvector/sqlx"]
+postgres-range = ["sea-query/postgres-range", "pgrange/sqlx"]
 runtime-async-std = ["sqlx?/runtime-async-std"]
 runtime-async-std-native-tls = ["sqlx?/runtime-async-std-native-tls"]
 runtime-async-std-rustls = ["sqlx?/runtime-async-std-rustls", ]
