@@ -243,6 +243,31 @@ fn create_10() {
 }
 
 #[test]
+fn create_11() {
+    assert_eq!(
+        Table::create()
+            .table(Font::Table)
+            .temporary()
+            .col(
+                ColumnDef::new(Font::Id)
+                    .integer()
+                    .not_null()
+                    .primary_key()
+                    .auto_increment()
+            )
+            .col(ColumnDef::new(Font::Name).string().not_null())
+            .to_string(MysqlQueryBuilder),
+        [
+            r#"CREATE TEMPORARY TABLE `font` ("#,
+            r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
+            r#"`name` varchar(255) NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
