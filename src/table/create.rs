@@ -361,7 +361,7 @@ impl TableCreateStatement {
     ///             .integer()
     ///             .not_null()
     ///             .primary_key()
-    ///             .auto_increment()
+    ///             .auto_increment(),
     ///     )
     ///     .col(ColumnDef::new(Font::Name).string().not_null())
     ///     .take();
