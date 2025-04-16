@@ -315,7 +315,7 @@ impl TableCreateStatement {
     ///     )
     ///     .col(ColumnDef::new(Char::UserData).json_binary().not_null())
     ///     .extra("USING columnar")
-    ///     .to_owned();
+    ///     .take();
     /// assert_eq!(
     ///     table.to_string(PostgresQueryBuilder),
     ///     [
@@ -341,6 +341,62 @@ impl TableCreateStatement {
     }
 
     /// Create temporary table
+    ///
+    /// Ref:
+    /// - PostgreSQL: https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-TEMPORARY
+    /// - MySQL: https://dev.mysql.com/doc/refman/9.2/en/create-temporary-table.html
+    /// - MariaDB: https://mariadb.com/kb/en/create-table/#create-temporary-table
+    /// - SQLite: https://sqlite.org/lang_createtable.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let statement = Table::create()
+    ///     .table(Font::Table)
+    ///     .temporary()
+    ///     .col(
+    ///         ColumnDef::new(Font::Id)
+    ///             .integer()
+    ///             .not_null()
+    ///             .primary_key()
+    ///             .auto_increment()
+    ///     )
+    ///     .col(ColumnDef::new(Font::Name).string().not_null())
+    ///     .take();
+    ///
+    /// assert_eq!(
+    ///     statement.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         "CREATE TEMPORARY TABLE `font` (",
+    ///         "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
+    ///         "`name` varchar(255) NOT NULL",
+    ///         ")",
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     statement.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TEMPORARY TABLE "font" ("#,
+    ///         r#""id" serial NOT NULL PRIMARY KEY,"#,
+    ///         r#""name" varchar NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     statement.to_string(SqliteQueryBuilder),
+    ///     [
+    ///         r#"CREATE TEMPORARY TABLE "font" ("#,
+    ///         r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+    ///         r#""name" varchar NOT NULL"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn temporary(&mut self) -> &mut Self {
         self.temporary = true;
         self
