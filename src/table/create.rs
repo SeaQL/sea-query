@@ -91,6 +91,7 @@ pub struct TableCreateStatement {
     pub(crate) check: Vec<SimpleExpr>,
     pub(crate) comment: Option<String>,
     pub(crate) extra: Option<String>,
+    pub(crate) temporary: bool,
 }
 
 /// All available table options
@@ -339,6 +340,12 @@ impl TableCreateStatement {
         self.extra.as_ref()
     }
 
+    /// Create temporary table
+    pub fn temporary(&mut self) -> &mut Self {
+        self.temporary = true;
+        self
+    }
+
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
@@ -351,6 +358,7 @@ impl TableCreateStatement {
             check: std::mem::take(&mut self.check),
             comment: std::mem::take(&mut self.comment),
             extra: std::mem::take(&mut self.extra),
+            temporary: self.temporary,
         }
     }
 }
