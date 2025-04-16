@@ -15,7 +15,9 @@ pub(crate) mod ltree;
 pub(crate) mod select;
 pub(crate) mod types;
 
-/// Binary operator
+/// Postgres-specific binary operators.
+///
+/// For all supported operators (including the standard ones), see [`BinOper`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PgBinOper {
     ILike,

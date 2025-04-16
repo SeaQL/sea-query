@@ -5,7 +5,9 @@ use crate::{expr::*, types::*};
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::{PgFunc, PgFunction};
 
-/// Functions
+/// Known SQL functions.
+///
+/// If something is not supported here, you can use [`Function::Custom`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum Function {
     Max,

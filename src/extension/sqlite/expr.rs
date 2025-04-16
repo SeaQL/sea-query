@@ -2,6 +2,7 @@ use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, Keyword, LikeExpr, SimpleE
 
 use super::SqliteBinOper;
 
+/// SQLite-specific operator methods for building expressions.
 pub trait SqliteExpr: ExprTrait {
     /// Express an sqlite `GLOB` operator.
     ///
@@ -105,7 +106,8 @@ pub trait SqliteExpr: ExprTrait {
 }
 
 // TODO: https://github.com/SeaQL/sea-query/discussions/795:
-// replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
+// replace all of this with `impl<T> SqliteExpr for T where T: ExprTrait {}`
+// (breaking change)
 impl SqliteExpr for Expr {}
 impl SqliteExpr for SimpleExpr {}
 impl SqliteExpr for FunctionCall {}
