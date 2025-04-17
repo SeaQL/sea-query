@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.32.4 - 2025-04-17
+
+### New Features
+
+* Added support for temporary tables https://github.com/SeaQL/sea-query/pull/878
+```rust
+let statement = Table::create()
+    .table(Font::Table)
+    .temporary()
+    .col(
+        ColumnDef::new(Font::Id)
+            .integer()
+            .not_null()
+            .primary_key()
+            .auto_increment()
+    )
+    .col(ColumnDef::new(Font::Name).string().not_null())
+    .take();
+
+assert_eq!(
+    statement.to_string(MysqlQueryBuilder),
+    [
+        "CREATE TEMPORARY TABLE `font` (",
+        "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
+        "`name` varchar(255) NOT NULL",
+        ")",
+    ]
+    .join(" ")
+);
+```
+* Added `Value::dummy_value`
+```rust
+use sea_query::Value;
+let v = Value::Int(None);
+let n = v.dummy_value();
+assert_eq!(n, Value::Int(Some(0)));
+```
+
+### Bug Fixes
+
+* Quote type properly in `AsEnum` casting https://github.com/SeaQL/sea-query/pull/880
+```rust
+let query = Query::select()
+    .expr(Expr::col(Char::FontSize).as_enum(TextArray))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT CAST("font_size" AS "text"[]) FROM "character""#
+);
+```
+
 ## 0.32.3 - 2025-03-16
 
 ### New Features
