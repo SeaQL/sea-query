@@ -5,7 +5,9 @@ use crate::{expr::*, types::*};
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::{PgFunc, PgFunction};
 
-/// Functions
+/// Known SQL functions.
+///
+/// If something is not supported here, you can use [`Function::Custom`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum Function {
     Max,
@@ -644,7 +646,7 @@ impl Func {
     /// let query = Query::select()
     ///     .column(Font::Id)
     ///     .from(Font::Table)
-    ///     .and_where(Expr::expr(Func::lower(Expr::col(Font::Name))).eq("abc".trim().to_lowercase()))
+    ///     .and_where(Func::lower(Expr::col(Font::Name)).eq("abc".trim().to_lowercase()))
     ///     .take();
     ///
     /// assert_eq!(

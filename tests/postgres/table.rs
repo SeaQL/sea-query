@@ -653,6 +653,31 @@ fn create_17() {
 fn create_18() {
     assert_eq!(
         Table::create()
+            .table(Font::Table)
+            .temporary()
+            .col(
+                ColumnDef::new(Font::Id)
+                    .integer()
+                    .not_null()
+                    .primary_key()
+                    .auto_increment()
+            )
+            .col(ColumnDef::new(Font::Name).string().not_null())
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"CREATE TEMPORARY TABLE "font" ("#,
+            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""name" varchar NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn create_19() {
+    assert_eq!(
+        Table::create()
             .table(Char::Table)
             .if_not_exists()
             .col(

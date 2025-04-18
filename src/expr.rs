@@ -37,13 +37,17 @@ pub enum SimpleExpr {
     Constant(Value),
 }
 
-/// "Operator" methods for building complex expressions.
+/// "Operator" methods for building expressions.
 ///
-/// ## Examples
+/// Before `sea_query` 0.32.0 (`sea_orm` 1.1.1),
+/// these methods were awailable only on [`Expr`]/[`SimpleExpr`]
+/// and you needed to manually construct these types first.
+///
+/// Now, you can call them directly on any expression type:
 ///
 /// ```no_run
-/// use sea_query::*;
-///
+/// # use sea_query::*;
+/// #
 /// let expr = 1_i32.cast_as(Alias::new("REAL"));
 ///
 /// let expr = Func::char_length("abc").eq(3_i32);
@@ -105,7 +109,7 @@ pub trait ExprTrait: Sized {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS "FontSizeEnum"))"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -1618,7 +1622,14 @@ impl Expr {
         Self::new_with_left(v)
     }
 
-    /// Wrap a [`SimpleExpr`] and perform some operation on it.
+    /// Wrap an expression to perform some operation on it later.
+    ///
+    /// Since `sea_query` 0.32.0 (`sea_orm` 1.1.1), **this is not necessary** in most cases!
+    ///
+    /// Some SQL operations used to be defined only as inherent methods on [`Expr`].
+    /// Thus, to use them, you needed to manually convert from other types to [`Expr`].
+    /// But now these operations are also defined as [`ExprTrait`] methods
+    /// that can be called directly on any expression type,
     ///
     /// # Examples
     ///
@@ -1628,8 +1639,12 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
+    ///     // This is the old style, when `Expr::expr` was necessary:
     ///     .and_where(Expr::expr(Expr::col(Char::SizeW).if_null(0)).gt(2))
     ///     .to_owned();
+    ///
+    /// // But since 0.32.0, this compiles too:
+    /// let _ = Expr::col(Char::SizeW).if_null(0).gt(2);
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -1651,8 +1666,12 @@ impl Expr {
     /// let query = Query::select()
     ///     .column(Char::Character)
     ///     .from(Char::Table)
+    ///     // This is the old style, when `Expr::expr` was necessary:
     ///     .and_where(Expr::expr(Func::lower(Expr::col(Char::Character))).is_in(["a", "b"]))
     ///     .to_owned();
+    ///
+    /// // But since 0.32.0, this compiles too:
+    /// let _ = Func::lower(Expr::col(Char::Character)).is_in(["a", "b"]);
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -2733,8 +2752,12 @@ impl Expr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
+    ///     // Before 0.32.0, you had call `not` on an `Expr`, which had to be constructed using `Expr::expr`:
     ///     .and_where(Expr::expr(Expr::col((Char::Table, Char::SizeW)).is_null()).not())
     ///     .to_owned();
+    ///
+    /// // But since 0.32.0, this compiles too:
+    /// let _ = Expr::col((Char::Table, Char::SizeW)).is_null().not();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -3292,7 +3315,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST("font_size" AS text) FROM "character""#
+    ///     r#"SELECT CAST("font_size" AS "text") FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -3318,7 +3341,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST("font_size" AS text[]) FROM "character""#
+    ///     r#"SELECT CAST("font_size" AS "text"[]) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
@@ -3337,7 +3360,7 @@ impl Expr {
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS FontSizeEnum))"#
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS "FontSizeEnum"))"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),

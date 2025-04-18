@@ -9,7 +9,11 @@ pub trait TableBuilder:
         create: &TableCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE TABLE ").unwrap();
+        write!(sql, "CREATE ").unwrap();
+
+        self.prepare_create_temporary_table(create, sql);
+
+        write!(sql, "TABLE ").unwrap();
 
         self.prepare_create_table_if_not_exists(create, sql);
 
@@ -217,6 +221,17 @@ pub trait TableBuilder:
     ) {
         if create.if_not_exists {
             write!(sql, "IF NOT EXISTS ").unwrap();
+        }
+    }
+
+    /// Translate TEMPORARY expression in [`TableCreateStatement`].
+    fn prepare_create_temporary_table(
+        &self,
+        create: &TableCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if create.temporary {
+            write!(sql, "TEMPORARY ").unwrap();
         }
     }
 

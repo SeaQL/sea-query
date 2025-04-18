@@ -2,7 +2,11 @@
 
 use crate::{expr::*, func::*, PgDateTruncUnit};
 
-/// Functions
+/// Known Postgres-specific functions.
+///
+/// For all supported functions (including the standard ones), see [`Function`].
+///
+/// If something is not supported, you can use [`Function::Custom`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum PgFunction {
     ToTsquery,

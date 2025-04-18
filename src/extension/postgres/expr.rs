@@ -3,6 +3,7 @@ use crate::{
     ColumnRef, Expr, ExprTrait, FunctionCall, IntoLikeExpr, Keyword, LikeExpr, SimpleExpr, Value,
 };
 
+/// Postgres-specific operator methods for building expressions.
 pub trait PgExpr: ExprTrait {
     /// Express an postgres concatenate (`||`) expression.
     ///
@@ -200,6 +201,7 @@ pub trait PgExpr: ExprTrait {
 
 // TODO: https://github.com/SeaQL/sea-query/discussions/795:
 // replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
+// (breaking change)
 impl PgExpr for Expr {}
 impl PgExpr for SimpleExpr {}
 impl PgExpr for FunctionCall {}

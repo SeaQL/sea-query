@@ -7,10 +7,19 @@ use std::{fmt, mem, ops};
 use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
 use crate::extension::sqlite::SqliteBinOper;
+
+/// A reference counted pointer: either [`Rc`][std::rc::Rc] or [`Arc`][std::sync::Arc],
+/// depending on the feature flags.
+///
+/// [`Arc`][std::sync::Arc] is used when `thread-safe` feature is activated.
 #[cfg(not(feature = "thread-safe"))]
-pub use std::rc::Rc as RcOrArc;
+pub type RcOrArc<T> = std::rc::Rc<T>;
+/// A reference counted pointer: either [`Rc`][std::rc::Rc] or [`Arc`][std::sync::Arc],
+/// depending on the feature flags.
+///
+/// [`Arc`][std::sync::Arc] is used when `thread-safe` feature is activated.
 #[cfg(feature = "thread-safe")]
-pub use std::sync::Arc as RcOrArc;
+pub type RcOrArc<T> = std::sync::Arc<T>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Quote(pub(crate) u8, pub(crate) u8);
@@ -151,13 +160,15 @@ pub trait IntoTableRef {
     fn into_table_ref(self) -> TableRef;
 }
 
-/// Unary operator
+/// Unary operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnOper {
     Not,
 }
 
-/// Binary operator
+/// Binary operators.
+///
+/// If something is not supported here, you can use [`BinOper::Custom`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOper {
     And,
@@ -194,7 +205,7 @@ pub enum BinOper {
     SqliteOperator(SqliteBinOper),
 }
 
-/// Logical chain operator
+/// Logical chain operator: conjunction or disjunction.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
     And(SimpleExpr),
@@ -306,7 +317,9 @@ pub struct NullAlias;
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Asterisk;
 
-/// SQL Keywords
+/// Known SQL keywords that can be used as expressions.
+///
+/// If something is not supported here, you can use [`Keyword::Custom`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     Null,

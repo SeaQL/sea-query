@@ -185,6 +185,31 @@ fn create_7() {
 }
 
 #[test]
+fn create_8() {
+    assert_eq!(
+        Table::create()
+            .table(Font::Table)
+            .temporary()
+            .col(
+                ColumnDef::new(Font::Id)
+                    .integer()
+                    .not_null()
+                    .primary_key()
+                    .auto_increment()
+            )
+            .col(ColumnDef::new(Font::Name).string().not_null())
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TEMPORARY TABLE "font" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""name" varchar NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn create_with_unique_index() {
     assert_eq!(
         Table::create()
