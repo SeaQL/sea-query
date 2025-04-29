@@ -52,9 +52,7 @@ pub enum SimpleExpr {
 ///
 /// let expr = Func::char_length("abc").eq(3_i32);
 ///
-/// let expr = Expr::current_date()
-///     .cast_as("TEXT")
-///     .like("2024%");
+/// let expr = Expr::current_date().cast_as("TEXT").like("2024%");
 /// ```
 pub trait ExprTrait: Sized {
     /// Express an arithmetic addition operation.
@@ -204,9 +202,7 @@ pub trait ExprTrait: Sized {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr("1".cast_as("integer"))
-    ///     .to_owned();
+    /// let query = Query::select().expr("1".cast_as("integer")).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),

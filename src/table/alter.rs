@@ -13,12 +13,7 @@ use inherent::inherent;
 ///
 /// let table = Table::alter()
 ///     .table(Font::Table)
-///     .add_column(
-///         ColumnDef::new("new_col")
-///             .integer()
-///             .not_null()
-///             .default(100),
-///     )
+///     .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -82,12 +77,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .add_column(
-    ///         ColumnDef::new("new_col")
-    ///             .integer()
-    ///             .not_null()
-    ///             .default(100),
-    ///     )
+    ///     .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -121,12 +111,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .add_column_if_not_exists(
-    ///         ColumnDef::new("new_col")
-    ///             .integer()
-    ///             .not_null()
-    ///             .default(100),
-    ///     )
+    ///     .add_column_if_not_exists(ColumnDef::new("new_col").integer().not_null().default(100))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -160,11 +145,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .modify_column(
-    ///         ColumnDef::new("new_col")
-    ///             .big_integer()
-    ///             .default(999),
-    ///     )
+    ///     .modify_column(ColumnDef::new("new_col").big_integer().default(999))
     ///     .to_owned();
     ///
     /// assert_eq!(

@@ -724,10 +724,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr_window_name(Expr::col(Char::Character), "w")
-    ///     .window(
-    ///         "w",
-    ///         WindowStatement::partition_by(Char::FontSize),
-    ///     )
+    ///     .window("w", WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(

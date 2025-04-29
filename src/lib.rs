@@ -603,12 +603,7 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::alter()
 //!     .table(Font::Table)
-//!     .add_column(
-//!         ColumnDef::new("new_col")
-//!             .integer()
-//!             .not_null()
-//!             .default(100),
-//!     )
+//!     .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -652,9 +647,7 @@
 //!
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
-//! let table = Table::rename()
-//!     .table(Font::Table, "font_new")
-//!     .to_owned();
+//! let table = Table::rename().table(Font::Table, "font_new").to_owned();
 //!
 //! assert_eq!(
 //!     table.to_string(MysqlQueryBuilder),

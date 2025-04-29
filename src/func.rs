@@ -546,11 +546,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cast_as_quoted(
-    ///         "hello",
-    ///         "MyType",
-    ///         '"'.into(),
-    ///     ))
+    ///     .expr(Func::cast_as_quoted("hello", "MyType", '"'.into()))
     ///     .to_owned();
     ///
     /// assert_eq!(
