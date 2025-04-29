@@ -51,7 +51,7 @@ fn select_4() {
                     .columns([Glyph::Image, Glyph::Aspect])
                     .from(Glyph::Table)
                     .take(),
-                Alias::new("subglyph")
+                "subglyph"
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `image` FROM (SELECT `image`, `aspect` FROM `glyph`) AS `subglyph`"
@@ -459,7 +459,7 @@ fn select_31() {
 fn select_32() {
     assert_eq!(
         Query::select()
-            .expr_as(Expr::col(Char::Character), Alias::new("C"))
+            .expr_as(Expr::col(Char::Character), "C")
             .from(Char::Table)
             .to_string(MysqlQueryBuilder),
         "SELECT `character` AS `C` FROM `character`"
@@ -976,7 +976,7 @@ fn select_57() {
                 .case(Expr::col((Glyph::Table, Glyph::Aspect)).gt(0), "positive")
                 .case(Expr::col((Glyph::Table, Glyph::Aspect)).lt(0), "negative")
                 .finally("zero"),
-            Alias::new("polarity"),
+            "polarity",
         )
         .from(Glyph::Table)
         .to_owned();

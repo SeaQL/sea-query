@@ -48,12 +48,12 @@ pub enum SimpleExpr {
 /// ```no_run
 /// # use sea_query::*;
 /// #
-/// let expr = 1_i32.cast_as(Alias::new("REAL"));
+/// let expr = 1_i32.cast_as("REAL");
 ///
 /// let expr = Func::char_length("abc").eq(3_i32);
 ///
 /// let expr = Expr::current_date()
-///     .cast_as(Alias::new("TEXT"))
+///     .cast_as("TEXT")
 ///     .like("2024%");
 /// ```
 pub trait ExprTrait: Sized {
@@ -100,7 +100,7 @@ pub trait ExprTrait: Sized {
     /// let query = Query::insert()
     ///     .into_table(Char::Table)
     ///     .columns([Char::FontSize])
-    ///     .values_panic(["large".as_enum(Alias::new("FontSizeEnum"))])
+    ///     .values_panic(["large".as_enum("FontSizeEnum")])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -205,7 +205,7 @@ pub trait ExprTrait: Sized {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr("1".cast_as(Alias::new("integer")))
+    ///     .expr("1".cast_as("integer"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -3201,8 +3201,8 @@ impl Expr {
     /// use sea_query::{*, tests_cfg::*};
     ///
     /// let query = Query::select()
-    ///     .expr_as(Expr::exists(Query::select().column(Char::Id).from(Char::Table).take()), Alias::new("character_exists"))
-    ///     .expr_as(Expr::exists(Query::select().column(Glyph::Id).from(Glyph::Table).take()), Alias::new("glyph_exists"))
+    ///     .expr_as(Expr::exists(Query::select().column(Char::Id).from(Char::Table).take()), "character_exists")
+    ///     .expr_as(Expr::exists(Query::select().column(Glyph::Id).from(Glyph::Table).take()), "glyph_exists")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -3305,7 +3305,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::col(Char::FontSize).as_enum(Alias::new("text")))
+    ///     .expr(Expr::col(Char::FontSize).as_enum("text"))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
@@ -3351,7 +3351,7 @@ impl Expr {
     /// let query = Query::insert()
     ///     .into_table(Char::Table)
     ///     .columns([Char::FontSize])
-    ///     .values_panic([Expr::val("large").as_enum(Alias::new("FontSizeEnum"))])
+    ///     .values_panic([Expr::val("large").as_enum("FontSizeEnum")])
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -3388,7 +3388,7 @@ impl Expr {
     ///                 true
     ///              )
     ///             .finally(false),
-    ///          Alias::new("is_even")
+    ///          "is_even"
     ///     )
     ///     .from(Glyph::Table)
     ///     .to_owned();
@@ -3416,7 +3416,7 @@ impl Expr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::val("1").cast_as(Alias::new("integer")))
+    ///     .expr(Expr::val("1").cast_as("integer"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -3519,7 +3519,7 @@ impl Expr {
     /// use sea_query::*;
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::custom_keyword(Alias::new("test")))
+    ///     .expr(Expr::custom_keyword("test"))
     ///     .to_owned();
     ///
     /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT test"#);
@@ -3923,7 +3923,7 @@ impl SimpleExpr {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Expr::value("1").cast_as(Alias::new("integer")))
+    ///     .expr(Expr::value("1").cast_as("integer"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -4004,7 +4004,7 @@ impl SimpleExpr {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::FontId)).cast_as(Alias::new("TEXT")).like("a%"))
+    ///     .and_where(Expr::col((Char::Table, Char::FontId)).cast_as("TEXT").like("a%"))
     ///     .to_owned();
     ///
     /// assert_eq!(

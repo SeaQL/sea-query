@@ -508,7 +508,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .column((Alias::new("schema"), Char::Table, Char::Character))
+    ///     .column(("schema", Char::Table, Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -603,7 +603,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_as(Expr::col(Char::Character), Alias::new("C"))
+    ///     .expr_as(Expr::col(Char::Character), "C")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -684,7 +684,7 @@ impl SelectStatement {
     ///     .expr_window_as(
     ///         Expr::col(Char::Character),
     ///         WindowStatement::partition_by(Char::FontSize),
-    ///         Alias::new("C"),
+    ///         "C",
     ///     )
     ///     .to_owned();
     ///
@@ -723,9 +723,9 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name(Expr::col(Char::Character), Alias::new("w"))
+    ///     .expr_window_name(Expr::col(Char::Character), "w")
     ///     .window(
-    ///         Alias::new("w"),
+    ///         "w",
     ///         WindowStatement::partition_by(Char::FontSize),
     ///     )
     ///     .to_owned();
@@ -765,8 +765,8 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("w"), Alias::new("C"))
-    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
+    ///     .expr_window_name_as(Expr::col(Char::Character), "w", "C")
+    ///     .window("w", WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -849,7 +849,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::FontSize)
-    ///     .from((Alias::new("database"), Char::Table, Glyph::Table))
+    ///     .from(("database", Char::Table, Glyph::Table))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -907,7 +907,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .expr(Expr::asterisk())
-    ///     .from_values([(1, "hello"), (2, "world")], Alias::new("x"))
+    ///     .from_values([(1, "hello"), (2, "world")], "x")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -944,7 +944,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let table_as: DynIden = SeaRc::new(Alias::new("char"));
+    /// let table_as: DynIden = SeaRc::new("char");
     ///
     /// let query = Query::select()
     ///     .from_as(Char::Table, table_as.clone())
@@ -968,7 +968,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let table_as = Alias::new("alias");
+    /// let table_as = "alias";
     ///
     /// let query = Query::select()
     ///     .from_as((Font::Table, Char::Table), table_as.clone())
@@ -1010,7 +1010,7 @@ impl SelectStatement {
     ///             .columns([Glyph::Image, Glyph::Aspect])
     ///             .from(Glyph::Table)
     ///             .take(),
-    ///         Alias::new("subglyph"),
+    ///         "subglyph",
     ///     )
     ///     .to_owned();
     ///
@@ -1043,7 +1043,7 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(ColumnRef::Asterisk)
-    ///     .from_function(Func::random(), Alias::new("func"))
+    ///     .from_function(Func::random(), "func")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1490,7 +1490,7 @@ impl SelectStatement {
     ///     .join_as(
     ///         JoinType::RightJoin,
     ///         Font::Table,
-    ///         Alias::new("f"),
+    ///         "f",
     ///         Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
     ///     )
     ///     .to_owned();
@@ -1517,7 +1517,7 @@ impl SelectStatement {
     ///         .join_as(
     ///             JoinType::RightJoin,
     ///             Font::Table,
-    ///             Alias::new("f"),
+    ///             "f",
     ///             Condition::all()
     ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
     ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
@@ -1555,7 +1555,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let sub_glyph: DynIden = SeaRc::new(Alias::new("sub_glyph"));
+    /// let sub_glyph: DynIden = SeaRc::new("sub_glyph");
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)
@@ -1625,7 +1625,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let sub_glyph: DynIden = SeaRc::new(Alias::new("sub_glyph"));
+    /// let sub_glyph: DynIden = SeaRc::new("sub_glyph");
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)
@@ -2294,23 +2294,23 @@ impl SelectStatement {
     /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
     ///
     /// let base_query = SelectStatement::new()
-    ///                     .column(Alias::new("id"))
+    ///                     .column("id")
     ///                     .expr(1i32)
-    ///                     .column(Alias::new("next"))
-    ///                     .column(Alias::new("value"))
-    ///                     .from(Alias::new("table"))
+    ///                     .column("next")
+    ///                     .column("value")
+    ///                     .from("table")
     ///                     .to_owned();
     ///
     /// let cte_referencing = SelectStatement::new()
-    ///                             .column(Alias::new("id"))
-    ///                             .expr(Expr::col(Alias::new("depth")).add(1i32))
-    ///                             .column(Alias::new("next"))
-    ///                             .column(Alias::new("value"))
-    ///                             .from(Alias::new("table"))
+    ///                             .column("id")
+    ///                             .expr(Expr::col("depth").add(1i32))
+    ///                             .column("next")
+    ///                             .column("value")
+    ///                             .from("table")
     ///                             .join(
     ///                                 JoinType::InnerJoin,
-    ///                                 Alias::new("cte_traversal"),
-    ///                                 Expr::col((Alias::new("cte_traversal"), Alias::new("next"))).equals((Alias::new("table"), Alias::new("id")))
+    ///                                 "cte_traversal",
+    ///                                 Expr::col(("cte_traversal", "next")).equals(("table", "id"))
     ///                             )
     ///                             .to_owned();
     ///
@@ -2318,19 +2318,19 @@ impl SelectStatement {
     ///             .query(
     ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
     ///             )
-    ///             .columns([Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
-    ///             .table_name(Alias::new("cte_traversal"))
+    ///             .columns(["id", "depth", "next", "value"])
+    ///             .table_name("cte_traversal")
     ///             .to_owned();
     ///
     /// let select = SelectStatement::new()
     ///         .column(ColumnRef::Asterisk)
-    ///         .from(Alias::new("cte_traversal"))
+    ///         .from("cte_traversal")
     ///         .to_owned();
     ///
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
+    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = select.with(with_clause).to_owned();
@@ -2360,23 +2360,23 @@ impl SelectStatement {
     /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
     ///
     /// let base_query = SelectStatement::new()
-    ///                     .column(Alias::new("id"))
+    ///                     .column("id")
     ///                     .expr(1i32)
-    ///                     .column(Alias::new("next"))
-    ///                     .column(Alias::new("value"))
-    ///                     .from(Alias::new("table"))
+    ///                     .column("next")
+    ///                     .column("value")
+    ///                     .from("table")
     ///                     .to_owned();
     ///
     /// let cte_referencing = SelectStatement::new()
-    ///                             .column(Alias::new("id"))
-    ///                             .expr(Expr::col(Alias::new("depth")).add(1i32))
-    ///                             .column(Alias::new("next"))
-    ///                             .column(Alias::new("value"))
-    ///                             .from(Alias::new("table"))
+    ///                             .column("id")
+    ///                             .expr(Expr::col("depth").add(1i32))
+    ///                             .column("next")
+    ///                             .column("value")
+    ///                             .from("table")
     ///                             .join(
     ///                                 JoinType::InnerJoin,
-    ///                                 Alias::new("cte_traversal"),
-    ///                                 Expr::col((Alias::new("cte_traversal"), Alias::new("next"))).equals((Alias::new("table"), Alias::new("id")))
+    ///                                 "cte_traversal",
+    ///                                 Expr::col(("cte_traversal", "next")).equals(("table", "id"))
     ///                             )
     ///                             .to_owned();
     ///
@@ -2384,19 +2384,19 @@ impl SelectStatement {
     ///             .query(
     ///                 base_query.clone().union(UnionType::All, cte_referencing).to_owned()
     ///             )
-    ///             .columns([Alias::new("id"), Alias::new("depth"), Alias::new("next"), Alias::new("value")])
-    ///             .table_name(Alias::new("cte_traversal"))
+    ///             .columns(["id", "depth", "next", "value"])
+    ///             .table_name("cte_traversal")
     ///             .to_owned();
     ///
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column(Alias::new("id").into_iden())), Alias::new("looped"), Alias::new("traversal_path")))
+    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = SelectStatement::new()
     ///         .column(ColumnRef::Asterisk)
-    ///         .from(Alias::new("cte_traversal"))
+    ///         .from("cte_traversal")
     ///         .with_cte(with_clause)
     ///         .to_owned();
     ///
@@ -2427,8 +2427,8 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name_as(Expr::col(Char::Character), Alias::new("w"), Alias::new("C"))
-    ///     .window(Alias::new("w"), WindowStatement::partition_by(Char::FontSize))
+    ///     .expr_window_name_as(Expr::col(Char::Character), "w", "C")
+    ///     .window("w", WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(

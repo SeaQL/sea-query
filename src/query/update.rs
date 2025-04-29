@@ -331,12 +331,12 @@ impl UpdateStatement {
     ///     let cte = CommonTableExpression::new()
     ///         .query(select)
     ///         .column(Glyph::Id)
-    ///         .table_name(Alias::new("cte"))
+    ///         .table_name("cte")
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
     ///     let update = UpdateStatement::new()
     ///         .table(Glyph::Table)
-    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from("cte").to_owned()))
     ///         .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
     ///         .to_owned();
     ///     let query = update.with(with_clause);
@@ -373,12 +373,12 @@ impl UpdateStatement {
     ///     let cte = CommonTableExpression::new()
     ///         .query(select)
     ///         .column(Glyph::Id)
-    ///         .table_name(Alias::new("cte"))
+    ///         .table_name("cte")
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
     ///     let query = UpdateStatement::new()
     ///         .table(Glyph::Table)
-    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from("cte").to_owned()))
     ///         .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
     ///         .with_cte(with_clause)
     ///         .to_owned();

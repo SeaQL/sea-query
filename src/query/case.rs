@@ -25,7 +25,7 @@ impl CaseStatement {
     ///         CaseStatement::new()
     ///             .case(Expr::col((Glyph::Table, Glyph::Aspect)).is_in([2, 4]), true)
     ///             .finally(false),
-    ///          Alias::new("is_even")
+    ///          "is_even"
     ///     )
     ///     .from(Glyph::Table)
     ///     .to_owned();
@@ -33,7 +33,7 @@ impl CaseStatement {
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
-    /// );    
+    /// );
     /// ```
     pub fn new() -> Self {
         Self::default()
@@ -57,7 +57,7 @@ impl CaseStatement {
     ///                 "negative"
     ///              )
     ///             .finally("zero"),
-    ///          Alias::new("polarity")
+    ///          "polarity"
     ///     )
     ///     .from(Glyph::Table)
     ///     .to_owned();
@@ -65,7 +65,7 @@ impl CaseStatement {
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
-    /// );    
+    /// );
     /// ```
     pub fn case<C, T>(mut self, cond: C, then: T) -> Self
     where
@@ -101,7 +101,7 @@ impl CaseStatement {
     ///             "medium"
     ///         )
     ///         .finally("small"),
-    ///         Alias::new("char_size"))
+    ///         "char_size")
     ///     .from(Character::Table)
     ///     .to_owned();
     ///
@@ -115,7 +115,7 @@ impl CaseStatement {
     ///         r#"FROM "character""#
     ///     ]
     ///     .join(" ")
-    /// );    
+    /// );
     /// ```
     pub fn finally<E>(mut self, r#else: E) -> Self
     where
@@ -140,16 +140,13 @@ mod test {
     #[test]
     #[cfg(feature = "backend-postgres")]
     fn test_where_case_eq() {
-        let case_statement: SimpleExpr = Expr::case(
-            Expr::col(Alias::new("col")).lt(5),
-            Expr::col(Alias::new("othercol")),
-        )
-        .finally(Expr::col(Alias::new("finalcol")))
-        .into();
+        let case_statement: SimpleExpr = Expr::case(Expr::col("col").lt(5), Expr::col("othercol"))
+            .finally(Expr::col("finalcol"))
+            .into();
 
         let result = Query::select()
             .column(Asterisk)
-            .from(Alias::new("tbl"))
+            .from("tbl")
             .and_where(case_statement.eq(10))
             .to_string(PostgresQueryBuilder);
         assert_eq!(

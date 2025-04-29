@@ -10,7 +10,7 @@ use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 /// use sea_query::{tests_cfg::*, *};
 ///
 /// let table = Table::rename()
-///     .table(Font::Table, Alias::new("font_new"))
+///     .table(Font::Table, "font_new")
 ///     .to_owned();
 ///
 /// assert_eq!(

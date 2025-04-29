@@ -253,7 +253,9 @@ pub enum Order {
     Field(Values),
 }
 
-/// Helper for create name alias
+/// An explicit wrapper for [`Iden`]s which are user-provided strings.
+///
+/// Nowadays, strings implement [`Iden`] and can be used directly.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Alias(String);
 
@@ -564,9 +566,38 @@ impl Alias {
     }
 }
 
+// TODO: in the next major version, just `impl Iden for T where T: AsRef<str>`.
+// Perhaps, also delete the `Alias` type, which is just a string.
+
+/// Reuses the `impl` for the underlying [String].
 impl Iden for Alias {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(s, "{}", self.0).unwrap();
+        self.0.as_str().unquoted(s);
+    }
+}
+
+/// The "base" `impl` for writing arbitrary "raw" strings as identifiers.
+///
+/// Reused for other string-like types.
+impl Iden for &str {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        s.write_str(self).unwrap();
+    }
+}
+
+/// Provided for backwards-compatible ergonomics,
+/// the implementation is the same as for `&str`.
+impl Iden for &String {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        self.as_str().unquoted(s);
+    }
+}
+
+/// Provided for backwards-compatible ergonomics,
+/// the implementation is the same as for `&str`.
+impl Iden for String {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        self.as_str().unquoted(s);
     }
 }
 
@@ -633,9 +664,7 @@ mod tests {
 
     #[test]
     fn test_identifier() {
-        let query = Query::select()
-            .column(Alias::new("hello-World_"))
-            .to_owned();
+        let query = Query::select().column("hello-World_").to_owned();
 
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hello-World_`");
@@ -653,14 +682,14 @@ mod tests {
 
     #[test]
     fn test_quoted_identifier_1() {
-        let query = Query::select().column(Alias::new("hel`lo")).to_owned();
+        let query = Query::select().column("hel`lo").to_owned();
 
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel``lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel`lo""#);
 
-        let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
+        let query = Query::select().column("hel\"lo").to_owned();
 
         #[cfg(feature = "backend-postgres")]
         assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT "hel""lo""#);
@@ -668,14 +697,14 @@ mod tests {
 
     #[test]
     fn test_quoted_identifier_2() {
-        let query = Query::select().column(Alias::new("hel``lo")).to_owned();
+        let query = Query::select().column("hel``lo").to_owned();
 
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel````lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel``lo""#);
 
-        let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
+        let query = Query::select().column("hel\"\"lo").to_owned();
 
         #[cfg(feature = "backend-postgres")]
         assert_eq!(
@@ -705,16 +734,16 @@ mod tests {
             ColumnRef::Column(CharReexport::Id.into_iden())
         );
         assert_eq!(
-            ColumnRef::Column(Alias::new("id").into_iden()),
-            ColumnRef::Column(Alias::new("id").into_iden())
+            ColumnRef::Column("id".into_iden()),
+            ColumnRef::Column("id".into_iden())
         );
         assert_ne!(
-            ColumnRef::Column(Alias::new("id").into_iden()),
-            ColumnRef::Column(Alias::new("id_").into_iden())
+            ColumnRef::Column("id".into_iden()),
+            ColumnRef::Column("id_".into_iden())
         );
         assert_ne!(
             ColumnRef::Column(Character::Id.into_iden()),
-            ColumnRef::Column(Alias::new("id").into_iden())
+            ColumnRef::Column("id".into_iden())
         );
         assert_ne!(
             ColumnRef::Column(Character::Id.into_iden()),

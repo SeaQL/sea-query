@@ -196,7 +196,7 @@ fn main() {
 
     let query = Query::select()
         .from(Character::Table)
-        .expr_as(Func::count(Expr::col(Character::Id)), Alias::new("count"))
+        .expr_as(Func::count(Expr::col(Character::Id)), "count")
         .to_owned();
 
     print!("Count character: ");

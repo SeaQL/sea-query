@@ -479,7 +479,7 @@
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::select()
-//!     .expr(Func::cast_as("hello", Alias::new("MyType")))
+//!     .expr(Func::cast_as("hello", "MyType"))
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -604,7 +604,7 @@
 //! let table = Table::alter()
 //!     .table(Font::Table)
 //!     .add_column(
-//!         ColumnDef::new(Alias::new("new_col"))
+//!         ColumnDef::new("new_col")
 //!             .integer()
 //!             .not_null()
 //!             .default(100),
@@ -653,7 +653,7 @@
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::rename()
-//!     .table(Font::Table, Alias::new("font_new"))
+//!     .table(Font::Table, "font_new")
 //!     .to_owned();
 //!
 //! assert_eq!(

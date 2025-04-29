@@ -25,7 +25,7 @@ fn create_2() {
     assert_eq!(
         ForeignKey::create()
             .name("FK_2e303c3a712662f1fc2a4d0aad6")
-            .from((Alias::new("schema"), Char::Table), Char::FontId)
+            .from(("schema", Char::Table), Char::FontId)
             .to(Font::Table, Font::Id)
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Cascade)
@@ -55,7 +55,7 @@ fn drop_2() {
     assert_eq!(
         ForeignKey::drop()
             .name("FK_2e303c3a712662f1fc2a4d0aad6")
-            .table((Alias::new("schema"), Char::Table))
+            .table(("schema", Char::Table))
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "schema"."character" DROP CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#
     );

@@ -348,7 +348,7 @@ impl TypeAlterStatement {
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(FontFamily::Type)
-    ///         .add_value(Alias::new("cursive"))
+    ///         .add_value("cursive")
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive'"#
     /// );
@@ -380,7 +380,7 @@ impl TypeAlterStatement {
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(Font::Table)
-    ///         .add_value(Alias::new("weight"))
+    ///         .add_value("weight")
     ///         .before(Font::Variant)
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
@@ -414,7 +414,7 @@ impl TypeAlterStatement {
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(Font::Table)
-    ///         .add_value(Alias::new("weight"))
+    ///         .add_value("weight")
     ///         .if_not_exists()
     ///         .after(Font::Variant)
     ///         .to_string(PostgresQueryBuilder),
@@ -443,7 +443,7 @@ impl TypeAlterStatement {
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(Font::Table)
-    ///         .rename_value(Alias::new("variant"), Alias::new("language"))
+    ///         .rename_value("variant", "language")
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )

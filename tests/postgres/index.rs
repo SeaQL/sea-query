@@ -60,7 +60,7 @@ fn create_5() {
         Index::create()
             .unique()
             .name("idx-glyph-aspect-image")
-            .table((Alias::new("schema"), Glyph::Table))
+            .table(("schema", Glyph::Table))
             .col(Glyph::Aspect)
             .col(Glyph::Image)
             .to_string(PostgresQueryBuilder),
@@ -129,7 +129,7 @@ fn drop_2() {
     assert_eq!(
         Index::drop()
             .name("idx-glyph-aspect")
-            .table((Alias::new("schema"), Glyph::Table))
+            .table(("schema", Glyph::Table))
             .to_string(PostgresQueryBuilder),
         r#"DROP INDEX "schema"."idx-glyph-aspect""#
     );
@@ -151,6 +151,6 @@ fn drop_3() {
 fn drop_4() {
     Index::drop()
         .name("idx-glyph-aspect")
-        .table((Alias::new("database"), Alias::new("schema"), Glyph::Table))
+        .table(("database", "schema", Glyph::Table))
         .to_string(PostgresQueryBuilder);
 }
