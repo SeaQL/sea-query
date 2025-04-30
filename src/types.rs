@@ -253,9 +253,9 @@ pub enum Order {
     Field(Values),
 }
 
-/// An explicit wrapper for [`Iden`]s which are user-provided strings.
+/// An explicit wrapper for [`Iden`]s which are dynamic user-provided strings.
 ///
-/// Nowadays, strings implement [`Iden`] and can be used directly.
+/// Nowadays, `&str` implements [`Iden`] and can be used directly.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Alias(String);
 
@@ -566,10 +566,10 @@ impl Alias {
     }
 }
 
-// TODO: in the next major version, just `impl Iden for T where T: AsRef<str>`.
-// Perhaps, also delete the `Alias` type, which is just a string.
+// Regaring potential `impl for String` and the need for `Alias`,
+// see discussions on https://github.com/SeaQL/sea-query/pull/882
 
-/// Reuses the `impl` for the underlying [String].
+/// Reuses the `impl` for the underlying [str].
 impl Iden for Alias {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
         self.0.as_str().unquoted(s);
@@ -582,22 +582,6 @@ impl Iden for Alias {
 impl Iden for &str {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
         s.write_str(self).unwrap();
-    }
-}
-
-/// Provided for backwards-compatible ergonomics,
-/// the implementation is the same as for `&str`.
-impl Iden for &String {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        self.as_str().unquoted(s);
-    }
-}
-
-/// Provided for backwards-compatible ergonomics,
-/// the implementation is the same as for `&str`.
-impl Iden for String {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        self.as_str().unquoted(s);
     }
 }
 
