@@ -38,12 +38,23 @@ macro_rules! iden_trait {
                 self.to_string().replace(qq, qq.repeat(2).as_str())
             }
 
+            /// A shortcut for writing an [`unquoted`][Iden::unquoted]
+            /// identifier into a [`String`].
+            ///
+            /// We can't reuse [`ToString`] for this, because [`ToString`] uses
+            /// the [`Display`][std::fmt::Display] representation. Bnd [`Iden`]
+            /// representation is distinct from [`Display`][std::fmt::Display]
+            /// and can be different.
             fn to_string(&self) -> String {
                 let mut s = String::new();
                 self.unquoted(&mut s);
                 s
             }
 
+            /// Write a raw identifier string without quotes.
+            ///
+            /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+            /// this, because we want to allow it to have a different logic.
             fn unquoted(&self, s: &mut dyn fmt::Write);
         }
 
