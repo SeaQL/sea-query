@@ -106,7 +106,7 @@ where
                         }
                     }
                 }
-                output.push(mark.to_string())
+                output.push(mark.clone())
             }
             _ => output.push(token.to_string()),
         }

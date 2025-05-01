@@ -13,12 +13,7 @@ use inherent::inherent;
 ///
 /// let table = Table::alter()
 ///     .table(Font::Table)
-///     .add_column(
-///         ColumnDef::new(Alias::new("new_col"))
-///             .integer()
-///             .not_null()
-///             .default(100),
-///     )
+///     .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
 ///     .to_owned();
 ///
 /// assert_eq!(
@@ -82,12 +77,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .add_column(
-    ///         ColumnDef::new(Alias::new("new_col"))
-    ///             .integer()
-    ///             .not_null()
-    ///             .default(100),
-    ///     )
+    ///     .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -121,12 +111,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .add_column_if_not_exists(
-    ///         ColumnDef::new(Alias::new("new_col"))
-    ///             .integer()
-    ///             .not_null()
-    ///             .default(100),
-    ///     )
+    ///     .add_column_if_not_exists(ColumnDef::new("new_col").integer().not_null().default(100))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -160,11 +145,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .modify_column(
-    ///         ColumnDef::new(Alias::new("new_col"))
-    ///             .big_integer()
-    ///             .default(999),
-    ///     )
+    ///     .modify_column(ColumnDef::new("new_col").big_integer().default(999))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -195,7 +176,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .rename_column(Alias::new("new_col"), Alias::new("new_column"))
+    ///     .rename_column("new_col", "new_column")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -231,7 +212,7 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Font::Table)
-    ///     .drop_column(Alias::new("new_column"))
+    ///     .drop_column("new_column")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -332,8 +313,8 @@ impl TableAlterStatement {
     ///
     /// let table = Table::alter()
     ///     .table(Character::Table)
-    ///     .drop_foreign_key(Alias::new("FK_character_glyph"))
-    ///     .drop_foreign_key(Alias::new("FK_character_font"))
+    ///     .drop_foreign_key("FK_character_glyph")
+    ///     .drop_foreign_key("FK_character_font")
     ///     .to_owned();
     ///
     /// assert_eq!(

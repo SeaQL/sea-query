@@ -200,7 +200,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values([
     ///         2.into(),
-    ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")).into(),
+    ///         Func::cast_as("2020-02-02 00:00:00", "DATE").into(),
     ///     ])
     ///     .unwrap()
     ///     .to_owned();
@@ -442,12 +442,12 @@ impl InsertStatement {
     ///         .column(Glyph::Id)
     ///         .column(Glyph::Image)
     ///         .column(Glyph::Aspect)
-    ///         .table_name(Alias::new("cte"))
+    ///         .table_name("cte")
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
     ///     let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-    ///         .from(Alias::new("cte"))
+    ///         .from("cte")
     ///         .to_owned();
     ///     let mut insert = Query::insert();
     ///     insert
@@ -490,12 +490,12 @@ impl InsertStatement {
     ///         .column(Glyph::Id)
     ///         .column(Glyph::Image)
     ///         .column(Glyph::Aspect)
-    ///         .table_name(Alias::new("cte"))
+    ///         .table_name("cte")
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
     ///     let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-    ///         .from(Alias::new("cte"))
+    ///         .from("cte")
     ///         .to_owned();
     ///     let mut query = Query::insert();
     ///     query

@@ -460,23 +460,15 @@ impl ColumnDef {
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
+    ///         .col(ColumnDef::new("I1").interval(None, None).not_null())
     ///         .col(
-    ///             ColumnDef::new(Alias::new("I1"))
-    ///                 .interval(None, None)
-    ///                 .not_null()
-    ///         )
-    ///         .col(
-    ///             ColumnDef::new(Alias::new("I2"))
+    ///             ColumnDef::new("I2")
     ///                 .interval(Some(PgInterval::YearToMonth), None)
     ///                 .not_null()
     ///         )
+    ///         .col(ColumnDef::new("I3").interval(None, Some(42)).not_null())
     ///         .col(
-    ///             ColumnDef::new(Alias::new("I3"))
-    ///                 .interval(None, Some(42))
-    ///                 .not_null()
-    ///         )
-    ///         .col(
-    ///             ColumnDef::new(Alias::new("I4"))
+    ///             ColumnDef::new("I4")
     ///                 .interval(Some(PgInterval::Hour), Some(43))
     ///                 .not_null()
     ///         )
@@ -771,7 +763,7 @@ impl ColumnDef {
     ///     .modify_column(
     ///         ColumnDef::new(Char::Id)
     ///             .integer()
-    ///             .using(Expr::col(Char::Id).cast_as(Alias::new("integer"))),
+    ///             .using(Expr::col(Char::Id).cast_as("integer")),
     ///     )
     ///     .to_owned();
     /// assert_eq!(

@@ -38,12 +38,23 @@ macro_rules! iden_trait {
                 self.to_string().replace(qq, qq.repeat(2).as_str())
             }
 
+            /// A shortcut for writing an [`unquoted`][Iden::unquoted]
+            /// identifier into a [`String`].
+            ///
+            /// We can't reuse [`ToString`] for this, because [`ToString`] uses
+            /// the [`Display`][std::fmt::Display] representation. Bnd [`Iden`]
+            /// representation is distinct from [`Display`][std::fmt::Display]
+            /// and can be different.
             fn to_string(&self) -> String {
                 let mut s = String::new();
                 self.unquoted(&mut s);
                 s
             }
 
+            /// Write a raw identifier string without quotes.
+            ///
+            /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+            /// this, because we want to allow it to have a different logic.
             fn unquoted(&self, s: &mut dyn fmt::Write);
         }
 
@@ -253,7 +264,9 @@ pub enum Order {
     Field(Values),
 }
 
-/// Helper for create name alias
+/// An explicit wrapper for [`Iden`]s which are dynamic user-provided strings.
+///
+/// Nowadays, `&str` implements [`Iden`] and can be used directly.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Alias(String);
 
@@ -564,9 +577,22 @@ impl Alias {
     }
 }
 
+// Regaring potential `impl for String` and the need for `Alias`,
+// see discussions on https://github.com/SeaQL/sea-query/pull/882
+
+/// Reuses the `impl` for the underlying [str].
 impl Iden for Alias {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(s, "{}", self.0).unwrap();
+        self.0.as_str().unquoted(s);
+    }
+}
+
+/// The "base" `impl` for writing arbitrary "raw" strings as identifiers.
+///
+/// Reused for other string-like types.
+impl Iden for &str {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        s.write_str(self).unwrap();
     }
 }
 
@@ -633,9 +659,7 @@ mod tests {
 
     #[test]
     fn test_identifier() {
-        let query = Query::select()
-            .column(Alias::new("hello-World_"))
-            .to_owned();
+        let query = Query::select().column("hello-World_").to_owned();
 
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hello-World_`");
@@ -653,14 +677,14 @@ mod tests {
 
     #[test]
     fn test_quoted_identifier_1() {
-        let query = Query::select().column(Alias::new("hel`lo")).to_owned();
+        let query = Query::select().column("hel`lo").to_owned();
 
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel``lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel`lo""#);
 
-        let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
+        let query = Query::select().column("hel\"lo").to_owned();
 
         #[cfg(feature = "backend-postgres")]
         assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT "hel""lo""#);
@@ -668,14 +692,14 @@ mod tests {
 
     #[test]
     fn test_quoted_identifier_2() {
-        let query = Query::select().column(Alias::new("hel``lo")).to_owned();
+        let query = Query::select().column("hel``lo").to_owned();
 
         #[cfg(feature = "backend-mysql")]
         assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel````lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel``lo""#);
 
-        let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
+        let query = Query::select().column("hel\"\"lo").to_owned();
 
         #[cfg(feature = "backend-postgres")]
         assert_eq!(
@@ -705,16 +729,16 @@ mod tests {
             ColumnRef::Column(CharReexport::Id.into_iden())
         );
         assert_eq!(
-            ColumnRef::Column(Alias::new("id").into_iden()),
-            ColumnRef::Column(Alias::new("id").into_iden())
+            ColumnRef::Column("id".into_iden()),
+            ColumnRef::Column("id".into_iden())
         );
         assert_ne!(
-            ColumnRef::Column(Alias::new("id").into_iden()),
-            ColumnRef::Column(Alias::new("id_").into_iden())
+            ColumnRef::Column("id".into_iden()),
+            ColumnRef::Column("id_".into_iden())
         );
         assert_ne!(
             ColumnRef::Column(Character::Id.into_iden()),
-            ColumnRef::Column(Alias::new("id").into_iden())
+            ColumnRef::Column("id".into_iden())
         );
         assert_ne!(
             ColumnRef::Column(Character::Id.into_iden()),

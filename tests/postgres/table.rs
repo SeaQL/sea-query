@@ -295,7 +295,7 @@ fn create_13() {
 fn create_14() {
     assert_eq!(
         Table::create()
-            .table((Alias::new("schema"), Glyph::Table))
+            .table(("schema", Glyph::Table))
             .col(ColumnDef::new(Glyph::Image).custom(Glyph::Aspect))
             .to_string(PostgresQueryBuilder),
         [
@@ -351,8 +351,8 @@ fn drop_1() {
 fn drop_2() {
     assert_eq!(
         Table::drop()
-            .table((Alias::new("schema1"), Glyph::Table))
-            .table((Alias::new("schema2"), Char::Table))
+            .table(("schema1", Glyph::Table))
+            .table(("schema2", Char::Table))
             .cascade()
             .to_string(PostgresQueryBuilder),
         r#"DROP TABLE "schema1"."glyph", "schema2"."character" CASCADE"#
@@ -373,7 +373,7 @@ fn truncate_1() {
 fn truncate_2() {
     assert_eq!(
         Table::truncate()
-            .table((Alias::new("schema"), Font::Table))
+            .table(("schema", Font::Table))
             .to_string(PostgresQueryBuilder),
         r#"TRUNCATE TABLE "schema"."font""#
     );
@@ -384,12 +384,7 @@ fn alter_1() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .add_column(
-                ColumnDef::new(Alias::new("new_col"))
-                    .integer()
-                    .not_null()
-                    .default(100)
-            )
+            .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 100"#
     );
@@ -400,11 +395,7 @@ fn alter_2() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .modify_column(
-                ColumnDef::new(Alias::new("new_col"))
-                    .big_integer()
-                    .default(999)
-            )
+            .modify_column(ColumnDef::new("new_col").big_integer().default(999))
             .to_string(PostgresQueryBuilder),
         [
             r#"ALTER TABLE "font""#,
@@ -420,7 +411,7 @@ fn alter_3() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .rename_column(Alias::new("new_col"), Alias::new("new_column"))
+            .rename_column("new_col", "new_column")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     );
@@ -431,7 +422,7 @@ fn alter_4() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .drop_column(Alias::new("new_column"))
+            .drop_column("new_column")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" DROP COLUMN "new_column""#
     );
@@ -441,8 +432,8 @@ fn alter_4() {
 fn alter_5() {
     assert_eq!(
         Table::alter()
-            .table((Alias::new("schema"), Font::Table))
-            .rename_column(Alias::new("new_col"), Alias::new("new_column"))
+            .table(("schema", Font::Table))
+            .rename_column("new_col", "new_column")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "schema"."font" RENAME COLUMN "new_col" TO "new_column""#
     );
@@ -459,8 +450,8 @@ fn alter_7() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .add_column(ColumnDef::new(Alias::new("new_col")).integer())
-            .rename_column(Font::Name, Alias::new("name_new"))
+            .add_column(ColumnDef::new("new_col").integer())
+            .rename_column(Font::Name, "name_new")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer, RENAME COLUMN "name" TO "name_new""#
     );
@@ -534,7 +525,7 @@ fn alter_10() {
 fn rename_1() {
     assert_eq!(
         Table::rename()
-            .table(Font::Table, Alias::new("font_new"))
+            .table(Font::Table, "font_new")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "font" RENAME TO "font_new""#
     );
@@ -544,10 +535,7 @@ fn rename_1() {
 fn rename_2() {
     assert_eq!(
         Table::rename()
-            .table(
-                (Alias::new("schema"), Font::Table),
-                (Alias::new("schema"), Alias::new("font_new")),
-            )
+            .table(("schema", Font::Table), ("schema", "font_new"),)
             .to_string(PostgresQueryBuilder),
         r#"ALTER TABLE "schema"."font" RENAME TO "schema"."font_new""#
     );

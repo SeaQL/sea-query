@@ -233,10 +233,7 @@ fn create_10() {
     assert_eq!(
         Table::create()
             .table(Glyph::Table)
-            .col(ColumnDef::new(Glyph::Id).enumeration(
-                Alias::new("tea"),
-                [Alias::new("EverydayTea"), Alias::new("BreakfastTea")]
-            ),)
+            .col(ColumnDef::new(Glyph::Id).enumeration("tea", ["EverydayTea", "BreakfastTea"]),)
             .to_string(MysqlQueryBuilder),
         "CREATE TABLE `glyph` ( `id` ENUM('EverydayTea', 'BreakfastTea') )"
     );
@@ -294,12 +291,7 @@ fn alter_1() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .add_column(
-                ColumnDef::new(Alias::new("new_col"))
-                    .integer()
-                    .not_null()
-                    .default(100)
-            )
+            .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` ADD COLUMN `new_col` int NOT NULL DEFAULT 100"
     );
@@ -310,11 +302,7 @@ fn alter_2() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .modify_column(
-                ColumnDef::new(Alias::new("new_col"))
-                    .big_integer()
-                    .default(999)
-            )
+            .modify_column(ColumnDef::new("new_col").big_integer().default(999))
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` MODIFY COLUMN `new_col` bigint DEFAULT 999"
     );
@@ -325,7 +313,7 @@ fn alter_3() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .rename_column(Alias::new("new_col"), Alias::new("new_column"))
+            .rename_column("new_col", "new_column")
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` RENAME COLUMN `new_col` TO `new_column`"
     );
@@ -336,7 +324,7 @@ fn alter_4() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .drop_column(Alias::new("new_column"))
+            .drop_column("new_column")
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` DROP COLUMN `new_column`"
     );
@@ -346,7 +334,7 @@ fn alter_4() {
 fn alter_5() {
     assert_eq!(
         Table::rename()
-            .table(Font::Table, Alias::new("font_new"))
+            .table(Font::Table, "font_new")
             .to_string(MysqlQueryBuilder),
         "RENAME TABLE `font` TO `font_new`"
     );
@@ -363,8 +351,8 @@ fn alter_7() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .drop_column(Alias::new("new_column"))
-            .rename_column(Font::Name, Alias::new("name_new"))
+            .drop_column("new_column")
+            .rename_column(Font::Name, "name_new")
             .to_string(MysqlQueryBuilder),
         "ALTER TABLE `font` DROP COLUMN `new_column`, RENAME COLUMN `name` TO `name_new`"
     );

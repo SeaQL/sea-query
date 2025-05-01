@@ -50,7 +50,7 @@ fn select_4() {
                     .columns([Glyph::Image, Glyph::Aspect])
                     .from(Glyph::Table)
                     .take(),
-                Alias::new("subglyph")
+                "subglyph"
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "aspect" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
@@ -443,7 +443,7 @@ fn select_31() {
 fn select_32() {
     assert_eq!(
         Query::select()
-            .expr_as(Expr::col(Char::Character), Alias::new("C"))
+            .expr_as(Expr::col(Char::Character), "C")
             .from(Char::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" AS "C" FROM "character""#
@@ -992,12 +992,12 @@ fn select_58() {
         .to_owned();
     let cte = CommonTableExpression::new()
         .query(select)
-        .table_name(Alias::new("cte"))
+        .table_name("cte")
         .to_owned();
     let with_clause = WithClause::new().cte(cte).to_owned();
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-        .from(Alias::new("cte"))
+        .from("cte")
         .to_owned();
     assert_eq!(
         select.with(with_clause).to_string(PostgresQueryBuilder),
@@ -1019,7 +1019,7 @@ fn select_59() {
                 .case(Expr::col((Glyph::Table, Glyph::Aspect)).gt(0), "positive")
                 .case(Expr::col((Glyph::Table, Glyph::Aspect)).lt(0), "negative")
                 .finally("zero"),
-            Alias::new("polarity"),
+            "polarity",
         )
         .from(Glyph::Table)
         .to_owned();
@@ -1070,16 +1070,16 @@ fn select_61() {
 fn select_62() {
     let select = SelectStatement::new()
         .column(Asterisk)
-        .from_values([(1i32, "hello"), (2, "world")], Alias::new("x"))
+        .from_values([(1i32, "hello"), (2, "world")], "x")
         .to_owned();
     let cte = CommonTableExpression::new()
         .query(select)
-        .table_name(Alias::new("cte"))
+        .table_name("cte")
         .to_owned();
     let with_clause = WithClause::new().cte(cte).to_owned();
     let select = SelectStatement::new()
-        .columns([Alias::new("column1"), Alias::new("column2")])
-        .from(Alias::new("cte"))
+        .columns(["column1", "column2"])
+        .from("cte")
         .to_owned();
     assert_eq!(
         select.with(with_clause).to_string(PostgresQueryBuilder),
@@ -1101,11 +1101,11 @@ fn select_63() {
         .to_owned();
     let cte = CommonTableExpression::new()
         .query(select)
-        .table_name(Alias::new("cte"))
+        .table_name("cte")
         .to_owned();
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-        .from(Alias::new("cte"))
+        .from("cte")
         .with_cte(cte)
         .to_owned();
     assert_eq!(
@@ -1236,12 +1236,12 @@ fn insert_6() -> error::Result<()> {
         .column(Glyph::Id)
         .column(Glyph::Image)
         .column(Glyph::Aspect)
-        .table_name(Alias::new("cte"))
+        .table_name("cte")
         .to_owned();
     let with_clause = WithClause::new().cte(cte).to_owned();
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-        .from(Alias::new("cte"))
+        .from("cte")
         .to_owned();
     let mut insert = Query::insert();
     insert
@@ -1328,11 +1328,11 @@ fn insert_11() -> error::Result<()> {
         .column(Glyph::Id)
         .column(Glyph::Image)
         .column(Glyph::Aspect)
-        .table_name(Alias::new("cte"))
+        .table_name("cte")
         .to_owned();
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-        .from(Alias::new("cte"))
+        .from("cte")
         .to_owned();
     let mut insert = Query::insert();
     insert
