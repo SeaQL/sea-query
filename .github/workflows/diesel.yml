@@ -44,7 +44,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo update --manifest-path sea-query-diesel/Cargo.toml -p ipnetwork@0.20.0 --precise=0.20.0
+      - run: cargo update --manifest-path sea-query-diesel/Cargo.toml --workspace -p ipnetwork@0.20.0 --precise=0.20.0
+      - run: cargo tree
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono
       - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-json
