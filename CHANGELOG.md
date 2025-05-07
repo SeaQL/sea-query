@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.32.5 - 2025-05-07
+
+### New features
+
+* Support for creating functional indexes in PostgreSQL and MySQL https://github.com/SeaQL/sea-query/pull/869
+
+### Enhancements
+
+* Make `RcOrArc` a documented type alias instead of a direct reexport https://github.com/SeaQL/sea-query/pull/875
+* Impl `Iden` for `&'static str` (don't wrap strings in `Alias::new`) https://github.com/SeaQL/sea-query/pull/882
+
 ## 0.32.4 - 2025-04-17
 
 ### New Features
