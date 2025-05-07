@@ -199,9 +199,13 @@ use super::common::*;
 ///     .to_owned();
 ///
 /// assert_eq!(
+///     index.to_string(MysqlQueryBuilder),
+///     "CREATE INDEX `idx-character-area` ON `character` ((`size_h` * `size_w`))"
+/// );
+/// assert_eq!(
 ///     index.to_string(PostgresQueryBuilder),
 ///     r#"CREATE INDEX "idx-character-area" ON "character" (("size_h" * "size_w"))"#
-/// )
+/// );
 /// ```
 #[derive(Default, Debug, Clone)]
 pub struct IndexCreateStatement {
