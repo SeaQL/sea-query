@@ -11,7 +11,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 time = { version = "0.3.36", features = ["parsing", "macros"] }
 serde_json = { version = "1" }
 uuid = { version = "1", features = ["serde", "v4"] }
-ipnetwork = { version = "0.21" }
+ipnetwork = { version = "0.20" }
 mac_address = { version = "1.1" }
 rust_decimal = { version = "1" }
 bigdecimal = { version = "0.4" }
