@@ -30,7 +30,10 @@ pub trait QueryBuilder:
             self.prepare_table_ref(table, sql);
         }
 
-        if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
+        if insert.default_values.unwrap_or_default() != 0
+            && insert.columns.is_empty()
+            && insert.source.is_none()
+        {
             self.prepare_output(&insert.returning, sql);
             write!(sql, " ").unwrap();
             let num_rows = insert.default_values.unwrap();
