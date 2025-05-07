@@ -140,6 +140,33 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
+    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
+        write!(sql, "(").unwrap();
+        columns.iter().fold(true, |first, col| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            match col {
+                IndexColumn::TableColumn(column) => {
+                    self.prepare_index_column_with_table_column(column, sql);
+                }
+                IndexColumn::Expr(column) => {
+                    write!(sql, "(").unwrap();
+                    self.prepare_simple_expr(&column.expr, sql);
+                    write!(sql, ")").unwrap();
+                    if let Some(order) = &column.order {
+                        match order {
+                            IndexOrder::Asc => write!(sql, " ASC").unwrap(),
+                            IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+                        }
+                    }
+                }
+            }
+            false
+        });
+        write!(sql, ")").unwrap();
+    }
+
     fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut dyn SqlWriter) {
         self.prepare_condition(condition, "WHERE", sql);
     }

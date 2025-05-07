@@ -265,6 +265,60 @@ fn create_11() {
 }
 
 #[test]
+fn create_12() {
+    assert_eq!(
+        Table::create()
+            .table(Char::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Char::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Char::FontSize).integer().not_null())
+            .col(ColumnDef::new(Char::Character).string_len(255).not_null())
+            .col(ColumnDef::new(Char::SizeW).unsigned().not_null())
+            .col(ColumnDef::new(Char::SizeH).unsigned().not_null())
+            .col(
+                ColumnDef::new(Char::FontId)
+                    .integer()
+                    .default(Value::Int(None)),
+            )
+            .col(
+                ColumnDef::new(Char::CreatedAt)
+                    .timestamp()
+                    .default(Expr::current_timestamp())
+                    .not_null(),
+            )
+            .index(
+                Index::create()
+                    .name("idx-character-area")
+                    .table(Character::Table)
+                    .col(Expr::col(Character::SizeH).mul(Expr::col(Character::SizeW))),
+            )
+            .engine("InnoDB")
+            .character_set("utf8mb4")
+            .collate("utf8mb4_unicode_ci")
+            .to_string(MysqlQueryBuilder),
+        [
+            "CREATE TABLE IF NOT EXISTS `character` (",
+            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`font_size` int NOT NULL,",
+            "`character` varchar(255) NOT NULL,",
+            "`size_w` int UNSIGNED NOT NULL,",
+            "`size_h` int UNSIGNED NOT NULL,",
+            "`font_id` int DEFAULT NULL,",
+            "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,",
+            "KEY `idx-character-area` ((`size_h` * `size_w`))",
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
