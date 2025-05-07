@@ -38,7 +38,7 @@ rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.4", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
 time = { version = "0.3.36", default-features = false, optional = true, features = ["macros", "formatting"] }
-ipnetwork = { version = ">0.20,<0.22", default-features = false, optional = true }
+ipnetwork = { version = ">=0.20,<0.22", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 ordered-float = { version = "4.6", default-features = false, optional = true }
 
