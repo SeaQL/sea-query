@@ -1,11 +1,11 @@
 use crate::{
-    backend::QueryBuilder,
-    prepare::*,
-    query::{condition::*, OrderedStatement},
-    types::*,
-    value::*,
     QueryStatementBuilder, QueryStatementWriter, ReturningClause, SimpleExpr, SubQueryStatement,
     WithClause, WithQuery,
+    backend::QueryBuilder,
+    prepare::*,
+    query::{OrderedStatement, condition::*},
+    types::*,
+    value::*,
 };
 use inherent::inherent;
 

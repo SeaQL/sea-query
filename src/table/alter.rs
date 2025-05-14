@@ -1,6 +1,6 @@
 use crate::{
-    backend::SchemaBuilder, types::*, ColumnDef, IntoColumnDef, SchemaStatementBuilder,
-    TableForeignKey,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder, TableForeignKey, backend::SchemaBuilder,
+    types::*,
 };
 use inherent::inherent;
 

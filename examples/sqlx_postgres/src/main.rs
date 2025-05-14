@@ -8,13 +8,13 @@ use sea_query_binder::SqlxBinder;
 use sqlx::{PgPool, Row};
 use std::net::{IpAddr, Ipv4Addr};
 use time::{
-    macros::{date, time},
     PrimitiveDateTime,
+    macros::{date, time},
 };
 
 use ipnetwork::IpNetwork;
-use mac_address::{get_mac_address, MacAddress};
-use serde_json::{json, Value as Json};
+use mac_address::{MacAddress, get_mac_address};
+use serde_json::{Value as Json, json};
 use uuid::Uuid;
 
 #[async_std::main]

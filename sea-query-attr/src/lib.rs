@@ -1,9 +1,9 @@
-use darling::{ast::NestedMeta, FromMeta};
+use darling::{FromMeta, ast::NestedMeta};
 use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro::TokenStream;
 use syn::{
-    parse_macro_input, punctuated::Punctuated, spanned::Spanned, Data, DataStruct, DeriveInput,
-    Fields, Ident,
+    Data, DataStruct, DeriveInput, Fields, Ident, parse_macro_input, punctuated::Punctuated,
+    spanned::Spanned,
 };
 
 type AttributeArgs = Punctuated<NestedMeta, syn::Token![,]>;
@@ -62,7 +62,7 @@ fn expand(attr_args: AttributeArgs, input: DeriveInput) -> syn::Result<proc_macr
             return Err(syn::Error::new(
                 input.span(),
                 "#[enum_def] can only be used on structs",
-            ))
+            ));
         }
     };
 

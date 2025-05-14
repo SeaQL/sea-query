@@ -1,7 +1,7 @@
 use inherent::inherent;
 
-use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 use crate::{ConditionHolder, ConditionalStatement, IntoCondition};
+use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
 use super::common::*;
 

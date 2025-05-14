@@ -3,13 +3,13 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
 use sea_query_binder::SqlxBinder;
-use sqlx::{types::chrono::NaiveDateTime, MySqlPool, Row};
+use sqlx::{MySqlPool, Row, types::chrono::NaiveDateTime};
 use time::{
-    macros::{date, time},
     PrimitiveDateTime,
+    macros::{date, time},
 };
 
-use serde_json::{json, Value as Json};
+use serde_json::{Value as Json, json};
 use uuid::Uuid;
 
 #[async_std::main]

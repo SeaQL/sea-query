@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 
+use diesel::QueryResult;
 use diesel::backend::Backend;
 use diesel::query_builder::{AstPass, QueryFragment};
 use diesel::serialize::ToSql;
 use diesel::sql_types::HasSqlType;
-use diesel::QueryResult;
 
 pub struct SeaValue<ST, U> {
     value: U,

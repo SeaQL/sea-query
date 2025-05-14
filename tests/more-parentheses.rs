@@ -1,4 +1,4 @@
-use sea_query::{tests_cfg::Glyph, Cond, Expr, MysqlQueryBuilder, Query};
+use sea_query::{Cond, Expr, MysqlQueryBuilder, Query, tests_cfg::Glyph};
 
 #[test]
 fn test_more_parentheses() {
