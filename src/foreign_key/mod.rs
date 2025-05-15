@@ -18,6 +18,7 @@ pub use drop::*;
 pub struct ForeignKey;
 
 /// All available types of foreign key statement
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum ForeignKeyStatement {
     Create(ForeignKeyCreateStatement),
