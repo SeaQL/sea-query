@@ -9,14 +9,14 @@ authors = [
     "Billy Chan <ccw.billy.123@gmail.com>",
     "Ivan Krivosheev <py.krivosheev@gmail.com>",
 ]
-edition = "2021"
+edition = "2024"
 description = "🔱 A dynamic query builder for MySQL, Postgres and SQLite"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = ["database"]
 keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
-rust-version = "1.62"
+rust-version = "1.85.0"
 # STUB
 
 [package.metadata.docs.rs]
