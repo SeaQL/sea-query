@@ -13,11 +13,11 @@ use sea_query::{
     ColumnDef, ColumnType, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
 };
 use sea_query_diesel::DieselBinder;
-use serde_json::{json, Value as Json};
+use serde_json::{Value as Json, json};
 use std::net::{IpAddr, Ipv4Addr};
 use time::{
-    macros::{date, time},
     PrimitiveDateTime,
+    macros::{date, time},
 };
 use uuid::Uuid;
 

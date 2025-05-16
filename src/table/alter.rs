@@ -1,6 +1,6 @@
 use crate::{
-    backend::SchemaBuilder, types::*, ColumnDef, IntoColumnDef, SchemaStatementBuilder,
-    TableForeignKey,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder, TableForeignKey, backend::SchemaBuilder,
+    types::*,
 };
 use inherent::inherent;
 
@@ -43,6 +43,7 @@ pub struct AddColumnOption {
 }
 
 /// All available table alter options
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum TableAlterOption {
     AddColumn(AddColumnOption),

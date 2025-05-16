@@ -202,9 +202,9 @@ pub trait TableBuilder:
     }
 
     /// Translate the generated column into SQL statement
-    fn prepare_generated_column(&self, gen: &SimpleExpr, stored: bool, sql: &mut dyn SqlWriter) {
+    fn prepare_generated_column(&self, r#gen: &SimpleExpr, stored: bool, sql: &mut dyn SqlWriter) {
         write!(sql, "GENERATED ALWAYS AS (").unwrap();
-        QueryBuilder::prepare_simple_expr(self, gen, sql);
+        QueryBuilder::prepare_simple_expr(self, r#gen, sql);
         write!(sql, ")").unwrap();
         if stored {
             write!(sql, " STORED").unwrap();

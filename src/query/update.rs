@@ -1,14 +1,14 @@
 use inherent::inherent;
 
 use crate::{
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
+    WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
-    query::{condition::*, OrderedStatement},
+    query::{OrderedStatement, condition::*},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
-    WithQuery,
 };
 
 /// Update existing rows in the table

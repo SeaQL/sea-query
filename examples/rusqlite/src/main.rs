@@ -3,11 +3,10 @@ use rusqlite::{Connection, Result, Row};
 use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
 
 use sea_query_rusqlite::RusqliteBinder;
-use serde_json::{json, Value as Json};
+use serde_json::{Value as Json, json};
 use time::{
-    format_description,
+    PrimitiveDateTime, format_description,
     macros::{date, time},
-    PrimitiveDateTime,
 };
 use uuid::Uuid;
 

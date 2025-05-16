@@ -1,7 +1,8 @@
 //! Schema definition & alternations statements
 
-use crate::{backend::SchemaBuilder, ForeignKeyStatement, IndexStatement, TableStatement};
+use crate::{ForeignKeyStatement, IndexStatement, TableStatement, backend::SchemaBuilder};
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum SchemaStatement {
     TableStatement(TableStatement),

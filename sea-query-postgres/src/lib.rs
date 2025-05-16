@@ -1,9 +1,9 @@
 use std::error::Error;
 
 use bytes::BytesMut;
-use postgres_types::{to_sql_checked, IsNull, ToSql, Type};
+use postgres_types::{IsNull, ToSql, Type, to_sql_checked};
 
-use sea_query::{query::*, QueryBuilder, Value};
+use sea_query::{QueryBuilder, Value, query::*};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PostgresValue(pub Value);

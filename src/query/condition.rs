@@ -285,11 +285,7 @@ impl Condition {
                 ConditionType::All => true.into(),
             })
         };
-        if self.negate {
-            expr.not()
-        } else {
-            expr
-        }
+        if self.negate { expr.not() } else { expr }
     }
 }
 

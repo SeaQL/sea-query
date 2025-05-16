@@ -5,14 +5,14 @@
 name = "sea-query-rbatis"
 version = "0.1.0"
 authors = ["Caisin <kaixing622@qq.com>"]
-edition = "2021"
+edition = "2024"
 description = "Driver library for using SeaQuery with Rbatis"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = ["database"]
 keywords = ["database", "mysql", "postgres", "sqlite", "rbatis"]
-rust-version = "1.60"
+rust-version = "1.85.0"
 
 [lib]
 

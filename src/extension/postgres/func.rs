@@ -1,6 +1,6 @@
 //! For calling built-in Postgres SQL functions.
 
-use crate::{expr::*, func::*, PgDateTruncUnit};
+use crate::{PgDateTruncUnit, expr::*, func::*};
 
 /// Known Postgres-specific functions.
 ///

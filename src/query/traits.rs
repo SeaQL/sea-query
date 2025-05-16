@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{backend::QueryBuilder, value::Values, SqlWriter, SqlWriterValues, SubQueryStatement};
+use crate::{SqlWriter, SqlWriterValues, SubQueryStatement, backend::QueryBuilder, value::Values};
 
 pub trait QueryStatementBuilder: Debug {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector

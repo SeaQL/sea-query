@@ -1,9 +1,9 @@
 use rusqlite::{
-    types::{Null, ToSqlOutput},
     Result, ToSql,
+    types::{Null, ToSqlOutput},
 };
 use sea_query::Value;
-use sea_query::{query::*, QueryBuilder};
+use sea_query::{QueryBuilder, query::*};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct RusqliteValue(pub sea_query::Value);
