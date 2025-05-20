@@ -260,35 +260,46 @@ impl Condition {
     pub fn len(&self) -> usize {
         self.conditions.len()
     }
+}
 
-    pub(crate) fn to_simple_expr(&self) -> SimpleExpr {
+impl From<Condition> for SimpleExpr {
+    fn from(cond: Condition) -> Self {
         let mut inner_exprs = vec![];
-        for ce in &self.conditions {
+        for ce in cond.conditions {
             inner_exprs.push(match ce {
-                ConditionExpression::Condition(c) => c.to_simple_expr(),
-                ConditionExpression::SimpleExpr(e) => e.clone(),
+                ConditionExpression::Condition(c) => c.into(),
+                ConditionExpression::SimpleExpr(e) => e,
             });
         }
         let mut inner_exprs_into_iter = inner_exprs.into_iter();
         let expr = if let Some(first_expr) = inner_exprs_into_iter.next() {
             let mut out_expr = first_expr;
             for e in inner_exprs_into_iter {
-                out_expr = match self.condition_type {
+                out_expr = match cond.condition_type {
                     ConditionType::Any => out_expr.or(e),
                     ConditionType::All => out_expr.and(e),
                 };
             }
             out_expr
         } else {
-            SimpleExpr::Constant(match self.condition_type {
+            SimpleExpr::Constant(match cond.condition_type {
                 ConditionType::Any => false.into(),
                 ConditionType::All => true.into(),
             })
         };
-        if self.negate {
+        if cond.negate {
             expr.not()
         } else {
             expr
+        }
+    }
+}
+
+impl From<ConditionExpression> for SimpleExpr {
+    fn from(ce: ConditionExpression) -> Self {
+        match ce {
+            ConditionExpression::Condition(c) => c.into(),
+            ConditionExpression::SimpleExpr(e) => e,
         }
     }
 }
