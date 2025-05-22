@@ -20,6 +20,7 @@ pub struct Expr {
 /// [`SimpleExpr`] is a node in the expression tree and can represent identifiers, function calls,
 /// various operators and sub-queries.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SimpleExpr {
     Column(ColumnRef),
     Tuple(Vec<SimpleExpr>),
