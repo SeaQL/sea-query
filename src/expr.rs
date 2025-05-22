@@ -3058,8 +3058,8 @@ impl SimpleExpr {
     ///     r#"SELECT CURRENT_DATE"#
     /// );
     /// ```
-    pub fn current_date() -> Expr {
-        Expr::Keyword(Keyword::CurrentDate)
+    pub fn current_date() -> Self {
+        Self::Keyword(Keyword::CurrentDate)
     }
 
     /// Keyword `CURRENT_TIMESTAMP`.
@@ -3081,8 +3081,8 @@ impl SimpleExpr {
     ///     r#"SELECT CURRENT_TIME"#
     /// );
     /// ```
-    pub fn current_time() -> Expr {
-        Expr::Keyword(Keyword::CurrentTime)
+    pub fn current_time() -> Self {
+        Self::Keyword(Keyword::CurrentTime)
     }
 
     /// Keyword `CURRENT_TIMESTAMP`.
@@ -3107,8 +3107,8 @@ impl SimpleExpr {
     ///     r#"SELECT CURRENT_TIMESTAMP"#
     /// );
     /// ```
-    pub fn current_timestamp() -> Expr {
-        Expr::Keyword(Keyword::CurrentTimestamp)
+    pub fn current_timestamp() -> Self {
+        Self::Keyword(Keyword::CurrentTimestamp)
     }
 
     /// Custom keyword.
@@ -3126,11 +3126,11 @@ impl SimpleExpr {
     /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT test"#);
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT test"#);
     /// ```
-    pub fn custom_keyword<T>(i: T) -> Expr
+    pub fn custom_keyword<T>(i: T) -> Self
     where
         T: IntoIden,
     {
-        Expr::Keyword(Keyword::Custom(i.into_iden()))
+        Self::Keyword(Keyword::Custom(i.into_iden()))
     }
 }
 
