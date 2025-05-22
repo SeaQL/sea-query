@@ -1747,7 +1747,7 @@ impl SimpleExpr {
     where
         T: Into<String>,
     {
-        SimpleExpr::Custom(s.into())
+        Self::Custom(s.into())
     }
 
     /// Express any custom expression with [`Value`]. Use this if your expression needs variables.
@@ -1826,7 +1826,7 @@ impl SimpleExpr {
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
-        SimpleExpr::CustomWithExpr(
+        Self::CustomWithExpr(
             s.into(),
             v.into_iter()
                 .map(|v| Into::<Value>::into(v).into())
@@ -1873,7 +1873,7 @@ impl SimpleExpr {
         T: Into<String>,
         E: Into<Self>,
     {
-        SimpleExpr::CustomWithExpr(s.into(), vec![expr.into()])
+        Self::CustomWithExpr(s.into(), vec![expr.into()])
     }
 
     /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
@@ -1882,7 +1882,7 @@ impl SimpleExpr {
         T: Into<String>,
         I: IntoIterator<Item = SimpleExpr>,
     {
-        SimpleExpr::CustomWithExpr(s.into(), v.into_iter().collect())
+        Self::CustomWithExpr(s.into(), v.into_iter().collect())
     }
 
     /// Express a equal expression between two table columns,
@@ -2853,7 +2853,7 @@ impl SimpleExpr {
     /// );
     /// ```
     pub fn exists(sel: SelectStatement) -> Self {
-        SimpleExpr::SubQuery(
+        Self::SubQuery(
             Some(SubQueryOper::Exists),
             Box::new(sel.into_sub_query_statement()),
         )
@@ -2884,7 +2884,7 @@ impl SimpleExpr {
     /// );
     /// ```
     pub fn any(sel: SelectStatement) -> Self {
-        SimpleExpr::SubQuery(
+        Self::SubQuery(
             Some(SubQueryOper::Any),
             Box::new(sel.into_sub_query_statement()),
         )
@@ -2915,7 +2915,7 @@ impl SimpleExpr {
     /// );
     /// ```
     pub fn some(sel: SelectStatement) -> Self {
-        SimpleExpr::SubQuery(
+        Self::SubQuery(
             Some(SubQueryOper::Some),
             Box::new(sel.into_sub_query_statement()),
         )
@@ -2923,7 +2923,7 @@ impl SimpleExpr {
 
     /// Express a `ALL` sub-query expression.
     pub fn all(sel: SelectStatement) -> Self {
-        SimpleExpr::SubQuery(
+        Self::SubQuery(
             Some(SubQueryOper::All),
             Box::new(sel.into_sub_query_statement()),
         )
@@ -3139,32 +3139,32 @@ where
     T: Into<Value>,
 {
     fn from(v: T) -> Self {
-        SimpleExpr::Value(v.into())
+        Self::Value(v.into())
     }
 }
 
 impl From<FunctionCall> for SimpleExpr {
     fn from(func: FunctionCall) -> Self {
-        SimpleExpr::FunctionCall(func)
+        Self::FunctionCall(func)
     }
 }
 
 impl From<ColumnRef> for SimpleExpr {
     fn from(col: ColumnRef) -> Self {
-        SimpleExpr::Column(col)
+        Self::Column(col)
     }
 }
 
 impl From<Keyword> for SimpleExpr {
     fn from(k: Keyword) -> Self {
-        SimpleExpr::Keyword(k)
+        Self::Keyword(k)
     }
 }
 
 impl From<LikeExpr> for SimpleExpr {
     fn from(like: LikeExpr) -> Self {
         match like.escape {
-            Some(escape) => SimpleExpr::Binary(
+            Some(escape) => Self::Binary(
                 Box::new(like.pattern.into()),
                 BinOper::Escape,
                 Box::new(SimpleExpr::Constant(escape.into())),
