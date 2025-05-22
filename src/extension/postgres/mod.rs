@@ -1,6 +1,7 @@
 pub use expr::*;
 pub use extension::*;
 pub use func::*;
+pub use hstore::*;
 pub use ltree::*;
 pub use select::*;
 pub use types::*;
@@ -10,6 +11,7 @@ use crate::types::BinOper;
 pub(crate) mod expr;
 pub(crate) mod extension;
 pub(crate) mod func;
+pub(crate) mod hstore;
 pub(crate) mod interval;
 pub(crate) mod ltree;
 pub(crate) mod select;
