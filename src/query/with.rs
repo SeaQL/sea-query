@@ -1,7 +1,6 @@
 use crate::{
-    ColumnRef, DynIden, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
-    SelectStatement, SimpleExpr, SqlWriter, SubQueryStatement, TableRef, Values,
-    {Alias, QueryBuilder},
+    ColumnRef, DynIden, Expr, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
+    SelectStatement, SqlWriter, SubQueryStatement, TableRef, Values, {Alias, QueryBuilder},
 };
 use inherent::inherent;
 
@@ -152,7 +151,7 @@ impl CommonTableExpression {
                     Some(ident.clone())
                 } else {
                     match &select.expr {
-                        SimpleExpr::Column(column) => match column {
+                        Expr::Column(column) => match column {
                             ColumnRef::Column(iden) => Some(iden.clone()),
                             ColumnRef::TableColumn(table, column) => Some(
                                 Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
@@ -264,7 +263,7 @@ impl Search {
 /// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Cycle {
-    pub(crate) expr: Option<SimpleExpr>,
+    pub(crate) expr: Option<Expr>,
     pub(crate) set_as: Option<DynIden>,
     pub(crate) using: Option<DynIden>,
 }
@@ -274,7 +273,7 @@ impl Cycle {
     /// given [SelectExpr] must have an alias specified.
     pub fn new_from_expr_set_using<EXPR, ID1, ID2>(expr: EXPR, set: ID1, using: ID2) -> Self
     where
-        EXPR: Into<SimpleExpr>,
+        EXPR: Into<Expr>,
         ID1: IntoIden,
         ID2: IntoIden,
     {
@@ -293,7 +292,7 @@ impl Cycle {
     /// The expression identifying nodes.
     pub fn expr<EXPR>(&mut self, expr: EXPR) -> &mut Self
     where
-        EXPR: Into<SimpleExpr>,
+        EXPR: Into<Expr>,
     {
         self.expr = Some(expr.into());
         self
@@ -408,7 +407,7 @@ impl Cycle {
 /// let with_clause = WithClause::new()
 ///         .recursive(true)
 ///         .cte(common_table_expression)
-///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+///         .cycle(Cycle::new_from_expr_set_using(Expr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
 ///         .to_owned();
 ///
 /// let query = select.with(with_clause).to_owned();

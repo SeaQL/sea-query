@@ -46,7 +46,7 @@ pub struct SelectStatement {
     pub(crate) from: Vec<TableRef>,
     pub(crate) join: Vec<JoinExpr>,
     pub(crate) r#where: ConditionHolder,
-    pub(crate) groups: Vec<SimpleExpr>,
+    pub(crate) groups: Vec<Expr>,
     pub(crate) having: ConditionHolder,
     pub(crate) unions: Vec<(UnionType, SelectStatement)>,
     pub(crate) orders: Vec<OrderExpr>,
@@ -82,7 +82,7 @@ pub enum WindowSelectType {
 /// Select expression used in select statement
 #[derive(Debug, Clone, PartialEq)]
 pub struct SelectExpr {
-    pub expr: SimpleExpr,
+    pub expr: Expr,
     pub alias: Option<DynIden>,
     pub window: Option<WindowSelectType>,
 }
@@ -132,7 +132,7 @@ pub enum UnionType {
 
 impl<T> From<T> for SelectExpr
 where
-    T: Into<SimpleExpr>,
+    T: Into<Expr>,
 {
     fn from(expr: T) -> Self {
         SelectExpr {
@@ -306,7 +306,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .expr(Expr::val(42))
     ///     .expr(Expr::col(Char::Id).max())
-    ///     .expr((1..10_i32).fold(Expr::value(0), |expr, i| expr.add(i)))
+    ///     .expr((1..10_i32).fold(Expr::val(0), |expr, i| expr.add(i)))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -341,7 +341,7 @@ impl SelectStatement {
     ///     .from(Char::Table)
     ///     .exprs([
     ///         Expr::col(Char::Id).max(),
-    ///         (1..10_i32).fold(Expr::value(0), |expr, i| expr.add(i)),
+    ///         (1..10_i32).fold(Expr::val(0), |expr, i| expr.add(i)),
     ///     ])
     ///     .to_owned();
     ///
@@ -528,7 +528,7 @@ impl SelectStatement {
     where
         C: IntoColumnRef,
     {
-        self.expr(SimpleExpr::Column(col.into_column_ref()))
+        self.expr(Expr::Column(col.into_column_ref()))
     }
 
     /// Select columns.
@@ -589,8 +589,8 @@ impl SelectStatement {
     {
         self.exprs(
             cols.into_iter()
-                .map(|c| SimpleExpr::Column(c.into_column_ref()))
-                .collect::<Vec<SimpleExpr>>(),
+                .map(|c| Expr::Column(c.into_column_ref()))
+                .collect::<Vec<Expr>>(),
         )
     }
 
@@ -621,7 +621,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_as<T, A>(&mut self, expr: T, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         A: IntoIden,
     {
         self.expr(SelectExpr {
@@ -662,7 +662,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_window<T>(&mut self, expr: T, window: WindowStatement) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.expr(SelectExpr {
             expr: expr.into(),
@@ -703,7 +703,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_window_as<T, A>(&mut self, expr: T, window: WindowStatement, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         A: IntoIden,
     {
         self.expr(SelectExpr {
@@ -742,7 +742,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         W: IntoIden,
     {
         self.expr(SelectExpr {
@@ -781,7 +781,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_window_name_as<T, W, A>(&mut self, expr: T, window: W, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         A: IntoIden,
         W: IntoIden,
     {
@@ -1761,7 +1761,7 @@ impl SelectStatement {
     {
         self.add_group_by(
             cols.into_iter()
-                .map(|c| SimpleExpr::Column(c.into_column_ref()))
+                .map(|c| Expr::Column(c.into_column_ref()))
                 .collect::<Vec<_>>(),
         )
     }
@@ -1827,7 +1827,7 @@ impl SelectStatement {
     /// ```
     pub fn add_group_by<I>(&mut self, expr: I) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         self.groups.append(&mut expr.into_iter().collect());
         self
@@ -1902,7 +1902,7 @@ impl SelectStatement {
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 AND "aspect" < 8"#
     /// );
     /// ```
-    pub fn and_having(&mut self, other: SimpleExpr) -> &mut Self {
+    pub fn and_having(&mut self, other: Expr) -> &mut Self {
         self.cond_having(other)
     }
 
@@ -2327,7 +2327,7 @@ impl SelectStatement {
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = select.with(with_clause).to_owned();
@@ -2388,7 +2388,7 @@ impl SelectStatement {
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = SelectStatement::new()
@@ -2503,7 +2503,7 @@ impl OrderedStatement for SelectStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -2522,7 +2522,7 @@ impl OrderedStatement for SelectStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -2551,6 +2551,6 @@ impl ConditionalStatement for SelectStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }

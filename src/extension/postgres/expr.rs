@@ -1,7 +1,5 @@
 use super::PgBinOper;
-use crate::{
-    ColumnRef, Expr, ExprTrait, FunctionCall, IntoLikeExpr, Keyword, LikeExpr, SimpleExpr, Value,
-};
+use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, IntoLikeExpr, Keyword, LikeExpr, Value};
 
 /// Postgres-specific operator methods for building expressions.
 pub trait PgExpr: ExprTrait {
@@ -23,16 +21,16 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
     /// );
     /// ```
-    fn concatenate<T>(self, right: T) -> SimpleExpr
+    fn concatenate<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(PgBinOper::Concatenate, right)
     }
     /// Alias of [`PgExpr::concatenate`]
-    fn concat<T>(self, right: T) -> SimpleExpr
+    fn concat<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.concatenate(right)
     }
@@ -56,9 +54,9 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @@ 'a b' AND "name" @@ 'a b'"#
     /// );
     /// ```
-    fn matches<T>(self, expr: T) -> SimpleExpr
+    fn matches<T>(self, expr: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(PgBinOper::Matches, expr)
     }
@@ -82,9 +80,9 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' @> 'a b' AND "name" @> 'a b'"#
     /// );
     /// ```
-    fn contains<T>(self, expr: T) -> SimpleExpr
+    fn contains<T>(self, expr: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(PgBinOper::Contains, expr)
     }
@@ -108,9 +106,9 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a & b' <@ 'a b' AND "name" <@ 'a b'"#
     /// );
     /// ```
-    fn contained<T>(self, expr: T) -> SimpleExpr
+    fn contained<T>(self, expr: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(PgBinOper::Contained, expr)
     }
@@ -133,7 +131,7 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" ILIKE E'Ours\'%'"#
     /// );
     /// ```
-    fn ilike<L>(self, like: L) -> SimpleExpr
+    fn ilike<L>(self, like: L) -> Expr
     where
         L: IntoLikeExpr,
     {
@@ -141,7 +139,7 @@ pub trait PgExpr: ExprTrait {
     }
 
     /// Express a `NOT ILIKE` expression
-    fn not_ilike<L>(self, like: L) -> SimpleExpr
+    fn not_ilike<L>(self, like: L) -> Expr
     where
         L: IntoLikeExpr,
     {
@@ -166,9 +164,9 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "variant" FROM "font" WHERE "variant" -> 'a'"#
     /// );
     /// ```
-    fn get_json_field<T>(self, right: T) -> SimpleExpr
+    fn get_json_field<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(PgBinOper::GetJsonField, right)
     }
@@ -191,9 +189,9 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "variant" FROM "font" WHERE "variant" ->> 'a'"#
     /// );
     /// ```
-    fn cast_json_field<T>(self, right: T) -> SimpleExpr
+    fn cast_json_field<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(PgBinOper::CastJsonField, right)
     }
@@ -203,7 +201,6 @@ pub trait PgExpr: ExprTrait {
 // replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
 // (breaking change)
 impl PgExpr for Expr {}
-impl PgExpr for SimpleExpr {}
 impl PgExpr for FunctionCall {}
 impl PgExpr for ColumnRef {}
 impl PgExpr for Keyword {}

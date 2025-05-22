@@ -219,8 +219,8 @@ pub enum BinOper {
 /// Logical chain operator: conjunction or disjunction.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
-    And(SimpleExpr),
-    Or(SimpleExpr),
+    And(Expr),
+    Or(Expr),
 }
 
 /// Join types
@@ -244,7 +244,7 @@ pub enum NullOrdering {
 /// Order expression
 #[derive(Debug, Clone, PartialEq)]
 pub struct OrderExpr {
-    pub(crate) expr: SimpleExpr,
+    pub(crate) expr: Expr,
     pub(crate) order: Order,
     pub(crate) nulls: Option<NullOrdering>,
 }
@@ -253,7 +253,7 @@ pub struct OrderExpr {
 #[derive(Debug, Clone, PartialEq)]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
-    Columns(Vec<SimpleExpr>),
+    Columns(Vec<Expr>),
 }
 
 /// Ordering options

@@ -38,7 +38,7 @@ pub enum Function {
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionCall {
     pub(crate) func: Function,
-    pub(crate) args: Vec<SimpleExpr>,
+    pub(crate) args: Vec<Expr>,
     pub(crate) mods: Vec<FuncArgMod>,
 }
 
@@ -59,14 +59,14 @@ impl FunctionCall {
     /// Append an argument to the function call
     pub fn arg<T>(self, arg: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.arg_with(arg, Default::default())
     }
 
     pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.args.push(arg.into());
         self.mods.push(mod_);
@@ -76,7 +76,7 @@ impl FunctionCall {
     /// Replace the arguments of the function call
     pub fn args<I>(mut self, args: I) -> Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         self.args = args.into_iter().collect();
         self.mods = vec![Default::default(); self.args.len()];
@@ -87,7 +87,7 @@ impl FunctionCall {
         &self.func
     }
 
-    pub fn get_args(&self) -> &[SimpleExpr] {
+    pub fn get_args(&self) -> &[Expr] {
         &self.args
     }
 
@@ -167,7 +167,7 @@ impl Func {
     /// ```
     pub fn max<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Max).arg(expr)
     }
@@ -199,7 +199,7 @@ impl Func {
     /// ```
     pub fn min<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Min).arg(expr)
     }
@@ -231,7 +231,7 @@ impl Func {
     /// ```
     pub fn sum<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Sum).arg(expr)
     }
@@ -263,7 +263,7 @@ impl Func {
     /// ```
     pub fn avg<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Avg).arg(expr)
     }
@@ -295,7 +295,7 @@ impl Func {
     /// ```
     pub fn abs<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Abs).arg(expr)
     }
@@ -327,7 +327,7 @@ impl Func {
     /// ```
     pub fn count<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Count).arg(expr)
     }
@@ -359,7 +359,7 @@ impl Func {
     /// ```
     pub fn count_distinct<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Count).arg_with(expr, FuncArgMod { distinct: true })
     }
@@ -391,7 +391,7 @@ impl Func {
     /// ```
     pub fn char_length<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::CharLength).arg(expr)
     }
@@ -426,7 +426,7 @@ impl Func {
     /// ```
     pub fn greatest<I>(args: I) -> FunctionCall
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         FunctionCall::new(Function::Greatest).args(args)
     }
@@ -461,7 +461,7 @@ impl Func {
     /// ```
     pub fn least<I>(args: I) -> FunctionCall
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         FunctionCall::new(Function::Least).args(args)
     }
@@ -496,8 +496,8 @@ impl Func {
     /// ```
     pub fn if_null<A, B>(a: A, b: B) -> FunctionCall
     where
-        A: Into<SimpleExpr>,
-        B: Into<SimpleExpr>,
+        A: Into<Expr>,
+        B: Into<Expr>,
     {
         FunctionCall::new(Function::IfNull).args([a.into(), b.into()])
     }
@@ -528,10 +528,10 @@ impl Func {
     /// ```
     pub fn cast_as<V, I>(expr: V, iden: I) -> FunctionCall
     where
-        V: Into<SimpleExpr>,
+        V: Into<Expr>,
         I: IntoIden,
     {
-        let expr: SimpleExpr = expr.into();
+        let expr: Expr = expr.into();
         FunctionCall::new(Function::Cast).arg(expr.binary(
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
@@ -564,10 +564,10 @@ impl Func {
     /// ```
     pub fn cast_as_quoted<V, I>(expr: V, iden: I, q: Quote) -> FunctionCall
     where
-        V: Into<SimpleExpr>,
+        V: Into<Expr>,
         I: IntoIden,
     {
-        let expr: SimpleExpr = expr.into();
+        let expr: Expr = expr.into();
         let mut quoted_type = String::new();
         iden.into_iden().prepare(&mut quoted_type, q);
         FunctionCall::new(Function::Cast)
@@ -605,7 +605,7 @@ impl Func {
     /// ```
     pub fn coalesce<I>(args: I) -> FunctionCall
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         FunctionCall::new(Function::Coalesce).args(args)
     }
@@ -660,7 +660,7 @@ impl Func {
     /// ```
     pub fn lower<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Lower).arg(expr)
     }
@@ -692,7 +692,7 @@ impl Func {
     /// ```
     pub fn upper<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Upper).arg(expr)
     }
@@ -720,7 +720,7 @@ impl Func {
     /// ```
     pub fn bit_and<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::BitAnd).arg(expr)
     }
@@ -748,7 +748,7 @@ impl Func {
     /// ```
     pub fn bit_or<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::BitOr).arg(expr)
     }
@@ -777,7 +777,7 @@ impl Func {
     /// ```
     pub fn round<A>(expr: A) -> FunctionCall
     where
-        A: Into<SimpleExpr>,
+        A: Into<Expr>,
     {
         FunctionCall::new(Function::Round).arg(expr)
     }
@@ -811,8 +811,8 @@ impl Func {
     /// ```
     pub fn round_with_precision<A, B>(a: A, b: B) -> FunctionCall
     where
-        A: Into<SimpleExpr>,
-        B: Into<SimpleExpr>,
+        A: Into<Expr>,
+        B: Into<Expr>,
     {
         FunctionCall::new(Function::Round).args([a.into(), b.into()])
     }
@@ -861,7 +861,7 @@ impl Func {
     /// ```
     pub fn md5<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Md5).arg(expr)
     }

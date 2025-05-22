@@ -449,7 +449,7 @@ fn select_30() {
 fn select_31() {
     assert_eq!(
         Query::select()
-            .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(i) }))
+            .expr((1..10_i32).fold(Expr::val(0), |expr, i| { expr.add(i) }))
             .to_string(MysqlQueryBuilder),
         "SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"
     );
@@ -666,7 +666,7 @@ fn select_43() {
     let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .cond_where(Cond::all().add_option::<SimpleExpr>(None))
+        .cond_where(Cond::all().add_option::<Expr>(None))
         .to_string(MysqlQueryBuilder);
 
     assert_eq!(statement, "SELECT `id` FROM `glyph` WHERE TRUE");
@@ -752,9 +752,9 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
-                Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::value(100)])
-                    .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
+            Cond::all().add_option(Some(ConditionExpression::Expr(
+                Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::val(100)])
+                    .lt(Expr::tuple([Expr::val(8), Expr::val(100)])),
             ))),
         )
         .to_string(MysqlQueryBuilder);
@@ -771,10 +771,10 @@ fn select_48a() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+            Cond::all().add_option(Some(ConditionExpression::Expr(
                 Expr::tuple([
                     Expr::col(Glyph::Aspect).into(),
-                    Expr::value(String::from("100")),
+                    Expr::val(String::from("100")),
                 ])
                 .in_tuples([(8, String::from("100"))]),
             ))),
@@ -1567,7 +1567,7 @@ fn sub_query_with_fn() {
         .to_owned();
 
     let select = Query::select()
-        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
+        .expr(Func::cust(ArrayFunc).arg(Expr::SubQuery(
             None,
             Box::new(sub_select.into_sub_query_statement()),
         )))

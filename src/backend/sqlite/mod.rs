@@ -36,7 +36,7 @@ impl TableRefBuilder for SqliteQueryBuilder {}
 impl PrecedenceDecider for SqliteQueryBuilder {
     fn inner_expr_well_known_greater_precedence(
         &self,
-        inner: &SimpleExpr,
+        inner: &Expr,
         outer_oper: &Oper,
     ) -> bool {
         common_inner_expr_well_known_greater_precedence(inner, outer_oper)

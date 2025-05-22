@@ -174,15 +174,15 @@ impl ColumnType {
 pub enum ColumnSpec {
     Null,
     NotNull,
-    Default(SimpleExpr),
+    Default(Expr),
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
-    Check(SimpleExpr),
-    Generated { expr: SimpleExpr, stored: bool },
+    Check(Expr),
+    Generated { expr: Expr, stored: bool },
     Extra(String),
     Comment(String),
-    Using(SimpleExpr),
+    Using(Expr),
 }
 
 // All interval fields
@@ -321,7 +321,7 @@ impl ColumnDef {
     /// ```
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.spec.push(ColumnSpec::Default(value.into()));
         self
@@ -680,7 +680,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set constraints as SimpleExpr
+    /// Set constraints as Expr
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -699,16 +699,16 @@ impl ColumnDef {
     /// ```
     pub fn check<T>(&mut self, value: T) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.spec.push(ColumnSpec::Check(value.into()));
         self
     }
 
-    /// Sets the column as generated with SimpleExpr
+    /// Sets the column as generated with Expr
     pub fn generated<T>(&mut self, expr: T, stored: bool) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.spec.push(ColumnSpec::Generated {
             expr: expr.into(),
@@ -777,7 +777,7 @@ impl ColumnDef {
     /// ```
     pub fn using<T>(&mut self, value: T) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.spec.push(ColumnSpec::Using(value.into()));
         self

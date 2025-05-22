@@ -92,7 +92,7 @@ pub trait PrecedenceDecider {
     // but dropping parentheses due to these relations can be confusing for readers.
     fn inner_expr_well_known_greater_precedence(
         &self,
-        inner: &SimpleExpr,
+        inner: &Expr,
         outer_oper: &Oper,
     ) -> bool;
 }
