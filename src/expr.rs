@@ -1401,17 +1401,8 @@ where
 }
 
 impl SimpleExpr {
-    fn new(e: impl Into<Self>) -> Self {
-        e.into()
-    }
-
-    // TODO: since
-    #[deprecated(note = "Please use the [`SimpleExpr::new`] method")]
-    fn new_with_left<T>(left: T) -> Self
-    where
-        T: Into<Self>,
-    {
-        left.into()
+    pub fn new(expr: impl Into<Self>) -> Self {
+        expr.into()
     }
 
     #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
@@ -1606,7 +1597,7 @@ impl SimpleExpr {
     where
         V: Into<Value>,
     {
-        Self::new(v)
+        Self::from(v)
     }
 
     /// Wrap an expression to perform some operation on it later.
@@ -1679,7 +1670,7 @@ impl SimpleExpr {
     where
         T: Into<Self>,
     {
-        Self::new(expr)
+        expr.into()
     }
 
     /// Express a [`Value`], returning a [`SimpleExpr`].
