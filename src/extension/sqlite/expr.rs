@@ -109,7 +109,6 @@ pub trait SqliteExpr: ExprTrait {
 // replace all of this with `impl<T> SqliteExpr for T where T: ExprTrait {}`
 // (breaking change)
 impl SqliteExpr for Expr {}
-impl SqliteExpr for SimpleExpr {}
 impl SqliteExpr for FunctionCall {}
 impl SqliteExpr for ColumnRef {}
 impl SqliteExpr for Keyword {}

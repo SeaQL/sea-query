@@ -203,7 +203,6 @@ pub trait PgExpr: ExprTrait {
 // replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
 // (breaking change)
 impl PgExpr for Expr {}
-impl PgExpr for SimpleExpr {}
 impl PgExpr for FunctionCall {}
 impl PgExpr for ColumnRef {}
 impl PgExpr for Keyword {}
