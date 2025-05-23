@@ -59,6 +59,7 @@ pub struct TypeCreateStatement {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeAs {
     // Composite,
     Enum,

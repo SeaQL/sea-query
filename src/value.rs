@@ -124,6 +124,7 @@ pub enum ArrayType {
 /// implementation of NaN != NaN.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
+#[non_exhaustive]
 pub enum Value {
     Bool(Option<bool>),
     TinyInt(Option<i8>),
@@ -259,6 +260,7 @@ pub struct Values(pub Vec<Value>);
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "hashable-value", derive(Hash, Eq))]
+#[non_exhaustive]
 pub enum ValueTuple {
     One(Value),
     Two(Value, Value),

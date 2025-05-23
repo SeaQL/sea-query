@@ -131,6 +131,7 @@ impl fmt::Debug for dyn Iden {
 
 /// Column references
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
@@ -146,6 +147,7 @@ pub trait IntoColumnRef {
 /// Table references
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum TableRef {
     /// Table identifier without any schema / database prefix
     Table(DynIden),
@@ -173,6 +175,7 @@ pub trait IntoTableRef {
 
 /// Unary operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum UnOper {
     Not,
 }
@@ -181,6 +184,7 @@ pub enum UnOper {
 ///
 /// If something is not supported here, you can use [`BinOper::Custom`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum BinOper {
     And,
     Or,
@@ -334,6 +338,7 @@ pub struct Asterisk;
 ///
 /// If something is not supported here, you can use [`Keyword::Custom`].
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Keyword {
     Null,
     CurrentDate,
@@ -355,6 +360,7 @@ pub trait IntoLikeExpr {
 
 /// SubQuery operators
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SubQueryOper {
     Exists,
     Any,
