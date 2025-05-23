@@ -2185,7 +2185,7 @@ fn test_issue_674_and_inside_not() {
 
 #[test]
 fn test_issue_674_nested_logical_panic() {
-    let e = SimpleExpr::from(true).and(SimpleExpr::from(true).and(true.into()).and(true.into()));
+    let e = SimpleExpr::from(true).and(SimpleExpr::from(true).and(true).and(true));
 
     assert_eq!(
         Query::select()
