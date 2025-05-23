@@ -8,6 +8,7 @@ pub struct TableSample {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum SampleMethod {
     BERNOULLI,
     SYSTEM,
