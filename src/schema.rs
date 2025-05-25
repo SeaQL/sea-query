@@ -3,6 +3,7 @@
 use crate::{backend::SchemaBuilder, ForeignKeyStatement, IndexStatement, TableStatement};
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum SchemaStatement {
     TableStatement(TableStatement),
     IndexStatement(IndexStatement),

@@ -10,6 +10,7 @@ pub struct IndexHint {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[non_exhaustive]
 pub enum IndexHintType {
     Use,
     Ignore,
@@ -17,6 +18,7 @@ pub enum IndexHintType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[non_exhaustive]
 pub enum IndexHintScope {
     Join,
     OrderBy,

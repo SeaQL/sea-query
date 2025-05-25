@@ -30,6 +30,7 @@ pub struct Table;
 
 /// All available types of table statement
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TableStatement {
     Create(TableCreateStatement),
     Alter(TableAlterStatement),

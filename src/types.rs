@@ -255,6 +255,7 @@ pub struct OrderExpr {
 
 /// Join on types
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
     Columns(Vec<SimpleExpr>),
@@ -262,6 +263,7 @@ pub enum JoinOn {
 
 /// Ordering options
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Order {
     Asc,
     Desc,

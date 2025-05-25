@@ -19,6 +19,7 @@ pub struct ForeignKey;
 
 /// All available types of foreign key statement
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum ForeignKeyStatement {
     Create(ForeignKeyCreateStatement),
     Drop(ForeignKeyDropStatement),

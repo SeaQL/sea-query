@@ -35,6 +35,7 @@ use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[non_exhaustive]
 pub enum ArrayType {
     Bool,
     TinyInt,

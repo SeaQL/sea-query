@@ -44,6 +44,7 @@ pub struct AddColumnOption {
 
 /// All available table alter options
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TableAlterOption {
     AddColumn(AddColumnOption),
     ModifyColumn(ColumnDef),

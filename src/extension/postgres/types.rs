@@ -5,6 +5,7 @@ use crate::{prepare::*, types::*, QueryBuilder, QuotedBuilder};
 pub struct Type;
 
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum TypeRef {
     Type(DynIden),
     SchemaType(DynIden, DynIden),
@@ -82,12 +83,14 @@ pub struct TypeAlterStatement {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeDropOpt {
     Cascade,
     Restrict,
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeAlterOpt {
     Add {
         value: DynIden,
@@ -99,6 +102,7 @@ pub enum TypeAlterOpt {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeAlterAddOpt {
     Before(DynIden),
     After(DynIden),
