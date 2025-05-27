@@ -426,7 +426,7 @@ impl PgFunc {
         T: Into<SimpleExpr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::DateTrunc))
-            .args([Expr::val(unit.to_string()).into(), expr.into()])
+            .args([Expr::val(unit.to_string()), expr.into()])
     }
 
     /// Call the `JSON_AGG` function. Postgres only.
