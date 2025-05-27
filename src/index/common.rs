@@ -1,5 +1,5 @@
 use crate::expr::SimpleExpr;
-use crate::{types::*, FunctionCall};
+use crate::{FunctionCall, types::*};
 
 /// Specification of a table index
 #[derive(Default, Debug, Clone)]

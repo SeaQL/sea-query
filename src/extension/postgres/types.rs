@@ -1,4 +1,4 @@
-use crate::{prepare::*, types::*, QueryBuilder, QuotedBuilder};
+use crate::{QueryBuilder, QuotedBuilder, prepare::*, types::*};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]

@@ -30,9 +30,7 @@ fn select_2() {
 fn select_3() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
@@ -100,11 +98,12 @@ fn select_7() {
 fn select_8() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character,
-            ])
+            .columns([Char::Character,])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+            .left_join(
+                Font::Table,
+                Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
+            )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id`"
     );
@@ -114,12 +113,16 @@ fn select_8() {
 fn select_9() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character,
-            ])
+            .columns([Char::Character,])
             .from(Char::Table)
-            .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
-            .inner_join(Glyph::Table, Expr::col((Char::Table, Char::Character)).equals((Glyph::Table, Glyph::Image)))
+            .left_join(
+                Font::Table,
+                Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
+            )
+            .inner_join(
+                Glyph::Table,
+                Expr::col((Char::Table, Char::Character)).equals((Glyph::Table, Glyph::Image))
+            )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` INNER JOIN `glyph` ON `character`.`character` = `glyph`.`image`"
     );
@@ -129,13 +132,13 @@ fn select_9() {
 fn select_10() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character,
-            ])
+            .columns([Char::Character,])
             .from(Char::Table)
-            .left_join(Font::Table,
-                Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
-                .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+            .left_join(
+                Font::Table,
+                Expr::col((Char::Table, Char::FontId))
+                    .equals((Font::Table, Font::Id))
+                    .and(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"
@@ -146,9 +149,7 @@ fn select_10() {
 fn select_11() {
     assert_eq!(
         Query::select()
-            .columns([
-                Glyph::Aspect,
-            ])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by(Glyph::Image, Order::Desc)
@@ -162,15 +163,10 @@ fn select_11() {
 fn select_12() {
     assert_eq!(
         Query::select()
-            .columns([
-                Glyph::Aspect,
-            ])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
-            .order_by_columns([
-                (Glyph::Id, Order::Asc),
-                (Glyph::Aspect, Order::Desc),
-            ])
+            .order_by_columns([(Glyph::Id, Order::Asc), (Glyph::Aspect, Order::Desc),])
             .to_string(MysqlQueryBuilder),
         "SELECT `aspect` FROM `glyph` WHERE IFNULL(`aspect`, 0) > 2 ORDER BY `id` ASC, `aspect` DESC"
     );
@@ -180,9 +176,7 @@ fn select_12() {
 fn select_13() {
     assert_eq!(
         Query::select()
-            .columns([
-                Glyph::Aspect,
-            ])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns([
@@ -198,16 +192,10 @@ fn select_13() {
 fn select_14() {
     assert_eq!(
         Query::select()
-            .columns([
-                Glyph::Id,
-                Glyph::Aspect,
-            ])
+            .columns([Glyph::Id, Glyph::Aspect,])
             .expr(Expr::col(Glyph::Image).max())
             .from(Glyph::Table)
-            .group_by_columns([
-                (Glyph::Table, Glyph::Id),
-                (Glyph::Table, Glyph::Aspect),
-            ])
+            .group_by_columns([(Glyph::Table, Glyph::Id), (Glyph::Table, Glyph::Aspect),])
             .and_having(Expr::col(Glyph::Aspect).gt(2))
             .to_string(MysqlQueryBuilder),
         "SELECT `id`, `aspect`, MAX(`image`) FROM `glyph` GROUP BY `glyph`.`id`, `glyph`.`aspect` HAVING `aspect` > 2"
@@ -255,9 +243,7 @@ fn select_17() {
 fn select_18() {
     assert_eq!(
         Query::select()
-            .columns([
-                Glyph::Aspect,
-            ])
+            .columns([Glyph::Aspect,])
             .from(Glyph::Table)
             .and_where(Expr::col(Glyph::Aspect).between(3, 5))
             .and_where(Expr::col(Glyph::Aspect).not_between(8, 10))
@@ -294,9 +280,7 @@ fn select_20() {
 fn select_21() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character
-            ])
+            .columns([Char::Character])
             .from(Char::Table)
             .cond_where(any![
                 Expr::col(Char::Character).like("A%"),
@@ -316,14 +300,18 @@ fn select_22() {
             .from(Char::Table)
             .cond_where(
                 Cond::all()
-                .add(
-                    Cond::any()
-                    .add(Expr::col(Char::Character).like("C"))
-                    .add(Expr::col(Char::Character).like("D").and(Expr::col(Char::Character).like("E")))
-                )
-                .add(
-                    Expr::col(Char::Character).like("F").or(Expr::col(Char::Character).like("G"))
-                )
+                    .add(
+                        Cond::any().add(Expr::col(Char::Character).like("C")).add(
+                            Expr::col(Char::Character)
+                                .like("D")
+                                .and(Expr::col(Char::Character).like("E"))
+                        )
+                    )
+                    .add(
+                        Expr::col(Char::Character)
+                            .like("F")
+                            .or(Expr::col(Char::Character).like("G"))
+                    )
             )
             .to_string(MysqlQueryBuilder),
         "SELECT `character` FROM `character` WHERE (`character` LIKE 'C' OR (`character` LIKE 'D' AND `character` LIKE 'E')) AND (`character` LIKE 'F' OR `character` LIKE 'G')"
@@ -397,9 +385,7 @@ fn select_26() {
 fn select_27() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(Expr::col(Char::SizeW).eq(3))
             .and_where(Expr::col(Char::SizeH).eq(4))
@@ -413,9 +399,7 @@ fn select_27() {
 fn select_28() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .cond_where(any![
                 Expr::col(Char::SizeW).eq(3),
@@ -431,12 +415,11 @@ fn select_28() {
 fn select_30() {
     assert_eq!(
         Query::select()
-            .columns([
-                Char::Character, Char::SizeW, Char::SizeH
-            ])
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
             .from(Char::Table)
             .and_where(
-                Expr::col(Char::SizeW).mul(2)
+                Expr::col(Char::SizeW)
+                    .mul(2)
                     .add(Expr::col(Char::SizeH).div(3))
                     .eq(4)
             )
@@ -1078,10 +1061,7 @@ fn insert_2() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns([
-                Glyph::Image,
-                Glyph::Aspect,
-            ])
+            .columns([Glyph::Image, Glyph::Aspect,])
             .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
@@ -1097,18 +1077,12 @@ fn insert_3() {
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
-            .columns([
-                Glyph::Image,
-                Glyph::Aspect,
-            ])
+            .columns([Glyph::Image, Glyph::Aspect,])
             .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .values_panic([
-                Value::String(None).into(),
-                2.1345.into(),
-            ])
+            .values_panic([Value::String(None).into(), 2.1345.into(),])
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"
     );
@@ -1425,7 +1399,10 @@ fn update_1() {
             .table(Glyph::Table)
             .values([
                 (Glyph::Aspect, 2.1345.into()),
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
+                (
+                    Glyph::Image,
+                    "24B0E11951B03B07F8300FD003983F03F0780060".into()
+                ),
             ])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .order_by(Glyph::Id, Order::Asc)
@@ -1441,9 +1418,10 @@ fn update_3() {
         Query::update()
             .table(Glyph::Table)
             .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
-            .values([
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
-            ])
+            .values([(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .order_by(Glyph::Id, Order::Asc)
             .limit(1)
@@ -1458,9 +1436,10 @@ fn update_4() {
         Query::update()
             .table(Glyph::Table)
             .value(Glyph::Aspect, Expr::col(Glyph::Aspect).add(1))
-            .values([
-                (Glyph::Image, "24B0E11951B03B07F8300FD003983F03F0780060".into()),
-            ])
+            .values([(
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into()
+            ),])
             .and_where(Expr::col(Glyph::Id).eq(1))
             .order_by(Glyph::Id, Order::Asc)
             .limit(1)

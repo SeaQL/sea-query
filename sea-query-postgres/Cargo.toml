@@ -5,14 +5,14 @@
 name = "sea-query-postgres"
 version = "0.5.0"
 authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
-edition = "2021"
+edition = "2024"
 description = "Binder traits for connecting sea-query with postgres driver"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = [ "database" ]
 keywords = [ "database", "sql", "postgres" ]
-rust-version = "1.60"
+rust-version = "1.85.0"
 
 [lib]
 

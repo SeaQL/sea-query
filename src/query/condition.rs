@@ -287,11 +287,7 @@ impl From<Condition> for SimpleExpr {
                 ConditionType::All => true.into(),
             })
         };
-        if cond.negate {
-            expr.not()
-        } else {
-            expr
-        }
+        if cond.negate { expr.not() } else { expr }
     }
 }
 

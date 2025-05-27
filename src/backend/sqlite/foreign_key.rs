@@ -15,7 +15,9 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         mode: Mode,
     ) {
         if mode != Mode::Creation {
-            panic!("Sqlite does not support modification of foreign key constraints to existing tables");
+            panic!(
+                "Sqlite does not support modification of foreign key constraints to existing tables"
+            );
         }
 
         write!(sql, "DROP FOREIGN KEY ").unwrap();
@@ -38,7 +40,9 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         mode: Mode,
     ) {
         if mode != Mode::Creation {
-            panic!("Sqlite does not support modification of foreign key constraints to existing tables");
+            panic!(
+                "Sqlite does not support modification of foreign key constraints to existing tables"
+            );
         }
 
         write!(sql, "FOREIGN KEY (").unwrap();

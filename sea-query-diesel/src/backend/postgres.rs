@@ -1,5 +1,5 @@
-use diesel::pg::sql_types::*;
 use diesel::pg::Pg;
+use diesel::pg::sql_types::*;
 use diesel::query_builder::QueryFragment;
 use diesel::result::QueryResult;
 use diesel::sql_types::*;
