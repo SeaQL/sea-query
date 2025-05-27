@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.32.6 - 2025-05-27
+
+### Enhancements
+
+* impl From<Condition> and From<ConditionExpression> for SimpleExpr https://github.com/SeaQL/sea-query/pull/886
+
 ## 0.32.5 - 2025-05-07
 
 ### New features

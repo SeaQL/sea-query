@@ -1389,7 +1389,7 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Translate part of a condition to part of a "WHERE" clause.
     fn prepare_condition_where(&self, condition: &Condition, sql: &mut dyn SqlWriter) {
-        let simple_expr = condition.to_simple_expr();
+        let simple_expr = condition.clone().into();
         self.prepare_simple_expr(&simple_expr, sql);
     }
 
