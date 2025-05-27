@@ -1665,7 +1665,10 @@ impl SimpleExpr {
     /// );
     /// ```
     #[allow(clippy::self_named_constructors)]
-    #[deprecated(since = "1.0.0", note = "Please use the [`SimpleExpr::new`] method")]
+    #[deprecated(
+        since = "1.0.0-rc1",
+        note = "Please use the [`SimpleExpr::new`] method"
+    )]
     pub fn expr<T>(expr: T) -> Self
     where
         T: Into<Self>,
