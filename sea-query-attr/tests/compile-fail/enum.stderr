@@ -1,5 +1,0 @@
-error: #[enum_def] can only be used on structs
- --> tests/compile-fail/enum.rs:4:1
-  |
-4 | enum Hello {
-  | ^^^^
