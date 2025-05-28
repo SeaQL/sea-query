@@ -1,12 +1,12 @@
 use crate::{
+    FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
+    WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
-    query::{condition::*, OrderedStatement},
+    query::{OrderedStatement, condition::*},
     types::*,
     value::*,
-    FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
-    WithClause, WithQuery,
 };
 use inherent::inherent;
 

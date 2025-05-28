@@ -204,7 +204,7 @@
 //! ```rust
 //! #[cfg(feature = "derive")]
 //! # fn test() {
-//! use sea_query::{enum_def, Iden};
+//! use sea_query::{Iden, enum_def};
 //!
 //! #[enum_def]
 //! struct Character {
@@ -840,7 +840,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::{enum_def, Iden, IdenStatic};
+pub use sea_query_derive::{Iden, IdenStatic, enum_def};
 
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;

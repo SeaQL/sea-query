@@ -5,8 +5,8 @@ use rust_decimal::Decimal;
 use sea_query::{ColumnDef, ColumnType, Iden, Order, PostgresQueryBuilder, Query, Table};
 use sea_query_postgres::PostgresBinder;
 use time::{
-    macros::{date, offset, time},
     OffsetDateTime, PrimitiveDateTime,
+    macros::{date, offset, time},
 };
 use uuid::Uuid;
 

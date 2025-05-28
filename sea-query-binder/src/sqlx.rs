@@ -1,5 +1,5 @@
 use crate::SqlxValues;
-use sea_query::{query::*, QueryBuilder};
+use sea_query::{QueryBuilder, query::*};
 
 pub trait SqlxBinder {
     fn build_sqlx<T: QueryBuilder>(&self, query_builder: T) -> (String, SqlxValues);
