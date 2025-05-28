@@ -17,7 +17,7 @@ rust-version = "1.85.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "0.32.0", path = "..", default-features = false }
+sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false }
 diesel = { version = "2.1.1", features = [
   "i-implement-a-third-party-backend-and-opt-into-breaking-changes",
 ] }

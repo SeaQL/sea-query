@@ -35,7 +35,7 @@ Join our Discord server to chat with others in the SeaQL community!
 ```toml
 # Cargo.toml
 [dependencies]
-sea-query = "0"
+sea-query = "1.0.0-rc.1"
 ```
 
 SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
