@@ -6,14 +6,7 @@
 
 use crate::{func::*, query::*, types::*, value::*};
 
-/// Helper to build a [`SimpleExpr`].
-#[derive(Debug, Clone)]
-pub struct Expr {
-    pub(crate) left: SimpleExpr,
-    pub(crate) right: Option<SimpleExpr>,
-    pub(crate) uopr: Option<UnOper>,
-    pub(crate) bopr: Option<BinOper>,
-}
+pub type Expr = SimpleExpr;
 
 /// Represents a Simple Expression in SQL.
 ///
@@ -1407,18 +1400,9 @@ where
     }
 }
 
-impl Expr {
-    fn new_with_left<T>(left: T) -> Self
-    where
-        T: Into<SimpleExpr>,
-    {
-        let left = left.into();
-        Self {
-            left,
-            right: None,
-            uopr: None,
-            bopr: None,
-        }
+impl SimpleExpr {
+    pub fn new(expr: impl Into<Self>) -> Self {
+        expr.into()
     }
 
     #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
@@ -1479,7 +1463,7 @@ impl Expr {
     where
         T: IntoColumnRef,
     {
-        Self::new_with_left(n.into_column_ref())
+        Self::Column(n.into_column_ref())
     }
 
     /// Express the target column without table prefix, returning a [`SimpleExpr`].
@@ -1531,11 +1515,11 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" = 1"#
     /// );
     /// ```
-    pub fn column<T>(n: T) -> SimpleExpr
+    pub fn column<T>(n: T) -> Self
     where
         T: IntoColumnRef,
     {
-        SimpleExpr::Column(n.into_column_ref())
+        Self::Column(n.into_column_ref())
     }
 
     /// Wraps tuple of `SimpleExpr`, can be used for tuple comparison
@@ -1568,11 +1552,9 @@ impl Expr {
     /// ```
     pub fn tuple<I>(n: I) -> Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Self>,
     {
-        Expr::expr(SimpleExpr::Tuple(
-            n.into_iter().collect::<Vec<SimpleExpr>>(),
-        ))
+        Self::Tuple(n.into_iter().collect::<Vec<Self>>())
     }
 
     #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
@@ -1615,7 +1597,7 @@ impl Expr {
     where
         V: Into<Value>,
     {
-        Self::new_with_left(v)
+        Self::from(v)
     }
 
     /// Wrap an expression to perform some operation on it later.
@@ -1683,11 +1665,15 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::self_named_constructors)]
+    #[deprecated(
+        since = "1.0.0-rc.1",
+        note = "Please use the [`SimpleExpr::new`] method"
+    )]
     pub fn expr<T>(expr: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Self>,
     {
-        Self::new_with_left(expr)
+        expr.into()
     }
 
     /// Express a [`Value`], returning a [`SimpleExpr`].
@@ -1718,9 +1704,9 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 AND 2.5 AND '3'"#
     /// );
     /// ```
-    pub fn value<V>(v: V) -> SimpleExpr
+    pub fn value<V>(v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         v.into()
     }
@@ -1751,11 +1737,11 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 = 1"#
     /// );
     /// ```
-    pub fn cust<T>(s: T) -> SimpleExpr
+    pub fn cust<T>(s: T) -> Self
     where
         T: Into<String>,
     {
-        SimpleExpr::Custom(s.into())
+        Self::Custom(s.into())
     }
 
     /// Express any custom expression with [`Value`]. Use this if your expression needs variables.
@@ -1828,13 +1814,13 @@ impl Expr {
     ///     r#"SELECT data @? ('hello'::JSONPATH)"#
     /// );
     /// ```
-    pub fn cust_with_values<T, V, I>(s: T, v: I) -> SimpleExpr
+    pub fn cust_with_values<T, V, I>(s: T, v: I) -> Self
     where
         T: Into<String>,
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
-        SimpleExpr::CustomWithExpr(
+        Self::CustomWithExpr(
             s.into(),
             v.into_iter()
                 .map(|v| Into::<Value>::into(v).into())
@@ -1876,93 +1862,21 @@ impl Expr {
     ///     r#"SELECT json_agg(DISTINCT "character")"#
     /// );
     /// ```
-    pub fn cust_with_expr<T, E>(s: T, expr: E) -> SimpleExpr
+    pub fn cust_with_expr<T, E>(s: T, expr: E) -> Self
     where
         T: Into<String>,
-        E: Into<SimpleExpr>,
+        E: Into<Self>,
     {
-        SimpleExpr::CustomWithExpr(s.into(), vec![expr.into()])
+        Self::CustomWithExpr(s.into(), vec![expr.into()])
     }
 
     /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
-    pub fn cust_with_exprs<T, I>(s: T, v: I) -> SimpleExpr
+    pub fn cust_with_exprs<T, I>(s: T, v: I) -> Self
     where
         T: Into<String>,
         I: IntoIterator<Item = SimpleExpr>,
     {
-        SimpleExpr::CustomWithExpr(s.into(), v.into_iter().collect())
-    }
-
-    /// Express an equal (`=`) expression.
-    ///
-    /// This is equivalent to a newer [ExprTrait::eq] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::val("What!").eq("Nothing"))
-    ///     .and_where(Expr::col(Char::Id).eq(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'What!' = 'Nothing' AND `id` = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
-    /// );
-    /// ```
-    pub fn eq<V>(self, v: V) -> SimpleExpr
-    where
-        V: Into<SimpleExpr>,
-    {
-        ExprTrait::eq(self, v)
-    }
-
-    /// Express a not equal (`<>`) expression.
-    ///
-    /// This is equivalent to a newer [ExprTrait::ne] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::val("Morning").ne("Good"))
-    ///     .and_where(Expr::col(Char::Id).ne(1))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 'Morning' <> 'Good' AND `id` <> 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
-    /// );
-    /// ```
-    pub fn ne<V>(self, v: V) -> SimpleExpr
-    where
-        V: Into<SimpleExpr>,
-    {
-        ExprTrait::ne(self, v)
+        Self::CustomWithExpr(s.into(), v.into_iter().collect())
     }
 
     /// Express a equal expression between two table columns,
@@ -1994,7 +1908,7 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
     /// );
     /// ```
-    pub fn equals<C>(self, col: C) -> SimpleExpr
+    pub fn equals<C>(self, col: C) -> Self
     where
         C: IntoColumnRef,
     {
@@ -2030,7 +1944,7 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" <> "font"."id""#
     /// );
     /// ```
-    pub fn not_equals<C>(self, col: C) -> SimpleExpr
+    pub fn not_equals<C>(self, col: C) -> Self
     where
         C: IntoColumnRef,
     {
@@ -2065,9 +1979,9 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
     /// );
     /// ```
-    pub fn gt<V>(self, v: V) -> SimpleExpr
+    pub fn gt<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::gt(self, v)
     }
@@ -2100,9 +2014,9 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
     /// );
     /// ```
-    pub fn gte<V>(self, v: V) -> SimpleExpr
+    pub fn gte<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::gte(self, v)
     }
@@ -2135,9 +2049,9 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
     /// );
     /// ```
-    pub fn lt<V>(self, v: V) -> SimpleExpr
+    pub fn lt<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::lt(self, v)
     }
@@ -2170,155 +2084,11 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
     /// );
     /// ```
-    pub fn lte<V>(self, v: V) -> SimpleExpr
+    pub fn lte<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::lte(self, v)
-    }
-
-    /// Express an arithmetic addition operation.
-    ///
-    /// This is equivalent to a newer [ExprTrait::add] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).add(1).eq(2))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 + 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
-    /// );
-    /// ```
-    #[allow(clippy::should_implement_trait)]
-    pub fn add<V>(self, v: V) -> SimpleExpr
-    where
-        V: Into<SimpleExpr>,
-    {
-        ExprTrait::add(self, v)
-    }
-
-    /// Express an arithmetic subtraction operation.
-    ///
-    /// This is equivalent to a newer [ExprTrait::sub] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).sub(1).eq(2))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 - 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
-    /// );
-    /// ```
-    #[allow(clippy::should_implement_trait)]
-    pub fn sub<V>(self, v: V) -> SimpleExpr
-    where
-        V: Into<SimpleExpr>,
-    {
-        ExprTrait::sub(self, v)
-    }
-
-    /// Express an arithmetic multiplication operation.
-    ///
-    /// This is equivalent to a newer [ExprTrait::mul] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).mul(1).eq(2))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 * 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
-    /// );
-    /// ```
-    #[allow(clippy::should_implement_trait)]
-    pub fn mul<V>(self, v: V) -> SimpleExpr
-    where
-        V: Into<SimpleExpr>,
-    {
-        ExprTrait::mul(self, v)
-    }
-
-    /// Express an arithmetic division operation.
-    ///
-    /// This is equivalent to a newer [ExprTrait::div] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::val(1).div(1).eq(2))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE 1 / 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
-    /// );
-    /// ```
-    #[allow(clippy::should_implement_trait)]
-    pub fn div<V>(self, v: V) -> SimpleExpr
-    where
-        V: Into<SimpleExpr>,
-    {
-        ExprTrait::div(self, v)
     }
 
     /// Express an arithmetic modulo operation.
@@ -2350,9 +2120,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn modulo<V>(self, v: V) -> SimpleExpr
+    pub fn modulo<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::modulo(self, v)
     }
@@ -2386,9 +2156,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn left_shift<V>(self, v: V) -> SimpleExpr
+    pub fn left_shift<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::left_shift(self, v)
     }
@@ -2422,9 +2192,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn right_shift<V>(self, v: V) -> SimpleExpr
+    pub fn right_shift<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::right_shift(self, v)
     }
@@ -2457,9 +2227,9 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
     /// );
     /// ```
-    pub fn between<V>(self, a: V, b: V) -> SimpleExpr
+    pub fn between<V>(self, a: V, b: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::between(self, a, b)
     }
@@ -2492,75 +2262,11 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
     /// );
     /// ```
-    pub fn not_between<V>(self, a: V, b: V) -> SimpleExpr
+    pub fn not_between<V>(self, a: V, b: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::not_between(self, a, b)
-    }
-
-    /// Express a `LIKE` expression.
-    ///
-    /// This is equivalent to a newer [ExprTrait::like] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::Character)).like("Ours'%"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE 'Ours\'%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE E'Ours\'%'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE 'Ours''%'"#
-    /// );
-    /// ```
-    ///
-    /// Like with ESCAPE
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .and_where(Expr::col((Char::Table, Char::Character)).like(LikeExpr::new(r"|_Our|_").escape('|')))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `character`.`character` LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
-    /// );
-    /// ```
-    pub fn like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        ExprTrait::like(self, like)
-    }
-
-    /// Express a `NOT LIKE` expression.
-    ///
-    /// This is equivalent to a newer [ExprTrait::not_like] and may require more some wrapping beforehand.
-    pub fn not_like<L: IntoLikeExpr>(self, like: L) -> SimpleExpr {
-        ExprTrait::not_like(self, like)
     }
 
     /// Express a `IS NULL` expression.
@@ -2592,7 +2298,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_null(self) -> SimpleExpr {
+    pub fn is_null(self) -> Self {
         ExprTrait::is_null(self)
     }
 
@@ -2624,9 +2330,9 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
     /// );
     /// ```
-    pub fn is<V>(self, v: V) -> SimpleExpr
+    pub fn is<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::is(self, v)
     }
@@ -2660,7 +2366,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_not_null(self) -> SimpleExpr {
+    pub fn is_not_null(self) -> Self {
         ExprTrait::is_not_null(self)
     }
 
@@ -2692,85 +2398,11 @@ impl Expr {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS NOT TRUE"#
     /// );
     /// ```
-    pub fn is_not<V>(self, v: V) -> SimpleExpr
+    pub fn is_not<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
         ExprTrait::is_not(self, v)
-    }
-
-    /// Create any binary operation
-    ///
-    /// This is equivalent to a newer [ExprTrait::binary] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     .cond_where(all![
-    ///         Expr::col(Char::SizeW).binary(BinOper::SmallerThan, 10),
-    ///         Expr::col(Char::SizeW).binary(BinOper::GreaterThan, Expr::col(Char::SizeH))
-    ///     ])
-    ///     .to_owned();
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE `size_w` < 10 AND `size_w` > `size_h`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
-    /// );
-    /// ```
-    pub fn binary<O, T>(self, op: O, right: T) -> SimpleExpr
-    where
-        O: Into<BinOper>,
-        T: Into<SimpleExpr>,
-    {
-        ExprTrait::binary(self, op, right)
-    }
-
-    /// Negates an expression with `NOT`.
-    ///
-    /// This is equivalent to a newer [ExprTrait::not] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{*, tests_cfg::*};
-    ///
-    /// let query = Query::select()
-    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
-    ///     .from(Char::Table)
-    ///     // Before 0.32.0, you had call `not` on an `Expr`, which had to be constructed using `Expr::expr`:
-    ///     .and_where(Expr::expr(Expr::col((Char::Table, Char::SizeW)).is_null()).not())
-    ///     .to_owned();
-    ///
-    /// // But since 0.32.0, this compiles too:
-    /// let _ = Expr::col((Char::Table, Char::SizeW)).is_null().not();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE NOT `character`.`size_w` IS NULL"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
-    /// );
-    /// ```
-    #[allow(clippy::should_implement_trait)]
-    pub fn not(self) -> SimpleExpr {
-        ExprTrait::not(self)
     }
 
     /// Express a `MAX` function.
@@ -2798,8 +2430,8 @@ impl Expr {
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn max(self) -> SimpleExpr {
-        Func::max(self.left).into()
+    pub fn max(self) -> Self {
+        Func::max(self).into()
     }
 
     /// Express a `MIN` function.
@@ -2827,8 +2459,8 @@ impl Expr {
     ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn min(self) -> SimpleExpr {
-        Func::min(self.left).into()
+    pub fn min(self) -> Self {
+        Func::min(self).into()
     }
 
     /// Express a `SUM` function.
@@ -2856,8 +2488,8 @@ impl Expr {
     ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn sum(self) -> SimpleExpr {
-        Func::sum(self.left).into()
+    pub fn sum(self) -> Self {
+        Func::sum(self).into()
     }
 
     /// Express a `COUNT` function.
@@ -2885,8 +2517,8 @@ impl Expr {
     ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn count(self) -> SimpleExpr {
-        Func::count(self.left).into()
+    pub fn count(self) -> Self {
+        Func::count(self).into()
     }
 
     /// Express a `COUNT` function with the DISTINCT modifier.
@@ -2914,8 +2546,8 @@ impl Expr {
     ///     r#"SELECT COUNT(DISTINCT "character"."size_w") FROM "character""#
     /// );
     /// ```
-    pub fn count_distinct(self) -> SimpleExpr {
-        Func::count_distinct(self.left).into()
+    pub fn count_distinct(self) -> Self {
+        Func::count_distinct(self).into()
     }
 
     /// Express a `IF NULL` function.
@@ -2943,11 +2575,11 @@ impl Expr {
     ///     r#"SELECT IFNULL("character"."size_w", 0) FROM "character""#
     /// );
     /// ```
-    pub fn if_null<V>(self, v: V) -> SimpleExpr
+    pub fn if_null<V>(self, v: V) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
     {
-        Func::if_null(self.left, v).into()
+        Func::if_null(self, v).into()
     }
 
     /// Express a `IN` expression.
@@ -3002,9 +2634,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_in<V, I>(self, v: I) -> SimpleExpr
+    pub fn is_in<V, I>(self, v: I) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
         I: IntoIterator<Item = V>,
     {
         ExprTrait::is_in(self, v)
@@ -3047,7 +2679,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn in_tuples<V, I>(self, v: I) -> SimpleExpr
+    pub fn in_tuples<V, I>(self, v: I) -> Self
     where
         V: IntoValueTuple,
         I: IntoIterator<Item = V>,
@@ -3107,9 +2739,9 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn is_not_in<V, I>(self, v: I) -> SimpleExpr
+    pub fn is_not_in<V, I>(self, v: I) -> Self
     where
-        V: Into<SimpleExpr>,
+        V: Into<Self>,
         I: IntoIterator<Item = V>,
     {
         ExprTrait::is_not_in(self, v)
@@ -3148,7 +2780,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+    pub fn in_subquery(self, sel: SelectStatement) -> Self {
         ExprTrait::in_subquery(self, sel)
     }
 
@@ -3185,7 +2817,7 @@ impl Expr {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    pub fn not_in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+    pub fn not_in_subquery(self, sel: SelectStatement) -> Self {
         ExprTrait::not_in_subquery(self, sel)
     }
 
@@ -3214,8 +2846,8 @@ impl Expr {
     ///     r#"SELECT EXISTS(SELECT "id" FROM "character") AS "character_exists", EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
     /// );
     /// ```
-    pub fn exists(sel: SelectStatement) -> SimpleExpr {
-        SimpleExpr::SubQuery(
+    pub fn exists(sel: SelectStatement) -> Self {
+        Self::SubQuery(
             Some(SubQueryOper::Exists),
             Box::new(sel.into_sub_query_statement()),
         )
@@ -3245,8 +2877,8 @@ impl Expr {
     ///     r#"SELECT "id" FROM "character" WHERE "id" = ANY(SELECT "id" FROM "character")"#
     /// );
     /// ```
-    pub fn any(sel: SelectStatement) -> SimpleExpr {
-        SimpleExpr::SubQuery(
+    pub fn any(sel: SelectStatement) -> Self {
+        Self::SubQuery(
             Some(SubQueryOper::Any),
             Box::new(sel.into_sub_query_statement()),
         )
@@ -3276,16 +2908,16 @@ impl Expr {
     ///     r#"SELECT "id" FROM "character" WHERE "id" <> SOME(SELECT "id" FROM "character")"#
     /// );
     /// ```
-    pub fn some(sel: SelectStatement) -> SimpleExpr {
-        SimpleExpr::SubQuery(
+    pub fn some(sel: SelectStatement) -> Self {
+        Self::SubQuery(
             Some(SubQueryOper::Some),
             Box::new(sel.into_sub_query_statement()),
         )
     }
 
     /// Express a `ALL` sub-query expression.
-    pub fn all(sel: SelectStatement) -> SimpleExpr {
-        SimpleExpr::SubQuery(
+    pub fn all(sel: SelectStatement) -> Self {
+        Self::SubQuery(
             Some(SubQueryOper::All),
             Box::new(sel.into_sub_query_statement()),
         )
@@ -3363,13 +2995,12 @@ impl Expr {
     ///     r#"INSERT INTO "character" ("font_size") VALUES ('large')"#
     /// );
     /// ```
-    pub fn as_enum<T>(self, type_name: T) -> SimpleExpr
+    pub fn as_enum<T>(self, type_name: T) -> Self
     where
         T: IntoIden,
     {
         ExprTrait::as_enum(self, type_name)
     }
-
     /// Adds new `CASE WHEN` to existing case statement.
     ///
     /// # Examples
@@ -3397,42 +3028,9 @@ impl Expr {
     pub fn case<C, T>(cond: C, then: T) -> CaseStatement
     where
         C: IntoCondition,
-        T: Into<SimpleExpr>,
+        T: Into<Self>,
     {
         CaseStatement::new().case(cond, then)
-    }
-
-    /// Express a `CAST AS` expression.
-    ///
-    /// This is equivalent to a newer [ExprTrait::cast_as] and may require more some wrapping beforehand.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let query = Query::select()
-    ///     .expr(Expr::val("1").cast_as("integer"))
-    ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT CAST('1' AS integer)"#
-    /// );
-    /// ```
-    pub fn cast_as<T>(self, type_name: T) -> SimpleExpr
-    where
-        T: IntoIden,
-    {
-        ExprTrait::cast_as(self, type_name)
     }
 
     /// Keyword `CURRENT_DATE`.
@@ -3454,8 +3052,8 @@ impl Expr {
     ///     r#"SELECT CURRENT_DATE"#
     /// );
     /// ```
-    pub fn current_date() -> Expr {
-        Expr::new_with_left(Keyword::CurrentDate)
+    pub fn current_date() -> Self {
+        Self::Keyword(Keyword::CurrentDate)
     }
 
     /// Keyword `CURRENT_TIMESTAMP`.
@@ -3477,8 +3075,8 @@ impl Expr {
     ///     r#"SELECT CURRENT_TIME"#
     /// );
     /// ```
-    pub fn current_time() -> Expr {
-        Expr::new_with_left(Keyword::CurrentTime)
+    pub fn current_time() -> Self {
+        Self::Keyword(Keyword::CurrentTime)
     }
 
     /// Keyword `CURRENT_TIMESTAMP`.
@@ -3503,8 +3101,8 @@ impl Expr {
     ///     r#"SELECT CURRENT_TIMESTAMP"#
     /// );
     /// ```
-    pub fn current_timestamp() -> Expr {
-        Expr::new_with_left(Keyword::CurrentTimestamp)
+    pub fn current_timestamp() -> Self {
+        Self::Keyword(Keyword::CurrentTimestamp)
     }
 
     /// Custom keyword.
@@ -3522,24 +3120,11 @@ impl Expr {
     /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT test"#);
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT test"#);
     /// ```
-    pub fn custom_keyword<T>(i: T) -> Expr
+    pub fn custom_keyword<T>(i: T) -> Self
     where
         T: IntoIden,
     {
-        Expr::new_with_left(Keyword::Custom(i.into_iden()))
-    }
-}
-
-impl From<Expr> for SimpleExpr {
-    /// Convert into SimpleExpr
-    fn from(src: Expr) -> Self {
-        if let Some(uopr) = src.uopr {
-            SimpleExpr::Unary(uopr, Box::new(src.left))
-        } else if let Some(bopr) = src.bopr {
-            SimpleExpr::Binary(Box::new(src.left), bopr, Box::new(src.right.unwrap()))
-        } else {
-            src.left
-        }
+        Self::Keyword(Keyword::Custom(i.into_iden()))
     }
 }
 
@@ -3548,32 +3133,32 @@ where
     T: Into<Value>,
 {
     fn from(v: T) -> Self {
-        SimpleExpr::Value(v.into())
+        Self::Value(v.into())
     }
 }
 
 impl From<FunctionCall> for SimpleExpr {
     fn from(func: FunctionCall) -> Self {
-        SimpleExpr::FunctionCall(func)
+        Self::FunctionCall(func)
     }
 }
 
 impl From<ColumnRef> for SimpleExpr {
     fn from(col: ColumnRef) -> Self {
-        SimpleExpr::Column(col)
+        Self::Column(col)
     }
 }
 
 impl From<Keyword> for SimpleExpr {
     fn from(k: Keyword) -> Self {
-        SimpleExpr::Keyword(k)
+        Self::Keyword(k)
     }
 }
 
 impl From<LikeExpr> for SimpleExpr {
     fn from(like: LikeExpr) -> Self {
         match like.escape {
-            Some(escape) => SimpleExpr::Binary(
+            Some(escape) => Self::Binary(
                 Box::new(like.pattern.into()),
                 BinOper::Escape,
                 Box::new(SimpleExpr::Constant(escape.into())),
