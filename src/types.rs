@@ -78,7 +78,7 @@ iden_trait!();
 #[derive(Debug, Clone, PartialEq)]
 pub struct IdenImpl {
     value: Option<Cow<'static, str>>,
-    type_id: TypeId,
+    // type_id: TypeId,
 }
 
 impl Iden for IdenImpl {
@@ -92,7 +92,7 @@ impl Iden for IdenImpl {
 impl IdenImpl {
     pub fn new(input: impl Into<Cow<'static, str>> + Any) -> Self {
         Self {
-            type_id: input.type_id(),
+            // type_id: input.type_id(),
             value: Some(input.into()),
         }
     }
@@ -341,7 +341,7 @@ impl From<Alias> for IdenImpl {
     fn from(value: Alias) -> Self {
         Self {
             value: Some(Cow::Owned(value.0)),
-            type_id: Alias.type_id(),
+            // type_id: Alias.type_id(),
         }
     }
 }
@@ -354,7 +354,7 @@ impl From<NullAlias> for IdenImpl {
     fn from(_: NullAlias) -> Self {
         Self {
             value: None,
-            type_id: NullAlias.type_id(),
+            // type_id: NullAlias.type_id(),
         }
     }
 }
