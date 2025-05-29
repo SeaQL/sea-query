@@ -1808,7 +1808,7 @@ fn recursive_with_multiple_ctes() {
         .to_owned();
     let sub_select1_name = "sub1";
     let mut sub_select1_cte = CommonTableExpression::new();
-    sub_select1_cte.table_name(sub_select1_name.clone());
+    sub_select1_cte.table_name(sub_select1_name);
     sub_select1_cte.column("a");
     sub_select1_cte.query(sub_select1);
     let sub_select2 = Query::select()

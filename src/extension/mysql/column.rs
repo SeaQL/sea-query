@@ -1,4 +1,4 @@
-use crate::{Iden, IdenImpl, value};
+use crate::{Iden, IdenImpl};
 
 #[derive(Debug, Copy, Clone)]
 pub enum MySqlType {

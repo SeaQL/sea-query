@@ -3,7 +3,7 @@ pub use std::fmt::Write as FmtWrite;
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
-use sea_query::{Iden, IdenImpl, value};
+use sea_query::{Iden, IdenImpl};
 
 /// Representation of a database table named `BloB`.
 ///

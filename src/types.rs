@@ -2,7 +2,7 @@
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
 use std::{
-    any::{Any, TypeId},
+    any::Any,
     borrow::Cow,
     fmt::{self, Debug, Display},
     mem, ops,
@@ -78,11 +78,38 @@ iden_trait!();
 #[derive(Debug, Clone, PartialEq)]
 pub struct IdenImpl {
     value: Cow<'static, str>,
-    // type_id: TypeId,
 }
 
-impl Iden for IdenImpl {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
+impl IdenImpl {
+    pub fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
+        write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
+    }
+
+    fn quoted(&self, q: Quote) -> String {
+        let byte = [q.1];
+        let qq: &str = std::str::from_utf8(&byte).unwrap();
+        self.to_string().replace(qq, qq.repeat(2).as_str())
+    }
+
+    /// A shortcut for writing an [`unquoted`][Iden::unquoted]
+    /// identifier into a [`String`].
+    ///
+    /// We can't reuse [`ToString`] for this, because [`ToString`] uses
+    /// the [`Display`][std::fmt::Display] representation. Bnd [`Iden`]
+    /// representation is distinct from [`Display`][std::fmt::Display]
+    /// and can be different.
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        let mut s = String::new();
+        self.unquoted(&mut s);
+        s
+    }
+
+    /// Write a raw identifier string without quotes.
+    ///
+    /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+    /// this, because we want to allow it to have a different logic.
+    pub fn unquoted(&self, s: &mut dyn fmt::Write) {
         write!(s, "{}", self.value).unwrap()
     }
 }
@@ -103,7 +130,6 @@ impl From<&'static str> for IdenImpl {
 }
 
 pub type DynIden = IdenImpl;
-type DynIdenOld = SeaRc<dyn Iden>;
 
 #[derive(Debug)]
 #[repr(transparent)]

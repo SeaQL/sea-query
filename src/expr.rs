@@ -2948,9 +2948,9 @@ impl SimpleExpr {
     ///
     /// struct TextArray;
     ///
-    /// impl Iden for TextArray {
-    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-    ///         write!(s, "text[]").unwrap();
+    /// impl From<TextArray> for IdenImpl {
+    ///     fn from(text_array: TextArray) -> Self {
+    ///         IdenImpl::new("text[]")
     ///     }
     /// }
     ///

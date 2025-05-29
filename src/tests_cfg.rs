@@ -5,7 +5,7 @@ use std::fmt;
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
-use crate::{Iden, IdenImpl, value};
+use crate::{Iden, IdenImpl};
 
 /// Representation of a database table named `Character`.
 ///
