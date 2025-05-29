@@ -54,6 +54,18 @@ fn create_3() {
             .unwrap();
         }
     }
+
+    impl From<Tea> for sea_query::IdenImpl {
+        fn from(value: Tea) -> Self {
+            let str = match value {
+                Tea::Enum => "tea",
+                Tea::EverydayTea => "EverydayTea",
+                Tea::BreakfastTea => "BreakfastTea",
+            };
+
+            Self::new(str)
+        }
+    }
 }
 
 #[test]

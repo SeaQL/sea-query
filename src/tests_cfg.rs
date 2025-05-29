@@ -5,7 +5,7 @@ use std::fmt;
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
-use crate::Iden;
+use crate::{Iden, IdenImpl, value};
 
 /// Representation of a database table named `Character`.
 ///
@@ -51,6 +51,25 @@ impl Iden for Character {
     }
 }
 
+impl From<Character> for IdenImpl {
+    fn from(value: Character) -> Self {
+        let str = match value {
+            Character::Table => "character",
+            Character::Id => "id",
+            Character::Character => "character",
+            Character::FontSize => "font_size",
+            Character::SizeW => "size_w",
+            Character::SizeH => "size_h",
+            Character::FontId => "font_id",
+            Character::Ascii => "ascii",
+            Character::CreatedAt => "created_at",
+            Character::UserData => "user_data",
+        };
+
+        Self::new(str)
+    }
+}
+
 /// Representation of a database table named `Font`.
 ///
 /// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
@@ -79,6 +98,19 @@ impl Iden for Font {
             }
         )
         .unwrap();
+    }
+}
+
+impl From<Font> for IdenImpl {
+    fn from(value: Font) -> Self {
+        let str = match value {
+            Font::Table => "font",
+            Font::Id => "id",
+            Font::Name => "name",
+            Font::Variant => "variant",
+            Font::Language => "language",
+        };
+        Self::new(str)
     }
 }
 
@@ -113,6 +145,19 @@ impl Iden for Glyph {
     }
 }
 
+impl From<Glyph> for IdenImpl {
+    fn from(value: Glyph) -> Self {
+        let str = match value {
+            Glyph::Table => "glyph",
+            Glyph::Id => "id",
+            Glyph::Image => "image",
+            Glyph::Aspect => "aspect",
+            Glyph::Tokens => "tokens",
+        };
+        Self::new(str)
+    }
+}
+
 /// Representation of a database table named `Task`.
 ///
 /// A `Enum` implemented [`Iden`] used in rustdoc and test to demonstrate the library usage.
@@ -137,5 +182,15 @@ impl Iden for Task {
             }
         )
         .unwrap();
+    }
+}
+
+impl From<Task> for IdenImpl {
+    fn from(value: Task) -> Self {
+        Self::new(match value {
+            Task::Table => "task",
+            Task::Id => "id",
+            Task::IsDone => "is_done",
+        })
     }
 }

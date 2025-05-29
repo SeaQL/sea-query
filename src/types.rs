@@ -1,7 +1,12 @@
 //! Base types used throughout sea-query.
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
-use std::{fmt, mem, ops};
+use std::{
+    any::{Any, TypeId},
+    borrow::Cow,
+    fmt::{self, Debug, Display},
+    mem, ops,
+};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -70,13 +75,58 @@ iden_trait!(Send, Sync);
 #[cfg(not(feature = "thread-safe"))]
 iden_trait!();
 
-pub type DynIden = SeaRc<dyn Iden>;
+#[derive(Debug, Clone, PartialEq)]
+pub struct IdenImpl {
+    value: Option<Cow<'static, str>>,
+    type_id: TypeId,
+}
+
+impl Iden for IdenImpl {
+    fn unquoted(&self, s: &mut dyn fmt::Write) {
+        if let Some(val) = &self.value {
+            write!(s, "{}", val).unwrap()
+        }
+    }
+}
+
+impl IdenImpl {
+    pub fn new(input: impl Into<Cow<'static, str>> + Any) -> Self {
+        Self {
+            type_id: input.type_id(),
+            value: Some(input.into()),
+        }
+    }
+}
+
+impl From<&'static str> for IdenImpl {
+    fn from(value: &'static str) -> Self {
+        Self::new(value)
+    }
+}
+
+pub type DynIden = IdenImpl;
+type DynIdenOld = SeaRc<dyn Iden>;
 
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
 where
     I: ?Sized;
+
+impl<I: ?Sized> Clone for SeaRc<I> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<I> Display for SeaRc<I>
+where
+    I: Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl ops::Deref for SeaRc<dyn Iden> {
     type Target = dyn Iden;
@@ -86,9 +136,11 @@ impl ops::Deref for SeaRc<dyn Iden> {
     }
 }
 
-impl Clone for SeaRc<dyn Iden> {
-    fn clone(&self) -> SeaRc<dyn Iden> {
-        SeaRc(RcOrArc::clone(&self.0))
+impl ops::Deref for SeaRc<IdenImpl> {
+    type Target = IdenImpl;
+
+    fn deref(&self) -> &Self::Target {
+        ops::Deref::deref(&self.0)
     }
 }
 
@@ -103,17 +155,32 @@ impl PartialEq for SeaRc<dyn Iden> {
     }
 }
 
-impl SeaRc<dyn Iden> {
-    pub fn new<I>(i: I) -> SeaRc<dyn Iden>
-    where
-        I: Iden + 'static,
-    {
-        SeaRc(RcOrArc::new(i))
+// impl SeaRc<dyn Iden> {
+//     pub fn new<I>(i: I) -> SeaRc<dyn Iden>
+//     where
+//         I: Iden + 'static,
+//     {
+//         SeaRc(RcOrArc::new(i))
+//     }
+// }
+
+impl SeaRc<IdenImpl> {
+    pub fn new(i: impl Into<IdenImpl>) -> Self {
+        SeaRc(RcOrArc::new(i.into()))
     }
 }
 
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
+}
+
+impl<T> IntoIden for T
+where
+    T: Into<IdenImpl>,
+{
+    fn into_iden(self) -> DynIden {
+        self.into()
+    }
 }
 
 pub trait IdenList {
@@ -270,9 +337,27 @@ pub enum Order {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Alias(String);
 
+impl From<Alias> for IdenImpl {
+    fn from(value: Alias) -> Self {
+        Self {
+            value: Some(Cow::Owned(value.0)),
+            type_id: Alias.type_id(),
+        }
+    }
+}
+
 /// Null Alias
 #[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;
+
+impl From<NullAlias> for IdenImpl {
+    fn from(_: NullAlias) -> Self {
+        Self {
+            value: None,
+            type_id: NullAlias.type_id(),
+        }
+    }
+}
 
 /// Asterisk ("*")
 ///
@@ -402,20 +487,14 @@ impl From<(u8, u8)> for Quote {
     }
 }
 
-impl<T: 'static> IntoIden for T
-where
-    T: Iden,
-{
-    fn into_iden(self) -> DynIden {
-        SeaRc::new(self)
-    }
-}
-
-impl IntoIden for DynIden {
-    fn into_iden(self) -> DynIden {
-        self
-    }
-}
+// impl<T: 'static> IntoIden for T
+// where
+//     T: Iden,
+// {
+//     fn into_iden(self) -> DynIden {
+//         SeaRc::new(self)
+//     }
+// }
 
 impl<I> IdenList for I
 where
@@ -736,7 +815,7 @@ mod tests {
             ColumnRef::Column("id".into_iden()),
             ColumnRef::Column("id_".into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column("id".into_iden())
         );
@@ -744,7 +823,7 @@ mod tests {
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Table.into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Font::Id.into_iden())
         );

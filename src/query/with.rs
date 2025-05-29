@@ -1,7 +1,7 @@
 use crate::{
-    ColumnRef, DynIden, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
-    SelectStatement, SimpleExpr, SqlWriter, SubQueryStatement, TableRef, Values,
-    {Alias, QueryBuilder},
+    Alias, ColumnRef, DynIden, Iden, IntoIden, QueryBuilder, QueryStatementBuilder,
+    QueryStatementWriter, SelectExpr, SelectStatement, SimpleExpr, SqlWriter, SubQueryStatement,
+    TableRef, Values,
 };
 use inherent::inherent;
 
@@ -132,7 +132,7 @@ impl CommonTableExpression {
     }
 
     fn set_table_name_from_select(&mut self, iden: &DynIden) {
-        self.table_name = Some(Alias::new(format!("cte_{}", iden.to_string())).into_iden())
+        self.table_name = Some(Alias::new(format!("cte_{}", iden.to_string())).into())
     }
 
     /// Set up the columns of the CTE to match the given [SelectStatement] selected columns.
@@ -156,7 +156,7 @@ impl CommonTableExpression {
                             ColumnRef::Column(iden) => Some(iden.clone()),
                             ColumnRef::TableColumn(table, column) => Some(
                                 Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
-                                    .into_iden(),
+                                    .into(),
                             ),
                             ColumnRef::SchemaTableColumn(schema, table, column) => Some(
                                 Alias::new(format!(
@@ -165,7 +165,7 @@ impl CommonTableExpression {
                                     table.to_string(),
                                     column.to_string()
                                 ))
-                                .into_iden(),
+                                .into(),
                             ),
                             _ => None,
                         },

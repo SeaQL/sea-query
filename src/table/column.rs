@@ -154,7 +154,7 @@ impl ColumnType {
     where
         T: Into<String>,
     {
-        ColumnType::Custom(Alias::new(ty).into_iden())
+        ColumnType::Custom(Alias::new(ty).into())
     }
 
     pub fn string(length: Option<u32>) -> ColumnType {
@@ -807,7 +807,7 @@ impl ColumnDef {
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
-            name: std::mem::replace(&mut self.name, SeaRc::new(NullAlias::new())),
+            name: std::mem::replace(&mut self.name, NullAlias.into()),
             types: self.types.take(),
             spec: std::mem::take(&mut self.spec),
         }
