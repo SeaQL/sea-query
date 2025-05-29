@@ -1,4 +1,4 @@
-use crate::{expr::SimpleExpr, types::LogicalChainOper, ExprTrait};
+use crate::{ExprTrait, expr::SimpleExpr, types::LogicalChainOper};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConditionType {
