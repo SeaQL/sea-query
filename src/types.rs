@@ -140,6 +140,20 @@ pub enum ColumnRef {
     TableAsterisk(DynIden),
 }
 
+impl ColumnRef {
+    #[doc(hidden)]
+    /// Returns the column name if it's not an asterisk.
+    pub fn column(&self) -> Option<&DynIden> {
+        match self {
+            ColumnRef::Column(column) => Some(column),
+            ColumnRef::TableColumn(_, column) => Some(column),
+            ColumnRef::SchemaTableColumn(_, _, column) => Some(column),
+            ColumnRef::Asterisk => None,
+            ColumnRef::TableAsterisk(_) => None,
+        }
+    }
+}
+
 pub trait IntoColumnRef {
     fn into_column_ref(self) -> ColumnRef;
 }
@@ -167,6 +181,38 @@ pub enum TableRef {
     ValuesList(Vec<ValueTuple>, DynIden),
     /// Function call with alias
     FunctionCall(FunctionCall, DynIden),
+}
+
+impl TableRef {
+    #[doc(hidden)]
+    pub fn table(&self) -> &DynIden {
+        match self {
+            TableRef::Table(tbl)
+            | TableRef::SchemaTable(_, tbl)
+            | TableRef::DatabaseSchemaTable(_, _, tbl)
+            | TableRef::TableAlias(tbl, _)
+            | TableRef::SchemaTableAlias(_, tbl, _)
+            | TableRef::DatabaseSchemaTableAlias(_, _, tbl, _)
+            | TableRef::SubQuery(_, tbl)
+            | TableRef::ValuesList(_, tbl)
+            | TableRef::FunctionCall(_, tbl) => tbl,
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn table_alias(&self) -> Option<&DynIden> {
+        match self {
+            TableRef::Table(_)
+            | TableRef::SchemaTable(_, _)
+            | TableRef::DatabaseSchemaTable(_, _, _)
+            | TableRef::SubQuery(_, _)
+            | TableRef::ValuesList(_, _) => None,
+            TableRef::TableAlias(_, alias)
+            | TableRef::SchemaTableAlias(_, _, alias)
+            | TableRef::DatabaseSchemaTableAlias(_, _, _, alias)
+            | TableRef::FunctionCall(_, alias) => Some(alias),
+        }
+    }
 }
 
 pub trait IntoTableRef {

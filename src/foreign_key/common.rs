@@ -23,6 +23,20 @@ pub enum ForeignKeyAction {
     SetDefault,
 }
 
+impl ForeignKeyAction {
+    #[doc(hidden)]
+    /// Return the PascalCase name of the action
+    pub fn variant_name(&self) -> &'static str {
+        match self {
+            Self::Restrict => "Restrict",
+            Self::Cascade => "Cascade",
+            Self::SetNull => "SetNull",
+            Self::NoAction => "NoAction",
+            Self::SetDefault => "SetDefault",
+        }
+    }
+}
+
 impl TableForeignKey {
     /// Construct a new foreign key
     pub fn new() -> Self {
