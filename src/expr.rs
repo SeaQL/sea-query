@@ -4,7 +4,7 @@
 //!
 //! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
 
-use crate::{func::*, query::*, types::*, value::*};
+use crate::{func::*, if_else::*, query::*, types::*, value::*};
 
 pub type Expr = SimpleExpr;
 
@@ -28,6 +28,7 @@ pub enum SimpleExpr {
     AsEnum(DynIden, Box<SimpleExpr>),
     Case(Box<CaseStatement>),
     Constant(Value),
+    IfElse(Box<IfElseStatement>),
 }
 
 /// "Operator" methods for building expressions.
