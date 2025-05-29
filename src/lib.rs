@@ -502,9 +502,9 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! struct MyFunction;
 //!
-//! impl Iden for MyFunction {
-//!     fn unquoted(&self, s: &mut dyn Write) {
-//!         write!(s, "MY_FUNCTION").unwrap();
+//! impl From<MyFunction> for IdenImpl {
+//!     fn from(func: MyFunction) -> Self {
+//!         IdenImpl::new("MY_FUNCTION")
 //!     }
 //! }
 //!

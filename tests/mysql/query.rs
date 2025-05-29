@@ -1540,6 +1540,12 @@ fn sub_query_with_fn() {
     #[iden = "ARRAY"]
     pub struct ArrayFunc;
 
+    impl From<ArrayFunc> for IdenImpl {
+        fn from(_: ArrayFunc) -> Self {
+            Self::new("ARRAY")
+        }
+    }
+
     let sub_select = Query::select()
         .column(Asterisk)
         .from(Char::Table)

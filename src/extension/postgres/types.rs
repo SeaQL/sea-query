@@ -157,6 +157,7 @@ impl TypeCreateStatement {
         Self::default()
     }
 
+    // TODO: Use derive macro
     /// Create enum as custom type
     ///
     /// ```
@@ -169,19 +170,15 @@ impl TypeCreateStatement {
     ///     Monospace,
     /// }
     ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
+    ///
+    /// impl From<FontFamily> for IdenImpl {
+    ///     fn from(font_family: FontFamily) -> Self {
+    ///         match font_family {
+    ///             FontFamily::Type => IdenImpl::new("font_family"),
+    ///             FontFamily::Serif => IdenImpl::new("serif"),
+    ///             FontFamily::Sans => IdenImpl::new("sans"),
+    ///             FontFamily::Monospace => IdenImpl::new("monospace"),
+    ///         }
     ///     }
     /// }
     ///
@@ -219,6 +216,7 @@ impl TypeDropStatement {
         Self::default()
     }
 
+    // TODO: Use derive macro
     /// Drop a type
     ///
     /// ```
@@ -226,9 +224,9 @@ impl TypeDropStatement {
     ///
     /// struct FontFamily;
     ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(s, "{}", "font_family").unwrap();
+    /// impl From<FontFamily> for IdenImpl {
+    ///     fn from(font_family: FontFamily) -> Self {
+    ///         IdenImpl::new("font_family")
     ///     }
     /// }
     ///
@@ -270,12 +268,32 @@ impl TypeDropStatement {
     ///     Forte,
     /// }
     ///
+    /// impl From<KycStatus> for IdenImpl {
+    ///     fn from(kyc_status: KycStatus) -> Self {
+    ///         match kyc_status {
+    ///             KycStatus::Type => IdenImpl::new("kyc_status"),
+    ///             KycStatus::Pending => IdenImpl::new("pending"),
+    ///             KycStatus::Approved => IdenImpl::new("approved"),
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// impl From<FontFamily> for IdenImpl {
+    ///     fn from(font_family: FontFamily) -> Self {
+    ///         match font_family {
+    ///             FontFamily::Type => IdenImpl::new("font_family"),
+    ///             FontFamily::Aerial => IdenImpl::new("aerial"),
+    ///             FontFamily::Forte => IdenImpl::new("forte"),
+    ///         }
+    ///     }
+    /// }
+    ///
     /// assert_eq!(
     ///     Type::drop()
     ///         .if_exists()
     ///         .names([
-    ///             SeaRc::new(KycStatus::Type) as DynIden,
-    ///             SeaRc::new(FontFamily::Type) as DynIden,
+    ///             IdenImpl::from(KycStatus::Type),
+    ///             IdenImpl::from(FontFamily::Type),
     ///         ])
     ///         .cascade()
     ///         .to_string(PostgresQueryBuilder),
@@ -317,6 +335,7 @@ impl TypeAlterStatement {
         Self::default()
     }
 
+    // TODO: use derive macro
     /// Change the definition of a type
     ///
     /// ```
@@ -329,19 +348,14 @@ impl TypeAlterStatement {
     ///     Monospace,
     /// }
     ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
+    /// impl From<FontFamily> for IdenImpl {
+    ///     fn from(font_family: FontFamily) -> Self {
+    ///         match font_family {
+    ///             FontFamily::Type => IdenImpl::new("font_family"),
+    ///             FontFamily::Serif => IdenImpl::new("serif"),
+    ///             FontFamily::Sans => IdenImpl::new("sans"),
+    ///             FontFamily::Monospace => IdenImpl::new("monospace"),
+    ///         }
     ///     }
     /// }
     ///
