@@ -14,12 +14,27 @@ pub struct TableForeignKey {
 
 /// Foreign key on update & on delete actions
 #[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
 pub enum ForeignKeyAction {
     Restrict,
     Cascade,
     SetNull,
     NoAction,
     SetDefault,
+}
+
+impl ForeignKeyAction {
+    #[doc(hidden)]
+    /// Return the PascalCase name of the action
+    pub fn variant_name(&self) -> &'static str {
+        match self {
+            Self::Restrict => "Restrict",
+            Self::Cascade => "Cascade",
+            Self::SetNull => "SetNull",
+            Self::NoAction => "NoAction",
+            Self::SetDefault => "SetDefault",
+        }
+    }
 }
 
 impl TableForeignKey {

@@ -36,6 +36,7 @@ pub struct TableDropStatement {
 
 /// All available table drop options
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TableDropOpt {
     Restrict,
     Cascade,

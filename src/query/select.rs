@@ -63,6 +63,7 @@ pub struct SelectStatement {
 
 /// List of distinct keywords that can be used in select statement
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SelectDistinct {
     All,
     Distinct,
@@ -72,6 +73,7 @@ pub enum SelectDistinct {
 
 /// Window type in [`SelectExpr`]
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum WindowSelectType {
     /// Name in [`SelectStatement`]
     Name(DynIden),
@@ -98,6 +100,7 @@ pub struct JoinExpr {
 
 /// List of lock types that can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LockType {
     /// Exclusive lock
     Update,
@@ -109,6 +112,7 @@ pub enum LockType {
 
 /// List of lock behavior can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LockBehavior {
     Nowait,
     SkipLocked,
@@ -123,6 +127,7 @@ pub struct LockClause {
 
 /// List of union types that can be used in union clause
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum UnionType {
     Intersect,
     Distinct,
