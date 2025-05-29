@@ -77,15 +77,13 @@ iden_trait!();
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IdenImpl {
-    value: Option<Cow<'static, str>>,
+    value: Cow<'static, str>,
     // type_id: TypeId,
 }
 
 impl Iden for IdenImpl {
     fn unquoted(&self, s: &mut dyn fmt::Write) {
-        if let Some(val) = &self.value {
-            write!(s, "{}", val).unwrap()
-        }
+        write!(s, "{}", self.value).unwrap()
     }
 }
 
@@ -93,7 +91,7 @@ impl IdenImpl {
     pub fn new(input: impl Into<Cow<'static, str>> + Any) -> Self {
         Self {
             // type_id: input.type_id(),
-            value: Some(input.into()),
+            value: input.into(),
         }
     }
 }
@@ -340,7 +338,7 @@ pub struct Alias(String);
 impl From<Alias> for IdenImpl {
     fn from(value: Alias) -> Self {
         Self {
-            value: Some(Cow::Owned(value.0)),
+            value: Cow::Owned(value.0),
             // type_id: Alias.type_id(),
         }
     }
@@ -353,7 +351,7 @@ pub struct NullAlias;
 impl From<NullAlias> for IdenImpl {
     fn from(_: NullAlias) -> Self {
         Self {
-            value: None,
+            value: "".into(),
             // type_id: NullAlias.type_id(),
         }
     }
