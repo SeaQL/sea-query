@@ -1,6 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rusqlite::{Connection, Result, Row};
-use sea_query::{ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{ColumnDef, Expr, ExprTrait, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
 
 use sea_query_rusqlite::RusqliteBinder;
 use serde_json::{Value as Json, json};
