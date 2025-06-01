@@ -173,6 +173,101 @@ where
     }
 }
 
+pub(crate) struct IdenImplVariant<'a, T>(pub(crate) IdenVariant<'a, T>);
+
+impl<'a, T> IdenImplVariant<'a, T>
+where
+    T: WriteArm,
+{
+    fn to_tokens_from_named(&self, named: &FieldsNamed, tokens: &mut TokenStream) {
+        let ident = self.0.ident;
+
+        let match_arm = if self.0.attr == Some(IdenAttr::Flatten) {
+            // indexing is safe because len is guaranteed to be 1 from the constructor.
+            let field = &named.named[0];
+            // Unwrapping the ident is also safe because a named field always has an ident.
+            let capture = field.ident.as_ref().unwrap();
+            let variant = quote! { #ident{#capture} };
+            T::flattened(variant, capture)
+        } else {
+            let variant = quote! { #ident{..} };
+            self.write_variant_name(variant)
+        };
+
+        tokens.append_all(match_arm)
+    }
+
+    fn to_tokens_from_unnamed(&self, tokens: &mut TokenStream) {
+        let ident = self.0.ident;
+
+        let match_arm = if self.0.attr == Some(IdenAttr::Flatten) {
+            // The case where unnamed fields length is not 1 is handled by new
+            let capture = Delegated.into();
+            let variant = quote! { #ident(#capture) };
+            T::flattened(variant, &capture)
+        } else {
+            let variant = quote! { #ident(..) };
+            self.write_variant_name(variant)
+        };
+
+        tokens.append_all(match_arm)
+    }
+
+    fn to_tokens_from_unit(&self, tokens: &mut TokenStream) {
+        let ident = self.0.ident;
+        let variant = quote! { #ident };
+
+        tokens.append_all(self.write_variant_name(variant))
+    }
+
+    fn write_variant_name(&self, variant: TokenStream) -> TokenStream {
+        let name = self
+            .0
+            .attr
+            .as_ref()
+            .map(|a| match a {
+                IdenAttr::Rename(name) => quote! { #name },
+                // TODO: make ident `value` be a parameter
+                IdenAttr::Method(method) => quote! { value.#method() },
+                IdenAttr::Flatten => unreachable!(),
+            })
+            .unwrap_or_else(|| {
+                let name = self.0.table_or_snake_case();
+                quote! { #name }
+            });
+
+        T::variant(variant, name)
+    }
+
+    pub(crate) fn must_be_valid_iden(&self) -> bool {
+        self.0.must_be_valid_iden()
+    }
+}
+
+impl<'a, T> TryFrom<(&'a str, &'a Variant)> for IdenImplVariant<'a, T>
+where
+    T: WriteArm,
+{
+    type Error = Error;
+
+    fn try_from((table_name, value): (&'a str, &'a Variant)) -> Result<Self, Self::Error> {
+        IdenVariant::try_from((table_name, value)).map(Self)
+    }
+}
+
+impl<'a, T> ToTokens for IdenImplVariant<'a, T>
+where
+    T: WriteArm,
+{
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match &self.0.fields {
+            Fields::Named(named) => self.to_tokens_from_named(named, tokens),
+            Fields::Unnamed(_) => self.to_tokens_from_unnamed(tokens),
+            Fields::Unit => self.to_tokens_from_unit(tokens),
+        }
+    }
+}
+
 struct Delegated;
 
 impl From<Delegated> for Ident {

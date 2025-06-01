@@ -108,13 +108,9 @@ impl Func {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
+    /// #[derive(Iden)]
+    /// #[iden = "MY_FUNCTION"]
     /// struct MyFunction;
-    ///
-    /// impl From<MyFunction> for IdenImpl {
-    ///     fn from(func: MyFunction) -> Self {
-    ///         IdenImpl::new("MY_FUNCTION")
-    ///     }
-    /// }
     ///
     /// let query = Query::select()
     ///     .expr(Func::cust(MyFunction).arg("hello"))

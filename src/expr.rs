@@ -2946,13 +2946,10 @@ impl SimpleExpr {
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     ///
-    /// struct TextArray;
     ///
-    /// impl From<TextArray> for IdenImpl {
-    ///     fn from(text_array: TextArray) -> Self {
-    ///         IdenImpl::new("text[]")
-    ///     }
-    /// }
+    /// #[derive(Iden)]
+    /// #[iden = "text[]"]
+    /// struct TextArray;
     ///
     /// let query = Query::select()
     ///     .expr(Expr::col(Char::FontSize).as_enum(TextArray))

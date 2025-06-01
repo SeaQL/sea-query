@@ -22,9 +22,9 @@ enum Custom {
 }
 
 impl Custom {
-    pub fn custom_to_string(&self) -> &str {
+    pub fn custom_to_string(&self) -> String {
         match self {
-            Self::Custom(custom) => custom,
+            Self::Custom(custom) => custom.to_owned(),
             _ => panic!("not Custom::Custom"),
         }
     }
@@ -37,7 +37,7 @@ fn main() {
         .map(|var| var.to_string())
         .zip(expected)
         .for_each(|(iden, exp)| assert_eq!(iden, exp));
-    
+
     let mut string = String::new();
     Custom::Email("".to_owned()).prepare(&mut string, '"'.into());
     assert_eq!(string, "\"EM`ail\"");

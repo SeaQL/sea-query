@@ -7,6 +7,8 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
+use crate::sea_query_path;
+
 use self::write_arm::WriteArm;
 
 pub(crate) struct DeriveIden;
@@ -37,10 +39,12 @@ pub(crate) struct DeriveIdenImpl;
 
 impl WriteArm for DeriveIdenImpl {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
-        quote! { #variant => #name }
+        let sea_query_path = sea_query_path();
+        quote! { #variant => #sea_query_path::IdenImpl::from(#name) }
     }
 
     fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
-        quote! { #variant => IdenImpl::from(#name) }
+        let sea_query_path = sea_query_path();
+        quote! { #variant => #sea_query_path::IdenImpl::from(#name) }
     }
 }

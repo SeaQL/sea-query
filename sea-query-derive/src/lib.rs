@@ -2,7 +2,7 @@ use std::convert::{TryFrom, TryInto};
 
 use darling::FromMeta;
 use heck::{ToPascalCase, ToSnakeCase};
-use iden::DeriveIdenImpl;
+use iden::{DeriveIdenImpl, write_arm::IdenImplVariant};
 use proc_macro::{self, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
@@ -186,7 +186,13 @@ fn impl_iden_for_unit_struct(
         }
 
         impl From<#ident> for #sea_query_path::IdenImpl {
-            fn from(v: #ident) -> Self {
+            fn from(value: #ident) -> Self {
+                #sea_query_path::IdenImpl::from(#table_name)
+            }
+        }
+
+        impl From<&#ident> for #sea_query_path::IdenImpl {
+            fn from(value: &#ident) -> Self {
                 #sea_query_path::IdenImpl::from(#table_name)
             }
         }
@@ -209,7 +215,7 @@ where
         .map(|v| (table_name, v))
         .map(|v| {
             let iden_trait_variant = IdenVariant::<DeriveIden>::try_from(v)?;
-            let iden_impl_variant = IdenVariant::<DeriveIdenImpl>::try_from(v)?;
+            let iden_impl_variant = IdenImplVariant::<DeriveIdenImpl>::try_from(v)?;
             is_all_valid &=
                 iden_trait_variant.must_be_valid_iden() && iden_impl_variant.must_be_valid_iden();
             Ok((iden_trait_variant, iden_impl_variant))
@@ -244,10 +250,18 @@ where
         }
 
         impl From<#ident> for #sea_query_path::IdenImpl {
-            fn from(v: #ident) -> Self {
-                #sea_query_path::IdenImpl::from(match v {
+            fn from(value: #ident) -> Self {
+                match value {
                     #iden_impl_match_arms
-                })
+                }
+            }
+        }
+
+        impl From<&#ident> for #sea_query_path::IdenImpl {
+            fn from(value: &#ident) -> Self {
+                match value {
+                    #iden_impl_match_arms
+                }
             }
         }
     }

@@ -157,29 +157,20 @@ impl TypeCreateStatement {
         Self::default()
     }
 
-    // TODO: Use derive macro
     /// Create enum as custom type
     ///
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// enum FontFamily {
+    ///     #[iden = "font_family"]
     ///     Type,
     ///     Serif,
     ///     Sans,
     ///     Monospace,
     /// }
     ///
-    /// impl From<FontFamily> for IdenImpl {
-    ///     fn from(font_family: FontFamily) -> Self {
-    ///         match font_family {
-    ///             FontFamily::Type => IdenImpl::new("font_family"),
-    ///             FontFamily::Serif => IdenImpl::new("serif"),
-    ///             FontFamily::Sans => IdenImpl::new("sans"),
-    ///             FontFamily::Monospace => IdenImpl::new("monospace"),
-    ///         }
-    ///     }
-    /// }
     ///
     /// assert_eq!(
     ///     Type::create()
@@ -215,19 +206,14 @@ impl TypeDropStatement {
         Self::default()
     }
 
-    // TODO: Use derive macro
     /// Drop a type
     ///
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// struct FontFamily;
     ///
-    /// impl From<FontFamily> for IdenImpl {
-    ///     fn from(font_family: FontFamily) -> Self {
-    ///         IdenImpl::new("font_family")
-    ///     }
-    /// }
     ///
     /// assert_eq!(
     ///     Type::drop()
@@ -267,25 +253,6 @@ impl TypeDropStatement {
     ///     Forte,
     /// }
     ///
-    /// impl From<KycStatus> for IdenImpl {
-    ///     fn from(kyc_status: KycStatus) -> Self {
-    ///         match kyc_status {
-    ///             KycStatus::Type => IdenImpl::new("kyc_status"),
-    ///             KycStatus::Pending => IdenImpl::new("pending"),
-    ///             KycStatus::Approved => IdenImpl::new("approved"),
-    ///         }
-    ///     }
-    /// }
-    ///
-    /// impl From<FontFamily> for IdenImpl {
-    ///     fn from(font_family: FontFamily) -> Self {
-    ///         match font_family {
-    ///             FontFamily::Type => IdenImpl::new("font_family"),
-    ///             FontFamily::Aerial => IdenImpl::new("aerial"),
-    ///             FontFamily::Forte => IdenImpl::new("forte"),
-    ///         }
-    ///     }
-    /// }
     ///
     /// assert_eq!(
     ///     Type::drop()
@@ -334,29 +301,20 @@ impl TypeAlterStatement {
         Self::default()
     }
 
-    // TODO: use derive macro
     /// Change the definition of a type
     ///
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// enum FontFamily {
+    ///     #[iden = "font_family"]
     ///     Type,
     ///     Serif,
     ///     Sans,
     ///     Monospace,
     /// }
     ///
-    /// impl From<FontFamily> for IdenImpl {
-    ///     fn from(font_family: FontFamily) -> Self {
-    ///         match font_family {
-    ///             FontFamily::Type => IdenImpl::new("font_family"),
-    ///             FontFamily::Serif => IdenImpl::new("serif"),
-    ///             FontFamily::Sans => IdenImpl::new("sans"),
-    ///             FontFamily::Monospace => IdenImpl::new("monospace"),
-    ///         }
-    ///     }
-    /// }
     ///
     /// assert_eq!(
     ///     Type::alter()
