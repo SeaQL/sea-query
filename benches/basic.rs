@@ -8,16 +8,6 @@ pub enum Char {
     Character,
 }
 
-impl From<Char> for IdenImpl {
-    fn from(value: Char) -> Self {
-        Self::from(match value {
-            Char::Table => "char",
-            Char::Id => "id",
-            Char::Character => "character",
-        })
-    }
-}
-
 fn vanilla() -> String {
     format!(
         "SELECT `{}` from `{}` where `character` = {}",
