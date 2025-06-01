@@ -32,3 +32,15 @@ impl WriteArm for DeriveIdenStatic {
         quote! { Self::#variant => #name.as_str() }
     }
 }
+
+pub(crate) struct DeriveIdenImpl;
+
+impl WriteArm for DeriveIdenImpl {
+    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
+        quote! { #variant => #name }
+    }
+
+    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
+        quote! { #variant => IdenImpl::from(#name) }
+    }
+}
