@@ -170,7 +170,6 @@ impl TypeCreateStatement {
     ///     Monospace,
     /// }
     ///
-    ///
     /// impl From<FontFamily> for IdenImpl {
     ///     fn from(font_family: FontFamily) -> Self {
     ///         match font_family {
