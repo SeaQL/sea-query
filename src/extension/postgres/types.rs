@@ -171,7 +171,6 @@ impl TypeCreateStatement {
     ///     Monospace,
     /// }
     ///
-    ///
     /// assert_eq!(
     ///     Type::create()
     ///         .as_enum(FontFamily::Type)
@@ -214,7 +213,6 @@ impl TypeDropStatement {
     /// #[derive(Iden)]
     /// struct FontFamily;
     ///
-    ///
     /// assert_eq!(
     ///     Type::drop()
     ///         .if_exists()
@@ -252,7 +250,6 @@ impl TypeDropStatement {
     ///     Aerial,
     ///     Forte,
     /// }
-    ///
     ///
     /// assert_eq!(
     ///     Type::drop()
@@ -314,7 +311,6 @@ impl TypeAlterStatement {
     ///     Sans,
     ///     Monospace,
     /// }
-    ///
     ///
     /// assert_eq!(
     ///     Type::alter()

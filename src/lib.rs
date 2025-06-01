@@ -505,7 +505,6 @@
 //! #[iden = "MY_FUNCTION"]
 //! struct MyFunction;
 //!
-//!
 //! let query = Query::select()
 //!     .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
 //!     .to_owned();

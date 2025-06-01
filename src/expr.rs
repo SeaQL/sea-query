@@ -2946,7 +2946,6 @@ impl SimpleExpr {
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     ///
-    ///
     /// #[derive(Iden)]
     /// #[iden = "text[]"]
     /// struct TextArray;
