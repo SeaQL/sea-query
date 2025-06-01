@@ -45,7 +45,7 @@ impl Iden for BinaryType {
 
 impl From<BinaryType> for IdenImpl {
     fn from(value: BinaryType) -> Self {
-        Self::new(match value {
+        Self::from(match value {
             BinaryType::Table => "binary_type",
             BinaryType::BinaryLen => "binlen",
             BinaryType::Binary => "bin",

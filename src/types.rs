@@ -2,10 +2,9 @@
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
 use std::{
-    any::Any,
     borrow::Cow,
     fmt::{self, Debug, Display},
-    mem, ops,
+    ops,
 };
 
 #[cfg(feature = "backend-postgres")]
@@ -32,6 +31,7 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
+        #[deprecated(since = "1.0.0-rc.1", note = "Iden will be replaced by IdenImpl in the future")]
         pub trait Iden where $(Self: $bounds),* {
             fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
                 write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
@@ -81,15 +81,33 @@ pub struct IdenImpl {
 }
 
 impl IdenImpl {
-    pub fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
-        write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
+    fn from_into_cow<T>(value: T) -> Self
+    where
+        T: Into<Cow<'static, str>>,
+    {
+        Self {
+            value: value.into(),
+        }
     }
+}
 
-    fn quoted(&self, q: Quote) -> String {
-        let byte = [q.1];
-        let qq: &str = std::str::from_utf8(&byte).unwrap();
-        self.to_string().replace(qq, qq.repeat(2).as_str())
+impl From<&'static str> for IdenImpl {
+    fn from(value: &'static str) -> Self {
+        Self::from_into_cow(value)
     }
+}
+
+impl From<String> for IdenImpl {
+    fn from(value: String) -> Self {
+        Self::from_into_cow(value)
+    }
+}
+
+#[inherent::inherent]
+impl Iden for IdenImpl {
+    pub fn prepare(&self, s: &mut dyn fmt::Write, q: Quote);
+
+    pub fn quoted(&self, q: Quote) -> String;
 
     /// A shortcut for writing an [`unquoted`][Iden::unquoted]
     /// identifier into a [`String`].
@@ -99,11 +117,7 @@ impl IdenImpl {
     /// representation is distinct from [`Display`][std::fmt::Display]
     /// and can be different.
     #[allow(clippy::inherent_to_string)]
-    pub fn to_string(&self) -> String {
-        let mut s = String::new();
-        self.unquoted(&mut s);
-        s
-    }
+    pub fn to_string(&self) -> String;
 
     /// Write a raw identifier string without quotes.
     ///
@@ -114,34 +128,13 @@ impl IdenImpl {
     }
 }
 
-impl IdenImpl {
-    pub fn new(input: impl Into<Cow<'static, str>> + Any) -> Self {
-        Self {
-            // type_id: input.type_id(),
-            value: input.into(),
-        }
-    }
-}
-
-impl From<&'static str> for IdenImpl {
-    fn from(value: &'static str) -> Self {
-        Self::new(value)
-    }
-}
-
 pub type DynIden = IdenImpl;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(transparent)]
 pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
 where
     I: ?Sized;
-
-impl<I: ?Sized> Clone for SeaRc<I> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
 
 impl<I> Display for SeaRc<I>
 where
@@ -160,37 +153,17 @@ impl ops::Deref for SeaRc<dyn Iden> {
     }
 }
 
+impl PartialEq for SeaRc<dyn Iden> {
+    fn eq(&self, other: &Self) -> bool {
+        self.to_string() == other.to_string()
+    }
+}
+
 impl ops::Deref for SeaRc<IdenImpl> {
     type Target = IdenImpl;
 
     fn deref(&self) -> &Self::Target {
         ops::Deref::deref(&self.0)
-    }
-}
-
-impl PartialEq for SeaRc<dyn Iden> {
-    fn eq(&self, other: &Self) -> bool {
-        let (self_vtable, other_vtable) = unsafe {
-            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
-            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
-            (self_vtable, other_vtable)
-        };
-        self_vtable == other_vtable && self.to_string() == other.to_string()
-    }
-}
-
-// impl SeaRc<dyn Iden> {
-//     pub fn new<I>(i: I) -> SeaRc<dyn Iden>
-//     where
-//         I: Iden + 'static,
-//     {
-//         SeaRc(RcOrArc::new(i))
-//     }
-// }
-
-impl SeaRc<IdenImpl> {
-    pub fn new(i: impl Into<IdenImpl>) -> Self {
-        SeaRc(RcOrArc::new(i.into()))
     }
 }
 
@@ -365,7 +338,6 @@ impl From<Alias> for IdenImpl {
     fn from(value: Alias) -> Self {
         Self {
             value: Cow::Owned(value.0),
-            // type_id: Alias.type_id(),
         }
     }
 }
@@ -376,10 +348,7 @@ pub struct NullAlias;
 
 impl From<NullAlias> for IdenImpl {
     fn from(_: NullAlias) -> Self {
-        Self {
-            value: "".into(),
-            // type_id: NullAlias.type_id(),
-        }
+        Self::from("")
     }
 }
 
@@ -510,15 +479,6 @@ impl From<(u8, u8)> for Quote {
         Quote(l, r)
     }
 }
-
-// impl<T: 'static> IntoIden for T
-// where
-//     T: Iden,
-// {
-//     fn into_iden(self) -> DynIden {
-//         SeaRc::new(self)
-//     }
-// }
 
 impl<I> IdenList for I
 where

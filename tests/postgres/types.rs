@@ -63,7 +63,7 @@ fn create_3() {
                 Tea::BreakfastTea => "BreakfastTea",
             };
 
-            Self::new(str)
+            Self::from(str)
         }
     }
 }

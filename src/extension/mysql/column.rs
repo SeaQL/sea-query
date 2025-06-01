@@ -20,7 +20,7 @@ impl Iden for MySqlType {
 
 impl From<MySqlType> for IdenImpl {
     fn from(value: MySqlType) -> Self {
-        Self::new(match value {
+        Self::from(match value {
             MySqlType::TinyBlob => "tinyblob",
             MySqlType::MediumBlob => "mediumblob",
             MySqlType::LongBlob => "longblob",

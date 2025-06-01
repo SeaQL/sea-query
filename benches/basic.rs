@@ -10,7 +10,7 @@ pub enum Char {
 
 impl From<Char> for IdenImpl {
     fn from(value: Char) -> Self {
-        Self::new(match value {
+        Self::from(match value {
             Char::Table => "char",
             Char::Id => "id",
             Char::Character => "character",

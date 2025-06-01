@@ -66,7 +66,7 @@ impl From<Character> for IdenImpl {
             Character::UserData => "user_data",
         };
 
-        Self::new(str)
+        Self::from(str)
     }
 }
 
@@ -110,7 +110,7 @@ impl From<Font> for IdenImpl {
             Font::Variant => "variant",
             Font::Language => "language",
         };
-        Self::new(str)
+        Self::from(str)
     }
 }
 
@@ -154,7 +154,7 @@ impl From<Glyph> for IdenImpl {
             Glyph::Aspect => "aspect",
             Glyph::Tokens => "tokens",
         };
-        Self::new(str)
+        Self::from(str)
     }
 }
 
@@ -187,7 +187,7 @@ impl Iden for Task {
 
 impl From<Task> for IdenImpl {
     fn from(value: Task) -> Self {
-        Self::new(match value {
+        Self::from(match value {
             Task::Table => "task",
             Task::Id => "id",
             Task::IsDone => "is_done",

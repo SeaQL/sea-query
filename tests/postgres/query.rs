@@ -1985,7 +1985,7 @@ fn sub_query_with_fn() {
 
     impl From<ArrayFunc> for IdenImpl {
         fn from(_: ArrayFunc) -> Self {
-            Self::new("ARRAY")
+            Self::from("ARRAY")
         }
     }
 
