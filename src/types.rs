@@ -31,6 +31,7 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
+        #[deprecated(since = "1.0.0-rc.1", note = "`Iden` will be replaced by `IdenImpl` in the future.")]
         pub trait Iden where $(Self: $bounds),* {
             fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
                 write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
@@ -127,6 +128,10 @@ impl Iden for IdenImpl {
     }
 }
 
+#[deprecated(
+    since = "1.0.0-rc.1",
+    note = "This type alias is kept for compatibility purposes. It may be removed in the future."
+)]
 pub type DynIden = IdenImpl;
 
 #[derive(Debug, Clone)]
