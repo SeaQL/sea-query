@@ -1,4 +1,4 @@
-use crate::Iden;
+use crate::{Iden, IdenImpl};
 
 #[derive(Debug, Copy, Clone)]
 pub enum MySqlType {
@@ -15,5 +15,15 @@ impl Iden for MySqlType {
             Self::LongBlob => "longblob",
         };
         write!(s, "{ty}").unwrap();
+    }
+}
+
+impl From<MySqlType> for IdenImpl {
+    fn from(value: MySqlType) -> Self {
+        Self::from(match value {
+            MySqlType::TinyBlob => "tinyblob",
+            MySqlType::MediumBlob => "mediumblob",
+            MySqlType::LongBlob => "longblob",
+        })
     }
 }

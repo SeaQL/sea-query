@@ -2946,13 +2946,9 @@ impl SimpleExpr {
     ///     r#"SELECT "font_size" FROM "character""#
     /// );
     ///
+    /// #[derive(Iden)]
+    /// #[iden = "text[]"]
     /// struct TextArray;
-    ///
-    /// impl Iden for TextArray {
-    ///     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-    ///         write!(s, "text[]").unwrap();
-    ///     }
-    /// }
     ///
     /// let query = Query::select()
     ///     .expr(Expr::col(Char::FontSize).as_enum(TextArray))

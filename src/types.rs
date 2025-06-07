@@ -1,7 +1,11 @@
 //! Base types used throughout sea-query.
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
-use std::{fmt, mem, ops};
+use std::{
+    borrow::Cow,
+    fmt::{self, Debug, Display},
+    ops,
+};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -27,6 +31,7 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
+        // #[deprecated(since = "1.0.0-rc.1", note = "`Iden` will be replaced by `IdenImpl` in the future.")]
         pub trait Iden where $(Self: $bounds),* {
             fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
                 write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
@@ -70,13 +75,79 @@ iden_trait!(Send, Sync);
 #[cfg(not(feature = "thread-safe"))]
 iden_trait!();
 
-pub type DynIden = SeaRc<dyn Iden>;
+#[derive(Debug, Clone, PartialEq)]
+pub struct IdenImpl {
+    value: Cow<'static, str>,
+}
 
-#[derive(Debug)]
+impl IdenImpl {
+    fn from_into_cow<T>(value: T) -> Self
+    where
+        T: Into<Cow<'static, str>>,
+    {
+        Self {
+            value: value.into(),
+        }
+    }
+}
+
+impl From<&'static str> for IdenImpl {
+    fn from(value: &'static str) -> Self {
+        Self::from_into_cow(value)
+    }
+}
+
+impl From<String> for IdenImpl {
+    fn from(value: String) -> Self {
+        Self::from_into_cow(value)
+    }
+}
+
+#[inherent::inherent]
+impl Iden for IdenImpl {
+    pub fn prepare(&self, s: &mut dyn fmt::Write, q: Quote);
+
+    pub fn quoted(&self, q: Quote) -> String;
+
+    /// A shortcut for writing an [`unquoted`][Iden::unquoted]
+    /// identifier into a [`String`].
+    ///
+    /// We can't reuse [`ToString`] for this, because [`ToString`] uses
+    /// the [`Display`][std::fmt::Display] representation. Bnd [`Iden`]
+    /// representation is distinct from [`Display`][std::fmt::Display]
+    /// and can be different.
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String;
+
+    /// Write a raw identifier string without quotes.
+    ///
+    /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+    /// this, because we want to allow it to have a different logic.
+    pub fn unquoted(&self, s: &mut dyn fmt::Write) {
+        write!(s, "{}", self.value).unwrap()
+    }
+}
+
+// #[deprecated(
+//     since = "1.0.0-rc.1",
+//     note = "This type alias is kept for compatibility purposes. It may be removed in the future."
+// )]
+pub type DynIden = IdenImpl;
+
+#[derive(Debug, Clone)]
 #[repr(transparent)]
 pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
 where
     I: ?Sized;
+
+impl<I> Display for SeaRc<I>
+where
+    I: Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl ops::Deref for SeaRc<dyn Iden> {
     type Target = dyn Iden;
@@ -86,34 +157,31 @@ impl ops::Deref for SeaRc<dyn Iden> {
     }
 }
 
-impl Clone for SeaRc<dyn Iden> {
-    fn clone(&self) -> SeaRc<dyn Iden> {
-        SeaRc(RcOrArc::clone(&self.0))
-    }
-}
-
 impl PartialEq for SeaRc<dyn Iden> {
     fn eq(&self, other: &Self) -> bool {
-        let (self_vtable, other_vtable) = unsafe {
-            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
-            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
-            (self_vtable, other_vtable)
-        };
-        self_vtable == other_vtable && self.to_string() == other.to_string()
+        self.to_string() == other.to_string()
     }
 }
 
-impl SeaRc<dyn Iden> {
-    pub fn new<I>(i: I) -> SeaRc<dyn Iden>
-    where
-        I: Iden + 'static,
-    {
-        SeaRc(RcOrArc::new(i))
+impl ops::Deref for SeaRc<IdenImpl> {
+    type Target = IdenImpl;
+
+    fn deref(&self) -> &Self::Target {
+        ops::Deref::deref(&self.0)
     }
 }
 
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
+}
+
+impl<T> IntoIden for T
+where
+    T: Into<IdenImpl>,
+{
+    fn into_iden(self) -> DynIden {
+        self.into()
+    }
 }
 
 pub trait IdenList {
@@ -270,9 +338,23 @@ pub enum Order {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Alias(String);
 
+impl From<Alias> for IdenImpl {
+    fn from(value: Alias) -> Self {
+        Self {
+            value: Cow::Owned(value.0),
+        }
+    }
+}
+
 /// Null Alias
 #[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;
+
+impl From<NullAlias> for IdenImpl {
+    fn from(_: NullAlias) -> Self {
+        Self::from("")
+    }
+}
 
 /// Asterisk ("*")
 ///
@@ -399,21 +481,6 @@ impl From<u8> for Quote {
 impl From<(u8, u8)> for Quote {
     fn from((l, r): (u8, u8)) -> Self {
         Quote(l, r)
-    }
-}
-
-impl<T: 'static> IntoIden for T
-where
-    T: Iden,
-{
-    fn into_iden(self) -> DynIden {
-        SeaRc::new(self)
-    }
-}
-
-impl IntoIden for DynIden {
-    fn into_iden(self) -> DynIden {
-        self
     }
 }
 
@@ -736,7 +803,7 @@ mod tests {
             ColumnRef::Column("id".into_iden()),
             ColumnRef::Column("id_".into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column("id".into_iden())
         );
@@ -744,7 +811,7 @@ mod tests {
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Table.into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Font::Id.into_iden())
         );

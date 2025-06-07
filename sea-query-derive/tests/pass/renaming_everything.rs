@@ -22,9 +22,9 @@ enum Custom {
 }
 
 impl Custom {
-    pub fn custom_to_string(&self) -> &str {
+    pub fn custom_to_string(&self) -> String {
         match self {
-            Self::Custom(custom) => custom,
+            Self::Custom(custom) => custom.to_owned(),
             _ => panic!("not Custom::Custom"),
         }
     }

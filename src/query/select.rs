@@ -941,7 +941,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let table_as: DynIden = SeaRc::new("char");
+    /// let table_as: DynIden = "char".into();
     ///
     /// let query = Query::select()
     ///     .from_as(Char::Table, table_as.clone())
@@ -1552,7 +1552,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let sub_glyph: DynIden = SeaRc::new("sub_glyph");
+    /// let sub_glyph: DynIden = "sub_glyph".into();
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)
@@ -1622,7 +1622,7 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{*, tests_cfg::*};
     ///
-    /// let sub_glyph: DynIden = SeaRc::new("sub_glyph");
+    /// let sub_glyph: DynIden = "sub_glyph".into();
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)

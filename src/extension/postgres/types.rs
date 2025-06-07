@@ -162,27 +162,13 @@ impl TypeCreateStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// enum FontFamily {
+    ///     #[iden = "font_family"]
     ///     Type,
     ///     Serif,
     ///     Sans,
     ///     Monospace,
-    /// }
-    ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
-    ///     }
     /// }
     ///
     /// assert_eq!(
@@ -224,13 +210,8 @@ impl TypeDropStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// struct FontFamily;
-    ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(s, "{}", "font_family").unwrap();
-    ///     }
-    /// }
     ///
     /// assert_eq!(
     ///     Type::drop()
@@ -274,8 +255,8 @@ impl TypeDropStatement {
     ///     Type::drop()
     ///         .if_exists()
     ///         .names([
-    ///             SeaRc::new(KycStatus::Type) as DynIden,
-    ///             SeaRc::new(FontFamily::Type) as DynIden,
+    ///             IdenImpl::from(KycStatus::Type),
+    ///             IdenImpl::from(FontFamily::Type),
     ///         ])
     ///         .cascade()
     ///         .to_string(PostgresQueryBuilder),
@@ -322,27 +303,13 @@ impl TypeAlterStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// enum FontFamily {
+    ///     #[iden = "font_family"]
     ///     Type,
     ///     Serif,
     ///     Sans,
     ///     Monospace,
-    /// }
-    ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
-    ///     }
     /// }
     ///
     /// assert_eq!(

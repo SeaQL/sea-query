@@ -500,13 +500,10 @@
 //!
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
-//! struct MyFunction;
 //!
-//! impl Iden for MyFunction {
-//!     fn unquoted(&self, s: &mut dyn Write) {
-//!         write!(s, "MY_FUNCTION").unwrap();
-//!     }
-//! }
+//! #[derive(Iden)]
+//! #[iden = "MY_FUNCTION"]
+//! struct MyFunction;
 //!
 //! let query = Query::select()
 //!     .expr(Func::cust(MyFunction).arg(Expr::val("hello")))
