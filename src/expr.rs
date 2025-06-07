@@ -1,17 +1,32 @@
 //! Building blocks of SQL statements.
 //!
-//! [`Expr`] representing the primitive building block in the expressions.
+//! [`SimpleExpr`] is an arbitrary, dynamically-typed SQL expression.
+//! It can be used in select fields, where clauses and many other places.
 //!
-//! [`SimpleExpr`] is the expression common among select fields, where clauses and many other places.
+//! [`ExprTrait`] provides "operator" methods for building expressions.
 
 use crate::{func::*, query::*, types::*, value::*};
 
+/// A legacy compatibility alias for [`SimpleExpr`].
+///
+/// It used to be a separate type with constructor methods.
+/// Now you can call these constructors directly on [`SimpleExpr`].
 pub type Expr = SimpleExpr;
 
-/// Represents a Simple Expression in SQL.
+/// An arbitrary, dynamically-typed SQL expression.
 ///
-/// [`SimpleExpr`] is a node in the expression tree and can represent identifiers, function calls,
-/// various operators and sub-queries.
+/// It can be used in select fields, where clauses and many other places.
+///
+/// More concreterly, under the hood [`SimpleExpr`]s can be:
+///
+/// - Rust values
+/// - SQL identifiers
+/// - SQL function calls
+/// - various operators and sub-queries
+///
+/// If something is not supported here, look into [`BinOper::Custom`],
+/// [`Func::cust`], or [`Expr::cust*`][`Expr::cust_with_values`] as a
+/// workaround, and consider reporting your issue.
 #[derive(Debug, Clone, PartialEq)]
 pub enum SimpleExpr {
     Column(ColumnRef),
@@ -42,11 +57,13 @@ pub enum SimpleExpr {
 /// # use sea_query::*;
 /// #
 /// let expr = 1_i32.cast_as("REAL");
-///
 /// let expr = Func::char_length("abc").eq(3_i32);
-///
 /// let expr = Expr::current_date().cast_as("TEXT").like("2024%");
 /// ```
+///
+/// If some methods are missing, look into [`BinOper::Custom`], [`Func::cust`],
+/// or [`Expr::cust*`][`Expr::cust_with_values`] as a workaround, and consider
+/// reporting your issue.
 pub trait ExprTrait: Sized {
     /// Express an arithmetic addition operation.
     ///
