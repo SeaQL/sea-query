@@ -19,6 +19,7 @@ pub struct Index;
 
 /// All available types of index statement
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum IndexStatement {
     Create(IndexCreateStatement),
     Drop(IndexDropStatement),

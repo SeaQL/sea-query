@@ -8,6 +8,7 @@ use crate::{PgDateTruncUnit, expr::*, func::*};
 ///
 /// If something is not supported, you can use [`Function::Custom`].
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum PgFunction {
     ToTsquery,
     ToTsvector,

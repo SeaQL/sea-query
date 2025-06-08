@@ -28,6 +28,7 @@ pub type Expr = SimpleExpr;
 /// [`Func::cust`], or [`Expr::cust*`][`Expr::cust_with_values`] as a
 /// workaround, and consider reporting your issue.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SimpleExpr {
     Column(ColumnRef),
     Tuple(Vec<SimpleExpr>),

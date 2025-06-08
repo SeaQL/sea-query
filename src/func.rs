@@ -9,6 +9,7 @@ pub use crate::extension::postgres::{PgFunc, PgFunction};
 ///
 /// If something is not supported here, you can use [`Function::Custom`].
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Function {
     Max,
     Min,

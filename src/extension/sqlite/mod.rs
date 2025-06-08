@@ -8,6 +8,7 @@ mod expr;
 ///
 /// For all supported operators (including the standard ones), see [`BinOper`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum SqliteBinOper {
     /// `GLOB`
     Glob,

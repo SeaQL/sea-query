@@ -10,6 +10,7 @@ pub struct Tokenizer {
 }
 
 #[derive(Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Token {
     Quoted(String),
     Unquoted(String),
