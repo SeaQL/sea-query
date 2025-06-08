@@ -187,6 +187,7 @@ impl CommonTableExpression {
 /// For recursive [WithQuery] [WithClause]s the traversing order can be specified in some databases
 /// that support this functionality.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SearchOrder {
     /// Breadth first traversal during the execution of the recursive query.
     BREADTH,
