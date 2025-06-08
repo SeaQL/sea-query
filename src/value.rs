@@ -35,7 +35,6 @@ use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-#[non_exhaustive]
 pub enum ArrayType {
     Bool,
     TinyInt,
@@ -125,7 +124,6 @@ pub enum ArrayType {
 /// implementation of NaN != NaN.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
-#[non_exhaustive]
 pub enum Value {
     Bool(Option<bool>),
     TinyInt(Option<i8>),
