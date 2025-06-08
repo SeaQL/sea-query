@@ -1,7 +1,9 @@
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
-use sea_query::{ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table};
+use sea_query::{
+    ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table,
+};
 use sea_query_binder::SqlxBinder;
 use sqlx::{MySqlPool, Row, types::chrono::NaiveDateTime};
 use time::{
