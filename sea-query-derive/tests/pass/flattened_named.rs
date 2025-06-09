@@ -34,6 +34,6 @@ fn main() {
         }))
         .zip(expected)
         .for_each(|(var, exp)| {
-            assert_eq!(var.to_string(), exp);
+            assert_eq!(Iden::from(var).to_string(), exp);
         })
 }

@@ -12,8 +12,7 @@ use syn::{
 mod iden;
 
 use self::iden::{
-    DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, path::IdenPath,
-    write_arm::IdenVariant,
+    DeriveIden, attr::IdenAttr, error::ErrorMsg, path::IdenPath, write_arm::IdenVariant,
 };
 
 #[proc_macro_derive(Iden, attributes(iden, method))]
@@ -49,89 +48,6 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-#[proc_macro_derive(IdenStatic, attributes(iden, method))]
-pub fn derive_iden_static(input: TokenStream) -> TokenStream {
-    let sea_query_path = sea_query_path();
-
-    let DeriveInput {
-        ident, data, attrs, ..
-    } = parse_macro_input!(input);
-
-    let table_name = match get_table_name(&ident, attrs) {
-        Ok(v) => v,
-        Err(e) => return e.to_compile_error().into(),
-    };
-
-    // Currently we only support enums and unit structs
-    let variants =
-        match data {
-            syn::Data::Enum(DataEnum { variants, .. }) => variants,
-            syn::Data::Struct(DataStruct {
-                fields: Fields::Unit,
-                ..
-            }) => {
-                let impl_iden = impl_iden_for_unit_struct(&ident, &table_name);
-
-                return quote! {
-                    #impl_iden
-
-                    impl #sea_query_path::IdenStatic for #ident {
-                        fn as_str(&self) -> &'static str {
-                            #table_name
-                        }
-                    }
-
-                    impl std::convert::AsRef<str> for #ident {
-                        fn as_ref(&self) -> &str {
-                            self.as_str()
-                        }
-                    }
-                }
-                .into();
-            }
-            _ => return quote_spanned! {
-                ident.span() => compile_error!("you can only derive Iden on enums or unit structs");
-            }
-            .into(),
-        };
-
-    if variants.is_empty() {
-        return TokenStream::new();
-    }
-
-    let impl_iden = impl_iden_for_enum(&ident, &table_name, variants.iter());
-
-    let match_arms = match variants
-        .iter()
-        .map(|v| (table_name.as_str(), v))
-        .map(IdenVariant::<DeriveIdenStatic>::try_from)
-        .collect::<syn::Result<Vec<_>>>()
-    {
-        Ok(v) => quote! { #(#v),* },
-        Err(e) => return e.to_compile_error().into(),
-    };
-
-    let output = quote! {
-        #impl_iden
-
-        impl #sea_query_path::IdenStatic for #ident {
-            fn as_str(&self) -> &'static str {
-                match self {
-                    #match_arms
-                }
-            }
-        }
-
-        impl std::convert::AsRef<str> for #ident {
-            fn as_ref(&self) -> &'static str {
-                self.as_str()
-            }
-        }
-    };
-
-    output.into()
-}
-
 fn find_attr(attrs: &[Attribute]) -> Option<&Attribute> {
     attrs.iter().find(|attr| {
         attr.path().is_ident(&IdenPath::Iden) || attr.path().is_ident(&IdenPath::Method)
@@ -163,24 +79,17 @@ fn impl_iden_for_unit_struct(
 ) -> proc_macro2::TokenStream {
     let sea_query_path = sea_query_path();
 
-    let prepare = if must_be_valid_iden(table_name) {
-        quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
+    quote! {
+
+        impl From<#ident> for #sea_query_path::Iden {
+            fn from(value: #ident) -> Self {
+                #sea_query_path::Iden::from(#table_name)
             }
         }
-    } else {
-        quote! {}
-    };
 
-    quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
-
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
-                write!(s, #table_name).unwrap();
+        impl From<&#ident> for #sea_query_path::Iden {
+            fn from(value: &#ident) -> Self {
+                #sea_query_path::Iden::from(#table_name)
             }
         }
     }
@@ -198,39 +107,33 @@ where
 
     let mut is_all_valid = true;
 
-    let match_arms = match variants
+    let iden_impl_match_arms = match variants
         .map(|v| (table_name, v))
         .map(|v| {
-            let v = IdenVariant::<DeriveIden>::try_from(v)?;
-            is_all_valid &= v.must_be_valid_iden();
-            Ok(v)
+            let iden_impl_variant = IdenVariant::<DeriveIden>::try_from(v)?;
+            is_all_valid &= iden_impl_variant.must_be_valid_iden();
+            Ok(iden_impl_variant)
         })
         .collect::<syn::Result<Vec<_>>>()
     {
-        Ok(v) => quote! { #(#v),* },
+        Ok(a) => quote! { #(#ident::#a),* },
         Err(e) => return e.to_compile_error(),
     };
 
-    let prepare = if is_all_valid {
-        quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
+    quote! {
+        impl From<#ident> for #sea_query_path::Iden {
+            fn from(value: #ident) -> Self {
+                match value {
+                    #iden_impl_match_arms
+                }
             }
         }
-    } else {
-        quote! {}
-    };
 
-    quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
-
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
-                match self {
-                    #match_arms
-                };
+        impl From<&#ident> for #sea_query_path::Iden {
+            fn from(value: &#ident) -> Self {
+                match value {
+                    #iden_impl_match_arms
+                }
             }
         }
     }
@@ -331,8 +234,10 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
     );
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
     let pascal_def_names2 = pascal_def_names.clone();
+    let pascal_def_names3 = pascal_def_names.clone();
     let default_names = field_names.iter().map(|field| &field.default);
     let default_names2 = default_names.clone();
+    let default_names3 = default_names.clone();
     let import_name = Ident::new(
         args.crate_name
             .unwrap_or_else(|| DEFAULT_CRATE_NAME.to_string())
@@ -349,24 +254,21 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
             #(#pascal_def_names,)*
         }
 
-        impl #import_name::IdenStatic for #enum_name {
-            fn as_str(&self) -> &'static str {
-                match self {
+        impl From<#enum_name> for #import_name::Iden {
+            fn from(value: #enum_name) -> Self {
+                #import_name::Iden::from(match value {
                     #enum_name::Table => stringify!(#table_name),
                     #(#enum_name::#pascal_def_names2 => stringify!(#default_names2)),*
-                }
-            }
-        }
-
-        impl #import_name::Iden for #enum_name {
-            fn unquoted(&self, s: &mut dyn sea_query::Write) {
-                write!(s, "{}", <Self as #import_name::IdenStatic>::as_str(&self)).unwrap();
+                })
             }
         }
 
         impl ::std::convert::AsRef<str> for #enum_name {
             fn as_ref(&self) -> &str {
-                <Self as #import_name::IdenStatic>::as_str(&self)
+                match self {
+                    #enum_name::Table => stringify!(#table_name),
+                    #(#enum_name::#pascal_def_names3 => stringify!(#default_names3)),*
+                }
             }
         }
     })

@@ -23,22 +23,17 @@ pub enum BinaryType {
     LongBlob,
 }
 
-impl Iden for BinaryType {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "binary_type",
-                Self::BinaryLen => "binlen",
-                Self::Binary => "bin",
-                Self::BlobSize => "defb",
-                Self::TinyBlob => "tb",
-                Self::Blob => "b",
-                Self::MediumBlob => "mb",
-                Self::LongBlob => "lb",
-            }
-        )
-        .unwrap();
+impl From<BinaryType> for Iden {
+    fn from(value: BinaryType) -> Self {
+        Self::from(match value {
+            BinaryType::Table => "binary_type",
+            BinaryType::BinaryLen => "binlen",
+            BinaryType::Binary => "bin",
+            BinaryType::BlobSize => "defb",
+            BinaryType::TinyBlob => "tb",
+            BinaryType::Blob => "b",
+            BinaryType::MediumBlob => "mb",
+            BinaryType::LongBlob => "lb",
+        })
     }
 }

@@ -13,6 +13,6 @@ enum User {
 fn main() {
     let expected = ["user", "id", "first_name", "last_name", "email"];
     User::iter().zip(expected).for_each(|(var, exp)| {
-        assert_eq!(var.to_string(), exp);
+        assert_eq!(Iden::from(var).to_string(), exp);
     });
 }

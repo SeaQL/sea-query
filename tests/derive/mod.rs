@@ -12,11 +12,11 @@ fn derive_1() {
     }
 
     println!("Default field names");
-    assert_eq!(Iden::to_string(&User::Table), "user");
-    assert_eq!(Iden::to_string(&User::Id), "id");
-    assert_eq!(Iden::to_string(&User::FirstName), "first_name");
-    assert_eq!(Iden::to_string(&User::LastName), "last_name");
-    assert_eq!(Iden::to_string(&User::Email), "email");
+    assert_eq!(Iden::from(&User::Table).to_string(), "user");
+    assert_eq!(Iden::from(&User::Id).to_string(), "id");
+    assert_eq!(Iden::from(&User::FirstName).to_string(), "first_name");
+    assert_eq!(Iden::from(&User::LastName).to_string(), "last_name");
+    assert_eq!(Iden::from(&User::Email).to_string(), "email");
 }
 
 #[test]
@@ -38,11 +38,11 @@ fn derive_2() {
     }
 
     println!("Custom field names");
-    assert_eq!(Iden::to_string(&Custom::Table), "user");
-    assert_eq!(Iden::to_string(&Custom::Id), "my_id");
-    assert_eq!(Iden::to_string(&Custom::FirstName), "name");
-    assert_eq!(Iden::to_string(&Custom::LastName), "surname");
-    assert_eq!(Iden::to_string(&Custom::Email), "EMail");
+    assert_eq!(Iden::from(&Custom::Table).to_string(), "user");
+    assert_eq!(Iden::from(&Custom::Id).to_string(), "my_id");
+    assert_eq!(Iden::from(&Custom::FirstName).to_string(), "name");
+    assert_eq!(Iden::from(&Custom::LastName).to_string(), "surname");
+    assert_eq!(Iden::from(&Custom::Email).to_string(), "EMail");
 }
 
 #[test]
@@ -58,10 +58,10 @@ fn derive_3() {
     }
 
     println!("Single custom field name");
-    assert_eq!(Iden::to_string(&Something::Table), "something_else");
-    assert_eq!(Iden::to_string(&Something::Id), "id");
-    assert_eq!(Iden::to_string(&Something::AssetName), "asset_name");
-    assert_eq!(Iden::to_string(&Something::UserId), "user_id");
+    assert_eq!(Iden::from(&Something::Table).to_string(), "something_else");
+    assert_eq!(Iden::from(&Something::Id).to_string(), "id");
+    assert_eq!(Iden::from(&Something::AssetName).to_string(), "asset_name");
+    assert_eq!(Iden::from(&Something::UserId).to_string(), "user_id");
 }
 
 #[test]
@@ -74,6 +74,6 @@ fn derive_4() {
     pub struct CustomName;
 
     println!("Unit structs");
-    assert_eq!(Iden::to_string(&SomeType), "some_type");
-    assert_eq!(Iden::to_string(&CustomName), "another_name");
+    assert_eq!(Iden::from(&SomeType).to_string(), "some_type");
+    assert_eq!(Iden::from(&CustomName).to_string(), "another_name");
 }

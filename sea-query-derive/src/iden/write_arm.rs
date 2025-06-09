@@ -148,7 +148,8 @@ where
             .as_ref()
             .map(|a| match a {
                 IdenAttr::Rename(name) => quote! { #name },
-                IdenAttr::Method(method) => quote! { self.#method() },
+                // TODO: make ident `value` be a parameter
+                IdenAttr::Method(method) => quote! { value.#method() },
                 IdenAttr::Flatten => unreachable!(),
             })
             .unwrap_or_else(|| {
