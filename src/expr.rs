@@ -96,7 +96,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::Add, right)
+        self.binary(BinOper::Add, right)
     }
 
     /// Express a `AS enum` expression.
@@ -130,11 +130,40 @@ pub trait ExprTrait: Sized {
     where
         N: IntoIden;
 
+    /// Express a logical `AND` operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
+    ///     .from(Char::Table)
+    ///     .cond_where(any![
+    ///         Expr::col(Char::SizeW).eq(1).and(Expr::col(Char::SizeH).eq(2)),
+    ///         Expr::col(Char::SizeW).eq(3).and(Expr::col(Char::SizeH).eq(4)),
+    ///     ])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `size_w`, `size_h` FROM `character` WHERE (`size_w` = 1 AND `size_h` = 2) OR (`size_w` = 3 AND `size_h` = 4)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" = 1 AND "size_h" = 2) OR ("size_w" = 3 AND "size_h" = 4)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE ("size_w" = 1 AND "size_h" = 2) OR ("size_w" = 3 AND "size_h" = 4)"#
+    /// );
+    /// ```
     fn and<R>(self, right: R) -> SimpleExpr
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::And, right)
+        self.binary(BinOper::And, right)
     }
 
     /// Express a `BETWEEN` expression.
@@ -262,7 +291,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::Div, right)
+        self.binary(BinOper::Div, right)
     }
 
     /// Express an equal (`=`) expression.
@@ -297,7 +326,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::Equal, right)
+        self.binary(BinOper::Equal, right)
     }
 
     /// Express a equal expression between two table columns,
@@ -364,7 +393,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::GreaterThan, right)
+        self.binary(BinOper::GreaterThan, right)
     }
 
     /// Express a greater than or equal (`>=`) expression.
@@ -397,7 +426,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::GreaterThanOrEqual, right)
+        self.binary(BinOper::GreaterThanOrEqual, right)
     }
 
     /// Express a `IN` sub-query expression.
@@ -448,13 +477,10 @@ pub trait ExprTrait: Sized {
     ///     .columns([Char::Character, Char::FontId])
     ///     .from(Char::Table)
     ///     .and_where(
-    ///         ExprTrait::in_tuples(
-    ///             Expr::tuple([
-    ///                 Expr::col(Char::Character).into(),
-    ///                 Expr::col(Char::FontId).into(),
-    ///             ]),
-    ///             [(1, String::from("1")), (2, String::from("2"))]
-    ///         )
+    ///         Expr::tuple([
+    ///             Expr::col(Char::Character).into(),
+    ///             Expr::col(Char::FontId).into(),
+    ///         ]).in_tuples([(1, String::from("1")), (2, String::from("2"))])
     ///     )
     ///     .to_owned();
     ///
@@ -843,7 +869,7 @@ pub trait ExprTrait: Sized {
     where
         L: IntoLikeExpr,
     {
-        ExprTrait::binary(self, BinOper::Like, like.into_like_expr())
+        self.binary(BinOper::Like, like.into_like_expr())
     }
 
     /// Express a less than (`<`) expression.
@@ -876,7 +902,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::SmallerThan, right)
+        self.binary(BinOper::SmallerThan, right)
     }
 
     /// Express a less than or equal (`<=`) expression.
@@ -909,7 +935,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::SmallerThanOrEqual, right)
+        self.binary(BinOper::SmallerThanOrEqual, right)
     }
 
     /// Express an arithmetic modulo operation.
@@ -975,7 +1001,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::Mul, right)
+        self.binary(BinOper::Mul, right)
     }
 
     /// Express a not equal (`<>`) expression.
@@ -1010,7 +1036,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::NotEqual, right)
+        self.binary(BinOper::NotEqual, right)
     }
 
     /// Negates an expression with `NOT`.
@@ -1023,7 +1049,7 @@ pub trait ExprTrait: Sized {
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     .and_where(ExprTrait::not(Expr::col((Char::Table, Char::SizeW)).is_null()))
+    ///     .and_where(Expr::col((Char::Table, Char::SizeW)).is_null().not())
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -1181,7 +1207,7 @@ pub trait ExprTrait: Sized {
     where
         L: IntoLikeExpr,
     {
-        ExprTrait::binary(self, BinOper::NotLike, like.into_like_expr())
+        self.binary(BinOper::NotLike, like.into_like_expr())
     }
 
     /// Express a logical `OR` operation.
@@ -1214,7 +1240,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::Or, right)
+        self.binary(BinOper::Or, right)
     }
 
     /// Express a bitwise right shift.
@@ -1280,7 +1306,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::Sub, right)
+        self.binary(BinOper::Sub, right)
     }
 
     /// Apply any unary operator to the expression.
@@ -1348,7 +1374,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::BitAnd, right)
+        self.binary(BinOper::BitAnd, right)
     }
 
     /// Express a bitwise OR operation.
@@ -1381,7 +1407,7 @@ pub trait ExprTrait: Sized {
     where
         R: Into<SimpleExpr>,
     {
-        ExprTrait::binary(self, BinOper::BitOr, right)
+        self.binary(BinOper::BitOr, right)
     }
 }
 
