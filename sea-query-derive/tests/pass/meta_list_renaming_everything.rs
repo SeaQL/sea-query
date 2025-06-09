@@ -34,15 +34,15 @@ fn main() {
     // custom ends up being default string which is an empty string
     let expected = ["user", "my_id", "name", "surname", "EM`ail", ""];
     Custom::iter()
-        .map(|var| var.to_string())
+        .map(|var| Iden::from(var).to_string())
         .zip(expected)
         .for_each(|(iden, exp)| assert_eq!(iden, exp));
 
     let mut string = String::new();
-    Custom::Email("".to_owned()).prepare(&mut string, '"'.into());
+    Iden::from(Custom::Email("".to_owned())).prepare(&mut string, '"'.into());
     assert_eq!(string, "\"EM`ail\"");
 
     let mut string = String::new();
-    Custom::Email("".to_owned()).prepare(&mut string, b'`'.into());
+    Iden::from(Custom::Email("".to_owned())).prepare(&mut string, b'`'.into());
     assert_eq!(string, "`EM``ail`");
 }

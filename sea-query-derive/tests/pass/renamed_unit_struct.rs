@@ -5,5 +5,5 @@ use sea_query::Iden;
 pub struct CustomName;
 
 fn main() {
-    assert_eq!(CustomName.to_string(), "another_name");
+    assert_eq!(Iden::from(CustomName).to_string(), "another_name");
 }

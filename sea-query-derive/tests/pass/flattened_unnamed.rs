@@ -30,6 +30,6 @@ fn main() {
         .chain(std::iter::once(Asset::Creation(CreationInfo::Date)))
         .zip(expected)
         .for_each(|(var, exp)| {
-            assert_eq!(var.to_string(), exp);
+            assert_eq!(Iden::from(var).to_string(), exp);
         })
 }

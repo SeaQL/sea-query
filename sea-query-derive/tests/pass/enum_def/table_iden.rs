@@ -1,4 +1,4 @@
-use sea_query::{Iden, IdenStatic};
+use sea_query::IdenStatic;
 use sea_query_derive::enum_def;
 use std::convert::AsRef;
 

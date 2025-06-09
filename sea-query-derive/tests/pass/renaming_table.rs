@@ -14,6 +14,6 @@ enum Something {
 fn main() {
     let expected = ["something_else", "id", "asset_name", "user_id"];
     Something::iter().zip(expected).for_each(|(var, exp)| {
-        assert_eq!(var.to_string(), exp);
+        assert_eq!(Iden::from(var).to_string(), exp);
     })
 }

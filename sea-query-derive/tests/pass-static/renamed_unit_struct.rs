@@ -1,4 +1,4 @@
-use sea_query::{Iden, IdenStatic};
+use sea_query::IdenStatic;
 
 #[derive(Copy, Clone, IdenStatic)]
 #[iden = "another_name"]

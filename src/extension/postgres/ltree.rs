@@ -50,14 +50,14 @@ use crate::Iden;
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PgLTree;
 
-impl Iden for PgLTree {
-    fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-        write!(s, "ltree").unwrap();
+impl From<PgLTree> for Iden {
+    fn from(_: PgLTree) -> Self {
+        Self::from("ltree")
     }
 }
 
 impl From<PgLTree> for String {
-    fn from(l: PgLTree) -> Self {
-        l.to_string()
+    fn from(_: PgLTree) -> Self {
+        "ltree".to_owned()
     }
 }

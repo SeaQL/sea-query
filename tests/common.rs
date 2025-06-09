@@ -3,7 +3,7 @@ pub use std::fmt::Write as FmtWrite;
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
-use sea_query::{Iden, IdenImpl};
+use sea_query::Iden;
 
 /// Representation of a database table named `BloB`.
 ///
@@ -23,27 +23,7 @@ pub enum BinaryType {
     LongBlob,
 }
 
-impl Iden for BinaryType {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "binary_type",
-                Self::BinaryLen => "binlen",
-                Self::Binary => "bin",
-                Self::BlobSize => "defb",
-                Self::TinyBlob => "tb",
-                Self::Blob => "b",
-                Self::MediumBlob => "mb",
-                Self::LongBlob => "lb",
-            }
-        )
-        .unwrap();
-    }
-}
-
-impl From<BinaryType> for IdenImpl {
+impl From<BinaryType> for Iden {
     fn from(value: BinaryType) -> Self {
         Self::from(match value {
             BinaryType::Table => "binary_type",

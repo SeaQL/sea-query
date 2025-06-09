@@ -260,8 +260,8 @@ impl TypeDropStatement {
     ///     Type::drop()
     ///         .if_exists()
     ///         .names([
-    ///             IdenImpl::from(KycStatus::Type),
-    ///             IdenImpl::from(FontFamily::Type),
+    ///             Iden::from(KycStatus::Type),
+    ///             Iden::from(FontFamily::Type),
     ///         ])
     ///         .cascade()
     ///         .to_string(PostgresQueryBuilder),

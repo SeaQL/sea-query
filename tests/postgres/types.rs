@@ -40,22 +40,7 @@ fn create_3() {
         BreakfastTea,
     }
 
-    impl sea_query::Iden for Tea {
-        fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-            write!(
-                s,
-                "{}",
-                match self {
-                    Self::Enum => "tea",
-                    Self::EverydayTea => "EverydayTea",
-                    Self::BreakfastTea => "BreakfastTea",
-                }
-            )
-            .unwrap();
-        }
-    }
-
-    impl From<Tea> for sea_query::IdenImpl {
+    impl From<Tea> for sea_query::Iden {
         fn from(value: Tea) -> Self {
             let str = match value {
                 Tea::Enum => "tea",

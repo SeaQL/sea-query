@@ -2,7 +2,6 @@ use std::convert::{TryFrom, TryInto};
 
 use darling::FromMeta;
 use heck::{ToPascalCase, ToSnakeCase};
-use iden::{DeriveIdenImpl, write_arm::IdenImplVariant};
 use proc_macro::{self, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
@@ -117,7 +116,8 @@ pub fn derive_iden_static(input: TokenStream) -> TokenStream {
 
         impl #sea_query_path::IdenStatic for #ident {
             fn as_str(&self) -> &'static str {
-                match self {
+                let value = self;
+                match value {
                     #match_arms
                 }
             }
@@ -164,36 +164,17 @@ fn impl_iden_for_unit_struct(
 ) -> proc_macro2::TokenStream {
     let sea_query_path = sea_query_path();
 
-    let prepare = if must_be_valid_iden(table_name) {
-        quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
-            }
-        }
-    } else {
-        quote! {}
-    };
-
     quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
 
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
-                write!(s, #table_name).unwrap();
-            }
-        }
-
-        impl From<#ident> for #sea_query_path::IdenImpl {
+        impl From<#ident> for #sea_query_path::Iden {
             fn from(value: #ident) -> Self {
-                #sea_query_path::IdenImpl::from(#table_name)
+                #sea_query_path::Iden::from(#table_name)
             }
         }
 
-        impl From<&#ident> for #sea_query_path::IdenImpl {
+        impl From<&#ident> for #sea_query_path::Iden {
             fn from(value: &#ident) -> Self {
-                #sea_query_path::IdenImpl::from(#table_name)
+                #sea_query_path::Iden::from(#table_name)
             }
         }
     }
@@ -211,45 +192,21 @@ where
 
     let mut is_all_valid = true;
 
-    let (iden_trait_match_arms, iden_impl_match_arms) = match variants
+    let iden_impl_match_arms = match variants
         .map(|v| (table_name, v))
         .map(|v| {
-            let iden_trait_variant = IdenVariant::<DeriveIden>::try_from(v)?;
-            let iden_impl_variant = IdenImplVariant::<DeriveIdenImpl>::try_from(v)?;
-            is_all_valid &=
-                iden_trait_variant.must_be_valid_iden() && iden_impl_variant.must_be_valid_iden();
-            Ok((iden_trait_variant, iden_impl_variant))
+            let iden_impl_variant = IdenVariant::<DeriveIden>::try_from(v)?;
+            is_all_valid &= iden_impl_variant.must_be_valid_iden();
+            Ok(iden_impl_variant)
         })
-        .collect::<syn::Result<(Vec<_>, Vec<_>)>>()
+        .collect::<syn::Result<Vec<_>>>()
     {
-        Ok((a, b)) => (quote! { #(#a),* }, quote! { #(#ident::#b),* }),
+        Ok(a) => quote! { #(#ident::#a),* },
         Err(e) => return e.to_compile_error(),
     };
 
-    let prepare = if is_all_valid {
-        quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
-            }
-        }
-    } else {
-        quote! {}
-    };
-
     quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
-
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
-                match self {
-                    #iden_trait_match_arms
-                };
-            }
-        }
-
-        impl From<#ident> for #sea_query_path::IdenImpl {
+        impl From<#ident> for #sea_query_path::Iden {
             fn from(value: #ident) -> Self {
                 match value {
                     #iden_impl_match_arms
@@ -257,7 +214,7 @@ where
             }
         }
 
-        impl From<&#ident> for #sea_query_path::IdenImpl {
+        impl From<&#ident> for #sea_query_path::Iden {
             fn from(value: &#ident) -> Self {
                 match value {
                     #iden_impl_match_arms
@@ -389,9 +346,9 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
 
-        impl #import_name::Iden for #enum_name {
-            fn unquoted(&self, s: &mut dyn sea_query::Write) {
-                write!(s, "{}", <Self as #import_name::IdenStatic>::as_str(&self)).unwrap();
+        impl From<#enum_name> for #import_name::Iden {
+            fn from(value: #enum_name) -> Self {
+                #import_name::Iden::from(<#enum_name as #import_name::IdenStatic>::as_str(&value))
             }
         }
 

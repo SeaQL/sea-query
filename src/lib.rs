@@ -162,19 +162,14 @@
 //! }
 //!
 //! // Mapping between Enum variant and its corresponding string value
-//! impl Iden for Character {
-//!     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-//!         write!(
-//!             s,
-//!             "{}",
-//!             match self {
-//!                 Self::Table => "character",
-//!                 Self::Id => "id",
-//!                 Self::FontId => "font_id",
-//!                 Self::FontSize => "font_size",
-//!             }
-//!         )
-//!         .unwrap();
+//! impl From<Character> for Iden {
+//!     fn from(value: Character) -> Self {
+//!         match value {
+//!             Character::Table => "character",
+//!             Character::Id => "id",
+//!             Character::FontId => "font_id",
+//!             Character::FontSize => "font_size",
+//!         }.into()
 //!     }
 //! }
 //! ```
@@ -193,12 +188,12 @@
 //! enum Character {
 //!     Table,
 //! }
-//! assert_eq!(Character::Table.to_string(), "character");
+//! assert_eq!(Iden::from(Character::Table).to_string(), "character");
 //!
 //! // You can also derive a unit struct
 //! #[derive(Iden)]
 //! struct Glyph;
-//! assert_eq!(Glyph.to_string(), "glyph");
+//! assert_eq!(Iden::from(Glyph).to_string(), "glyph");
 //! ```
 //!
 //! ```rust
@@ -219,8 +214,8 @@
 //! }
 //! # };
 //!
-//! assert_eq!(CharacterIden::Table.to_string(), "character");
-//! assert_eq!(CharacterIden::Foo.to_string(), "foo");
+//! assert_eq!(Iden::from(CharacterIden::Table).to_string(), "character");
+//! assert_eq!(Iden::from(CharacterIden::Foo).to_string(), "foo");
 //! # }
 //! # #[cfg(feature = "derive")]
 //! # test();

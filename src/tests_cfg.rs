@@ -1,11 +1,9 @@
 //! Configurations for test cases and examples. Not intended for actual use.
 
-use std::fmt;
-
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
-use crate::{Iden, IdenImpl};
+use crate::Iden;
 
 /// Representation of a database table named `Character`.
 ///
@@ -29,29 +27,7 @@ pub enum Character {
 /// A shorthand for [`Character`]
 pub type Char = Character;
 
-impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "character",
-                Self::Id => "id",
-                Self::Character => "character",
-                Self::FontSize => "font_size",
-                Self::SizeW => "size_w",
-                Self::SizeH => "size_h",
-                Self::FontId => "font_id",
-                Self::Ascii => "ascii",
-                Self::CreatedAt => "created_at",
-                Self::UserData => "user_data",
-            }
-        )
-        .unwrap();
-    }
-}
-
-impl From<Character> for IdenImpl {
+impl From<Character> for Iden {
     fn from(value: Character) -> Self {
         let str = match value {
             Character::Table => "character",
@@ -84,24 +60,7 @@ pub enum Font {
     Language,
 }
 
-impl Iden for Font {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "font",
-                Self::Id => "id",
-                Self::Name => "name",
-                Self::Variant => "variant",
-                Self::Language => "language",
-            }
-        )
-        .unwrap();
-    }
-}
-
-impl From<Font> for IdenImpl {
+impl From<Font> for Iden {
     fn from(value: Font) -> Self {
         let str = match value {
             Font::Table => "font",
@@ -128,24 +87,7 @@ pub enum Glyph {
     Tokens,
 }
 
-impl Iden for Glyph {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "glyph",
-                Self::Id => "id",
-                Self::Image => "image",
-                Self::Aspect => "aspect",
-                Self::Tokens => "tokens",
-            }
-        )
-        .unwrap();
-    }
-}
-
-impl From<Glyph> for IdenImpl {
+impl From<Glyph> for Iden {
     fn from(value: Glyph) -> Self {
         let str = match value {
             Glyph::Table => "glyph",
@@ -170,22 +112,7 @@ pub enum Task {
     IsDone,
 }
 
-impl Iden for Task {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "task",
-                Self::Id => "id",
-                Self::IsDone => "is_done",
-            }
-        )
-        .unwrap();
-    }
-}
-
-impl From<Task> for IdenImpl {
+impl From<Task> for Iden {
     fn from(value: Task) -> Self {
         Self::from(match value {
             Task::Table => "task",

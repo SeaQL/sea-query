@@ -34,6 +34,6 @@ fn main() {
     // custom ends up being default string which is an empty string
     let expected = ["user", "my_id", "name", "surname", "EMail", ""];
     Custom::iter().zip(expected).for_each(|(var, exp)| {
-        assert_eq!(var.to_string(), exp);
+        assert_eq!(Iden::from(var).to_string(), exp);
     })
 }

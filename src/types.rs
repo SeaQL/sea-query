@@ -27,60 +27,13 @@ pub type RcOrArc<T> = std::sync::Arc<T>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Quote(pub(crate) u8, pub(crate) u8);
 
-macro_rules! iden_trait {
-    ($($bounds:ident),*) => {
-        /// Identifier
-        // #[deprecated(since = "1.0.0-rc.1", note = "`Iden` will be replaced by `IdenImpl` in the future.")]
-        pub trait Iden where $(Self: $bounds),* {
-            fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
-                write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
-            }
-
-            fn quoted(&self, q: Quote) -> String {
-                let byte = [q.1];
-                let qq: &str = std::str::from_utf8(&byte).unwrap();
-                self.to_string().replace(qq, qq.repeat(2).as_str())
-            }
-
-            /// A shortcut for writing an [`unquoted`][Iden::unquoted]
-            /// identifier into a [`String`].
-            ///
-            /// We can't reuse [`ToString`] for this, because [`ToString`] uses
-            /// the [`Display`][std::fmt::Display] representation. Bnd [`Iden`]
-            /// representation is distinct from [`Display`][std::fmt::Display]
-            /// and can be different.
-            fn to_string(&self) -> String {
-                let mut s = String::new();
-                self.unquoted(&mut s);
-                s
-            }
-
-            /// Write a raw identifier string without quotes.
-            ///
-            /// We indentionally don't reuse [`Display`][std::fmt::Display] for
-            /// this, because we want to allow it to have a different logic.
-            fn unquoted(&self, s: &mut dyn fmt::Write);
-        }
-
-        /// Identifier
-        pub trait IdenStatic: Iden + Copy + 'static {
-            fn as_str(&self) -> &'static str;
-        }
-    };
-}
-
-#[cfg(feature = "thread-safe")]
-iden_trait!(Send, Sync);
-#[cfg(not(feature = "thread-safe"))]
-iden_trait!();
-
 /// An SQL identifier (string)
 #[derive(Debug, Clone, PartialEq)]
-pub struct IdenImpl {
+pub struct Iden {
     value: Cow<'static, str>,
 }
 
-impl IdenImpl {
+impl Iden {
     fn from_into_cow<T>(value: T) -> Self
     where
         T: Into<Cow<'static, str>>,
@@ -91,23 +44,28 @@ impl IdenImpl {
     }
 }
 
-impl From<&'static str> for IdenImpl {
+impl From<&'static str> for Iden {
     fn from(value: &'static str) -> Self {
         Self::from_into_cow(value)
     }
 }
 
-impl From<String> for IdenImpl {
+impl From<String> for Iden {
     fn from(value: String) -> Self {
         Self::from_into_cow(value)
     }
 }
 
-#[inherent::inherent]
-impl Iden for IdenImpl {
-    pub fn prepare(&self, s: &mut dyn fmt::Write, q: Quote);
+impl Iden {
+    pub fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
+        write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
+    }
 
-    pub fn quoted(&self, q: Quote) -> String;
+    pub fn quoted(&self, q: Quote) -> String {
+        let byte = [q.1];
+        let qq: &str = std::str::from_utf8(&byte).unwrap();
+        self.to_string().replace(qq, qq.repeat(2).as_str())
+    }
 
     /// A shortcut for writing an [`unquoted`][Iden::unquoted]
     /// identifier into a [`String`].
@@ -117,7 +75,11 @@ impl Iden for IdenImpl {
     /// representation is distinct from [`Display`][std::fmt::Display]
     /// and can be different.
     #[allow(clippy::inherent_to_string)]
-    pub fn to_string(&self) -> String;
+    pub fn to_string(&self) -> String {
+        let mut s = String::new();
+        self.unquoted(&mut s);
+        s
+    }
 
     /// Write a raw identifier string without quotes.
     ///
@@ -135,13 +97,13 @@ impl Iden for IdenImpl {
 ///
 /// Now, identifiers are eagerly "rendered" into a concrete struct.
 /// You can just use the struct.
-pub type DynIden = IdenImpl;
+pub type DynIden = Iden;
 
 /// A legacy compatibility trait.
 ///
-/// We used to have it instead of [`Into<IdenImpl>`].
+/// We used to have it instead of [`Into<Iden>`].
 ///
-/// New code should use [`Into<IdenImpl>`].
+/// New code should use [`Into<Iden>`].
 ///
 /// Rust types implement these traits to be used as type-safe ("typo-safe") SQL identifiers.
 pub trait IntoIden {
@@ -150,27 +112,42 @@ pub trait IntoIden {
 
 /// Provide compatibility with the existing code that uses `IntoIden`.
 ///
-/// New code should use `Into<IdenImpl>`.
+/// New code should use `Into<Iden>`.
 impl<T> IntoIden for T
 where
-    T: Into<IdenImpl>,
+    T: Into<Iden>,
 {
     fn into_iden(self) -> DynIden {
         self.into()
     }
 }
 
+/// Identifier
+pub trait IdenStatic: Copy + 'static {
+    fn as_str(&self) -> &'static str;
+
+    fn to_string(&self) -> String {
+        Iden::from(self.as_str()).to_string()
+    }
+
+    fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
+        Iden::from(self.as_str()).prepare(s, q)
+    }
+}
+
+// impl<T> From<T> for Iden
+// where
+//     T: IdenStatic,
+// {
+//     fn from(value: T) -> Self {
+//         value.as_str().into()
+//     }
+// }
+
 pub trait IdenList {
     type IntoIter: Iterator<Item = DynIden>;
 
     fn into_iter(self) -> Self::IntoIter;
-}
-
-impl fmt::Debug for dyn Iden {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.unquoted(formatter);
-        Ok(())
-    }
 }
 
 /// Column references
@@ -366,7 +343,16 @@ pub enum Order {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Alias(String);
 
-impl From<Alias> for IdenImpl {
+impl Alias {
+    pub fn new<T>(n: T) -> Self
+    where
+        T: Into<String>,
+    {
+        Self(n.into())
+    }
+}
+
+impl From<Alias> for Iden {
     fn from(value: Alias) -> Self {
         Self {
             value: Cow::Owned(value.0),
@@ -378,7 +364,13 @@ impl From<Alias> for IdenImpl {
 #[derive(Default, Debug, Copy, Clone)]
 pub struct NullAlias;
 
-impl From<NullAlias> for IdenImpl {
+impl NullAlias {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl From<NullAlias> for Iden {
     fn from(_: NullAlias) -> Self {
         Self::from("")
     }
@@ -663,44 +655,6 @@ impl TableRef {
             Self::FunctionCall(func, _) => Self::FunctionCall(func, alias.into_iden()),
         }
     }
-}
-
-impl Alias {
-    pub fn new<T>(n: T) -> Self
-    where
-        T: Into<String>,
-    {
-        Self(n.into())
-    }
-}
-
-// Regaring potential `impl for String` and the need for `Alias`,
-// see discussions on https://github.com/SeaQL/sea-query/pull/882
-
-/// Reuses the `impl` for the underlying [str].
-impl Iden for Alias {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        self.0.as_str().unquoted(s);
-    }
-}
-
-/// The "base" `impl` for writing arbitrary "raw" strings as identifiers.
-///
-/// Reused for other string-like types.
-impl Iden for &str {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        s.write_str(self).unwrap();
-    }
-}
-
-impl NullAlias {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl Iden for NullAlias {
-    fn unquoted(&self, _s: &mut dyn fmt::Write) {}
 }
 
 impl LikeExpr {
