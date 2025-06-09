@@ -1,23 +1,24 @@
 //! Building blocks of SQL statements.
 //!
-//! [`SimpleExpr`] is an arbitrary, dynamically-typed SQL expression.
+//! [`Expr`] is an arbitrary, dynamically-typed SQL expression.
 //! It can be used in select fields, where clauses and many other places.
 //!
 //! [`ExprTrait`] provides "operator" methods for building expressions.
 
 use crate::{func::*, query::*, types::*, value::*};
 
-/// A legacy compatibility alias for [`SimpleExpr`].
+/// A legacy compatibility alias for [`Expr`].
 ///
 /// It used to be a separate type with constructor methods.
-/// Now you can call these constructors directly on [`SimpleExpr`].
-pub type Expr = SimpleExpr;
+/// Now you can call these constructors directly on [`Expr`].
+#[deprecated(since = "1.0.0-rc.2", note = "Use [`Expr`] instead.")]
+pub type SimpleExpr = Expr;
 
 /// An arbitrary, dynamically-typed SQL expression.
 ///
 /// It can be used in select fields, where clauses and many other places.
 ///
-/// More concreterly, under the hood [`SimpleExpr`]s can be:
+/// More concreterly, under the hood [`Expr`]s can be:
 ///
 /// - Rust values
 /// - SQL identifiers
@@ -29,19 +30,19 @@ pub type Expr = SimpleExpr;
 /// workaround, and consider reporting your issue.
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
-pub enum SimpleExpr {
+pub enum Expr {
     Column(ColumnRef),
-    Tuple(Vec<SimpleExpr>),
-    Unary(UnOper, Box<SimpleExpr>),
+    Tuple(Vec<Expr>),
+    Unary(UnOper, Box<Expr>),
     FunctionCall(FunctionCall),
-    Binary(Box<SimpleExpr>, BinOper, Box<SimpleExpr>),
+    Binary(Box<Expr>, BinOper, Box<Expr>),
     SubQuery(Option<SubQueryOper>, Box<SubQueryStatement>),
     Value(Value),
     Values(Vec<Value>),
     Custom(String),
-    CustomWithExpr(String, Vec<SimpleExpr>),
+    CustomWithExpr(String, Vec<Expr>),
     Keyword(Keyword),
-    AsEnum(DynIden, Box<SimpleExpr>),
+    AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
     Constant(Value),
 }
@@ -49,7 +50,7 @@ pub enum SimpleExpr {
 /// "Operator" methods for building expressions.
 ///
 /// Before `sea_query` 0.32.0 (`sea_orm` 1.1.1),
-/// these methods were awailable only on [`Expr`]/[`SimpleExpr`]
+/// these methods were awailable only on [`Expr`]/[`Expr`]
 /// and you needed to manually construct these types first.
 ///
 /// Now, you can call them directly on any expression type:
@@ -92,9 +93,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
     /// );
     /// ```
-    fn add<R>(self, right: R) -> SimpleExpr
+    fn add<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::Add, right)
     }
@@ -126,13 +127,13 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    fn as_enum<N>(self, type_name: N) -> SimpleExpr
+    fn as_enum<N>(self, type_name: N) -> Expr
     where
         N: IntoIden;
 
-    fn and<R>(self, right: R) -> SimpleExpr
+    fn and<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::And, right)
     }
@@ -163,14 +164,14 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" BETWEEN 1 AND 10"#
     /// );
     /// ```
-    fn between<A, B>(self, a: A, b: B) -> SimpleExpr
+    fn between<A, B>(self, a: A, b: B) -> Expr
     where
-        A: Into<SimpleExpr>,
-        B: Into<SimpleExpr>,
+        A: Into<Expr>,
+        B: Into<Expr>,
     {
         self.binary(
             BinOper::Between,
-            SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
+            Expr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
         )
     }
 
@@ -201,10 +202,10 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" < 10 AND "size_w" > "size_h""#
     /// );
     /// ```
-    fn binary<O, R>(self, op: O, right: R) -> SimpleExpr
+    fn binary<O, R>(self, op: O, right: R) -> Expr
     where
         O: Into<BinOper>,
-        R: Into<SimpleExpr>;
+        R: Into<Expr>;
 
     /// Express a `CAST AS` expression.
     ///
@@ -228,7 +229,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT CAST('1' AS integer)"#
     /// );
     /// ```
-    fn cast_as<N>(self, type_name: N) -> SimpleExpr
+    fn cast_as<N>(self, type_name: N) -> Expr
     where
         N: IntoIden;
 
@@ -258,9 +259,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 / 1 = 2"#
     /// );
     /// ```
-    fn div<R>(self, right: R) -> SimpleExpr
+    fn div<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::Div, right)
     }
@@ -293,9 +294,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
     /// );
     /// ```
-    fn eq<R>(self, right: R) -> SimpleExpr
+    fn eq<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::Equal, right)
     }
@@ -327,7 +328,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" = "font"."id""#
     /// );
     /// ```
-    fn equals<C>(self, col: C) -> SimpleExpr
+    fn equals<C>(self, col: C) -> Expr
     where
         C: IntoColumnRef,
     {
@@ -360,9 +361,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" > 2"#
     /// );
     /// ```
-    fn gt<R>(self, right: R) -> SimpleExpr
+    fn gt<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::GreaterThan, right)
     }
@@ -393,9 +394,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" >= 2"#
     /// );
     /// ```
-    fn gte<R>(self, right: R) -> SimpleExpr
+    fn gte<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::GreaterThanOrEqual, right)
     }
@@ -430,10 +431,10 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" IN (SELECT 3 + 2 * 2)"#
     /// );
     /// ```
-    fn in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+    fn in_subquery(self, sel: SelectStatement) -> Expr {
         self.binary(
             BinOper::In,
-            SimpleExpr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
+            Expr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
         )
     }
 
@@ -473,16 +474,16 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "font_id" FROM "character" WHERE ("character", "font_id") IN ((1, '1'), (2, '2'))"#
     /// );
     /// ```
-    fn in_tuples<V, I>(self, v: I) -> SimpleExpr
+    fn in_tuples<V, I>(self, v: I) -> Expr
     where
         V: IntoValueTuple,
         I: IntoIterator<Item = V>,
     {
         self.binary(
             BinOper::In,
-            SimpleExpr::Tuple(
+            Expr::Tuple(
                 v.into_iter()
-                    .map(|m| SimpleExpr::Values(m.into_value_tuple().into_iter().collect()))
+                    .map(|m| Expr::Values(m.into_value_tuple().into_iter().collect()))
                     .collect(),
             ),
         )
@@ -514,9 +515,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."ascii" IS TRUE"#
     /// );
     /// ```
-    fn is<R>(self, right: R) -> SimpleExpr
+    fn is<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         self.binary(BinOper::Is, right)
     }
@@ -579,14 +580,14 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    fn is_in<V, I>(self, v: I) -> SimpleExpr
+    fn is_in<V, I>(self, v: I) -> Expr
     where
-        V: Into<SimpleExpr>,
+        V: Into<Expr>,
         I: IntoIterator<Item = V>,
     {
         self.binary(
             BinOper::In,
-            SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+            Expr::Tuple(v.into_iter().map(|v| v.into()).collect()),
         )
     }
 
@@ -617,9 +618,9 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    fn is_not<R>(self, right: R) -> SimpleExpr
+    fn is_not<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         self.binary(BinOper::IsNot, right)
     }
@@ -682,14 +683,14 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    fn is_not_in<V, I>(self, v: I) -> SimpleExpr
+    fn is_not_in<V, I>(self, v: I) -> Expr
     where
-        V: Into<SimpleExpr>,
+        V: Into<Expr>,
         I: IntoIterator<Item = V>,
     {
         self.binary(
             BinOper::NotIn,
-            SimpleExpr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+            Expr::Tuple(v.into_iter().map(|v| v.into()).collect()),
         )
     }
 
@@ -720,7 +721,7 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    fn is_not_null(self) -> SimpleExpr {
+    fn is_not_null(self) -> Expr {
         self.binary(BinOper::IsNot, Keyword::Null)
     }
 
@@ -751,7 +752,7 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
-    fn is_null(self) -> SimpleExpr {
+    fn is_null(self) -> Expr {
         self.binary(BinOper::Is, Keyword::Null)
     }
 
@@ -781,9 +782,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 << 1 = 2"#
     /// );
     /// ```
-    fn left_shift<R>(self, right: R) -> SimpleExpr
+    fn left_shift<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         self.binary(BinOper::LShift, right)
     }
@@ -839,7 +840,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" LIKE '|_Our|_' ESCAPE '|'"#
     /// );
     /// ```
-    fn like<L>(self, like: L) -> SimpleExpr
+    fn like<L>(self, like: L) -> Expr
     where
         L: IntoLikeExpr,
     {
@@ -872,9 +873,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" < 2"#
     /// );
     /// ```
-    fn lt<R>(self, right: R) -> SimpleExpr
+    fn lt<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::SmallerThan, right)
     }
@@ -905,9 +906,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" <= 2"#
     /// );
     /// ```
-    fn lte<R>(self, right: R) -> SimpleExpr
+    fn lte<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::SmallerThanOrEqual, right)
     }
@@ -938,9 +939,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 % 1 = 2"#
     /// );
     /// ```
-    fn modulo<R>(self, right: R) -> SimpleExpr
+    fn modulo<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         self.binary(BinOper::Mod, right)
     }
@@ -971,9 +972,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 * 1 = 2"#
     /// );
     /// ```
-    fn mul<R>(self, right: R) -> SimpleExpr
+    fn mul<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::Mul, right)
     }
@@ -1006,9 +1007,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'Morning' <> 'Good' AND "id" <> 1"#
     /// );
     /// ```
-    fn ne<R>(self, right: R) -> SimpleExpr
+    fn ne<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::NotEqual, right)
     }
@@ -1039,7 +1040,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
     /// );
     /// ```
-    fn not(self) -> SimpleExpr {
+    fn not(self) -> Expr {
         self.unary(UnOper::Not)
     }
 
@@ -1069,14 +1070,14 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."size_w" NOT BETWEEN 1 AND 10"#
     /// );
     /// ```
-    fn not_between<A, B>(self, a: A, b: B) -> SimpleExpr
+    fn not_between<A, B>(self, a: A, b: B) -> Expr
     where
-        A: Into<SimpleExpr>,
-        B: Into<SimpleExpr>,
+        A: Into<Expr>,
+        B: Into<Expr>,
     {
         self.binary(
             BinOper::NotBetween,
-            SimpleExpr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
+            Expr::Binary(Box::new(a.into()), BinOper::And, Box::new(b.into())),
         )
     }
 
@@ -1107,7 +1108,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."font_id" <> "font"."id""#
     /// );
     /// ```
-    fn not_equals<C>(self, col: C) -> SimpleExpr
+    fn not_equals<C>(self, col: C) -> Expr
     where
         C: IntoColumnRef,
     {
@@ -1144,10 +1145,10 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" NOT IN (SELECT 3 + 2 * 2)"#
     /// );
     /// ```
-    fn not_in_subquery(self, sel: SelectStatement) -> SimpleExpr {
+    fn not_in_subquery(self, sel: SelectStatement) -> Expr {
         self.binary(
             BinOper::NotIn,
-            SimpleExpr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
+            Expr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
         )
     }
 
@@ -1177,7 +1178,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" NOT LIKE 'Ours''%'"#
     /// );
     /// ```
-    fn not_like<L>(self, like: L) -> SimpleExpr
+    fn not_like<L>(self, like: L) -> Expr
     where
         L: IntoLikeExpr,
     {
@@ -1210,9 +1211,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE FALSE OR TRUE"#
     /// );
     /// ```
-    fn or<R>(self, right: R) -> SimpleExpr
+    fn or<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::Or, right)
     }
@@ -1243,9 +1244,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 >> 1 = 2"#
     /// );
     /// ```
-    fn right_shift<R>(self, right: R) -> SimpleExpr
+    fn right_shift<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         self.binary(BinOper::RShift, right)
     }
@@ -1276,9 +1277,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 - 1 = 2"#
     /// );
     /// ```
-    fn sub<R>(self, right: R) -> SimpleExpr
+    fn sub<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::Sub, right)
     }
@@ -1309,7 +1310,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE NOT "character"."size_w" IS NULL"#
     /// );
     /// ```
-    fn unary(self, o: UnOper) -> SimpleExpr;
+    fn unary(self, o: UnOper) -> Expr;
 
     /// Express a bitwise AND operation.
     ///
@@ -1344,9 +1345,9 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (1 & 1) = 1"#
     /// );
     /// ```
-    fn bit_and<R>(self, right: R) -> SimpleExpr
+    fn bit_and<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::BitAnd, right)
     }
@@ -1377,48 +1378,48 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE (1 | 1) = 1"#
     /// );
     /// ```
-    fn bit_or<R>(self, right: R) -> SimpleExpr
+    fn bit_or<R>(self, right: R) -> Expr
     where
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
         ExprTrait::binary(self, BinOper::BitOr, right)
     }
 }
 
 /// This generic implementation covers all expression types,
-/// including [ColumnRef], [Value], [FunctionCall], [SimpleExpr]...
+/// including [ColumnRef], [Value], [FunctionCall], [Expr]...
 impl<T> ExprTrait for T
 where
-    T: Into<SimpleExpr>,
+    T: Into<Expr>,
 {
-    fn as_enum<N>(self, type_name: N) -> SimpleExpr
+    fn as_enum<N>(self, type_name: N) -> Expr
     where
         N: IntoIden,
     {
-        SimpleExpr::AsEnum(type_name.into_iden(), Box::new(self.into()))
+        Expr::AsEnum(type_name.into_iden(), Box::new(self.into()))
     }
 
-    fn binary<O, R>(self, op: O, right: R) -> SimpleExpr
+    fn binary<O, R>(self, op: O, right: R) -> Expr
     where
         O: Into<BinOper>,
-        R: Into<SimpleExpr>,
+        R: Into<Expr>,
     {
-        SimpleExpr::Binary(Box::new(self.into()), op.into(), Box::new(right.into()))
+        Expr::Binary(Box::new(self.into()), op.into(), Box::new(right.into()))
     }
 
-    fn cast_as<N>(self, type_name: N) -> SimpleExpr
+    fn cast_as<N>(self, type_name: N) -> Expr
     where
         N: IntoIden,
     {
-        SimpleExpr::FunctionCall(Func::cast_as(self, type_name))
+        Expr::FunctionCall(Func::cast_as(self, type_name))
     }
 
-    fn unary(self, op: UnOper) -> SimpleExpr {
-        SimpleExpr::Unary(op, Box::new(self.into()))
+    fn unary(self, op: UnOper) -> Expr {
+        Expr::Unary(op, Box::new(self.into()))
     }
 }
 
-impl SimpleExpr {
+impl Expr {
     pub fn new(expr: impl Into<Self>) -> Self {
         expr.into()
     }
@@ -1484,7 +1485,7 @@ impl SimpleExpr {
         Self::Column(n.into_column_ref())
     }
 
-    /// Express the target column without table prefix, returning a [`SimpleExpr`].
+    /// Express the target column without table prefix, returning a [`Expr`].
     ///
     /// # Examples
     ///
@@ -1540,7 +1541,7 @@ impl SimpleExpr {
         Self::Column(n.into_column_ref())
     }
 
-    /// Wraps tuple of `SimpleExpr`, can be used for tuple comparison
+    /// Wraps tuple of `Expr`, can be used for tuple comparison
     ///
     /// # Examples
     ///
@@ -1690,7 +1691,7 @@ impl SimpleExpr {
         expr.into()
     }
 
-    /// Express a [`Value`], returning a [`SimpleExpr`].
+    /// Express a [`Value`], returning a [`Expr`].
     ///
     /// # Examples
     ///
@@ -1842,7 +1843,7 @@ impl SimpleExpr {
         )
     }
 
-    /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expression.
+    /// Express any custom expression with [`Expr`]. Use this if your expression needs other expression.
     ///
     /// # Examples
     ///
@@ -1884,11 +1885,11 @@ impl SimpleExpr {
         Self::CustomWithExpr(s.into(), vec![expr.into()])
     }
 
-    /// Express any custom expression with [`SimpleExpr`]. Use this if your expression needs other expressions.
+    /// Express any custom expression with [`Expr`]. Use this if your expression needs other expressions.
     pub fn cust_with_exprs<T, I>(s: T, v: I) -> Self
     where
         T: Into<String>,
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         Self::CustomWithExpr(s.into(), v.into_iter().collect())
     }
@@ -2299,7 +2300,7 @@ impl SimpleExpr {
     }
 }
 
-impl<T> From<T> for SimpleExpr
+impl<T> From<T> for Expr
 where
     T: Into<Value>,
 {
@@ -2308,38 +2309,38 @@ where
     }
 }
 
-impl From<FunctionCall> for SimpleExpr {
+impl From<FunctionCall> for Expr {
     fn from(func: FunctionCall) -> Self {
         Self::FunctionCall(func)
     }
 }
 
-impl From<ColumnRef> for SimpleExpr {
+impl From<ColumnRef> for Expr {
     fn from(col: ColumnRef) -> Self {
         Self::Column(col)
     }
 }
 
-impl From<Keyword> for SimpleExpr {
+impl From<Keyword> for Expr {
     fn from(k: Keyword) -> Self {
         Self::Keyword(k)
     }
 }
 
-impl From<LikeExpr> for SimpleExpr {
+impl From<LikeExpr> for Expr {
     fn from(like: LikeExpr) -> Self {
         match like.escape {
             Some(escape) => Self::Binary(
                 Box::new(like.pattern.into()),
                 BinOper::Escape,
-                Box::new(SimpleExpr::Constant(escape.into())),
+                Box::new(Expr::Constant(escape.into())),
             ),
             None => like.pattern.into(),
         }
     }
 }
 
-impl SimpleExpr {
+impl Expr {
     /// Soft deprecated. This is not meant to be in the public API.
     #[doc(hidden)]
     pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self

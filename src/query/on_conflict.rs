@@ -1,4 +1,4 @@
-use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, SimpleExpr};
+use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, Expr};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct OnConflict {
@@ -14,7 +14,7 @@ pub enum OnConflictTarget {
     /// A column
     ConflictColumn(DynIden),
     /// An expression `(LOWER(column), ...)`
-    ConflictExpr(SimpleExpr),
+    ConflictExpr(Expr),
 }
 
 /// Represents ON CONFLICT (upsert) actions
@@ -32,7 +32,7 @@ pub enum OnConflictUpdate {
     /// Update column value of existing row with inserting value
     Column(DynIden),
     /// Update column value of existing row with expression
-    Expr(DynIden, SimpleExpr),
+    Expr(DynIden, Expr),
 }
 
 impl OnConflict {
@@ -117,7 +117,7 @@ impl OnConflict {
     /// ```
     pub fn expr<T>(&mut self, expr: T) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         Self::exprs(self, [expr])
     }
@@ -125,7 +125,7 @@ impl OnConflict {
     /// Set multiple target expressions for ON CONFLICT. See [`OnConflict::expr`]
     pub fn exprs<I, T>(&mut self, exprs: I) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         I: IntoIterator<Item = T>,
     {
         self.targets.append(
@@ -397,7 +397,7 @@ impl OnConflict {
     pub fn values<C, I>(&mut self, values: I) -> &mut Self
     where
         C: IntoIden,
-        I: IntoIterator<Item = (C, SimpleExpr)>,
+        I: IntoIterator<Item = (C, Expr)>,
     {
         let mut update_exprs: Vec<OnConflictUpdate> = values
             .into_iter()
@@ -419,7 +419,7 @@ impl OnConflict {
     pub fn value<C, T>(&mut self, col: C, value: T) -> &mut Self
     where
         C: IntoIden,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.values([(col, value.into())])
     }
@@ -459,12 +459,12 @@ impl OnConflict {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") WHERE "glyph"."aspect" IS NULL DO UPDATE SET "image" = 1 + 2"#
     /// );
     /// ```
-    pub fn target_and_where(&mut self, other: SimpleExpr) -> &mut Self {
+    pub fn target_and_where(&mut self, other: Expr) -> &mut Self {
         self.target_cond_where(other)
     }
 
     /// Set target WHERE
-    pub fn target_and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
+    pub fn target_and_where_option(&mut self, other: Option<Expr>) -> &mut Self {
         if let Some(other) = other {
             self.target_cond_where(other);
         }
@@ -515,12 +515,12 @@ impl OnConflict {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "image" = 1 + 2 WHERE "glyph"."aspect" IS NULL"#
     /// );
     /// ```
-    pub fn action_and_where(&mut self, other: SimpleExpr) -> &mut Self {
+    pub fn action_and_where(&mut self, other: Expr) -> &mut Self {
         self.action_cond_where(other)
     }
 
     /// Set action WHERE
-    pub fn action_and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
+    pub fn action_and_where_option(&mut self, other: Option<Expr>) -> &mut Self {
         if let Some(other) = other {
             self.action_cond_where(other);
         }

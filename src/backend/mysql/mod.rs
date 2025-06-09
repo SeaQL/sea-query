@@ -28,11 +28,7 @@ impl EscapeBuilder for MysqlQueryBuilder {}
 impl TableRefBuilder for MysqlQueryBuilder {}
 
 impl PrecedenceDecider for MysqlQueryBuilder {
-    fn inner_expr_well_known_greater_precedence(
-        &self,
-        inner: &SimpleExpr,
-        outer_oper: &Oper,
-    ) -> bool {
+    fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, outer_oper: &Oper) -> bool {
         common_inner_expr_well_known_greater_precedence(inner, outer_oper)
     }
 }

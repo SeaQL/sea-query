@@ -1,4 +1,4 @@
-use crate::{ColumnRef, IntoColumnRef, SimpleExpr};
+use crate::{ColumnRef, IntoColumnRef, Expr};
 
 /// RETURNING clause.
 /// ## Note:
@@ -11,7 +11,7 @@ use crate::{ColumnRef, IntoColumnRef, SimpleExpr};
 pub enum ReturningClause {
     All,
     Columns(Vec<ColumnRef>),
-    Exprs(Vec<SimpleExpr>),
+    Exprs(Vec<Expr>),
 }
 
 /// Shorthand for constructing [`ReturningClause`]
@@ -134,7 +134,7 @@ impl Returning {
     /// ```
     pub fn expr<T>(&self, expr: T) -> ReturningClause
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         ReturningClause::Exprs(vec![expr.into()])
     }
@@ -163,7 +163,7 @@ impl Returning {
     /// ```
     pub fn exprs<T, I>(self, exprs: I) -> ReturningClause
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         I: IntoIterator<Item = T>,
     {
         ReturningClause::Exprs(exprs.into_iter().map(Into::into).collect())

@@ -1,5 +1,5 @@
 use crate::{
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SimpleExpr, SubQueryStatement,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, Expr, SubQueryStatement,
     WithClause, WithQuery,
     backend::QueryBuilder,
     prepare::*,
@@ -324,7 +324,7 @@ impl OrderedStatement for DeleteStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -343,7 +343,7 @@ impl OrderedStatement for DeleteStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -372,6 +372,6 @@ impl ConditionalStatement for DeleteStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }
