@@ -90,11 +90,7 @@ pub trait PrecedenceDecider {
     // This method decides which precedence relations should lead to dropped parentheses.
     // There will be more fine grained precedence relations than the ones represented here,
     // but dropping parentheses due to these relations can be confusing for readers.
-    fn inner_expr_well_known_greater_precedence(
-        &self,
-        inner: &SimpleExpr,
-        outer_oper: &Oper,
-    ) -> bool;
+    fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, outer_oper: &Oper) -> bool;
 }
 
 pub trait OperLeftAssocDecider {

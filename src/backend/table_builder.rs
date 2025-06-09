@@ -195,14 +195,14 @@ pub trait TableBuilder:
     }
 
     /// Translate the check constraint into SQL statement
-    fn prepare_check_constraint(&self, check: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_check_constraint(&self, check: &Expr, sql: &mut dyn SqlWriter) {
         write!(sql, "CHECK (").unwrap();
         QueryBuilder::prepare_simple_expr(self, check, sql);
         write!(sql, ")").unwrap();
     }
 
     /// Translate the generated column into SQL statement
-    fn prepare_generated_column(&self, r#gen: &SimpleExpr, stored: bool, sql: &mut dyn SqlWriter) {
+    fn prepare_generated_column(&self, r#gen: &Expr, stored: bool, sql: &mut dyn SqlWriter) {
         write!(sql, "GENERATED ALWAYS AS (").unwrap();
         QueryBuilder::prepare_simple_expr(self, r#gen, sql);
         write!(sql, ")").unwrap();

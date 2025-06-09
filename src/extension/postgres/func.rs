@@ -57,11 +57,11 @@ impl PgFunc {
     /// ```
     pub fn to_tsquery<T>(expr: T, regconfig: Option<u32>) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         match regconfig {
             Some(config) => {
-                let config = SimpleExpr::Value(config.into());
+                let config = Expr::Value(config.into());
                 FunctionCall::new(Function::PgFunction(PgFunction::ToTsquery))
                     .args([config, expr.into()])
             }
@@ -90,11 +90,11 @@ impl PgFunc {
     /// ```
     pub fn to_tsvector<T>(expr: T, regconfig: Option<u32>) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         match regconfig {
             Some(config) => {
-                let config = SimpleExpr::Value(config.into());
+                let config = Expr::Value(config.into());
                 FunctionCall::new(Function::PgFunction(PgFunction::ToTsvector))
                     .args([config, expr.into()])
             }
@@ -123,11 +123,11 @@ impl PgFunc {
     /// ```
     pub fn phraseto_tsquery<T>(expr: T, regconfig: Option<u32>) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         match regconfig {
             Some(config) => {
-                let config = SimpleExpr::Value(config.into());
+                let config = Expr::Value(config.into());
                 FunctionCall::new(Function::PgFunction(PgFunction::PhrasetoTsquery))
                     .args([config, expr.into()])
             }
@@ -156,11 +156,11 @@ impl PgFunc {
     /// ```
     pub fn plainto_tsquery<T>(expr: T, regconfig: Option<u32>) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         match regconfig {
             Some(config) => {
-                let config = SimpleExpr::Value(config.into());
+                let config = Expr::Value(config.into());
                 FunctionCall::new(Function::PgFunction(PgFunction::PlaintoTsquery))
                     .args([config, expr.into()])
             }
@@ -189,11 +189,11 @@ impl PgFunc {
     /// ```
     pub fn websearch_to_tsquery<T>(expr: T, regconfig: Option<u32>) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         match regconfig {
             Some(config) => {
-                let config = SimpleExpr::Value(config.into());
+                let config = Expr::Value(config.into());
                 FunctionCall::new(Function::PgFunction(PgFunction::WebsearchToTsquery))
                     .args([config, expr.into()])
             }
@@ -221,7 +221,7 @@ impl PgFunc {
     /// ```
     pub fn ts_rank<T>(vector: T, query: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::TsRank))
             .args([vector.into(), query.into()])
@@ -245,7 +245,7 @@ impl PgFunc {
     /// ```
     pub fn ts_rank_cd<T>(vector: T, query: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::TsRankCd))
             .args([vector.into(), query.into()])
@@ -268,7 +268,7 @@ impl PgFunc {
     #[cfg(feature = "postgres-array")]
     pub fn any<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::Any)).arg(expr)
     }
@@ -290,7 +290,7 @@ impl PgFunc {
     #[cfg(feature = "postgres-array")]
     pub fn some<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::Some)).arg(expr)
     }
@@ -312,7 +312,7 @@ impl PgFunc {
     #[cfg(feature = "postgres-array")]
     pub fn all<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::All)).arg(expr)
     }
@@ -335,8 +335,8 @@ impl PgFunc {
     /// ```
     pub fn starts_with<T, P>(text: T, prefix: P) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
-        P: Into<SimpleExpr>,
+        T: Into<Expr>,
+        P: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::StartsWith))
             .args([text.into(), prefix.into()])
@@ -381,7 +381,7 @@ impl PgFunc {
     /// ```
     pub fn json_build_object<T>(pairs: Vec<(T, T)>) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         let mut args = vec![];
         for (key, value) in pairs {
@@ -424,7 +424,7 @@ impl PgFunc {
     /// ```
     pub fn date_trunc<T>(unit: PgDateTruncUnit, expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::DateTrunc))
             .args([Expr::val(unit.to_string()), expr.into()])
@@ -449,7 +449,7 @@ impl PgFunc {
     /// ```
     pub fn json_agg<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::JsonAgg)).arg(expr)
     }
@@ -474,7 +474,7 @@ impl PgFunc {
     /// ```
     pub fn array_agg<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::ArrayAgg)).arg(expr)
     }
@@ -499,7 +499,7 @@ impl PgFunc {
     /// ```
     pub fn array_agg_distinct<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::PgFunction(PgFunction::ArrayAgg))
             .arg_with(expr, FuncArgMod { distinct: true })

@@ -1,4 +1,4 @@
-use crate::expr::SimpleExpr;
+use crate::expr::Expr;
 use crate::{FunctionCall, types::*};
 
 /// Specification of a table index
@@ -24,7 +24,7 @@ pub struct IndexColumnTableColumn {
 
 #[derive(Debug, Clone)]
 pub struct IndexColumnExpr {
-    pub(crate) expr: SimpleExpr,
+    pub(crate) expr: Expr,
     pub(crate) order: Option<IndexOrder>,
 }
 
@@ -124,7 +124,7 @@ impl IntoIndexColumn for (FunctionCall, IndexOrder) {
     }
 }
 
-impl IntoIndexColumn for SimpleExpr {
+impl IntoIndexColumn for Expr {
     fn into_index_column(self) -> IndexColumn {
         IndexColumn::Expr(IndexColumnExpr {
             expr: self,
@@ -133,7 +133,7 @@ impl IntoIndexColumn for SimpleExpr {
     }
 }
 
-impl IntoIndexColumn for (SimpleExpr, IndexOrder) {
+impl IntoIndexColumn for (Expr, IndexOrder) {
     fn into_index_column(self) -> IndexColumn {
         IndexColumn::Expr(IndexColumnExpr {
             expr: self.0,

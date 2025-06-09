@@ -10,14 +10,10 @@ impl OperLeftAssocDecider for PostgresQueryBuilder {
 }
 
 impl PrecedenceDecider for PostgresQueryBuilder {
-    fn inner_expr_well_known_greater_precedence(
-        &self,
-        inner: &SimpleExpr,
-        outer_oper: &Oper,
-    ) -> bool {
+    fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, outer_oper: &Oper) -> bool {
         let common_answer = common_inner_expr_well_known_greater_precedence(inner, outer_oper);
         let pg_specific_answer = match inner {
-            SimpleExpr::Binary(_, inner_bin_oper, _) => {
+            Expr::Binary(_, inner_bin_oper, _) => {
                 let inner_oper: Oper = (*inner_bin_oper).into();
                 if inner_oper.is_arithmetic() || inner_oper.is_shift() {
                     is_ilike(inner_bin_oper)
@@ -38,9 +34,9 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         match simple_expr {
-            SimpleExpr::AsEnum(type_name, expr) => {
+            Expr::AsEnum(type_name, expr) => {
                 write!(sql, "CAST(").unwrap();
                 self.prepare_simple_expr_common(expr, sql);
                 let q = self.quote();
