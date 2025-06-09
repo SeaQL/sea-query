@@ -169,7 +169,8 @@
 //!             Character::Id => "id",
 //!             Character::FontId => "font_id",
 //!             Character::FontSize => "font_size",
-//!         }.into()
+//!         }
+//!         .into()
 //!     }
 //! }
 //! ```
