@@ -9,9 +9,7 @@ use crate::{func::*, query::*, types::*, value::*};
 
 /// A legacy compatibility alias for [`Expr`].
 ///
-/// It used to be a separate type with constructor methods.
-/// Now you can call these constructors directly on [`Expr`].
-#[deprecated(since = "1.0.0-rc.2", note = "Use [`Expr`] instead.")]
+/// These used to be two separate (but very similar) types.
 pub type SimpleExpr = Expr;
 
 /// An arbitrary, dynamically-typed SQL expression.
@@ -50,7 +48,7 @@ pub enum Expr {
 /// "Operator" methods for building expressions.
 ///
 /// Before `sea_query` 0.32.0 (`sea_orm` 1.1.1),
-/// these methods were awailable only on [`Expr`]/[`Expr`]
+/// these methods were awailable only on [`Expr`]/[`SimpleExpr`]
 /// and you needed to manually construct these types first.
 ///
 /// Now, you can call them directly on any expression type:
