@@ -1,4 +1,4 @@
-use crate::{Condition, IntoCondition, Expr};
+use crate::{Condition, Expr, IntoCondition};
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct CaseStatementCondition {
@@ -140,10 +140,9 @@ mod test {
     #[test]
     #[cfg(feature = "backend-postgres")]
     fn test_where_case_eq() {
-        let case_statement: Expr =
-            Expr::case(Expr::col("col").lt(5), Expr::col("othercol"))
-                .finally(Expr::col("finalcol"))
-                .into();
+        let case_statement: Expr = Expr::case(Expr::col("col").lt(5), Expr::col("othercol"))
+            .finally(Expr::col("finalcol"))
+            .into();
 
         let result = Query::select()
             .column(Asterisk)

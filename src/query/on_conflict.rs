@@ -1,4 +1,4 @@
-use crate::{ConditionHolder, DynIden, IntoCondition, IntoIden, Expr};
+use crate::{ConditionHolder, DynIden, Expr, IntoCondition, IntoIden};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct OnConflict {

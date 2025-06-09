@@ -1,4 +1,4 @@
-use crate::{ColumnRef, IntoColumnRef, Expr};
+use crate::{ColumnRef, Expr, IntoColumnRef};
 
 /// RETURNING clause.
 /// ## Note:

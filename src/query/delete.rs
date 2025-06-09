@@ -1,5 +1,5 @@
 use crate::{
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, Expr, SubQueryStatement,
+    Expr, QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement,
     WithClause, WithQuery,
     backend::QueryBuilder,
     prepare::*,

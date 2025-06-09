@@ -1,7 +1,6 @@
 use crate::{
-    ColumnRef, DynIden, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
-    SelectStatement, Expr, SqlWriter, SubQueryStatement, TableRef, Values,
-    {Alias, QueryBuilder},
+    ColumnRef, DynIden, Expr, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
+    SelectStatement, SqlWriter, SubQueryStatement, TableRef, Values, {Alias, QueryBuilder},
 };
 use inherent::inherent;
 

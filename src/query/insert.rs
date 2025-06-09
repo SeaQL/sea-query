@@ -1,7 +1,7 @@
 use crate::{
-    OnConflict, QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement,
-    Expr, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder, error::*,
-    prepare::*, types::*,
+    Expr, OnConflict, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SelectStatement, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder,
+    error::*, prepare::*, types::*,
 };
 use inherent::inherent;
 
