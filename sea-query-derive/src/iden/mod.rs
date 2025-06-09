@@ -24,15 +24,3 @@ impl WriteArm for DeriveIden {
         quote! { #variant => #sea_query_path::Iden::from(#name) }
     }
 }
-
-pub(crate) struct DeriveIdenStatic;
-
-impl WriteArm for DeriveIdenStatic {
-    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
-        quote! { Self::#variant => #name }
-    }
-
-    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
-        quote! { Self::#variant => #name.as_str() }
-    }
-}

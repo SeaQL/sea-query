@@ -122,28 +122,6 @@ where
     }
 }
 
-/// Identifier
-pub trait IdenStatic: Copy + 'static {
-    fn as_str(&self) -> &'static str;
-
-    fn to_string(&self) -> String {
-        Iden::from(self.as_str()).to_string()
-    }
-
-    fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
-        Iden::from(self.as_str()).prepare(s, q)
-    }
-}
-
-// impl<T> From<T> for Iden
-// where
-//     T: IdenStatic,
-// {
-//     fn from(value: T) -> Self {
-//         value.as_str().into()
-//     }
-// }
-
 pub trait IdenList {
     type IntoIter: Iterator<Item = DynIden>;
 

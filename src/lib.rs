@@ -832,7 +832,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::{Iden, IdenStatic, enum_def};
+pub use sea_query_derive::{Iden, enum_def};
 
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;

@@ -12,8 +12,7 @@ use syn::{
 mod iden;
 
 use self::iden::{
-    DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, path::IdenPath,
-    write_arm::IdenVariant,
+    DeriveIden, attr::IdenAttr, error::ErrorMsg, path::IdenPath, write_arm::IdenVariant,
 };
 
 #[proc_macro_derive(Iden, attributes(iden, method))]
@@ -45,90 +44,6 @@ pub fn derive_iden(input: TokenStream) -> TokenStream {
     }
 
     let output = impl_iden_for_enum(&ident, &table_name, variants.iter());
-
-    output.into()
-}
-
-#[proc_macro_derive(IdenStatic, attributes(iden, method))]
-pub fn derive_iden_static(input: TokenStream) -> TokenStream {
-    let sea_query_path = sea_query_path();
-
-    let DeriveInput {
-        ident, data, attrs, ..
-    } = parse_macro_input!(input);
-
-    let table_name = match get_table_name(&ident, attrs) {
-        Ok(v) => v,
-        Err(e) => return e.to_compile_error().into(),
-    };
-
-    // Currently we only support enums and unit structs
-    let variants =
-        match data {
-            syn::Data::Enum(DataEnum { variants, .. }) => variants,
-            syn::Data::Struct(DataStruct {
-                fields: Fields::Unit,
-                ..
-            }) => {
-                let impl_iden = impl_iden_for_unit_struct(&ident, &table_name);
-
-                return quote! {
-                    #impl_iden
-
-                    impl #sea_query_path::IdenStatic for #ident {
-                        fn as_str(&self) -> &'static str {
-                            #table_name
-                        }
-                    }
-
-                    impl std::convert::AsRef<str> for #ident {
-                        fn as_ref(&self) -> &str {
-                            self.as_str()
-                        }
-                    }
-                }
-                .into();
-            }
-            _ => return quote_spanned! {
-                ident.span() => compile_error!("you can only derive Iden on enums or unit structs");
-            }
-            .into(),
-        };
-
-    if variants.is_empty() {
-        return TokenStream::new();
-    }
-
-    let impl_iden = impl_iden_for_enum(&ident, &table_name, variants.iter());
-
-    let match_arms = match variants
-        .iter()
-        .map(|v| (table_name.as_str(), v))
-        .map(IdenVariant::<DeriveIdenStatic>::try_from)
-        .collect::<syn::Result<Vec<_>>>()
-    {
-        Ok(v) => quote! { #(#v),* },
-        Err(e) => return e.to_compile_error().into(),
-    };
-
-    let output = quote! {
-        #impl_iden
-
-        impl #sea_query_path::IdenStatic for #ident {
-            fn as_str(&self) -> &'static str {
-                let value = self;
-                match value {
-                    #match_arms
-                }
-            }
-        }
-
-        impl std::convert::AsRef<str> for #ident {
-            fn as_ref(&self) -> &'static str {
-                self.as_str()
-            }
-        }
-    };
 
     output.into()
 }
@@ -319,8 +234,10 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
     );
     let pascal_def_names = field_names.iter().map(|field| &field.pascal);
     let pascal_def_names2 = pascal_def_names.clone();
+    let pascal_def_names3 = pascal_def_names.clone();
     let default_names = field_names.iter().map(|field| &field.default);
     let default_names2 = default_names.clone();
+    let default_names3 = default_names.clone();
     let import_name = Ident::new(
         args.crate_name
             .unwrap_or_else(|| DEFAULT_CRATE_NAME.to_string())
@@ -337,24 +254,21 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
             #(#pascal_def_names,)*
         }
 
-        impl #import_name::IdenStatic for #enum_name {
-            fn as_str(&self) -> &'static str {
-                match self {
-                    #enum_name::Table => stringify!(#table_name),
-                    #(#enum_name::#pascal_def_names2 => stringify!(#default_names2)),*
-                }
-            }
-        }
-
         impl From<#enum_name> for #import_name::Iden {
             fn from(value: #enum_name) -> Self {
-                #import_name::Iden::from(<#enum_name as #import_name::IdenStatic>::as_str(&value))
+                #import_name::Iden::from(match value {
+                    #enum_name::Table => stringify!(#table_name),
+                    #(#enum_name::#pascal_def_names2 => stringify!(#default_names2)),*
+                })
             }
         }
 
         impl ::std::convert::AsRef<str> for #enum_name {
             fn as_ref(&self) -> &str {
-                <Self as #import_name::IdenStatic>::as_str(&self)
+                match self {
+                    #enum_name::Table => stringify!(#table_name),
+                    #(#enum_name::#pascal_def_names3 => stringify!(#default_names3)),*
+                }
             }
         }
     })
