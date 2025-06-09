@@ -3,8 +3,7 @@
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
 use std::{
     borrow::Cow,
-    fmt::{self, Debug, Display},
-    ops,
+    fmt::{self, Debug},
 };
 
 #[cfg(feature = "backend-postgres")]
@@ -75,6 +74,7 @@ iden_trait!(Send, Sync);
 #[cfg(not(feature = "thread-safe"))]
 iden_trait!();
 
+/// An SQL identifier (string)
 #[derive(Debug, Clone, PartialEq)]
 pub struct IdenImpl {
     value: Cow<'static, str>,
@@ -128,53 +128,29 @@ impl Iden for IdenImpl {
     }
 }
 
-// #[deprecated(
-//     since = "1.0.0-rc.1",
-//     note = "This type alias is kept for compatibility purposes. It may be removed in the future."
-// )]
+/// A legacy compatibility type alias.
+///
+/// Identifiers used to be reference-counted `dyn` trait objects,
+/// and we had this shorter alias for readability.
+///
+/// Now, identifiers are eagerly "rendered" into a concrete struct.
+/// You can just use the struct.
 pub type DynIden = IdenImpl;
 
-#[derive(Debug, Clone)]
-#[repr(transparent)]
-pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
-where
-    I: ?Sized;
-
-impl<I> Display for SeaRc<I>
-where
-    I: Display,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl ops::Deref for SeaRc<dyn Iden> {
-    type Target = dyn Iden;
-
-    fn deref(&self) -> &Self::Target {
-        ops::Deref::deref(&self.0)
-    }
-}
-
-impl PartialEq for SeaRc<dyn Iden> {
-    fn eq(&self, other: &Self) -> bool {
-        self.to_string() == other.to_string()
-    }
-}
-
-impl ops::Deref for SeaRc<IdenImpl> {
-    type Target = IdenImpl;
-
-    fn deref(&self) -> &Self::Target {
-        ops::Deref::deref(&self.0)
-    }
-}
-
+/// A legacy compatibility trait.
+///
+/// We used to have it instead of [`Into<IdenImpl>`].
+///
+/// New code should use [`Into<IdenImpl>`].
+///
+/// Rust types implement these traits to be used as type-safe ("typo-safe") SQL identifiers.
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
 }
 
+/// Provide compatibility with the existing code that uses `IntoIden`.
+///
+/// New code should use `Into<IdenImpl>`.
 impl<T> IntoIden for T
 where
     T: Into<IdenImpl>,
