@@ -63,6 +63,7 @@ pub struct SelectStatement {
 
 /// List of distinct keywords that can be used in select statement
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SelectDistinct {
     All,
     Distinct,
@@ -72,6 +73,7 @@ pub enum SelectDistinct {
 
 /// Window type in [`SelectExpr`]
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum WindowSelectType {
     /// Name in [`SelectStatement`]
     Name(DynIden),
@@ -98,6 +100,7 @@ pub struct JoinExpr {
 
 /// List of lock types that can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LockType {
     /// Exclusive lock
     Update,
@@ -109,6 +112,7 @@ pub enum LockType {
 
 /// List of lock behavior can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LockBehavior {
     Nowait,
     SkipLocked,
@@ -123,6 +127,7 @@ pub struct LockClause {
 
 /// List of union types that can be used in union clause
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum UnionType {
     Intersect,
     Distinct,
@@ -1482,45 +1487,45 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .column((Font::Table, Font::Name))
+    ///     .column(("f", Font::Name))
     ///     .from(Char::Table)
     ///     .join_as(
     ///         JoinType::RightJoin,
     ///         Font::Table,
     ///         "f",
-    ///         Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
+    ///         Expr::col((Char::Table, Char::FontId)).equals(("f", Font::Id))
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT `character`, `f`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `f`.`id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "f"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "f"."id""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "f"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "f"."id""#
     /// );
     ///
     /// // Constructing chained join conditions
     /// assert_eq!(
     ///     Query::select()
     ///         .column(Char::Character)
-    ///         .column((Font::Table, Font::Name))
+    ///         .column(("f", Font::Name))
     ///         .from(Char::Table)
     ///         .join_as(
     ///             JoinType::RightJoin,
     ///             Font::Table,
     ///             "f",
     ///             Condition::all()
-    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
-    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals(("f", Font::Id)))
+    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals(("f", Font::Id)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT `character`, `f`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `f`.`id` AND `character`.`font_id` = `f`.`id`"#
     /// );
     /// ```
     pub fn join_as<R, A, C>(

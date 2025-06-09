@@ -2,7 +2,7 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{NaiveDate, NaiveDateTime};
 use rust_decimal::Decimal;
 use sea_query::{
-    ColumnDef, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
+    ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
 };
 use sea_query_binder::SqlxBinder;
 use sqlx::{PgPool, Row};

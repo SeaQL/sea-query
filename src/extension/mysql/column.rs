@@ -1,6 +1,7 @@
 use crate::{Iden, IdenImpl};
 
 #[derive(Debug, Copy, Clone)]
+#[non_exhaustive]
 pub enum MySqlType {
     TinyBlob,
     MediumBlob,

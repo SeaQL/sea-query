@@ -199,12 +199,27 @@ impl fmt::Debug for dyn Iden {
 
 /// Column references
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
     SchemaTableColumn(DynIden, DynIden, DynIden),
     Asterisk,
     TableAsterisk(DynIden),
+}
+
+impl ColumnRef {
+    #[doc(hidden)]
+    /// Returns the column name if it's not an asterisk.
+    pub fn column(&self) -> Option<&DynIden> {
+        match self {
+            ColumnRef::Column(column) => Some(column),
+            ColumnRef::TableColumn(_, column) => Some(column),
+            ColumnRef::SchemaTableColumn(_, _, column) => Some(column),
+            ColumnRef::Asterisk => None,
+            ColumnRef::TableAsterisk(_) => None,
+        }
+    }
 }
 
 pub trait IntoColumnRef {
@@ -214,6 +229,7 @@ pub trait IntoColumnRef {
 /// Table references
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum TableRef {
     /// Table identifier without any schema / database prefix
     Table(DynIden),
@@ -235,12 +251,45 @@ pub enum TableRef {
     FunctionCall(FunctionCall, DynIden),
 }
 
+impl TableRef {
+    #[doc(hidden)]
+    pub fn table(&self) -> &DynIden {
+        match self {
+            TableRef::Table(tbl)
+            | TableRef::SchemaTable(_, tbl)
+            | TableRef::DatabaseSchemaTable(_, _, tbl)
+            | TableRef::TableAlias(tbl, _)
+            | TableRef::SchemaTableAlias(_, tbl, _)
+            | TableRef::DatabaseSchemaTableAlias(_, _, tbl, _)
+            | TableRef::SubQuery(_, tbl)
+            | TableRef::ValuesList(_, tbl)
+            | TableRef::FunctionCall(_, tbl) => tbl,
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn table_alias(&self) -> Option<&DynIden> {
+        match self {
+            TableRef::Table(_)
+            | TableRef::SchemaTable(_, _)
+            | TableRef::DatabaseSchemaTable(_, _, _)
+            | TableRef::SubQuery(_, _)
+            | TableRef::ValuesList(_, _) => None,
+            TableRef::TableAlias(_, alias)
+            | TableRef::SchemaTableAlias(_, _, alias)
+            | TableRef::DatabaseSchemaTableAlias(_, _, _, alias)
+            | TableRef::FunctionCall(_, alias) => Some(alias),
+        }
+    }
+}
+
 pub trait IntoTableRef {
     fn into_table_ref(self) -> TableRef;
 }
 
 /// Unary operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum UnOper {
     Not,
 }
@@ -249,6 +298,7 @@ pub enum UnOper {
 ///
 /// If something is not supported here, you can use [`BinOper::Custom`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum BinOper {
     And,
     Or,
@@ -319,6 +369,7 @@ pub struct OrderExpr {
 
 /// Join on types
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
     Columns(Vec<SimpleExpr>),
@@ -326,6 +377,7 @@ pub enum JoinOn {
 
 /// Ordering options
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Order {
     Asc,
     Desc,
@@ -416,6 +468,7 @@ pub struct Asterisk;
 ///
 /// If something is not supported here, you can use [`Keyword::Custom`].
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Keyword {
     Null,
     CurrentDate,
@@ -437,6 +490,7 @@ pub trait IntoLikeExpr {
 
 /// SubQuery operators
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SubQueryOper {
     Exists,
     Any,

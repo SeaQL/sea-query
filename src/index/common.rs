@@ -9,6 +9,7 @@ pub struct TableIndex {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum IndexColumn {
     TableColumn(IndexColumnTableColumn),
     Expr(IndexColumnExpr),
@@ -37,6 +38,7 @@ impl IndexColumn {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum IndexOrder {
     Asc,
     Desc,

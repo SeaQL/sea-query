@@ -96,6 +96,7 @@ pub struct TableCreateStatement {
 
 /// All available table options
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TableOpt {
     Engine(String),
     Collate(String),
@@ -104,6 +105,7 @@ pub enum TableOpt {
 
 /// All available table partition options
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TablePartition {}
 
 impl TableCreateStatement {
