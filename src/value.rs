@@ -1420,6 +1420,17 @@ impl Value {
     }
 }
 
+impl ValueTuple {
+    pub fn arity(&self) -> usize {
+        match self {
+            Self::One(_) => 1,
+            Self::Two(_, _) => 2,
+            Self::Three(_, _, _) => 3,
+            Self::Many(vec) => vec.len(),
+        }
+    }
+}
+
 impl IntoIterator for ValueTuple {
     type Item = Value;
     type IntoIter = std::vec::IntoIter<Self::Item>;
