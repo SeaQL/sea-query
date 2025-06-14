@@ -320,7 +320,7 @@ pub enum Order {
 ///
 /// Nowadays, `&str` implements [`Iden`] and can be used directly.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Alias(String);
+pub struct Alias(pub String);
 
 /// Null Alias
 #[derive(Default, Debug, Copy, Clone)]
