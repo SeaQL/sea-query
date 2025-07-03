@@ -5,7 +5,7 @@
 //!
 //! [`ExprTrait`] provides "operator" methods for building expressions.
 
-use crate::{func::*, query::*, types::*, value::*};
+use crate::{func::*, if_else::*, query::*, types::*, value::*};
 
 /// A legacy compatibility alias for [`Expr`].
 ///
@@ -43,6 +43,7 @@ pub enum Expr {
     AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
     Constant(Value),
+    IfElse(Box<IfElseStatement>),
 }
 
 /// "Operator" methods for building expressions.
