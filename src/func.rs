@@ -65,7 +65,7 @@ impl FunctionCall {
         self.arg_with(arg, Default::default())
     }
 
-    pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
+    pub fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
     where
         T: Into<Expr>,
     {
