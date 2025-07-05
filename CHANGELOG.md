@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### New features
 
 * Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangably. There may be a few compile
-errors and some clippy warnings, basically just remove the redundant `.into()` #889
+errors and some clippy warnings, basically just remove the redundant `.into()` https://github.com/SeaQL/sea-query/pull/889
 ```rust
 pub type SimpleExpr = Expr; // !
 impl From<Expr> for SimpleExpr { .. } // now removed
@@ -18,7 +18,7 @@ impl From<Expr> for SimpleExpr { .. } // now removed
 
 ### Breaking Changes
 
-* Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope #890
+* Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
     |
@@ -33,7 +33,7 @@ help: trait `ExprTrait` which provides `like` is implemented but not in scope; p
  -> + use sea_query::ExprTrait;
 ```
 * `ExprTrait::eq` collided with `std::cmp::Eq`. If you encounter the following error, please use `std::cmp::PartialEq::eq(a, b)` or 
-`sea_query::ExprTrait::eq(a, b)` explicitly #890
+`sea_query::ExprTrait::eq(a, b)` explicitly https://github.com/SeaQL/sea-query/pull/890
 ```rust
 error[E0308]: mismatched types
     |
@@ -46,7 +46,7 @@ For more information about this error, try `rustc --explain E0308`.
 error: could not compile `seaography` (lib) due to 1 previous error
 ```
 * Added `non_exhaustive` to AST enums. It allows us to add new features and extend the AST without breaking the API. If you encounter the following error,
-please add a wildcard match `_ => {..}` #891
+please add a wildcard match `_ => {..}` https://github.com/SeaQL/sea-query/pull/891
 ```rust
 error[E0004]: non-exhaustive patterns: `&_` not covered
     |
@@ -67,7 +67,7 @@ help: ensure that all possible cases are being handled by adding a match arm wit
 
 ### Upgrades
 
-* Upgraded to Rust Edition 2024 #885
+* Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
 
 ## 0.32.6 - 2025-05-27
 
