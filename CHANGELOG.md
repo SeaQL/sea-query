@@ -32,19 +32,6 @@ help: trait `ExprTrait` which provides `like` is implemented but not in scope; p
     |
  -> + use sea_query::ExprTrait;
 ```
-* `ExprTrait::eq` collided with `std::cmp::Eq`. If you encounter the following error, please use `std::cmp::PartialEq::eq(a, b)` or 
-`sea_query::ExprTrait::eq(a, b)` explicitly https://github.com/SeaQL/sea-query/pull/890
-```rust
-error[E0308]: mismatched types
-    |
-    |     fn eq(&self, other: &Self) -> bool {
-    |                                   ---- expected `bool` because of return type
-    |         format!("{:?}", self.0).eq(&format!("{:?}", other.0))
-    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `bool`, found `Expr`
-
-For more information about this error, try `rustc --explain E0308`.
-error: could not compile `seaography` (lib) due to 1 previous error
-```
 * Added `non_exhaustive` to AST enums. It allows us to add new features and extend the AST without breaking the API. If you encounter the following error,
 please add a wildcard match `_ => {..}` https://github.com/SeaQL/sea-query/pull/891
 ```rust
@@ -63,6 +50,19 @@ help: ensure that all possible cases are being handled by adding a match arm wit
     |
     | TableRef::FunctionCall(_, tbl) => SeaRc::clone(tbl),
  -> | &_ => todo!(),
+```
+* `ExprTrait::eq` collided with `std::cmp::Eq`. If you encounter the following error, please use `std::cmp::PartialEq::eq(a, b)` or 
+`sea_query::ExprTrait::eq(a, b)` explicitly https://github.com/SeaQL/sea-query/pull/890
+```rust
+error[E0308]: mismatched types
+    |
+    |     fn eq(&self, other: &Self) -> bool {
+    |                                   ---- expected `bool` because of return type
+    |         format!("{:?}", self.0).eq(&format!("{:?}", other.0))
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `bool`, found `Expr`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `seaography` (lib) due to 1 previous error
 ```
 
 ### Upgrades
