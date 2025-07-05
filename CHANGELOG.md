@@ -7,7 +7,67 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.0.0 - pending
 
-*
+### New features
+
+* Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangably. There may be a few compile
+errors and some clippy warnings, basically just remove the redundant `.into()` #889
+```rust
+pub type SimpleExpr = Expr; // !
+impl From<Expr> for SimpleExpr { .. } // now removed
+```
+
+### Breaking Changes
+
+* Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope #890
+```rust
+error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
+    |
+    |         Expr::col((self.entity_name(), *self)).like(s)
+    |
+    |     fn like<L>(self, like: L) -> Expr
+    |        ---- the method is available for `sea_query::Expr` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `ExprTrait` which provides `like` is implemented but not in scope; perhaps you want to import it
+    |
+ -> + use sea_query::ExprTrait;
+```
+* `ExprTrait::eq` collided with `std::cmp::Eq`. If you encounter the following error, please use `std::cmp::PartialEq::eq(a, b)` or 
+`sea_query::ExprTrait::eq(a, b)` explicitly #890
+```rust
+error[E0308]: mismatched types
+    |
+    |     fn eq(&self, other: &Self) -> bool {
+    |                                   ---- expected `bool` because of return type
+    |         format!("{:?}", self.0).eq(&format!("{:?}", other.0))
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `bool`, found `Expr`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `seaography` (lib) due to 1 previous error
+```
+* Added `non_exhaustive` to AST enums. It allows us to add new features and extend the AST without breaking the API. If you encounter the following error,
+please add a wildcard match `_ => {..}` #891
+```rust
+error[E0004]: non-exhaustive patterns: `&_` not covered
+    |
+    |     match table_ref {
+    |           ^^^^^^^^^ pattern `&_` not covered
+    |
+note: `TableRef` defined here
+    |
+    | pub enum TableRef {
+    | ^^^^^^^^^^^^^^^^^
+    = note: the matched value is of type `&TableRef`
+    = note: `TableRef` is marked as non-exhaustive, so a wildcard `_` is necessary to match exhaustively
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+    |
+    | TableRef::FunctionCall(_, tbl) => SeaRc::clone(tbl),
+ -> | &_ => todo!(),
+```
+
+### Upgrades
+
+* Upgraded to Rust Edition 2024 #885
 
 ## 0.32.6 - 2025-05-27
 
