@@ -185,7 +185,7 @@ pub enum TableRef {
 
 impl TableRef {
     #[doc(hidden)]
-    pub fn table(&self) -> &DynIden {
+    pub fn sea_orm_table(&self) -> &DynIden {
         match self {
             TableRef::Table(tbl)
             | TableRef::SchemaTable(_, tbl)
@@ -200,7 +200,7 @@ impl TableRef {
     }
 
     #[doc(hidden)]
-    pub fn table_alias(&self) -> Option<&DynIden> {
+    pub fn sea_orm_table_alias(&self) -> Option<&DynIden> {
         match self {
             TableRef::Table(_)
             | TableRef::SchemaTable(_, _)
