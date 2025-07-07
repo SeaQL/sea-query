@@ -1,6 +1,6 @@
 use crate::{
-    Expr, QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement,
-    WithClause, WithQuery,
+    Expr, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     prepare::*,
     query::{OrderedStatement, condition::*},
@@ -281,16 +281,24 @@ impl QueryStatementBuilder for DeleteStatement {
         query_builder.prepare_delete_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::DeleteStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<DeleteStatement> for QueryStatement {
+    fn from(s: DeleteStatement) -> Self {
+        Self::Delete(s)
+    }
+}
+
+impl From<DeleteStatement> for SubQueryStatement {
+    fn from(s: DeleteStatement) -> Self {
+        Self::DeleteStatement(s)
+    }
 }
 
 #[inherent]

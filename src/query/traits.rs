@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{SqlWriter, SqlWriterValues, SubQueryStatement, backend::QueryBuilder, value::Values};
+use crate::{SqlWriter, SqlWriterValues, backend::QueryBuilder, value::Values};
 
 pub trait QueryStatementBuilder: Debug {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
@@ -23,8 +23,6 @@ pub trait QueryStatementBuilder: Debug {
 
     /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter);
-
-    fn into_sub_query_statement(self) -> SubQueryStatement;
 }
 
 pub trait QueryStatementWriter: QueryStatementBuilder {
