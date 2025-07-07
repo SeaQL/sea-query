@@ -241,7 +241,7 @@ impl fmt::Display for PgDateTruncUnit {
             PgDateTruncUnit::Century => "century",
             PgDateTruncUnit::Millennium => "millennium",
         };
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 
