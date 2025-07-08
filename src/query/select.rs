@@ -1,6 +1,6 @@
 use crate::{
-    FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
-    WithClause, WithQuery,
+    FunctionCall, QueryStatement, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement,
+    WindowStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
@@ -2465,16 +2465,24 @@ impl QueryStatementBuilder for SelectStatement {
         query_builder.prepare_select_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::SelectStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<SelectStatement> for QueryStatement {
+    fn from(s: SelectStatement) -> Self {
+        Self::Select(s)
+    }
+}
+
+impl From<SelectStatement> for SubQueryStatement {
+    fn from(s: SelectStatement) -> Self {
+        Self::SelectStatement(s)
+    }
 }
 
 #[inherent]

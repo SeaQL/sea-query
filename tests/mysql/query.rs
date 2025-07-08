@@ -1546,10 +1546,7 @@ fn sub_query_with_fn() {
         .to_owned();
 
     let select = Query::select()
-        .expr(Func::cust(ArrayFunc).arg(Expr::SubQuery(
-            None,
-            Box::new(sub_select.into_sub_query_statement()),
-        )))
+        .expr(Func::cust(ArrayFunc).arg(Expr::SubQuery(None, Box::new(sub_select.into()))))
         .to_owned();
 
     assert_eq!(

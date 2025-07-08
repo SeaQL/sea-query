@@ -101,9 +101,9 @@ impl CommonTableExpression {
     /// columns.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
-        Q: QueryStatementBuilder,
+        Q: Into<SubQueryStatement>,
     {
-        self.query = Some(Box::new(query.into_sub_query_statement()));
+        self.query = Some(Box::new(query.into()));
         self
     }
 
@@ -126,7 +126,7 @@ impl CommonTableExpression {
                 _ => {}
             }
         }
-        cte.query = Some(Box::new(select.into_sub_query_statement()));
+        cte.query = Some(Box::new(select.into()));
         cte
     }
 
@@ -480,7 +480,7 @@ impl WithClause {
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
-        T: QueryStatementBuilder + 'static,
+        T: Into<SubQueryStatement> + 'static,
     {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }
@@ -578,9 +578,9 @@ impl WithQuery {
     /// Set the query that you execute with the [WithClause].
     pub fn query<T>(&mut self, query: T) -> &mut Self
     where
-        T: QueryStatementBuilder,
+        T: Into<SubQueryStatement>,
     {
-        self.query = Some(Box::new(query.into_sub_query_statement()));
+        self.query = Some(Box::new(query.into()));
         self
     }
 }
@@ -589,9 +589,11 @@ impl QueryStatementBuilder for WithQuery {
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
         query_builder.prepare_with_query(self, sql);
     }
+}
 
-    fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::WithStatement(self)
+impl From<WithQuery> for SubQueryStatement {
+    fn from(s: WithQuery) -> Self {
+        Self::WithStatement(s)
     }
 }
 

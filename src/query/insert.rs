@@ -1,5 +1,5 @@
 use crate::{
-    Expr, OnConflict, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    Expr, OnConflict, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
     SelectStatement, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder,
     error::*, prepare::*, types::*,
 };
@@ -638,16 +638,24 @@ impl QueryStatementBuilder for InsertStatement {
         query_builder.prepare_insert_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::InsertStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<InsertStatement> for QueryStatement {
+    fn from(s: InsertStatement) -> Self {
+        Self::Insert(s)
+    }
+}
+
+impl From<InsertStatement> for SubQueryStatement {
+    fn from(s: InsertStatement) -> Self {
+        Self::InsertStatement(s)
+    }
 }
 
 #[inherent]

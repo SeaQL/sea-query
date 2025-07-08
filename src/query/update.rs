@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
-    WithQuery,
+    QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
@@ -417,16 +417,24 @@ impl QueryStatementBuilder for UpdateStatement {
         query_builder.prepare_update_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::UpdateStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<UpdateStatement> for QueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::Update(s)
+    }
+}
+
+impl From<UpdateStatement> for SubQueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::UpdateStatement(s)
+    }
 }
 
 #[inherent]
