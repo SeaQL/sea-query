@@ -13,7 +13,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 time = { version = "0.3.36", features = ["parsing", "macros"] }
 serde_json = { version = "1" }
 uuid = { version = "1", features = ["serde", "v4"] }
-rusqlite = { version = "0.32" }
+rusqlite = { version = "0.36" }
 sea-query = { path = "../.."}
 sea-query-rusqlite = { path = "../../sea-query-rusqlite", features = [
     "with-chrono",
