@@ -459,10 +459,7 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     fn in_subquery(self, sel: SelectStatement) -> Expr {
-        self.binary(
-            BinOper::In,
-            Expr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
-        )
+        self.binary(BinOper::In, Expr::SubQuery(None, Box::new(sel.into())))
     }
 
     /// Express a `IN` sub expression.
@@ -1170,10 +1167,7 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     fn not_in_subquery(self, sel: SelectStatement) -> Expr {
-        self.binary(
-            BinOper::NotIn,
-            Expr::SubQuery(None, Box::new(sel.into_sub_query_statement())),
-        )
+        self.binary(BinOper::NotIn, Expr::SubQuery(None, Box::new(sel.into())))
     }
 
     /// Express a `NOT LIKE` expression.
@@ -2121,10 +2115,7 @@ impl Expr {
     /// );
     /// ```
     pub fn exists(sel: SelectStatement) -> Self {
-        Self::SubQuery(
-            Some(SubQueryOper::Exists),
-            Box::new(sel.into_sub_query_statement()),
-        )
+        Self::SubQuery(Some(SubQueryOper::Exists), Box::new(sel.into()))
     }
 
     /// Express a `ANY` sub-query expression.
@@ -2152,10 +2143,7 @@ impl Expr {
     /// );
     /// ```
     pub fn any(sel: SelectStatement) -> Self {
-        Self::SubQuery(
-            Some(SubQueryOper::Any),
-            Box::new(sel.into_sub_query_statement()),
-        )
+        Self::SubQuery(Some(SubQueryOper::Any), Box::new(sel.into()))
     }
 
     /// Express a `SOME` sub-query expression.
@@ -2183,18 +2171,12 @@ impl Expr {
     /// );
     /// ```
     pub fn some(sel: SelectStatement) -> Self {
-        Self::SubQuery(
-            Some(SubQueryOper::Some),
-            Box::new(sel.into_sub_query_statement()),
-        )
+        Self::SubQuery(Some(SubQueryOper::Some), Box::new(sel.into()))
     }
 
     /// Express a `ALL` sub-query expression.
     pub fn all(sel: SelectStatement) -> Self {
-        Self::SubQuery(
-            Some(SubQueryOper::All),
-            Box::new(sel.into_sub_query_statement()),
-        )
+        Self::SubQuery(Some(SubQueryOper::All), Box::new(sel.into()))
     }
 
     /// Adds new `CASE WHEN` to existing case statement.
