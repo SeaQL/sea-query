@@ -1033,7 +1033,7 @@ impl SelectStatement {
     where
         T: IntoIden,
     {
-        self.from_from(TableRef::SubQuery(query, alias.into_iden()))
+        self.from_from(TableRef::SubQuery(query.into(), alias.into_iden()))
     }
 
     /// From function call.
@@ -1612,7 +1612,7 @@ impl SelectStatement {
     {
         self.join_join(
             join,
-            TableRef::SubQuery(query, alias.into_iden()),
+            TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
@@ -1678,7 +1678,7 @@ impl SelectStatement {
     {
         self.join_join(
             join,
-            TableRef::SubQuery(query, alias.into_iden()),
+            TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
