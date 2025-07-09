@@ -38,7 +38,6 @@ pub use with::*;
 pub struct Query;
 
 /// All available types of table query
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum QueryStatement {
     Select(SelectStatement),
@@ -47,7 +46,6 @@ pub enum QueryStatement {
     Delete(DeleteStatement),
 }
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum SubQueryStatement {
     SelectStatement(SelectStatement),

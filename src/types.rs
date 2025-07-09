@@ -159,7 +159,6 @@ pub trait IntoColumnRef {
 }
 
 /// Table references
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
 pub enum TableRef {

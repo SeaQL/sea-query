@@ -2,7 +2,6 @@
 
 use crate::{ForeignKeyStatement, IndexStatement, TableStatement, backend::SchemaBuilder};
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum SchemaStatement {

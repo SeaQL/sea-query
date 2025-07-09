@@ -43,7 +43,6 @@ pub struct AddColumnOption {
 }
 
 /// All available table alter options
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum TableAlterOption {
