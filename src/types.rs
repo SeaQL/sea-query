@@ -175,7 +175,7 @@ pub enum TableRef {
     /// Table identifier with database and schema prefix and alias
     DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
     /// Subquery with alias
-    SubQuery(SelectStatement, DynIden),
+    SubQuery(Box<SelectStatement>, DynIden),
     /// Values list with alias
     ValuesList(Vec<ValueTuple>, DynIden),
     /// Function call with alias
