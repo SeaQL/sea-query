@@ -1,7 +1,7 @@
 //! Base types used throughout sea-query.
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
-use std::{fmt, mem, ops};
+use std::{borrow::Cow, fmt, mem, ops};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -32,17 +32,21 @@ macro_rules! iden_trait {
                 write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
             }
 
-            fn quoted(&self, q: Quote) -> String {
+            /// Return the escaped version of the identifier, using the proper
+            /// quote for the database backend.
+            ///
+            /// For example, for MySQL "hel`lo`" would become "hel``lo".
+            fn quoted(&self, q: Quote) -> Cow<'static, str> {
                 let byte = [q.1];
                 let qq: &str = std::str::from_utf8(&byte).unwrap();
-                self.to_string().replace(qq, qq.repeat(2).as_str())
+                Cow::Owned(self.unquoted().replace(qq, qq.repeat(2).as_str()))
             }
 
             /// A shortcut for writing an [`unquoted`][Iden::unquoted]
             /// identifier into a [`String`].
             ///
             /// We can't reuse [`ToString`] for this, because [`ToString`] uses
-            /// the [`Display`][std::fmt::Display] representation. Bnd [`Iden`]
+            /// the [`Display`][std::fmt::Display] representation. But [`Iden`]
             /// representation is distinct from [`Display`][std::fmt::Display]
             /// and can be different.
             fn to_string(&self) -> String {
@@ -54,6 +58,12 @@ macro_rules! iden_trait {
             /// We indentionally don't reuse [`Display`][std::fmt::Display] for
             /// this, because we want to allow it to have a different logic.
             fn unquoted(&self) -> &str;
+
+            /// This will not be called by the library.
+            /// Only intended to be a delegate of [`quoted`] and [`unquoted`].
+            fn unquoted_static(&self) -> &'static str {
+                panic!("This Iden is not static");
+            }
         }
 
         /// Identifier
