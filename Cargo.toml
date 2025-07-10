@@ -49,10 +49,11 @@ pretty_assertions = { version = "1" }
 
 [features]
 # STUB
+audit = []
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
-default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
+default = ["derive", "audit", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-derive"]
 hashable-value = ["ordered-float"]
@@ -78,6 +79,7 @@ all-features = [
     "hashable-value",
     "thread-safe",
     "all-types",
+    "audit",
 ] # everything except option-*
 all-types = [
     "postgres-array",
@@ -108,17 +110,17 @@ required-features = ["tests-cfg"]
 [[test]]
 name = "test-mysql"
 path = "tests/mysql/mod.rs"
-required-features = ["tests-cfg", "backend-mysql"]
+required-features = ["tests-cfg", "backend-mysql", "audit"]
 
 [[test]]
 name = "test-postgres"
 path = "tests/postgres/mod.rs"
-required-features = ["tests-cfg", "backend-postgres"]
+required-features = ["tests-cfg", "backend-postgres", "audit"]
 
 [[test]]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
-required-features = ["tests-cfg", "backend-sqlite"]
+required-features = ["tests-cfg", "backend-sqlite", "audit"]
 
 [[test]]
 name = "option-more-parentheses"
