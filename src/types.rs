@@ -46,16 +46,14 @@ macro_rules! iden_trait {
             /// representation is distinct from [`Display`][std::fmt::Display]
             /// and can be different.
             fn to_string(&self) -> String {
-                let mut s = String::new();
-                self.unquoted(&mut s);
-                s
+                self.unquoted().to_owned()
             }
 
             /// Write a raw identifier string without quotes.
             ///
             /// We indentionally don't reuse [`Display`][std::fmt::Display] for
             /// this, because we want to allow it to have a different logic.
-            fn unquoted(&self, s: &mut dyn fmt::Write);
+            fn unquoted(&self) -> &str;
         }
 
         /// Identifier
@@ -124,8 +122,7 @@ pub trait IdenList {
 
 impl fmt::Debug for dyn Iden {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.unquoted(formatter);
-        Ok(())
+        write!(formatter, "{}", self.unquoted())
     }
 }
 
@@ -635,8 +632,8 @@ impl Alias {
 
 /// Reuses the `impl` for the underlying [str].
 impl Iden for Alias {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        self.0.as_str().unquoted(s);
+    fn unquoted(&self) -> &str {
+        self.0.as_str()
     }
 }
 
@@ -644,8 +641,8 @@ impl Iden for Alias {
 ///
 /// Reused for other string-like types.
 impl Iden for &str {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        s.write_str(self).unwrap();
+    fn unquoted(&self) -> &str {
+        self
     }
 }
 
@@ -656,7 +653,9 @@ impl NullAlias {
 }
 
 impl Iden for NullAlias {
-    fn unquoted(&self, _s: &mut dyn fmt::Write) {}
+    fn unquoted(&self) -> &str {
+        ""
+    }
 }
 
 impl LikeExpr {

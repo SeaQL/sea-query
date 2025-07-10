@@ -175,18 +175,13 @@ impl TypeCreateStatement {
     /// }
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         match self {
+    ///             Self::Type => "font_family",
+    ///             Self::Serif => "serif",
+    ///             Self::Sans => "sans",
+    ///             Self::Monospace => "monospace",
+    ///         }
     ///     }
     /// }
     ///
@@ -232,8 +227,8 @@ impl TypeDropStatement {
     /// struct FontFamily;
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(s, "{}", "font_family").unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         "font_family"
     ///     }
     /// }
     ///
@@ -335,18 +330,13 @@ impl TypeAlterStatement {
     /// }
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         match self {
+    ///             Self::Type => "font_family",
+    ///             Self::Serif => "serif",
+    ///             Self::Sans => "sans",
+    ///             Self::Monospace => "monospace",
+    ///         }
     ///     }
     /// }
     ///

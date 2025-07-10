@@ -41,17 +41,12 @@ fn create_3() {
     }
 
     impl sea_query::Iden for Tea {
-        fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-            write!(
-                s,
-                "{}",
-                match self {
-                    Self::Enum => "tea",
-                    Self::EverydayTea => "EverydayTea",
-                    Self::BreakfastTea => "BreakfastTea",
-                }
-            )
-            .unwrap();
+        fn unquoted(&self) -> &str {
+            match self {
+                Self::Enum => "tea",
+                Self::EverydayTea => "EverydayTea",
+                Self::BreakfastTea => "BreakfastTea",
+            }
         }
     }
 }

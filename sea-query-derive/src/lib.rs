@@ -5,15 +5,15 @@ use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro::{self, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
-    Attribute, Data, DataEnum, DataStruct, DeriveInput, Fields, Ident, Variant, parse_macro_input,
-    spanned::Spanned,
+    parse_macro_input, spanned::Spanned, Attribute, Data, DataEnum, DataStruct, DeriveInput,
+    Fields, Ident, Variant,
 };
 
 mod iden;
 
 use self::iden::{
-    DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, path::IdenPath,
-    write_arm::IdenVariant,
+    attr::IdenAttr, error::ErrorMsg, path::IdenPath, write_arm::IdenVariant, DeriveIden,
+    DeriveIdenStatic,
 };
 
 #[proc_macro_derive(Iden, attributes(iden, method))]
@@ -107,7 +107,7 @@ pub fn derive_iden_static(input: TokenStream) -> TokenStream {
         .map(IdenVariant::<DeriveIdenStatic>::try_from)
         .collect::<syn::Result<Vec<_>>>()
     {
-        Ok(v) => quote! { #(#v),* },
+        Ok(v) => v,
         Err(e) => return e.to_compile_error().into(),
     };
 
@@ -117,7 +117,7 @@ pub fn derive_iden_static(input: TokenStream) -> TokenStream {
         impl #sea_query_path::IdenStatic for #ident {
             fn as_str(&self) -> &'static str {
                 match self {
-                    #match_arms
+                    #(#match_arms),*
                 }
             }
         }
@@ -166,9 +166,7 @@ fn impl_iden_for_unit_struct(
     let prepare = if must_be_valid_iden(table_name) {
         quote! {
             fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
+                write!(s, "{}{}{}", q.left(), self.unquoted(), q.right()).unwrap();
             }
         }
     } else {
@@ -179,8 +177,8 @@ fn impl_iden_for_unit_struct(
         impl #sea_query_path::Iden for #ident {
             #prepare
 
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
-                write!(s, #table_name).unwrap();
+            fn unquoted(&self) -> &str {
+                #table_name
             }
         }
     }
@@ -199,24 +197,21 @@ where
     let mut is_all_valid = true;
 
     let match_arms = match variants
-        .map(|v| (table_name, v))
         .map(|v| {
-            let v = IdenVariant::<DeriveIden>::try_from(v)?;
+            let v = IdenVariant::<DeriveIden>::try_from((table_name, v))?;
             is_all_valid &= v.must_be_valid_iden();
             Ok(v)
         })
         .collect::<syn::Result<Vec<_>>>()
     {
-        Ok(v) => quote! { #(#v),* },
+        Ok(v) => v,
         Err(e) => return e.to_compile_error(),
     };
 
     let prepare = if is_all_valid {
         quote! {
             fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
+                write!(s, "{}{}{}", q.left(), self.unquoted(), q.right()).unwrap();
             }
         }
     } else {
@@ -227,10 +222,10 @@ where
         impl #sea_query_path::Iden for #ident {
             #prepare
 
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
+            fn unquoted(&self) -> &str {
                 match self {
-                    #match_arms
-                };
+                    #(#match_arms),*
+                }
             }
         }
     }
@@ -359,8 +354,8 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
         }
 
         impl #import_name::Iden for #enum_name {
-            fn unquoted(&self, s: &mut dyn sea_query::Write) {
-                write!(s, "{}", <Self as #import_name::IdenStatic>::as_str(&self)).unwrap();
+            fn unquoted(&self) -> &str {
+                <Self as #import_name::IdenStatic>::as_str(&self)
             }
         }
 

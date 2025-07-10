@@ -1,7 +1,5 @@
 //! Configurations for test cases and examples. Not intended for actual use.
 
-use std::fmt;
-
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
@@ -30,24 +28,19 @@ pub enum Character {
 pub type Char = Character;
 
 impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "character",
-                Self::Id => "id",
-                Self::Character => "character",
-                Self::FontSize => "font_size",
-                Self::SizeW => "size_w",
-                Self::SizeH => "size_h",
-                Self::FontId => "font_id",
-                Self::Ascii => "ascii",
-                Self::CreatedAt => "created_at",
-                Self::UserData => "user_data",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Table => "character",
+            Self::Id => "id",
+            Self::Character => "character",
+            Self::FontSize => "font_size",
+            Self::SizeW => "size_w",
+            Self::SizeH => "size_h",
+            Self::FontId => "font_id",
+            Self::Ascii => "ascii",
+            Self::CreatedAt => "created_at",
+            Self::UserData => "user_data",
+        }
     }
 }
 
@@ -66,19 +59,14 @@ pub enum Font {
 }
 
 impl Iden for Font {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "font",
-                Self::Id => "id",
-                Self::Name => "name",
-                Self::Variant => "variant",
-                Self::Language => "language",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Table => "font",
+            Self::Id => "id",
+            Self::Name => "name",
+            Self::Variant => "variant",
+            Self::Language => "language",
+        }
     }
 }
 
@@ -97,19 +85,14 @@ pub enum Glyph {
 }
 
 impl Iden for Glyph {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "glyph",
-                Self::Id => "id",
-                Self::Image => "image",
-                Self::Aspect => "aspect",
-                Self::Tokens => "tokens",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Table => "glyph",
+            Self::Id => "id",
+            Self::Image => "image",
+            Self::Aspect => "aspect",
+            Self::Tokens => "tokens",
+        }
     }
 }
 
@@ -126,16 +109,11 @@ pub enum Task {
 }
 
 impl Iden for Task {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "task",
-                Self::Id => "id",
-                Self::IsDone => "is_done",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Table => "task",
+            Self::Id => "id",
+            Self::IsDone => "is_done",
+        }
     }
 }

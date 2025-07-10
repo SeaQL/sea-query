@@ -112,8 +112,8 @@ impl Func {
     /// struct MyFunction;
     ///
     /// impl Iden for MyFunction {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(s, "MY_FUNCTION").unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         "MY_FUNCTION"
     ///     }
     /// }
     ///
