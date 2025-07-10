@@ -149,7 +149,7 @@ fn get_table_name(ident: &proc_macro2::Ident, attrs: Vec<Attribute>) -> Result<S
     Ok(table_name)
 }
 
-fn must_be_valid_iden(name: &str) -> bool {
+fn is_static_iden(name: &str) -> bool {
     // can only begin with [a-z_]
     name.chars()
         .take(1)
@@ -163,22 +163,28 @@ fn impl_iden_for_unit_struct(
 ) -> proc_macro2::TokenStream {
     let sea_query_path = sea_query_path();
 
-    let prepare = if must_be_valid_iden(table_name) {
+    if is_static_iden(table_name) {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}{}{}", q.left(), self.unquoted(), q.right()).unwrap();
+            impl #sea_query_path::Iden for #ident {
+                fn quoted(&self, q: sea_query::Quote) -> std::borrow::Cow<'static, str> {
+                    std::borrow::Cow::Borrowed(self.unquoted_static())
+                }
+
+                fn unquoted(&self) -> &str {
+                    self.unquoted_static()
+                }
+
+                fn unquoted_static(&self) -> &'static str {
+                    #table_name
+                }
             }
         }
     } else {
-        quote! {}
-    };
-
-    quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
-
-            fn unquoted(&self) -> &str {
-                #table_name
+        quote! {
+            impl #sea_query_path::Iden for #ident {
+                fn unquoted(&self) -> &str {
+                    #table_name
+                }
             }
         }
     }
@@ -194,12 +200,12 @@ where
 {
     let sea_query_path = sea_query_path();
 
-    let mut is_all_valid = true;
+    let mut is_all_static_iden = true;
 
     let match_arms = match variants
         .map(|v| {
             let v = IdenVariant::<DeriveIden>::try_from((table_name, v))?;
-            is_all_valid &= v.must_be_valid_iden();
+            is_all_static_iden &= v.is_static_iden();
             Ok(v)
         })
         .collect::<syn::Result<Vec<_>>>()
@@ -208,23 +214,31 @@ where
         Err(e) => return e.to_compile_error(),
     };
 
-    let prepare = if is_all_valid {
+    if is_all_static_iden {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}{}{}", q.left(), self.unquoted(), q.right()).unwrap();
+            impl #sea_query_path::Iden for #ident {
+                fn quoted(&self, q: sea_query::Quote) -> std::borrow::Cow<'static, str> {
+                    std::borrow::Cow::Borrowed(self.unquoted_static())
+                }
+
+                fn unquoted(&self) -> &str {
+                    self.unquoted_static()
+                }
+
+                fn unquoted_static(&self) -> &'static str {
+                    match self {
+                        #(#match_arms),*
+                    }
+                }
             }
         }
     } else {
-        quote! {}
-    };
-
-    quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
-
-            fn unquoted(&self) -> &str {
-                match self {
-                    #(#match_arms),*
+        quote! {
+            impl #sea_query_path::Iden for #ident {
+                fn unquoted(&self) -> &str {
+                    match self {
+                        #(#match_arms),*
+                    }
                 }
             }
         }

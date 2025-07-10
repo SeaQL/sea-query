@@ -1,5 +1,6 @@
-use sea_query::Iden;
+use sea_query::{Iden, QuotedBuilder, MysqlQueryBuilder};
 use strum::{EnumIter, IntoEnumIterator};
+use std::borrow::Cow;
 
 #[derive(Iden, EnumIter)]
 // Outer iden attributes overrides what's used for "Table"...
@@ -45,4 +46,6 @@ fn main() {
     let mut string = String::new();
     Custom::Email("".to_owned()).prepare(&mut string, b'`'.into());
     assert_eq!(string, "`EM``ail`");
+
+    assert!(matches!(Custom::FirstName.quoted(MysqlQueryBuilder.quote()), Cow::Owned(_)));
 }

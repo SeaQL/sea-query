@@ -1,5 +1,6 @@
-use sea_query::Iden;
+use sea_query::{Iden, QuotedBuilder, MysqlQueryBuilder};
 use strum::{EnumIter, IntoEnumIterator};
+use std::borrow::Cow;
 
 #[derive(Copy, Clone, Iden, EnumIter)]
 enum Asset {
@@ -35,5 +36,6 @@ fn main() {
         .zip(expected)
         .for_each(|(var, exp)| {
             assert_eq!(var.to_string(), exp);
+            assert_eq!(var.quoted(MysqlQueryBuilder.quote()), Cow::Borrowed(exp));
         })
 }
