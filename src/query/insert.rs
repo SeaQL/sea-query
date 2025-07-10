@@ -1,7 +1,7 @@
 use crate::{
-    OnConflict, QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement,
-    SimpleExpr, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder, error::*,
-    prepare::*, types::*,
+    Expr, OnConflict, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SelectStatement, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder,
+    error::*, prepare::*, types::*,
 };
 use inherent::inherent;
 
@@ -11,7 +11,7 @@ use inherent::inherent;
 /// ('VALUES') or a select query.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum InsertValueSource {
-    Values(Vec<Vec<SimpleExpr>>),
+    Values(Vec<Vec<Expr>>),
     Select(Box<SelectStatement>),
 }
 
@@ -220,9 +220,9 @@ impl InsertStatement {
     /// ```
     pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
-        let values = values.into_iter().collect::<Vec<SimpleExpr>>();
+        let values = values.into_iter().collect::<Vec<Expr>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),
@@ -274,7 +274,7 @@ impl InsertStatement {
     /// ```
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         self.values(values).unwrap()
     }
@@ -309,7 +309,7 @@ impl InsertStatement {
     /// ```
     pub fn values_from_panic<I>(&mut self, values_iter: impl IntoIterator<Item = I>) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         values_iter.into_iter().for_each(|values| {
             self.values_panic(values);
@@ -638,16 +638,24 @@ impl QueryStatementBuilder for InsertStatement {
         query_builder.prepare_insert_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::InsertStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<InsertStatement> for QueryStatement {
+    fn from(s: InsertStatement) -> Self {
+        Self::Insert(s)
+    }
+}
+
+impl From<InsertStatement> for SubQueryStatement {
+    fn from(s: InsertStatement) -> Self {
+        Self::InsertStatement(s)
+    }
 }
 
 #[inherent]

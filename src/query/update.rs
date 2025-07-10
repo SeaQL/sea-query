@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
-    WithQuery,
+    QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
@@ -41,7 +41,7 @@ use crate::{
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) from: Vec<TableRef>,
-    pub(crate) values: Vec<(DynIden, Box<SimpleExpr>)>,
+    pub(crate) values: Vec<(DynIden, Box<Expr>)>,
     pub(crate) r#where: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
@@ -148,7 +148,7 @@ impl UpdateStatement {
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
         T: IntoIden,
-        I: IntoIterator<Item = (T, SimpleExpr)>,
+        I: IntoIterator<Item = (T, Expr)>,
     {
         for (k, v) in values.into_iter() {
             self.values.push((k.into_iden(), Box::new(v)));
@@ -156,7 +156,7 @@ impl UpdateStatement {
         self
     }
 
-    /// Update column value by [`SimpleExpr`].
+    /// Update column value by [`Expr`].
     ///
     /// # Examples
     ///
@@ -205,7 +205,7 @@ impl UpdateStatement {
     pub fn value<C, T>(&mut self, col: C, value: T) -> &mut Self
     where
         C: IntoIden,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.values.push((col.into_iden(), Box::new(value.into())));
         self
@@ -402,7 +402,7 @@ impl UpdateStatement {
     }
 
     /// Get column values
-    pub fn get_values(&self) -> &[(DynIden, Box<SimpleExpr>)] {
+    pub fn get_values(&self) -> &[(DynIden, Box<Expr>)] {
         &self.values
     }
 }
@@ -417,16 +417,24 @@ impl QueryStatementBuilder for UpdateStatement {
         query_builder.prepare_update_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::UpdateStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<UpdateStatement> for QueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::Update(s)
+    }
+}
+
+impl From<UpdateStatement> for SubQueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::UpdateStatement(s)
+    }
 }
 
 #[inherent]
@@ -459,7 +467,7 @@ impl OrderedStatement for UpdateStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -478,7 +486,7 @@ impl OrderedStatement for UpdateStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -507,6 +515,6 @@ impl ConditionalStatement for UpdateStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }

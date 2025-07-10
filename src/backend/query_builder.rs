@@ -351,20 +351,20 @@ pub trait QueryBuilder:
         }
     }
 
-    /// Translate [`SimpleExpr`] into SQL statement.
-    fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    /// Translate [`Expr`] into SQL statement.
+    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         self.prepare_simple_expr_common(simple_expr, sql);
     }
 
-    fn prepare_simple_expr_common(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_simple_expr_common(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         match simple_expr {
-            SimpleExpr::Column(column_ref) => {
+            Expr::Column(column_ref) => {
                 self.prepare_column_ref(column_ref, sql);
             }
-            SimpleExpr::Tuple(exprs) => {
+            Expr::Tuple(exprs) => {
                 self.prepare_tuple(exprs, sql);
             }
-            SimpleExpr::Unary(op, expr) => {
+            Expr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql);
                 write!(sql, " ").unwrap();
                 let drop_expr_paren =
@@ -377,20 +377,20 @@ pub trait QueryBuilder:
                     write!(sql, ")").unwrap();
                 }
             }
-            SimpleExpr::FunctionCall(func) => {
+            Expr::FunctionCall(func) => {
                 self.prepare_function_name(&func.func, sql);
                 self.prepare_function_arguments(func, sql);
             }
-            SimpleExpr::Binary(left, op, right) => match (op, right.as_ref()) {
-                (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => {
+            Expr::Binary(left, op, right) => match (op, right.as_ref()) {
+                (BinOper::In, Expr::Tuple(t)) if t.is_empty() => {
                     self.binary_expr(&1i32.into(), &BinOper::Equal, &2i32.into(), sql)
                 }
-                (BinOper::NotIn, SimpleExpr::Tuple(t)) if t.is_empty() => {
+                (BinOper::NotIn, Expr::Tuple(t)) if t.is_empty() => {
                     self.binary_expr(&1i32.into(), &BinOper::Equal, &1i32.into(), sql)
                 }
                 _ => self.binary_expr(left, op, right, sql),
             },
-            SimpleExpr::SubQuery(oper, sel) => {
+            Expr::SubQuery(oper, sel) => {
                 if let Some(oper) = oper {
                     self.prepare_sub_query_oper(oper, sql);
                 }
@@ -398,10 +398,10 @@ pub trait QueryBuilder:
                 self.prepare_query_statement(sel.deref(), sql);
                 write!(sql, ")").unwrap();
             }
-            SimpleExpr::Value(val) => {
+            Expr::Value(val) => {
                 self.prepare_value(val, sql);
             }
-            SimpleExpr::Values(list) => {
+            Expr::Values(list) => {
                 write!(sql, "(").unwrap();
                 list.iter().fold(true, |first, val| {
                     if !first {
@@ -412,10 +412,10 @@ pub trait QueryBuilder:
                 });
                 write!(sql, ")").unwrap();
             }
-            SimpleExpr::Custom(s) => {
+            Expr::Custom(s) => {
                 write!(sql, "{s}").unwrap();
             }
-            SimpleExpr::CustomWithExpr(expr, values) => {
+            Expr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
                 let mut tokenizer = Tokenizer::new(expr).iter().peekable();
                 let mut count = 0;
@@ -441,16 +441,16 @@ pub trait QueryBuilder:
                     };
                 }
             }
-            SimpleExpr::Keyword(keyword) => {
+            Expr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql);
             }
-            SimpleExpr::AsEnum(_, expr) => {
+            Expr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql);
             }
-            SimpleExpr::Case(case_stmt) => {
+            Expr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql);
             }
-            SimpleExpr::Constant(val) => {
+            Expr::Constant(val) => {
                 self.prepare_constant(val, sql);
             }
         }
@@ -703,8 +703,8 @@ pub trait QueryBuilder:
             write!(sql, " {oper} ").unwrap();
         }
         let both_binary = match simple_expr {
-            SimpleExpr::Binary(_, _, right) => {
-                matches!(right.as_ref(), SimpleExpr::Binary(_, _, _))
+            Expr::Binary(_, _, right) => {
+                matches!(right.as_ref(), Expr::Binary(_, _, _))
             }
             _ => false,
         };
@@ -1028,8 +1028,8 @@ pub trait QueryBuilder:
         });
     }
 
-    /// Translate [`SimpleExpr::Tuple`] into SQL statement.
-    fn prepare_tuple(&self, exprs: &[SimpleExpr], sql: &mut dyn SqlWriter) {
+    /// Translate [`Expr::Tuple`] into SQL statement.
+    fn prepare_tuple(&self, exprs: &[Expr], sql: &mut dyn SqlWriter) {
         write!(sql, "(").unwrap();
         for (i, expr) in exprs.iter().enumerate() {
             if i != 0 {
@@ -1454,13 +1454,7 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Translate a binary expr to SQL.
-    fn binary_expr(
-        &self,
-        left: &SimpleExpr,
-        op: &BinOper,
-        right: &SimpleExpr,
-        sql: &mut dyn SqlWriter,
-    ) {
+    fn binary_expr(&self, left: &Expr, op: &BinOper, right: &Expr, sql: &mut dyn SqlWriter) {
         // If left has higher precedence than op, we can drop parentheses around left
         let drop_left_higher_precedence =
             self.inner_expr_well_known_greater_precedence(left, &(*op).into());
@@ -1499,7 +1493,7 @@ pub trait QueryBuilder:
             && matches!(right.get_bin_oper(), Some(&BinOper::Escape));
 
         // Due to custom representation of casting AS datatype
-        let drop_right_as_hack = (op == &BinOper::As) && matches!(right, SimpleExpr::Custom(_));
+        let drop_right_as_hack = (op == &BinOper::As) && matches!(right, Expr::Custom(_));
 
         let right_paren = !drop_right_higher_precedence
             && !drop_right_escape_hack
@@ -1615,11 +1609,7 @@ impl OperLeftAssocDecider for CommonSqlQueryBuilder {
 }
 
 impl PrecedenceDecider for CommonSqlQueryBuilder {
-    fn inner_expr_well_known_greater_precedence(
-        &self,
-        inner: &SimpleExpr,
-        outer_oper: &Oper,
-    ) -> bool {
+    fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, outer_oper: &Oper) -> bool {
         common_inner_expr_well_known_greater_precedence(inner, outer_oper)
     }
 }
@@ -1649,7 +1639,7 @@ impl TableRefBuilder for CommonSqlQueryBuilder {}
     allow(unreachable_code, unused_variables)
 )]
 pub(crate) fn common_inner_expr_well_known_greater_precedence(
-    inner: &SimpleExpr,
+    inner: &Expr,
     outer_oper: &Oper,
 ) -> bool {
     match inner {
@@ -1658,15 +1648,15 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
         // We do not need to wrap with parentheses:
         // Columns, tuples (already wrapped), constants, function calls, values,
         // keywords, subqueries (already wrapped), case (already wrapped)
-        SimpleExpr::Column(_)
-        | SimpleExpr::Tuple(_)
-        | SimpleExpr::Constant(_)
-        | SimpleExpr::FunctionCall(_)
-        | SimpleExpr::Value(_)
-        | SimpleExpr::Keyword(_)
-        | SimpleExpr::Case(_)
-        | SimpleExpr::SubQuery(_, _) => true,
-        SimpleExpr::Binary(_, inner_oper, _) => {
+        Expr::Column(_)
+        | Expr::Tuple(_)
+        | Expr::Constant(_)
+        | Expr::FunctionCall(_)
+        | Expr::Value(_)
+        | Expr::Keyword(_)
+        | Expr::Case(_)
+        | Expr::SubQuery(_, _) => true,
+        Expr::Binary(_, inner_oper, _) => {
             #[cfg(feature = "option-more-parentheses")]
             {
                 return false;

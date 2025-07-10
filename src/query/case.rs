@@ -1,15 +1,15 @@
-use crate::{Condition, IntoCondition, SimpleExpr};
+use crate::{Condition, Expr, IntoCondition};
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct CaseStatementCondition {
     pub(crate) condition: Condition,
-    pub(crate) result: SimpleExpr,
+    pub(crate) result: Expr,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct CaseStatement {
     pub(crate) when: Vec<CaseStatementCondition>,
-    pub(crate) r#else: Option<SimpleExpr>,
+    pub(crate) r#else: Option<Expr>,
 }
 
 impl CaseStatement {
@@ -70,7 +70,7 @@ impl CaseStatement {
     pub fn case<C, T>(mut self, cond: C, then: T) -> Self
     where
         C: IntoCondition,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.when.push(CaseStatementCondition {
             condition: cond.into_condition(),
@@ -119,7 +119,7 @@ impl CaseStatement {
     /// ```
     pub fn finally<E>(mut self, r#else: E) -> Self
     where
-        E: Into<SimpleExpr>,
+        E: Into<Expr>,
     {
         self.r#else = Some(r#else.into());
         self
@@ -127,9 +127,9 @@ impl CaseStatement {
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<SimpleExpr> for CaseStatement {
-    fn into(self) -> SimpleExpr {
-        SimpleExpr::Case(Box::new(self))
+impl Into<Expr> for CaseStatement {
+    fn into(self) -> Expr {
+        Expr::Case(Box::new(self))
     }
 }
 
@@ -140,7 +140,7 @@ mod test {
     #[test]
     #[cfg(feature = "backend-postgres")]
     fn test_where_case_eq() {
-        let case_statement: SimpleExpr = Expr::case(Expr::col("col").lt(5), Expr::col("othercol"))
+        let case_statement: Expr = Expr::case(Expr::col("col").lt(5), Expr::col("othercol"))
             .finally(Expr::col("finalcol"))
             .into();
 

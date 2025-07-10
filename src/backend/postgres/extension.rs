@@ -16,11 +16,11 @@ impl ExtensionBuilder for PostgresQueryBuilder {
         write!(sql, "{}", create.name).unwrap();
 
         if let Some(schema) = create.schema.as_ref() {
-            write!(sql, " WITH SCHEMA {}", schema).unwrap();
+            write!(sql, " WITH SCHEMA {schema}").unwrap();
         }
 
         if let Some(version) = create.version.as_ref() {
-            write!(sql, " VERSION {}", version).unwrap();
+            write!(sql, " VERSION {version}").unwrap();
         }
 
         if create.cascade {

@@ -650,7 +650,7 @@ fn select_43() {
     let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .cond_where(Cond::all().add_option::<SimpleExpr>(None))
+        .cond_where(Cond::all().add_option::<Expr>(None))
         .to_string(PostgresQueryBuilder);
 
     assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE TRUE"#);
@@ -736,7 +736,7 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+            Cond::all().add_option(Some(ConditionExpression::Expr(
                 Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::value(100)])
                     .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
             ))),
@@ -755,7 +755,7 @@ fn select_48a() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+            Cond::all().add_option(Some(ConditionExpression::Expr(
                 Expr::tuple([
                     Expr::col(Glyph::Aspect).into(),
                     Expr::value(String::from("100")),
@@ -1989,10 +1989,7 @@ fn sub_query_with_fn() {
         .to_owned();
 
     let select = Query::select()
-        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
-            None,
-            Box::new(sub_select.into_sub_query_statement()),
-        )))
+        .expr(Func::cust(ArrayFunc).arg(Expr::SubQuery(None, Box::new(sub_select.into()))))
         .to_owned();
 
     assert_eq!(
@@ -2125,10 +2122,10 @@ fn regex_case_insensitive_bin_oper() {
 
 #[test]
 fn test_issue_674_nested_logical() {
-    let t = SimpleExpr::Value(true.into());
-    let f = SimpleExpr::Value(false.into());
+    let t = Expr::Value(true.into());
+    let f = Expr::Value(false.into());
 
-    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let x_op_y = |x, op, y| Expr::Binary(Box::new(x), op, Box::new(y));
     let t_or_t = x_op_y(t.clone(), BinOper::Or, t.clone());
     let t_or_t_or_f = x_op_y(t_or_t, BinOper::Or, f);
     let t_or_t_or_f_and_t = x_op_y(t_or_t_or_f.clone(), BinOper::And, t);
@@ -2145,11 +2142,11 @@ fn test_issue_674_nested_logical() {
 
 #[test]
 fn test_issue_674_nested_comparison() {
-    let int100 = SimpleExpr::Value(100i32.into());
-    let int0 = SimpleExpr::Value(0i32.into());
-    let int1 = SimpleExpr::Value(1i32.into());
+    let int100 = Expr::Value(100i32.into());
+    let int0 = Expr::Value(0i32.into());
+    let int1 = Expr::Value(1i32.into());
 
-    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let x_op_y = |x, op, y| Expr::Binary(Box::new(x), op, Box::new(y));
     let t_smaller_than_t = x_op_y(int100, BinOper::SmallerThan, int0);
     let t_smaller_than_t_smaller_than_f = x_op_y(t_smaller_than_t, BinOper::SmallerThan, int1);
 
@@ -2165,11 +2162,11 @@ fn test_issue_674_nested_comparison() {
 
 #[test]
 fn test_issue_674_and_inside_not() {
-    let t = SimpleExpr::Value(true.into());
-    let f = SimpleExpr::Value(false.into());
+    let t = Expr::Value(true.into());
+    let f = Expr::Value(false.into());
 
-    let op_x = |op, x| SimpleExpr::Unary(op, Box::new(x));
-    let x_op_y = |x, op, y| SimpleExpr::Binary(Box::new(x), op, Box::new(y));
+    let op_x = |op, x| Expr::Unary(op, Box::new(x));
+    let x_op_y = |x, op, y| Expr::Binary(Box::new(x), op, Box::new(y));
     let f_and_t = x_op_y(f, BinOper::And, t);
     let not_f_and_t = op_x(UnOper::Not, f_and_t);
 
@@ -2185,7 +2182,7 @@ fn test_issue_674_and_inside_not() {
 
 #[test]
 fn test_issue_674_nested_logical_panic() {
-    let e = SimpleExpr::from(true).and(SimpleExpr::from(true).and(true).and(true));
+    let e = Expr::from(true).and(Expr::from(true).and(true).and(true));
 
     assert_eq!(
         Query::select()

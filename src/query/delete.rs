@@ -1,6 +1,6 @@
 use crate::{
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SimpleExpr, SubQueryStatement,
-    WithClause, WithQuery,
+    Expr, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     prepare::*,
     query::{OrderedStatement, condition::*},
@@ -281,16 +281,24 @@ impl QueryStatementBuilder for DeleteStatement {
         query_builder.prepare_delete_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::DeleteStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<DeleteStatement> for QueryStatement {
+    fn from(s: DeleteStatement) -> Self {
+        Self::Delete(s)
+    }
+}
+
+impl From<DeleteStatement> for SubQueryStatement {
+    fn from(s: DeleteStatement) -> Self {
+        Self::DeleteStatement(s)
+    }
 }
 
 #[inherent]
@@ -324,7 +332,7 @@ impl OrderedStatement for DeleteStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -343,7 +351,7 @@ impl OrderedStatement for DeleteStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -372,6 +380,6 @@ impl ConditionalStatement for DeleteStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }

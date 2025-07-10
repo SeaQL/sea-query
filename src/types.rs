@@ -158,7 +158,6 @@ pub trait IntoColumnRef {
 }
 
 /// Table references
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
 pub enum TableRef {
@@ -175,7 +174,7 @@ pub enum TableRef {
     /// Table identifier with database and schema prefix and alias
     DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
     /// Subquery with alias
-    SubQuery(SelectStatement, DynIden),
+    SubQuery(Box<SelectStatement>, DynIden),
     /// Values list with alias
     ValuesList(Vec<ValueTuple>, DynIden),
     /// Function call with alias
@@ -184,7 +183,7 @@ pub enum TableRef {
 
 impl TableRef {
     #[doc(hidden)]
-    pub fn table(&self) -> &DynIden {
+    pub fn sea_orm_table(&self) -> &DynIden {
         match self {
             TableRef::Table(tbl)
             | TableRef::SchemaTable(_, tbl)
@@ -199,7 +198,7 @@ impl TableRef {
     }
 
     #[doc(hidden)]
-    pub fn table_alias(&self) -> Option<&DynIden> {
+    pub fn sea_orm_table_alias(&self) -> Option<&DynIden> {
         match self {
             TableRef::Table(_)
             | TableRef::SchemaTable(_, _)
@@ -268,8 +267,8 @@ pub enum BinOper {
 /// Logical chain operator: conjunction or disjunction.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
-    And(SimpleExpr),
-    Or(SimpleExpr),
+    And(Expr),
+    Or(Expr),
 }
 
 /// Join types
@@ -293,7 +292,7 @@ pub enum NullOrdering {
 /// Order expression
 #[derive(Debug, Clone, PartialEq)]
 pub struct OrderExpr {
-    pub(crate) expr: SimpleExpr,
+    pub(crate) expr: Expr,
     pub(crate) order: Order,
     pub(crate) nulls: Option<NullOrdering>,
 }
@@ -303,7 +302,7 @@ pub struct OrderExpr {
 #[non_exhaustive]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
-    Columns(Vec<SimpleExpr>),
+    Columns(Vec<Expr>),
 }
 
 /// Ordering options
@@ -319,7 +318,7 @@ pub enum Order {
 ///
 /// Nowadays, `&str` implements [`Iden`] and can be used directly.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Alias(String);
+pub struct Alias(pub String);
 
 impl Alias {
     pub fn new<T>(n: T) -> Self

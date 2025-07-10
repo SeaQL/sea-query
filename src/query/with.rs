@@ -1,6 +1,6 @@
 use crate::{
-    Alias, ColumnRef, DynIden, IntoIden, QueryBuilder, QueryStatementBuilder, QueryStatementWriter,
-    SelectExpr, SelectStatement, SimpleExpr, SqlWriter, SubQueryStatement, TableRef, Values,
+    Alias, ColumnRef, DynIden, Expr, IntoIden, QueryBuilder, QueryStatementBuilder, QueryStatementWriter,
+    SelectExpr, SelectStatement, SqlWriter, SubQueryStatement, TableRef, Values,
 };
 use inherent::inherent;
 
@@ -101,9 +101,9 @@ impl CommonTableExpression {
     /// columns.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
-        Q: QueryStatementBuilder,
+        Q: Into<SubQueryStatement>,
     {
-        self.query = Some(Box::new(query.into_sub_query_statement()));
+        self.query = Some(Box::new(query.into()));
         self
     }
 
@@ -126,7 +126,7 @@ impl CommonTableExpression {
                 _ => {}
             }
         }
-        cte.query = Some(Box::new(select.into_sub_query_statement()));
+        cte.query = Some(Box::new(select.into()));
         cte
     }
 
@@ -151,7 +151,7 @@ impl CommonTableExpression {
                     Some(ident.clone())
                 } else {
                     match &select.expr {
-                        SimpleExpr::Column(column) => match column {
+                        Expr::Column(column) => match column {
                             ColumnRef::Column(iden) => Some(iden.clone()),
                             ColumnRef::TableColumn(table, column) => Some(
                                 Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
@@ -264,7 +264,7 @@ impl Search {
 /// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Cycle {
-    pub(crate) expr: Option<SimpleExpr>,
+    pub(crate) expr: Option<Expr>,
     pub(crate) set_as: Option<DynIden>,
     pub(crate) using: Option<DynIden>,
 }
@@ -274,7 +274,7 @@ impl Cycle {
     /// given [SelectExpr] must have an alias specified.
     pub fn new_from_expr_set_using<EXPR, ID1, ID2>(expr: EXPR, set: ID1, using: ID2) -> Self
     where
-        EXPR: Into<SimpleExpr>,
+        EXPR: Into<Expr>,
         ID1: IntoIden,
         ID2: IntoIden,
     {
@@ -293,7 +293,7 @@ impl Cycle {
     /// The expression identifying nodes.
     pub fn expr<EXPR>(&mut self, expr: EXPR) -> &mut Self
     where
-        EXPR: Into<SimpleExpr>,
+        EXPR: Into<Expr>,
     {
         self.expr = Some(expr.into());
         self
@@ -408,7 +408,7 @@ impl Cycle {
 /// let with_clause = WithClause::new()
 ///         .recursive(true)
 ///         .cte(common_table_expression)
-///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+///         .cycle(Cycle::new_from_expr_set_using(Expr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
 ///         .to_owned();
 ///
 /// let query = select.with(with_clause).to_owned();
@@ -480,7 +480,7 @@ impl WithClause {
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
-        T: QueryStatementBuilder + 'static,
+        T: Into<SubQueryStatement> + 'static,
     {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }
@@ -578,9 +578,9 @@ impl WithQuery {
     /// Set the query that you execute with the [WithClause].
     pub fn query<T>(&mut self, query: T) -> &mut Self
     where
-        T: QueryStatementBuilder,
+        T: Into<SubQueryStatement>,
     {
-        self.query = Some(Box::new(query.into_sub_query_statement()));
+        self.query = Some(Box::new(query.into()));
         self
     }
 }
@@ -589,9 +589,11 @@ impl QueryStatementBuilder for WithQuery {
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
         query_builder.prepare_with_query(self, sql);
     }
+}
 
-    fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::WithStatement(self)
+impl From<WithQuery> for SubQueryStatement {
+    fn from(s: WithQuery) -> Self {
+        Self::WithStatement(s)
     }
 }
 
