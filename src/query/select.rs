@@ -54,7 +54,7 @@ pub struct SelectStatement {
     pub(crate) offset: Option<Value>,
     pub(crate) lock: Option<LockClause>,
     pub(crate) window: Option<(DynIden, WindowStatement)>,
-    pub(crate) with: Option<WithClause>,
+    pub(crate) with: Option<Box<WithClause>>,
     #[cfg(feature = "backend-postgres")]
     pub(crate) table_sample: Option<crate::extension::postgres::TableSample>,
     #[cfg(feature = "backend-mysql")]
@@ -991,7 +991,10 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().selects(),
-    ///     [SchemaTable(Some(SeaRc::new(Font::Table)), SeaRc::new(Char::Table))]
+    ///     [SchemaTable(
+    ///         Some(SeaRc::new(Font::Table)),
+    ///         SeaRc::new(Char::Table)
+    ///     )]
     /// );
     /// ```
     pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
@@ -2464,7 +2467,7 @@ impl SelectStatement {
     /// );
     /// ```
     pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
-        self.with = Some(clause.into());
+        self.with = Some(Box::new(clause.into()));
         self
     }
 
