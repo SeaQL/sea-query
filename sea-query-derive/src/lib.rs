@@ -167,14 +167,10 @@ fn impl_iden_for_unit_struct(
         quote! {
             impl #sea_query_path::Iden for #ident {
                 fn quoted(&self) -> std::borrow::Cow<'static, str> {
-                    std::borrow::Cow::Borrowed(self.unquoted_static())
+                    std::borrow::Cow::Borrowed(#table_name)
                 }
 
                 fn unquoted(&self) -> &str {
-                    self.unquoted_static()
-                }
-
-                fn unquoted_static(&self) -> &'static str {
                     #table_name
                 }
             }
@@ -218,14 +214,12 @@ where
         quote! {
             impl #sea_query_path::Iden for #ident {
                 fn quoted(&self) -> std::borrow::Cow<'static, str> {
-                    std::borrow::Cow::Borrowed(self.unquoted_static())
+                    std::borrow::Cow::Borrowed(match self {
+                        #(#match_arms),*
+                    })
                 }
 
                 fn unquoted(&self) -> &str {
-                    self.unquoted_static()
-                }
-
-                fn unquoted_static(&self) -> &'static str {
                     match self {
                         #(#match_arms),*
                     }

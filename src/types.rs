@@ -26,21 +26,31 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 
 /// Identifier
 pub trait Iden {
+    fn is_static_iden(&self) -> bool {
+        let string = self.unquoted();
+        // can only begin with [a-z_]
+        string
+            .chars()
+            .take(1)
+            .all(|c| c == '_' || c.is_ascii_alphabetic())
+            && string
+                .chars()
+                .all(|c| c == '_' || c.is_ascii_alphanumeric())
+    }
+
     /// Return the prepared version of the identifier.
     ///
     /// If you're **sure** that the identifier doesn't need to be escaped,
     /// return `'static str`.
-    /// This is generally only safe to deduce at compile-time via macros.
+    /// This can be deduced at compile-time via macros,
+    /// or using the [`is_static_iden`] method.
     ///
     /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
     ///
     /// You can override this impl by:
     /// ```ignore
     /// fn quoted(&self) -> std::borrow::Cow<'static, str> {
-    ///     std::borrow::Cow::Borrowed(self.unquoted_static())
-    /// }
-    /// fn unquoted_static(&self) -> &'static str {
-    ///     // implement
+    ///     std::borrow::Cow::Borrowed("..")
     /// }
     /// ```
     fn quoted(&self) -> Cow<'static, str> {
@@ -63,12 +73,6 @@ pub trait Iden {
     /// We indentionally don't reuse [`Display`][std::fmt::Display] for
     /// this, because we want to allow it to have a different logic.
     fn unquoted(&self) -> &str;
-
-    /// This will not be called by the library.
-    /// Only intended to be a delegate of [`quoted`] and [`unquoted`].
-    fn unquoted_static(&self) -> &'static str {
-        panic!("This Iden is not static");
-    }
 }
 
 /// Identifier statically known at compile-time.
@@ -621,7 +625,15 @@ impl Iden for Alias {
 /// The "base" `impl` for writing arbitrary "raw" strings as identifiers.
 ///
 /// Reused for other string-like types.
-impl Iden for &str {
+impl Iden for &'static str {
+    fn quoted(&self) -> Cow<'static, str> {
+        if self.is_static_iden() {
+            Cow::Borrowed(self)
+        } else {
+            Cow::Owned(String::from(*self))
+        }
+    }
+
     fn unquoted(&self) -> &str {
         self
     }
