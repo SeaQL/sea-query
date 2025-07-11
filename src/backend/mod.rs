@@ -41,7 +41,7 @@ pub trait QuotedBuilder {
     fn quote(&self) -> Quote;
 
     /// To prepare iden and write to SQL.
-    fn prepare_dyn_iden(&self, iden: &DynIden, sql: &mut dyn SqlWriter) {
+    fn prepare_iden(&self, iden: &DynIden, sql: &mut dyn SqlWriter) {
         let q = self.quote();
         let byte = [q.1];
         let qq: &str = std::str::from_utf8(&byte).unwrap();

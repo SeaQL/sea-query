@@ -11,7 +11,7 @@ impl TableBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
-        self.prepare_dyn_iden(&column_def.name, sql);
+        self.prepare_iden(&column_def.name, sql);
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
@@ -144,13 +144,13 @@ impl TableBuilder for MysqlQueryBuilder {
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
                     write!(sql, "RENAME COLUMN ").unwrap();
-                    self.prepare_dyn_iden(from_name, sql);
+                    self.prepare_iden(from_name, sql);
                     write!(sql, " TO ").unwrap();
-                    self.prepare_dyn_iden(to_name, sql);
+                    self.prepare_iden(to_name, sql);
                 }
                 TableAlterOption::DropColumn(column_name) => {
                     write!(sql, "DROP COLUMN ").unwrap();
-                    self.prepare_dyn_iden(column_name, sql);
+                    self.prepare_iden(column_name, sql);
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();

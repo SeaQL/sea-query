@@ -133,7 +133,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 TableAlterOption::ModifyColumn(column_def) => {
                     if let Some(column_type) = &column_def.types {
                         write!(sql, "ALTER COLUMN ").unwrap();
-                        self.prepare_dyn_iden(&column_def.name, sql);
+                        self.prepare_iden(&column_def.name, sql);
                         write!(sql, " TYPE ").unwrap();
                         self.prepare_column_type(column_type, sql);
                     }
@@ -154,28 +154,28 @@ impl TableBuilder for PostgresQueryBuilder {
                             ColumnSpec::AutoIncrement => {}
                             ColumnSpec::Null => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
-                                self.prepare_dyn_iden(&column_def.name, sql);
+                                self.prepare_iden(&column_def.name, sql);
                                 write!(sql, " DROP NOT NULL").unwrap();
                             }
                             ColumnSpec::NotNull => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
-                                self.prepare_dyn_iden(&column_def.name, sql);
+                                self.prepare_iden(&column_def.name, sql);
                                 write!(sql, " SET NOT NULL").unwrap()
                             }
                             ColumnSpec::Default(v) => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
-                                self.prepare_dyn_iden(&column_def.name, sql);
+                                self.prepare_iden(&column_def.name, sql);
                                 write!(sql, " SET DEFAULT ").unwrap();
                                 QueryBuilder::prepare_simple_expr(self, v, sql);
                             }
                             ColumnSpec::UniqueKey => {
                                 write!(sql, "ADD UNIQUE (").unwrap();
-                                self.prepare_dyn_iden(&column_def.name, sql);
+                                self.prepare_iden(&column_def.name, sql);
                                 write!(sql, ")").unwrap();
                             }
                             ColumnSpec::PrimaryKey => {
                                 write!(sql, "ADD PRIMARY KEY (").unwrap();
-                                self.prepare_dyn_iden(&column_def.name, sql);
+                                self.prepare_iden(&column_def.name, sql);
                                 write!(sql, ")").unwrap();
                             }
                             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
@@ -192,13 +192,13 @@ impl TableBuilder for PostgresQueryBuilder {
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
                     write!(sql, "RENAME COLUMN ").unwrap();
-                    self.prepare_dyn_iden(from_name, sql);
+                    self.prepare_iden(from_name, sql);
                     write!(sql, " TO ").unwrap();
-                    self.prepare_dyn_iden(to_name, sql);
+                    self.prepare_iden(to_name, sql);
                 }
                 TableAlterOption::DropColumn(column_name) => {
                     write!(sql, "DROP COLUMN ").unwrap();
-                    self.prepare_dyn_iden(column_name, sql);
+                    self.prepare_iden(column_name, sql);
                 }
                 TableAlterOption::DropForeignKey(name) => {
                     let mut foreign_key = TableForeignKey::new();
@@ -274,7 +274,7 @@ impl PostgresQueryBuilder {
     where
         F: Fn(&ColumnDef, &mut dyn SqlWriter),
     {
-        self.prepare_dyn_iden(&column_def.name, sql);
+        self.prepare_iden(&column_def.name, sql);
 
         f(column_def, sql);
 

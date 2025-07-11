@@ -28,19 +28,19 @@ impl QueryBuilder for MysqlQueryBuilder {
                     write!(sql, "USE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    self.prepare_dyn_iden(&hint.index, sql);
+                    self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Ignore => {
                     write!(sql, "IGNORE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    self.prepare_dyn_iden(&hint.index, sql);
+                    self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Force => {
                     write!(sql, "FORCE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    self.prepare_dyn_iden(&hint.index, sql);
+                    self.prepare_iden(&hint.index, sql);
                 }
             }
             write!(sql, ")").unwrap();
@@ -93,7 +93,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         use std::ops::Deref;
 
         if from.is_empty() {
-            self.prepare_dyn_iden(column, sql);
+            self.prepare_iden(column, sql);
         } else {
             if let Some(table) = table {
                 if let TableRef::Table(table) = table.deref() {
@@ -104,7 +104,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                     return;
                 }
             }
-            self.prepare_dyn_iden(column, sql);
+            self.prepare_iden(column, sql);
         }
     }
 
@@ -166,9 +166,9 @@ impl QueryBuilder for MysqlQueryBuilder {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        self.prepare_dyn_iden(pk_col, sql);
+                        self.prepare_iden(pk_col, sql);
                         write!(sql, " = ").unwrap();
-                        self.prepare_dyn_iden(pk_col, sql);
+                        self.prepare_iden(pk_col, sql);
                         false
                     });
                 } else {
@@ -189,7 +189,7 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
         write!(sql, "VALUES(").unwrap();
-        self.prepare_dyn_iden(col, sql);
+        self.prepare_iden(col, sql);
         write!(sql, ")").unwrap();
     }
 

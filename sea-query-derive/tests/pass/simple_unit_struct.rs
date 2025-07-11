@@ -12,14 +12,14 @@ fn main() {
     assert_eq!(SomeTypeWithRename.to_string(), "Hel`lo");
 
     let mut string = String::new();
-    PostgresQueryBuilder.prepare_dyn_iden(&SomeType.into_iden(), &mut string);
+    PostgresQueryBuilder.prepare_iden(&SomeType.into_iden(), &mut string);
     assert_eq!(string, "\"some_type\"");
 
     let mut string = String::new();
-    PostgresQueryBuilder.prepare_dyn_iden(&SomeTypeWithRename.into_iden(), &mut string);
+    PostgresQueryBuilder.prepare_iden(&SomeTypeWithRename.into_iden(), &mut string);
     assert_eq!(string, "\"Hel`lo\"");
 
     let mut string = String::new();
-    MysqlQueryBuilder.prepare_dyn_iden(&SomeTypeWithRename.into_iden(), &mut string);
+    MysqlQueryBuilder.prepare_iden(&SomeTypeWithRename.into_iden(), &mut string);
     assert_eq!(string, "`Hel``lo`");
 }

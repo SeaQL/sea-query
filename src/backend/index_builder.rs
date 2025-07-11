@@ -63,7 +63,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
         column: &IndexColumnTableColumn,
         sql: &mut dyn SqlWriter,
     ) {
-        self.prepare_dyn_iden(&column.name, sql);
+        self.prepare_iden(&column.name, sql);
         self.write_column_index_prefix(&column.prefix, sql);
         if let Some(order) = &column.order {
             match order {

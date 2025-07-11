@@ -45,7 +45,7 @@ pub trait QueryBuilder:
                 if !first {
                     write!(sql, ", ").unwrap()
                 }
-                self.prepare_dyn_iden(col, sql);
+                self.prepare_iden(col, sql);
                 false
             });
             write!(sql, ")").unwrap();
@@ -183,7 +183,7 @@ pub trait QueryBuilder:
 
         if let Some((name, query)) = &select.window {
             write!(sql, " WINDOW ").unwrap();
-            self.prepare_dyn_iden(name, sql);
+            self.prepare_iden(name, sql);
             write!(sql, " AS ").unwrap();
             self.prepare_window_statement(query, sql);
         }
@@ -271,7 +271,7 @@ pub trait QueryBuilder:
         column: &DynIden,
         sql: &mut dyn SqlWriter,
     ) {
-        self.prepare_dyn_iden(column, sql);
+        self.prepare_iden(column, sql);
     }
 
     fn prepare_update_condition(
@@ -454,7 +454,7 @@ pub trait QueryBuilder:
                 self.prepare_constant(val, sql);
             }
             Expr::TypeName(iden) => {
-                self.prepare_dyn_iden(iden, sql);
+                self.prepare_iden(iden, sql);
             }
         }
     }
@@ -532,7 +532,7 @@ pub trait QueryBuilder:
         match &select_expr.window {
             Some(WindowSelectType::Name(name)) => {
                 write!(sql, " OVER ").unwrap();
-                self.prepare_dyn_iden(name, sql);
+                self.prepare_iden(name, sql);
             }
             Some(WindowSelectType::Query(window)) => {
                 write!(sql, " OVER ").unwrap();
@@ -545,7 +545,7 @@ pub trait QueryBuilder:
 
         if let Some(alias) = &select_expr.alias {
             write!(sql, " AS ").unwrap();
-            self.prepare_dyn_iden(alias, sql);
+            self.prepare_iden(alias, sql);
         };
     }
 
@@ -574,20 +574,20 @@ pub trait QueryBuilder:
                 self.prepare_select_statement(query, sql);
                 write!(sql, ")").unwrap();
                 write!(sql, " AS ").unwrap();
-                self.prepare_dyn_iden(alias, sql);
+                self.prepare_iden(alias, sql);
             }
             TableRef::ValuesList(values, alias) => {
                 write!(sql, "(").unwrap();
                 self.prepare_values_list(values, sql);
                 write!(sql, ")").unwrap();
                 write!(sql, " AS ").unwrap();
-                self.prepare_dyn_iden(alias, sql);
+                self.prepare_iden(alias, sql);
             }
             TableRef::FunctionCall(func, alias) => {
                 self.prepare_function_name(&func.func, sql);
                 self.prepare_function_arguments(func, sql);
                 write!(sql, " AS ").unwrap();
-                self.prepare_dyn_iden(alias, sql);
+                self.prepare_iden(alias, sql);
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
         }
@@ -595,24 +595,24 @@ pub trait QueryBuilder:
 
     fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut dyn SqlWriter) {
         match column_ref {
-            ColumnRef::Column(column) => self.prepare_dyn_iden(column, sql),
+            ColumnRef::Column(column) => self.prepare_iden(column, sql),
             ColumnRef::TableColumn(table, column) => {
-                self.prepare_dyn_iden(table, sql);
+                self.prepare_iden(table, sql);
                 write!(sql, ".").unwrap();
-                self.prepare_dyn_iden(column, sql);
+                self.prepare_iden(column, sql);
             }
             ColumnRef::SchemaTableColumn(schema, table, column) => {
-                self.prepare_dyn_iden(schema, sql);
+                self.prepare_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                self.prepare_dyn_iden(table, sql);
+                self.prepare_iden(table, sql);
                 write!(sql, ".").unwrap();
-                self.prepare_dyn_iden(column, sql);
+                self.prepare_iden(column, sql);
             }
             ColumnRef::Asterisk => {
                 write!(sql, "*").unwrap();
             }
             ColumnRef::TableAsterisk(table) => {
-                self.prepare_dyn_iden(table, sql);
+                self.prepare_iden(table, sql);
                 write!(sql, ".*").unwrap();
             }
         };
@@ -809,7 +809,7 @@ pub trait QueryBuilder:
 
                 write!(sql, " SET ").unwrap();
 
-                self.prepare_dyn_iden(search.expr.as_ref().unwrap().alias.as_ref().unwrap(), sql);
+                self.prepare_iden(search.expr.as_ref().unwrap().alias.as_ref().unwrap(), sql);
                 write!(sql, " ").unwrap();
             }
             if let Some(cycle) = &with_clause.cycle {
@@ -819,9 +819,9 @@ pub trait QueryBuilder:
 
                 write!(sql, " SET ").unwrap();
 
-                self.prepare_dyn_iden(cycle.set_as.as_ref().unwrap(), sql);
+                self.prepare_iden(cycle.set_as.as_ref().unwrap(), sql);
                 write!(sql, " USING ").unwrap();
-                self.prepare_dyn_iden(cycle.using.as_ref().unwrap(), sql);
+                self.prepare_iden(cycle.using.as_ref().unwrap(), sql);
                 write!(sql, " ").unwrap();
             }
         }
@@ -850,7 +850,7 @@ pub trait QueryBuilder:
         cte: &CommonTableExpression,
         sql: &mut dyn SqlWriter,
     ) {
-        self.prepare_dyn_iden(cte.table_name.as_ref().unwrap(), sql);
+        self.prepare_iden(cte.table_name.as_ref().unwrap(), sql);
 
         if cte.cols.is_empty() {
             write!(sql, " ").unwrap();
@@ -863,7 +863,7 @@ pub trait QueryBuilder:
                     write!(sql, ", ").unwrap();
                 }
                 col_first = false;
-                self.prepare_dyn_iden(col, sql);
+                self.prepare_iden(col, sql);
             }
 
             write!(sql, ") ").unwrap();
@@ -1222,7 +1222,7 @@ pub trait QueryBuilder:
             }
             match target {
                 OnConflictTarget::ConflictColumn(col) => {
-                    self.prepare_dyn_iden(col, sql);
+                    self.prepare_iden(col, sql);
                 }
 
                 OnConflictTarget::ConflictExpr(expr) => {
@@ -1262,12 +1262,12 @@ pub trait QueryBuilder:
                         }
                         match update_strat {
                             OnConflictUpdate::Column(col) => {
-                                self.prepare_dyn_iden(col, sql);
+                                self.prepare_iden(col, sql);
                                 write!(sql, " = ").unwrap();
                                 self.prepare_on_conflict_excluded_table(col, sql);
                             }
                             OnConflictUpdate::Expr(col, expr) => {
-                                self.prepare_dyn_iden(col, sql);
+                                self.prepare_iden(col, sql);
                                 write!(sql, " = ").unwrap();
                                 self.prepare_simple_expr(expr, sql);
                             }
@@ -1302,7 +1302,7 @@ pub trait QueryBuilder:
         )
         .unwrap();
         write!(sql, ".").unwrap();
-        self.prepare_dyn_iden(col, sql);
+        self.prepare_iden(col, sql);
     }
 
     #[doc(hidden)]

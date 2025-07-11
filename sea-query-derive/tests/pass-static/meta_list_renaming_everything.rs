@@ -39,10 +39,10 @@ fn main() {
         .for_each(|(iden, exp)| assert_eq!(iden, exp));
     
     let mut string = String::new();
-    PostgresQueryBuilder.prepare_dyn_iden(&Custom::Email(0).into_iden(), &mut string);
+    PostgresQueryBuilder.prepare_iden(&Custom::Email(0).into_iden(), &mut string);
     assert_eq!(string, "\"EM`ail\"");
 
     let mut string = String::new();
-    MysqlQueryBuilder.prepare_dyn_iden(&Custom::Email(0).into_iden(), &mut string);
+    MysqlQueryBuilder.prepare_iden(&Custom::Email(0).into_iden(), &mut string);
     assert_eq!(string, "`EM``ail`");
 }

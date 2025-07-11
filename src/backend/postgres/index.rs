@@ -97,7 +97,7 @@ impl IndexBuilder for PostgresQueryBuilder {
             match table {
                 TableRef::Table(_) => {}
                 TableRef::SchemaTable(schema, _) => {
-                    self.prepare_dyn_iden(schema, sql);
+                    self.prepare_iden(schema, sql);
                     write!(sql, ".").unwrap();
                 }
                 _ => panic!("Not supported"),
@@ -179,7 +179,7 @@ impl PostgresQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_dyn_iden(col, sql);
+            self.prepare_iden(col, sql);
             false
         });
         write!(sql, ")").unwrap();

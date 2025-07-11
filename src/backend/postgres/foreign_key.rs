@@ -63,7 +63,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            self.prepare_dyn_iden(col, sql);
+            self.prepare_iden(col, sql);
             false
         });
         write!(sql, ")").unwrap();
@@ -83,7 +83,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                self.prepare_dyn_iden(col, sql);
+                self.prepare_iden(col, sql);
                 false
             });
         write!(sql, ")").unwrap();
