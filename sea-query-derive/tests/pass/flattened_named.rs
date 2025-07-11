@@ -1,4 +1,4 @@
-use sea_query::{Iden, QuotedBuilder, MysqlQueryBuilder};
+use sea_query::Iden;
 use strum::{EnumIter, IntoEnumIterator};
 use std::borrow::Cow;
 
@@ -36,6 +36,6 @@ fn main() {
         .zip(expected)
         .for_each(|(var, exp)| {
             assert_eq!(var.to_string(), exp);
-            assert_eq!(var.quoted(MysqlQueryBuilder.quote()), Cow::Borrowed(exp));
+            assert_eq!(var.quoted(), Cow::Borrowed(exp));
         })
 }

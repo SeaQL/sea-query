@@ -47,5 +47,5 @@ fn main() {
     MysqlQueryBuilder.prepare_iden(&Custom::Email("".to_owned()), &mut string);
     assert_eq!(string, "`EM``ail`");
 
-    assert!(matches!(Custom::FirstName.quoted(MysqlQueryBuilder.quote()), Cow::Owned(_)));
+    assert!(matches!(Custom::FirstName.quoted(), Cow::Owned(_)));
 }

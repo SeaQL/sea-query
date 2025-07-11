@@ -166,7 +166,7 @@ fn impl_iden_for_unit_struct(
     if is_static_iden(table_name) {
         quote! {
             impl #sea_query_path::Iden for #ident {
-                fn quoted(&self, q: sea_query::Quote) -> std::borrow::Cow<'static, str> {
+                fn quoted(&self) -> std::borrow::Cow<'static, str> {
                     std::borrow::Cow::Borrowed(self.unquoted_static())
                 }
 
@@ -217,7 +217,7 @@ where
     if is_all_static_iden {
         quote! {
             impl #sea_query_path::Iden for #ident {
-                fn quoted(&self, q: sea_query::Quote) -> std::borrow::Cow<'static, str> {
+                fn quoted(&self) -> std::borrow::Cow<'static, str> {
                     std::borrow::Cow::Borrowed(self.unquoted_static())
                 }
 

@@ -28,25 +28,25 @@ macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
         pub trait Iden where $(Self: $bounds),* {
-            /// Return the escaped version of the identifier, using the proper
-            /// quote for the database backend.
+            /// Return the prepared version of the identifier.
             ///
-            /// For example, for MySQL "hel`lo`" would become "hel``lo".
+            /// If you're **sure** that the identifier doesn't need to be escaped,
+            /// return `'static str`.
+            /// This is generally only safe to deduce at compile-time via macros.
             ///
-            /// If you're sure that the identifier doesn't need to be escaped,
-            /// you can override this by:
+            /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
+            ///
+            /// You can override this impl by:
             /// ```ignore
-            /// fn quoted(&self, q: sea_query::Quote) -> std::borrow::Cow<'static, str> {
+            /// fn quoted(&self) -> std::borrow::Cow<'static, str> {
             ///     std::borrow::Cow::Borrowed(self.unquoted_static())
             /// }
             /// fn unquoted_static(&self) -> &'static str {
             ///     // implement
             /// }
             /// ```
-            fn quoted(&self, q: Quote) -> Cow<'static, str> {
-                let byte = [q.1];
-                let qq: &str = std::str::from_utf8(&byte).unwrap();
-                Cow::Owned(self.unquoted().replace(qq, qq.repeat(2).as_str()))
+            fn quoted(&self) -> Cow<'static, str> {
+                Cow::Owned(self.to_string())
             }
 
             /// A shortcut for writing an [`unquoted`][Iden::unquoted]
