@@ -1,4 +1,4 @@
-use sea_query::{Iden, MysqlQueryBuilder, PostgresQueryBuilder, QuotedBuilder};
+use sea_query::{Iden, IntoIden, MysqlQueryBuilder, PostgresQueryBuilder, QuotedBuilder};
 
 #[derive(Copy, Clone, Iden)]
 pub struct SomeType;
@@ -12,14 +12,14 @@ fn main() {
     assert_eq!(SomeTypeWithRename.to_string(), "Hel`lo");
 
     let mut string = String::new();
-    PostgresQueryBuilder.prepare_iden(&SomeType, &mut string);
+    PostgresQueryBuilder.prepare_dyn_iden(&SomeType.into_iden(), &mut string);
     assert_eq!(string, "\"some_type\"");
 
     let mut string = String::new();
-    PostgresQueryBuilder.prepare_iden(&SomeTypeWithRename, &mut string);
+    PostgresQueryBuilder.prepare_dyn_iden(&SomeTypeWithRename.into_iden(), &mut string);
     assert_eq!(string, "\"Hel`lo\"");
 
     let mut string = String::new();
-    MysqlQueryBuilder.prepare_iden(&SomeTypeWithRename, &mut string);
+    MysqlQueryBuilder.prepare_dyn_iden(&SomeTypeWithRename.into_iden(), &mut string);
     assert_eq!(string, "`Hel``lo`");
 }

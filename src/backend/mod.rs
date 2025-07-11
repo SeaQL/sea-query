@@ -1,7 +1,7 @@
 //! Translating the SQL AST into engine-specific SQL statements.
 
 use crate::*;
-use std::{borrow::Cow, ops::Deref};
+use std::borrow::Cow;
 
 #[cfg(feature = "backend-mysql")]
 #[cfg_attr(docsrs, doc(cfg(feature = "backend-mysql")))]
@@ -41,13 +41,13 @@ pub trait QuotedBuilder {
     fn quote(&self) -> Quote;
 
     /// To prepare iden and write to SQL.
-    fn prepare_iden(&self, iden: &dyn Iden, sql: &mut dyn SqlWriter) {
+    fn prepare_dyn_iden(&self, iden: &DynIden, sql: &mut dyn SqlWriter) {
         let q = self.quote();
         let byte = [q.1];
         let qq: &str = std::str::from_utf8(&byte).unwrap();
 
         let string;
-        let quoted = match iden.quoted() {
+        let quoted: &str = match &iden.0 {
             Cow::Borrowed(s) => s,
             Cow::Owned(s) => {
                 string = s.replace(qq, qq.repeat(2).as_str());
@@ -55,10 +55,6 @@ pub trait QuotedBuilder {
             }
         };
         write!(sql, "{}{}{}", q.left(), quoted, q.right()).unwrap();
-    }
-
-    fn prepare_dyn_iden(&self, iden: &DynIden, sql: &mut dyn SqlWriter) {
-        self.prepare_iden(iden.deref(), sql);
     }
 }
 

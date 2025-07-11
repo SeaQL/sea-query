@@ -1,4 +1,4 @@
-use sea_query::{Iden, MysqlQueryBuilder, PostgresQueryBuilder, QuotedBuilder};
+use sea_query::{Iden, IntoIden, MysqlQueryBuilder, PostgresQueryBuilder, QuotedBuilder};
 use strum::{EnumIter, IntoEnumIterator};
 use std::borrow::Cow;
 
@@ -40,11 +40,11 @@ fn main() {
         .for_each(|(iden, exp)| assert_eq!(iden, exp));
     
     let mut string = String::new();
-    PostgresQueryBuilder.prepare_iden(&Custom::Email("".to_owned()), &mut string);
+    PostgresQueryBuilder.prepare_dyn_iden(&Custom::Email("".to_owned()).into_iden(), &mut string);
     assert_eq!(string, "\"EM`ail\"");
 
     let mut string = String::new();
-    MysqlQueryBuilder.prepare_iden(&Custom::Email("".to_owned()), &mut string);
+    MysqlQueryBuilder.prepare_dyn_iden(&Custom::Email("".to_owned()).into_iden(), &mut string);
     assert_eq!(string, "`EM``ail`");
 
     assert!(matches!(Custom::FirstName.quoted(), Cow::Owned(_)));

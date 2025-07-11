@@ -724,7 +724,7 @@ pub trait QueryBuilder:
     /// Translate [`Function`] into SQL statement.
     fn prepare_function_name_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
         if let Function::Custom(iden) = function {
-            write!(sql, "{}", iden.unquoted()).unwrap()
+            write!(sql, "{}", iden).unwrap()
         } else {
             write!(
                 sql,
@@ -1032,7 +1032,7 @@ pub trait QueryBuilder:
             Keyword::CurrentDate => write!(sql, "CURRENT_DATE").unwrap(),
             Keyword::CurrentTime => write!(sql, "CURRENT_TIME").unwrap(),
             Keyword::CurrentTimestamp => write!(sql, "CURRENT_TIMESTAMP").unwrap(),
-            Keyword::Custom(iden) => write!(sql, "{}", iden.unquoted()).unwrap(),
+            Keyword::Custom(iden) => write!(sql, "{}", iden).unwrap(),
         }
     }
 

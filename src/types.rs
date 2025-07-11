@@ -1,7 +1,7 @@
 //! Base types used throughout sea-query.
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
-use std::{borrow::Cow, fmt, ops};
+use std::borrow::Cow;
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -24,101 +24,76 @@ pub type RcOrArc<T> = std::sync::Arc<T>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Quote(pub(crate) u8, pub(crate) u8);
 
-macro_rules! iden_trait {
-    ($($bounds:ident),*) => {
-        /// Identifier
-        pub trait Iden where $(Self: $bounds),* {
-            /// Return the prepared version of the identifier.
-            ///
-            /// If you're **sure** that the identifier doesn't need to be escaped,
-            /// return `'static str`.
-            /// This is generally only safe to deduce at compile-time via macros.
-            ///
-            /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
-            ///
-            /// You can override this impl by:
-            /// ```ignore
-            /// fn quoted(&self) -> std::borrow::Cow<'static, str> {
-            ///     std::borrow::Cow::Borrowed(self.unquoted_static())
-            /// }
-            /// fn unquoted_static(&self) -> &'static str {
-            ///     // implement
-            /// }
-            /// ```
-            fn quoted(&self) -> Cow<'static, str> {
-                Cow::Owned(self.to_string())
-            }
+/// Identifier
+pub trait Iden {
+    /// Return the prepared version of the identifier.
+    ///
+    /// If you're **sure** that the identifier doesn't need to be escaped,
+    /// return `'static str`.
+    /// This is generally only safe to deduce at compile-time via macros.
+    ///
+    /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
+    ///
+    /// You can override this impl by:
+    /// ```ignore
+    /// fn quoted(&self) -> std::borrow::Cow<'static, str> {
+    ///     std::borrow::Cow::Borrowed(self.unquoted_static())
+    /// }
+    /// fn unquoted_static(&self) -> &'static str {
+    ///     // implement
+    /// }
+    /// ```
+    fn quoted(&self) -> Cow<'static, str> {
+        Cow::Owned(self.to_string())
+    }
 
-            /// A shortcut for writing an [`unquoted`][Iden::unquoted]
-            /// identifier into a [`String`].
-            ///
-            /// We can't reuse [`ToString`] for this, because [`ToString`] uses
-            /// the [`Display`][std::fmt::Display] representation. But [`Iden`]
-            /// representation is distinct from [`Display`][std::fmt::Display]
-            /// and can be different.
-            fn to_string(&self) -> String {
-                self.unquoted().to_owned()
-            }
+    /// A shortcut for writing an [`unquoted`][Iden::unquoted]
+    /// identifier into a [`String`].
+    ///
+    /// We can't reuse [`ToString`] for this, because [`ToString`] uses
+    /// the [`Display`][std::fmt::Display] representation. But [`Iden`]
+    /// representation is distinct from [`Display`][std::fmt::Display]
+    /// and can be different.
+    fn to_string(&self) -> String {
+        self.unquoted().to_owned()
+    }
 
-            /// Write a raw identifier string without quotes.
-            ///
-            /// We indentionally don't reuse [`Display`][std::fmt::Display] for
-            /// this, because we want to allow it to have a different logic.
-            fn unquoted(&self) -> &str;
+    /// Write a raw identifier string without quotes.
+    ///
+    /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+    /// this, because we want to allow it to have a different logic.
+    fn unquoted(&self) -> &str;
 
-            /// This will not be called by the library.
-            /// Only intended to be a delegate of [`quoted`] and [`unquoted`].
-            fn unquoted_static(&self) -> &'static str {
-                panic!("This Iden is not static");
-            }
-        }
-
-        /// Identifier statically known at compile-time.
-        pub trait IdenStatic: Iden + Copy + 'static {
-            fn as_str(&self) -> &'static str;
-        }
-    };
+    /// This will not be called by the library.
+    /// Only intended to be a delegate of [`quoted`] and [`unquoted`].
+    fn unquoted_static(&self) -> &'static str {
+        panic!("This Iden is not static");
+    }
 }
 
-#[cfg(feature = "thread-safe")]
-iden_trait!(Send, Sync);
-#[cfg(not(feature = "thread-safe"))]
-iden_trait!();
+/// Identifier statically known at compile-time.
+pub trait IdenStatic: Iden + Copy + 'static {
+    fn as_str(&self) -> &'static str;
+}
 
-pub type DynIden = SeaRc<dyn Iden>;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DynIden(pub(crate) Cow<'static, str>);
 
 #[derive(Debug)]
-#[repr(transparent)]
-pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
-where
-    I: ?Sized;
+pub struct SeaRc;
 
-impl ops::Deref for SeaRc<dyn Iden> {
-    type Target = dyn Iden;
-
-    fn deref(&self) -> &Self::Target {
-        ops::Deref::deref(&self.0)
-    }
-}
-
-impl Clone for SeaRc<dyn Iden> {
-    fn clone(&self) -> SeaRc<dyn Iden> {
-        SeaRc(RcOrArc::clone(&self.0))
-    }
-}
-
-impl PartialEq for SeaRc<dyn Iden> {
-    fn eq(&self, other: &Self) -> bool {
-        self.unquoted() == other.unquoted()
-    }
-}
-
-impl SeaRc<dyn Iden> {
-    pub fn new<I>(i: I) -> SeaRc<dyn Iden>
+impl SeaRc {
+    pub fn new<I>(i: I) -> DynIden
     where
-        I: Iden + 'static,
+        I: Iden,
     {
-        SeaRc(RcOrArc::new(i))
+        DynIden(i.quoted())
+    }
+}
+
+impl std::fmt::Display for DynIden {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -130,12 +105,6 @@ pub trait IdenList {
     type IntoIter: Iterator<Item = DynIden>;
 
     fn into_iter(self) -> Self::IntoIter;
-}
-
-impl fmt::Debug for dyn Iden {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.unquoted())
-    }
 }
 
 /// Column references

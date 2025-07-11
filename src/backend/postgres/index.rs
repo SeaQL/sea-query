@@ -173,7 +173,7 @@ impl IndexBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_include_columns(&self, columns: &[SeaRc<dyn Iden>], sql: &mut dyn SqlWriter) {
+    fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut dyn SqlWriter) {
         write!(sql, "INCLUDE (").unwrap();
         columns.iter().fold(true, |first, col| {
             if !first {
