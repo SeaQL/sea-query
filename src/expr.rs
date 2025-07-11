@@ -43,6 +43,7 @@ pub enum Expr {
     AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
     Constant(Value),
+    TypeName(DynIden),
 }
 
 /// "Operator" methods for building expressions.
@@ -2347,16 +2348,6 @@ impl From<LikeExpr> for Expr {
 }
 
 impl Expr {
-    /// Soft deprecated. This is not meant to be in the public API.
-    #[doc(hidden)]
-    pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self
-    where
-        T: IntoIden,
-    {
-        let func = Func::cast_as_quoted(self, type_name, q);
-        Self::FunctionCall(func)
-    }
-
     pub(crate) fn is_binary(&self) -> bool {
         matches!(self, Self::Binary(_, _, _))
     }

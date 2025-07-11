@@ -1,4 +1,4 @@
-use sea_query::{Iden, IdenStatic};
+use sea_query::{Iden, IdenStatic, MysqlQueryBuilder, PostgresQueryBuilder, QuotedBuilder};
 use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(IdenStatic, EnumIter, Copy, Clone)]
@@ -39,10 +39,10 @@ fn main() {
         .for_each(|(iden, exp)| assert_eq!(iden, exp));
     
     let mut string = String::new();
-    Custom::Email(0).prepare(&mut string, '"'.into());
+    PostgresQueryBuilder.prepare_iden(&Custom::Email(0), &mut string);
     assert_eq!(string, "\"EM`ail\"");
 
     let mut string = String::new();
-    Custom::Email(0).prepare(&mut string, b'`'.into());
+    MysqlQueryBuilder.prepare_iden(&Custom::Email(0), &mut string);
     assert_eq!(string, "`EM``ail`");
 }

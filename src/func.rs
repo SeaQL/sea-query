@@ -547,12 +547,12 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cast_as_quoted("hello", "MyType", '"'.into()))
+    ///     .expr(Func::cast_as_quoted("hello", "MyType"))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('hello' AS "MyType")"#
+    ///     r#"SELECT CAST('hello' AS `MyType`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -563,16 +563,14 @@ impl Func {
     ///     r#"SELECT CAST('hello' AS "MyType")"#
     /// );
     /// ```
-    pub fn cast_as_quoted<V, I>(expr: V, iden: I, q: Quote) -> FunctionCall
+    pub fn cast_as_quoted<V, I>(expr: V, iden: I) -> FunctionCall
     where
         V: Into<Expr>,
         I: IntoIden,
     {
         let expr: Expr = expr.into();
-        let mut quoted_type = String::new();
-        iden.into_iden().prepare(&mut quoted_type, q);
         FunctionCall::new(Function::Cast)
-            .arg(expr.binary(BinOper::As, Expr::cust(quoted_type.as_str())))
+            .arg(expr.binary(BinOper::As, Expr::TypeName(iden.into_iden())))
     }
 
     /// Call `COALESCE` function.

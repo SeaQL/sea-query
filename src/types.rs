@@ -28,10 +28,6 @@ macro_rules! iden_trait {
     ($($bounds:ident),*) => {
         /// Identifier
         pub trait Iden where $(Self: $bounds),* {
-            fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
-                write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
-            }
-
             /// Return the escaped version of the identifier, using the proper
             /// quote for the database backend.
             ///

@@ -50,7 +50,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql.as_writer(), self.quote());
+            self.prepare_dyn_iden(col, sql);
             false
         });
         write!(sql, ")").unwrap();
@@ -68,7 +68,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql.as_writer(), self.quote());
+                self.prepare_dyn_iden(col, sql);
                 false
             });
         write!(sql, ")").unwrap();

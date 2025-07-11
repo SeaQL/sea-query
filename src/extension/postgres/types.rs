@@ -122,19 +122,19 @@ pub trait TypeBuilder: QuotedBuilder {
     fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut dyn SqlWriter) {
         match type_ref {
             TypeRef::Type(name) => {
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_dyn_iden(name, sql);
             }
             TypeRef::SchemaType(schema, name) => {
-                schema.prepare(sql.as_writer(), self.quote());
+                self.prepare_dyn_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_dyn_iden(name, sql);
             }
             TypeRef::DatabaseSchemaType(database, schema, name) => {
-                database.prepare(sql.as_writer(), self.quote());
+                self.prepare_dyn_iden(database, sql);
                 write!(sql, ".").unwrap();
-                schema.prepare(sql.as_writer(), self.quote());
+                self.prepare_dyn_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_dyn_iden(name, sql);
             }
         }
     }
