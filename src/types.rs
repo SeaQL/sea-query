@@ -1,7 +1,7 @@
 //! Base types used throughout sea-query.
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
-use std::{borrow::Cow, fmt, mem, ops};
+use std::{borrow::Cow, fmt, ops};
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -32,6 +32,17 @@ macro_rules! iden_trait {
             /// quote for the database backend.
             ///
             /// For example, for MySQL "hel`lo`" would become "hel``lo".
+            ///
+            /// If you're sure that the identifier doesn't need to be escaped,
+            /// you can override this by:
+            /// ```ignore
+            /// fn quoted(&self, q: sea_query::Quote) -> std::borrow::Cow<'static, str> {
+            ///     std::borrow::Cow::Borrowed(self.unquoted_static())
+            /// }
+            /// fn unquoted_static(&self) -> &'static str {
+            ///     // implement
+            /// }
+            /// ```
             fn quoted(&self, q: Quote) -> Cow<'static, str> {
                 let byte = [q.1];
                 let qq: &str = std::str::from_utf8(&byte).unwrap();
@@ -62,7 +73,7 @@ macro_rules! iden_trait {
             }
         }
 
-        /// Identifier
+        /// Identifier statically known at compile-time.
         pub trait IdenStatic: Iden + Copy + 'static {
             fn as_str(&self) -> &'static str;
         }
@@ -98,12 +109,7 @@ impl Clone for SeaRc<dyn Iden> {
 
 impl PartialEq for SeaRc<dyn Iden> {
     fn eq(&self, other: &Self) -> bool {
-        let (self_vtable, other_vtable) = unsafe {
-            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
-            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
-            (self_vtable, other_vtable)
-        };
-        self_vtable == other_vtable && self.to_string() == other.to_string()
+        self.unquoted() == other.unquoted()
     }
 }
 
@@ -794,7 +800,7 @@ mod tests {
             ColumnRef::Column("id".into_iden()),
             ColumnRef::Column("id_".into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column("id".into_iden())
         );
@@ -802,7 +808,7 @@ mod tests {
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Table.into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Font::Id.into_iden())
         );
