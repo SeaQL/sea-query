@@ -26,24 +26,12 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 
 /// Identifier
 pub trait Iden {
-    fn is_static_iden(&self) -> bool {
-        let string = self.unquoted();
-        // can only begin with [a-z_]
-        string
-            .chars()
-            .take(1)
-            .all(|c| c == '_' || c.is_ascii_alphabetic())
-            && string
-                .chars()
-                .all(|c| c == '_' || c.is_ascii_alphanumeric())
-    }
-
     /// Return the prepared version of the identifier.
     ///
     /// If you're **sure** that the identifier doesn't need to be escaped,
     /// return `'static str`.
     /// This can be deduced at compile-time via macros,
-    /// or using the [`is_static_iden`] method.
+    /// or using the [`is_static_iden`] function.
     ///
     /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
     ///
@@ -630,7 +618,7 @@ impl IntoIden for String {
 /// Reused for other string-like types.
 impl Iden for &'static str {
     fn quoted(&self) -> Cow<'static, str> {
-        if self.is_static_iden() {
+        if is_static_iden(self) {
             Cow::Borrowed(self)
         } else {
             Cow::Owned(String::from(*self))
@@ -640,6 +628,32 @@ impl Iden for &'static str {
     fn unquoted(&self) -> &str {
         self
     }
+}
+
+pub const fn is_static_iden(string: &str) -> bool {
+    let bytes = string.as_bytes();
+    if bytes.is_empty() {
+        return true;
+    }
+
+    // can only begin with [a-z_]
+    if bytes[0] == b'_' || (bytes[0] as char).is_ascii_alphabetic() {
+        // good
+    } else {
+        return false;
+    }
+
+    let mut i = 1;
+    while i < bytes.len() {
+        if bytes[i] == b'_' || (bytes[i] as char).is_ascii_alphanumeric() {
+            // good
+        } else {
+            return false;
+        }
+        i += 1;
+    }
+
+    true
 }
 
 impl NullAlias {
