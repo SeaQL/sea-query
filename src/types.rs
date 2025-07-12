@@ -612,13 +612,15 @@ impl Alias {
     }
 }
 
-// Regaring potential `impl for String` and the need for `Alias`,
-// see discussions on https://github.com/SeaQL/sea-query/pull/882
+impl IntoIden for Alias {
+    fn into_iden(self) -> DynIden {
+        DynIden(Cow::Owned(self.0))
+    }
+}
 
-/// Reuses the `impl` for the underlying [str].
-impl Iden for Alias {
-    fn unquoted(&self) -> &str {
-        self.0.as_str()
+impl IntoIden for String {
+    fn into_iden(self) -> DynIden {
+        DynIden(Cow::Owned(self))
     }
 }
 
