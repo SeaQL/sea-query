@@ -109,7 +109,6 @@ impl Func {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    ///
     /// #[derive(Iden)]
     /// #[iden = "MY_FUNCTION"]
     /// struct MyFunction;

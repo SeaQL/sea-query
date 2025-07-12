@@ -349,7 +349,7 @@ pub trait ExprTrait: Sized {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
@@ -372,10 +372,10 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     ///
-    /// Note how you should express a string being a literal vs an identifier
+    /// Note how you should express a string being a literal vs an identifier.
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)

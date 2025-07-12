@@ -87,6 +87,7 @@ pub struct DynIden(pub(crate) Cow<'static, str>);
 pub struct SeaRc;
 
 impl SeaRc {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new<I>(i: I) -> DynIden
     where
         I: Iden,
