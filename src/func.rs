@@ -109,13 +109,10 @@ impl Func {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// struct MyFunction;
     ///
-    /// impl Iden for MyFunction {
-    ///     fn unquoted(&self) -> &str {
-    ///         "MY_FUNCTION"
-    ///     }
-    /// }
+    /// #[derive(Iden)]
+    /// #[iden = "MY_FUNCTION"]
+    /// struct MyFunction;
     ///
     /// let query = Query::select()
     ///     .expr(Func::cust(MyFunction).arg("hello"))

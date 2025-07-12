@@ -167,22 +167,13 @@ impl TypeCreateStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// enum FontFamily {
+    ///     #[iden = "font_family"]
     ///     Type,
     ///     Serif,
     ///     Sans,
     ///     Monospace,
-    /// }
-    ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self) -> &str {
-    ///         match self {
-    ///             Self::Type => "font_family",
-    ///             Self::Serif => "serif",
-    ///             Self::Sans => "sans",
-    ///             Self::Monospace => "monospace",
-    ///         }
-    ///     }
     /// }
     ///
     /// assert_eq!(
