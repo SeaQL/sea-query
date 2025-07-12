@@ -10,17 +10,12 @@ enum Asset {
     Creation(CreationInfo),
 }
 
-#[derive(Copy, Clone, IdenStatic)]
+#[derive(Default, Copy, Clone, IdenStatic)]
 enum CreationInfo {
+    #[default]
     UserId,
     #[iden = "creation_date"]
     Date,
-}
-
-impl Default for CreationInfo {
-    fn default() -> Self {
-        Self::UserId
-    }
 }
 
 fn main() {

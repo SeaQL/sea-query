@@ -122,19 +122,19 @@ pub trait TypeBuilder: QuotedBuilder {
     fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut dyn SqlWriter) {
         match type_ref {
             TypeRef::Type(name) => {
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(name, sql);
             }
             TypeRef::SchemaType(schema, name) => {
-                schema.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(name, sql);
             }
             TypeRef::DatabaseSchemaType(database, schema, name) => {
-                database.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(database, sql);
                 write!(sql, ".").unwrap();
-                schema.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(name, sql);
             }
         }
     }
@@ -167,27 +167,13 @@ impl TypeCreateStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// enum FontFamily {
+    ///     #[iden = "font_family"]
     ///     Type,
     ///     Serif,
     ///     Sans,
     ///     Monospace,
-    /// }
-    ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
-    ///     }
     /// }
     ///
     /// assert_eq!(
@@ -232,8 +218,8 @@ impl TypeDropStatement {
     /// struct FontFamily;
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(s, "{}", "font_family").unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         "font_family"
     ///     }
     /// }
     ///
@@ -335,18 +321,13 @@ impl TypeAlterStatement {
     /// }
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         match self {
+    ///             Self::Type => "font_family",
+    ///             Self::Serif => "serif",
+    ///             Self::Sans => "sans",
+    ///             Self::Monospace => "monospace",
+    ///         }
     ///     }
     /// }
     ///

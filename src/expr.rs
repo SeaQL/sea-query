@@ -43,6 +43,7 @@ pub enum Expr {
     AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
     Constant(Value),
+    TypeName(DynIden),
 }
 
 /// "Operator" methods for building expressions.
@@ -69,6 +70,8 @@ pub trait ExprTrait: Sized {
     ///
     /// # Examples
     ///
+    /// Adding literal values
+    ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
@@ -89,6 +92,54 @@ pub trait ExprTrait: Sized {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 1 + 1 = 2"#
+    /// );
+    /// ```
+    ///
+    /// Adding columns and values
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col(Char::SizeW).add(1))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `size_w` + 1 FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "size_w" + 1 FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "size_w" + 1 FROM "character""#
+    /// );
+    /// ```
+    ///
+    /// Adding columns
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col(Char::SizeW).add(Expr::col(Char::SizeH)))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `size_w` + `size_h` FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "size_w" + "size_h" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "size_w" + "size_h" FROM "character""#
     /// );
     /// ```
     fn add<R>(self, right: R) -> Expr
@@ -298,13 +349,12 @@ pub trait ExprTrait: Sized {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .columns([Char::Character, Char::SizeW, Char::SizeH])
     ///     .from(Char::Table)
-    ///     // Sometimes, you'll have to qualify the call because of conflicting std traits.
-    ///     .and_where(ExprTrait::eq("What!", "Nothing"))
+    ///     .and_where(Expr::val("What!").eq("Nothing"))
     ///     .and_where(Char::Id.into_column_ref().eq(1))
     ///     .to_owned();
     ///
@@ -319,6 +369,31 @@ pub trait ExprTrait: Sized {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE 'What!' = 'Nothing' AND "id" = 1"#
+    /// );
+    /// ```
+    ///
+    /// Note how you should express a string being a literal vs an identifier.
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col("name").eq("Something"))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `name` = 'Something'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "name" = 'Something'"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "name" = 'Something'"#
     /// );
     /// ```
     fn eq<R>(self, right: R) -> Expr
@@ -2347,16 +2422,6 @@ impl From<LikeExpr> for Expr {
 }
 
 impl Expr {
-    /// Soft deprecated. This is not meant to be in the public API.
-    #[doc(hidden)]
-    pub fn cast_as_quoted<T>(self, type_name: T, q: Quote) -> Self
-    where
-        T: IntoIden,
-    {
-        let func = Func::cast_as_quoted(self, type_name, q);
-        Self::FunctionCall(func)
-    }
-
     pub(crate) fn is_binary(&self) -> bool {
         matches!(self, Self::Binary(_, _, _))
     }

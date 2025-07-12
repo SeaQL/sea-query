@@ -163,18 +163,13 @@
 //!
 //! // Mapping between Enum variant and its corresponding string value
 //! impl Iden for Character {
-//!     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-//!         write!(
-//!             s,
-//!             "{}",
-//!             match self {
-//!                 Self::Table => "character",
-//!                 Self::Id => "id",
-//!                 Self::FontId => "font_id",
-//!                 Self::FontSize => "font_size",
-//!             }
-//!         )
-//!         .unwrap();
+//!     fn unquoted(&self) -> &str {
+//!         match self {
+//!             Self::Table => "character",
+//!             Self::Id => "id",
+//!             Self::FontId => "font_id",
+//!             Self::FontSize => "font_size",
+//!         }
 //!     }
 //! }
 //! ```
@@ -503,8 +498,8 @@
 //! struct MyFunction;
 //!
 //! impl Iden for MyFunction {
-//!     fn unquoted(&self, s: &mut dyn Write) {
-//!         write!(s, "MY_FUNCTION").unwrap();
+//!     fn unquoted(&self) -> &str {
+//!         "MY_FUNCTION"
 //!     }
 //! }
 //!
