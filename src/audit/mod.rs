@@ -1,9 +1,15 @@
+mod insert;
 mod select;
 
 use crate::DynIden;
 
 pub trait AuditTrait {
-    fn audit(&self) -> QueryAccessAudit;
+    fn audit(&self) -> Result<QueryAccessAudit, Error>;
+
+    /// Shorthand for `audit().unwrap()`
+    fn audit_unwrap(&self) -> QueryAccessAudit {
+        self.audit().unwrap()
+    }
 }
 
 #[derive(Debug)]
@@ -25,9 +31,20 @@ pub enum AccessType {
     Insert,
     Update,
     Delete,
+    Schema(SchemaOper),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+/// Schema Operation
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum SchemaOper {
+    Create,
+    Alter,
+    Drop,
+    Rename,
+    Truncate,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SchemaTable(pub Option<DynIden>, pub DynIden);
 
 impl QueryAccessAudit {
@@ -58,5 +75,36 @@ impl QueryAccessAudit {
                 }
             })
             .collect()
+    }
+
+    /// Warning: this discards the schema part of SchemaTable.
+    /// Intended for testing only.
+    pub fn inserted_tables(&self) -> Vec<DynIden> {
+        self.requests
+            .iter()
+            .filter_map(|item| {
+                if item.access_type == AccessType::Insert {
+                    Some(item.schema_table.1.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Error {
+    /// Unable to parse query
+    UnableToParseQuery,
+}
+
+impl std::error::Error for Error {}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::UnableToParseQuery => write!(f, "Unable to parse query"),
+        }
     }
 }

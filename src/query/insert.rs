@@ -60,6 +60,20 @@ impl InsertStatement {
         Self::default()
     }
 
+    /// Take the ownership of data in the current [`SelectStatement`]
+    pub fn take(&mut self) -> Self {
+        Self {
+            replace: self.replace,
+            table: self.table.take(),
+            columns: std::mem::take(&mut self.columns),
+            source: self.source.take(),
+            on_conflict: self.on_conflict.take(),
+            returning: self.returning.take(),
+            default_values: self.default_values.take(),
+            with: self.with.take(),
+        }
+    }
+
     /// Use REPLACE instead of INSERT
     ///
     /// # Examples

@@ -39,7 +39,10 @@ fn select_3() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "size_w" = 3 AND "size_h" = 4"#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Char::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Char::Table)]
+    );
 }
 
 #[test]
@@ -58,7 +61,10 @@ fn select_4() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "aspect" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
@@ -72,7 +78,10 @@ fn select_5() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "glyph"."image" FROM "glyph" WHERE "glyph"."aspect" IN (3, 4)"#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
@@ -88,7 +97,10 @@ fn select_6() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
@@ -118,7 +130,7 @@ fn select_8() {
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     );
     assert_eq!(
-        query.audit().selected_tables(),
+        query.audit_unwrap().selected_tables(),
         [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
     );
 }
@@ -142,7 +154,7 @@ fn select_9() {
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" INNER JOIN "glyph" ON "character"."character" = "glyph"."image""#
     );
     assert_eq!(
-        query.audit().selected_tables(),
+        query.audit_unwrap().selected_tables(),
         [
             SeaRc::new(Char::Table),
             SeaRc::new(Font::Table),
@@ -168,7 +180,7 @@ fn select_10() {
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     );
     assert_eq!(
-        query.audit().selected_tables(),
+        query.audit_unwrap().selected_tables(),
         [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
     );
 }
@@ -345,7 +357,10 @@ fn select_22() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("character" LIKE 'C' OR ("character" LIKE 'D' AND "character" LIKE 'E')) AND ("character" LIKE 'F' OR "character" LIKE 'G')"#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Char::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Char::Table)]
+    );
 }
 
 #[test]
@@ -467,7 +482,7 @@ fn select_31() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"#
     );
-    assert_eq!(query.audit().selected_tables(), []);
+    assert_eq!(query.audit_unwrap().selected_tables(), []);
 }
 
 #[test]
@@ -480,7 +495,10 @@ fn select_32() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "character" AS "C" FROM "character""#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Char::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Char::Table)]
+    );
 }
 
 #[test]
@@ -497,7 +515,10 @@ fn select_33a() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "image" FROM "glyph" WHERE "aspect" IN (SELECT 3 + 2 * 2)"#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
@@ -519,7 +540,7 @@ fn select_33b() {
         r#"SELECT "image" FROM "glyph" WHERE "aspect" IN (SELECT "variant" FROM "font")"#
     );
     assert_eq!(
-        query.audit().selected_tables(),
+        query.audit_unwrap().selected_tables(),
         [SeaRc::new(Glyph::Table), SeaRc::new(Font::Table)]
     );
 }
@@ -685,7 +706,10 @@ fn select_41() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2"#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
@@ -977,7 +1001,7 @@ fn select_55() {
         r#"SELECT * FROM "character", "font" WHERE "font"."id" = "character"."font_id""#
     );
     assert_eq!(
-        query.audit().selected_tables(),
+        query.audit_unwrap().selected_tables(),
         [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
     );
 }
@@ -1075,7 +1099,10 @@ fn select_58() {
         ]
         .join(" ")
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
@@ -1095,7 +1122,10 @@ fn select_59() {
         query.to_string(PostgresQueryBuilder),
         r#"SELECT (CASE WHEN ("glyph"."aspect" > 0) THEN 'positive' WHEN ("glyph"."aspect" < 0) THEN 'negative' ELSE 'zero' END) AS "polarity" FROM "glyph""#
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
@@ -1160,7 +1190,7 @@ fn select_62() {
         ]
         .join(" ")
     );
-    assert_eq!(query.audit().selected_tables(), []);
+    assert_eq!(query.audit_unwrap().selected_tables(), []);
 }
 
 #[test]
@@ -1188,22 +1218,30 @@ fn select_63() {
         ]
         .join(" ")
     );
-    assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
+    let query = Query::insert()
+        .into_table(Glyph::Table)
+        .columns([Glyph::Image, Glyph::Aspect])
+        .values_panic([
+            "04108048005887010020060000204E0180400400".into(),
+            3.1415.into(),
+        ])
+        .take();
     assert_eq!(
-        Query::insert()
-            .into_table(Glyph::Table)
-            .columns([Glyph::Image, Glyph::Aspect])
-            .values_panic([
-                "04108048005887010020060000204E0180400400".into(),
-                3.1415.into(),
-            ])
-            .to_string(PostgresQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#
+    );
+    assert_eq!(
+        query.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 
@@ -1268,36 +1306,45 @@ fn insert_5() {
 
 #[test]
 fn insert_from_select() {
+    let query = Query::insert()
+        .into_table(Glyph::Table)
+        .or_default_values()
+        .columns([Glyph::Aspect, Glyph::Image])
+        .select_from(
+            Query::select()
+                .column(Glyph::Aspect)
+                .column(Glyph::Image)
+                .from(Font::Table)
+                .conditions(
+                    true,
+                    |x| {
+                        x.and_where(Expr::col(Glyph::Image).like("%"));
+                    },
+                    |x| {
+                        x.and_where(Expr::col(Glyph::Id).eq(6));
+                    },
+                )
+                .to_owned(),
+        )
+        .unwrap()
+        .take();
+
     assert_eq!(
-        Query::insert()
-            .into_table(Glyph::Table)
-            .or_default_values()
-            .columns([Glyph::Aspect, Glyph::Image])
-            .select_from(
-                Query::select()
-                    .column(Glyph::Aspect)
-                    .column(Glyph::Image)
-                    .from(Glyph::Table)
-                    .conditions(
-                        true,
-                        |x| {
-                            x.and_where(Expr::col(Glyph::Image).like("%"));
-                        },
-                        |x| {
-                            x.and_where(Expr::col(Glyph::Id).eq(6));
-                        },
-                    )
-                    .to_owned()
-            )
-            .unwrap()
-            .to_owned()
-            .to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '%'"#
+        query.to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "font" WHERE "image" LIKE '%'"#
+    );
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Font::Table)]
+    );
+    assert_eq!(
+        query.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 
 #[test]
-fn insert_6() -> error::Result<()> {
+fn insert_6() {
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .from(Glyph::Table)
@@ -1318,38 +1365,61 @@ fn insert_6() -> error::Result<()> {
     insert
         .into_table(Glyph::Table)
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-        .select_from(select)?;
-    let sql = insert.with(with_clause).to_string(PostgresQueryBuilder);
+        .select_from(select)
+        .unwrap();
+    let query = insert.with(with_clause);
     assert_eq!(
-        sql.as_str(),
+        query.to_string(PostgresQueryBuilder),
         [
             r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph")"#,
             r#"INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#,
         ].join(" ")
     );
-    Ok(())
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
+    assert_eq!(
+        query.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
 fn insert_7() {
+    let query = Query::insert()
+        .into_table(Glyph::Table)
+        .or_default_values()
+        .take();
     assert_eq!(
-        Query::insert()
-            .into_table(Glyph::Table)
-            .or_default_values()
-            .to_string(PostgresQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" VALUES (DEFAULT)"#
+    );
+    assert_eq!(query.audit_unwrap().selected_tables(), []);
+    assert_eq!(
+        query.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 
 #[test]
 fn insert_8() {
+    let query = Query::insert()
+        .into_table(Glyph::Table)
+        .or_default_values()
+        .returning_col(Glyph::Id)
+        .take();
     assert_eq!(
-        Query::insert()
-            .into_table(Glyph::Table)
-            .or_default_values()
-            .returning_col(Glyph::Id)
-            .to_string(PostgresQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" VALUES (DEFAULT) RETURNING "id""#
+    );
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
+    assert_eq!(
+        query.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 
@@ -1389,7 +1459,7 @@ fn insert_issue_853() {
 }
 
 #[test]
-fn insert_11() -> error::Result<()> {
+fn insert_11() {
     let select = SelectStatement::new()
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .from(Glyph::Table)
@@ -1405,46 +1475,59 @@ fn insert_11() -> error::Result<()> {
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .from("cte")
         .to_owned();
-    let mut insert = Query::insert();
-    insert
+    let insert = Query::insert()
         .into_table(Glyph::Table)
         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
         .with_cte(cte)
-        .select_from(select)?;
-    let sql = insert.to_string(PostgresQueryBuilder);
+        .select_from(select)
+        .unwrap()
+        .take();
     assert_eq!(
-        sql.as_str(),
+        insert.to_string(PostgresQueryBuilder),
         [
             r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph")"#,
             r#"INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#,
         ].join(" ")
     );
-    Ok(())
+    assert_eq!(
+        insert.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
+    assert_eq!(
+        insert.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
 }
 
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_1() {
+    let query = Query::insert()
+        .into_table(Glyph::Table)
+        .columns([Glyph::Aspect, Glyph::Image])
+        .values_panic([
+            "04108048005887010020060000204E0180400400".into(),
+            3.1415.into(),
+        ])
+        .on_conflict(
+            OnConflict::column(Glyph::Id)
+                .update_column(Glyph::Aspect)
+                .to_owned(),
+        )
+        .take();
     assert_eq!(
-        Query::insert()
-            .into_table(Glyph::Table)
-            .columns([Glyph::Aspect, Glyph::Image])
-            .values_panic([
-                "04108048005887010020060000204E0180400400".into(),
-                3.1415.into(),
-            ])
-            .on_conflict(
-                OnConflict::column(Glyph::Id)
-                    .update_column(Glyph::Aspect)
-                    .to_owned()
-            )
-            .to_string(PostgresQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         [
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
             r#"ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect""#,
         ]
         .join(" ")
+    );
+    assert_eq!(query.audit_unwrap().selected_tables(), []);
+    assert_eq!(
+        query.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 
@@ -1730,17 +1813,26 @@ fn insert_returning_all_columns() {
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_returning_specific_columns() {
+    let query = Query::insert()
+        .into_table(Glyph::Table)
+        .columns([Glyph::Image, Glyph::Aspect])
+        .values_panic([
+            "04108048005887010020060000204E0180400400".into(),
+            3.1415.into(),
+        ])
+        .returning(Query::returning().columns([Glyph::Id, Glyph::Image]))
+        .take();
     assert_eq!(
-        Query::insert()
-            .into_table(Glyph::Table)
-            .columns([Glyph::Image, Glyph::Aspect])
-            .values_panic([
-                "04108048005887010020060000204E0180400400".into(),
-                3.1415.into(),
-            ])
-            .returning(Query::returning().columns([Glyph::Id, Glyph::Image]))
-            .to_string(PostgresQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415) RETURNING "id", "image""#
+    );
+    assert_eq!(
+        query.audit_unwrap().selected_tables(),
+        [SeaRc::new(Glyph::Table)]
+    );
+    assert_eq!(
+        query.audit_unwrap().inserted_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 

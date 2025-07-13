@@ -75,7 +75,7 @@ pub trait IdenStatic: Iden + Copy + 'static {
 ///
 /// Nowadays, it's an eagerly-rendered string.
 /// Most identifiers are static strings that aren't "rendered" at runtime anyway.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DynIden(pub(crate) Cow<'static, str>);
 
 /// A legacy namespace for compatibility.

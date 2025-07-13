@@ -992,7 +992,7 @@ impl SelectStatement {
     ///     r#"SELECT "alias"."character" FROM "font"."character" AS "alias""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selects(),
+    ///     query.audit().unwrap().selects(),
     ///     [SchemaTable(
     ///         Some(SeaRc::new(Font::Table)),
     ///         SeaRc::new(Char::Table)
@@ -1037,7 +1037,10 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     /// );
-    /// assert_eq!(query.audit().selected_tables(), [SeaRc::new(Glyph::Table)]);
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
     pub fn from_subquery<T>(&mut self, query: SelectStatement, alias: T) -> &mut Self
     where
@@ -1143,7 +1146,7 @@ impl SelectStatement {
     ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
+    ///     query.audit().unwrap().selected_tables(),
     ///     [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
     /// );
     ///
@@ -1209,7 +1212,7 @@ impl SelectStatement {
     ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
+    ///     query.audit().unwrap().selected_tables(),
     ///     [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
     /// );
     ///
@@ -1453,7 +1456,7 @@ impl SelectStatement {
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
+    ///     query.audit().unwrap().selected_tables(),
     ///     [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
     /// );
     ///
@@ -1485,7 +1488,7 @@ impl SelectStatement {
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
+    ///     query.audit().unwrap().selected_tables(),
     ///     [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
     /// );
     /// ```
@@ -1608,7 +1611,7 @@ impl SelectStatement {
     ///     r#"SELECT "name" FROM "font" LEFT JOIN (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
+    ///     query.audit().unwrap().selected_tables(),
     ///     [SeaRc::new(Font::Table), SeaRc::new(Glyph::Table)]
     /// );
     ///
@@ -1629,7 +1632,7 @@ impl SelectStatement {
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
+    ///     query.audit().unwrap().selected_tables(),
     ///     [SeaRc::new(Font::Table), SeaRc::new(Glyph::Table)]
     /// );
     /// ```
@@ -1682,7 +1685,7 @@ impl SelectStatement {
     ///     r#"SELECT "name" FROM "font" LEFT JOIN LATERAL (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
+    ///     query.audit().unwrap().selected_tables(),
     ///     [SeaRc::new(Font::Table), SeaRc::new(Glyph::Table)]
     /// );
     ///
@@ -2275,8 +2278,8 @@ impl SelectStatement {
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
-    ///     [SeaRc::new(Char::Table), SeaRc::new(Char::Table)]
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Char::Table)]
     /// );
     /// ```
     pub fn union(&mut self, union_type: UnionType, query: SelectStatement) -> &mut Self {
@@ -2321,8 +2324,8 @@ impl SelectStatement {
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "image" FROM "glyph""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
-    ///     [SeaRc::new(Char::Table), SeaRc::new(Char::Table), SeaRc::new(Glyph::Table)]
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Char::Table), SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement)>>(
@@ -2395,8 +2398,8 @@ impl SelectStatement {
     ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "task" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "task" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "task"."id") SELECT * FROM "cte_traversal""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
-    ///     [SeaRc::new(Task::Table), SeaRc::new(Task::Table)]
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Task::Table)]
     /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
@@ -2464,8 +2467,8 @@ impl SelectStatement {
     ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "task" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "task" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "task"."id") SELECT * FROM "cte_traversal""#
     /// );
     /// assert_eq!(
-    ///     query.audit().selected_tables(),
-    ///     [SeaRc::new(Task::Table), SeaRc::new(Task::Table)]
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Task::Table)]
     /// );
     /// ```
     pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
