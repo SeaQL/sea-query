@@ -97,7 +97,7 @@ impl IndexBuilder for PostgresQueryBuilder {
             match table {
                 TableRef::Table(_) => {}
                 TableRef::SchemaTable(schema, _) => {
-                    schema.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(schema, sql);
                     write!(sql, ".").unwrap();
                 }
                 _ => panic!("Not supported"),
@@ -173,13 +173,13 @@ impl IndexBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_include_columns(&self, columns: &[SeaRc<dyn Iden>], sql: &mut dyn SqlWriter) {
+    fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut dyn SqlWriter) {
         write!(sql, "INCLUDE (").unwrap();
         columns.iter().fold(true, |first, col| {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql.as_writer(), self.quote());
+            self.prepare_iden(col, sql);
             false
         });
         write!(sql, ")").unwrap();

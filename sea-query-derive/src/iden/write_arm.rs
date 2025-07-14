@@ -7,7 +7,7 @@ use quote::{ToTokens, TokenStreamExt, quote};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
 use super::{attr::IdenAttr, error::ErrorMsg};
-use crate::{find_attr, must_be_valid_iden};
+use crate::{find_attr, is_static_iden};
 
 pub(crate) trait WriteArm {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream;
@@ -159,7 +159,7 @@ where
         T::variant(variant, name)
     }
 
-    pub(crate) fn must_be_valid_iden(&self) -> bool {
+    pub(crate) fn is_static_iden(&self) -> bool {
         let name: String = match &self.attr {
             Some(a) => match a {
                 IdenAttr::Rename(name) => name.to_owned(),
@@ -169,7 +169,7 @@ where
             None => self.table_or_snake_case(),
         };
 
-        must_be_valid_iden(&name)
+        is_static_iden(&name)
     }
 }
 

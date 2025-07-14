@@ -107,7 +107,7 @@ pub fn derive_iden_static(input: TokenStream) -> TokenStream {
         .map(IdenVariant::<DeriveIdenStatic>::try_from)
         .collect::<syn::Result<Vec<_>>>()
     {
-        Ok(v) => quote! { #(#v),* },
+        Ok(v) => v,
         Err(e) => return e.to_compile_error().into(),
     };
 
@@ -117,7 +117,7 @@ pub fn derive_iden_static(input: TokenStream) -> TokenStream {
         impl #sea_query_path::IdenStatic for #ident {
             fn as_str(&self) -> &'static str {
                 match self {
-                    #match_arms
+                    #(#match_arms),*
                 }
             }
         }
@@ -149,7 +149,7 @@ fn get_table_name(ident: &proc_macro2::Ident, attrs: Vec<Attribute>) -> Result<S
     Ok(table_name)
 }
 
-fn must_be_valid_iden(name: &str) -> bool {
+fn is_static_iden(name: &str) -> bool {
     // can only begin with [a-z_]
     name.chars()
         .take(1)
@@ -163,24 +163,24 @@ fn impl_iden_for_unit_struct(
 ) -> proc_macro2::TokenStream {
     let sea_query_path = sea_query_path();
 
-    let prepare = if must_be_valid_iden(table_name) {
+    if is_static_iden(table_name) {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
+            impl #sea_query_path::Iden for #ident {
+                fn quoted(&self) -> std::borrow::Cow<'static, str> {
+                    std::borrow::Cow::Borrowed(#table_name)
+                }
+
+                fn unquoted(&self) -> &str {
+                    #table_name
+                }
             }
         }
     } else {
-        quote! {}
-    };
-
-    quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
-
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
-                write!(s, #table_name).unwrap();
+        quote! {
+            impl #sea_query_path::Iden for #ident {
+                fn unquoted(&self) -> &str {
+                    #table_name
+                }
             }
         }
     }
@@ -196,41 +196,44 @@ where
 {
     let sea_query_path = sea_query_path();
 
-    let mut is_all_valid = true;
+    let mut is_all_static_iden = true;
 
     let match_arms = match variants
-        .map(|v| (table_name, v))
         .map(|v| {
-            let v = IdenVariant::<DeriveIden>::try_from(v)?;
-            is_all_valid &= v.must_be_valid_iden();
+            let v = IdenVariant::<DeriveIden>::try_from((table_name, v))?;
+            is_all_static_iden &= v.is_static_iden();
             Ok(v)
         })
         .collect::<syn::Result<Vec<_>>>()
     {
-        Ok(v) => quote! { #(#v),* },
+        Ok(v) => v,
         Err(e) => return e.to_compile_error(),
     };
 
-    let prepare = if is_all_valid {
+    if is_all_static_iden {
         quote! {
-            fn prepare(&self, s: &mut dyn ::std::fmt::Write, q: #sea_query_path::Quote) {
-                write!(s, "{}", q.left()).unwrap();
-                self.unquoted(s);
-                write!(s, "{}", q.right()).unwrap();
+            impl #sea_query_path::Iden for #ident {
+                fn quoted(&self) -> std::borrow::Cow<'static, str> {
+                    std::borrow::Cow::Borrowed(match self {
+                        #(#match_arms),*
+                    })
+                }
+
+                fn unquoted(&self) -> &str {
+                    match self {
+                        #(#match_arms),*
+                    }
+                }
             }
         }
     } else {
-        quote! {}
-    };
-
-    quote! {
-        impl #sea_query_path::Iden for #ident {
-            #prepare
-
-            fn unquoted(&self, s: &mut dyn ::std::fmt::Write) {
-                match self {
-                    #match_arms
-                };
+        quote! {
+            impl #sea_query_path::Iden for #ident {
+                fn unquoted(&self) -> &str {
+                    match self {
+                        #(#match_arms),*
+                    }
+                }
             }
         }
     }
@@ -359,8 +362,8 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
         }
 
         impl #import_name::Iden for #enum_name {
-            fn unquoted(&self, s: &mut dyn sea_query::Write) {
-                write!(s, "{}", <Self as #import_name::IdenStatic>::as_str(&self)).unwrap();
+            fn unquoted(&self) -> &str {
+                <Self as #import_name::IdenStatic>::as_str(&self)
             }
         }
 
