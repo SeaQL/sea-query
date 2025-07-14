@@ -23,7 +23,7 @@ proc-macro2 = { version = "1", default-features = false }
 thiserror = { version = "2", default-features = false }
 
 [dev-dependencies]
-trybuild = "1.0"
+trybuild = "1.0.86"
 sea-query = { version = "1.0.0-rc.1", path = ".." }
 strum = { version = "0.25", features = ["derive"] }
 

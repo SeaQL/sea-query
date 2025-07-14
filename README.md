@@ -158,18 +158,13 @@ pub enum Character {
 
 // Mapping between Enum variant and its corresponding string value
 impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "character",
-                Self::Id => "id",
-                Self::FontId => "font_id",
-                Self::FontSize => "font_size",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Table => "character",
+            Self::Id => "id",
+            Self::FontId => "font_id",
+            Self::FontSize => "font_size",
+        }
     }
 }
 ```
@@ -198,7 +193,7 @@ assert_eq!(Glyph.to_string(), "glyph");
 
 ```rust
 #[cfg(feature = "derive")]
-use sea_query::{enum_def, Iden};
+use sea_query::{Iden, enum_def};
 
 #[enum_def]
 struct Character {
@@ -476,8 +471,8 @@ assert_eq!(
 struct MyFunction;
 
 impl Iden for MyFunction {
-    fn unquoted(&self, s: &mut dyn Write) {
-        write!(s, "MY_FUNCTION").unwrap();
+    fn unquoted(&self) -> &str {
+        "MY_FUNCTION"
     }
 }
 
@@ -574,12 +569,7 @@ assert_eq!(
 ```rust
 let table = Table::alter()
     .table(Font::Table)
-    .add_column(
-        ColumnDef::new("new_col")
-            .integer()
-            .not_null()
-            .default(100),
-    )
+    .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
     .to_owned();
 
 assert_eq!(
@@ -621,9 +611,7 @@ assert_eq!(
 ### Table Rename
 
 ```rust
-let table = Table::rename()
-    .table(Font::Table, "font_new")
-    .to_owned();
+let table = Table::rename().table(Font::Table, "font_new").to_owned();
 
 assert_eq!(
     table.to_string(MysqlQueryBuilder),

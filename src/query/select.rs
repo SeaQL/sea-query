@@ -606,9 +606,11 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
+    /// let alias: String = "C".into();
+    ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_as(Expr::col(Char::Character), "C")
+    ///     .expr_as(Expr::col(Char::Character), alias)
     ///     .to_owned();
     ///
     /// assert_eq!(

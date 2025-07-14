@@ -13,11 +13,11 @@ pub(crate) struct DeriveIden;
 
 impl WriteArm for DeriveIden {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
-        quote! { Self::#variant => write!(s, "{}", #name).unwrap() }
+        quote! { Self::#variant => #name }
     }
 
     fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
-        quote! { Self::#variant => #name.unquoted(s) }
+        quote! { Self::#variant => #name.unquoted() }
     }
 }
 

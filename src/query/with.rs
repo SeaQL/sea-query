@@ -1,6 +1,6 @@
 use crate::{
-    ColumnRef, DynIden, Expr, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
-    SelectStatement, SqlWriter, SubQueryStatement, TableRef, Values, {Alias, QueryBuilder},
+    ColumnRef, DynIden, Expr, IntoIden, QueryBuilder, QueryStatementBuilder, QueryStatementWriter,
+    SelectExpr, SelectStatement, SqlWriter, SubQueryStatement, TableRef, Values,
 };
 use inherent::inherent;
 
@@ -131,7 +131,7 @@ impl CommonTableExpression {
     }
 
     fn set_table_name_from_select(&mut self, iden: &DynIden) {
-        self.table_name = Some(Alias::new(format!("cte_{}", iden.to_string())).into_iden())
+        self.table_name = Some(format!("cte_{iden}").into_iden())
     }
 
     /// Set up the columns of the CTE to match the given [SelectStatement] selected columns.
@@ -153,19 +153,12 @@ impl CommonTableExpression {
                     match &select.expr {
                         Expr::Column(column) => match column {
                             ColumnRef::Column(iden) => Some(iden.clone()),
-                            ColumnRef::TableColumn(table, column) => Some(
-                                Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
-                                    .into_iden(),
-                            ),
-                            ColumnRef::SchemaTableColumn(schema, table, column) => Some(
-                                Alias::new(format!(
-                                    "{}_{}_{}",
-                                    schema.to_string(),
-                                    table.to_string(),
-                                    column.to_string()
-                                ))
-                                .into_iden(),
-                            ),
+                            ColumnRef::TableColumn(table, column) => {
+                                Some(format!("{table}_{column}").into_iden())
+                            }
+                            ColumnRef::SchemaTableColumn(schema, table, column) => {
+                                Some(format!("{schema}_{table}_{column}").into_iden())
+                            }
                             _ => None,
                         },
                         _ => None,

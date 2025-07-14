@@ -1,7 +1,7 @@
 //! Base types used throughout sea-query.
 
 use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
-use std::{fmt, mem, ops};
+use std::borrow::Cow;
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
@@ -24,91 +24,90 @@ pub type RcOrArc<T> = std::sync::Arc<T>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Quote(pub(crate) u8, pub(crate) u8);
 
-macro_rules! iden_trait {
-    ($($bounds:ident),*) => {
-        /// Identifier
-        pub trait Iden where $(Self: $bounds),* {
-            fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
-                write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
-            }
+/// Identifier
+pub trait Iden {
+    /// Return the prepared version of the identifier.
+    ///
+    /// If you're **sure** that the identifier doesn't need to be escaped,
+    /// return `'static str`.
+    /// This can be deduced at compile-time via macros,
+    /// or using the [`is_static_iden`] function.
+    ///
+    /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
+    ///
+    /// You can override this impl by:
+    /// ```ignore
+    /// fn quoted(&self) -> std::borrow::Cow<'static, str> {
+    ///     std::borrow::Cow::Borrowed("..")
+    /// }
+    /// ```
+    fn quoted(&self) -> Cow<'static, str> {
+        Cow::Owned(self.to_string())
+    }
 
-            fn quoted(&self, q: Quote) -> String {
-                let byte = [q.1];
-                let qq: &str = std::str::from_utf8(&byte).unwrap();
-                self.to_string().replace(qq, qq.repeat(2).as_str())
-            }
+    /// A shortcut for writing an [`unquoted`][Iden::unquoted]
+    /// identifier into a [`String`].
+    ///
+    /// We can't reuse [`ToString`] for this, because [`ToString`] uses
+    /// the [`Display`][std::fmt::Display] representation. But [`Iden`]
+    /// representation is distinct from [`Display`][std::fmt::Display]
+    /// and can be different.
+    fn to_string(&self) -> String {
+        self.unquoted().to_owned()
+    }
 
-            /// A shortcut for writing an [`unquoted`][Iden::unquoted]
-            /// identifier into a [`String`].
-            ///
-            /// We can't reuse [`ToString`] for this, because [`ToString`] uses
-            /// the [`Display`][std::fmt::Display] representation. Bnd [`Iden`]
-            /// representation is distinct from [`Display`][std::fmt::Display]
-            /// and can be different.
-            fn to_string(&self) -> String {
-                let mut s = String::new();
-                self.unquoted(&mut s);
-                s
-            }
-
-            /// Write a raw identifier string without quotes.
-            ///
-            /// We indentionally don't reuse [`Display`][std::fmt::Display] for
-            /// this, because we want to allow it to have a different logic.
-            fn unquoted(&self, s: &mut dyn fmt::Write);
-        }
-
-        /// Identifier
-        pub trait IdenStatic: Iden + Copy + 'static {
-            fn as_str(&self) -> &'static str;
-        }
-    };
+    /// Write a raw identifier string without quotes.
+    ///
+    /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+    /// this, because we want to allow it to have a different logic.
+    fn unquoted(&self) -> &str;
 }
 
-#[cfg(feature = "thread-safe")]
-iden_trait!(Send, Sync);
-#[cfg(not(feature = "thread-safe"))]
-iden_trait!();
+/// Identifier statically known at compile-time.
+pub trait IdenStatic: Iden + Copy + 'static {
+    fn as_str(&self) -> &'static str;
+}
 
-pub type DynIden = SeaRc<dyn Iden>;
+/// A prepared (quoted) identifier string.
+///
+/// The naming is legacy and kept for compatibility.
+/// This used to be an alias for a `dyn Iden` object that's lazily rendered later.
+///
+/// Nowadays, it's an eagerly-rendered string.
+/// Most identifiers are static strings that aren't "rendered" at runtime anyway.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DynIden(pub(crate) Cow<'static, str>);
 
+/// A legacy namespace for compatibility.
+///
+/// It's needed, so that most existing [`SeaRc::new`][SeaRc::new] calls keep working.
+///
+/// This used to be an actual type
+/// (a reference-counted pointer with special impls for `dyn Iden` contents).
+/// It's not needed anymore.
 #[derive(Debug)]
-#[repr(transparent)]
-pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
-where
-    I: ?Sized;
+pub struct SeaRc;
 
-impl ops::Deref for SeaRc<dyn Iden> {
-    type Target = dyn Iden;
-
-    fn deref(&self) -> &Self::Target {
-        ops::Deref::deref(&self.0)
-    }
-}
-
-impl Clone for SeaRc<dyn Iden> {
-    fn clone(&self) -> SeaRc<dyn Iden> {
-        SeaRc(RcOrArc::clone(&self.0))
-    }
-}
-
-impl PartialEq for SeaRc<dyn Iden> {
-    fn eq(&self, other: &Self) -> bool {
-        let (self_vtable, other_vtable) = unsafe {
-            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
-            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
-            (self_vtable, other_vtable)
-        };
-        self_vtable == other_vtable && self.to_string() == other.to_string()
-    }
-}
-
-impl SeaRc<dyn Iden> {
-    pub fn new<I>(i: I) -> SeaRc<dyn Iden>
+impl SeaRc {
+    /// A legacy method, kept for compatibility.
+    ///
+    /// Nowadays, instead of wrapping an `Iden` object,
+    /// it eagerly "renders" it into a string and then drops the object.
+    ///
+    /// Note that most `Iden`s are statically known
+    /// and their representations aren't actually "rendered" and allocated at runtime.
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new<I>(i: I) -> DynIden
     where
-        I: Iden + 'static,
+        I: Iden,
     {
-        SeaRc(RcOrArc::new(i))
+        DynIden(i.quoted())
+    }
+}
+
+impl std::fmt::Display for DynIden {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -120,13 +119,6 @@ pub trait IdenList {
     type IntoIter: Iterator<Item = DynIden>;
 
     fn into_iter(self) -> Self::IntoIter;
-}
-
-impl fmt::Debug for dyn Iden {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.unquoted(formatter);
-        Ok(())
-    }
 }
 
 /// Column references
@@ -630,23 +622,56 @@ impl Alias {
     }
 }
 
-// Regaring potential `impl for String` and the need for `Alias`,
-// see discussions on https://github.com/SeaQL/sea-query/pull/882
-
-/// Reuses the `impl` for the underlying [str].
-impl Iden for Alias {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        self.0.as_str().unquoted(s);
+impl IntoIden for Alias {
+    fn into_iden(self) -> DynIden {
+        DynIden(Cow::Owned(self.0))
     }
 }
 
-/// The "base" `impl` for writing arbitrary "raw" strings as identifiers.
-///
-/// Reused for other string-like types.
-impl Iden for &str {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        s.write_str(self).unwrap();
+impl IntoIden for String {
+    fn into_iden(self) -> DynIden {
+        DynIden(Cow::Owned(self))
     }
+}
+
+impl Iden for &'static str {
+    fn quoted(&self) -> Cow<'static, str> {
+        if is_static_iden(self) {
+            Cow::Borrowed(self)
+        } else {
+            Cow::Owned(String::from(*self))
+        }
+    }
+
+    fn unquoted(&self) -> &str {
+        self
+    }
+}
+
+pub const fn is_static_iden(string: &str) -> bool {
+    let bytes = string.as_bytes();
+    if bytes.is_empty() {
+        return true;
+    }
+
+    // can only begin with [a-z_]
+    if bytes[0] == b'_' || (bytes[0] as char).is_ascii_alphabetic() {
+        // good
+    } else {
+        return false;
+    }
+
+    let mut i = 1;
+    while i < bytes.len() {
+        if bytes[i] == b'_' || (bytes[i] as char).is_ascii_alphanumeric() {
+            // good
+        } else {
+            return false;
+        }
+        i += 1;
+    }
+
+    true
 }
 
 impl NullAlias {
@@ -656,7 +681,9 @@ impl NullAlias {
 }
 
 impl Iden for NullAlias {
-    fn unquoted(&self, _s: &mut dyn fmt::Write) {}
+    fn unquoted(&self) -> &str {
+        ""
+    }
 }
 
 impl LikeExpr {
@@ -789,7 +816,7 @@ mod tests {
             ColumnRef::Column("id".into_iden()),
             ColumnRef::Column("id_".into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column("id".into_iden())
         );
@@ -797,7 +824,7 @@ mod tests {
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Table.into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Font::Id.into_iden())
         );
