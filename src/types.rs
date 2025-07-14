@@ -68,13 +68,35 @@ pub trait IdenStatic: Iden + Copy + 'static {
     fn as_str(&self) -> &'static str;
 }
 
+/// A prepared (quoted) identifier string.
+///
+/// The naming is legacy and kept for compatibility.
+/// This used to be an alias for a `dyn Iden` object that's lazily rendered later.
+///
+/// Nowadays, it's an eagerly-rendered string.
+/// Most identifiers are static strings that aren't "rendered" at runtime anyway.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DynIden(pub(crate) Cow<'static, str>);
 
 #[derive(Debug)]
+/// A legacy namespace for compatibility.
+/// 
+/// It's needed, so that most existing [`SeaRc::new`][SeaRc::new] calls keep working.
+///
+/// This used to be an actual type
+/// (a reference-counted pointer with special impls for `dyn Iden` contents).
+/// It's not needed anymore.
+#[derive(Debug)]
 pub struct SeaRc;
 
 impl SeaRc {
+    /// A legacy method, kept for compatibility.
+    ///
+    /// Nowadays, instead of wrapping an `Iden` object,
+    /// it eagerly "renders" it into a string and then drops the object.
+    ///
+    /// Note that most `Iden`s are statically known
+    /// and their representations aren't actually "rendered" and allocated at runtime.
     #[allow(clippy::new_ret_no_self)]
     pub fn new<I>(i: I) -> DynIden
     where
