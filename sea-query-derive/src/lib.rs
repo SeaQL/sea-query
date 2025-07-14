@@ -5,15 +5,15 @@ use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro::{self, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
-    parse_macro_input, spanned::Spanned, Attribute, Data, DataEnum, DataStruct, DeriveInput,
-    Fields, Ident, Variant,
+    Attribute, Data, DataEnum, DataStruct, DeriveInput, Fields, Ident, Variant, parse_macro_input,
+    spanned::Spanned,
 };
 
 mod iden;
 
 use self::iden::{
-    attr::IdenAttr, error::ErrorMsg, path::IdenPath, write_arm::IdenVariant, DeriveIden,
-    DeriveIdenStatic,
+    DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, path::IdenPath,
+    write_arm::IdenVariant,
 };
 
 #[proc_macro_derive(Iden, attributes(iden, method))]
