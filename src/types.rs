@@ -635,9 +635,6 @@ impl IntoIden for String {
     }
 }
 
-/// The "base" `impl` for writing arbitrary "raw" strings as identifiers.
-///
-/// Reused for other string-like types.
 impl Iden for &'static str {
     fn quoted(&self) -> Cow<'static, str> {
         if is_static_iden(self) {
