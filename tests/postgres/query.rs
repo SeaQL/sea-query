@@ -1838,19 +1838,24 @@ fn insert_returning_specific_columns() {
 
 #[test]
 fn update_1() {
+    let query = Query::update()
+        .table(Glyph::Table)
+        .values([
+            (Glyph::Aspect, 2.1345.into()),
+            (
+                Glyph::Image,
+                "24B0E11951B03B07F8300FD003983F03F0780060".into(),
+            ),
+        ])
+        .and_where(Expr::col(Glyph::Id).eq(1))
+        .take();
     assert_eq!(
-        Query::update()
-            .table(Glyph::Table)
-            .values([
-                (Glyph::Aspect, 2.1345.into()),
-                (
-                    Glyph::Image,
-                    "24B0E11951B03B07F8300FD003983F03F0780060".into()
-                ),
-            ])
-            .and_where(Expr::col(Glyph::Id).eq(1))
-            .to_string(PostgresQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '24B0E11951B03B07F8300FD003983F03F0780060' WHERE "id" = 1"#
+    );
+    assert_eq!(
+        query.audit_unwrap().updated_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 

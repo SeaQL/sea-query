@@ -1,7 +1,7 @@
 use super::*;
-use crate::{InsertStatement, InsertValueSource};
+use crate::UpdateStatement;
 
-impl AuditTrait for InsertStatement {
+impl AuditTrait for UpdateStatement {
     fn audit(&self) -> Result<QueryAccessAudit, Error> {
         let mut requests = Vec::new();
         let Some(table) = &self.table else {
@@ -17,12 +17,14 @@ impl AuditTrait for InsertStatement {
             });
         }
         requests.push(QueryAccessRequest {
-            access_type: AccessType::Insert,
+            access_type: AccessType::Update,
             schema_table,
         });
 
-        if let Some(InsertValueSource::Select(select)) = &self.source {
-            requests.append(&mut select.audit()?.requests)
+        for from in &self.from {
+            let mut walker = select::Walker::default();
+            walker.recurse_audit_table(from)?;
+            requests.append(&mut walker.access);
         }
 
         if let Some(with) = &self.with {

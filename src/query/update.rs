@@ -55,6 +55,19 @@ impl UpdateStatement {
         Self::default()
     }
 
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            from: std::mem::take(&mut self.from),
+            values: std::mem::take(&mut self.values),
+            r#where: std::mem::take(&mut self.r#where),
+            orders: std::mem::take(&mut self.orders),
+            limit: self.limit.take(),
+            returning: self.returning.take(),
+            with: self.with.take(),
+        }
+    }
+
     /// Specify which table to update.
     ///
     /// # Examples
@@ -79,7 +92,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -103,6 +116,14 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Char::Table)]
+    /// );
     /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
     where
@@ -122,7 +143,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -144,6 +165,11 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m'"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(query.audit().unwrap().selected_tables(), []);
     /// ```
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
@@ -222,7 +248,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -242,6 +268,14 @@ impl UpdateStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn returning(&mut self, returning: ReturningClause) -> &mut Self {
@@ -321,7 +355,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -353,6 +387,14 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
@@ -363,7 +405,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -394,6 +436,14 @@ impl UpdateStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {

@@ -76,7 +76,7 @@ impl Walker {
         Ok(())
     }
 
-    fn recurse_audit_table(&mut self, table_ref: &TableRef) -> Result<(), Error> {
+    pub(super) fn recurse_audit_table(&mut self, table_ref: &TableRef) -> Result<(), Error> {
         match table_ref {
             TableRef::SubQuery(select, _) => self.recurse_audit_select(select)?,
             TableRef::FunctionCall(function, _) => self.recurse_audit_function(function)?,
@@ -147,6 +147,9 @@ impl Walker {
             SubQueryStatement::SelectStatement(select) => self.recurse_audit_select(select)?,
             SubQueryStatement::InsertStatement(insert) => {
                 self.access.append(&mut insert.audit()?.requests);
+            }
+            SubQueryStatement::UpdateStatement(update) => {
+                self.access.append(&mut update.audit()?.requests);
             }
             SubQueryStatement::WithStatement(with) => self.recurse_audit_with(with)?,
             _ => (),
@@ -255,6 +258,7 @@ impl Walker {
 fn wrap_result(access: Vec<QueryAccessRequest>) -> QueryAccessAudit {
     let mut select_set = HashSet::new();
     let mut insert_set = HashSet::new();
+    let mut update_set = HashSet::new();
     QueryAccessAudit {
         requests: access
             .into_iter()
@@ -262,6 +266,7 @@ fn wrap_result(access: Vec<QueryAccessRequest>) -> QueryAccessAudit {
                 let set = match access.access_type {
                     AccessType::Select => &mut select_set,
                     AccessType::Insert => &mut insert_set,
+                    AccessType::Update => &mut update_set,
                     _ => todo!(),
                 };
                 if set.contains(&access.schema_table) {

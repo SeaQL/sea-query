@@ -1,5 +1,7 @@
+mod common;
 mod insert;
 mod select;
+mod update;
 
 use crate::DynIden;
 
@@ -84,6 +86,19 @@ impl QueryAccessAudit {
             .iter()
             .filter_map(|item| {
                 if item.access_type == AccessType::Insert {
+                    Some(item.schema_table.1.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
+    pub fn updated_tables(&self) -> Vec<DynIden> {
+        self.requests
+            .iter()
+            .filter_map(|item| {
+                if item.access_type == AccessType::Update {
                     Some(item.schema_table.1.clone())
                 } else {
                     None
