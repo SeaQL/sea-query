@@ -15,6 +15,14 @@ errors and some clippy warnings, basically just remove the redundant `.into()` h
 pub type SimpleExpr = Expr; // !
 impl From<Expr> for SimpleExpr { .. } // now removed
 ```
+* New `Iden` type system. Previously, `DynIden` is an alias to `SeaRc<dyn Iden>`, and is lazily rendered. Now, it's an `Cow<'static, str>`, and is eagerly rendered. `SeaRc` is no longer an alias to `Rc` / `Arc`, now is only a unit struct. As such, `Send` / `Sync` is no longer needed. https://github.com/SeaQL/sea-query/pull/909
+```rust
+pub type DynIden = SeaRc<dyn Iden>;               // old
+pub struct DynIden(pub(crate) Cow<'static, str>); // new
+
+pub struct SeaRc<I>(pub(crate) RcOrArc<I>);       // old
+pub struct SeaRc;                                 // new
+```
 
 ### Breaking Changes
 
@@ -63,6 +71,36 @@ error[E0308]: mismatched types
 
 For more information about this error, try `rustc --explain E0308`.
 error: could not compile `seaography` (lib) due to 1 previous error
+```
+* The method signature of `Iden::unquoted` is changed. If you're implementing `Iden` manually, you can modify it like below.
+```rust
+error[E0050]: method `unquoted` has 2 parameters but the declaration in trait `types::Iden::unquoted` has 1
+  --> src/tests_cfg.rs:31:17
+   |
+   |     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected 1 parameter, found 2
+   |
+  ::: src/types.rs:63:17
+   |
+   |     fn unquoted(&self) -> &str;
+   |                 ----- trait requires 1 parameter
+```
+```rust
+impl Iden for Glyph {
+  - fn unquoted(&self, s: &mut dyn fmt::Write) {
+  + fn unquoted(&self) -> &str {
+  -     write!(
+  -         s,
+  -         "{}",
+            match self {
+                Self::Table => "glyph",
+                Self::Id => "id",
+                Self::Tokens => "tokens",
+            }
+  -     )
+  -     .unwrap();
+    }
+}
 ```
 
 ### Upgrades

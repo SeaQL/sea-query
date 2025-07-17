@@ -44,8 +44,6 @@ SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
 
 Macro: `derive`
 
-Async support: `thread-safe` (use `Arc` inplace of `Rc`)
-
 SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
 Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,

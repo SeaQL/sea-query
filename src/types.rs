@@ -26,21 +26,18 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 
 /// Identifier
 pub trait Iden {
-    /// Return the prepared version of the identifier.
-    ///
-    /// If you're **sure** that the identifier doesn't need to be escaped,
-    /// return `'static str`.
-    /// This can be deduced at compile-time via macros,
-    /// or using the [`is_static_iden`] function.
+    /// Return the to-be sanitized version of the identifier.
     ///
     /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
+    /// Note that this method doesn't do the actual escape,
+    /// as it's backend specific.
+    /// It only indicates whether the identifier needs to be escaped.
     ///
-    /// You can override this impl by:
-    /// ```ignore
-    /// fn quoted(&self) -> std::borrow::Cow<'static, str> {
-    ///     std::borrow::Cow::Borrowed("..")
-    /// }
-    /// ```
+    /// If the identifier doesn't need to be escaped, return `'static str`.
+    /// This can be deduced at compile-time by the `Iden` macro,
+    /// or using the [`is_static_iden`] function.
+    ///
+    /// `Cow::Owned` would always be escaped.
     fn quoted(&self) -> Cow<'static, str> {
         Cow::Owned(self.to_string())
     }
@@ -648,6 +645,21 @@ impl Iden for &'static str {
     }
 }
 
+/// Return whether this identifier needs to be escaped.
+/// Right now we're very safe and only return true for identifiers
+/// composed of `a-zA-Z0-9_`.
+///
+/// ```
+/// use sea_query::is_static_iden;
+///
+/// assert!(is_static_iden("abc"));
+/// assert!(is_static_iden("a_b_c"));
+/// assert!(!is_static_iden("a-b-c"));
+/// assert!(is_static_iden("abc123"));
+/// assert!(!is_static_iden("123abc"));
+/// assert!(!is_static_iden("a|b|c"));
+/// assert!(!is_static_iden("a'b'c"));
+/// ```
 pub const fn is_static_iden(string: &str) -> bool {
     let bytes = string.as_bytes();
     if bytes.is_empty() {
