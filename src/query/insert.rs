@@ -20,14 +20,14 @@ pub(crate) enum InsertValueSource {
 /// # Examples
 ///
 /// ```
-/// use sea_query::{tests_cfg::*, *};
+/// use sea_query::{audit::*, tests_cfg::*, *};
 ///
 /// let query = Query::insert()
 ///     .into_table(Glyph::Table)
 ///     .columns([Glyph::Aspect, Glyph::Image])
 ///     .values_panic([5.15.into(), "12A".into()])
 ///     .values_panic([4.21.into(), "123".into()])
-///     .to_owned();
+///     .take();
 ///
 /// assert_eq!(
 ///     query.to_string(MysqlQueryBuilder),
@@ -40,6 +40,10 @@ pub(crate) enum InsertValueSource {
 /// assert_eq!(
 ///     query.to_string(SqliteQueryBuilder),
 ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
+/// );
+/// assert_eq!(
+///     query.audit().unwrap().inserted_tables(),
+///     [SeaRc::new(Glyph::Table)]
 /// );
 /// ```
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -60,6 +64,20 @@ impl InsertStatement {
         Self::default()
     }
 
+    /// Take the ownership of data in the current [`SelectStatement`]
+    pub fn take(&mut self) -> Self {
+        Self {
+            replace: self.replace,
+            table: self.table.take(),
+            columns: std::mem::take(&mut self.columns),
+            source: self.source.take(),
+            on_conflict: self.on_conflict.take(),
+            returning: self.returning.take(),
+            default_values: self.default_values.take(),
+            with: self.with.take(),
+        }
+    }
+
     /// Use REPLACE instead of INSERT
     ///
     /// # Examples
@@ -72,7 +90,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic([5.15.into(), "12A".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -121,7 +139,7 @@ impl InsertStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
@@ -131,10 +149,10 @@ impl InsertStatement {
     ///         .column(Glyph::Image)
     ///         .from(Glyph::Table)
     ///         .and_where(Expr::col(Glyph::Image).like("0%"))
-    ///         .to_owned()
+    ///         .take()
     ///     )
     ///     .unwrap()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -148,6 +166,14 @@ impl InsertStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().inserted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
     ///
     /// ```
@@ -159,16 +185,42 @@ impl InsertStatement {
     ///         Query::select()
     ///             .expr(Expr::val("hello"))
     ///             .cond_where(Cond::all().not().add(Expr::exists(
-    ///                 Query::select().expr(Expr::val("world")).to_owned(),
+    ///                 Query::select().expr(Expr::val("world")).take(),
     ///             )))
-    ///             .to_owned(),
+    ///             .take(),
     ///     )
     ///     .unwrap()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
+    /// );
+    /// ```
+    /// use sea_query::{audit::*, tests_cfg::*, *};
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Image])
+    ///     .select_from(
+    ///         Query::select()
+    ///             .expr(Font::Name)
+    ///             .from(Font::Table)
+    ///             .take(),
+    ///     )
+    ///     .unwrap()
+    ///     .take();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") SELECT "name" FROM "font""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Font::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().inserted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn select_from<S>(&mut self, select: S) -> Result<&mut Self>
@@ -203,7 +255,7 @@ impl InsertStatement {
     ///         Func::cast_as("2020-02-02 00:00:00", "DATE").into(),
     ///     ])
     ///     .unwrap()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -257,7 +309,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic([2.1345.into(), "24B".into()])
     ///     .values_panic([5.15.into(), "12A".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -284,7 +336,7 @@ impl InsertStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let rows = vec![[2.1345.into(), "24B".into()], [5.15.into(), "12A".into()]];
     ///
@@ -292,7 +344,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_from_panic(rows)
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -306,10 +358,15 @@ impl InsertStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().inserted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
-    pub fn values_from_panic<I>(&mut self, values_iter: impl IntoIterator<Item = I>) -> &mut Self
+    pub fn values_from_panic<I, J>(&mut self, values_iter: J) -> &mut Self
     where
         I: IntoIterator<Item = Expr>,
+        J: IntoIterator<Item = I>,
     {
         values_iter.into_iter().for_each(|values| {
             self.values_panic(values);
@@ -341,7 +398,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Image])
     ///     .values_panic(["12A".into()])
     ///     .returning(Query::returning().columns([Glyph::Id]))
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -373,7 +430,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Image])
     ///     .values_panic(["12A".into()])
     ///     .returning_col(Glyph::Id)
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -407,7 +464,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Image])
     ///     .values_panic(["12A".into()])
     ///     .returning_all()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -436,7 +493,7 @@ impl InsertStatement {
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
     ///         .from(Glyph::Table)
-    ///         .to_owned();
+    ///         .take();
     ///     let cte = CommonTableExpression::new()
     ///         .query(select)
     ///         .column(Glyph::Id)
@@ -448,7 +505,7 @@ impl InsertStatement {
     ///     let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
     ///         .from("cte")
-    ///         .to_owned();
+    ///         .take();
     ///     let mut insert = Query::insert();
     ///     insert
     ///         .into_table(Glyph::Table)
@@ -484,7 +541,7 @@ impl InsertStatement {
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
     ///         .from(Glyph::Table)
-    ///         .to_owned();
+    ///         .take();
     ///     let cte = CommonTableExpression::new()
     ///         .query(select)
     ///         .column(Glyph::Id)
@@ -496,7 +553,7 @@ impl InsertStatement {
     ///     let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
     ///         .from("cte")
-    ///         .to_owned();
+    ///         .take();
     ///     let mut query = Query::insert();
     ///     query
     ///         .with_cte(with_clause)
@@ -534,7 +591,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .or_default_values()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -555,7 +612,7 @@ impl InsertStatement {
     ///     .or_default_values()
     ///     .columns([Glyph::Image])
     ///     .values_panic(["ABC".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -586,7 +643,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .or_default_values_many(3)
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -607,7 +664,7 @@ impl InsertStatement {
     ///     .or_default_values_many(3)
     ///     .columns([Glyph::Image])
     ///     .values_panic(["ABC".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),

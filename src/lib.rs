@@ -802,6 +802,8 @@
     html_logo_url = "https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL icon dark.png"
 )]
 
+#[cfg(feature = "audit")]
+pub mod audit;
 pub mod backend;
 pub mod error;
 pub mod expr;
