@@ -1929,12 +1929,17 @@ fn update_returning_specified_columns() {
 
 #[test]
 fn delete_1() {
+    let query = Query::delete()
+        .from_table(Glyph::Table)
+        .and_where(Expr::col(Glyph::Id).eq(1))
+        .take();
     assert_eq!(
-        Query::delete()
-            .from_table(Glyph::Table)
-            .and_where(Expr::col(Glyph::Id).eq(1))
-            .to_string(PostgresQueryBuilder),
+        query.to_string(PostgresQueryBuilder),
         r#"DELETE FROM "glyph" WHERE "id" = 1"#
+    );
+    assert_eq!(
+        query.audit_unwrap().deleted_tables(),
+        [SeaRc::new(Glyph::Table)]
     );
 }
 

@@ -151,8 +151,10 @@ impl Walker {
             SubQueryStatement::UpdateStatement(update) => {
                 self.access.append(&mut update.audit()?.requests);
             }
+            SubQueryStatement::DeleteStatement(delete) => {
+                self.access.append(&mut delete.audit()?.requests);
+            }
             SubQueryStatement::WithStatement(with) => self.recurse_audit_with(with)?,
-            _ => (),
         }
         Ok(())
     }
@@ -259,6 +261,7 @@ fn wrap_result(access: Vec<QueryAccessRequest>) -> QueryAccessAudit {
     let mut select_set = HashSet::new();
     let mut insert_set = HashSet::new();
     let mut update_set = HashSet::new();
+    let mut delete_set = HashSet::new();
     QueryAccessAudit {
         requests: access
             .into_iter()
@@ -267,6 +270,7 @@ fn wrap_result(access: Vec<QueryAccessRequest>) -> QueryAccessAudit {
                     AccessType::Select => &mut select_set,
                     AccessType::Insert => &mut insert_set,
                     AccessType::Update => &mut update_set,
+                    AccessType::Delete => &mut delete_set,
                     _ => todo!(),
                 };
                 if set.contains(&access.schema_table) {

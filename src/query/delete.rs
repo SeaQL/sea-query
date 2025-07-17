@@ -53,12 +53,23 @@ impl DeleteStatement {
         Self::default()
     }
 
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            r#where: std::mem::take(&mut self.r#where),
+            orders: std::mem::take(&mut self.orders),
+            limit: self.limit.take(),
+            returning: self.returning.take(),
+            with: self.with.take(),
+        }
+    }
+
     /// Specify which table to delete from.
     ///
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
@@ -77,6 +88,11 @@ impl DeleteStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(query.audit_unwrap().selected_tables(), []);
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn from_table<T>(&mut self, tbl_ref: T) -> &mut Self
@@ -98,7 +114,7 @@ impl DeleteStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
@@ -117,6 +133,14 @@ impl DeleteStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn returning(&mut self, returning_cols: ReturningClause) -> &mut Self {
@@ -192,7 +216,7 @@ impl DeleteStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -223,6 +247,14 @@ impl DeleteStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
@@ -233,7 +265,7 @@ impl DeleteStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -263,6 +295,14 @@ impl DeleteStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {

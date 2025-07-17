@@ -1,4 +1,5 @@
 mod common;
+mod delete;
 mod insert;
 mod select;
 mod update;
@@ -67,38 +68,32 @@ impl QueryAccessAudit {
     /// Warning: this discards the schema part of SchemaTable.
     /// Intended for testing only.
     pub fn selected_tables(&self) -> Vec<DynIden> {
-        self.requests
-            .iter()
-            .filter_map(|item| {
-                if item.access_type == AccessType::Select {
-                    Some(item.schema_table.1.clone())
-                } else {
-                    None
-                }
-            })
-            .collect()
+        self.filter_table_with_access_type(AccessType::Select)
     }
 
     /// Warning: this discards the schema part of SchemaTable.
     /// Intended for testing only.
     pub fn inserted_tables(&self) -> Vec<DynIden> {
-        self.requests
-            .iter()
-            .filter_map(|item| {
-                if item.access_type == AccessType::Insert {
-                    Some(item.schema_table.1.clone())
-                } else {
-                    None
-                }
-            })
-            .collect()
+        self.filter_table_with_access_type(AccessType::Insert)
     }
 
+    /// Warning: this discards the schema part of SchemaTable.
+    /// Intended for testing only.
     pub fn updated_tables(&self) -> Vec<DynIden> {
+        self.filter_table_with_access_type(AccessType::Update)
+    }
+
+    /// Warning: this discards the schema part of SchemaTable.
+    /// Intended for testing only.
+    pub fn deleted_tables(&self) -> Vec<DynIden> {
+        self.filter_table_with_access_type(AccessType::Delete)
+    }
+
+    fn filter_table_with_access_type(&self, access_type: AccessType) -> Vec<DynIden> {
         self.requests
             .iter()
             .filter_map(|item| {
-                if item.access_type == AccessType::Update {
+                if item.access_type == access_type {
                     Some(item.schema_table.1.clone())
                 } else {
                     None
