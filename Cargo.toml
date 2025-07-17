@@ -41,6 +41,7 @@ time = { version = "0.3.36", default-features = false, optional = true, features
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 ordered-float = { version = "4.6", default-features = false, optional = true }
+geo-types = { version = "0.7", default-features = false, optional = true }
 
 [dev-dependencies]
 sea-query = { path = ".", features = ["tests-cfg"] }
@@ -68,6 +69,7 @@ with-uuid = ["uuid"]
 with-time = ["time"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
+with-postgres-point = ["dep:geo-types", "dep:postgres-types", "postgres-types/with-geo-types-0_7"]
 tests-cfg = []
 all-features = [
     "backend-mysql",
@@ -91,6 +93,7 @@ all-types = [
     "with-time",
     "with-ipnetwork",
     "with-mac_address",
+    "with-postgres-point",
 ]
 option-more-parentheses = []
 option-sqlite-exact-column-type = []

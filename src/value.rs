@@ -31,7 +31,14 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
+#[cfg(feature = "with-postgres-point")]
+use geo_types::Point;
+
 use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
+
+#[cfg(feature = "with-postgres-point")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+mod with_postgres_point;
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -213,6 +220,9 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<Box<MacAddress>>),
+    #[cfg(feature = "with-postgres-point")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+    Point(Option<Box<Point>>),
 }
 
 impl std::fmt::Display for Value {
@@ -400,6 +410,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(None),
+
+            #[cfg(feature = "with-postgres-point")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+            Self::Point(_) => Self::Point(None),
         }
     }
 
@@ -504,6 +518,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(Some(Default::default())),
+
+            #[cfg(feature = "with-postgres-point")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+            Self::Point(_) => Self::Point(Some(Box::new(Point::default()))),
         }
     }
 }

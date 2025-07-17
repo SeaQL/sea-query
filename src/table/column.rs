@@ -57,6 +57,7 @@ pub trait IntoColumnDef {
 /// | Inet                  | N/A               | inet                        | N/A                          |
 /// | MacAddr               | N/A               | macaddr                     | N/A                          |
 /// | LTree                 | N/A               | ltree                       | N/A                          |
+/// | Point                 | N/A               | point                       | N/A                          |
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum ColumnType {
@@ -102,6 +103,7 @@ pub enum ColumnType {
     Inet,
     MacAddr,
     LTree,
+    Point,
 }
 
 /// Length for var-char/binary; default to 255
