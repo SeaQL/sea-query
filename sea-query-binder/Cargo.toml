@@ -3,9 +3,9 @@
 
 [package]
 name = "sea-query-binder"
-version = "0.7.0"
+version = "0.8.0-rc.2"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
-edition = "2021"
+edition = "2024"
 description = "Driver library for using SeaQuery with SQLx"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
@@ -42,6 +42,7 @@ with-uuid = ["sqlx?/uuid", "sea-query/with-uuid", "uuid"]
 with-time = ["sqlx?/time", "sea-query/with-time", "time"]
 with-ipnetwork = ["sqlx?/ipnetwork", "sea-query/with-ipnetwork", "ipnetwork"]
 with-mac_address = ["sqlx?/mac_address", "sea-query/with-mac_address", "mac_address"]
+with-postgres-point = ["sea-query/with-postgres-point"]
 postgres-array = ["sea-query/postgres-array"]
 postgres-vector = ["sea-query/postgres-vector", "pgvector/sqlx"]
 runtime-async-std = ["sqlx?/runtime-async-std"]
