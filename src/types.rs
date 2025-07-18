@@ -75,6 +75,12 @@ pub trait IdenStatic: Iden + Copy + 'static {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DynIden(pub(crate) Cow<'static, str>);
 
+impl DynIden {
+    pub fn inner(&self) -> Cow<'static, str> {
+        self.0.clone()
+    }
+}
+
 /// A legacy namespace for compatibility.
 ///
 /// It's needed, so that most existing [`SeaRc::new`][SeaRc::new] calls keep working.
