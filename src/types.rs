@@ -623,9 +623,13 @@ impl Alias {
     }
 }
 
-impl IntoIden for Alias {
-    fn into_iden(self) -> DynIden {
-        DynIden(Cow::Owned(self.0))
+impl Iden for Alias {
+    fn quoted(&self) -> Cow<'static, str> {
+        Cow::Owned(self.0.clone())
+    }
+
+    fn unquoted(&self) -> &str {
+        &self.0
     }
 }
 
