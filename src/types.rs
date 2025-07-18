@@ -100,6 +100,10 @@ impl SeaRc {
     {
         DynIden(i.quoted())
     }
+
+    pub fn clone(iden: &DynIden) -> DynIden {
+        iden.clone()
+    }
 }
 
 impl std::fmt::Display for DynIden {
