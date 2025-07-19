@@ -15,7 +15,7 @@ errors and some clippy warnings, basically just remove the redundant `.into()` h
 pub type SimpleExpr = Expr; // !
 impl From<Expr> for SimpleExpr { .. } // now removed
 ```
-* New `Iden` type system. Previously, `DynIden` is an alias to `SeaRc<dyn Iden>`, and is lazily rendered. Now, it's an `Cow<'static, str>`, and is eagerly rendered. `SeaRc` is no longer an alias to `Rc` / `Arc`, now is only a unit struct. As such, `Send` / `Sync` is no longer needed. https://github.com/SeaQL/sea-query/pull/909
+* New `Iden` type system. Previously, `DynIden` is an alias to `SeaRc<dyn Iden>`, and is lazily rendered. Now, it's an `Cow<'static, str>`, and is eagerly rendered. `SeaRc` is no longer an alias to `Rc` / `Arc`, now is only a unit struct. As such, `Send` / `Sync` is no longer needed. It's still possible to dynamically serialize a String as identifier, see [example usage](https://github.com/SeaQL/sea-schema/blob/master/src/mysql/writer/types.rs). https://github.com/SeaQL/sea-query/pull/909
 ```rust
 pub type DynIden = SeaRc<dyn Iden>;               // old
 pub struct DynIden(pub(crate) Cow<'static, str>); // new
