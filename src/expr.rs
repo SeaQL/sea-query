@@ -174,6 +174,16 @@ pub trait ExprTrait: Sized {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "character" ("font_size") VALUES ('large')"#
     /// );
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col(Char::FontSize).as_enum("FontSizeEnum[]"))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST("font_size" AS "FontSizeEnum"[]) FROM "character""#
+    /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
     fn as_enum<N>(self, type_name: N) -> Expr

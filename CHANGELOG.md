@@ -40,6 +40,18 @@ help: trait `ExprTrait` which provides `like` is implemented but not in scope; p
     |
  -> + use sea_query::ExprTrait;
 ```
+```rust
+error[E0308]: mismatched types
+  --> src/sqlite/discovery.rs:27:57
+   |
+   |             .and_where(Expr::col(Alias::new("type")).eq("table"))
+   |                                                      -- ^^^^^^^ expected `&Expr`, found `&str`
+   |                                                      |
+   |                                                      arguments to this method are incorrect
+   |
+   = note: expected reference `&sea_query::Expr`
+              found reference `&'static str`
+```
 * Added `non_exhaustive` to AST enums. It allows us to add new features and extend the AST without breaking the API. If you encounter the following error,
 please add a wildcard match `_ => {..}` https://github.com/SeaQL/sea-query/pull/891
 ```rust
