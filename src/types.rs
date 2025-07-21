@@ -55,7 +55,7 @@ pub trait Iden {
 
     /// Write a raw identifier string without quotes.
     ///
-    /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+    /// We intentionally don't reuse [`Display`][std::fmt::Display] for
     /// this, because we want to allow it to have a different logic.
     fn unquoted(&self) -> &str;
 }
