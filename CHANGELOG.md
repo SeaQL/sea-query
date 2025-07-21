@@ -5,7 +5,331 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.32.0 - Pending
+## 1.0.0 - pending
+
+### New features
+
+* Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangably. There may be a few compile
+errors and some clippy warnings, basically just remove the redundant `.into()` https://github.com/SeaQL/sea-query/pull/889
+```rust
+pub type SimpleExpr = Expr; // !
+impl From<Expr> for SimpleExpr { .. } // now removed
+```
+* New `Iden` type system. Previously, `DynIden` is an alias to `SeaRc<dyn Iden>`, and is lazily rendered. Now, it's an `Cow<'static, str>`, and is eagerly rendered. `SeaRc` is no longer an alias to `Rc` / `Arc`, now is only a unit struct. As such, `Send` / `Sync` is no longer needed. It's still possible to dynamically serialize a String as identifier, see [example usage](https://github.com/SeaQL/sea-schema/blob/master/src/mysql/writer/types.rs). https://github.com/SeaQL/sea-query/pull/909
+```rust
+pub type DynIden = SeaRc<dyn Iden>;               // old
+pub struct DynIden(pub(crate) Cow<'static, str>); // new
+
+pub struct SeaRc<I>(pub(crate) RcOrArc<I>);       // old
+pub struct SeaRc;                                 // new
+```
+
+### Breaking Changes
+
+* Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
+```rust
+error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
+    |
+    |         Expr::col((self.entity_name(), *self)).like(s)
+    |
+    |     fn like<L>(self, like: L) -> Expr
+    |        ---- the method is available for `sea_query::Expr` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `ExprTrait` which provides `like` is implemented but not in scope; perhaps you want to import it
+    |
+ -> + use sea_query::ExprTrait;
+```
+```rust
+error[E0308]: mismatched types
+  --> src/sqlite/discovery.rs:27:57
+   |
+   |             .and_where(Expr::col(Alias::new("type")).eq("table"))
+   |                                                      -- ^^^^^^^ expected `&Expr`, found `&str`
+   |                                                      |
+   |                                                      arguments to this method are incorrect
+   |
+   = note: expected reference `&sea_query::Expr`
+              found reference `&'static str`
+```
+* Added `non_exhaustive` to AST enums. It allows us to add new features and extend the AST without breaking the API. If you encounter the following error,
+please add a wildcard match `_ => {..}` https://github.com/SeaQL/sea-query/pull/891
+```rust
+error[E0004]: non-exhaustive patterns: `&_` not covered
+    |
+    |     match table_ref {
+    |           ^^^^^^^^^ pattern `&_` not covered
+    |
+note: `TableRef` defined here
+    |
+    | pub enum TableRef {
+    | ^^^^^^^^^^^^^^^^^
+    = note: the matched value is of type `&TableRef`
+    = note: `TableRef` is marked as non-exhaustive, so a wildcard `_` is necessary to match exhaustively
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+    |
+    | TableRef::FunctionCall(_, tbl) => SeaRc::clone(tbl),
+ -> | &_ => todo!(),
+```
+* `ExprTrait::eq` collided with `std::cmp::Eq`. If you encounter the following error, please use `std::cmp::PartialEq::eq(a, b)` or 
+`sea_query::ExprTrait::eq(a, b)` explicitly https://github.com/SeaQL/sea-query/pull/890
+```rust
+error[E0308]: mismatched types
+    |
+    |     fn eq(&self, other: &Self) -> bool {
+    |                                   ---- expected `bool` because of return type
+    |         format!("{:?}", self.0).eq(&format!("{:?}", other.0))
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `bool`, found `Expr`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `seaography` (lib) due to 1 previous error
+```
+* The method signature of `Iden::unquoted` is changed. If you're implementing `Iden` manually, you can modify it like below.
+```rust
+error[E0050]: method `unquoted` has 2 parameters but the declaration in trait `types::Iden::unquoted` has 1
+  --> src/tests_cfg.rs:31:17
+   |
+   |     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected 1 parameter, found 2
+   |
+  ::: src/types.rs:63:17
+   |
+   |     fn unquoted(&self) -> &str;
+   |                 ----- trait requires 1 parameter
+```
+```rust
+impl Iden for Glyph {
+  - fn unquoted(&self, s: &mut dyn fmt::Write) {
+  + fn unquoted(&self) -> &str {
+  -     write!(
+  -         s,
+  -         "{}",
+            match self {
+                Self::Table => "glyph",
+                Self::Id => "id",
+                Self::Tokens => "tokens",
+            }
+  -     )
+  -     .unwrap();
+    }
+}
+```
+
+### Upgrades
+
+* Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
+
+## 0.32.6 - 2025-05-27
+
+### Enhancements
+
+* impl From<Condition> and From<ConditionExpression> for SimpleExpr https://github.com/SeaQL/sea-query/pull/886
+
+## 0.32.5 - 2025-05-07
+
+### New features
+
+* Support for creating functional indexes in PostgreSQL and MySQL https://github.com/SeaQL/sea-query/pull/869
+
+### Enhancements
+
+* Make `RcOrArc` a documented type alias instead of a direct reexport https://github.com/SeaQL/sea-query/pull/875
+* Impl `Iden` for `&'static str` (don't wrap strings in `Alias::new`) https://github.com/SeaQL/sea-query/pull/882
+
+## 0.32.4 - 2025-04-17
+
+### New Features
+
+* Added support for temporary tables https://github.com/SeaQL/sea-query/pull/878
+```rust
+let statement = Table::create()
+    .table(Font::Table)
+    .temporary()
+    .col(
+        ColumnDef::new(Font::Id)
+            .integer()
+            .not_null()
+            .primary_key()
+            .auto_increment()
+    )
+    .col(ColumnDef::new(Font::Name).string().not_null())
+    .take();
+
+assert_eq!(
+    statement.to_string(MysqlQueryBuilder),
+    [
+        "CREATE TEMPORARY TABLE `font` (",
+        "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
+        "`name` varchar(255) NOT NULL",
+        ")",
+    ]
+    .join(" ")
+);
+```
+* Added `Value::dummy_value`
+```rust
+use sea_query::Value;
+let v = Value::Int(None);
+let n = v.dummy_value();
+assert_eq!(n, Value::Int(Some(0)));
+```
+
+### Bug Fixes
+
+* Quote type properly in `AsEnum` casting https://github.com/SeaQL/sea-query/pull/880
+```rust
+let query = Query::select()
+    .expr(Expr::col(Char::FontSize).as_enum(TextArray))
+    .from(Char::Table)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT CAST("font_size" AS "text"[]) FROM "character""#
+);
+```
+
+## 0.32.3 - 2025-03-16
+
+### New Features
+
+* Support `Update FROM ..` https://github.com/SeaQL/sea-query/pull/861
+```rust
+let query = Query::update()
+    .table(Glyph::Table)
+    .value(Glyph::Tokens, Expr::column((Char::Table, Char::Character)))
+    .from(Char::Table)
+    .cond_where(
+        Expr::col((Glyph::Table, Glyph::Image))
+            .eq(Expr::col((Char::Table, Char::UserData))),
+    )
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
+);
+```
+* Support `TABLESAMPLE` (Postgres) https://github.com/SeaQL/sea-query/pull/865
+```rust
+use sea_query::extension::postgres::PostgresSelectStatementExt;
+
+let query = Query::select()
+    .columns([Glyph::Image])
+    .from(Glyph::Table)
+    .table_sample(SampleMethod::SYSTEM, 50.0, None)
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT "image" FROM "glyph" TABLESAMPLE SYSTEM (50)"#
+);
+```
+* Support `ALTER COLUMN USING ..` (Postgres) https://github.com/SeaQL/sea-query/pull/848
+```rust
+let table = Table::alter()
+    .table(Char::Table)
+    .modify_column(
+        ColumnDef::new(Char::Id)
+            .integer()
+            .using(Expr::col(Char::Id).cast_as(Alias::new("integer"))),
+    )
+    .to_owned();
+
+assert_eq!(
+    table.to_string(PostgresQueryBuilder),
+    [
+        r#"ALTER TABLE "character""#,
+        r#"ALTER COLUMN "id" TYPE integer USING CAST("id" AS integer)"#,
+    ]
+    .join(" ")
+);
+```
+
+### House Keeping
+
+* Updated `ordered-float` to `4`
+* Updated `thiserror` to `2`
+
+## 0.32.2 - 2025-02-18
+
+### New Features
+
+* Added `with_cte` to use `WITH` clauses in all statements https://github.com/SeaQL/sea-query/pull/859
+```rust
+let select = SelectStatement::new()
+    .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    .from(Glyph::Table)
+    .to_owned();
+let cte = CommonTableExpression::new()
+    .query(select)
+    .table_name(Alias::new("cte"))
+    .to_owned();
+let select = SelectStatement::new()
+    .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    .from(Alias::new("cte"))
+    .with_cte(cte)
+    .to_owned();
+assert_eq!(
+    select.to_string(PostgresQueryBuilder),
+    [
+        r#"WITH "cte" AS"#,
+        r#"(SELECT "id", "image", "aspect""#,
+        r#"FROM "glyph")"#,
+        r#"SELECT "id", "image", "aspect" FROM "cte""#,
+    ]
+    .join(" ")
+);
+```
+
+### Enhancements
+
+* Added `Expr::column` https://github.com/SeaQL/sea-query/pull/852
+* Added Postgres function `DATE_TRUNC` https://github.com/SeaQL/sea-query/pull/825
+* Added `INCLUDE` clause for Postgres BTree index https://github.com/SeaQL/sea-query/pull/826
+
+### Bug Fixes
+
+* Write empty Postgres array as '{}' https://github.com/SeaQL/sea-query/pull/854
+
+## 0.32.1 - 2024-12-01
+
+### New Features
+
+* Added `Value::as_null`
+```rust
+let v = Value::Int(Some(2));
+let n = v.as_null();
+
+assert_eq!(n, Value::Int(None));
+```
+* Added bitwise and/or operators (`bit_and`, `bit_or`) https://github.com/SeaQL/sea-query/pull/841
+```rust
+let query = Query::select()
+    .expr(1.bit_and(2).eq(3))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT (1 & 2) = 3"#
+);
+```
+
+### Enhancements
+
+* Added `GREATEST` & `LEAST` function https://github.com/SeaQL/sea-query/pull/844
+* Added `ValueType::enum_type_name()` https://github.com/SeaQL/sea-query/pull/836
+* Removed "one common table" restriction on recursive CTE https://github.com/SeaQL/sea-query/pull/835
+
+### House keeping
+
+* Remove unnecessary string hashes https://github.com/SeaQL/sea-query/pull/815
+
+## 0.32.0 - 2024-10-17
 
 ### Releases
 
@@ -70,8 +394,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Derive `Eq`, `Ord`, `Hash` for `Alias` https://github.com/SeaQL/sea-query/pull/818
 * Added `Func::md5` function https://github.com/SeaQL/sea-query/pull/786
-* Added Postgres Json functions: `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
-* Added `cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
+* Added Postgres Json functions `JSON_BUILD_OBJECT` and `JSON_AGG` https://github.com/SeaQL/sea-query/pull/787
+* Added Postgres function `ARRAY_AGG` https://github.com/SeaQL/sea-query/pull/846
+* Added `Func::cast_as_quoted` https://github.com/SeaQL/sea-query/pull/789
 * Added `IF NOT EXISTS` to `ALTER TYPE ADD VALUE` https://github.com/SeaQL/sea-query/pull/803
 
 ## 0.31.0 - 2024-08-02

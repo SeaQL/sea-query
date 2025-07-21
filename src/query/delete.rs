@@ -1,11 +1,11 @@
 use crate::{
+    Expr, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     prepare::*,
-    query::{condition::*, OrderedStatement},
+    query::{OrderedStatement, condition::*},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SimpleExpr, SubQueryStatement,
-    WithClause, WithQuery,
 };
 use inherent::inherent;
 
@@ -44,6 +44,7 @@ pub struct DeleteStatement {
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) returning: Option<ReturningClause>,
+    pub(crate) with: Option<WithClause>,
 }
 
 impl DeleteStatement {
@@ -52,12 +53,23 @@ impl DeleteStatement {
         Self::default()
     }
 
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            r#where: std::mem::take(&mut self.r#where),
+            orders: std::mem::take(&mut self.orders),
+            limit: self.limit.take(),
+            returning: self.returning.take(),
+            with: self.with.take(),
+        }
+    }
+
     /// Specify which table to delete from.
     ///
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
@@ -76,6 +88,11 @@ impl DeleteStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(query.audit_unwrap().selected_tables(), []);
     /// ```
     #[allow(clippy::wrong_self_convention)]
     pub fn from_table<T>(&mut self, tbl_ref: T) -> &mut Self
@@ -97,7 +114,7 @@ impl DeleteStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::delete()
     ///     .from_table(Glyph::Table)
@@ -116,6 +133,14 @@ impl DeleteStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn returning(&mut self, returning_cols: ReturningClause) -> &mut Self {
@@ -191,7 +216,7 @@ impl DeleteStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -201,12 +226,12 @@ impl DeleteStatement {
     ///     let cte = CommonTableExpression::new()
     ///         .query(select)
     ///         .column(Glyph::Id)
-    ///         .table_name(Alias::new("cte"))
+    ///         .table_name("cte")
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
     ///     let update = DeleteStatement::new()
     ///         .from_table(Glyph::Table)
-    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from("cte").to_owned()))
     ///         .to_owned();
     ///     let query = update.with(with_clause);
     ///
@@ -222,9 +247,67 @@ impl DeleteStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
+    }
+
+    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id])
+    ///         .from(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Image).like("0%"))
+    ///         .to_owned();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .table_name("cte")
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let query = DeleteStatement::new()
+    ///         .with_cte(with_clause)
+    ///         .from_table(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from("cte").to_owned()))
+    ///         .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`) AS (SELECT `id` FROM `glyph` WHERE `image` LIKE '0%') DELETE FROM `glyph` WHERE `id` IN (SELECT `id` FROM `cte`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') DELETE FROM "glyph" WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().deleted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// ```
+    pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
+        self.with = Some(clause.into());
+        self
     }
 }
 
@@ -238,16 +321,24 @@ impl QueryStatementBuilder for DeleteStatement {
         query_builder.prepare_delete_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::DeleteStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<DeleteStatement> for QueryStatement {
+    fn from(s: DeleteStatement) -> Self {
+        Self::Delete(s)
+    }
+}
+
+impl From<DeleteStatement> for SubQueryStatement {
+    fn from(s: DeleteStatement) -> Self {
+        Self::DeleteStatement(s)
+    }
 }
 
 #[inherent]
@@ -281,7 +372,7 @@ impl OrderedStatement for DeleteStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -300,7 +391,7 @@ impl OrderedStatement for DeleteStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -329,6 +420,6 @@ impl ConditionalStatement for DeleteStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }

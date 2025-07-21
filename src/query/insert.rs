@@ -1,7 +1,7 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, OnConflict, QueryStatementBuilder,
-    QueryStatementWriter, ReturningClause, SelectStatement, SimpleExpr, SubQueryStatement, Values,
-    WithClause, WithQuery,
+    Expr, OnConflict, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SelectStatement, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder,
+    error::*, prepare::*, types::*,
 };
 use inherent::inherent;
 
@@ -11,7 +11,7 @@ use inherent::inherent;
 /// ('VALUES') or a select query.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum InsertValueSource {
-    Values(Vec<Vec<SimpleExpr>>),
+    Values(Vec<Vec<Expr>>),
     Select(Box<SelectStatement>),
 }
 
@@ -20,14 +20,14 @@ pub(crate) enum InsertValueSource {
 /// # Examples
 ///
 /// ```
-/// use sea_query::{tests_cfg::*, *};
+/// use sea_query::{audit::*, tests_cfg::*, *};
 ///
 /// let query = Query::insert()
 ///     .into_table(Glyph::Table)
 ///     .columns([Glyph::Aspect, Glyph::Image])
 ///     .values_panic([5.15.into(), "12A".into()])
 ///     .values_panic([4.21.into(), "123".into()])
-///     .to_owned();
+///     .take();
 ///
 /// assert_eq!(
 ///     query.to_string(MysqlQueryBuilder),
@@ -41,6 +41,10 @@ pub(crate) enum InsertValueSource {
 ///     query.to_string(SqliteQueryBuilder),
 ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (5.15, '12A'), (4.21, '123')"#
 /// );
+/// assert_eq!(
+///     query.audit().unwrap().inserted_tables(),
+///     [SeaRc::new(Glyph::Table)]
+/// );
 /// ```
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct InsertStatement {
@@ -51,12 +55,27 @@ pub struct InsertStatement {
     pub(crate) on_conflict: Option<OnConflict>,
     pub(crate) returning: Option<ReturningClause>,
     pub(crate) default_values: Option<u32>,
+    pub(crate) with: Option<WithClause>,
 }
 
 impl InsertStatement {
     /// Construct a new [`InsertStatement`]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Take the ownership of data in the current [`SelectStatement`]
+    pub fn take(&mut self) -> Self {
+        Self {
+            replace: self.replace,
+            table: self.table.take(),
+            columns: std::mem::take(&mut self.columns),
+            source: self.source.take(),
+            on_conflict: self.on_conflict.take(),
+            returning: self.returning.take(),
+            default_values: self.default_values.take(),
+            with: self.with.take(),
+        }
     }
 
     /// Use REPLACE instead of INSERT
@@ -71,7 +90,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic([5.15.into(), "12A".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -120,7 +139,7 @@ impl InsertStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
@@ -130,10 +149,10 @@ impl InsertStatement {
     ///         .column(Glyph::Image)
     ///         .from(Glyph::Table)
     ///         .and_where(Expr::col(Glyph::Image).like("0%"))
-    ///         .to_owned()
+    ///         .take()
     ///     )
     ///     .unwrap()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -147,6 +166,14 @@ impl InsertStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") SELECT "aspect", "image" FROM "glyph" WHERE "image" LIKE '0%'"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().inserted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
     ///
     /// ```
@@ -158,16 +185,42 @@ impl InsertStatement {
     ///         Query::select()
     ///             .expr(Expr::val("hello"))
     ///             .cond_where(Cond::all().not().add(Expr::exists(
-    ///                 Query::select().expr(Expr::val("world")).to_owned(),
+    ///                 Query::select().expr(Expr::val("world")).take(),
     ///             )))
-    ///             .to_owned(),
+    ///             .take(),
     ///     )
     ///     .unwrap()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
+    /// );
+    /// ```
+    /// use sea_query::{audit::*, tests_cfg::*, *};
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Image])
+    ///     .select_from(
+    ///         Query::select()
+    ///             .expr(Font::Name)
+    ///             .from(Font::Table)
+    ///             .take(),
+    ///     )
+    ///     .unwrap()
+    ///     .take();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "glyph" ("image") SELECT "name" FROM "font""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Font::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().inserted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn select_from<S>(&mut self, select: S) -> Result<&mut Self>
@@ -199,10 +252,10 @@ impl InsertStatement {
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values([
     ///         2.into(),
-    ///         Func::cast_as("2020-02-02 00:00:00", Alias::new("DATE")).into(),
+    ///         Func::cast_as("2020-02-02 00:00:00", "DATE").into(),
     ///     ])
     ///     .unwrap()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -219,9 +272,9 @@ impl InsertStatement {
     /// ```
     pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
-        let values = values.into_iter().collect::<Vec<SimpleExpr>>();
+        let values = values.into_iter().collect::<Vec<Expr>>();
         if self.columns.len() != values.len() {
             return Err(Error::ColValNumMismatch {
                 col_len: self.columns.len(),
@@ -256,7 +309,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_panic([2.1345.into(), "24B".into()])
     ///     .values_panic([5.15.into(), "12A".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -273,7 +326,7 @@ impl InsertStatement {
     /// ```
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         self.values(values).unwrap()
     }
@@ -283,7 +336,7 @@ impl InsertStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let rows = vec![[2.1345.into(), "24B".into()], [5.15.into(), "12A".into()]];
     ///
@@ -291,7 +344,7 @@ impl InsertStatement {
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Aspect, Glyph::Image])
     ///     .values_from_panic(rows)
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -305,10 +358,15 @@ impl InsertStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().inserted_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
-    pub fn values_from_panic<I>(&mut self, values_iter: impl IntoIterator<Item = I>) -> &mut Self
+    pub fn values_from_panic<I, J>(&mut self, values_iter: J) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
+        J: IntoIterator<Item = I>,
     {
         values_iter.into_iter().for_each(|values| {
             self.values_panic(values);
@@ -340,7 +398,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Image])
     ///     .values_panic(["12A".into()])
     ///     .returning(Query::returning().columns([Glyph::Id]))
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -372,7 +430,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Image])
     ///     .values_panic(["12A".into()])
     ///     .returning_col(Glyph::Id)
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -406,7 +464,7 @@ impl InsertStatement {
     ///     .columns([Glyph::Image])
     ///     .values_panic(["12A".into()])
     ///     .returning_all()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -435,19 +493,19 @@ impl InsertStatement {
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
     ///         .from(Glyph::Table)
-    ///         .to_owned();
+    ///         .take();
     ///     let cte = CommonTableExpression::new()
     ///         .query(select)
     ///         .column(Glyph::Id)
     ///         .column(Glyph::Image)
     ///         .column(Glyph::Aspect)
-    ///         .table_name(Alias::new("cte"))
+    ///         .table_name("cte")
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
     ///     let select = SelectStatement::new()
     ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
-    ///         .from(Alias::new("cte"))
-    ///         .to_owned();
+    ///         .from("cte")
+    ///         .take();
     ///     let mut insert = Query::insert();
     ///     insert
     ///         .into_table(Glyph::Table)
@@ -473,6 +531,55 @@ impl InsertStatement {
         clause.query(self)
     }
 
+    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from(Glyph::Table)
+    ///         .take();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .column(Glyph::Image)
+    ///         .column(Glyph::Aspect)
+    ///         .table_name("cte")
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let select = SelectStatement::new()
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .from("cte")
+    ///         .take();
+    ///     let mut query = Query::insert();
+    ///     query
+    ///         .with_cte(with_clause)
+    ///         .into_table(Glyph::Table)
+    ///         .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+    ///         .select_from(select)
+    ///         .unwrap();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`, `image`, `aspect`) AS (SELECT `id`, `image`, `aspect` FROM `glyph`) INSERT INTO `glyph` (`id`, `image`, `aspect`) SELECT `id`, `image`, `aspect` FROM `cte`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
+    /// );
+    /// ```
+    pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
+        self.with = Some(clause.into());
+        self
+    }
+
     /// Insert with default values if columns and values are not supplied.
     ///
     /// # Examples
@@ -484,7 +591,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .or_default_values()
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -505,7 +612,7 @@ impl InsertStatement {
     ///     .or_default_values()
     ///     .columns([Glyph::Image])
     ///     .values_panic(["ABC".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -536,7 +643,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .or_default_values_many(3)
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -557,7 +664,7 @@ impl InsertStatement {
     ///     .or_default_values_many(3)
     ///     .columns([Glyph::Image])
     ///     .values_panic(["ABC".into()])
-    ///     .to_owned();
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -588,16 +695,24 @@ impl QueryStatementBuilder for InsertStatement {
         query_builder.prepare_insert_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::InsertStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<InsertStatement> for QueryStatement {
+    fn from(s: InsertStatement) -> Self {
+        Self::Insert(s)
+    }
+}
+
+impl From<InsertStatement> for SubQueryStatement {
+    fn from(s: InsertStatement) -> Self {
+        Self::InsertStatement(s)
+    }
 }
 
 #[inherent]

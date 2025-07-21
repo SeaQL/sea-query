@@ -1,94 +1,120 @@
 //! Base types used throughout sea-query.
 
-use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
-use std::{fmt, mem, ops};
+use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
+use std::borrow::Cow;
 
 #[cfg(feature = "backend-postgres")]
 use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
 use crate::extension::sqlite::SqliteBinOper;
+
+/// A reference counted pointer: either [`Rc`][std::rc::Rc] or [`Arc`][std::sync::Arc],
+/// depending on the feature flags.
+///
+/// [`Arc`][std::sync::Arc] is used when `thread-safe` feature is activated.
 #[cfg(not(feature = "thread-safe"))]
-pub use std::rc::Rc as RcOrArc;
+pub type RcOrArc<T> = std::rc::Rc<T>;
+/// A reference counted pointer: either [`Rc`][std::rc::Rc] or [`Arc`][std::sync::Arc],
+/// depending on the feature flags.
+///
+/// [`Arc`][std::sync::Arc] is used when `thread-safe` feature is activated.
 #[cfg(feature = "thread-safe")]
-pub use std::sync::Arc as RcOrArc;
+pub type RcOrArc<T> = std::sync::Arc<T>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Quote(pub(crate) u8, pub(crate) u8);
 
-macro_rules! iden_trait {
-    ($($bounds:ident),*) => {
-        /// Identifier
-        pub trait Iden where $(Self: $bounds),* {
-            fn prepare(&self, s: &mut dyn fmt::Write, q: Quote) {
-                write!(s, "{}{}{}", q.left(), self.quoted(q), q.right()).unwrap();
-            }
+/// Identifier
+pub trait Iden {
+    /// Return the to-be sanitized version of the identifier.
+    ///
+    /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
+    /// Note that this method doesn't do the actual escape,
+    /// as it's backend specific.
+    /// It only indicates whether the identifier needs to be escaped.
+    ///
+    /// If the identifier doesn't need to be escaped, return `'static str`.
+    /// This can be deduced at compile-time by the `Iden` macro,
+    /// or using the [`is_static_iden`] function.
+    ///
+    /// `Cow::Owned` would always be escaped.
+    fn quoted(&self) -> Cow<'static, str> {
+        Cow::Owned(self.to_string())
+    }
 
-            fn quoted(&self, q: Quote) -> String {
-                let byte = [q.1];
-                let qq: &str = std::str::from_utf8(&byte).unwrap();
-                self.to_string().replace(qq, qq.repeat(2).as_str())
-            }
+    /// A shortcut for writing an [`unquoted`][Iden::unquoted]
+    /// identifier into a [`String`].
+    ///
+    /// We can't reuse [`ToString`] for this, because [`ToString`] uses
+    /// the [`Display`][std::fmt::Display] representation. But [`Iden`]
+    /// representation is distinct from [`Display`][std::fmt::Display]
+    /// and can be different.
+    fn to_string(&self) -> String {
+        self.unquoted().to_owned()
+    }
 
-            fn to_string(&self) -> String {
-                let mut s = String::new();
-                self.unquoted(&mut s);
-                s
-            }
-
-            fn unquoted(&self, s: &mut dyn fmt::Write);
-        }
-
-        /// Identifier
-        pub trait IdenStatic: Iden + Copy + 'static {
-            fn as_str(&self) -> &'static str;
-        }
-    };
+    /// Write a raw identifier string without quotes.
+    ///
+    /// We indentionally don't reuse [`Display`][std::fmt::Display] for
+    /// this, because we want to allow it to have a different logic.
+    fn unquoted(&self) -> &str;
 }
 
-#[cfg(feature = "thread-safe")]
-iden_trait!(Send, Sync);
-#[cfg(not(feature = "thread-safe"))]
-iden_trait!();
+/// Identifier statically known at compile-time.
+pub trait IdenStatic: Iden + Copy + 'static {
+    fn as_str(&self) -> &'static str;
+}
 
-pub type DynIden = SeaRc<dyn Iden>;
+/// A prepared (quoted) identifier string.
+///
+/// The naming is legacy and kept for compatibility.
+/// This used to be an alias for a `dyn Iden` object that's lazily rendered later.
+///
+/// Nowadays, it's an eagerly-rendered string.
+/// Most identifiers are static strings that aren't "rendered" at runtime anyway.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DynIden(pub(crate) Cow<'static, str>);
 
+impl DynIden {
+    pub fn inner(&self) -> Cow<'static, str> {
+        self.0.clone()
+    }
+}
+
+/// A legacy namespace for compatibility.
+///
+/// It's needed, so that most existing [`SeaRc::new`][SeaRc::new] calls keep working.
+///
+/// This used to be an actual type
+/// (a reference-counted pointer with special impls for `dyn Iden` contents).
+/// It's not needed anymore.
 #[derive(Debug)]
-#[repr(transparent)]
-pub struct SeaRc<I>(pub(crate) RcOrArc<I>)
-where
-    I: ?Sized;
+pub struct SeaRc;
 
-impl ops::Deref for SeaRc<dyn Iden> {
-    type Target = dyn Iden;
-
-    fn deref(&self) -> &Self::Target {
-        ops::Deref::deref(&self.0)
-    }
-}
-
-impl Clone for SeaRc<dyn Iden> {
-    fn clone(&self) -> SeaRc<dyn Iden> {
-        SeaRc(RcOrArc::clone(&self.0))
-    }
-}
-
-impl PartialEq for SeaRc<dyn Iden> {
-    fn eq(&self, other: &Self) -> bool {
-        let (self_vtable, other_vtable) = unsafe {
-            let (_, self_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*self.0);
-            let (_, other_vtable) = mem::transmute::<&dyn Iden, (usize, usize)>(&*other.0);
-            (self_vtable, other_vtable)
-        };
-        self_vtable == other_vtable && self.to_string() == other.to_string()
-    }
-}
-
-impl SeaRc<dyn Iden> {
-    pub fn new<I>(i: I) -> SeaRc<dyn Iden>
+impl SeaRc {
+    /// A legacy method, kept for compatibility.
+    ///
+    /// Nowadays, instead of wrapping an `Iden` object,
+    /// it eagerly "renders" it into a string and then drops the object.
+    ///
+    /// Note that most `Iden`s are statically known
+    /// and their representations aren't actually "rendered" and allocated at runtime.
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new<I>(i: I) -> DynIden
     where
-        I: Iden + 'static,
+        I: Iden,
     {
-        SeaRc(RcOrArc::new(i))
+        DynIden(i.quoted())
+    }
+
+    pub fn clone(iden: &DynIden) -> DynIden {
+        iden.clone()
+    }
+}
+
+impl std::fmt::Display for DynIden {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -102,15 +128,9 @@ pub trait IdenList {
     fn into_iter(self) -> Self::IntoIter;
 }
 
-impl fmt::Debug for dyn Iden {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.unquoted(formatter);
-        Ok(())
-    }
-}
-
 /// Column references
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum ColumnRef {
     Column(DynIden),
     TableColumn(DynIden, DynIden),
@@ -119,13 +139,27 @@ pub enum ColumnRef {
     TableAsterisk(DynIden),
 }
 
+impl ColumnRef {
+    #[doc(hidden)]
+    /// Returns the column name if it's not an asterisk.
+    pub fn column(&self) -> Option<&DynIden> {
+        match self {
+            ColumnRef::Column(column) => Some(column),
+            ColumnRef::TableColumn(_, column) => Some(column),
+            ColumnRef::SchemaTableColumn(_, _, column) => Some(column),
+            ColumnRef::Asterisk => None,
+            ColumnRef::TableAsterisk(_) => None,
+        }
+    }
+}
+
 pub trait IntoColumnRef {
     fn into_column_ref(self) -> ColumnRef;
 }
 
 /// Table references
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum TableRef {
     /// Table identifier without any schema / database prefix
     Table(DynIden),
@@ -140,25 +174,61 @@ pub enum TableRef {
     /// Table identifier with database and schema prefix and alias
     DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
     /// Subquery with alias
-    SubQuery(SelectStatement, DynIden),
+    SubQuery(Box<SelectStatement>, DynIden),
     /// Values list with alias
     ValuesList(Vec<ValueTuple>, DynIden),
     /// Function call with alias
     FunctionCall(FunctionCall, DynIden),
 }
 
+impl TableRef {
+    #[doc(hidden)]
+    pub fn sea_orm_table(&self) -> &DynIden {
+        match self {
+            TableRef::Table(tbl)
+            | TableRef::SchemaTable(_, tbl)
+            | TableRef::DatabaseSchemaTable(_, _, tbl)
+            | TableRef::TableAlias(tbl, _)
+            | TableRef::SchemaTableAlias(_, tbl, _)
+            | TableRef::DatabaseSchemaTableAlias(_, _, tbl, _)
+            | TableRef::SubQuery(_, tbl)
+            | TableRef::ValuesList(_, tbl)
+            | TableRef::FunctionCall(_, tbl) => tbl,
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn sea_orm_table_alias(&self) -> Option<&DynIden> {
+        match self {
+            TableRef::Table(_)
+            | TableRef::SchemaTable(_, _)
+            | TableRef::DatabaseSchemaTable(_, _, _)
+            | TableRef::SubQuery(_, _)
+            | TableRef::ValuesList(_, _) => None,
+            TableRef::TableAlias(_, alias)
+            | TableRef::SchemaTableAlias(_, _, alias)
+            | TableRef::DatabaseSchemaTableAlias(_, _, _, alias)
+            | TableRef::FunctionCall(_, alias) => Some(alias),
+        }
+    }
+}
+
 pub trait IntoTableRef {
     fn into_table_ref(self) -> TableRef;
 }
 
-/// Unary operator
+/// Unary operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum UnOper {
     Not,
 }
 
-/// Binary operator
+/// Binary operators.
+///
+/// If something is not supported here, you can use [`BinOper::Custom`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum BinOper {
     And,
     Or,
@@ -181,6 +251,8 @@ pub enum BinOper {
     Mul,
     Div,
     Mod,
+    BitAnd,
+    BitOr,
     LShift,
     RShift,
     As,
@@ -192,11 +264,11 @@ pub enum BinOper {
     SqliteOperator(SqliteBinOper),
 }
 
-/// Logical chain operator
+/// Logical chain operator: conjunction or disjunction.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LogicalChainOper {
-    And(SimpleExpr),
-    Or(SimpleExpr),
+    And(Expr),
+    Or(Expr),
 }
 
 /// Join types
@@ -220,29 +292,33 @@ pub enum NullOrdering {
 /// Order expression
 #[derive(Debug, Clone, PartialEq)]
 pub struct OrderExpr {
-    pub(crate) expr: SimpleExpr,
+    pub(crate) expr: Expr,
     pub(crate) order: Order,
     pub(crate) nulls: Option<NullOrdering>,
 }
 
 /// Join on types
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum JoinOn {
     Condition(Box<ConditionHolder>),
-    Columns(Vec<SimpleExpr>),
+    Columns(Vec<Expr>),
 }
 
 /// Ordering options
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Order {
     Asc,
     Desc,
     Field(Values),
 }
 
-/// Helper for create name alias
+/// An explicit wrapper for [`Iden`]s which are dynamic user-provided strings.
+///
+/// Nowadays, `&str` implements [`Iden`] and can be used directly.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Alias(String);
+pub struct Alias(pub String);
 
 /// Null Alias
 #[derive(Default, Debug, Copy, Clone)]
@@ -304,8 +380,11 @@ pub struct NullAlias;
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Asterisk;
 
-/// SQL Keywords
+/// Known SQL keywords that can be used as expressions.
+///
+/// If something is not supported here, you can use [`Keyword::Custom`].
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Keyword {
     Null,
     CurrentDate,
@@ -327,6 +406,7 @@ pub trait IntoLikeExpr {
 
 /// SubQuery operators
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SubQueryOper {
     Exists,
     Any,
@@ -550,9 +630,74 @@ impl Alias {
 }
 
 impl Iden for Alias {
-    fn unquoted(&self, s: &mut dyn fmt::Write) {
-        write!(s, "{}", self.0).unwrap();
+    fn quoted(&self) -> Cow<'static, str> {
+        Cow::Owned(self.0.clone())
     }
+
+    fn unquoted(&self) -> &str {
+        &self.0
+    }
+}
+
+impl IntoIden for String {
+    fn into_iden(self) -> DynIden {
+        DynIden(Cow::Owned(self))
+    }
+}
+
+impl Iden for &'static str {
+    fn quoted(&self) -> Cow<'static, str> {
+        if is_static_iden(self) {
+            Cow::Borrowed(self)
+        } else {
+            Cow::Owned(String::from(*self))
+        }
+    }
+
+    fn unquoted(&self) -> &str {
+        self
+    }
+}
+
+/// Return whether this identifier needs to be escaped.
+/// Right now we're very safe and only return true for identifiers
+/// composed of `a-zA-Z0-9_`.
+///
+/// ```
+/// use sea_query::is_static_iden;
+///
+/// assert!(is_static_iden("abc"));
+/// assert!(is_static_iden("a_b_c"));
+/// assert!(!is_static_iden("a-b-c"));
+/// assert!(is_static_iden("abc123"));
+/// assert!(!is_static_iden("123abc"));
+/// assert!(!is_static_iden("a|b|c"));
+/// assert!(!is_static_iden("a'b'c"));
+/// ```
+pub const fn is_static_iden(string: &str) -> bool {
+    let bytes = string.as_bytes();
+    if bytes.is_empty() {
+        return true;
+    }
+
+    // can only begin with [a-z_]
+    if bytes[0] == b'_' || (bytes[0] as char).is_ascii_alphabetic() {
+        // good
+    } else {
+        return false;
+    }
+
+    let mut i = 1;
+    while i < bytes.len() {
+        if bytes[i] == b'_' || (bytes[i] as char).is_ascii_alphanumeric() {
+            // good
+        } else {
+            return false;
+        }
+        i += 1;
+    }
+
+    true
 }
 
 impl NullAlias {
@@ -562,7 +707,9 @@ impl NullAlias {
 }
 
 impl Iden for NullAlias {
-    fn unquoted(&self, _s: &mut dyn fmt::Write) {}
+    fn unquoted(&self) -> &str {
+        ""
+    }
 }
 
 impl LikeExpr {
@@ -613,20 +760,15 @@ where
 #[cfg(test)]
 mod tests {
     pub use crate::{tests_cfg::*, *};
-    use pretty_assertions::assert_eq;
     pub use Character as CharReexport;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_identifier() {
-        let query = Query::select()
-            .column(Alias::new("hello-World_"))
-            .to_owned();
+        let query = Query::select().column("hello-World_").to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(
-            query.to_string(MysqlQueryBuilder),
-            r#"SELECT `hello-World_`"#
-        );
+        assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hello-World_`");
         #[cfg(feature = "backend-postgres")]
         assert_eq!(
             query.to_string(PostgresQueryBuilder),
@@ -641,14 +783,14 @@ mod tests {
 
     #[test]
     fn test_quoted_identifier_1() {
-        let query = Query::select().column(Alias::new("hel`lo")).to_owned();
+        let query = Query::select().column("hel`lo").to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel``lo`"#);
+        assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel``lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel`lo""#);
 
-        let query = Query::select().column(Alias::new("hel\"lo")).to_owned();
+        let query = Query::select().column("hel\"lo").to_owned();
 
         #[cfg(feature = "backend-postgres")]
         assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT "hel""lo""#);
@@ -656,14 +798,14 @@ mod tests {
 
     #[test]
     fn test_quoted_identifier_2() {
-        let query = Query::select().column(Alias::new("hel``lo")).to_owned();
+        let query = Query::select().column("hel``lo").to_owned();
 
         #[cfg(feature = "backend-mysql")]
-        assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT `hel````lo`"#);
+        assert_eq!(query.to_string(MysqlQueryBuilder), r"SELECT `hel````lo`");
         #[cfg(feature = "backend-sqlite")]
         assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT "hel``lo""#);
 
-        let query = Query::select().column(Alias::new("hel\"\"lo")).to_owned();
+        let query = Query::select().column("hel\"\"lo").to_owned();
 
         #[cfg(feature = "backend-postgres")]
         assert_eq!(
@@ -693,22 +835,22 @@ mod tests {
             ColumnRef::Column(CharReexport::Id.into_iden())
         );
         assert_eq!(
-            ColumnRef::Column(Alias::new("id").into_iden()),
-            ColumnRef::Column(Alias::new("id").into_iden())
+            ColumnRef::Column("id".into_iden()),
+            ColumnRef::Column("id".into_iden())
         );
         assert_ne!(
-            ColumnRef::Column(Alias::new("id").into_iden()),
-            ColumnRef::Column(Alias::new("id_").into_iden())
+            ColumnRef::Column("id".into_iden()),
+            ColumnRef::Column("id_".into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
-            ColumnRef::Column(Alias::new("id").into_iden())
+            ColumnRef::Column("id".into_iden())
         );
         assert_ne!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Character::Table.into_iden())
         );
-        assert_ne!(
+        assert_eq!(
             ColumnRef::Column(Character::Id.into_iden()),
             ColumnRef::Column(Font::Id.into_iden())
         );

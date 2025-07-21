@@ -19,7 +19,7 @@ pub trait OrderedStatement {
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+    ///     .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();
@@ -93,14 +93,14 @@ pub trait OrderedStatement {
         T: IntoColumnRef,
     {
         self.add_order_by(OrderExpr {
-            expr: SimpleExpr::Column(col.into_column_ref()),
+            expr: Expr::Column(col.into_column_ref()),
             order,
             nulls: None,
         })
     }
 
-    /// Order by [`SimpleExpr`].
-    fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self {
+    /// Order by [`Expr`].
+    fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self {
         self.add_order_by(OrderExpr {
             expr,
             order,
@@ -116,7 +116,7 @@ pub trait OrderedStatement {
     {
         cols.into_iter().for_each(|(c, order)| {
             self.add_order_by(OrderExpr {
-                expr: SimpleExpr::Custom(c.to_string()),
+                expr: Expr::Custom(c.to_string()),
                 order,
                 nulls: None,
             });
@@ -132,7 +132,7 @@ pub trait OrderedStatement {
     {
         cols.into_iter().for_each(|(c, order)| {
             self.add_order_by(OrderExpr {
-                expr: SimpleExpr::Column(c.into_column_ref()),
+                expr: Expr::Column(c.into_column_ref()),
                 order,
                 nulls: None,
             });
@@ -168,16 +168,16 @@ pub trait OrderedStatement {
         T: IntoColumnRef,
     {
         self.add_order_by(OrderExpr {
-            expr: SimpleExpr::Column(col.into_column_ref()),
+            expr: Expr::Column(col.into_column_ref()),
             order,
             nulls: Some(nulls),
         })
     }
 
-    /// Order by [`SimpleExpr`] with nulls order option.
+    /// Order by [`Expr`] with nulls order option.
     fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self {
@@ -196,7 +196,7 @@ pub trait OrderedStatement {
     {
         cols.into_iter().for_each(|(c, order, nulls)| {
             self.add_order_by(OrderExpr {
-                expr: SimpleExpr::Custom(c.to_string()),
+                expr: Expr::Custom(c.to_string()),
                 order,
                 nulls: Some(nulls),
             });
@@ -212,7 +212,7 @@ pub trait OrderedStatement {
     {
         cols.into_iter().for_each(|(c, order, nulls)| {
             self.add_order_by(OrderExpr {
-                expr: SimpleExpr::Column(c.into_column_ref()),
+                expr: Expr::Column(c.into_column_ref()),
                 order,
                 nulls: Some(nulls),
             });

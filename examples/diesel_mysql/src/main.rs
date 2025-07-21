@@ -1,17 +1,17 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{
+    Connection, MysqlConnection, QueryableByName, RunQueryDsl,
     backend::Backend,
     connection::SimpleConnection,
     deserialize::{self, FromSql},
     sql_types::{BigInt, Blob},
-    Connection, MysqlConnection, QueryableByName, RunQueryDsl,
 };
 use sea_query::{Alias, ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, Order, Query, Table};
 use sea_query_diesel::DieselBinder;
-use serde_json::{json, Value as Json};
+use serde_json::{Value as Json, json};
 use time::{
-    macros::{date, time},
     PrimitiveDateTime,
+    macros::{date, time},
 };
 use uuid::Uuid;
 
@@ -197,7 +197,7 @@ fn main() {
 
     let query = Query::select()
         .from(Character::Table)
-        .expr_as(Func::count(Expr::col(Character::Id)), Alias::new("count"))
+        .expr_as(Func::count(Expr::col(Character::Id)), "count")
         .to_owned();
 
     print!("Count character: ");

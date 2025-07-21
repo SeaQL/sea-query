@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
-use crate::{backend::QueryBuilder, value::Values, SqlWriter, SqlWriterValues, SubQueryStatement};
+use crate::{SqlWriter, SqlWriterValues, SubQueryStatement, backend::QueryBuilder, value::Values};
 
-pub trait QueryStatementBuilder: Debug {
+pub trait QueryStatementBuilder: Debug + Into<SubQueryStatement> {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
     fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values) {
         let (placeholder, numbered) = query_builder.placeholder();
@@ -24,7 +24,9 @@ pub trait QueryStatementBuilder: Debug {
     /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter);
 
-    fn into_sub_query_statement(self) -> SubQueryStatement;
+    fn into_sub_query_statement(self) -> SubQueryStatement {
+        self.into()
+    }
 }
 
 pub trait QueryStatementWriter: QueryStatementBuilder {
@@ -38,7 +40,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+    ///     .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_string(MysqlQueryBuilder);
@@ -64,7 +66,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// let (query, params) = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+    ///     .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .build(MysqlQueryBuilder);
@@ -95,7 +97,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// let query = Query::select()
     ///     .column(Glyph::Aspect)
     ///     .from(Glyph::Table)
-    ///     .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+    ///     .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
     ///     .order_by(Glyph::Image, Order::Desc)
     ///     .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
     ///     .to_owned();

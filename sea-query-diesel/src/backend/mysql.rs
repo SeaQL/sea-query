@@ -1,5 +1,5 @@
-use diesel::mysql::sql_types::*;
 use diesel::mysql::Mysql;
+use diesel::mysql::sql_types::*;
 use diesel::query_builder::QueryFragment;
 use diesel::result::QueryResult;
 use diesel::sql_types::*;

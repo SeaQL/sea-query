@@ -4,14 +4,14 @@ use inherent::inherent;
 pub trait OverStatement {
     #[doc(hidden)]
     // Implementation for the trait.
-    fn add_partition_by(&mut self, partition: SimpleExpr) -> &mut Self;
+    fn add_partition_by(&mut self, partition: Expr) -> &mut Self;
 
     /// Partition by column.
     fn partition_by<T>(&mut self, col: T) -> &mut Self
     where
         T: IntoColumnRef,
     {
-        self.add_partition_by(SimpleExpr::Column(col.into_column_ref()))
+        self.add_partition_by(Expr::Column(col.into_column_ref()))
     }
 
     /// Partition by custom string.
@@ -21,7 +21,7 @@ pub trait OverStatement {
         I: IntoIterator<Item = T>,
     {
         cols.into_iter().for_each(|c| {
-            self.add_partition_by(SimpleExpr::Custom(c.to_string()));
+            self.add_partition_by(Expr::Custom(c.to_string()));
         });
         self
     }
@@ -33,7 +33,7 @@ pub trait OverStatement {
         I: IntoIterator<Item = T>,
     {
         cols.into_iter().for_each(|c| {
-            self.add_partition_by(SimpleExpr::Column(c.into_column_ref()));
+            self.add_partition_by(Expr::Column(c.into_column_ref()));
         });
         self
     }
@@ -73,7 +73,7 @@ pub struct FrameClause {
 /// 3. <https://www.postgresql.org/docs/current/tutorial-window.html>
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct WindowStatement {
-    pub(crate) partition_by: Vec<SimpleExpr>,
+    pub(crate) partition_by: Vec<Expr>,
     pub(crate) order_by: Vec<OrderExpr>,
     pub(crate) frame: Option<FrameClause>,
 }
@@ -98,7 +98,7 @@ impl WindowStatement {
         T: IntoColumnRef,
     {
         let mut window = Self::new();
-        window.add_partition_by(SimpleExpr::Column(col.into_column_ref()));
+        window.add_partition_by(Expr::Column(col.into_column_ref()));
         window
     }
 
@@ -108,7 +108,7 @@ impl WindowStatement {
         T: ToString,
     {
         let mut window = Self::new();
-        window.add_partition_by(SimpleExpr::Custom(col.to_string()));
+        window.add_partition_by(Expr::Custom(col.to_string()));
         window
     }
 
@@ -125,7 +125,7 @@ impl WindowStatement {
     ///         WindowStatement::partition_by(Char::FontSize)
     ///             .frame_start(FrameType::Rows, Frame::UnboundedPreceding)
     ///             .take(),
-    ///         Alias::new("C"))
+    ///         "C")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -159,7 +159,7 @@ impl WindowStatement {
     ///         WindowStatement::partition_by(Char::FontSize)
     ///             .frame_between(FrameType::Rows, Frame::UnboundedPreceding, Frame::UnboundedFollowing)
     ///             .take(),
-    ///         Alias::new("C"))
+    ///         "C")
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -188,7 +188,7 @@ impl WindowStatement {
 }
 
 impl OverStatement for WindowStatement {
-    fn add_partition_by(&mut self, partition: SimpleExpr) -> &mut Self {
+    fn add_partition_by(&mut self, partition: Expr) -> &mut Self {
         self.partition_by.push(partition);
         self
     }
@@ -210,7 +210,7 @@ impl OrderedStatement for WindowStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -229,7 +229,7 @@ impl OrderedStatement for WindowStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;

@@ -3,21 +3,21 @@
 
 [package]
 name = "sea-query-binder"
-version = "0.7.0-rc.2"
+version = "0.8.0-rc.1"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
-edition = "2021"
+edition = "2024"
 description = "Driver library for using SeaQuery with SQLx"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = [ "database" ]
 keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
-rust-version = "1.60"
+rust-version = "1.85.0"
 
 [lib]
 
 [dependencies]
-sea-query = { version = "0.32.0-rc.1", path = "..", default-features = false, features = ["thread-safe"] }
+sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false, features = ["thread-safe"] }
 sqlx = { version = "0.8", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }

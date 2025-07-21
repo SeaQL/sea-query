@@ -1,14 +1,15 @@
+use inherent::inherent;
+
 use crate::{
+    QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
-    query::{condition::*, OrderedStatement},
+    query::{OrderedStatement, condition::*},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
-    WithQuery,
 };
-use inherent::inherent;
 
 /// Update existing rows in the table
 ///
@@ -39,17 +40,32 @@ use inherent::inherent;
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
-    pub(crate) values: Vec<(DynIden, Box<SimpleExpr>)>,
+    pub(crate) from: Vec<TableRef>,
+    pub(crate) values: Vec<(DynIden, Box<Expr>)>,
     pub(crate) r#where: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
     pub(crate) returning: Option<ReturningClause>,
+    pub(crate) with: Option<WithClause>,
 }
 
 impl UpdateStatement {
     /// Construct a new [`UpdateStatement`]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            from: std::mem::take(&mut self.from),
+            values: std::mem::take(&mut self.values),
+            r#where: std::mem::take(&mut self.r#where),
+            orders: std::mem::take(&mut self.orders),
+            limit: self.limit.take(),
+            returning: self.returning.take(),
+            with: self.with.take(),
+        }
     }
 
     /// Specify which table to update.
@@ -66,12 +82,68 @@ impl UpdateStatement {
         self
     }
 
+    /// Update using data from another table (`UPDATE .. FROM ..`).
+    ///
+    /// # MySQL Notes
+    ///
+    /// MySQL doesn't support the UPDATE FROM syntax. And the current implementation attempt to tranform it to the UPDATE JOIN syntax,
+    /// which only works for one join target.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{audit::*, tests_cfg::*, *};
+    ///
+    /// let query = Query::update()
+    ///     .table(Glyph::Table)
+    ///     .value(Glyph::Tokens, Expr::column((Char::Table, Char::Character)))
+    ///     .from(Char::Table)
+    ///     .cond_where(
+    ///         Expr::col((Glyph::Table, Glyph::Image))
+    ///             .eq(Expr::col((Char::Table, Char::UserData))),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     "UPDATE `glyph` JOIN `character` ON `glyph`.`image` = `character`.`user_data` SET `glyph`.`tokens` = `character`.`character`"
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Char::Table)]
+    /// );
+    /// ```
+    pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
+    where
+        R: IntoTableRef,
+    {
+        self.from_from(tbl_ref.into_table_ref())
+    }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn from_from(&mut self, select: TableRef) -> &mut Self {
+        self.from.push(select);
+        self
+    }
+
     /// Update column values. To set multiple column-value pairs at once.
     ///
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -93,11 +165,16 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m'"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(query.audit().unwrap().selected_tables(), []);
     /// ```
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
         T: IntoIden,
-        I: IntoIterator<Item = (T, SimpleExpr)>,
+        I: IntoIterator<Item = (T, Expr)>,
     {
         for (k, v) in values.into_iter() {
             self.values.push((k.into_iden(), Box::new(v)));
@@ -105,7 +182,7 @@ impl UpdateStatement {
         self
     }
 
-    /// Update column value by [`SimpleExpr`].
+    /// Update column value by [`Expr`].
     ///
     /// # Examples
     ///
@@ -132,11 +209,29 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 60 * 24 * 24, "image" = '24B0E11951B03B07F8300FD003983F03F0780060'"#
     /// );
+    ///
+    /// let query = Query::update()
+    ///     .table(Glyph::Table)
+    ///     .value(Glyph::Aspect, Expr::value(Value::Int(None)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"UPDATE `glyph` SET `aspect` = NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"UPDATE "glyph" SET "aspect" = NULL"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"UPDATE "glyph" SET "aspect" = NULL"#
+    /// );
     /// ```
     pub fn value<C, T>(&mut self, col: C, value: T) -> &mut Self
     where
         C: IntoIden,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.values.push((col.into_iden(), Box::new(value.into())));
         self
@@ -153,7 +248,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -173,6 +268,14 @@ impl UpdateStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
     /// );
     /// ```
     pub fn returning(&mut self, returning: ReturningClause) -> &mut Self {
@@ -252,7 +355,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -262,12 +365,12 @@ impl UpdateStatement {
     ///     let cte = CommonTableExpression::new()
     ///         .query(select)
     ///         .column(Glyph::Id)
-    ///         .table_name(Alias::new("cte"))
+    ///         .table_name("cte")
     ///         .to_owned();
     ///     let with_clause = WithClause::new().cte(cte).to_owned();
     ///     let update = UpdateStatement::new()
     ///         .table(Glyph::Table)
-    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from(Alias::new("cte")).to_owned()))
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from("cte").to_owned()))
     ///         .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
     ///         .to_owned();
     ///     let query = update.with(with_clause);
@@ -284,13 +387,72 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
 
+    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
+    ///
+    /// let select = SelectStatement::new()
+    ///         .columns([Glyph::Id])
+    ///         .from(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Image).like("0%"))
+    ///         .to_owned();
+    ///     let cte = CommonTableExpression::new()
+    ///         .query(select)
+    ///         .column(Glyph::Id)
+    ///         .table_name("cte")
+    ///         .to_owned();
+    ///     let with_clause = WithClause::new().cte(cte).to_owned();
+    ///     let query = UpdateStatement::new()
+    ///         .table(Glyph::Table)
+    ///         .and_where(Expr::col(Glyph::Id).in_subquery(SelectStatement::new().column(Glyph::Id).from("cte").to_owned()))
+    ///         .value(Glyph::Aspect, Expr::cust("60 * 24 * 24"))
+    ///         .with_cte(with_clause)
+    ///         .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"WITH `cte` (`id`) AS (SELECT `id` FROM `glyph` WHERE `image` LIKE '0%') UPDATE `glyph` SET `aspect` = 60 * 24 * 24 WHERE `id` IN (SELECT `id` FROM `cte`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().updated_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [SeaRc::new(Glyph::Table)]
+    /// );
+    /// ```
+    pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
+        self.with = Some(clause.into());
+        self
+    }
+
     /// Get column values
-    pub fn get_values(&self) -> &[(DynIden, Box<SimpleExpr>)] {
+    pub fn get_values(&self) -> &[(DynIden, Box<Expr>)] {
         &self.values
     }
 }
@@ -305,16 +467,24 @@ impl QueryStatementBuilder for UpdateStatement {
         query_builder.prepare_update_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::UpdateStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<UpdateStatement> for QueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::Update(s)
+    }
+}
+
+impl From<UpdateStatement> for SubQueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::UpdateStatement(s)
+    }
 }
 
 #[inherent]
@@ -347,7 +517,7 @@ impl OrderedStatement for UpdateStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -366,7 +536,7 @@ impl OrderedStatement for UpdateStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -395,6 +565,6 @@ impl ConditionalStatement for UpdateStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }

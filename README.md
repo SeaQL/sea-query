@@ -35,7 +35,7 @@ Join our Discord server to chat with others in the SeaQL community!
 ```toml
 # Cargo.toml
 [dependencies]
-sea-query = "0"
+sea-query = "1.0.0-rc.1"
 ```
 
 SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
@@ -44,12 +44,10 @@ SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
 
 Macro: `derive`
 
-Async support: `thread-safe` (use `Arc` inplace of `Rc`)
-
 SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 
 Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
-`with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`
+`with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`, `postgres-vector`
 
 ## Usage
 
@@ -158,18 +156,13 @@ pub enum Character {
 
 // Mapping between Enum variant and its corresponding string value
 impl Iden for Character {
-    fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "character",
-                Self::Id => "id",
-                Self::FontId => "font_id",
-                Self::FontSize => "font_size",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Table => "character",
+            Self::Id => "id",
+            Self::FontId => "font_id",
+            Self::FontSize => "font_size",
+        }
     }
 }
 ```
@@ -198,7 +191,7 @@ assert_eq!(Glyph.to_string(), "glyph");
 
 ```rust
 #[cfg(feature = "derive")]
-use sea_query::{enum_def, Iden};
+use sea_query::{Iden, enum_def};
 
 #[enum_def]
 struct Character {
@@ -218,7 +211,8 @@ assert_eq!(CharacterIden::Foo.to_string(), "foo");
 
 ### Expression
 
-Use [`Expr`] to construct select, join, where and having expression in query.
+Use [`Expr`] constructors and [`ExprTrait`] methods
+to construct `SELECT`, `JOIN`, `WHERE` and `HAVING` expression in query.
 
 ```rust
 assert_eq!(
@@ -226,9 +220,10 @@ assert_eq!(
         .column(Char::Character)
         .from(Char::Table)
         .and_where(
-            Expr::expr(Expr::col(Char::SizeW).add(1))
+            Expr::col(Char::SizeW)
+                .add(1)
                 .mul(2)
-                .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                .eq(Expr::col(Char::SizeH).div(2).sub(1))
         )
         .and_where(
             Expr::col(Char::SizeW).in_subquery(
@@ -451,7 +446,7 @@ assert_eq!(
 
 ```rust
 let query = Query::select()
-    .expr(Func::cast_as("hello", Alias::new("MyType")))
+    .expr(Func::cast_as("hello", "MyType"))
     .to_owned();
 
 assert_eq!(
@@ -474,8 +469,8 @@ assert_eq!(
 struct MyFunction;
 
 impl Iden for MyFunction {
-    fn unquoted(&self, s: &mut dyn Write) {
-        write!(s, "MY_FUNCTION").unwrap();
+    fn unquoted(&self) -> &str {
+        "MY_FUNCTION"
     }
 }
 
@@ -572,12 +567,7 @@ assert_eq!(
 ```rust
 let table = Table::alter()
     .table(Font::Table)
-    .add_column(
-        ColumnDef::new(Alias::new("new_col"))
-            .integer()
-            .not_null()
-            .default(100),
-    )
+    .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
     .to_owned();
 
 assert_eq!(
@@ -619,9 +609,7 @@ assert_eq!(
 ### Table Rename
 
 ```rust
-let table = Table::rename()
-    .table(Font::Table, Alias::new("font_new"))
-    .to_owned();
+let table = Table::rename().table(Font::Table, "font_new").to_owned();
 
 assert_eq!(
     table.to_string(MysqlQueryBuilder),

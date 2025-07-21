@@ -50,7 +50,7 @@ fn select_4() {
                     .columns([Glyph::Image, Glyph::Aspect])
                     .from(Glyph::Table)
                     .take(),
-                Alias::new("subglyph")
+                "subglyph"
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
@@ -89,7 +89,7 @@ fn select_7() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .to_string(SqliteQueryBuilder),
         r#"SELECT "aspect" FROM "glyph" WHERE IFNULL("aspect", 0) > 2"#
     );
@@ -152,7 +152,7 @@ fn select_11() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by(Glyph::Image, Order::Desc)
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .to_string(SqliteQueryBuilder),
@@ -166,7 +166,7 @@ fn select_12() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns([(Glyph::Id, Order::Asc), (Glyph::Aspect, Order::Desc)])
             .to_string(SqliteQueryBuilder),
         r#"SELECT "aspect" FROM "glyph" WHERE IFNULL("aspect", 0) > 2 ORDER BY "id" ASC, "aspect" DESC"#
@@ -179,7 +179,7 @@ fn select_13() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns([
                 ((Glyph::Table, Glyph::Id), Order::Asc),
                 ((Glyph::Table, Glyph::Aspect), Order::Desc),
@@ -372,9 +372,10 @@ fn select_26() {
             .column(Char::Character)
             .from(Char::Table)
             .and_where(
-                Expr::expr(Expr::col(Char::SizeW).add(1))
+                Expr::col(Char::SizeW)
+                    .add(1)
                     .mul(2)
-                    .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+                    .eq(Expr::col(Char::SizeH).div(2).sub(1))
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#
@@ -434,7 +435,7 @@ fn select_31() {
         Query::select()
             .expr((1..10_i32).fold(Expr::value(0), |expr, i| { expr.add(i) }))
             .to_string(SqliteQueryBuilder),
-        r#"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"#
+        r"SELECT 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9"
     );
 }
 
@@ -442,7 +443,7 @@ fn select_31() {
 fn select_32() {
     assert_eq!(
         Query::select()
-            .expr_as(Expr::col(Char::Character), Alias::new("C"))
+            .expr_as(Expr::col(Char::Character), "C")
             .from(Char::Table)
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" AS "C" FROM "character""#
@@ -649,7 +650,7 @@ fn select_43() {
     let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .cond_where(Cond::all().add_option::<SimpleExpr>(None))
+        .cond_where(Cond::all().add_option::<Expr>(None))
         .to_string(SqliteQueryBuilder);
 
     assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE TRUE"#);
@@ -735,7 +736,7 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+            Cond::all().add_option(Some(ConditionExpression::Expr(
                 Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::value(100)])
                     .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
             ))),
@@ -754,7 +755,7 @@ fn select_48a() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+            Cond::all().add_option(Some(ConditionExpression::Expr(
                 Expr::tuple([
                     Expr::col(Glyph::Aspect).into(),
                     Expr::value(String::from("100")),
@@ -804,7 +805,7 @@ fn select_51() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_with_nulls(Glyph::Image, Order::Desc, NullOrdering::First)
             .order_by_with_nulls(
                 (Glyph::Table, Glyph::Aspect),
@@ -829,7 +830,7 @@ fn select_52() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns_with_nulls([
                 (Glyph::Id, Order::Asc, NullOrdering::First),
                 (Glyph::Aspect, Order::Desc, NullOrdering::Last),
@@ -852,7 +853,7 @@ fn select_53() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by_columns_with_nulls([
                 ((Glyph::Table, Glyph::Id), Order::Asc, NullOrdering::First),
                 (
@@ -894,7 +895,7 @@ fn select_55() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by(
                 Glyph::Id,
                 Order::Field(Values(vec![
@@ -928,7 +929,7 @@ fn select_56() {
         Query::select()
             .columns([Glyph::Aspect])
             .from(Glyph::Table)
-            .and_where(Expr::expr(Expr::col(Glyph::Aspect).if_null(0)).gt(2))
+            .and_where(Expr::col(Glyph::Aspect).if_null(0).gt(2))
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
             .order_by(
                 Glyph::Id,
@@ -963,7 +964,7 @@ fn select_57() {
                 .case(Expr::col((Glyph::Table, Glyph::Aspect)).gt(0), "positive")
                 .case(Expr::col((Glyph::Table, Glyph::Aspect)).lt(0), "negative")
                 .finally("zero"),
-            Alias::new("polarity"),
+            "polarity",
         )
         .from(Glyph::Table)
         .to_owned();
@@ -1781,14 +1782,55 @@ fn sub_query_with_fn() {
         .to_owned();
 
     let select = Query::select()
-        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
-            None,
-            Box::new(sub_select.into_sub_query_statement()),
-        )))
+        .expr(Func::cust(ArrayFunc).arg(Expr::SubQuery(None, Box::new(sub_select.into()))))
         .to_owned();
 
     assert_eq!(
         select.to_string(SqliteQueryBuilder),
         r#"SELECT ARRAY((SELECT * FROM "character"))"#
+    );
+}
+
+#[test]
+fn recursive_with_multiple_ctes() {
+    let sub_select1 = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .to_owned();
+    let sub_select1_name = SeaRc::new("sub1");
+    let mut sub_select1_cte = CommonTableExpression::new();
+    sub_select1_cte.table_name(sub_select1_name.clone());
+    sub_select1_cte.column(SeaRc::new("a"));
+    sub_select1_cte.query(sub_select1);
+    let sub_select2 = Query::select()
+        .column(Asterisk)
+        .from(Char::Table)
+        .to_owned();
+    let sub_select2_name = SeaRc::new("sub2");
+    let mut sub_select2_cte = CommonTableExpression::new();
+    sub_select2_cte.table_name(sub_select2_name.clone());
+    sub_select2_cte.column(SeaRc::new("b"));
+    sub_select2_cte.query(sub_select2);
+
+    let mut with = WithClause::new();
+    with.recursive(true)
+        .cte(sub_select1_cte)
+        .cte(sub_select2_cte);
+
+    let mut main_sel2 = Query::select();
+    main_sel2
+        .expr(Expr::col(Asterisk))
+        .from(TableRef::Table(sub_select2_name));
+    let mut main_sel1 = Query::select();
+    main_sel1
+        .expr(Expr::col(Asterisk))
+        .from(TableRef::Table(sub_select1_name))
+        .union(UnionType::All, main_sel2);
+
+    let query = with.query(main_sel1);
+
+    assert_eq!(
+        query.to_string(SqliteQueryBuilder),
+        r#"WITH RECURSIVE "sub1" ("a") AS (SELECT * FROM "character") , "sub2" ("b") AS (SELECT * FROM "character") SELECT * FROM "sub1" UNION ALL SELECT * FROM "sub2""#
     );
 }

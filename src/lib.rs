@@ -38,7 +38,7 @@
 //! ```toml
 //! # Cargo.toml
 //! [dependencies]
-//! sea-query = "0"
+//! sea-query = "1.0.0-rc.1"
 //! ```
 //!
 //! SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
@@ -47,12 +47,10 @@
 //!
 //! Macro: `derive`
 //!
-//! Async support: `thread-safe` (use `Arc` inplace of `Rc`)
-//!
 //! SQL engine: `backend-mysql`, `backend-postgres`, `backend-sqlite`
 //!
 //! Type support: `with-chrono`, `with-time`, `with-json`, `with-rust_decimal`, `with-bigdecimal`, `with-uuid`,
-//! `with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`
+//! `with-ipnetwork`, `with-mac_address`, `postgres-array`, `postgres-interval`, `postgres-vector`
 //!
 //! ## Usage
 //!
@@ -163,18 +161,13 @@
 //!
 //! // Mapping between Enum variant and its corresponding string value
 //! impl Iden for Character {
-//!     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-//!         write!(
-//!             s,
-//!             "{}",
-//!             match self {
-//!                 Self::Table => "character",
-//!                 Self::Id => "id",
-//!                 Self::FontId => "font_id",
-//!                 Self::FontSize => "font_size",
-//!             }
-//!         )
-//!         .unwrap();
+//!     fn unquoted(&self) -> &str {
+//!         match self {
+//!             Self::Table => "character",
+//!             Self::Id => "id",
+//!             Self::FontId => "font_id",
+//!             Self::FontSize => "font_size",
+//!         }
 //!     }
 //! }
 //! ```
@@ -204,7 +197,7 @@
 //! ```rust
 //! #[cfg(feature = "derive")]
 //! # fn test() {
-//! use sea_query::{enum_def, Iden};
+//! use sea_query::{Iden, enum_def};
 //!
 //! #[enum_def]
 //! struct Character {
@@ -229,7 +222,8 @@
 //!
 //! ### Expression
 //!
-//! Use [`Expr`] to construct select, join, where and having expression in query.
+//! Use [`Expr`] constructors and [`ExprTrait`] methods
+//! to construct `SELECT`, `JOIN`, `WHERE` and `HAVING` expression in query.
 //!
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
@@ -238,9 +232,10 @@
 //!         .column(Char::Character)
 //!         .from(Char::Table)
 //!         .and_where(
-//!             Expr::expr(Expr::col(Char::SizeW).add(1))
+//!             Expr::col(Char::SizeW)
+//!                 .add(1)
 //!                 .mul(2)
-//!                 .eq(Expr::expr(Expr::col(Char::SizeH).div(2)).sub(1))
+//!                 .eq(Expr::col(Char::SizeH).div(2).sub(1))
 //!         )
 //!         .and_where(
 //!             Expr::col(Char::SizeW).in_subquery(
@@ -477,7 +472,7 @@
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
 //! let query = Query::select()
-//!     .expr(Func::cast_as("hello", Alias::new("MyType")))
+//!     .expr(Func::cast_as("hello", "MyType"))
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -501,8 +496,8 @@
 //! struct MyFunction;
 //!
 //! impl Iden for MyFunction {
-//!     fn unquoted(&self, s: &mut dyn Write) {
-//!         write!(s, "MY_FUNCTION").unwrap();
+//!     fn unquoted(&self) -> &str {
+//!         "MY_FUNCTION"
 //!     }
 //! }
 //!
@@ -601,12 +596,7 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! let table = Table::alter()
 //!     .table(Font::Table)
-//!     .add_column(
-//!         ColumnDef::new(Alias::new("new_col"))
-//!             .integer()
-//!             .not_null()
-//!             .default(100),
-//!     )
+//!     .add_column(ColumnDef::new("new_col").integer().not_null().default(100))
 //!     .to_owned();
 //!
 //! assert_eq!(
@@ -650,9 +640,7 @@
 //!
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
-//! let table = Table::rename()
-//!     .table(Font::Table, Alias::new("font_new"))
-//!     .to_owned();
+//! let table = Table::rename().table(Font::Table, "font_new").to_owned();
 //!
 //! assert_eq!(
 //!     table.to_string(MysqlQueryBuilder),
@@ -812,6 +800,8 @@
     html_logo_url = "https://raw.githubusercontent.com/SeaQL/sea-query/master/docs/SeaQL icon dark.png"
 )]
 
+#[cfg(feature = "audit")]
+pub mod audit;
 pub mod backend;
 pub mod error;
 pub mod expr;
@@ -845,7 +835,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::{enum_def, Iden, IdenStatic};
+pub use sea_query_derive::{Iden, IdenStatic, enum_def};
 
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;

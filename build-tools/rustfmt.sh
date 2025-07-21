@@ -3,7 +3,6 @@ set -e
 if [ -d ./build-tools ]; then
     targets=(
         "Cargo.toml"
-        "sea-query-attr/Cargo.toml"
         "sea-query-binder/Cargo.toml"
         "sea-query-derive/Cargo.toml"
         "sea-query-postgres/Cargo.toml"

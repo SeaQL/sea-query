@@ -3,22 +3,22 @@
 
 [package]
 name = "sea-query-rusqlite"
-version = "0.7.0-rc.2"
+version = "0.8.0-rc.1"
 authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
-edition = "2021"
+edition = "2024"
 description = "Binder traits for connecting sea-query with Rusqlite"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = [ "database" ]
 keywords = [ "database", "sql", "sqlite" ]
-rust-version = "1.60"
+rust-version = "1.85.0"
 
 [lib]
 
 [dependencies]
-sea-query = { version = "0.32.0-rc.1", path = "..", default-features = false }
-rusqlite = { version = "0.32" }
+sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false }
+rusqlite = { version = "0.36" }
 
 [features]
 with-chrono = ["rusqlite/chrono", "sea-query/with-chrono"]

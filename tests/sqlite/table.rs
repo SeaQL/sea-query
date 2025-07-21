@@ -185,6 +185,31 @@ fn create_7() {
 }
 
 #[test]
+fn create_8() {
+    assert_eq!(
+        Table::create()
+            .table(Font::Table)
+            .temporary()
+            .col(
+                ColumnDef::new(Font::Id)
+                    .integer()
+                    .not_null()
+                    .primary_key()
+                    .auto_increment()
+            )
+            .col(ColumnDef::new(Font::Name).string().not_null())
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TEMPORARY TABLE "font" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""name" varchar NOT NULL"#,
+            r#")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn create_with_unique_index() {
     assert_eq!(
         Table::create()
@@ -357,12 +382,7 @@ fn alter_1() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .add_column(
-                ColumnDef::new(Alias::new("new_col"))
-                    .integer()
-                    .not_null()
-                    .default(99)
-            )
+            .add_column(ColumnDef::new("new_col").integer().not_null().default(99))
             .to_string(SqliteQueryBuilder),
         r#"ALTER TABLE "font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 99"#
     );
@@ -373,7 +393,7 @@ fn alter_1() {
 fn alter_2() {
     Table::alter()
         .table(Font::Table)
-        .modify_column(ColumnDef::new(Alias::new("new_col")).double())
+        .modify_column(ColumnDef::new("new_col").double())
         .to_string(SqliteQueryBuilder);
 }
 
@@ -382,7 +402,7 @@ fn alter_3() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .rename_column(Alias::new("new_col"), Alias::new("new_column"))
+            .rename_column("new_col", "new_column")
             .to_string(SqliteQueryBuilder),
         r#"ALTER TABLE "font" RENAME COLUMN "new_col" TO "new_column""#
     );
@@ -393,7 +413,7 @@ fn alter_4() {
     assert_eq!(
         Table::alter()
             .table(Font::Table)
-            .drop_column(Alias::new("new_column"))
+            .drop_column("new_column")
             .to_string(SqliteQueryBuilder),
         r#"ALTER TABLE "font" DROP COLUMN "new_column""#
     );
@@ -403,7 +423,7 @@ fn alter_4() {
 fn alter_5() {
     assert_eq!(
         Table::rename()
-            .table(Font::Table, Alias::new("font_new"))
+            .table(Font::Table, "font_new")
             .to_string(SqliteQueryBuilder),
         r#"ALTER TABLE "font" RENAME TO "font_new""#
     );
@@ -420,9 +440,9 @@ fn alter_6() {
 fn alter_7() {
     let _ = Table::alter()
         .table(Font::Table)
-        .add_column(ColumnDef::new(Alias::new("new_col")).integer())
-        .rename_column(Font::Name, Alias::new("name_new"))
-        .drop_column(Alias::new("name_new"))
+        .add_column(ColumnDef::new("new_col").integer())
+        .rename_column(Font::Name, "name_new")
+        .drop_column("name_new")
         .to_string(SqliteQueryBuilder);
 }
 

@@ -1,5 +1,6 @@
-use crate::*;
 use std::ops::Deref;
+
+use crate::*;
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
@@ -11,13 +12,17 @@ pub trait QueryBuilder:
         ("?", false)
     }
 
-    /// Prefix for tuples in VALUES list (e.g. ROW for Mysql)
+    /// Prefix for tuples in VALUES list (e.g. ROW for MySQL)
     fn values_list_tuple_prefix(&self) -> &str {
         ""
     }
 
     /// Translate [`InsertStatement`] into SQL statement.
     fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &insert.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
@@ -25,7 +30,10 @@ pub trait QueryBuilder:
             self.prepare_table_ref(table, sql);
         }
 
-        if insert.default_values.is_some() && insert.columns.is_empty() && insert.source.is_none() {
+        if insert.default_values.unwrap_or_default() != 0
+            && insert.columns.is_empty()
+            && insert.source.is_none()
+        {
             self.prepare_output(&insert.returning, sql);
             write!(sql, " ").unwrap();
             let num_rows = insert.default_values.unwrap();
@@ -37,7 +45,7 @@ pub trait QueryBuilder:
                 if !first {
                     write!(sql, ", ").unwrap()
                 }
-                col.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(col, sql);
                 false
             });
             write!(sql, ")").unwrap();
@@ -95,6 +103,10 @@ pub trait QueryBuilder:
 
     /// Translate [`SelectStatement`] into SQL statement.
     fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &select.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
@@ -120,6 +132,7 @@ pub trait QueryBuilder:
                 false
             });
             self.prepare_index_hints(select, sql);
+            self.prepare_table_sample(select, sql);
         }
 
         if !select.join.is_empty() {
@@ -170,7 +183,7 @@ pub trait QueryBuilder:
 
         if let Some((name, query)) = &select.window {
             write!(sql, " WINDOW ").unwrap();
-            name.prepare(sql.as_writer(), self.quote());
+            self.prepare_iden(name, sql);
             write!(sql, " AS ").unwrap();
             self.prepare_window_statement(query, sql);
         }
@@ -191,11 +204,17 @@ pub trait QueryBuilder:
 
     /// Translate [`UpdateStatement`] into SQL statement.
     fn prepare_update_statement(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &update.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "UPDATE ").unwrap();
 
         if let Some(table) = &update.table {
             self.prepare_table_ref(table, sql);
         }
+
+        self.prepare_update_join(&update.from, &update.r#where, sql);
 
         write!(sql, " SET ").unwrap();
 
@@ -204,21 +223,64 @@ pub trait QueryBuilder:
                 write!(sql, ", ").unwrap()
             }
             let (col, v) = row;
-            col.prepare(sql.as_writer(), self.quote());
+            self.prepare_update_column(&update.table, &update.from, col, sql);
             write!(sql, " = ").unwrap();
             self.prepare_simple_expr(v, sql);
             false
         });
 
+        self.prepare_update_from(&update.from, sql);
+
         self.prepare_output(&update.returning, sql);
 
-        self.prepare_condition(&update.r#where, "WHERE", sql);
+        self.prepare_update_condition(&update.from, &update.r#where, sql);
 
         self.prepare_update_order_by(update, sql);
 
         self.prepare_update_limit(update, sql);
 
         self.prepare_returning(&update.returning, sql);
+    }
+
+    fn prepare_update_join(&self, _: &[TableRef], _: &ConditionHolder, _: &mut dyn SqlWriter) {
+        // MySQL specific
+    }
+
+    fn prepare_update_from(&self, from: &[TableRef], sql: &mut dyn SqlWriter) {
+        if from.is_empty() {
+            return;
+        }
+
+        write!(sql, " FROM ").unwrap();
+
+        from.iter().fold(true, |first, table_ref| {
+            if !first {
+                write!(sql, ", ").unwrap()
+            }
+
+            self.prepare_table_ref(table_ref, sql);
+
+            false
+        });
+    }
+
+    fn prepare_update_column(
+        &self,
+        _: &Option<Box<TableRef>>,
+        _: &[TableRef],
+        column: &DynIden,
+        sql: &mut dyn SqlWriter,
+    ) {
+        self.prepare_iden(column, sql);
+    }
+
+    fn prepare_update_condition(
+        &self,
+        _: &[TableRef],
+        condition: &ConditionHolder,
+        sql: &mut dyn SqlWriter,
+    ) {
+        self.prepare_condition(condition, "WHERE", sql);
     }
 
     /// Translate ORDER BY expression in [`UpdateStatement`].
@@ -245,6 +307,10 @@ pub trait QueryBuilder:
 
     /// Translate [`DeleteStatement`] into SQL statement.
     fn prepare_delete_statement(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
+        if let Some(with) = &delete.with {
+            self.prepare_with_clause(with, sql);
+        }
+
         write!(sql, "DELETE ").unwrap();
 
         if let Some(table) = &delete.table {
@@ -285,20 +351,20 @@ pub trait QueryBuilder:
         }
     }
 
-    /// Translate [`SimpleExpr`] into SQL statement.
-    fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    /// Translate [`Expr`] into SQL statement.
+    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         self.prepare_simple_expr_common(simple_expr, sql);
     }
 
-    fn prepare_simple_expr_common(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_simple_expr_common(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         match simple_expr {
-            SimpleExpr::Column(column_ref) => {
+            Expr::Column(column_ref) => {
                 self.prepare_column_ref(column_ref, sql);
             }
-            SimpleExpr::Tuple(exprs) => {
+            Expr::Tuple(exprs) => {
                 self.prepare_tuple(exprs, sql);
             }
-            SimpleExpr::Unary(op, expr) => {
+            Expr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql);
                 write!(sql, " ").unwrap();
                 let drop_expr_paren =
@@ -311,20 +377,20 @@ pub trait QueryBuilder:
                     write!(sql, ")").unwrap();
                 }
             }
-            SimpleExpr::FunctionCall(func) => {
+            Expr::FunctionCall(func) => {
                 self.prepare_function_name(&func.func, sql);
                 self.prepare_function_arguments(func, sql);
             }
-            SimpleExpr::Binary(left, op, right) => match (op, right.as_ref()) {
-                (BinOper::In, SimpleExpr::Tuple(t)) if t.is_empty() => {
+            Expr::Binary(left, op, right) => match (op, right.as_ref()) {
+                (BinOper::In, Expr::Tuple(t)) if t.is_empty() => {
                     self.binary_expr(&1i32.into(), &BinOper::Equal, &2i32.into(), sql)
                 }
-                (BinOper::NotIn, SimpleExpr::Tuple(t)) if t.is_empty() => {
+                (BinOper::NotIn, Expr::Tuple(t)) if t.is_empty() => {
                     self.binary_expr(&1i32.into(), &BinOper::Equal, &1i32.into(), sql)
                 }
                 _ => self.binary_expr(left, op, right, sql),
             },
-            SimpleExpr::SubQuery(oper, sel) => {
+            Expr::SubQuery(oper, sel) => {
                 if let Some(oper) = oper {
                     self.prepare_sub_query_oper(oper, sql);
                 }
@@ -332,10 +398,10 @@ pub trait QueryBuilder:
                 self.prepare_query_statement(sel.deref(), sql);
                 write!(sql, ")").unwrap();
             }
-            SimpleExpr::Value(val) => {
+            Expr::Value(val) => {
                 self.prepare_value(val, sql);
             }
-            SimpleExpr::Values(list) => {
+            Expr::Values(list) => {
                 write!(sql, "(").unwrap();
                 list.iter().fold(true, |first, val| {
                     if !first {
@@ -346,10 +412,10 @@ pub trait QueryBuilder:
                 });
                 write!(sql, ")").unwrap();
             }
-            SimpleExpr::Custom(s) => {
+            Expr::Custom(s) => {
                 write!(sql, "{s}").unwrap();
             }
-            SimpleExpr::CustomWithExpr(expr, values) => {
+            Expr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
                 let mut tokenizer = Tokenizer::new(expr).iter().peekable();
                 let mut count = 0;
@@ -375,17 +441,20 @@ pub trait QueryBuilder:
                     };
                 }
             }
-            SimpleExpr::Keyword(keyword) => {
+            Expr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql);
             }
-            SimpleExpr::AsEnum(_, expr) => {
+            Expr::AsEnum(_, expr) => {
                 self.prepare_simple_expr(expr, sql);
             }
-            SimpleExpr::Case(case_stmt) => {
+            Expr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql);
             }
-            SimpleExpr::Constant(val) => {
+            Expr::Constant(val) => {
                 self.prepare_constant(val, sql);
+            }
+            Expr::TypeName(iden) => {
+                self.prepare_iden(iden, sql);
             }
         }
     }
@@ -422,6 +491,9 @@ pub trait QueryBuilder:
 
     /// Translate [`IndexHint`] into SQL statement.
     fn prepare_index_hints(&self, _select: &SelectStatement, _sql: &mut dyn SqlWriter) {}
+
+    /// Translate [`TableSample`] into SQL statement.
+    fn prepare_table_sample(&self, _select: &SelectStatement, _sql: &mut dyn SqlWriter) {}
 
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut dyn SqlWriter) {
@@ -460,7 +532,7 @@ pub trait QueryBuilder:
         match &select_expr.window {
             Some(WindowSelectType::Name(name)) => {
                 write!(sql, " OVER ").unwrap();
-                name.prepare(sql.as_writer(), self.quote())
+                self.prepare_iden(name, sql);
             }
             Some(WindowSelectType::Query(window)) => {
                 write!(sql, " OVER ").unwrap();
@@ -471,12 +543,9 @@ pub trait QueryBuilder:
             None => {}
         };
 
-        match &select_expr.alias {
-            Some(alias) => {
-                write!(sql, " AS ").unwrap();
-                alias.prepare(sql.as_writer(), self.quote());
-            }
-            None => {}
+        if let Some(alias) = &select_expr.alias {
+            write!(sql, " AS ").unwrap();
+            self.prepare_iden(alias, sql);
         };
     }
 
@@ -505,20 +574,20 @@ pub trait QueryBuilder:
                 self.prepare_select_statement(query, sql);
                 write!(sql, ")").unwrap();
                 write!(sql, " AS ").unwrap();
-                alias.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(alias, sql);
             }
             TableRef::ValuesList(values, alias) => {
                 write!(sql, "(").unwrap();
                 self.prepare_values_list(values, sql);
                 write!(sql, ")").unwrap();
                 write!(sql, " AS ").unwrap();
-                alias.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(alias, sql);
             }
             TableRef::FunctionCall(func, alias) => {
                 self.prepare_function_name(&func.func, sql);
                 self.prepare_function_arguments(func, sql);
                 write!(sql, " AS ").unwrap();
-                alias.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(alias, sql);
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
         }
@@ -526,24 +595,24 @@ pub trait QueryBuilder:
 
     fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut dyn SqlWriter) {
         match column_ref {
-            ColumnRef::Column(column) => column.prepare(sql.as_writer(), self.quote()),
+            ColumnRef::Column(column) => self.prepare_iden(column, sql),
             ColumnRef::TableColumn(table, column) => {
-                table.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(table, sql);
                 write!(sql, ".").unwrap();
-                column.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(column, sql);
             }
             ColumnRef::SchemaTableColumn(schema, table, column) => {
-                schema.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                table.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(table, sql);
                 write!(sql, ".").unwrap();
-                column.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(column, sql);
             }
             ColumnRef::Asterisk => {
                 write!(sql, "*").unwrap();
             }
             ColumnRef::TableAsterisk(table) => {
-                table.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(table, sql);
                 write!(sql, ".*").unwrap();
             }
         };
@@ -592,6 +661,8 @@ pub trait QueryBuilder:
                 BinOper::As => "AS",
                 BinOper::Escape => "ESCAPE",
                 BinOper::Custom(raw) => raw,
+                BinOper::BitAnd => "&",
+                BinOper::BitOr => "|",
                 #[allow(unreachable_patterns)]
                 _ => unimplemented!(),
             }
@@ -635,8 +706,8 @@ pub trait QueryBuilder:
             write!(sql, " {oper} ").unwrap();
         }
         let both_binary = match simple_expr {
-            SimpleExpr::Binary(_, _, right) => {
-                matches!(right.as_ref(), SimpleExpr::Binary(_, _, _))
+            Expr::Binary(_, _, right) => {
+                matches!(right.as_ref(), Expr::Binary(_, _, _))
             }
             _ => false,
         };
@@ -653,7 +724,7 @@ pub trait QueryBuilder:
     /// Translate [`Function`] into SQL statement.
     fn prepare_function_name_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
         if let Function::Custom(iden) = function {
-            iden.unquoted(sql.as_writer());
+            write!(sql, "{iden}").unwrap()
         } else {
             write!(
                 sql,
@@ -667,6 +738,8 @@ pub trait QueryBuilder:
                     Function::Coalesce => "COALESCE",
                     Function::Count => "COUNT",
                     Function::IfNull => self.if_null_function(),
+                    Function::Greatest => self.greatest_function(),
+                    Function::Least => self.least_function(),
                     Function::CharLength => self.char_length_function(),
                     Function::Cast => "CAST",
                     Function::Lower => "LOWER",
@@ -736,14 +809,7 @@ pub trait QueryBuilder:
 
                 write!(sql, " SET ").unwrap();
 
-                search
-                    .expr
-                    .as_ref()
-                    .unwrap()
-                    .alias
-                    .as_ref()
-                    .unwrap()
-                    .prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(search.expr.as_ref().unwrap().alias.as_ref().unwrap(), sql);
                 write!(sql, " ").unwrap();
             }
             if let Some(cycle) = &with_clause.cycle {
@@ -753,17 +819,9 @@ pub trait QueryBuilder:
 
                 write!(sql, " SET ").unwrap();
 
-                cycle
-                    .set_as
-                    .as_ref()
-                    .unwrap()
-                    .prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(cycle.set_as.as_ref().unwrap(), sql);
                 write!(sql, " USING ").unwrap();
-                cycle
-                    .using
-                    .as_ref()
-                    .unwrap()
-                    .prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(cycle.using.as_ref().unwrap(), sql);
                 write!(sql, " ").unwrap();
             }
         }
@@ -777,15 +835,6 @@ pub trait QueryBuilder:
             "Cannot build a with query that has no common table expression!"
         );
 
-        if with_clause.recursive {
-            assert_eq!(
-                with_clause.cte_expressions.len(),
-                1,
-                "Cannot build a recursive query with more than one common table! \
-                A recursive with query must have a single cte inside it that has a union query of \
-                two queries!"
-            );
-        }
         for cte in &with_clause.cte_expressions {
             if !cte_first {
                 write!(sql, ", ").unwrap();
@@ -801,10 +850,7 @@ pub trait QueryBuilder:
         cte: &CommonTableExpression,
         sql: &mut dyn SqlWriter,
     ) {
-        cte.table_name
-            .as_ref()
-            .unwrap()
-            .prepare(sql.as_writer(), self.quote());
+        self.prepare_iden(cte.table_name.as_ref().unwrap(), sql);
 
         if cte.cols.is_empty() {
             write!(sql, " ").unwrap();
@@ -817,7 +863,7 @@ pub trait QueryBuilder:
                     write!(sql, ", ").unwrap();
                 }
                 col_first = false;
-                col.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(col, sql);
             }
 
             write!(sql, ") ").unwrap();
@@ -967,8 +1013,8 @@ pub trait QueryBuilder:
         });
     }
 
-    /// Translate [`SimpleExpr::Tuple`] into SQL statement.
-    fn prepare_tuple(&self, exprs: &[SimpleExpr], sql: &mut dyn SqlWriter) {
+    /// Translate [`Expr::Tuple`] into SQL statement.
+    fn prepare_tuple(&self, exprs: &[Expr], sql: &mut dyn SqlWriter) {
         write!(sql, "(").unwrap();
         for (i, expr) in exprs.iter().enumerate() {
             if i != 0 {
@@ -986,7 +1032,7 @@ pub trait QueryBuilder:
             Keyword::CurrentDate => write!(sql, "CURRENT_DATE").unwrap(),
             Keyword::CurrentTime => write!(sql, "CURRENT_TIME").unwrap(),
             Keyword::CurrentTimestamp => write!(sql, "CURRENT_TIMESTAMP").unwrap(),
-            Keyword::Custom(iden) => iden.unquoted(sql.as_writer()),
+            Keyword::Custom(iden) => write!(sql, "{iden}").unwrap(),
         }
     }
 
@@ -1112,15 +1158,21 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => write!(s, "'{v}'").unwrap(),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, Some(v)) => write!(
-                s,
-                "ARRAY [{}]",
-                v.iter()
-                    .map(|element| self.value_to_string(element))
-                    .collect::<Vec<String>>()
-                    .join(",")
-            )
-            .unwrap(),
+            Value::Array(_, Some(v)) => {
+                if v.is_empty() {
+                    write!(s, "'{{}}'").unwrap()
+                } else {
+                    write!(
+                        s,
+                        "ARRAY [{}]",
+                        v.iter()
+                            .map(|element| self.value_to_string(element))
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    )
+                    .unwrap()
+                }
+            }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => {
                 write!(s, "'[").unwrap();
@@ -1170,7 +1222,7 @@ pub trait QueryBuilder:
             }
             match target {
                 OnConflictTarget::ConflictColumn(col) => {
-                    col.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(col, sql);
                 }
 
                 OnConflictTarget::ConflictExpr(expr) => {
@@ -1210,12 +1262,12 @@ pub trait QueryBuilder:
                         }
                         match update_strat {
                             OnConflictUpdate::Column(col) => {
-                                col.prepare(sql.as_writer(), self.quote());
+                                self.prepare_iden(col, sql);
                                 write!(sql, " = ").unwrap();
                                 self.prepare_on_conflict_excluded_table(col, sql);
                             }
                             OnConflictUpdate::Expr(col, expr) => {
-                                col.prepare(sql.as_writer(), self.quote());
+                                self.prepare_iden(col, sql);
                                 write!(sql, " = ").unwrap();
                                 self.prepare_simple_expr(expr, sql);
                             }
@@ -1250,7 +1302,7 @@ pub trait QueryBuilder:
         )
         .unwrap();
         write!(sql, ".").unwrap();
-        col.prepare(sql.as_writer(), self.quote());
+        self.prepare_iden(col, sql);
     }
 
     #[doc(hidden)]
@@ -1322,7 +1374,7 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Translate part of a condition to part of a "WHERE" clause.
     fn prepare_condition_where(&self, condition: &Condition, sql: &mut dyn SqlWriter) {
-        let simple_expr = condition.to_simple_expr();
+        let simple_expr = condition.clone().into();
         self.prepare_simple_expr(&simple_expr, sql);
     }
 
@@ -1387,13 +1439,7 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Translate a binary expr to SQL.
-    fn binary_expr(
-        &self,
-        left: &SimpleExpr,
-        op: &BinOper,
-        right: &SimpleExpr,
-        sql: &mut dyn SqlWriter,
-    ) {
+    fn binary_expr(&self, left: &Expr, op: &BinOper, right: &Expr, sql: &mut dyn SqlWriter) {
         // If left has higher precedence than op, we can drop parentheses around left
         let drop_left_higher_precedence =
             self.inner_expr_well_known_greater_precedence(left, &(*op).into());
@@ -1432,7 +1478,7 @@ pub trait QueryBuilder:
             && matches!(right.get_bin_oper(), Some(&BinOper::Escape));
 
         // Due to custom representation of casting AS datatype
-        let drop_right_as_hack = (op == &BinOper::As) && matches!(right, SimpleExpr::Custom(_));
+        let drop_right_as_hack = (op == &BinOper::As) && matches!(right, Expr::Custom(_));
 
         let right_paren = !drop_right_higher_precedence
             && !drop_right_escape_hack
@@ -1467,6 +1513,18 @@ pub trait QueryBuilder:
     /// The name of the function that represents the "if null" condition.
     fn if_null_function(&self) -> &str {
         "IFNULL"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that represents the "greatest" function.
+    fn greatest_function(&self) -> &str {
+        "GREATEST"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that represents the "least" function.
+    fn least_function(&self) -> &str {
+        "LEAST"
     }
 
     #[doc(hidden)]
@@ -1536,11 +1594,7 @@ impl OperLeftAssocDecider for CommonSqlQueryBuilder {
 }
 
 impl PrecedenceDecider for CommonSqlQueryBuilder {
-    fn inner_expr_well_known_greater_precedence(
-        &self,
-        inner: &SimpleExpr,
-        outer_oper: &Oper,
-    ) -> bool {
+    fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, outer_oper: &Oper) -> bool {
         common_inner_expr_well_known_greater_precedence(inner, outer_oper)
     }
 }
@@ -1570,7 +1624,7 @@ impl TableRefBuilder for CommonSqlQueryBuilder {}
     allow(unreachable_code, unused_variables)
 )]
 pub(crate) fn common_inner_expr_well_known_greater_precedence(
-    inner: &SimpleExpr,
+    inner: &Expr,
     outer_oper: &Oper,
 ) -> bool {
     match inner {
@@ -1579,15 +1633,16 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
         // We do not need to wrap with parentheses:
         // Columns, tuples (already wrapped), constants, function calls, values,
         // keywords, subqueries (already wrapped), case (already wrapped)
-        SimpleExpr::Column(_)
-        | SimpleExpr::Tuple(_)
-        | SimpleExpr::Constant(_)
-        | SimpleExpr::FunctionCall(_)
-        | SimpleExpr::Value(_)
-        | SimpleExpr::Keyword(_)
-        | SimpleExpr::Case(_)
-        | SimpleExpr::SubQuery(_, _) => true,
-        SimpleExpr::Binary(_, inner_oper, _) => {
+        Expr::Column(_)
+        | Expr::Tuple(_)
+        | Expr::Constant(_)
+        | Expr::FunctionCall(_)
+        | Expr::Value(_)
+        | Expr::Keyword(_)
+        | Expr::Case(_)
+        | Expr::SubQuery(_, _)
+        | Expr::TypeName(_) => true,
+        Expr::Binary(_, inner_oper, _) => {
             #[cfg(feature = "option-more-parentheses")]
             {
                 return false;

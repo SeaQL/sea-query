@@ -35,7 +35,6 @@ jobs:
           toolchain: nightly
           components: rustfmt
       - run: cargo fmt --manifest-path Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path sea-query-attr/Cargo.toml --all -- --check
       - run: cargo fmt --manifest-path sea-query-binder/Cargo.toml --all -- --check
       - run: cargo fmt --manifest-path sea-query-derive/Cargo.toml --all -- --check
       - run: cargo fmt --manifest-path sea-query-postgres/Cargo.toml --all -- --check

@@ -1,4 +1,4 @@
-use crate::{expr::SimpleExpr, types::LogicalChainOper};
+use crate::{ExprTrait, expr::Expr, types::LogicalChainOper};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConditionType {
@@ -26,7 +26,7 @@ pub type Cond = Condition;
 #[derive(Debug, Clone, PartialEq)]
 pub enum ConditionExpression {
     Condition(Condition),
-    SimpleExpr(SimpleExpr),
+    Expr(Expr),
 }
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -96,7 +96,7 @@ impl Condition {
     ///     .cond_where(
     ///         Cond::all()
     ///             .add_option(Some(Expr::col((Glyph::Table, Glyph::Image)).like("A%")))
-    ///             .add_option(None::<SimpleExpr>),
+    ///             .add_option(None::<Expr>),
     ///     )
     ///     .to_owned();
     ///
@@ -260,35 +260,42 @@ impl Condition {
     pub fn len(&self) -> usize {
         self.conditions.len()
     }
+}
 
-    pub(crate) fn to_simple_expr(&self) -> SimpleExpr {
+impl From<Condition> for Expr {
+    fn from(cond: Condition) -> Self {
         let mut inner_exprs = vec![];
-        for ce in &self.conditions {
+        for ce in cond.conditions {
             inner_exprs.push(match ce {
-                ConditionExpression::Condition(c) => c.to_simple_expr(),
-                ConditionExpression::SimpleExpr(e) => e.clone(),
+                ConditionExpression::Condition(c) => c.into(),
+                ConditionExpression::Expr(e) => e,
             });
         }
         let mut inner_exprs_into_iter = inner_exprs.into_iter();
         let expr = if let Some(first_expr) = inner_exprs_into_iter.next() {
             let mut out_expr = first_expr;
             for e in inner_exprs_into_iter {
-                out_expr = match self.condition_type {
+                out_expr = match cond.condition_type {
                     ConditionType::Any => out_expr.or(e),
                     ConditionType::All => out_expr.and(e),
                 };
             }
             out_expr
         } else {
-            SimpleExpr::Constant(match self.condition_type {
+            Expr::Constant(match cond.condition_type {
                 ConditionType::Any => false.into(),
                 ConditionType::All => true.into(),
             })
         };
-        if self.negate {
-            expr.not()
-        } else {
-            expr
+        if cond.negate { expr.not() } else { expr }
+    }
+}
+
+impl From<ConditionExpression> for Expr {
+    fn from(ce: ConditionExpression) -> Self {
+        match ce {
+            ConditionExpression::Condition(c) => c.into(),
+            ConditionExpression::Expr(e) => e,
         }
     }
 }
@@ -299,9 +306,9 @@ impl From<Condition> for ConditionExpression {
     }
 }
 
-impl From<SimpleExpr> for ConditionExpression {
-    fn from(condition: SimpleExpr) -> Self {
-        ConditionExpression::SimpleExpr(condition)
+impl From<Expr> for ConditionExpression {
+    fn from(condition: Expr) -> Self {
+        ConditionExpression::Expr(condition)
     }
 }
 
@@ -397,7 +404,7 @@ pub trait ConditionalStatement {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
-    fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
+    fn and_where(&mut self, other: Expr) -> &mut Self {
         self.cond_where(other)
     }
 
@@ -419,7 +426,7 @@ pub trait ConditionalStatement {
     ///     r#"SELECT `image` FROM `glyph` WHERE `aspect` IN (3, 4) AND `image` LIKE 'A%'"#
     /// );
     /// ```
-    fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
+    fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self {
         if let Some(other) = other {
             self.and_where(other);
         }
@@ -588,7 +595,7 @@ pub trait ConditionalStatement {
         C: IntoCondition;
 }
 
-impl IntoCondition for SimpleExpr {
+impl IntoCondition for Expr {
     fn into_condition(self) -> Condition {
         Condition::all().add(self)
     }

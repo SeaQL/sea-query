@@ -57,6 +57,23 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     }
 
     #[doc(hidden)]
+    /// Write the index column with table column.
+    fn prepare_index_column_with_table_column(
+        &self,
+        column: &IndexColumnTableColumn,
+        sql: &mut dyn SqlWriter,
+    ) {
+        self.prepare_iden(&column.name, sql);
+        self.write_column_index_prefix(&column.prefix, sql);
+        if let Some(order) = &column.order {
+            match order {
+                IndexOrder::Asc => write!(sql, " ASC").unwrap(),
+                IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+            }
+        }
+    }
+
+    #[doc(hidden)]
     /// Write the column index prefix.
     fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
         write!(sql, "(").unwrap();
@@ -64,13 +81,11 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.name.prepare(sql.as_writer(), self.quote());
-            self.write_column_index_prefix(&col.prefix, sql);
-            if let Some(order) = &col.order {
-                match order {
-                    IndexOrder::Asc => write!(sql, " ASC").unwrap(),
-                    IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+            match col {
+                IndexColumn::TableColumn(column) => {
+                    self.prepare_index_column_with_table_column(column, sql);
                 }
+                IndexColumn::Expr(_) => panic!("Not supported"),
             }
             false
         });

@@ -4,7 +4,8 @@
 [package]
 name = "sea-query-sqlx-sqlite-example"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.85.0"
 publish = false
 
 [dependencies]
@@ -25,5 +26,5 @@ sea-query-binder = { path = "../../sea-query-binder", features = [
 ] }
 
 # NOTE: if you are copying this example into your own project, use the following line instead:
-# sea-query = { version = "0" }
+# sea-query = { version = "1.0.0-rc.1" }
 # sea-query-binder = { version = "0", features = [...] }

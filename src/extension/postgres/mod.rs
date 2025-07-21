@@ -2,6 +2,7 @@ pub use expr::*;
 pub use extension::*;
 pub use func::*;
 pub use ltree::*;
+pub use select::*;
 pub use types::*;
 
 use crate::types::BinOper;
@@ -11,10 +12,14 @@ pub(crate) mod extension;
 pub(crate) mod func;
 pub(crate) mod interval;
 pub(crate) mod ltree;
+pub(crate) mod select;
 pub(crate) mod types;
 
-/// Binary operator
+/// Postgres-specific binary operators.
+///
+/// For all supported operators (including the standard ones), see [`BinOper`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum PgBinOper {
     ILike,
     NotILike,

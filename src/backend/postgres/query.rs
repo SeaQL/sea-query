@@ -10,14 +10,10 @@ impl OperLeftAssocDecider for PostgresQueryBuilder {
 }
 
 impl PrecedenceDecider for PostgresQueryBuilder {
-    fn inner_expr_well_known_greater_precedence(
-        &self,
-        inner: &SimpleExpr,
-        outer_oper: &Oper,
-    ) -> bool {
+    fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, outer_oper: &Oper) -> bool {
         let common_answer = common_inner_expr_well_known_greater_precedence(inner, outer_oper);
         let pg_specific_answer = match inner {
-            SimpleExpr::Binary(_, inner_bin_oper, _) => {
+            Expr::Binary(_, inner_bin_oper, _) => {
                 let inner_oper: Oper = (*inner_bin_oper).into();
                 if inner_oper.is_arithmetic() || inner_oper.is_shift() {
                     is_ilike(inner_bin_oper)
@@ -38,11 +34,19 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn prepare_simple_expr(&self, simple_expr: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         match simple_expr {
-            SimpleExpr::AsEnum(type_name, expr) => {
-                let simple_expr = expr.clone().cast_as(SeaRc::clone(type_name));
-                self.prepare_simple_expr_common(&simple_expr, sql);
+            Expr::AsEnum(type_name, expr) => {
+                write!(sql, "CAST(").unwrap();
+                self.prepare_simple_expr_common(expr, sql);
+                let q = self.quote();
+                let type_name = type_name.to_string();
+                let (ty, sfx) = if type_name.ends_with("[]") {
+                    (&type_name[..type_name.len() - 2], "[]")
+                } else {
+                    (type_name.as_str(), "")
+                };
+                write!(sql, " AS {}{}{}{})", q.left(), ty, q.right(), sfx).unwrap();
             }
             _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql),
         }
@@ -124,6 +128,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunction::GenRandomUUID => "GEN_RANDOM_UUID",
                     PgFunction::JsonBuildObject => "JSON_BUILD_OBJECT",
                     PgFunction::JsonAgg => "JSON_AGG",
+                    PgFunction::ArrayAgg => "ARRAY_AGG",
+                    PgFunction::DateTrunc => "DATE_TRUNC",
                     #[cfg(feature = "postgres-array")]
                     PgFunction::Any => "ANY",
                     #[cfg(feature = "postgres-array")]
@@ -134,6 +140,21 @@ impl QueryBuilder for PostgresQueryBuilder {
             )
             .unwrap(),
             _ => self.prepare_function_name_common(function, sql),
+        }
+    }
+
+    fn prepare_table_sample(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
+        let Some(table_sample) = select.table_sample else {
+            return;
+        };
+
+        match table_sample.method {
+            SampleMethod::BERNOULLI => write!(sql, " TABLESAMPLE BERNOULLI").unwrap(),
+            SampleMethod::SYSTEM => write!(sql, " TABLESAMPLE SYSTEM").unwrap(),
+        }
+        write!(sql, " ({})", table_sample.percentage).unwrap();
+        if let Some(repeatable) = table_sample.repeatable {
+            write!(sql, " REPEATABLE ({repeatable})").unwrap();
         }
     }
 

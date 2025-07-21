@@ -9,7 +9,11 @@ pub trait TableBuilder:
         create: &TableCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE TABLE ").unwrap();
+        write!(sql, "CREATE ").unwrap();
+
+        self.prepare_create_temporary_table(create, sql);
+
+        write!(sql, "TABLE ").unwrap();
 
         self.prepare_create_table_if_not_exists(create, sql);
 
@@ -107,6 +111,7 @@ pub trait TableBuilder:
             }
             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
             ColumnSpec::Comment(comment) => self.column_comment(comment, sql),
+            ColumnSpec::Using(_) => {}
         }
     }
 
@@ -190,16 +195,16 @@ pub trait TableBuilder:
     }
 
     /// Translate the check constraint into SQL statement
-    fn prepare_check_constraint(&self, check: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_check_constraint(&self, check: &Expr, sql: &mut dyn SqlWriter) {
         write!(sql, "CHECK (").unwrap();
         QueryBuilder::prepare_simple_expr(self, check, sql);
         write!(sql, ")").unwrap();
     }
 
     /// Translate the generated column into SQL statement
-    fn prepare_generated_column(&self, gen: &SimpleExpr, stored: bool, sql: &mut dyn SqlWriter) {
+    fn prepare_generated_column(&self, r#gen: &Expr, stored: bool, sql: &mut dyn SqlWriter) {
         write!(sql, "GENERATED ALWAYS AS (").unwrap();
-        QueryBuilder::prepare_simple_expr(self, gen, sql);
+        QueryBuilder::prepare_simple_expr(self, r#gen, sql);
         write!(sql, ")").unwrap();
         if stored {
             write!(sql, " STORED").unwrap();
@@ -216,6 +221,17 @@ pub trait TableBuilder:
     ) {
         if create.if_not_exists {
             write!(sql, "IF NOT EXISTS ").unwrap();
+        }
+    }
+
+    /// Translate TEMPORARY expression in [`TableCreateStatement`].
+    fn prepare_create_temporary_table(
+        &self,
+        create: &TableCreateStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if create.temporary {
+            write!(sql, "TEMPORARY ").unwrap();
         }
     }
 

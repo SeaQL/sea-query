@@ -29,7 +29,9 @@ pub use truncate::*;
 pub struct Table;
 
 /// All available types of table statement
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TableStatement {
     Create(TableCreateStatement),
     Alter(TableAlterStatement),

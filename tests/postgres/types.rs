@@ -1,6 +1,6 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{extension::postgres::Type, Alias, PostgresQueryBuilder};
+use sea_query::{PostgresQueryBuilder, extension::postgres::Type};
 
 #[test]
 fn create_1() {
@@ -17,7 +17,7 @@ fn create_1() {
 fn create_2() {
     assert_eq!(
         Type::create()
-            .as_enum((Alias::new("schema"), Font::Table))
+            .as_enum(("schema", Font::Table))
             .values([Font::Name, Font::Variant, Font::Language])
             .to_string(PostgresQueryBuilder),
         r#"CREATE TYPE "schema"."font" AS ENUM ('name', 'variant', 'language')"#
@@ -41,17 +41,12 @@ fn create_3() {
     }
 
     impl sea_query::Iden for Tea {
-        fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-            write!(
-                s,
-                "{}",
-                match self {
-                    Self::Enum => "tea",
-                    Self::EverydayTea => "EverydayTea",
-                    Self::BreakfastTea => "BreakfastTea",
-                }
-            )
-            .unwrap();
+        fn unquoted(&self) -> &str {
+            match self {
+                Self::Enum => "tea",
+                Self::EverydayTea => "EverydayTea",
+                Self::BreakfastTea => "BreakfastTea",
+            }
         }
     }
 }
@@ -94,7 +89,7 @@ fn drop_3() {
 fn drop_4() {
     assert_eq!(
         Type::drop()
-            .name((Alias::new("schema"), Font::Table))
+            .name(("schema", Font::Table))
             .to_string(PostgresQueryBuilder),
         r#"DROP TYPE "schema"."font""#
     );
@@ -105,7 +100,7 @@ fn alter_1() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
-            .add_value(Alias::new("weight"))
+            .add_value("weight")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "font" ADD VALUE 'weight'"#
     )
@@ -115,7 +110,7 @@ fn alter_2() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
-            .add_value(Alias::new("weight"))
+            .add_value("weight")
             .before(Font::Variant)
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
@@ -127,7 +122,7 @@ fn alter_3() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
-            .add_value(Alias::new("weight"))
+            .add_value("weight")
             .after(Font::Variant)
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "font" ADD VALUE 'weight' AFTER 'variant'"#
@@ -139,7 +134,7 @@ fn alter_4() {
     assert_eq!(
         Type::alter()
             .name(Font::Table)
-            .rename_to(Alias::new("typeface"))
+            .rename_to("typeface")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "font" RENAME TO 'typeface'"#
     )
@@ -160,8 +155,8 @@ fn alter_5() {
 fn alter_6() {
     assert_eq!(
         Type::alter()
-            .name((Alias::new("schema"), Font::Table))
-            .rename_to(Alias::new("typeface"))
+            .name(("schema", Font::Table))
+            .rename_to("typeface")
             .to_string(PostgresQueryBuilder),
         r#"ALTER TYPE "schema"."font" RENAME TO 'typeface'"#
     )

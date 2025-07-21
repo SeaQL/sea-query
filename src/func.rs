@@ -5,8 +5,11 @@ use crate::{expr::*, types::*};
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::{PgFunc, PgFunction};
 
-/// Functions
+/// Known SQL functions.
+///
+/// If something is not supported here, you can use [`Function::Custom`].
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum Function {
     Max,
     Min,
@@ -15,6 +18,8 @@ pub enum Function {
     Abs,
     Count,
     IfNull,
+    Greatest,
+    Least,
     CharLength,
     Cast,
     Custom(DynIden),
@@ -34,7 +39,7 @@ pub enum Function {
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionCall {
     pub(crate) func: Function,
-    pub(crate) args: Vec<SimpleExpr>,
+    pub(crate) args: Vec<Expr>,
     pub(crate) mods: Vec<FuncArgMod>,
 }
 
@@ -55,14 +60,14 @@ impl FunctionCall {
     /// Append an argument to the function call
     pub fn arg<T>(self, arg: T) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.arg_with(arg, Default::default())
     }
 
     pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.args.push(arg.into());
         self.mods.push(mod_);
@@ -72,7 +77,7 @@ impl FunctionCall {
     /// Replace the arguments of the function call
     pub fn args<I>(mut self, args: I) -> Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         self.args = args.into_iter().collect();
         self.mods = vec![Default::default(); self.args.len()];
@@ -83,7 +88,7 @@ impl FunctionCall {
         &self.func
     }
 
-    pub fn get_args(&self) -> &[SimpleExpr] {
+    pub fn get_args(&self) -> &[Expr] {
         &self.args
     }
 
@@ -104,13 +109,9 @@ impl Func {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
+    /// #[derive(Iden)]
+    /// #[iden = "MY_FUNCTION"]
     /// struct MyFunction;
-    ///
-    /// impl Iden for MyFunction {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(s, "MY_FUNCTION").unwrap();
-    ///     }
-    /// }
     ///
     /// let query = Query::select()
     ///     .expr(Func::cust(MyFunction).arg("hello"))
@@ -163,7 +164,7 @@ impl Func {
     /// ```
     pub fn max<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Max).arg(expr)
     }
@@ -195,7 +196,7 @@ impl Func {
     /// ```
     pub fn min<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Min).arg(expr)
     }
@@ -227,7 +228,7 @@ impl Func {
     /// ```
     pub fn sum<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Sum).arg(expr)
     }
@@ -259,7 +260,7 @@ impl Func {
     /// ```
     pub fn avg<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Avg).arg(expr)
     }
@@ -291,7 +292,7 @@ impl Func {
     /// ```
     pub fn abs<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Abs).arg(expr)
     }
@@ -323,7 +324,7 @@ impl Func {
     /// ```
     pub fn count<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Count).arg(expr)
     }
@@ -355,7 +356,7 @@ impl Func {
     /// ```
     pub fn count_distinct<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Count).arg_with(expr, FuncArgMod { distinct: true })
     }
@@ -387,9 +388,79 @@ impl Func {
     /// ```
     pub fn char_length<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::CharLength).arg(expr)
+    }
+
+    /// Call `GREATEST` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::greatest([
+    ///         Expr::col(Char::SizeW).into(),
+    ///         Expr::col(Char::SizeH).into(),
+    ///     ]))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT GREATEST(`size_w`, `size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT GREATEST("size_w", "size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MAX("size_w", "size_h") FROM "character""#
+    /// );
+    /// ```
+    pub fn greatest<I>(args: I) -> FunctionCall
+    where
+        I: IntoIterator<Item = Expr>,
+    {
+        FunctionCall::new(Function::Greatest).args(args)
+    }
+
+    /// Call `LEAST` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::least([
+    ///         Expr::col(Char::SizeW).into(),
+    ///         Expr::col(Char::SizeH).into(),
+    ///     ]))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT LEAST(`size_w`, `size_h`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT LEAST("size_w", "size_h") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MIN("size_w", "size_h") FROM "character""#
+    /// );
+    /// ```
+    pub fn least<I>(args: I) -> FunctionCall
+    where
+        I: IntoIterator<Item = Expr>,
+    {
+        FunctionCall::new(Function::Least).args(args)
     }
 
     /// Call `IF NULL` function.
@@ -422,8 +493,8 @@ impl Func {
     /// ```
     pub fn if_null<A, B>(a: A, b: B) -> FunctionCall
     where
-        A: Into<SimpleExpr>,
-        B: Into<SimpleExpr>,
+        A: Into<Expr>,
+        B: Into<Expr>,
     {
         FunctionCall::new(Function::IfNull).args([a.into(), b.into()])
     }
@@ -436,7 +507,7 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cast_as("hello", Alias::new("MyType")))
+    ///     .expr(Func::cast_as("hello", "MyType"))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -454,10 +525,10 @@ impl Func {
     /// ```
     pub fn cast_as<V, I>(expr: V, iden: I) -> FunctionCall
     where
-        V: Into<SimpleExpr>,
+        V: Into<Expr>,
         I: IntoIden,
     {
-        let expr: SimpleExpr = expr.into();
+        let expr: Expr = expr.into();
         FunctionCall::new(Function::Cast).arg(expr.binary(
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
@@ -472,16 +543,12 @@ impl Func {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(Func::cast_as_quoted(
-    ///         "hello",
-    ///         Alias::new("MyType"),
-    ///         '"'.into(),
-    ///     ))
+    ///     .expr(Func::cast_as_quoted("hello", "MyType"))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT CAST('hello' AS "MyType")"#
+    ///     r#"SELECT CAST('hello' AS `MyType`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -492,16 +559,14 @@ impl Func {
     ///     r#"SELECT CAST('hello' AS "MyType")"#
     /// );
     /// ```
-    pub fn cast_as_quoted<V, I>(expr: V, iden: I, q: Quote) -> FunctionCall
+    pub fn cast_as_quoted<V, I>(expr: V, iden: I) -> FunctionCall
     where
-        V: Into<SimpleExpr>,
+        V: Into<Expr>,
         I: IntoIden,
     {
-        let expr: SimpleExpr = expr.into();
-        let mut quoted_type = String::new();
-        iden.into_iden().prepare(&mut quoted_type, q);
+        let expr: Expr = expr.into();
         FunctionCall::new(Function::Cast)
-            .arg(expr.binary(BinOper::As, Expr::cust(quoted_type.as_str())))
+            .arg(expr.binary(BinOper::As, Expr::TypeName(iden.into_iden())))
     }
 
     /// Call `COALESCE` function.
@@ -535,7 +600,7 @@ impl Func {
     /// ```
     pub fn coalesce<I>(args: I) -> FunctionCall
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         FunctionCall::new(Function::Coalesce).args(args)
     }
@@ -572,7 +637,7 @@ impl Func {
     /// let query = Query::select()
     ///     .column(Font::Id)
     ///     .from(Font::Table)
-    ///     .and_where(Expr::expr(Func::lower(Expr::col(Font::Name))).eq("abc".trim().to_lowercase()))
+    ///     .and_where(Func::lower(Expr::col(Font::Name)).eq("abc".trim().to_lowercase()))
     ///     .take();
     ///
     /// assert_eq!(
@@ -590,7 +655,7 @@ impl Func {
     /// ```
     pub fn lower<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Lower).arg(expr)
     }
@@ -622,7 +687,7 @@ impl Func {
     /// ```
     pub fn upper<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Upper).arg(expr)
     }
@@ -650,7 +715,7 @@ impl Func {
     /// ```
     pub fn bit_and<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::BitAnd).arg(expr)
     }
@@ -678,7 +743,7 @@ impl Func {
     /// ```
     pub fn bit_or<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::BitOr).arg(expr)
     }
@@ -707,7 +772,7 @@ impl Func {
     /// ```
     pub fn round<A>(expr: A) -> FunctionCall
     where
-        A: Into<SimpleExpr>,
+        A: Into<Expr>,
     {
         FunctionCall::new(Function::Round).arg(expr)
     }
@@ -741,8 +806,8 @@ impl Func {
     /// ```
     pub fn round_with_precision<A, B>(a: A, b: B) -> FunctionCall
     where
-        A: Into<SimpleExpr>,
-        B: Into<SimpleExpr>,
+        A: Into<Expr>,
+        B: Into<Expr>,
     {
         FunctionCall::new(Function::Round).args([a.into(), b.into()])
     }
@@ -791,7 +856,7 @@ impl Func {
     /// ```
     pub fn md5<T>(expr: T) -> FunctionCall
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         FunctionCall::new(Function::Md5).arg(expr)
     }

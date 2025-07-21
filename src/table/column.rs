@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::{expr::*, types::*};
 
 /// Specification of a table column
@@ -169,21 +171,24 @@ impl ColumnType {
 
 /// All column specification keywords
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum ColumnSpec {
     Null,
     NotNull,
-    Default(SimpleExpr),
+    Default(Expr),
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
-    Check(SimpleExpr),
-    Generated { expr: SimpleExpr, stored: bool },
+    Check(Expr),
+    Generated { expr: Expr, stored: bool },
     Extra(String),
     Comment(String),
+    Using(Expr),
 }
 
 // All interval fields
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[non_exhaustive]
 pub enum PgInterval {
     Year,
     Month,
@@ -198,6 +203,46 @@ pub enum PgInterval {
     HourToMinute,
     HourToSecond,
     MinuteToSecond,
+}
+
+// All possible inputs to DATE_TRUNC (https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC)
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum PgDateTruncUnit {
+    Microseconds,
+    Milliseconds,
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Week,
+    Month,
+    Quarter,
+    Year,
+    Decade,
+    Century,
+    Millennium,
+}
+
+impl fmt::Display for PgDateTruncUnit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let text = match self {
+            PgDateTruncUnit::Microseconds => "microseconds",
+            PgDateTruncUnit::Milliseconds => "milliseconds",
+            PgDateTruncUnit::Second => "second",
+            PgDateTruncUnit::Minute => "minute",
+            PgDateTruncUnit::Hour => "hour",
+            PgDateTruncUnit::Day => "day",
+            PgDateTruncUnit::Week => "week",
+            PgDateTruncUnit::Month => "month",
+            PgDateTruncUnit::Quarter => "quarter",
+            PgDateTruncUnit::Year => "year",
+            PgDateTruncUnit::Decade => "decade",
+            PgDateTruncUnit::Century => "century",
+            PgDateTruncUnit::Millennium => "millennium",
+        };
+        write!(f, "{text}")
+    }
 }
 
 impl ColumnDef {
@@ -279,7 +324,7 @@ impl ColumnDef {
     /// ```
     pub fn default<T>(&mut self, value: T) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.spec.push(ColumnSpec::Default(value.into()));
         self
@@ -418,23 +463,15 @@ impl ColumnDef {
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
+    ///         .col(ColumnDef::new("I1").interval(None, None).not_null())
     ///         .col(
-    ///             ColumnDef::new(Alias::new("I1"))
-    ///                 .interval(None, None)
-    ///                 .not_null()
-    ///         )
-    ///         .col(
-    ///             ColumnDef::new(Alias::new("I2"))
+    ///             ColumnDef::new("I2")
     ///                 .interval(Some(PgInterval::YearToMonth), None)
     ///                 .not_null()
     ///         )
+    ///         .col(ColumnDef::new("I3").interval(None, Some(42)).not_null())
     ///         .col(
-    ///             ColumnDef::new(Alias::new("I3"))
-    ///                 .interval(None, Some(42))
-    ///                 .not_null()
-    ///         )
-    ///         .col(
-    ///             ColumnDef::new(Alias::new("I4"))
+    ///             ColumnDef::new("I4")
     ///                 .interval(Some(PgInterval::Hour), Some(43))
     ///                 .not_null()
     ///         )
@@ -646,7 +683,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set constraints as SimpleExpr
+    /// Set constraints as Expr
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -665,16 +702,16 @@ impl ColumnDef {
     /// ```
     pub fn check<T>(&mut self, value: T) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.spec.push(ColumnSpec::Check(value.into()));
         self
     }
 
-    /// Sets the column as generated with SimpleExpr
+    /// Sets the column as generated with Expr
     pub fn generated<T>(&mut self, expr: T, stored: bool) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.spec.push(ColumnSpec::Generated {
             expr: expr.into(),
@@ -718,6 +755,34 @@ impl ColumnDef {
         T: Into<String>,
     {
         self.spec.push(ColumnSpec::Extra(string.into()));
+        self
+    }
+
+    /// Some extra options in custom string
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// let table = Table::alter()
+    ///     .table(Char::Table)
+    ///     .modify_column(
+    ///         ColumnDef::new(Char::Id)
+    ///             .integer()
+    ///             .using(Expr::col(Char::Id).cast_as("integer")),
+    ///     )
+    ///     .to_owned();
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"ALTER TABLE "character""#,
+    ///         r#"ALTER COLUMN "id" TYPE integer USING CAST("id" AS integer)"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
+    pub fn using<T>(&mut self, value: T) -> &mut Self
+    where
+        T: Into<Expr>,
+    {
+        self.spec.push(ColumnSpec::Using(value.into()));
         self
     }
 

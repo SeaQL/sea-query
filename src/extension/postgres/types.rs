@@ -1,10 +1,11 @@
-use crate::{prepare::*, types::*, QueryBuilder, QuotedBuilder};
+use crate::{QueryBuilder, QuotedBuilder, prepare::*, types::*};
 
 /// Helper for constructing any type statement
 #[derive(Debug)]
 pub struct Type;
 
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum TypeRef {
     Type(DynIden),
     SchemaType(DynIden, DynIden),
@@ -59,6 +60,7 @@ pub struct TypeCreateStatement {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeAs {
     // Composite,
     Enum,
@@ -81,12 +83,14 @@ pub struct TypeAlterStatement {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeDropOpt {
     Cascade,
     Restrict,
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeAlterOpt {
     Add {
         value: DynIden,
@@ -98,6 +102,7 @@ pub enum TypeAlterOpt {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TypeAlterAddOpt {
     Before(DynIden),
     After(DynIden),
@@ -117,19 +122,19 @@ pub trait TypeBuilder: QuotedBuilder {
     fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut dyn SqlWriter) {
         match type_ref {
             TypeRef::Type(name) => {
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(name, sql);
             }
             TypeRef::SchemaType(schema, name) => {
-                schema.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(name, sql);
             }
             TypeRef::DatabaseSchemaType(database, schema, name) => {
-                database.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(database, sql);
                 write!(sql, ".").unwrap();
-                schema.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(schema, sql);
                 write!(sql, ".").unwrap();
-                name.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(name, sql);
             }
         }
     }
@@ -162,27 +167,13 @@ impl TypeCreateStatement {
     /// ```
     /// use sea_query::{extension::postgres::Type, *};
     ///
+    /// #[derive(Iden)]
     /// enum FontFamily {
+    ///     #[iden = "font_family"]
     ///     Type,
     ///     Serif,
     ///     Sans,
     ///     Monospace,
-    /// }
-    ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
-    ///     }
     /// }
     ///
     /// assert_eq!(
@@ -227,8 +218,8 @@ impl TypeDropStatement {
     /// struct FontFamily;
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(s, "{}", "font_family").unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         "font_family"
     ///     }
     /// }
     ///
@@ -330,25 +321,20 @@ impl TypeAlterStatement {
     /// }
     ///
     /// impl Iden for FontFamily {
-    ///     fn unquoted(&self, s: &mut dyn Write) {
-    ///         write!(
-    ///             s,
-    ///             "{}",
-    ///             match self {
-    ///                 Self::Type => "font_family",
-    ///                 Self::Serif => "serif",
-    ///                 Self::Sans => "sans",
-    ///                 Self::Monospace => "monospace",
-    ///             }
-    ///         )
-    ///         .unwrap();
+    ///     fn unquoted(&self) -> &str {
+    ///         match self {
+    ///             Self::Type => "font_family",
+    ///             Self::Serif => "serif",
+    ///             Self::Sans => "sans",
+    ///             Self::Monospace => "monospace",
+    ///         }
     ///     }
     /// }
     ///
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(FontFamily::Type)
-    ///         .add_value(Alias::new("cursive"))
+    ///         .add_value("cursive")
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive'"#
     /// );
@@ -380,7 +366,7 @@ impl TypeAlterStatement {
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(Font::Table)
-    ///         .add_value(Alias::new("weight"))
+    ///         .add_value("weight")
     ///         .before(Font::Variant)
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
@@ -414,7 +400,7 @@ impl TypeAlterStatement {
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(Font::Table)
-    ///         .add_value(Alias::new("weight"))
+    ///         .add_value("weight")
     ///         .if_not_exists()
     ///         .after(Font::Variant)
     ///         .to_string(PostgresQueryBuilder),
@@ -443,7 +429,7 @@ impl TypeAlterStatement {
     /// assert_eq!(
     ///     Type::alter()
     ///         .name(Font::Table)
-    ///         .rename_value(Alias::new("variant"), Alias::new("language"))
+    ///         .rename_value("variant", "language")
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )

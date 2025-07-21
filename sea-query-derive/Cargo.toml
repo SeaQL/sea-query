@@ -1,15 +1,15 @@
 [package]
 name = "sea-query-derive"
-version = "0.4.2"
+version = "1.0.0-rc.5"
 authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>" ]
-edition = "2021"
+edition = "2024"
 description = "Derive macro for sea-query's Iden trait"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = [ "database" ]
 keywords = [ "database", "sql", "mysql", "postgres", "sqlite" ]
-rust-version = "1.60"
+rust-version = "1.85.0"
 
 [lib]
 proc-macro = true
@@ -20,11 +20,11 @@ quote = { version = "1", default-features = false }
 heck = { version = "0.4", default-features = false }
 darling = { version = "0.20", default-features = false }
 proc-macro2 = { version = "1", default-features = false }
-thiserror = { version = "1.0", default-features = false }
+thiserror = { version = "2", default-features = false }
 
 [dev-dependencies]
-trybuild = "1.0"
-sea-query = { version = "0.32.0-rc.1", path = ".." }
+trybuild = "1.0.86"
+sea-query = { version = "1.0.0-rc.1", path = ".." }
 strum = { version = "0.25", features = ["derive"] }
 
 [features]

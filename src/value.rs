@@ -237,6 +237,10 @@ pub trait ValueType: Sized {
     fn array_type() -> ArrayType;
 
     fn column_type() -> ColumnType;
+
+    fn enum_type_name() -> Option<&'static str> {
+        None
+    }
 }
 
 #[derive(Debug)]
@@ -255,6 +259,7 @@ pub struct Values(pub Vec<Value>);
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "hashable-value", derive(Hash, Eq))]
+#[non_exhaustive]
 pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
@@ -289,6 +294,214 @@ impl Value {
         T: ValueType,
     {
         T::expect(self, msg)
+    }
+
+    /// Get the null variant of self
+    ///
+    /// ```
+    /// use sea_query::Value;
+    ///
+    /// let v = Value::Int(Some(2));
+    /// let n = v.as_null();
+    ///
+    /// assert_eq!(n, Value::Int(None));
+    ///
+    /// // one liner:
+    /// assert_eq!(Into::<Value>::into(2.2).as_null(), Value::Double(None));
+    /// ```
+    pub fn as_null(&self) -> Self {
+        match self {
+            Self::Bool(_) => Self::Bool(None),
+            Self::TinyInt(_) => Self::TinyInt(None),
+            Self::SmallInt(_) => Self::SmallInt(None),
+            Self::Int(_) => Self::Int(None),
+            Self::BigInt(_) => Self::BigInt(None),
+            Self::TinyUnsigned(_) => Self::TinyUnsigned(None),
+            Self::SmallUnsigned(_) => Self::SmallUnsigned(None),
+            Self::Unsigned(_) => Self::Unsigned(None),
+            Self::BigUnsigned(_) => Self::BigUnsigned(None),
+            Self::Float(_) => Self::Float(None),
+            Self::Double(_) => Self::Double(None),
+            Self::String(_) => Self::String(None),
+            Self::Char(_) => Self::Char(None),
+            Self::Bytes(_) => Self::Bytes(None),
+
+            #[cfg(feature = "with-json")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+            Self::Json(_) => Self::Json(None),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDate(_) => Self::ChronoDate(None),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoTime(_) => Self::ChronoTime(None),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTime(_) => Self::ChronoDateTime(None),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeUtc(_) => Self::ChronoDateTimeUtc(None),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeLocal(_) => Self::ChronoDateTimeLocal(None),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeWithTimeZone(_) => Self::ChronoDateTimeWithTimeZone(None),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDate(_) => Self::TimeDate(None),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeTime(_) => Self::TimeTime(None),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTime(_) => Self::TimeDateTime(None),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTimeWithTimeZone(_) => Self::TimeDateTimeWithTimeZone(None),
+
+            #[cfg(feature = "with-uuid")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+            Self::Uuid(_) => Self::Uuid(None),
+
+            #[cfg(feature = "with-rust_decimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+            Self::Decimal(_) => Self::Decimal(None),
+
+            #[cfg(feature = "with-bigdecimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+            Self::BigDecimal(_) => Self::BigDecimal(None),
+
+            #[cfg(feature = "postgres-array")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+            Self::Array(ty, _) => Self::Array(ty.clone(), None),
+
+            #[cfg(feature = "postgres-vector")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
+            Self::Vector(_) => Self::Vector(None),
+
+            #[cfg(feature = "with-ipnetwork")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+            Self::IpNetwork(_) => Self::IpNetwork(None),
+
+            #[cfg(feature = "with-mac_address")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+            Self::MacAddress(_) => Self::MacAddress(None),
+        }
+    }
+
+    /// Get a default value of self's type
+    ///
+    /// ```
+    /// use sea_query::Value;
+    ///
+    /// let v = Value::Int(None);
+    /// let n = v.dummy_value();
+    /// assert_eq!(n, Value::Int(Some(0)));
+    /// ```
+    pub fn dummy_value(&self) -> Self {
+        match self {
+            Self::Bool(_) => Self::Bool(Some(Default::default())),
+            Self::TinyInt(_) => Self::TinyInt(Some(Default::default())),
+            Self::SmallInt(_) => Self::SmallInt(Some(Default::default())),
+            Self::Int(_) => Self::Int(Some(Default::default())),
+            Self::BigInt(_) => Self::BigInt(Some(Default::default())),
+            Self::TinyUnsigned(_) => Self::TinyUnsigned(Some(Default::default())),
+            Self::SmallUnsigned(_) => Self::SmallUnsigned(Some(Default::default())),
+            Self::Unsigned(_) => Self::Unsigned(Some(Default::default())),
+            Self::BigUnsigned(_) => Self::BigUnsigned(Some(Default::default())),
+            Self::Float(_) => Self::Float(Some(Default::default())),
+            Self::Double(_) => Self::Double(Some(Default::default())),
+            Self::String(_) => Self::String(Some(Default::default())),
+            Self::Char(_) => Self::Char(Some(Default::default())),
+            Self::Bytes(_) => Self::Bytes(Some(Default::default())),
+
+            #[cfg(feature = "with-json")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+            Self::Json(_) => Self::Json(Some(Default::default())),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDate(_) => Self::ChronoDate(Some(Default::default())),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoTime(_) => Self::ChronoTime(Some(Default::default())),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTime(_) => Self::ChronoDateTime(Some(Default::default())),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeUtc(_) => Self::ChronoDateTimeUtc(Some(Default::default())),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeLocal(_) => Self::ChronoDateTimeLocal(Some(Default::default())),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeWithTimeZone(_) => {
+                Self::ChronoDateTimeWithTimeZone(Some(Default::default()))
+            }
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDate(_) => Self::TimeDate(Some(time::Date::MIN.into())),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeTime(_) => Self::TimeTime(Some(time::Time::MIDNIGHT.into())),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTime(_) => Self::TimeDateTime(Some(PrimitiveDateTime::MIN.into())),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTimeWithTimeZone(_) => {
+                Self::TimeDateTimeWithTimeZone(Some(OffsetDateTime::UNIX_EPOCH.into()))
+            }
+
+            #[cfg(feature = "with-uuid")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+            Self::Uuid(_) => Self::Uuid(Some(Default::default())),
+
+            #[cfg(feature = "with-rust_decimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+            Self::Decimal(_) => Self::Decimal(Some(Default::default())),
+
+            #[cfg(feature = "with-bigdecimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+            Self::BigDecimal(_) => Self::BigDecimal(Some(Default::default())),
+
+            #[cfg(feature = "postgres-array")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+            Self::Array(ty, _) => Self::Array(ty.clone(), Some(Default::default())),
+
+            #[cfg(feature = "postgres-vector")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
+            Self::Vector(_) => Self::Vector(Some(Box::new(vec![].into()))),
+
+            #[cfg(feature = "with-ipnetwork")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+            Self::IpNetwork(_) => Self::IpNetwork(Some(Box::new("0.0.0.0".parse().unwrap()))),
+
+            #[cfg(feature = "with-mac_address")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+            Self::MacAddress(_) => Self::MacAddress(Some(Default::default())),
+        }
     }
 }
 
@@ -741,7 +954,7 @@ pub mod with_array {
     use super::*;
     use crate::RcOrArc;
 
-    // We only imlement conversion from Vec<T> to Array when T is not u8.
+    // We only implement conversion from Vec<T> to Array when T is not u8.
     // This is because for u8's case, there is already conversion to Byte defined above.
     // TODO When negative trait becomes a stable feature, following code can be much shorter.
     pub trait NotU8 {}
@@ -1203,6 +1416,17 @@ impl Value {
         match self {
             Self::MacAddress(v) => box_to_opt_ref!(v),
             _ => panic!("not Value::MacAddress"),
+        }
+    }
+}
+
+impl ValueTuple {
+    pub fn arity(&self) -> usize {
+        match self {
+            Self::One(_) => 1,
+            Self::Two(_, _) => 2,
+            Self::Three(_, _, _) => 3,
+            Self::Many(vec) => vec.len(),
         }
     }
 }

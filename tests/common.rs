@@ -1,5 +1,3 @@
-pub use std::fmt::Write as FmtWrite;
-
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
@@ -24,21 +22,16 @@ pub enum BinaryType {
 }
 
 impl Iden for BinaryType {
-    fn unquoted(&self, s: &mut dyn FmtWrite) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Table => "binary_type",
-                Self::BinaryLen => "binlen",
-                Self::Binary => "bin",
-                Self::BlobSize => "defb",
-                Self::TinyBlob => "tb",
-                Self::Blob => "b",
-                Self::MediumBlob => "mb",
-                Self::LongBlob => "lb",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Table => "binary_type",
+            Self::BinaryLen => "binlen",
+            Self::Binary => "bin",
+            Self::BlobSize => "defb",
+            Self::TinyBlob => "tb",
+            Self::Blob => "b",
+            Self::MediumBlob => "mb",
+            Self::LongBlob => "lb",
+        }
     }
 }

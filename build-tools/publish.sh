@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-# publish `sea-query-attr`
-cd sea-query-attr
-cargo publish
-cd ..
-
 # publish `sea-query-derive`
 cd sea-query-derive
 cargo publish

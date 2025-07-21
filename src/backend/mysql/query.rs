@@ -28,19 +28,19 @@ impl QueryBuilder for MysqlQueryBuilder {
                     write!(sql, "USE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    hint.index.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Ignore => {
                     write!(sql, "IGNORE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    hint.index.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Force => {
                     write!(sql, "FORCE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    hint.index.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(&hint.index, sql);
                 }
             }
             write!(sql, ")").unwrap();
@@ -61,6 +61,63 @@ impl QueryBuilder for MysqlQueryBuilder {
         _: &mut dyn SqlWriter,
     ) {
         // MySQL doesn't support declaring materialization in SQL for with query.
+    }
+
+    fn prepare_update_join(
+        &self,
+        from: &[TableRef],
+        condition: &ConditionHolder,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if from.is_empty() {
+            return;
+        }
+
+        write!(sql, " JOIN ").unwrap();
+
+        // TODO what if we have multiple from?
+        self.prepare_table_ref(&from[0], sql);
+
+        self.prepare_condition(condition, "ON", sql);
+    }
+
+    fn prepare_update_from(&self, _: &[TableRef], _: &mut dyn SqlWriter) {}
+
+    fn prepare_update_column(
+        &self,
+        table: &Option<Box<TableRef>>,
+        from: &[TableRef],
+        column: &DynIden,
+        sql: &mut dyn SqlWriter,
+    ) {
+        use std::ops::Deref;
+
+        if from.is_empty() {
+            self.prepare_iden(column, sql);
+        } else {
+            if let Some(table) = table {
+                if let TableRef::Table(table) = table.deref() {
+                    self.prepare_column_ref(
+                        &ColumnRef::TableColumn(table.clone(), column.clone()),
+                        sql,
+                    );
+                    return;
+                }
+            }
+            self.prepare_iden(column, sql);
+        }
+    }
+
+    fn prepare_update_condition(
+        &self,
+        from: &[TableRef],
+        condition: &ConditionHolder,
+        sql: &mut dyn SqlWriter,
+    ) {
+        if !from.is_empty() {
+            return;
+        }
+        self.prepare_condition(condition, "WHERE", sql);
     }
 
     fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
@@ -109,9 +166,9 @@ impl QueryBuilder for MysqlQueryBuilder {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        pk_col.prepare(sql.as_writer(), self.quote());
+                        self.prepare_iden(pk_col, sql);
                         write!(sql, " = ").unwrap();
-                        pk_col.prepare(sql.as_writer(), self.quote());
+                        self.prepare_iden(pk_col, sql);
                         false
                     });
                 } else {
@@ -132,7 +189,7 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
         write!(sql, "VALUES(").unwrap();
-        col.prepare(sql.as_writer(), self.quote());
+        self.prepare_iden(col, sql);
         write!(sql, ")").unwrap();
     }
 

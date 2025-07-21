@@ -1,7 +1,8 @@
-use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, Keyword, LikeExpr, SimpleExpr, Value};
+use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, Keyword, LikeExpr, Value};
 
 use super::SqliteBinOper;
 
+/// SQLite-specific operator methods for building expressions.
 pub trait SqliteExpr: ExprTrait {
     /// Express an sqlite `GLOB` operator.
     ///
@@ -21,9 +22,9 @@ pub trait SqliteExpr: ExprTrait {
     ///     r#"SELECT "name" FROM "font" WHERE "name" GLOB 'a'"#
     /// );
     /// ```
-    fn glob<T>(self, right: T) -> SimpleExpr
+    fn glob<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(SqliteBinOper::Glob, right)
     }
@@ -46,9 +47,9 @@ pub trait SqliteExpr: ExprTrait {
     ///     r#"SELECT "name" FROM "font" WHERE "name" MATCH 'a'"#
     /// );
     /// ```
-    fn matches<T>(self, right: T) -> SimpleExpr
+    fn matches<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(SqliteBinOper::Match, right)
     }
@@ -71,9 +72,9 @@ pub trait SqliteExpr: ExprTrait {
     ///     r#"SELECT "variant" FROM "font" WHERE "variant" -> 'a'"#
     /// );
     /// ```
-    fn get_json_field<T>(self, right: T) -> SimpleExpr
+    fn get_json_field<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(SqliteBinOper::GetJsonField, right)
     }
@@ -96,18 +97,18 @@ pub trait SqliteExpr: ExprTrait {
     ///     r#"SELECT "variant" FROM "font" WHERE "variant" ->> 'a'"#
     /// );
     /// ```
-    fn cast_json_field<T>(self, right: T) -> SimpleExpr
+    fn cast_json_field<T>(self, right: T) -> Expr
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.binary(SqliteBinOper::CastJsonField, right)
     }
 }
 
 // TODO: https://github.com/SeaQL/sea-query/discussions/795:
-// replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
+// replace all of this with `impl<T> SqliteExpr for T where T: ExprTrait {}`
+// (breaking change)
 impl SqliteExpr for Expr {}
-impl SqliteExpr for SimpleExpr {}
 impl SqliteExpr for FunctionCall {}
 impl SqliteExpr for ColumnRef {}
 impl SqliteExpr for Keyword {}

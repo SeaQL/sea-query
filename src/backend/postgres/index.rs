@@ -26,6 +26,11 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
+
+        if !create.include_columns.is_empty() {
+            write!(sql, " ").unwrap();
+            self.prepare_include_columns(&create.include_columns, sql);
+        }
     }
 
     fn prepare_index_create_statement(
@@ -61,6 +66,11 @@ impl IndexBuilder for PostgresQueryBuilder {
         write!(sql, " ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
 
+        if !create.include_columns.is_empty() {
+            write!(sql, " ").unwrap();
+            self.prepare_include_columns(&create.include_columns, sql);
+        }
+
         if create.nulls_not_distinct {
             write!(sql, " NULLS NOT DISTINCT").unwrap();
         }
@@ -87,7 +97,7 @@ impl IndexBuilder for PostgresQueryBuilder {
             match table {
                 TableRef::Table(_) => {}
                 TableRef::SchemaTable(schema, _) => {
-                    schema.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(schema, sql);
                     write!(sql, ".").unwrap();
                 }
                 _ => panic!("Not supported"),
@@ -130,7 +140,48 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
+    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
+        write!(sql, "(").unwrap();
+        columns.iter().fold(true, |first, col| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            match col {
+                IndexColumn::TableColumn(column) => {
+                    self.prepare_index_column_with_table_column(column, sql);
+                }
+                IndexColumn::Expr(column) => {
+                    write!(sql, "(").unwrap();
+                    self.prepare_simple_expr(&column.expr, sql);
+                    write!(sql, ")").unwrap();
+                    if let Some(order) = &column.order {
+                        match order {
+                            IndexOrder::Asc => write!(sql, " ASC").unwrap(),
+                            IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+                        }
+                    }
+                }
+            }
+            false
+        });
+        write!(sql, ")").unwrap();
+    }
+
     fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut dyn SqlWriter) {
         self.prepare_condition(condition, "WHERE", sql);
+    }
+}
+
+impl PostgresQueryBuilder {
+    fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut dyn SqlWriter) {
+        write!(sql, "INCLUDE (").unwrap();
+        columns.iter().fold(true, |first, col| {
+            if !first {
+                write!(sql, ", ").unwrap();
+            }
+            self.prepare_iden(col, sql);
+            false
+        });
+        write!(sql, ")").unwrap();
     }
 }
