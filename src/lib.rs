@@ -814,6 +814,7 @@ pub mod query;
 pub mod schema;
 pub mod table;
 pub mod token;
+pub mod trigger;
 pub mod types;
 pub mod value;
 
@@ -831,6 +832,7 @@ pub use query::*;
 pub use schema::*;
 pub use table::*;
 pub use token::*;
+pub use trigger::*;
 pub use types::*;
 pub use value::*;
 
