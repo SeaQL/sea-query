@@ -1,5 +1,5 @@
 use super::PgBinOper;
-use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, IntoLikeExpr, Keyword, LikeExpr, Value};
+use crate::{Expr, ExprTrait, IntoLikeExpr};
 
 /// Postgres-specific operator methods for building expressions.
 pub trait PgExpr: ExprTrait {
