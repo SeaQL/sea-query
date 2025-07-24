@@ -1,4 +1,4 @@
-use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, Keyword, LikeExpr, Value};
+use crate::{Expr, ExprTrait};
 
 use super::SqliteBinOper;
 
@@ -105,12 +105,5 @@ pub trait SqliteExpr: ExprTrait {
     }
 }
 
-// TODO: https://github.com/SeaQL/sea-query/discussions/795:
-// replace all of this with `impl<T> SqliteExpr for T where T: ExprTrait {}`
-// (breaking change)
-impl SqliteExpr for Expr {}
-impl SqliteExpr for FunctionCall {}
-impl SqliteExpr for ColumnRef {}
-impl SqliteExpr for Keyword {}
-impl SqliteExpr for LikeExpr {}
-impl SqliteExpr for Value {}
+/// You should be able to use SQLite-specific operators with all types of expressions.
+impl<T> SqliteExpr for T where T: ExprTrait {}

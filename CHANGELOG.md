@@ -71,7 +71,7 @@ help: ensure that all possible cases are being handled by adding a match arm wit
     | TableRef::FunctionCall(_, tbl) => SeaRc::clone(tbl),
  -> | &_ => todo!(),
 ```
-* `ExprTrait::eq` collided with `std::cmp::Eq`. If you encounter the following error, please use `std::cmp::PartialEq::eq(a, b)` or 
+* `ExprTrait::eq` collided with `std::cmp::Eq`. If you encounter the following error, please use `std::cmp::PartialEq::eq(a, b)` or
 `sea_query::ExprTrait::eq(a, b)` explicitly https://github.com/SeaQL/sea-query/pull/890
 ```rust
 error[E0308]: mismatched types
@@ -114,6 +114,12 @@ impl Iden for Glyph {
     }
 }
 ```
+* Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait`.
+
+  Now you can use database-specific operators with all expression types.
+
+  If you had custom implementations in your own code, some may no longer compile
+  and may need to be deleted.
 
 ### Upgrades
 
@@ -123,7 +129,7 @@ impl Iden for Glyph {
 
 ### Enhancements
 
-* impl From<Condition> and From<ConditionExpression> for SimpleExpr https://github.com/SeaQL/sea-query/pull/886
+* impl `From<Condition>` and `From<ConditionExpression>` for `SimpleExpr` https://github.com/SeaQL/sea-query/pull/886
 
 ## 0.32.5 - 2025-05-07
 
@@ -350,7 +356,7 @@ assert_eq!(
 
 ### New Features
 
-* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774    
+* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774
     * Added `postgres-vector` feature flag
     * Added `Value::Vector`, `ColumnType::Vector`, `ColumnDef::vector()`, `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance`
     ```rust
@@ -1012,7 +1018,7 @@ Enum {
 
 ### New Features
 
-* Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455 
+* Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455
 
 ### Bug Fixes
 

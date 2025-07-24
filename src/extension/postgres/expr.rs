@@ -1,5 +1,5 @@
 use super::PgBinOper;
-use crate::{ColumnRef, Expr, ExprTrait, FunctionCall, IntoLikeExpr, Keyword, LikeExpr, Value};
+use crate::{Expr, ExprTrait, IntoLikeExpr};
 
 /// Postgres-specific operator methods for building expressions.
 pub trait PgExpr: ExprTrait {
@@ -197,12 +197,5 @@ pub trait PgExpr: ExprTrait {
     }
 }
 
-// TODO: https://github.com/SeaQL/sea-query/discussions/795:
-// replace all of this with `impl<T> PgExpr for T where T: ExprTrait {}`
-// (breaking change)
-impl PgExpr for Expr {}
-impl PgExpr for FunctionCall {}
-impl PgExpr for ColumnRef {}
-impl PgExpr for Keyword {}
-impl PgExpr for LikeExpr {}
-impl PgExpr for Value {}
+/// You should be able to use Postgres-specific operators with all types of expressions.
+impl<T> PgExpr for T where T: ExprTrait {}
