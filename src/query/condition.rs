@@ -20,11 +20,14 @@ pub trait IntoCondition {
 
 pub type Cond = Condition;
 
-/// Represents anything that can be passed to an [`Condition::any`] or [`Condition::all`]'s [`Condition::add`] method.
+/// An internal representation of conditions.
+/// May be refactored away in the future if we can get our head around it.
 ///
-/// The arguments are automatically converted to the right enum.
+/// It used to be in the public interface of [`Condition::add`] and [`Condition::add_option`],
+/// in order to accept anything resembling a condition or an expression.
+/// Nowadays, we achieve that with traits.
 #[derive(Debug, Clone, PartialEq)]
-pub enum ConditionExpression {
+pub(crate) enum ConditionExpression {
     Condition(Condition),
     Expr(Expr),
 }
@@ -68,16 +71,11 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add<C>(mut self, condition: C) -> Self
     where
-        C: Into<ConditionExpression>,
+        C: Into<Condition>,
     {
-        let mut expr: ConditionExpression = condition.into();
-        if let ConditionExpression::Condition(ref mut c) = expr {
-            // Skip the junction if there is only one.
-            if c.conditions.len() == 1 && !c.negate {
-                expr = c.conditions.pop().unwrap();
-            }
-        }
-        self.conditions.push(expr);
+        let condition: Condition = condition.into();
+        let condition: ConditionExpression = condition.into();
+        self.conditions.push(condition);
         self
     }
 
@@ -108,7 +106,7 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add_option<C>(self, other: Option<C>) -> Self
     where
-        C: Into<ConditionExpression>,
+        C: Into<Condition>,
     {
         if let Some(other) = other {
             self.add(other)
@@ -309,6 +307,26 @@ impl From<Condition> for ConditionExpression {
 impl From<Expr> for ConditionExpression {
     fn from(condition: Expr) -> Self {
         ConditionExpression::Expr(condition)
+    }
+}
+
+impl From<Expr> for Condition {
+    fn from(condition: Expr) -> Self {
+        Condition {
+            negate: false,
+            condition_type: ConditionType::All,
+            conditions: vec![ConditionExpression::Expr(condition)],
+        }
+    }
+}
+
+impl From<ConditionExpression> for Condition {
+    fn from(ce: ConditionExpression) -> Self {
+        Condition {
+            negate: false,
+            condition_type: ConditionType::All,
+            conditions: vec![ce],
+        }
     }
 }
 
