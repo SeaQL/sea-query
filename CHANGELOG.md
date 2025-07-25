@@ -23,6 +23,8 @@ pub struct DynIden(pub(crate) Cow<'static, str>); // new
 pub struct SeaRc<I>(pub(crate) RcOrArc<I>);       // old
 pub struct SeaRc;                                 // new
 ```
+* `impl From<Expr> for Condition`. Now you can use that instead of
+  `ConditionExpression`, which has been removed.
 
 ### Breaking Changes
 
@@ -114,6 +116,8 @@ impl Iden for Glyph {
     }
 }
 ```
+* Removed `ConditionExpression` from the public API. Instead, just convert
+  between `Condition` and `Expr` using `From`/`Into`.
 * Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait`.
 
   Now you can use database-specific operators with all expression types.
