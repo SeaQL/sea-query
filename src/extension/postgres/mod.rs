@@ -42,13 +42,13 @@ pub enum PgBinOper {
     /// `<<%`. Strict word similarity operator,
     /// requires `pg_trgm` extension
     StrictWordSimilarity,
-    /// `<->`. Similarity distance operato
+    /// `<->`. Similarity distance operator,
     /// requires `pg_trgm` extension
     SimilarityDistance,
-    /// `<<->`. Word similarity distance operator
+    /// `<<->`. Word similarity distance operator,
     /// requires `pg_trgm` extension
     WordSimilarityDistance,
-    /// `<<<->`. Strict word similarity distance operator
+    /// `<<<->`. Strict word similarity distance operator,
     /// requires `pg_trgm` extension
     StrictWordSimilarityDistance,
     /// `->`. Retrieves JSON field as JSON value
