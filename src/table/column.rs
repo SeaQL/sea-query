@@ -730,10 +730,8 @@ impl ColumnDef {
     where
         T: Into<Expr>,
     {
-        self.spec.push(ColumnSpec::Check(Check::Named(
-            name,
-            value.into(),
-        )));
+        self.spec
+            .push(ColumnSpec::Check(Check::Named(name, value.into())));
         self
     }
 
