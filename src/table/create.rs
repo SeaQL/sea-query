@@ -151,7 +151,6 @@ impl TableCreateStatement {
         self
     }
 
-    /// Add a named check constraint to the table
     pub fn check_with_name(&mut self, name: &'static str, value: Expr) -> &mut Self {
         self.check.push(Check::Named(name, value));
         self
