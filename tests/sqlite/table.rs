@@ -498,3 +498,20 @@ fn alter_with_check_constraint() {
         r#"ALTER TABLE "glyph" ADD COLUMN "aspect" integer NOT NULL DEFAULT 101 CHECK ("aspect" > 100)"#,
     );
 }
+
+#[test]
+fn alter_with_named_check_constraint() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .integer()
+                    .not_null()
+                    .default(101)
+                    .check_with_name("positive_aspect", Expr::col(Glyph::Aspect).gt(100))
+            )
+            .to_string(SqliteQueryBuilder),
+        r#"ALTER TABLE "glyph" ADD COLUMN "aspect" integer NOT NULL DEFAULT 101 CONSTRAINT "positive_aspect" CHECK ("aspect" > 100)"#,
+    );
+}
