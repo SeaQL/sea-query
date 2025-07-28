@@ -736,15 +736,15 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
@@ -775,15 +775,15 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn expr_window_name_as<T, W, A>(&mut self, expr: T, window: W, alias: A) -> &mut Self
@@ -2491,15 +2491,15 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn window<A>(&mut self, name: A, window: WindowStatement) -> &mut Self
