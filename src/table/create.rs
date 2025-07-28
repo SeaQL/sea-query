@@ -2,7 +2,7 @@ use inherent::inherent;
 
 use crate::{
     ColumnDef, Expr, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
-    index::*, types::*,
+    index::*, table::constraint::Check, types::*,
 };
 
 /// Create a table
@@ -88,7 +88,7 @@ pub struct TableCreateStatement {
     pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
-    pub(crate) check: Vec<Expr>,
+    pub(crate) check: Vec<Check>,
     pub(crate) comment: Option<String>,
     pub(crate) extra: Option<String>,
     pub(crate) temporary: bool,
@@ -147,7 +147,13 @@ impl TableCreateStatement {
     }
 
     pub fn check(&mut self, value: Expr) -> &mut Self {
-        self.check.push(value);
+        self.check.push(Check::Unnamed(value));
+        self
+    }
+
+    /// Add a named check constraint to the table
+    pub fn check_with_name(&mut self, name: &'static str, value: Expr) -> &mut Self {
+        self.check.push(Check::Named(name, value));
         self
     }
 

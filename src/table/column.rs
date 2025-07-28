@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{expr::*, types::*};
+use crate::{expr::*, table::Check, types::*};
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -179,7 +179,7 @@ pub enum ColumnSpec {
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
-    Check(Expr),
+    Check(Check),
     Generated { expr: Expr, stored: bool },
     Extra(String),
     Comment(String),
@@ -704,7 +704,36 @@ impl ColumnDef {
     where
         T: Into<Expr>,
     {
-        self.spec.push(ColumnSpec::Check(value.into()));
+        self.spec
+            .push(ColumnSpec::Check(Check::Unnamed(value.into())));
+        self
+    }
+
+    /// Set named check constraint
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Glyph::Id)
+    ///                 .integer()
+    ///                 .not_null()
+    ///                 .check_with_name("positive_id", Expr::col(Glyph::Id).gt(10))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CONSTRAINT `positive_id` CHECK (`id` > 10) )"#,
+    /// );
+    /// ```
+    pub fn check_with_name<T>(&mut self, name: &'static str, value: T) -> &mut Self
+    where
+        T: Into<Expr>,
+    {
+        self.spec.push(ColumnSpec::Check(Check::Named(
+            name,
+            value.into(),
+        )));
         self
     }
 

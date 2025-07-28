@@ -465,6 +465,24 @@ fn create_with_check_constraint() {
 }
 
 #[test]
+fn create_with_named_check_constraint() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .check_with_name("positive_id", Expr::col(Glyph::Id).gt(10))
+            )
+            .check_with_name("id_range", Expr::col(Glyph::Id).lt(20))
+            .check(Expr::col(Glyph::Id).ne(15))
+            .to_string(SqliteQueryBuilder),
+        r#"CREATE TABLE "glyph" ( "id" integer NOT NULL CONSTRAINT "positive_id" CHECK ("id" > 10), CONSTRAINT "id_range" CHECK ("id" < 20), CHECK ("id" <> 15) )"#,
+    );
+}
+
+#[test]
 fn alter_with_check_constraint() {
     assert_eq!(
         Table::alter()
