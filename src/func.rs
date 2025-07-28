@@ -537,6 +537,8 @@ impl Func {
 
     /// Call `CAST` function with a case-sensitive custom type.
     ///
+    /// Type can be qualified with a schema name.
+    ///
     /// # Examples
     ///
     /// ```
@@ -558,15 +560,34 @@ impl Func {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT CAST('hello' AS "MyType")"#
     /// );
+    ///
+    /// // Also works with a schema-qualified type name:
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::cast_as_quoted("hello", ("MySchema", "MyType")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS `MySchema`.`MyType`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MySchema"."MyType")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MySchema"."MyType")"#
+    /// );
     /// ```
-    pub fn cast_as_quoted<V, I>(expr: V, iden: I) -> FunctionCall
+    pub fn cast_as_quoted<V, I>(expr: V, col: I) -> FunctionCall
     where
         V: Into<Expr>,
-        I: IntoIden,
+        I: IntoColumnRef,
     {
         let expr: Expr = expr.into();
         FunctionCall::new(Function::Cast)
-            .arg(expr.binary(BinOper::As, Expr::TypeName(iden.into_iden())))
+            .arg(expr.binary(BinOper::As, Expr::Column(col.into_column_ref())))
     }
 
     /// Call `COALESCE` function.
