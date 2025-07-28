@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.0.0 - pending
 
+### Enhancements
+
+* Removed unnecessary `'static` bounds from type signatures.
+
 ### New features
 
 * Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangably. There may be a few compile
