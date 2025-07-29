@@ -130,3 +130,7 @@ required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
 [[bench]]
 name = "basic"
 harness = false
+
+[[bench]]
+name = "value"
+harness = false
