@@ -473,7 +473,7 @@ impl WithClause {
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
-        T: Into<SubQueryStatement> + 'static,
+        T: Into<SubQueryStatement>,
     {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }
