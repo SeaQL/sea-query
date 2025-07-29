@@ -78,11 +78,14 @@ impl IndexBuilder for PostgresQueryBuilder {
     }
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
-        match table_ref {
-            TableRef::Table(_) | TableRef::SchemaTable(_, _) => {
-                self.prepare_table_ref_iden(table_ref, sql)
-            }
-            _ => panic!("Not supported"),
+        // Support only `table` and `schema.table` forms.
+        // No `database.schema.table` or aliases.
+        let TableRef::Table(table_name, None) = table_ref else {
+            panic!("Not supported");
+        };
+        match table_name.as_iden_tuple() {
+            (Some(_db), _schema, _table) => panic!("Not supported"),
+            (None, _schema, _table) => self.prepare_table_ref_iden(table_ref, sql),
         }
     }
 
@@ -94,13 +97,18 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
 
         if let Some(table) = &drop.table {
-            match table {
-                TableRef::Table(_) => {}
-                TableRef::SchemaTable(schema, _) => {
+            // Support only `table` and `schema.table` forms.
+            // No `database.schema.table` or aliases.
+            let TableRef::Table(table_name, None) = table else {
+                panic!("Not supported");
+            };
+            match table_name.as_iden_tuple() {
+                (None, None, _table) => {}
+                (None, Some(schema), _table) => {
                     self.prepare_iden(schema, sql);
                     write!(sql, ".").unwrap();
                 }
-                _ => panic!("Not supported"),
+                (Some(_db), _schema, _table) => panic!("Not supported"),
             }
         }
         if let Some(name) = &drop.index.name {

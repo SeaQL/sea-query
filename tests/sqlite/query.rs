@@ -1818,13 +1818,11 @@ fn recursive_with_multiple_ctes() {
         .cte(sub_select2_cte);
 
     let mut main_sel2 = Query::select();
-    main_sel2
-        .expr(Expr::col(Asterisk))
-        .from(TableRef::Table(sub_select2_name));
+    main_sel2.expr(Expr::col(Asterisk)).from(sub_select2_name);
     let mut main_sel1 = Query::select();
     main_sel1
         .expr(Expr::col(Asterisk))
-        .from(TableRef::Table(sub_select1_name))
+        .from(sub_select1_name)
         .union(UnionType::All, main_sel2);
 
     let query = with.query(main_sel1);

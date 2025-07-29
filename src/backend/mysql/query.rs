@@ -96,11 +96,10 @@ impl QueryBuilder for MysqlQueryBuilder {
             self.prepare_iden(column, sql);
         } else {
             if let Some(table) = table {
-                if let TableRef::Table(table) = table.deref() {
-                    self.prepare_column_ref(
-                        &ColumnRef::TableColumn(table.clone(), column.clone()),
-                        sql,
-                    );
+                // Support only "naked" table names with no schema or alias.
+                if let TableRef::Table(TableName(None, table), None) = table.deref() {
+                    let column_name = ColumnName::from((table.clone(), column.clone()));
+                    self.prepare_column_ref(&ColumnRef::Column(column_name), sql);
                     return;
                 }
             }

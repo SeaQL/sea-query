@@ -595,27 +595,21 @@ pub trait QueryBuilder:
 
     fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut dyn SqlWriter) {
         match column_ref {
-            ColumnRef::Column(column) => self.prepare_iden(column, sql),
-            ColumnRef::TableColumn(table, column) => {
-                self.prepare_iden(table, sql);
-                write!(sql, ".").unwrap();
+            ColumnRef::Column(ColumnName(table_name, column)) => {
+                if let Some(table_name) = table_name {
+                    self.prepare_table_name(table_name, sql);
+                    write!(sql, ".").unwrap();
+                }
                 self.prepare_iden(column, sql);
             }
-            ColumnRef::SchemaTableColumn(schema, table, column) => {
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(table, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(column, sql);
-            }
-            ColumnRef::Asterisk => {
+            ColumnRef::Asterisk(table_name) => {
+                if let Some(table_name) = table_name {
+                    self.prepare_table_name(table_name, sql);
+                    write!(sql, ".").unwrap();
+                }
                 write!(sql, "*").unwrap();
             }
-            ColumnRef::TableAsterisk(table) => {
-                self.prepare_iden(table, sql);
-                write!(sql, ".*").unwrap();
-            }
-        };
+        }
     }
 
     /// Translate [`UnOper`] into SQL statement.
