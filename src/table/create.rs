@@ -1,7 +1,7 @@
 use inherent::inherent;
 
 use crate::{
-    ColumnDef, Expr, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
     index::*, table::constraint::Check, types::*,
 };
 
@@ -146,13 +146,11 @@ impl TableCreateStatement {
         self
     }
 
-    pub fn check(&mut self, value: Expr) -> &mut Self {
-        self.check.push(Check::Unnamed(value));
-        self
-    }
-
-    pub fn check_with_name(&mut self, name: &'static str, value: Expr) -> &mut Self {
-        self.check.push(Check::Named(name, value));
+    pub fn check<T>(&mut self, value: T) -> &mut Self
+    where
+        T: Into<Check>,
+    {
+        self.check.push(value.into());
         self
     }
 

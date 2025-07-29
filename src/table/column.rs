@@ -687,6 +687,7 @@ impl ColumnDef {
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
+    ///
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
@@ -699,20 +700,7 @@ impl ColumnDef {
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10) )"#,
     /// );
-    /// ```
-    pub fn check<T>(&mut self, value: T) -> &mut Self
-    where
-        T: Into<Expr>,
-    {
-        self.spec
-            .push(ColumnSpec::Check(Check::Unnamed(value.into())));
-        self
-    }
-
-    /// Set named check constraint
     ///
-    /// ```
-    /// use sea_query::{tests_cfg::*, *};
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
@@ -720,18 +708,17 @@ impl ColumnDef {
     ///             ColumnDef::new(Glyph::Id)
     ///                 .integer()
     ///                 .not_null()
-    ///                 .check_with_name("positive_id", Expr::col(Glyph::Id).gt(10))
+    ///                 .check(("positive_id", Expr::col(Glyph::Id).gt(10)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CONSTRAINT `positive_id` CHECK (`id` > 10) )"#,
     /// );
     /// ```
-    pub fn check_with_name<T>(&mut self, name: &'static str, value: T) -> &mut Self
+    pub fn check<T>(&mut self, check: T) -> &mut Self
     where
-        T: Into<Expr>,
+        T: Into<Check>,
     {
-        self.spec
-            .push(ColumnSpec::Check(Check::Named(name, value.into())));
+        self.spec.push(ColumnSpec::Check(check.into()));
         self
     }
 
