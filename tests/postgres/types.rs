@@ -141,7 +141,7 @@ fn alter_4() {
             .name(Font::Table)
             .rename_to("typeface")
             .to_string(PostgresQueryBuilder),
-        r#"ALTER TYPE "font" RENAME TO 'typeface'"#
+        r#"ALTER TYPE "font" RENAME TO "typeface""#
     )
 }
 
@@ -163,6 +163,6 @@ fn alter_6() {
             .name(("schema", Font::Table))
             .rename_to("typeface")
             .to_string(PostgresQueryBuilder),
-        r#"ALTER TYPE "schema"."font" RENAME TO 'typeface'"#
+        r#"ALTER TYPE "schema"."font" RENAME TO "typeface""#
     )
 }

@@ -113,7 +113,7 @@ impl PostgresQueryBuilder {
             }
             TypeAlterOpt::Rename(new_name) => {
                 write!(sql, " RENAME TO ").unwrap();
-                self.prepare_value(&new_name.to_string().into(), sql);
+                self.prepare_iden(new_name, sql);
             }
             TypeAlterOpt::RenameValue(existing, new_name) => {
                 write!(sql, " RENAME VALUE ").unwrap();
