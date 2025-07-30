@@ -1687,7 +1687,7 @@ mod tests {
     ///
     /// [Sqlite reference](https://sqlite.org/lang_datefunc.html)
     #[test]
-    fn time_value_to_string() {
+    fn format_time_constant() {
         let time = NaiveTime::from_hms_micro_opt(1, 2, 3, 123456)
             .unwrap()
             .into();
