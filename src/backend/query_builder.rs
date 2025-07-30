@@ -1115,22 +1115,22 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
+            Value::ChronoTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S%.6f")).unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
@@ -1673,4 +1673,66 @@ pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
         op,
         BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+
+    use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
+
+    /// [Postgresql reference](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT-TIMES)
+    ///
+    /// [Mysql reference](https://dev.mysql.com/doc/refman/8.4/en/fractional-seconds.html)
+    ///
+    /// [Sqlite reference](https://sqlite.org/lang_datefunc.html)
+    #[test]
+    fn time_value_to_string() {
+        let time = NaiveTime::from_hms_micro_opt(1, 2, 3, 123456)
+            .unwrap()
+            .into();
+
+        let mut string = String::new();
+        macro_rules! compare {
+            ($a:ident, $b:literal) => {
+                PostgresQueryBuilder.prepare_constant(&$a, &mut string);
+                assert_eq!(string, $b);
+
+                string.clear();
+
+                MysqlQueryBuilder.prepare_constant(&$a, &mut string);
+                assert_eq!(string, $b);
+
+                string.clear();
+
+                SqliteQueryBuilder.prepare_constant(&$a, &mut string);
+                assert_eq!(string, $b);
+
+                string.clear();
+            };
+        }
+
+        compare!(time, "'01:02:03.123456'");
+
+        let d = NaiveDate::from_ymd_opt(2015, 6, 3).unwrap();
+        let t = NaiveTime::from_hms_micro_opt(12, 34, 56, 123456).unwrap();
+
+        let dt = NaiveDateTime::new(d, t);
+
+        let date_time = dt.into();
+
+        compare!(date_time, "'2015-06-03 12:34:56.123456'");
+
+        let date_time_utc = DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc).into();
+
+        compare!(date_time_utc, "'2015-06-03 12:34:56.123456 +00:00'");
+
+        let date_time_tz = DateTime::<FixedOffset>::from_naive_utc_and_offset(
+            dt,
+            FixedOffset::east_opt(8 * 3600).unwrap(),
+        )
+        .into();
+
+        compare!(date_time_tz, "'2015-06-03 12:34:56.123456 +08:00'");
+    }
 }
