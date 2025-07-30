@@ -1677,6 +1677,7 @@ pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "with-chrono")]
     use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
     use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
