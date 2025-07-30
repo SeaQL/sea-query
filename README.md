@@ -24,6 +24,8 @@ See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usag
 
 SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 
+SeaQuery is written in 100% safe Rust. All workspace crates `#![forbid(unsafe_code)]`.
+
 [![GitHub stars](https://img.shields.io/github/stars/SeaQL/sea-query.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/sea-query/stargazers/)
 If you like what we do, consider starring, commenting, sharing and contributing!
 

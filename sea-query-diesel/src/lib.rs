@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use diesel::backend::Backend;
 use diesel::result::QueryResult;
 use sea_query::{DeleteStatement, InsertStatement, SelectStatement, UpdateStatement, WithQuery};
