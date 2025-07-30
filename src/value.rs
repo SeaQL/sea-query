@@ -1360,7 +1360,7 @@ impl Value {
 
     pub fn as_ipaddr(&self) -> Option<IpAddr> {
         match self {
-            Self::IpNetwork(v) => v.clone().map(|v| v.network()),
+            Self::IpNetwork(v) => v.as_ref().map(|v| v.network()),
             _ => panic!("not Value::IpNetwork"),
         }
     }
