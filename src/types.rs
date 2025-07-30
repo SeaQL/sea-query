@@ -489,7 +489,7 @@ where
     T: Iden,
 {
     fn into_iden(self) -> DynIden {
-        SeaRc::new(self)
+        DynIden(self.quoted())
     }
 }
 
