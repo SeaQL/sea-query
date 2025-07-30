@@ -1688,6 +1688,7 @@ mod tests {
     ///
     /// [Sqlite reference](https://sqlite.org/lang_datefunc.html)
     #[test]
+    #[cfg(feature = "with-chrono")]
     fn format_time_constant() {
         let time = NaiveTime::from_hms_micro_opt(1, 2, 3, 123456)
             .unwrap()
