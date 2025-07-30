@@ -196,7 +196,7 @@ pub enum Value {
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-    BigDecimal(Option<BigDecimal>),
+    BigDecimal(Option<Box<BigDecimal>>),
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
@@ -213,6 +213,16 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<MacAddress>),
+}
+
+// compile time value size check
+pub const VALUE_SIZE: usize = check_value_size();
+
+const fn check_value_size() -> usize {
+    if std::mem::size_of::<Value>() > 32 {
+        panic!("the size of Value shouldn't be greater than 32 bytes")
+    }
+    std::mem::size_of::<Value>()
 }
 
 impl std::fmt::Display for Value {
@@ -543,6 +553,45 @@ macro_rules! type_to_value {
     };
 }
 
+#[cfg(feature = "with-bigdecimal")]
+macro_rules! type_to_box_value {
+    ( $type: ty, $name: ident, $col_type: expr ) => {
+        impl From<$type> for Value {
+            fn from(x: $type) -> Value {
+                Value::$name(Some(Box::new(x)))
+            }
+        }
+
+        impl Nullable for $type {
+            fn null() -> Value {
+                Value::$name(None)
+            }
+        }
+
+        impl ValueType for $type {
+            fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                match v {
+                    Value::$name(Some(x)) => Ok(*x),
+                    _ => Err(ValueTypeErr),
+                }
+            }
+
+            fn type_name() -> String {
+                stringify!($type).to_owned()
+            }
+
+            fn array_type() -> ArrayType {
+                ArrayType::$name
+            }
+
+            fn column_type() -> ColumnType {
+                use ColumnType::*;
+                $col_type
+            }
+        }
+    };
+}
+
 type_to_value!(bool, Bool, Boolean);
 type_to_value!(i8, TinyInt, TinyInteger);
 type_to_value!(i16, SmallInt, SmallInteger);
@@ -839,7 +888,7 @@ mod with_rust_decimal {
 mod with_bigdecimal {
     use super::*;
 
-    type_to_value!(BigDecimal, BigDecimal, Decimal(None));
+    type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 }
 
 #[cfg(feature = "with-uuid")]
@@ -1636,7 +1685,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(Some(v)) => {
             use bigdecimal::ToPrimitive;
-            v.to_f64().unwrap().into()
+            v.as_ref().to_f64().unwrap().into()
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),

@@ -102,7 +102,7 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => {
                 use bigdecimal::ToPrimitive;
-                v.as_ref()
+                v.as_deref()
                     .map(|v| v.to_f64().expect("Fail to convert bigdecimal as f64"))
                     .to_sql(ty, out)
             }
