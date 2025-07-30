@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    ColumnDef, Expr, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
-    index::*, types::*,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
+    index::*, table::constraint::Check, types::*,
 };
 
 /// Create a table
@@ -88,7 +88,7 @@ pub struct TableCreateStatement {
     pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
-    pub(crate) check: Vec<Expr>,
+    pub(crate) check: Vec<Check>,
     pub(crate) comment: Option<String>,
     pub(crate) extra: Option<String>,
     pub(crate) temporary: bool,
@@ -146,8 +146,11 @@ impl TableCreateStatement {
         self
     }
 
-    pub fn check(&mut self, value: Expr) -> &mut Self {
-        self.check.push(value);
+    pub fn check<T>(&mut self, value: T) -> &mut Self
+    where
+        T: Into<Check>,
+    {
+        self.check.push(value.into());
         self
     }
 

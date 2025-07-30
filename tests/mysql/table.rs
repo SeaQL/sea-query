@@ -431,6 +431,24 @@ fn create_with_check_constraint() {
 }
 
 #[test]
+fn create_with_named_check_constraint() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .check(("positive_id", Expr::col(Glyph::Id).gt(10)))
+            )
+            .check(("id_range", Expr::col(Glyph::Id).lt(20)))
+            .check(Expr::col(Glyph::Id).ne(15))
+            .to_string(MysqlQueryBuilder),
+        r"CREATE TABLE `glyph` ( `id` int NOT NULL CONSTRAINT `positive_id` CHECK (`id` > 10), CONSTRAINT `id_range` CHECK (`id` < 20), CHECK (`id` <> 15) )",
+    );
+}
+
+#[test]
 fn alter_with_check_constraint() {
     assert_eq!(
         Table::alter()
@@ -444,5 +462,22 @@ fn alter_with_check_constraint() {
             )
             .to_string(MysqlQueryBuilder),
         r"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CHECK (`aspect` > 100)",
+    );
+}
+
+#[test]
+fn alter_with_named_check_constraint() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .integer()
+                    .not_null()
+                    .default(101)
+                    .check(("positive_aspect", Expr::col(Glyph::Aspect).gt(100)))
+            )
+            .to_string(MysqlQueryBuilder),
+        r#"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CONSTRAINT `positive_aspect` CHECK (`aspect` > 100)"#,
     );
 }

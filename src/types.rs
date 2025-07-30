@@ -118,6 +118,12 @@ impl std::fmt::Display for DynIden {
     }
 }
 
+impl From<&'static str> for DynIden {
+    fn from(s: &'static str) -> Self {
+        Self(Cow::Borrowed(s))
+    }
+}
+
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
 }
