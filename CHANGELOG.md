@@ -32,7 +32,10 @@ pub struct SeaRc;                                 // new
 
 ### Breaking Changes
 
+* Unboxed variants of `Value`
+
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
+
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
     |

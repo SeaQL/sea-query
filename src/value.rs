@@ -136,83 +136,83 @@ pub enum Value {
     BigUnsigned(Option<u64>),
     Float(Option<f32>),
     Double(Option<f64>),
-    String(Option<Box<String>>),
+    String(Option<String>),
     Char(Option<char>),
 
     #[allow(clippy::box_collection)]
-    Bytes(Option<Box<Vec<u8>>>),
+    Bytes(Option<Vec<u8>>),
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    Json(Option<Box<Json>>),
+    Json(Option<Json>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDate(Option<Box<NaiveDate>>),
+    ChronoDate(Option<NaiveDate>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoTime(Option<Box<NaiveTime>>),
+    ChronoTime(Option<NaiveTime>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTime(Option<Box<NaiveDateTime>>),
+    ChronoDateTime(Option<NaiveDateTime>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTimeUtc(Option<Box<DateTime<Utc>>>),
+    ChronoDateTimeUtc(Option<DateTime<Utc>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTimeLocal(Option<Box<DateTime<Local>>>),
+    ChronoDateTimeLocal(Option<DateTime<Local>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-    ChronoDateTimeWithTimeZone(Option<Box<DateTime<FixedOffset>>>),
+    ChronoDateTimeWithTimeZone(Option<DateTime<FixedOffset>>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDate(Option<Box<time::Date>>),
+    TimeDate(Option<time::Date>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeTime(Option<Box<time::Time>>),
+    TimeTime(Option<time::Time>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDateTime(Option<Box<PrimitiveDateTime>>),
+    TimeDateTime(Option<PrimitiveDateTime>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-    TimeDateTimeWithTimeZone(Option<Box<OffsetDateTime>>),
+    TimeDateTimeWithTimeZone(Option<OffsetDateTime>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
-    Uuid(Option<Box<Uuid>>),
+    Uuid(Option<Uuid>),
 
     #[cfg(feature = "with-rust_decimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
-    Decimal(Option<Box<Decimal>>),
+    Decimal(Option<Decimal>),
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-    BigDecimal(Option<Box<BigDecimal>>),
+    BigDecimal(Option<BigDecimal>),
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(ArrayType, Option<Box<Vec<Value>>>),
+    Array(ArrayType, Option<Vec<Value>>),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
-    Vector(Option<Box<pgvector::Vector>>),
+    Vector(Option<pgvector::Vector>),
 
     #[cfg(feature = "with-ipnetwork")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
-    IpNetwork(Option<Box<IpNetwork>>),
+    IpNetwork(Option<IpNetwork>),
 
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
-    MacAddress(Option<Box<MacAddress>>),
+    MacAddress(Option<MacAddress>),
 }
 
 impl std::fmt::Display for Value {
@@ -458,20 +458,20 @@ impl Value {
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-            Self::TimeDate(_) => Self::TimeDate(Some(time::Date::MIN.into())),
+            Self::TimeDate(_) => Self::TimeDate(Some(time::Date::MIN)),
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-            Self::TimeTime(_) => Self::TimeTime(Some(time::Time::MIDNIGHT.into())),
+            Self::TimeTime(_) => Self::TimeTime(Some(time::Time::MIDNIGHT)),
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-            Self::TimeDateTime(_) => Self::TimeDateTime(Some(PrimitiveDateTime::MIN.into())),
+            Self::TimeDateTime(_) => Self::TimeDateTime(Some(PrimitiveDateTime::MIN)),
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
             Self::TimeDateTimeWithTimeZone(_) => {
-                Self::TimeDateTimeWithTimeZone(Some(OffsetDateTime::UNIX_EPOCH.into()))
+                Self::TimeDateTimeWithTimeZone(Some(OffsetDateTime::UNIX_EPOCH))
             }
 
             #[cfg(feature = "with-uuid")]
@@ -492,11 +492,11 @@ impl Value {
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
-            Self::Vector(_) => Self::Vector(Some(Box::new(vec![].into()))),
+            Self::Vector(_) => Self::Vector(Some(vec![].into())),
 
             #[cfg(feature = "with-ipnetwork")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
-            Self::IpNetwork(_) => Self::IpNetwork(Some(Box::new("0.0.0.0".parse().unwrap()))),
+            Self::IpNetwork(_) => Self::IpNetwork(Some("0.0.0.0".parse().unwrap())),
 
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
@@ -543,44 +543,6 @@ macro_rules! type_to_value {
     };
 }
 
-macro_rules! type_to_box_value {
-    ( $type: ty, $name: ident, $col_type: expr ) => {
-        impl From<$type> for Value {
-            fn from(x: $type) -> Value {
-                Value::$name(Some(Box::new(x)))
-            }
-        }
-
-        impl Nullable for $type {
-            fn null() -> Value {
-                Value::$name(None)
-            }
-        }
-
-        impl ValueType for $type {
-            fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-                match v {
-                    Value::$name(Some(x)) => Ok(*x),
-                    _ => Err(ValueTypeErr),
-                }
-            }
-
-            fn type_name() -> String {
-                stringify!($type).to_owned()
-            }
-
-            fn array_type() -> ArrayType {
-                ArrayType::$name
-            }
-
-            fn column_type() -> ColumnType {
-                use ColumnType::*;
-                $col_type
-            }
-        }
-    };
-}
-
 type_to_value!(bool, Bool, Boolean);
 type_to_value!(i8, TinyInt, TinyInteger);
 type_to_value!(i16, SmallInt, SmallInteger);
@@ -596,21 +558,19 @@ type_to_value!(char, Char, Char(None));
 
 impl From<&[u8]> for Value {
     fn from(x: &[u8]) -> Value {
-        Value::Bytes(Some(Box::<Vec<u8>>::new(x.into())))
+        Value::Bytes(Some(x.into()))
     }
 }
 
 impl From<&str> for Value {
     fn from(x: &str) -> Value {
-        let string: String = x.into();
-        Value::String(Some(Box::new(string)))
+        Value::String(Some(x.to_owned()))
     }
 }
 
 impl From<&String> for Value {
     fn from(x: &String) -> Value {
-        let string: String = x.into();
-        Value::String(Some(Box::new(string)))
+        Value::String(Some(x.clone()))
     }
 }
 
@@ -666,7 +626,7 @@ impl From<Cow<'_, str>> for Value {
 impl ValueType for Cow<'_, str> {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
-            Value::String(Some(x)) => Ok((*x).into()),
+            Value::String(Some(x)) => Ok((x).into()),
             _ => Err(ValueTypeErr),
         }
     }
@@ -684,15 +644,15 @@ impl ValueType for Cow<'_, str> {
     }
 }
 
-type_to_box_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
-type_to_box_value!(String, String, String(StringLen::None));
+type_to_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
+type_to_value!(String, String, String(StringLen::None));
 
 #[cfg(feature = "with-json")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
 mod with_json {
     use super::*;
 
-    type_to_box_value!(Json, Json, Json);
+    type_to_value!(Json, Json, Json);
 }
 
 #[cfg(feature = "with-chrono")]
@@ -701,19 +661,19 @@ mod with_chrono {
     use super::*;
     use chrono::{Local, Offset, Utc};
 
-    type_to_box_value!(NaiveDate, ChronoDate, Date);
-    type_to_box_value!(NaiveTime, ChronoTime, Time);
-    type_to_box_value!(NaiveDateTime, ChronoDateTime, DateTime);
+    type_to_value!(NaiveDate, ChronoDate, Date);
+    type_to_value!(NaiveTime, ChronoTime, Time);
+    type_to_value!(NaiveDateTime, ChronoDateTime, DateTime);
 
     impl From<DateTime<Utc>> for Value {
         fn from(v: DateTime<Utc>) -> Value {
-            Value::ChronoDateTimeUtc(Some(Box::new(v)))
+            Value::ChronoDateTimeUtc(Some(v))
         }
     }
 
     impl From<DateTime<Local>> for Value {
         fn from(v: DateTime<Local>) -> Value {
-            Value::ChronoDateTimeLocal(Some(Box::new(v)))
+            Value::ChronoDateTimeLocal(Some(v))
         }
     }
 
@@ -721,7 +681,7 @@ mod with_chrono {
         fn from(x: DateTime<FixedOffset>) -> Value {
             let v =
                 DateTime::<FixedOffset>::from_naive_utc_and_offset(x.naive_utc(), x.offset().fix());
-            Value::ChronoDateTimeWithTimeZone(Some(Box::new(v)))
+            Value::ChronoDateTimeWithTimeZone(Some(v))
         }
     }
 
@@ -734,7 +694,7 @@ mod with_chrono {
     impl ValueType for DateTime<Utc> {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::ChronoDateTimeUtc(Some(x)) => Ok(*x),
+                Value::ChronoDateTimeUtc(Some(x)) => Ok(x),
                 _ => Err(ValueTypeErr),
             }
         }
@@ -761,7 +721,7 @@ mod with_chrono {
     impl ValueType for DateTime<Local> {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::ChronoDateTimeLocal(Some(x)) => Ok(*x),
+                Value::ChronoDateTimeLocal(Some(x)) => Ok(x),
                 _ => Err(ValueTypeErr),
             }
         }
@@ -788,7 +748,7 @@ mod with_chrono {
     impl ValueType for DateTime<FixedOffset> {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::ChronoDateTimeWithTimeZone(Some(x)) => Ok(*x),
+                Value::ChronoDateTimeWithTimeZone(Some(x)) => Ok(x),
                 _ => Err(ValueTypeErr),
             }
         }
@@ -828,13 +788,13 @@ pub mod time_format {
 mod with_time {
     use super::*;
 
-    type_to_box_value!(time::Date, TimeDate, Date);
-    type_to_box_value!(time::Time, TimeTime, Time);
-    type_to_box_value!(PrimitiveDateTime, TimeDateTime, DateTime);
+    type_to_value!(time::Date, TimeDate, Date);
+    type_to_value!(time::Time, TimeTime, Time);
+    type_to_value!(PrimitiveDateTime, TimeDateTime, DateTime);
 
     impl From<OffsetDateTime> for Value {
         fn from(v: OffsetDateTime) -> Value {
-            Value::TimeDateTimeWithTimeZone(Some(Box::new(v)))
+            Value::TimeDateTimeWithTimeZone(Some(v))
         }
     }
 
@@ -847,7 +807,7 @@ mod with_time {
     impl ValueType for OffsetDateTime {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::TimeDateTimeWithTimeZone(Some(x)) => Ok(*x),
+                Value::TimeDateTimeWithTimeZone(Some(x)) => Ok(x),
                 _ => Err(ValueTypeErr),
             }
         }
@@ -871,7 +831,7 @@ mod with_time {
 mod with_rust_decimal {
     use super::*;
 
-    type_to_box_value!(Decimal, Decimal, Decimal(None));
+    type_to_value!(Decimal, Decimal, Decimal(None));
 }
 
 #[cfg(feature = "with-bigdecimal")]
@@ -879,7 +839,7 @@ mod with_rust_decimal {
 mod with_bigdecimal {
     use super::*;
 
-    type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
+    type_to_value!(BigDecimal, BigDecimal, Decimal(None));
 }
 
 #[cfg(feature = "with-uuid")]
@@ -887,13 +847,13 @@ mod with_bigdecimal {
 mod with_uuid {
     use super::*;
 
-    type_to_box_value!(Uuid, Uuid, Uuid);
+    type_to_value!(Uuid, Uuid, Uuid);
 
     macro_rules! fmt_uuid_to_box_value {
         ( $type: ty, $conversion_fn: ident ) => {
             impl From<$type> for Value {
                 fn from(x: $type) -> Value {
-                    Value::Uuid(Some(Box::new(x.into_uuid())))
+                    Value::Uuid(Some(x.into_uuid()))
                 }
             }
 
@@ -937,7 +897,7 @@ mod with_uuid {
 mod with_ipnetwork {
     use super::*;
 
-    type_to_box_value!(IpNetwork, IpNetwork, Inet);
+    type_to_value!(IpNetwork, IpNetwork, Inet);
 }
 
 #[cfg(feature = "with-mac_address")]
@@ -945,7 +905,7 @@ mod with_ipnetwork {
 mod with_mac_address {
     use super::*;
 
-    type_to_box_value!(MacAddress, MacAddress, MacAddr);
+    type_to_value!(MacAddress, MacAddress, MacAddr);
 }
 
 #[cfg(feature = "postgres-array")]
@@ -1036,7 +996,7 @@ pub mod with_array {
         fn from(x: Vec<T>) -> Value {
             Value::Array(
                 T::array_type(),
-                Some(Box::new(x.into_iter().map(|e| e.into()).collect())),
+                Some(x.into_iter().map(|e| e.into()).collect()),
             )
         }
     }
@@ -1085,7 +1045,7 @@ pub mod with_vector {
 
     impl From<pgvector::Vector> for Value {
         fn from(x: pgvector::Vector) -> Value {
-            Value::Vector(Some(Box::new(x)))
+            Value::Vector(Some(x))
         }
     }
 
@@ -1098,7 +1058,7 @@ pub mod with_vector {
     impl ValueType for pgvector::Vector {
         fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
             match v {
-                Value::Vector(Some(x)) => Ok(*x),
+                Value::Vector(Some(x)) => Ok(x),
                 _ => Err(ValueTypeErr),
             }
         }
@@ -1121,7 +1081,7 @@ pub mod with_vector {
 macro_rules! box_to_opt_ref {
     ( $v: expr ) => {
         match $v {
-            Some(v) => Some(v.as_ref()),
+            Some(v) => Some(v),
             None => None,
         }
     };
@@ -1400,7 +1360,7 @@ impl Value {
 
     pub fn as_ipaddr(&self) -> Option<IpAddr> {
         match self {
-            Self::IpNetwork(v) => v.clone().map(|v| v.network()),
+            Self::IpNetwork(v) => v.as_ref().map(|v| v.network()),
             _ => panic!("not Value::IpNetwork"),
         }
     }
@@ -1644,10 +1604,10 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigUnsigned(Some(v)) => (*v).into(),
         Value::Float(Some(v)) => (*v).into(),
         Value::Double(Some(v)) => (*v).into(),
-        Value::String(Some(s)) => Json::String(s.as_ref().clone()),
+        Value::String(Some(s)) => Json::String(s.clone()),
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
-        Value::Json(Some(v)) => v.as_ref().clone(),
+        Value::Json(Some(v)) => v.clone(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
@@ -1671,19 +1631,17 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;
-            v.as_ref().to_f64().unwrap().into()
+            v.to_f64().unwrap().into()
         }
         #[cfg(feature = "with-bigdecimal")]
         Value::BigDecimal(Some(v)) => {
             use bigdecimal::ToPrimitive;
-            v.as_ref().to_f64().unwrap().into()
+            v.to_f64().unwrap().into()
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
-        Value::Array(_, Some(v)) => {
-            Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
-        }
+        Value::Array(_, Some(v)) => Json::Array(v.iter().map(sea_value_to_json_value).collect()),
         #[cfg(feature = "postgres-vector")]
         Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]
@@ -1791,21 +1749,18 @@ mod tests {
         );
         assert_eq!(
             "b".into_value_tuple(),
-            ValueTuple::One(Value::String(Some(Box::new("b".to_owned()))))
+            ValueTuple::One(Value::String(Some("b".to_owned())))
         );
         assert_eq!(
             (1i32, "b").into_value_tuple(),
-            ValueTuple::Two(
-                Value::Int(Some(1)),
-                Value::String(Some(Box::new("b".to_owned())))
-            )
+            ValueTuple::Two(Value::Int(Some(1)), Value::String(Some("b".to_owned())))
         );
         assert_eq!(
             (1i32, 2.4f64, "b").into_value_tuple(),
             ValueTuple::Three(
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
-                Value::String(Some(Box::new("b".to_owned())))
+                Value::String(Some("b".to_owned()))
             )
         );
         assert_eq!(
@@ -1813,7 +1768,7 @@ mod tests {
             ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
-                Value::String(Some(Box::new("b".to_owned()))),
+                Value::String(Some("b".to_owned())),
                 Value::TinyUnsigned(Some(123))
             ])
         );
@@ -1822,7 +1777,7 @@ mod tests {
             ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
-                Value::String(Some(Box::new("b".to_owned()))),
+                Value::String(Some("b".to_owned())),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456))
             ])
@@ -1832,7 +1787,7 @@ mod tests {
             ValueTuple::Many(vec![
                 Value::Int(Some(1)),
                 Value::Double(Some(2.4)),
-                Value::String(Some(Box::new("b".to_owned()))),
+                Value::String(Some("b".to_owned())),
                 Value::TinyUnsigned(Some(123)),
                 Value::SmallUnsigned(Some(456)),
                 Value::Unsigned(Some(789))
@@ -1893,19 +1848,13 @@ mod tests {
         let mut iter = (1i32, 2.4f64, "b").into_value_tuple().into_iter();
         assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
         assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-        assert_eq!(
-            iter.next().unwrap(),
-            Value::String(Some(Box::new("b".to_owned())))
-        );
+        assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
         assert_eq!(iter.next(), None);
 
         let mut iter = (1i32, 2.4f64, "b", 123u8).into_value_tuple().into_iter();
         assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
         assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-        assert_eq!(
-            iter.next().unwrap(),
-            Value::String(Some(Box::new("b".to_owned())))
-        );
+        assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
         assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
         assert_eq!(iter.next(), None);
 
@@ -1914,10 +1863,7 @@ mod tests {
             .into_iter();
         assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
         assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-        assert_eq!(
-            iter.next().unwrap(),
-            Value::String(Some(Box::new("b".to_owned())))
-        );
+        assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
         assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
         assert_eq!(iter.next().unwrap(), Value::SmallUnsigned(Some(456)));
         assert_eq!(iter.next(), None);
@@ -1927,10 +1873,7 @@ mod tests {
             .into_iter();
         assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
         assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-        assert_eq!(
-            iter.next().unwrap(),
-            Value::String(Some(Box::new("b".to_owned())))
-        );
+        assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
         assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
         assert_eq!(iter.next().unwrap(), Value::SmallUnsigned(Some(456)));
         assert_eq!(iter.next().unwrap(), Value::Unsigned(Some(789)));
@@ -2339,7 +2282,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "with-json")]
-    fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
+    fn hash_json<H: Hasher>(v: &Option<Json>, state: &mut H) {
         match v {
             Some(v) => serde_json::to_string(v).unwrap().hash(state),
             None => "null".hash(state),
@@ -2347,7 +2290,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "with-json")]
-    fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
+    fn cmp_json(l: &Option<Json>, r: &Option<Json>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => serde_json::to_string(l)
                 .unwrap()
@@ -2358,7 +2301,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "postgres-vector")]
-    fn hash_vector<H: Hasher>(v: &Option<Box<pgvector::Vector>>, state: &mut H) {
+    fn hash_vector<H: Hasher>(v: &Option<pgvector::Vector>, state: &mut H) {
         match v {
             Some(v) => {
                 for &value in v.as_slice().iter() {
@@ -2370,7 +2313,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "postgres-vector")]
-    fn cmp_vector(l: &Option<Box<pgvector::Vector>>, r: &Option<Box<pgvector::Vector>>) -> bool {
+    fn cmp_vector(l: &Option<pgvector::Vector>, r: &Option<pgvector::Vector>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => {
                 let (l, r) = (l.as_slice(), r.as_slice());
@@ -2460,11 +2403,13 @@ mod hashable_value {
             Into::<Value>::into(vec![0i32, 1, 2]),
             Value::Array(
                 ArrayType::Int,
-                Some(Box::new(vec![
-                    Value::Int(Some(0)),
-                    Value::Int(Some(1)),
-                    Value::Int(Some(2))
-                ]))
+                Some(
+                    (vec![
+                        Value::Int(Some(0)),
+                        Value::Int(Some(1)),
+                        Value::Int(Some(2))
+                    ])
+                )
             )
         );
 
@@ -2472,11 +2417,13 @@ mod hashable_value {
             Into::<Value>::into(vec![0f32, 1.0, 2.0]),
             Value::Array(
                 ArrayType::Float,
-                Some(Box::new(vec![
-                    Value::Float(Some(0f32)),
-                    Value::Float(Some(1.0)),
-                    Value::Float(Some(2.0))
-                ]))
+                Some(
+                    (vec![
+                        Value::Float(Some(0f32)),
+                        Value::Float(Some(1.0)),
+                        Value::Float(Some(2.0))
+                    ])
+                )
             )
         );
 
