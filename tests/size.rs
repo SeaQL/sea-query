@@ -1,11 +1,9 @@
 use sea_query::Value;
 
-/// If this check fails, you need to run `benches/value.rs`
-/// and see if the increased `Value` size hurts performance.
+/// This test is to check if the size of [`Value`] exceeds the limit.
+/// If the size exceeds the limit, you should try boxing the variant, update and run the benchmark of [`Value`] to compare performance.
 ///
-/// If it does, box the big variant.
-///
-/// If it doesn't, bump the constant here in the test.
+/// If the boxed variant causes a greater performance loss, update the size limit instead.
 #[test]
 fn value_size() {
     let max = 40;
