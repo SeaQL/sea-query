@@ -200,7 +200,7 @@ pub enum Value {
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(ArrayType, Option<Vec<Value>>),
+    Array(ArrayType, Option<Box<Vec<Value>>>),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -1045,7 +1045,7 @@ pub mod with_array {
         fn from(x: Vec<T>) -> Value {
             Value::Array(
                 T::array_type(),
-                Some(x.into_iter().map(|e| e.into()).collect()),
+                Some(Box::new(x.into_iter().map(|e| e.into()).collect())),
             )
         }
     }
@@ -1690,7 +1690,9 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
         #[cfg(feature = "postgres-array")]
-        Value::Array(_, Some(v)) => Json::Array(v.iter().map(sea_value_to_json_value).collect()),
+        Value::Array(_, Some(v)) => {
+            Json::Array(v.as_ref().iter().map(sea_value_to_json_value).collect())
+        }
         #[cfg(feature = "postgres-vector")]
         Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]
@@ -2458,6 +2460,7 @@ mod hashable_value {
                         Value::Int(Some(1)),
                         Value::Int(Some(2))
                     ])
+                    .into()
                 )
             )
         );
@@ -2472,6 +2475,7 @@ mod hashable_value {
                         Value::Float(Some(1.0)),
                         Value::Float(Some(2.0))
                     ])
+                    .into()
                 )
             )
         );
