@@ -54,7 +54,7 @@ impl ToSql for RusqliteValue {
         macro_rules! box_to_sql {
             ( $v: expr ) => {
                 match $v {
-                    Some(v) => v.as_ref().to_sql(),
+                    Some(v) => v.to_sql(),
                     None => Null.to_sql(),
                 }
             };
@@ -81,21 +81,27 @@ impl ToSql for RusqliteValue {
             Value::BigUnsigned(v) => v.to_sql(),
             Value::Float(v) => v.to_sql(),
             Value::Double(v) => v.to_sql(),
-            Value::String(v) => box_to_sql!(v),
+            Value::String(v) => match v {
+                Some(v) => v.as_str().to_sql(),
+                None => Null.to_sql(),
+            },
             Value::Char(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
-            Value::Bytes(v) => box_to_sql!(v),
+            Value::Bytes(v) => match v {
+                Some(v) => v.as_slice().to_sql(),
+                None => Null.to_sql(),
+            },
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(v) => box_to_sql!(v),
+            Value::ChronoDate(v) => v.to_sql(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(v) => box_to_sql!(v),
+            Value::ChronoTime(v) => v.to_sql(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(v) => box_to_sql!(v),
+            Value::ChronoDateTime(v) => v.to_sql(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(v) => box_to_sql!(v),
+            Value::ChronoDateTimeUtc(v) => v.to_sql(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(v) => box_to_sql!(v),
+            Value::ChronoDateTimeLocal(v) => v.to_sql(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(v) => box_to_sql!(v),
+            Value::ChronoDateTimeWithTimeZone(v) => v.to_sql(),
             #[cfg(feature = "with-time")]
             v @ Value::TimeDate(_) => opt_string_to_sql!(v.time_as_naive_utc_in_string()),
             #[cfg(feature = "with-time")]
@@ -107,7 +113,7 @@ impl ToSql for RusqliteValue {
                 opt_string_to_sql!(v.time_as_naive_utc_in_string())
             }
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(v) => box_to_sql!(v),
+            Value::Uuid(v) => v.to_sql(),
             #[cfg(feature = "with-json")]
             Value::Json(j) => box_to_sql!(j),
             #[cfg(feature = "with-rust_decimal")]

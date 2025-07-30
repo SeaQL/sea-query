@@ -67,67 +67,67 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
-                    let _ = args.add(d.as_deref());
+                    let _ = args.add(d);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
-                    let _ = args.add(uuid.as_deref());
+                    let _ = args.add(uuid);
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(d) => {
-                    let _ = args.add(d.as_deref());
+                    let _ = args.add(d);
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(d) => {
-                    let _ = args.add(d.as_deref());
+                    let _ = args.add(d);
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
-                    let _ = args.add(j.as_deref());
+                    let _ = args.add(j);
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(ip) => {
-                    let _ = args.add(ip.as_deref());
+                    let _ = args.add(ip);
                 }
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(mac) => {
-                    let _ = args.add(mac.as_deref());
+                    let _ = args.add(mac);
                 }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(ty, v) => match ty {
@@ -316,7 +316,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 },
                 #[cfg(feature = "postgres-vector")]
                 Value::Vector(v) => {
-                    let _ = args.add(v.as_deref());
+                    let _ = args.add(v);
                 }
             }
         }

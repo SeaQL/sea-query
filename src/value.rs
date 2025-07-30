@@ -2282,7 +2282,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "with-json")]
-    fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
+    fn hash_json<H: Hasher>(v: &Option<Json>, state: &mut H) {
         match v {
             Some(v) => serde_json::to_string(v).unwrap().hash(state),
             None => "null".hash(state),
@@ -2290,7 +2290,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "with-json")]
-    fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
+    fn cmp_json(l: &Option<Json>, r: &Option<Json>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => serde_json::to_string(l)
                 .unwrap()
@@ -2301,7 +2301,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "postgres-vector")]
-    fn hash_vector<H: Hasher>(v: &Option<Box<pgvector::Vector>>, state: &mut H) {
+    fn hash_vector<H: Hasher>(v: &Option<pgvector::Vector>, state: &mut H) {
         match v {
             Some(v) => {
                 for &value in v.as_slice().iter() {
@@ -2313,7 +2313,7 @@ mod hashable_value {
     }
 
     #[cfg(feature = "postgres-vector")]
-    fn cmp_vector(l: &Option<Box<pgvector::Vector>>, r: &Option<Box<pgvector::Vector>>) -> bool {
+    fn cmp_vector(l: &Option<pgvector::Vector>, r: &Option<pgvector::Vector>) -> bool {
         match (l, r) {
             (Some(l), Some(r)) => {
                 let (l, r) = (l.as_slice(), r.as_slice());
