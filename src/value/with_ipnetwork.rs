@@ -2,7 +2,6 @@ use super::*;
 
 type_to_value!(IpNetwork, IpNetwork, Inet);
 
-#[cfg(feature = "with-ipnetwork")]
 impl Value {
     pub fn is_ipnetwork(&self) -> bool {
         matches!(self, Self::IpNetwork(_))
