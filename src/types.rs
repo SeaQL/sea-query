@@ -454,12 +454,12 @@ impl From<(u8, u8)> for Quote {
     }
 }
 
-impl<T: 'static> IntoIden for T
+impl<T> IntoIden for T
 where
     T: Iden,
 {
     fn into_iden(self) -> DynIden {
-        SeaRc::new(self)
+        DynIden(self.quoted())
     }
 }
 
@@ -511,7 +511,7 @@ impl IntoColumnRef for ColumnRef {
     }
 }
 
-impl<T: 'static> IntoColumnRef for T
+impl<T> IntoColumnRef for T
 where
     T: IntoIden,
 {
@@ -526,7 +526,7 @@ impl IntoColumnRef for Asterisk {
     }
 }
 
-impl<S: 'static, T: 'static> IntoColumnRef for (S, T)
+impl<S, T> IntoColumnRef for (S, T)
 where
     S: IntoIden,
     T: IntoIden,
@@ -536,7 +536,7 @@ where
     }
 }
 
-impl<T: 'static> IntoColumnRef for (T, Asterisk)
+impl<T> IntoColumnRef for (T, Asterisk)
 where
     T: IntoIden,
 {
@@ -545,7 +545,7 @@ where
     }
 }
 
-impl<S: 'static, T: 'static, U: 'static> IntoColumnRef for (S, T, U)
+impl<S, T, U> IntoColumnRef for (S, T, U)
 where
     S: IntoIden,
     T: IntoIden,
@@ -562,7 +562,7 @@ impl IntoTableRef for TableRef {
     }
 }
 
-impl<T: 'static> IntoTableRef for T
+impl<T> IntoTableRef for T
 where
     T: IntoIden,
 {
@@ -571,7 +571,7 @@ where
     }
 }
 
-impl<S: 'static, T: 'static> IntoTableRef for (S, T)
+impl<S, T> IntoTableRef for (S, T)
 where
     S: IntoIden,
     T: IntoIden,
@@ -581,7 +581,7 @@ where
     }
 }
 
-impl<S: 'static, T: 'static, U: 'static> IntoTableRef for (S, T, U)
+impl<S, T, U> IntoTableRef for (S, T, U)
 where
     S: IntoIden,
     T: IntoIden,

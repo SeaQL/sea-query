@@ -264,10 +264,7 @@ impl TypeDropStatement {
     /// assert_eq!(
     ///     Type::drop()
     ///         .if_exists()
-    ///         .names([
-    ///             SeaRc::new(KycStatus::Type) as DynIden,
-    ///             SeaRc::new(FontFamily::Type) as DynIden,
-    ///         ])
+    ///         .names([KycStatus::Type.into_iden(), FontFamily::Type.into_iden()])
     ///         .cascade()
     ///         .to_string(PostgresQueryBuilder),
     ///     r#"DROP TYPE IF EXISTS "kyc_status", "font_family" CASCADE"#
