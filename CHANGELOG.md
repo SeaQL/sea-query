@@ -132,6 +132,10 @@ impl Iden for Glyph {
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
 
+### Bug Fixes
+
+* Add missing parenthesis to the window definition https://github.com/SeaQL/sea-query/pull/919
+
 ### Upgrades
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
