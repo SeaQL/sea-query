@@ -88,7 +88,7 @@ pub mod with_array;
 
 #[cfg(feature = "postgres-vector")]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
-pub mod with_vector;
+mod with_pgvector;
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
