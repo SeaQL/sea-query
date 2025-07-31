@@ -253,11 +253,11 @@ pub enum Value {
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-    BigDecimal(Option<BigDecimal>),
+    BigDecimal(Option<Box<BigDecimal>>),
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(ArrayType, Option<Vec<Value>>),
+    Array(ArrayType, Option<Box<Vec<Value>>>),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -270,6 +270,19 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<MacAddress>),
+}
+
+/// This test is to check if the size of [`Value`] exceeds the limit.
+/// If the size exceeds the limit, you should box the variant.
+/// Previously, the size was 24. We bumped it to 32 such that `String`
+/// can be unboxed.
+pub const VALUE_SIZE: usize = check_value_size();
+
+const fn check_value_size() -> usize {
+    if std::mem::size_of::<Value>() > 32 {
+        panic!("the size of Value shouldn't be greater than 32 bytes")
+    }
+    std::mem::size_of::<Value>()
 }
 
 impl Value {
@@ -698,3 +711,43 @@ type_to_value!(f64, Double, Double);
 type_to_value!(char, Char, Char(None));
 type_to_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
 type_to_value!(String, String, String(StringLen::None));
+
+#[cfg(feature = "with-bigdecimal")]
+macro_rules! type_to_box_value {
+    ( $type: ty, $name: ident, $col_type: expr ) => {
+        impl From<$type> for Value {
+            fn from(x: $type) -> Value {
+                Value::$name(Some(Box::new(x)))
+            }
+        }
+
+        impl Nullable for $type {
+            fn null() -> Value {
+                Value::$name(None)
+            }
+        }
+
+        impl ValueType for $type {
+            fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                match v {
+                    Value::$name(Some(x)) => Ok(*x),
+                    _ => Err(ValueTypeErr),
+                }
+            }
+
+            fn type_name() -> String {
+                stringify!($type).to_owned()
+            }
+
+            fn array_type() -> ArrayType {
+                ArrayType::$name
+            }
+
+            fn column_type() -> ColumnType {
+                use ColumnType::*;
+                $col_type
+            }
+        }
+    };
+}
+use type_to_box_value;
