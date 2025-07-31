@@ -1,7 +1,7 @@
 #[cfg(feature = "with-bigdecimal")]
 use bigdecimal::BigDecimal;
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 #[cfg(feature = "with-ipnetwork")]
 use ipnetwork::IpNetwork;
 #[cfg(feature = "with-mac_address")]
@@ -247,7 +247,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     }
                     #[cfg(feature = "with-chrono")]
                     ArrayType::ChronoDateTimeWithTimeZone => {
-                        let value: Option<Vec<DateTime<Local>>> = Value::Array(ty, v).expect(
+                        let value: Option<Vec<DateTime<FixedOffset>>> = Value::Array(ty, v).expect(
                             "This Value::Array should consist of Value::ChronoDateTimeWithTimeZone",
                         );
                         let _ = args.add(value);
