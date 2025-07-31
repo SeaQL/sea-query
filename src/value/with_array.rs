@@ -83,7 +83,7 @@ where
     fn from(x: Vec<T>) -> Value {
         Value::Array(
             T::array_type(),
-            Some(x.into_iter().map(|e| e.into()).collect()),
+            Some(Box::new(x.into_iter().map(|e| e.into()).collect())),
         )
     }
 }
@@ -131,7 +131,7 @@ impl Value {
 
     pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
         match self {
-            Self::Array(_, v) => v.as_ref(),
+            Self::Array(_, v) => v.as_ref().map(|v| v.as_ref()),
             _ => panic!("not Value::Array"),
         }
     }

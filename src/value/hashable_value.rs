@@ -230,118 +230,120 @@ fn cmp_vector(l: &Option<pgvector::Vector>, r: &Option<pgvector::Vector>) -> boo
     }
 }
 
-#[test]
-fn test_hash_value_0() {
-    let hash_set: std::collections::HashSet<Value> = [
-        Value::Int(None),
-        Value::Int(None),
-        Value::BigInt(None),
-        Value::BigInt(None),
-        Value::Float(None),
-        Value::Float(None),                // Null is not NaN
-        Value::Float(Some(std::f32::NAN)), // NaN considered equal
-        Value::Float(Some(std::f32::NAN)),
-        Value::Double(None),
-        Value::Double(None),
-        Value::Double(Some(std::f64::NAN)),
-        Value::Double(Some(std::f64::NAN)),
-    ]
-    .into_iter()
-    .collect();
+#[cfg(test)]
+mod tests {
+    use crate::Value;
+    #[test]
+    fn test_hash_value_0() {
+        let hash_set: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::Int(None),
+            Value::BigInt(None),
+            Value::BigInt(None),
+            Value::Float(None),
+            Value::Float(None),           // Null is not NaN
+            Value::Float(Some(f32::NAN)), // NaN considered equal
+            Value::Float(Some(f32::NAN)),
+            Value::Double(None),
+            Value::Double(None),
+            Value::Double(Some(f64::NAN)),
+            Value::Double(Some(f64::NAN)),
+        ]
+        .into_iter()
+        .collect();
 
-    let unique: std::collections::HashSet<Value> = [
-        Value::Int(None),
-        Value::BigInt(None),
-        Value::Float(None),
-        Value::Double(None),
-        Value::Float(Some(std::f32::NAN)),
-        Value::Double(Some(std::f64::NAN)),
-    ]
-    .into_iter()
-    .collect();
+        let unique: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::BigInt(None),
+            Value::Float(None),
+            Value::Double(None),
+            Value::Float(Some(f32::NAN)),
+            Value::Double(Some(f64::NAN)),
+        ]
+        .into_iter()
+        .collect();
 
-    assert_eq!(hash_set, unique);
-}
+        assert_eq!(hash_set, unique);
+    }
 
-#[test]
-fn test_hash_value_1() {
-    let hash_set: std::collections::HashSet<Value> = [
-        Value::Int(None),
-        Value::Int(Some(1)),
-        Value::Int(Some(1)),
-        Value::BigInt(Some(2)),
-        Value::BigInt(Some(2)),
-        Value::Float(Some(3.0)),
-        Value::Float(Some(3.0)),
-        Value::Double(Some(3.0)),
-        Value::Double(Some(3.0)),
-        Value::BigInt(Some(5)),
-    ]
-    .into_iter()
-    .collect();
+    #[test]
+    fn test_hash_value_1() {
+        let hash_set: std::collections::HashSet<Value> = [
+            Value::Int(None),
+            Value::Int(Some(1)),
+            Value::Int(Some(1)),
+            Value::BigInt(Some(2)),
+            Value::BigInt(Some(2)),
+            Value::Float(Some(3.0)),
+            Value::Float(Some(3.0)),
+            Value::Double(Some(3.0)),
+            Value::Double(Some(3.0)),
+            Value::BigInt(Some(5)),
+        ]
+        .into_iter()
+        .collect();
 
-    let unique: std::collections::HashSet<Value> = [
-        Value::BigInt(Some(5)),
-        Value::Double(Some(3.0)),
-        Value::Float(Some(3.0)),
-        Value::BigInt(Some(2)),
-        Value::Int(Some(1)),
-        Value::Int(None),
-    ]
-    .into_iter()
-    .collect();
+        let unique: std::collections::HashSet<Value> = [
+            Value::BigInt(Some(5)),
+            Value::Double(Some(3.0)),
+            Value::Float(Some(3.0)),
+            Value::BigInt(Some(2)),
+            Value::Int(Some(1)),
+            Value::Int(None),
+        ]
+        .into_iter()
+        .collect();
 
-    assert_eq!(hash_set, unique);
-}
+        assert_eq!(hash_set, unique);
+    }
 
-#[cfg(feature = "postgres-array")]
-#[test]
-fn test_hash_value_array() {
-    assert_eq!(
-        Into::<Value>::into(vec![0i32, 1, 2]),
-        Value::Array(
-            ArrayType::Int,
-            Some(
-                (vec![
+    #[cfg(feature = "postgres-array")]
+    #[test]
+    fn test_hash_value_array() {
+        use crate::ArrayType;
+
+        assert_eq!(
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Value::Array(
+                ArrayType::Int,
+                Some(Box::new(vec![
                     Value::Int(Some(0)),
                     Value::Int(Some(1)),
                     Value::Int(Some(2))
-                ])
+                ]))
             )
-        )
-    );
+        );
 
-    assert_eq!(
-        Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-        Value::Array(
-            ArrayType::Float,
-            Some(
-                (vec![
+        assert_eq!(
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Value::Array(
+                ArrayType::Float,
+                Some(Box::new(vec![
                     Value::Float(Some(0f32)),
                     Value::Float(Some(1.0)),
                     Value::Float(Some(2.0))
-                ])
+                ]))
             )
-        )
-    );
+        );
 
-    let hash_set: std::collections::HashSet<Value> = [
-        Into::<Value>::into(vec![0i32, 1, 2]),
-        Into::<Value>::into(vec![0i32, 1, 2]),
-        Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-        Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-        Into::<Value>::into(vec![3f32, 2.0, 1.0]),
-    ]
-    .into_iter()
-    .collect();
+        let hash_set: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
+        ]
+        .into_iter()
+        .collect();
 
-    let unique: std::collections::HashSet<Value> = [
-        Into::<Value>::into(vec![0i32, 1, 2]),
-        Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-        Into::<Value>::into(vec![3f32, 2.0, 1.0]),
-    ]
-    .into_iter()
-    .collect();
+        let unique: std::collections::HashSet<Value> = [
+            Into::<Value>::into(vec![0i32, 1, 2]),
+            Into::<Value>::into(vec![0f32, 1.0, 2.0]),
+            Into::<Value>::into(vec![3f32, 2.0, 1.0]),
+        ]
+        .into_iter()
+        .collect();
 
-    assert_eq!(hash_set, unique);
+        assert_eq!(hash_set, unique);
+    }
 }

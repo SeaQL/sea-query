@@ -750,4 +750,5 @@ macro_rules! type_to_box_value {
         }
     };
 }
+#[cfg(feature = "with-bigdecimal")]
 use type_to_box_value;
