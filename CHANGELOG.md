@@ -132,13 +132,16 @@ impl Iden for Glyph {
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
 
-### Bug Fixes
-
-* Add missing parenthesis to the window definition https://github.com/SeaQL/sea-query/pull/919
-
 ### Upgrades
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
+
+## 0.32.7 - pending
+
+### Bug Fixes
+
+* Fix incorrect casting of `ChronoDateTimeWithTimeZone` in `Value::Array` https://github.com/SeaQL/sea-query/pull/933
+* Add missing parenthesis to `WINDOW` clause https://github.com/SeaQL/sea-query/pull/919
 
 ## 0.32.6 - 2025-05-27
 
