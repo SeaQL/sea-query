@@ -215,7 +215,10 @@ pub enum Value {
     MacAddress(Option<MacAddress>),
 }
 
-// compile time value size check
+/// This test is to check if the size of [`Value`] exceeds the limit.
+/// If the size exceeds the limit, you should box the variant.
+/// Previously, the size was 24. We bumped it to 32 such that `String`
+/// can be unboxed.
 pub const VALUE_SIZE: usize = check_value_size();
 
 const fn check_value_size() -> usize {
