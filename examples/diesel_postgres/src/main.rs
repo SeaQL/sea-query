@@ -10,7 +10,8 @@ use ipnetwork::IpNetwork;
 use mac_address::get_mac_address;
 use rust_decimal::Decimal;
 use sea_query::{
-    ColumnDef, ColumnType, Expr, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
+    ColumnDef, ColumnType, Expr, ExprTrait, Func, Iden, OnConflict, Order, PostgresQueryBuilder,
+    Query, Table,
 };
 use sea_query_diesel::DieselBinder;
 use serde_json::{Value as Json, json};
