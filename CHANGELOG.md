@@ -5,11 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 0.32.7 - pending
+
+### Bug Fixes
+
+* Fix incorrect casting of `ChronoDateTimeWithTimeZone` in `Value::Array` https://github.com/SeaQL/sea-query/pull/933
+* Add missing parenthesis to `WINDOW` clause https://github.com/SeaQL/sea-query/pull/919
+
 ## 0.32.6 - 2025-05-27
 
 ### Enhancements
 
-* impl From<Condition> and From<ConditionExpression> for SimpleExpr https://github.com/SeaQL/sea-query/pull/886
+* impl `From<Condition>` and `From<ConditionExpression>` for `SimpleExpr` https://github.com/SeaQL/sea-query/pull/886
 
 ## 0.32.5 - 2025-05-07
 
@@ -236,7 +243,7 @@ assert_eq!(
 
 ### New Features
 
-* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774    
+* Construct Postgres query with vector extension https://github.com/SeaQL/sea-query/pull/774
     * Added `postgres-vector` feature flag
     * Added `Value::Vector`, `ColumnType::Vector`, `ColumnDef::vector()`, `PgBinOper::EuclideanDistance`, `PgBinOper::NegativeInnerProduct` and `PgBinOper::CosineDistance`
     ```rust
@@ -898,7 +905,7 @@ Enum {
 
 ### New Features
 
-* Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455 
+* Added support `DROP COLUMN` for SQLite https://github.com/SeaQL/sea-query/pull/455
 
 ### Bug Fixes
 

@@ -184,8 +184,9 @@ pub trait QueryBuilder:
         if let Some((name, query)) = &select.window {
             write!(sql, " WINDOW ").unwrap();
             name.prepare(sql.as_writer(), self.quote());
-            write!(sql, " AS ").unwrap();
+            write!(sql, " AS (").unwrap();
             self.prepare_window_statement(query, sql);
+            write!(sql, ")").unwrap();
         }
     }
 
