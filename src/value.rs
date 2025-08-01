@@ -504,7 +504,7 @@ impl Value {
             Self::IpNetwork(_) => Self::IpNetwork(Some(
                 "0.0.0.0"
                     .parse()
-                    .expect("0.0.0.0 should be a valid ip network"),
+                    .expect("0.0.0.0 should be a valid ip address"),
             )),
 
             #[cfg(feature = "with-mac_address")]
