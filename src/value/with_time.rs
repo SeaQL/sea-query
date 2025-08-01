@@ -5,8 +5,8 @@ type_to_value!(time::Time, TimeTime, Time);
 type_to_value!(PrimitiveDateTime, TimeDateTime, DateTime);
 
 impl From<OffsetDateTime> for Value {
-    fn from(v: OffsetDateTime) -> Value {
-        Value::TimeDateTimeWithTimeZone(Some(v))
+    fn from(v: OffsetDateTime) -> Self {
+        Self::TimeDateTimeWithTimeZone(Some(v))
     }
 }
 
@@ -38,7 +38,7 @@ impl ValueType for OffsetDateTime {
 }
 
 impl Value {
-    pub fn is_time_date(&self) -> bool {
+    pub const fn is_time_date(&self) -> bool {
         matches!(self, Self::TimeDate(_))
     }
 
@@ -51,7 +51,7 @@ impl Value {
 }
 
 impl Value {
-    pub fn is_time_time(&self) -> bool {
+    pub const fn is_time_time(&self) -> bool {
         matches!(self, Self::TimeTime(_))
     }
 
@@ -64,7 +64,7 @@ impl Value {
 }
 
 impl Value {
-    pub fn is_time_date_time(&self) -> bool {
+    pub const fn is_time_date_time(&self) -> bool {
         matches!(self, Self::TimeDateTime(_))
     }
 
@@ -77,7 +77,7 @@ impl Value {
 }
 
 impl Value {
-    pub fn is_time_date_time_with_time_zone(&self) -> bool {
+    pub const fn is_time_date_time_with_time_zone(&self) -> bool {
         matches!(self, Self::TimeDateTimeWithTimeZone(_))
     }
 

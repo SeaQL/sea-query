@@ -1,8 +1,8 @@
 use super::*;
 
 impl From<pgvector::Vector> for Value {
-    fn from(x: pgvector::Vector) -> Value {
-        Value::Vector(Some(x))
+    fn from(x: pgvector::Vector) -> Self {
+        Self::Vector(Some(x))
     }
 }
 

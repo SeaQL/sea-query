@@ -102,7 +102,7 @@ impl InsertStatement {
     /// );
     /// ```
     #[cfg(any(feature = "backend-sqlite", feature = "backend-mysql"))]
-    pub fn replace(&mut self) -> &mut Self {
+    pub const fn replace(&mut self) -> &mut Self {
         self.replace = true;
         self
     }
@@ -627,7 +627,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
     /// );
     /// ```
-    pub fn or_default_values(&mut self) -> &mut Self {
+    pub const fn or_default_values(&mut self) -> &mut Self {
         self.default_values = Some(1);
         self
     }
@@ -679,7 +679,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") VALUES ('ABC')"#
     /// );
     /// ```
-    pub fn or_default_values_many(&mut self, num_rows: u32) -> &mut Self {
+    pub const fn or_default_values_many(&mut self, num_rows: u32) -> &mut Self {
         self.default_values = Some(num_rows);
         self
     }

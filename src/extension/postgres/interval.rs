@@ -6,19 +6,19 @@ use crate::PgInterval;
 impl fmt::Display for PgInterval {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let fields = match self {
-            PgInterval::Year => "YEAR",
-            PgInterval::Month => "MONTH",
-            PgInterval::Day => "DAY",
-            PgInterval::Hour => "HOUR",
-            PgInterval::Minute => "MINUTE",
-            PgInterval::Second => "SECOND",
-            PgInterval::YearToMonth => "YEAR TO MONTH",
-            PgInterval::DayToHour => "DAY TO HOUR",
-            PgInterval::DayToMinute => "DAY TO MINUTE",
-            PgInterval::DayToSecond => "DAY TO SECOND",
-            PgInterval::HourToMinute => "HOUR TO MINUTE",
-            PgInterval::HourToSecond => "HOUR TO SECOND",
-            PgInterval::MinuteToSecond => "MINUTE TO SECOND",
+            Self::Year => "YEAR",
+            Self::Month => "MONTH",
+            Self::Day => "DAY",
+            Self::Hour => "HOUR",
+            Self::Minute => "MINUTE",
+            Self::Second => "SECOND",
+            Self::YearToMonth => "YEAR TO MONTH",
+            Self::DayToHour => "DAY TO HOUR",
+            Self::DayToMinute => "DAY TO MINUTE",
+            Self::DayToSecond => "DAY TO SECOND",
+            Self::HourToMinute => "HOUR TO MINUTE",
+            Self::HourToSecond => "HOUR TO SECOND",
+            Self::MinuteToSecond => "MINUTE TO SECOND",
         };
         write!(f, "{fields}")
     }
@@ -28,7 +28,7 @@ impl TryFrom<String> for PgInterval {
     type Error = String;
 
     fn try_from(field: String) -> Result<Self, Self::Error> {
-        PgInterval::try_from(field.as_str())
+        Self::try_from(field.as_str())
     }
 }
 
@@ -36,7 +36,7 @@ impl TryFrom<&String> for PgInterval {
     type Error = String;
 
     fn try_from(field: &String) -> Result<Self, Self::Error> {
-        PgInterval::try_from(field.as_str())
+        Self::try_from(field.as_str())
     }
 }
 
@@ -45,19 +45,19 @@ impl TryFrom<&str> for PgInterval {
 
     fn try_from(field: &str) -> Result<Self, Self::Error> {
         match field.trim_start().trim_end().to_uppercase().as_ref() {
-            "YEAR" => Ok(PgInterval::Year),
-            "MONTH" => Ok(PgInterval::Month),
-            "DAY" => Ok(PgInterval::Day),
-            "HOUR" => Ok(PgInterval::Hour),
-            "MINUTE" => Ok(PgInterval::Minute),
-            "SECOND" => Ok(PgInterval::Second),
-            "YEAR TO MONTH" => Ok(PgInterval::YearToMonth),
-            "DAY TO HOUR" => Ok(PgInterval::DayToHour),
-            "DAY TO MINUTE" => Ok(PgInterval::DayToMinute),
-            "DAY TO SECOND" => Ok(PgInterval::DayToSecond),
-            "HOUR TO MINUTE" => Ok(PgInterval::HourToMinute),
-            "HOUR TO SECOND" => Ok(PgInterval::HourToSecond),
-            "MINUTE TO SECOND" => Ok(PgInterval::MinuteToSecond),
+            "YEAR" => Ok(Self::Year),
+            "MONTH" => Ok(Self::Month),
+            "DAY" => Ok(Self::Day),
+            "HOUR" => Ok(Self::Hour),
+            "MINUTE" => Ok(Self::Minute),
+            "SECOND" => Ok(Self::Second),
+            "YEAR TO MONTH" => Ok(Self::YearToMonth),
+            "DAY TO HOUR" => Ok(Self::DayToHour),
+            "DAY TO MINUTE" => Ok(Self::DayToMinute),
+            "DAY TO SECOND" => Ok(Self::DayToSecond),
+            "HOUR TO MINUTE" => Ok(Self::HourToMinute),
+            "HOUR TO SECOND" => Ok(Self::HourToSecond),
+            "MINUTE TO SECOND" => Ok(Self::MinuteToSecond),
             field => Err(format!(
                 "Cannot turn \"{field}\" into a Postgres interval field",
             )),

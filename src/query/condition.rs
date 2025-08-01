@@ -27,7 +27,7 @@ pub type Cond = Condition;
 /// in order to accept anything resembling a condition or an expression.
 /// Nowadays, we achieve that with traits.
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) enum ConditionExpression {
+pub enum ConditionExpression {
     Condition(Condition),
     Expr(Expr),
 }
@@ -71,9 +71,9 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add<C>(mut self, condition: C) -> Self
     where
-        C: Into<Condition>,
+        C: Into<Self>,
     {
-        let condition: Condition = condition.into();
+        let condition: Self = condition.into();
         let condition: ConditionExpression = condition.into();
         self.conditions.push(condition);
         self
@@ -106,7 +106,7 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add_option<C>(self, other: Option<C>) -> Self
     where
-        C: Into<Condition>,
+        C: Into<Self>,
     {
         if let Some(other) = other {
             self.add(other)
@@ -137,8 +137,8 @@ impl Condition {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
-    pub fn any() -> Condition {
-        Condition {
+    pub const fn any() -> Self {
+        Self {
             negate: false,
             condition_type: ConditionType::Any,
             conditions: Vec::new(),
@@ -167,8 +167,8 @@ impl Condition {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
-    pub fn all() -> Condition {
-        Condition {
+    pub const fn all() -> Self {
+        Self {
             negate: false,
             condition_type: ConditionType::All,
             conditions: Vec::new(),
@@ -224,7 +224,7 @@ impl Condition {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
-    pub fn not(mut self) -> Self {
+    pub const fn not(mut self) -> Self {
         self.negate = !self.negate;
         self
     }
@@ -280,7 +280,7 @@ impl From<Condition> for Expr {
             }
             out_expr
         } else {
-            Expr::Constant(match cond.condition_type {
+            Self::Constant(match cond.condition_type {
                 ConditionType::Any => false.into(),
                 ConditionType::All => true.into(),
             })
@@ -300,19 +300,19 @@ impl From<ConditionExpression> for Expr {
 
 impl From<Condition> for ConditionExpression {
     fn from(condition: Condition) -> Self {
-        ConditionExpression::Condition(condition)
+        Self::Condition(condition)
     }
 }
 
 impl From<Expr> for ConditionExpression {
     fn from(condition: Expr) -> Self {
-        ConditionExpression::Expr(condition)
+        Self::Expr(condition)
     }
 }
 
 impl From<Expr> for Condition {
     fn from(condition: Expr) -> Self {
-        Condition {
+        Self {
             negate: false,
             condition_type: ConditionType::All,
             conditions: vec![ConditionExpression::Expr(condition)],
@@ -322,7 +322,7 @@ impl From<Expr> for Condition {
 
 impl From<ConditionExpression> for Condition {
     fn from(ce: ConditionExpression) -> Self {
-        Condition {
+        Self {
             negate: false,
             condition_type: ConditionType::All,
             conditions: vec![ce],
@@ -630,7 +630,7 @@ impl ConditionHolder {
         Self::default()
     }
 
-    pub fn new_with_condition(condition: Condition) -> Self {
+    pub const fn new_with_condition(condition: Condition) -> Self {
         let contents = ConditionHolderContents::Condition(condition);
         Self { contents }
     }

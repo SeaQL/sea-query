@@ -150,22 +150,22 @@ impl PartialEq for ColumnType {
 }
 
 impl ColumnType {
-    pub fn custom<T>(ty: T) -> ColumnType
+    pub fn custom<T>(ty: T) -> Self
     where
         T: Into<String>,
     {
-        ColumnType::Custom(Alias::new(ty).into_iden())
+        Self::Custom(Alias::new(ty).into_iden())
     }
 
-    pub fn string(length: Option<u32>) -> ColumnType {
+    pub const fn string(length: Option<u32>) -> Self {
         match length {
-            Some(s) => ColumnType::String(StringLen::N(s)),
-            None => ColumnType::String(StringLen::None),
+            Some(s) => Self::String(StringLen::N(s)),
+            None => Self::String(StringLen::None),
         }
     }
 
-    pub fn var_binary(length: u32) -> ColumnType {
-        ColumnType::VarBinary(StringLen::N(length))
+    pub const fn var_binary(length: u32) -> Self {
+        Self::VarBinary(StringLen::N(length))
     }
 }
 
@@ -227,19 +227,19 @@ pub enum PgDateTruncUnit {
 impl fmt::Display for PgDateTruncUnit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
-            PgDateTruncUnit::Microseconds => "microseconds",
-            PgDateTruncUnit::Milliseconds => "milliseconds",
-            PgDateTruncUnit::Second => "second",
-            PgDateTruncUnit::Minute => "minute",
-            PgDateTruncUnit::Hour => "hour",
-            PgDateTruncUnit::Day => "day",
-            PgDateTruncUnit::Week => "week",
-            PgDateTruncUnit::Month => "month",
-            PgDateTruncUnit::Quarter => "quarter",
-            PgDateTruncUnit::Year => "year",
-            PgDateTruncUnit::Decade => "decade",
-            PgDateTruncUnit::Century => "century",
-            PgDateTruncUnit::Millennium => "millennium",
+            Self::Microseconds => "microseconds",
+            Self::Milliseconds => "milliseconds",
+            Self::Second => "second",
+            Self::Minute => "minute",
+            Self::Hour => "hour",
+            Self::Day => "day",
+            Self::Week => "week",
+            Self::Month => "month",
+            Self::Quarter => "quarter",
+            Self::Year => "year",
+            Self::Decade => "decade",
+            Self::Century => "century",
+            Self::Millennium => "millennium",
         };
         write!(f, "{text}")
     }
@@ -799,7 +799,7 @@ impl ColumnDef {
         self.name.to_string()
     }
 
-    pub fn get_column_type(&self) -> Option<&ColumnType> {
+    pub const fn get_column_type(&self) -> Option<&ColumnType> {
         self.types.as_ref()
     }
 

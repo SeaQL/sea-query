@@ -247,7 +247,7 @@ impl IndexCreateStatement {
     }
 
     /// Create index if index not exists
-    pub fn if_not_exists(&mut self) -> &mut Self {
+    pub const fn if_not_exists(&mut self) -> &mut Self {
         self.if_not_exists = true;
         self
     }
@@ -280,19 +280,19 @@ impl IndexCreateStatement {
     }
 
     /// Set index as primary
-    pub fn primary(&mut self) -> &mut Self {
+    pub const fn primary(&mut self) -> &mut Self {
         self.primary = true;
         self
     }
 
     /// Set index as unique
-    pub fn unique(&mut self) -> &mut Self {
+    pub const fn unique(&mut self) -> &mut Self {
         self.unique = true;
         self
     }
 
     /// Set nulls to not be treated as distinct values. Only available on Postgres.
-    pub fn nulls_not_distinct(&mut self) -> &mut Self {
+    pub const fn nulls_not_distinct(&mut self) -> &mut Self {
         self.nulls_not_distinct = true;
         self
     }
@@ -318,19 +318,19 @@ impl IndexCreateStatement {
         self
     }
 
-    pub fn is_primary_key(&self) -> bool {
+    pub const fn is_primary_key(&self) -> bool {
         self.primary
     }
 
-    pub fn is_unique_key(&self) -> bool {
+    pub const fn is_unique_key(&self) -> bool {
         self.unique
     }
 
-    pub fn is_nulls_not_distinct(&self) -> bool {
+    pub const fn is_nulls_not_distinct(&self) -> bool {
         self.nulls_not_distinct
     }
 
-    pub fn get_index_spec(&self) -> &TableIndex {
+    pub const fn get_index_spec(&self) -> &TableIndex {
         &self.index
     }
 

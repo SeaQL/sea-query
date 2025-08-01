@@ -197,7 +197,7 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 }
 
-fn is_pg_comparison(b: &BinOper) -> bool {
+const fn is_pg_comparison(b: &BinOper) -> bool {
     matches!(
         b,
         BinOper::PgOperator(PgBinOper::Contained)
@@ -209,7 +209,7 @@ fn is_pg_comparison(b: &BinOper) -> bool {
     )
 }
 
-fn is_ilike(b: &BinOper) -> bool {
+const fn is_ilike(b: &BinOper) -> bool {
     matches!(
         b,
         BinOper::PgOperator(PgBinOper::ILike) | BinOper::PgOperator(PgBinOper::NotILike)

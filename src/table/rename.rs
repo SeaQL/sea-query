@@ -47,7 +47,7 @@ impl TableRenameStatement {
         self
     }
 
-    pub fn take(&mut self) -> Self {
+    pub const fn take(&mut self) -> Self {
         Self {
             from_name: self.from_name.take(),
             to_name: self.to_name.take(),

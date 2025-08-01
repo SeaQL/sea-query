@@ -34,7 +34,7 @@ impl Tokenizer {
         self.chars[self.p]
     }
 
-    fn inc(&mut self) {
+    const fn inc(&mut self) {
         self.p += 1;
     }
 
@@ -172,11 +172,11 @@ impl Tokenizer {
         }
     }
 
-    fn is_space(c: char) -> bool {
+    const fn is_space(c: char) -> bool {
         matches!(c, ' ' | '\t' | '\r' | '\n')
     }
 
-    fn is_identifier(c: char) -> bool {
+    const fn is_identifier(c: char) -> bool {
         matches!(c, '_' | '$')
     }
 
@@ -184,11 +184,11 @@ impl Tokenizer {
         c.is_alphabetic() || c.is_ascii_digit()
     }
 
-    fn is_string_delimiter_start(c: char) -> bool {
+    const fn is_string_delimiter_start(c: char) -> bool {
         matches!(c, '`' | '[' | '\'' | '"')
     }
 
-    fn is_string_escape_for(start: char, c: char) -> bool {
+    const fn is_string_escape_for(start: char, c: char) -> bool {
         match start {
             '`' => c == '`',
             '\'' => c == '\'',
@@ -197,7 +197,7 @@ impl Tokenizer {
         }
     }
 
-    fn is_string_delimiter_end_for(start: char, c: char) -> bool {
+    const fn is_string_delimiter_end_for(start: char, c: char) -> bool {
         match start {
             '`' => c == '`',
             '[' => c == ']',
@@ -207,7 +207,7 @@ impl Tokenizer {
         }
     }
 
-    fn is_escape_char(c: char) -> bool {
+    const fn is_escape_char(c: char) -> bool {
         c == '\\'
     }
 }
@@ -233,19 +233,19 @@ impl Iterator for Tokenizer {
 }
 
 impl Token {
-    pub fn is_quoted(&self) -> bool {
+    pub const fn is_quoted(&self) -> bool {
         matches!(self, Self::Quoted(_))
     }
 
-    pub fn is_unquoted(&self) -> bool {
+    pub const fn is_unquoted(&self) -> bool {
         matches!(self, Self::Unquoted(_))
     }
 
-    pub fn is_space(&self) -> bool {
+    pub const fn is_space(&self) -> bool {
         matches!(self, Self::Space(_))
     }
 
-    pub fn is_punctuation(&self) -> bool {
+    pub const fn is_punctuation(&self) -> bool {
         matches!(self, Self::Punctuation(_))
     }
 
@@ -274,10 +274,10 @@ impl std::fmt::Display for Token {
             f,
             "{}",
             match self {
-                Token::Unquoted(string) => string,
-                Token::Space(string) => string,
-                Token::Quoted(string) => string,
-                Token::Punctuation(string) => string,
+                Self::Unquoted(string) => string,
+                Self::Space(string) => string,
+                Self::Quoted(string) => string,
+                Self::Punctuation(string) => string,
             }
         )
     }

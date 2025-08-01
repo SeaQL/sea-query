@@ -3,7 +3,7 @@ use super::*;
 type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 
 impl Value {
-    pub fn is_big_decimal(&self) -> bool {
+    pub const fn is_big_decimal(&self) -> bool {
         matches!(self, Self::BigDecimal(_))
     }
 

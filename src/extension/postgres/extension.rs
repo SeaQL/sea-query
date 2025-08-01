@@ -90,13 +90,13 @@ impl ExtensionCreateStatement {
     }
 
     /// Uses "CASCADE" on Create Extension Statement.
-    pub fn cascade(&mut self) -> &mut Self {
+    pub const fn cascade(&mut self) -> &mut Self {
         self.cascade = true;
         self
     }
 
     /// Uses "IF NOT EXISTS" on Create Extension Statement.
-    pub fn if_not_exists(&mut self) -> &mut Self {
+    pub const fn if_not_exists(&mut self) -> &mut Self {
         self.if_not_exists = true;
         self
     }
@@ -160,19 +160,19 @@ impl ExtensionDropStatement {
     }
 
     /// Uses "IF EXISTS" on Drop Extension Statement.
-    pub fn if_exists(&mut self) -> &mut Self {
+    pub const fn if_exists(&mut self) -> &mut Self {
         self.if_exists = true;
         self
     }
 
     /// Uses "CASCADE" on Drop Extension Statement.
-    pub fn cascade(&mut self) -> &mut Self {
+    pub const fn cascade(&mut self) -> &mut Self {
         self.cascade = true;
         self
     }
 
     /// Uses "RESTRICT" on Drop Extension Statement.
-    pub fn restrict(&mut self) -> &mut Self {
+    pub const fn restrict(&mut self) -> &mut Self {
         self.restrict = true;
         self
     }

@@ -126,62 +126,62 @@ pub enum Oper {
 
 impl From<UnOper> for Oper {
     fn from(value: UnOper) -> Self {
-        Oper::UnOper(value)
+        Self::UnOper(value)
     }
 }
 
 impl From<BinOper> for Oper {
     fn from(value: BinOper) -> Self {
-        Oper::BinOper(value)
+        Self::BinOper(value)
     }
 }
 
 impl Oper {
-    pub(crate) fn is_logical(&self) -> bool {
+    pub(crate) const fn is_logical(&self) -> bool {
         matches!(
             self,
-            Oper::UnOper(UnOper::Not) | Oper::BinOper(BinOper::And) | Oper::BinOper(BinOper::Or)
+            Self::UnOper(UnOper::Not) | Self::BinOper(BinOper::And) | Self::BinOper(BinOper::Or)
         )
     }
 
-    pub(crate) fn is_between(&self) -> bool {
+    pub(crate) const fn is_between(&self) -> bool {
         matches!(
             self,
-            Oper::BinOper(BinOper::Between) | Oper::BinOper(BinOper::NotBetween)
+            Self::BinOper(BinOper::Between) | Self::BinOper(BinOper::NotBetween)
         )
     }
 
-    pub(crate) fn is_like(&self) -> bool {
+    pub(crate) const fn is_like(&self) -> bool {
         matches!(
             self,
-            Oper::BinOper(BinOper::Like) | Oper::BinOper(BinOper::NotLike)
+            Self::BinOper(BinOper::Like) | Self::BinOper(BinOper::NotLike)
         )
     }
 
-    pub(crate) fn is_in(&self) -> bool {
+    pub(crate) const fn is_in(&self) -> bool {
         matches!(
             self,
-            Oper::BinOper(BinOper::In) | Oper::BinOper(BinOper::NotIn)
+            Self::BinOper(BinOper::In) | Self::BinOper(BinOper::NotIn)
         )
     }
 
-    pub(crate) fn is_is(&self) -> bool {
+    pub(crate) const fn is_is(&self) -> bool {
         matches!(
             self,
-            Oper::BinOper(BinOper::Is) | Oper::BinOper(BinOper::IsNot)
+            Self::BinOper(BinOper::Is) | Self::BinOper(BinOper::IsNot)
         )
     }
 
-    pub(crate) fn is_shift(&self) -> bool {
+    pub(crate) const fn is_shift(&self) -> bool {
         matches!(
             self,
-            Oper::BinOper(BinOper::LShift) | Oper::BinOper(BinOper::RShift)
+            Self::BinOper(BinOper::LShift) | Self::BinOper(BinOper::RShift)
         )
     }
 
-    pub(crate) fn is_arithmetic(&self) -> bool {
+    pub(crate) const fn is_arithmetic(&self) -> bool {
         match self {
-            Oper::BinOper(b) => {
+            Self::BinOper(b) => {
                 matches!(
                     b,
                     BinOper::Mul | BinOper::Div | BinOper::Mod | BinOper::Add | BinOper::Sub
@@ -191,9 +191,9 @@ impl Oper {
         }
     }
 
-    pub(crate) fn is_comparison(&self) -> bool {
+    pub(crate) const fn is_comparison(&self) -> bool {
         match self {
-            Oper::BinOper(b) => {
+            Self::BinOper(b) => {
                 matches!(
                     b,
                     BinOper::SmallerThan

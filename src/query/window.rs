@@ -141,7 +141,7 @@ impl WindowStatement {
     ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ROWS UNBOUNDED PRECEDING ) AS "C" FROM "character""#
     /// );
     /// ```
-    pub fn frame_start(&mut self, r#type: FrameType, start: Frame) -> &mut Self {
+    pub const fn frame_start(&mut self, r#type: FrameType, start: Frame) -> &mut Self {
         self.frame(r#type, start, None)
     }
 
@@ -175,12 +175,22 @@ impl WindowStatement {
     ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING ) AS "C" FROM "character""#
     /// );
     /// ```
-    pub fn frame_between(&mut self, r#type: FrameType, start: Frame, end: Frame) -> &mut Self {
+    pub const fn frame_between(
+        &mut self,
+        r#type: FrameType,
+        start: Frame,
+        end: Frame,
+    ) -> &mut Self {
         self.frame(r#type, start, Some(end))
     }
 
     /// frame clause
-    pub fn frame(&mut self, r#type: FrameType, start: Frame, end: Option<Frame>) -> &mut Self {
+    pub const fn frame(
+        &mut self,
+        r#type: FrameType,
+        start: Frame,
+        end: Option<Frame>,
+    ) -> &mut Self {
         let frame_clause = FrameClause { r#type, start, end };
         self.frame = Some(frame_clause);
         self

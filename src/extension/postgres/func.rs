@@ -356,7 +356,7 @@ impl PgFunc {
     ///     r#"SELECT GEN_RANDOM_UUID()"#
     /// );
     /// ```
-    pub fn gen_random_uuid() -> FunctionCall {
+    pub const fn gen_random_uuid() -> FunctionCall {
         FunctionCall::new(Function::PgFunction(PgFunction::GenRandomUUID))
     }
 

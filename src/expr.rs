@@ -1992,7 +1992,7 @@ impl Expr {
     pub fn cust_with_exprs<T, I>(s: T, v: I) -> Self
     where
         T: Into<String>,
-        I: IntoIterator<Item = Expr>,
+        I: IntoIterator<Item = Self>,
     {
         Self::CustomWithExpr(s.into(), v.into_iter().collect())
     }
@@ -2315,7 +2315,7 @@ impl Expr {
     ///     r#"SELECT CURRENT_DATE"#
     /// );
     /// ```
-    pub fn current_date() -> Self {
+    pub const fn current_date() -> Self {
         Self::Keyword(Keyword::CurrentDate)
     }
 
@@ -2338,7 +2338,7 @@ impl Expr {
     ///     r#"SELECT CURRENT_TIME"#
     /// );
     /// ```
-    pub fn current_time() -> Self {
+    pub const fn current_time() -> Self {
         Self::Keyword(Keyword::CurrentTime)
     }
 
@@ -2364,7 +2364,7 @@ impl Expr {
     ///     r#"SELECT CURRENT_TIMESTAMP"#
     /// );
     /// ```
-    pub fn current_timestamp() -> Self {
+    pub const fn current_timestamp() -> Self {
         Self::Keyword(Keyword::CurrentTimestamp)
     }
 
@@ -2424,7 +2424,7 @@ impl From<LikeExpr> for Expr {
             Some(escape) => Self::Binary(
                 Box::new(like.pattern.into()),
                 BinOper::Escape,
-                Box::new(Expr::Constant(escape.into())),
+                Box::new(Self::Constant(escape.into())),
             ),
             None => like.pattern.into(),
         }
@@ -2432,11 +2432,11 @@ impl From<LikeExpr> for Expr {
 }
 
 impl Expr {
-    pub(crate) fn is_binary(&self) -> bool {
+    pub(crate) const fn is_binary(&self) -> bool {
         matches!(self, Self::Binary(_, _, _))
     }
 
-    pub(crate) fn get_bin_oper(&self) -> Option<&BinOper> {
+    pub(crate) const fn get_bin_oper(&self) -> Option<&BinOper> {
         match self {
             Self::Binary(_, oper, _) => Some(oper),
             _ => None,

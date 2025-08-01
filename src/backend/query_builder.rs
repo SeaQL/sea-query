@@ -1669,7 +1669,7 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
     }
 }
 
-pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
+pub(crate) const fn common_well_known_left_associative(op: &BinOper) -> bool {
     matches!(
         op,
         BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod

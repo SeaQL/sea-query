@@ -26,7 +26,7 @@ pub enum ForeignKeyAction {
 impl ForeignKeyAction {
     #[doc(hidden)]
     /// Return the PascalCase name of the action
-    pub fn variant_name(&self) -> &'static str {
+    pub const fn variant_name(&self) -> &'static str {
         match self {
             Self::Restrict => "Restrict",
             Self::Cascade => "Cascade",
@@ -89,18 +89,18 @@ impl TableForeignKey {
     }
 
     /// Set on delete action
-    pub fn on_delete(&mut self, action: ForeignKeyAction) -> &mut Self {
+    pub const fn on_delete(&mut self, action: ForeignKeyAction) -> &mut Self {
         self.on_delete = Some(action);
         self
     }
 
     /// Set on update action
-    pub fn on_update(&mut self, action: ForeignKeyAction) -> &mut Self {
+    pub const fn on_update(&mut self, action: ForeignKeyAction) -> &mut Self {
         self.on_update = Some(action);
         self
     }
 
-    pub fn get_ref_table(&self) -> Option<&TableRef> {
+    pub const fn get_ref_table(&self) -> Option<&TableRef> {
         self.ref_table.as_ref()
     }
 
@@ -115,11 +115,11 @@ impl TableForeignKey {
             .collect()
     }
 
-    pub fn get_on_delete(&self) -> Option<ForeignKeyAction> {
+    pub const fn get_on_delete(&self) -> Option<ForeignKeyAction> {
         self.on_delete
     }
 
-    pub fn get_on_update(&self) -> Option<ForeignKeyAction> {
+    pub const fn get_on_update(&self) -> Option<ForeignKeyAction> {
         self.on_update
     }
 

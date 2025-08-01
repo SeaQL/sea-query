@@ -155,18 +155,18 @@ impl ForeignKeyCreateStatement {
     }
 
     /// Set on delete action
-    pub fn on_delete(&mut self, action: ForeignKeyAction) -> &mut Self {
+    pub const fn on_delete(&mut self, action: ForeignKeyAction) -> &mut Self {
         self.foreign_key.on_delete(action);
         self
     }
 
     /// Set on update action
-    pub fn on_update(&mut self, action: ForeignKeyAction) -> &mut Self {
+    pub const fn on_update(&mut self, action: ForeignKeyAction) -> &mut Self {
         self.foreign_key.on_update(action);
         self
     }
 
-    pub fn get_foreign_key(&self) -> &TableForeignKey {
+    pub const fn get_foreign_key(&self) -> &TableForeignKey {
         &self.foreign_key
     }
 

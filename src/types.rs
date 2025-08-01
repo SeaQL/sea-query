@@ -142,13 +142,13 @@ pub enum ColumnRef {
 impl ColumnRef {
     #[doc(hidden)]
     /// Returns the column name if it's not an asterisk.
-    pub fn column(&self) -> Option<&DynIden> {
+    pub const fn column(&self) -> Option<&DynIden> {
         match self {
-            ColumnRef::Column(column) => Some(column),
-            ColumnRef::TableColumn(_, column) => Some(column),
-            ColumnRef::SchemaTableColumn(_, _, column) => Some(column),
-            ColumnRef::Asterisk => None,
-            ColumnRef::TableAsterisk(_) => None,
+            Self::Column(column) => Some(column),
+            Self::TableColumn(_, column) => Some(column),
+            Self::SchemaTableColumn(_, _, column) => Some(column),
+            Self::Asterisk => None,
+            Self::TableAsterisk(_) => None,
         }
     }
 }
@@ -183,32 +183,32 @@ pub enum TableRef {
 
 impl TableRef {
     #[doc(hidden)]
-    pub fn sea_orm_table(&self) -> &DynIden {
+    pub const fn sea_orm_table(&self) -> &DynIden {
         match self {
-            TableRef::Table(tbl)
-            | TableRef::SchemaTable(_, tbl)
-            | TableRef::DatabaseSchemaTable(_, _, tbl)
-            | TableRef::TableAlias(tbl, _)
-            | TableRef::SchemaTableAlias(_, tbl, _)
-            | TableRef::DatabaseSchemaTableAlias(_, _, tbl, _)
-            | TableRef::SubQuery(_, tbl)
-            | TableRef::ValuesList(_, tbl)
-            | TableRef::FunctionCall(_, tbl) => tbl,
+            Self::Table(tbl)
+            | Self::SchemaTable(_, tbl)
+            | Self::DatabaseSchemaTable(_, _, tbl)
+            | Self::TableAlias(tbl, _)
+            | Self::SchemaTableAlias(_, tbl, _)
+            | Self::DatabaseSchemaTableAlias(_, _, tbl, _)
+            | Self::SubQuery(_, tbl)
+            | Self::ValuesList(_, tbl)
+            | Self::FunctionCall(_, tbl) => tbl,
         }
     }
 
     #[doc(hidden)]
-    pub fn sea_orm_table_alias(&self) -> Option<&DynIden> {
+    pub const fn sea_orm_table_alias(&self) -> Option<&DynIden> {
         match self {
-            TableRef::Table(_)
-            | TableRef::SchemaTable(_, _)
-            | TableRef::DatabaseSchemaTable(_, _, _)
-            | TableRef::SubQuery(_, _)
-            | TableRef::ValuesList(_, _) => None,
-            TableRef::TableAlias(_, alias)
-            | TableRef::SchemaTableAlias(_, _, alias)
-            | TableRef::DatabaseSchemaTableAlias(_, _, _, alias)
-            | TableRef::FunctionCall(_, alias) => Some(alias),
+            Self::Table(_)
+            | Self::SchemaTable(_, _)
+            | Self::DatabaseSchemaTable(_, _, _)
+            | Self::SubQuery(_, _)
+            | Self::ValuesList(_, _) => None,
+            Self::TableAlias(_, alias)
+            | Self::SchemaTableAlias(_, _, alias)
+            | Self::DatabaseSchemaTableAlias(_, _, _, alias)
+            | Self::FunctionCall(_, alias) => Some(alias),
         }
     }
 }
@@ -417,7 +417,7 @@ pub enum SubQueryOper {
 // Impl begins
 
 impl Quote {
-    pub fn new(c: u8) -> Self {
+    pub const fn new(c: u8) -> Self {
         Self(c, c)
     }
 
@@ -444,13 +444,13 @@ impl From<(char, char)> for Quote {
 
 impl From<u8> for Quote {
     fn from(u8: u8) -> Self {
-        Quote::new(u8)
+        Self::new(u8)
     }
 }
 
 impl From<(u8, u8)> for Quote {
     fn from((l, r): (u8, u8)) -> Self {
-        Quote(l, r)
+        Self(l, r)
     }
 }
 
@@ -701,7 +701,7 @@ pub const fn is_static_iden(string: &str) -> bool {
 }
 
 impl NullAlias {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }

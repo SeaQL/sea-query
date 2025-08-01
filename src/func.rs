@@ -49,7 +49,7 @@ pub struct FuncArgMod {
 }
 
 impl FunctionCall {
-    pub(crate) fn new(func: Function) -> Self {
+    pub(crate) const fn new(func: Function) -> Self {
         Self {
             func,
             args: Vec::new(),
@@ -84,7 +84,7 @@ impl FunctionCall {
         self
     }
 
-    pub fn get_func(&self) -> &Function {
+    pub const fn get_func(&self) -> &Function {
         &self.func
     }
 
@@ -828,7 +828,7 @@ impl Func {
     ///
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
     /// ```
-    pub fn random() -> FunctionCall {
+    pub const fn random() -> FunctionCall {
         FunctionCall::new(Function::Random)
     }
 
