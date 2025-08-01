@@ -501,7 +501,11 @@ impl Value {
 
             #[cfg(feature = "with-ipnetwork")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
-            Self::IpNetwork(_) => Self::IpNetwork(Some("0.0.0.0".parse().unwrap())),
+            Self::IpNetwork(_) => Self::IpNetwork(Some(
+                "0.0.0.0"
+                    .parse()
+                    .expect("0.0.0.0 should be a valid ip network"),
+            )),
 
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]

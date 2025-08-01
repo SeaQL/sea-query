@@ -1,4 +1,3 @@
-
 use sea_query::Iden;
 
 /// Representation of a database table named `BloB`.
