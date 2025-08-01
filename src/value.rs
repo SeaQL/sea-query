@@ -594,7 +594,7 @@ impl Value {
     ///
     /// let v = Value::int(None);
     /// let n = v.dummy_value();
-    /// assert_eq!(n, Value::int(Some(0)));
+    /// assert_eq!(n, Value::int(0));
     /// ```
     pub fn dummy_value(&self) -> Self {
         match self {

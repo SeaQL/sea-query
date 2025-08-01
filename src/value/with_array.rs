@@ -83,7 +83,7 @@ where
     fn from(x: Vec<T>) -> Value {
         Value::array(
             T::array_type(),
-            Some(x.into_iter().map(|e| e.into()).collect()),
+            x.into_iter().map(|e| e.into()).collect::<Vec<_>>(),
         )
     }
 }
