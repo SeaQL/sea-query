@@ -42,6 +42,10 @@ impl IndexBuilder for PostgresQueryBuilder {
         self.prepare_index_prefix(create, sql);
         write!(sql, "INDEX ").unwrap();
 
+        if create.concurrently {
+            write!(sql, "CONCURRENTLY ").unwrap();
+        }
+
         if create.if_not_exists {
             write!(sql, "IF NOT EXISTS ").unwrap();
         }
@@ -88,6 +92,10 @@ impl IndexBuilder for PostgresQueryBuilder {
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
+
+        if drop.concurrently {
+            write!(sql, "CONCURRENTLY ").unwrap();
+        }
 
         if drop.if_exists {
             write!(sql, "IF EXISTS ").unwrap();
@@ -161,6 +169,9 @@ impl IndexBuilder for PostgresQueryBuilder {
                         }
                     }
                 }
+            }
+            if let Some(operator_class) = col.operator_class() {
+                write!(sql, " {}", operator_class.to_string()).unwrap();
             }
             false
         });
