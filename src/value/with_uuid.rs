@@ -6,13 +6,13 @@ macro_rules! fmt_uuid_to_box_value {
     ( $type: ty, $conversion_fn: ident ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
-                Value::Uuid(Some(x.into_uuid()))
+                Value::uuid(x.into_uuid())
             }
         }
 
         impl Nullable for $type {
             fn null() -> Value {
-                Value::Uuid(None)
+                Value::uuid(None)
             }
         }
 

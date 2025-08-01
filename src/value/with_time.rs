@@ -6,13 +6,13 @@ type_to_value!(PrimitiveDateTime, TimeDateTime, DateTime);
 
 impl From<OffsetDateTime> for Value {
     fn from(v: OffsetDateTime) -> Value {
-        Value::TimeDateTimeWithTimeZone(Some(v))
+        Value::time_date_time_with_time_zone(v)
     }
 }
 
 impl Nullable for OffsetDateTime {
     fn null() -> Value {
-        Value::TimeDateTimeWithTimeZone(None)
+        Value::time_date_time_with_time_zone(None)
     }
 }
 

@@ -81,9 +81,9 @@ where
     T: Into<Value> + NotU8 + ValueType,
 {
     fn from(x: Vec<T>) -> Value {
-        Value::Array(
+        Value::array(
             T::array_type(),
-            Some(Box::new(x.into_iter().map(|e| e.into()).collect())),
+            Some(x.into_iter().map(|e| e.into()).collect()),
         )
     }
 }
@@ -93,7 +93,7 @@ where
     T: Into<Value> + NotU8 + ValueType,
 {
     fn null() -> Value {
-        Value::Array(T::array_type(), None)
+        Value::array(T::array_type(), None)
     }
 }
 

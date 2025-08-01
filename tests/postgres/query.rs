@@ -1016,10 +1016,10 @@ fn select_56() {
             .order_by(
                 Glyph::Id,
                 Order::Field(Values(vec![
-                    Value::Int(Some(4)),
-                    Value::Int(Some(5)),
-                    Value::Int(Some(1)),
-                    Value::Int(Some(3))
+                    Value::int(4),
+                    Value::int(5),
+                    Value::int(1),
+                    Value::int(3)
                 ]))
             )
             .order_by((Glyph::Table, Glyph::Aspect), Order::Asc)
@@ -1051,10 +1051,10 @@ fn select_57() {
             .order_by(
                 Glyph::Id,
                 Order::Field(Values(vec![
-                    Value::Int(Some(4)),
-                    Value::Int(Some(5)),
-                    Value::Int(Some(1)),
-                    Value::Int(Some(3))
+                    Value::int(4),
+                    Value::int(5),
+                    Value::int(1),
+                    Value::int(3)
                 ]))
             )
             .to_string(PostgresQueryBuilder),
@@ -1256,7 +1256,7 @@ fn insert_3() {
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .values_panic([Value::String(None).into(), 2.1345.into()])
+            .values_panic([Value::string(None).into(), 2.1345.into()])
             .to_string(PostgresQueryBuilder),
         r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"#
     );
