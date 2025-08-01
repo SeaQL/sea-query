@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-binder"
-version = "0.8.0-rc.1"
+version = "0.8.0-rc.7"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2024"
 description = "Driver library for using SeaQuery with SQLx"
@@ -17,7 +17,7 @@ rust-version = "1.85.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false, features = ["thread-safe"] }
+sea-query = { version = "1.0.0-rc.7", path = "..", default-features = false, features = ["thread-safe"] }
 sqlx = { version = "0.8", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4", default-features = false, optional = true, features = ["clock"] }

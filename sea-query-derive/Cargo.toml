@@ -1,6 +1,6 @@
 [package]
 name = "sea-query-derive"
-version = "1.0.0-rc.5"
+version = "1.0.0-rc.7"
 authors = [ "Follpvosten <wolfi@karpador.xyz>", "Rene Leveille <rene@nestingsafe.com>" ]
 edition = "2024"
 description = "Derive macro for sea-query's Iden trait"
@@ -24,7 +24,7 @@ thiserror = { version = "2", default-features = false }
 
 [dev-dependencies]
 trybuild = "1.0.86"
-sea-query = { version = "1.0.0-rc.1", path = ".." }
+sea-query = { version = "1.0.0-rc", path = ".." }
 strum = { version = "0.25", features = ["derive"] }
 
 [features]
