@@ -115,7 +115,7 @@ impl TableCreateStatement {
     }
 
     /// Create table if table not exists
-    pub fn if_not_exists(&mut self) -> &mut Self {
+    pub const fn if_not_exists(&mut self) -> &mut Self {
         self.if_not_exists = true;
         self
     }
@@ -276,7 +276,7 @@ impl TableCreateStatement {
         self
     }
 
-    pub fn get_table_name(&self) -> Option<&TableRef> {
+    pub const fn get_table_name(&self) -> Option<&TableRef> {
         self.table.as_ref()
     }
 
@@ -284,7 +284,7 @@ impl TableCreateStatement {
         self.columns.as_ref()
     }
 
-    pub fn get_comment(&self) -> Option<&String> {
+    pub const fn get_comment(&self) -> Option<&String> {
         self.comment.as_ref()
     }
 
@@ -338,7 +338,7 @@ impl TableCreateStatement {
         self
     }
 
-    pub fn get_extra(&self) -> Option<&String> {
+    pub const fn get_extra(&self) -> Option<&String> {
         self.extra.as_ref()
     }
 
@@ -399,7 +399,7 @@ impl TableCreateStatement {
     ///     .join(" ")
     /// );
     /// ```
-    pub fn temporary(&mut self) -> &mut Self {
+    pub const fn temporary(&mut self) -> &mut Self {
         self.temporary = true;
         self
     }

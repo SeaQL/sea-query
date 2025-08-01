@@ -78,10 +78,10 @@ impl NotU8 for MacAddress {}
 
 impl<T> From<Vec<T>> for Value
 where
-    T: Into<Value> + NotU8 + ValueType,
+    T: Into<Self> + NotU8 + ValueType,
 {
-    fn from(x: Vec<T>) -> Value {
-        Value::Array(
+    fn from(x: Vec<T>) -> Self {
+        Self::Array(
             T::array_type(),
             Some(Box::new(x.into_iter().map(|e| e.into()).collect())),
         )
@@ -125,11 +125,11 @@ where
 }
 
 impl Value {
-    pub fn is_array(&self) -> bool {
+    pub const fn is_array(&self) -> bool {
         matches!(self, Self::Array(_, _))
     }
 
-    pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
+    pub fn as_ref_array(&self) -> Option<&Vec<Self>> {
         match self {
             Self::Array(_, v) => v.as_ref().map(|v| v.as_ref()),
             _ => panic!("not Value::Array"),

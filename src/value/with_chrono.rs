@@ -6,21 +6,21 @@ type_to_value!(NaiveTime, ChronoTime, Time);
 type_to_value!(NaiveDateTime, ChronoDateTime, DateTime);
 
 impl From<DateTime<Utc>> for Value {
-    fn from(v: DateTime<Utc>) -> Value {
-        Value::ChronoDateTimeUtc(Some(v))
+    fn from(v: DateTime<Utc>) -> Self {
+        Self::ChronoDateTimeUtc(Some(v))
     }
 }
 
 impl From<DateTime<Local>> for Value {
-    fn from(v: DateTime<Local>) -> Value {
-        Value::ChronoDateTimeLocal(Some(v))
+    fn from(v: DateTime<Local>) -> Self {
+        Self::ChronoDateTimeLocal(Some(v))
     }
 }
 
 impl From<DateTime<FixedOffset>> for Value {
-    fn from(x: DateTime<FixedOffset>) -> Value {
+    fn from(x: DateTime<FixedOffset>) -> Self {
         let v = DateTime::<FixedOffset>::from_naive_utc_and_offset(x.naive_utc(), x.offset().fix());
-        Value::ChronoDateTimeWithTimeZone(Some(v))
+        Self::ChronoDateTimeWithTimeZone(Some(v))
     }
 }
 
@@ -106,27 +106,27 @@ impl ValueType for DateTime<FixedOffset> {
 }
 
 impl Value {
-    pub fn is_chrono_date(&self) -> bool {
+    pub const fn is_chrono_date(&self) -> bool {
         matches!(self, Self::ChronoDate(_))
     }
 
-    pub fn is_chrono_time(&self) -> bool {
+    pub const fn is_chrono_time(&self) -> bool {
         matches!(self, Self::ChronoTime(_))
     }
 
-    pub fn is_chrono_date_time(&self) -> bool {
+    pub const fn is_chrono_date_time(&self) -> bool {
         matches!(self, Self::ChronoDateTime(_))
     }
 
-    pub fn is_chrono_date_time_utc(&self) -> bool {
+    pub const fn is_chrono_date_time_utc(&self) -> bool {
         matches!(self, Self::ChronoDateTimeUtc(_))
     }
 
-    pub fn is_chrono_date_time_with_time_zone(&self) -> bool {
+    pub const fn is_chrono_date_time_with_time_zone(&self) -> bool {
         matches!(self, Self::ChronoDateTimeWithTimeZone(_))
     }
 
-    pub fn is_chrono_date_time_local(&self) -> bool {
+    pub const fn is_chrono_date_time_local(&self) -> bool {
         matches!(self, Self::ChronoDateTimeLocal(_))
     }
 

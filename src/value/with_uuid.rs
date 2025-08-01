@@ -45,7 +45,7 @@ fmt_uuid_to_box_value!(uuid::fmt::Simple, simple);
 fmt_uuid_to_box_value!(uuid::fmt::Urn, urn);
 
 impl Value {
-    pub fn is_uuid(&self) -> bool {
+    pub const fn is_uuid(&self) -> bool {
         matches!(self, Self::Uuid(_))
     }
     pub fn as_ref_uuid(&self) -> Option<&Uuid> {

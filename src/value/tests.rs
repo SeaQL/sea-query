@@ -165,6 +165,7 @@ fn test_from_value_tuple() {
 }
 
 #[test]
+#[allow(clippy::cognitive_complexity)]
 fn test_value_tuple_iter() {
     let mut iter = (1i32).into_value_tuple().into_iter();
     assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));

@@ -140,7 +140,7 @@ where
     T: Into<Expr>,
 {
     fn from(expr: T) -> Self {
-        SelectExpr {
+        Self {
             expr: expr.into(),
             alias: None,
             window: None,
@@ -592,11 +592,7 @@ impl SelectStatement {
         T: IntoColumnRef,
         I: IntoIterator<Item = T>,
     {
-        self.exprs(
-            cols.into_iter()
-                .map(|c| Expr::Column(c.into_column_ref()))
-                .collect::<Vec<Expr>>(),
-        )
+        self.exprs(cols.into_iter().map(|c| Expr::Column(c.into_column_ref())))
     }
 
     /// Select column.
@@ -1036,7 +1032,7 @@ impl SelectStatement {
     ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
-    pub fn from_subquery<T>(&mut self, query: SelectStatement, alias: T) -> &mut Self
+    pub fn from_subquery<T>(&mut self, query: Self, alias: T) -> &mut Self
     where
         T: IntoIden,
     {
@@ -1632,7 +1628,7 @@ impl SelectStatement {
     pub fn join_subquery<T, C>(
         &mut self,
         join: JoinType,
-        query: SelectStatement,
+        query: Self,
         alias: T,
         condition: C,
     ) -> &mut Self
@@ -1701,7 +1697,7 @@ impl SelectStatement {
     pub fn join_lateral<T, C>(
         &mut self,
         join: JoinType,
-        query: SelectStatement,
+        query: Self,
         alias: T,
         condition: C,
     ) -> &mut Self
@@ -1797,11 +1793,7 @@ impl SelectStatement {
         T: IntoColumnRef,
         I: IntoIterator<Item = T>,
     {
-        self.add_group_by(
-            cols.into_iter()
-                .map(|c| Expr::Column(c.into_column_ref()))
-                .collect::<Vec<_>>(),
-        )
+        self.add_group_by(cols.into_iter().map(|c| Expr::Column(c.into_column_ref())))
     }
 
     /// Add a group by column.
@@ -2274,7 +2266,7 @@ impl SelectStatement {
     ///     [Char::Table.into_iden()]
     /// );
     /// ```
-    pub fn union(&mut self, union_type: UnionType, query: SelectStatement) -> &mut Self {
+    pub fn union(&mut self, union_type: UnionType, query: Self) -> &mut Self {
         self.unions.push((union_type, query));
         self
     }
@@ -2320,10 +2312,7 @@ impl SelectStatement {
     ///     [Char::Table.into_iden(), Glyph::Table.into_iden()]
     /// );
     /// ```
-    pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement)>>(
-        &mut self,
-        unions: T,
-    ) -> &mut Self {
+    pub fn unions<T: IntoIterator<Item = (UnionType, Self)>>(&mut self, unions: T) -> &mut Self {
         self.unions.extend(unions);
         self
     }

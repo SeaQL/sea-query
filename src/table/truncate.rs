@@ -41,7 +41,7 @@ impl TableTruncateStatement {
         self
     }
 
-    pub fn take(&mut self) -> Self {
+    pub const fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
         }

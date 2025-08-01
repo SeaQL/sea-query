@@ -1,5 +1,11 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![warn(clippy::nursery)]
 #![deny(missing_debug_implementations)]
+#![allow(
+    clippy::derive_partial_eq_without_eq,
+    clippy::option_if_let_else,
+    clippy::redundant_pub_crate
+)]
 
 //! <div align="center">
 //!

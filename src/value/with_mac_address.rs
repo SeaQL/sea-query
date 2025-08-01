@@ -3,7 +3,7 @@ use super::*;
 type_to_value!(MacAddress, MacAddress, MacAddr);
 
 impl Value {
-    pub fn is_mac_address(&self) -> bool {
+    pub const fn is_mac_address(&self) -> bool {
         matches!(self, Self::MacAddress(_))
     }
 

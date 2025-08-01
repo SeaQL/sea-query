@@ -29,10 +29,10 @@ pub struct IndexColumnExpr {
 }
 
 impl IndexColumn {
-    pub(crate) fn name(&self) -> Option<&DynIden> {
+    pub(crate) const fn name(&self) -> Option<&DynIden> {
         match self {
-            IndexColumn::TableColumn(IndexColumnTableColumn { name, .. }) => Some(name),
-            IndexColumn::Expr(_) => None,
+            Self::TableColumn(IndexColumnTableColumn { name, .. }) => Some(name),
+            Self::Expr(_) => None,
         }
     }
 }

@@ -3,7 +3,7 @@ use super::*;
 type_to_value!(Json, Json, Json);
 
 impl Value {
-    pub fn is_json(&self) -> bool {
+    pub const fn is_json(&self) -> bool {
         matches!(self, Self::Json(_))
     }
 

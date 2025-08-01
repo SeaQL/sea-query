@@ -3,7 +3,7 @@ use super::*;
 type_to_value!(IpNetwork, IpNetwork, Inet);
 
 impl Value {
-    pub fn is_ipnetwork(&self) -> bool {
+    pub const fn is_ipnetwork(&self) -> bool {
         matches!(self, Self::IpNetwork(_))
     }
 

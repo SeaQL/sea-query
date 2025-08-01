@@ -92,18 +92,12 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         use std::ops::Deref;
 
-        if from.is_empty() {
-            self.prepare_iden(column, sql);
+        if !from.is_empty()
+            && let Some(table) = table
+            && let TableRef::Table(table) = table.deref()
+        {
+            self.prepare_column_ref(&ColumnRef::TableColumn(table.clone(), column.clone()), sql);
         } else {
-            if let Some(table) = table {
-                if let TableRef::Table(table) = table.deref() {
-                    self.prepare_column_ref(
-                        &ColumnRef::TableColumn(table.clone(), column.clone()),
-                        sql,
-                    );
-                    return;
-                }
-            }
             self.prepare_iden(column, sql);
         }
     }

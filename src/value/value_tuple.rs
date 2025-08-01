@@ -37,10 +37,10 @@ impl IntoIterator for ValueTuple {
 
     fn into_iter(self) -> Self::IntoIter {
         match self {
-            ValueTuple::One(v) => vec![v].into_iter(),
-            ValueTuple::Two(v, w) => vec![v, w].into_iter(),
-            ValueTuple::Three(u, v, w) => vec![u, v, w].into_iter(),
-            ValueTuple::Many(vec) => vec.into_iter(),
+            Self::One(v) => vec![v].into_iter(),
+            Self::Two(v, w) => vec![v, w].into_iter(),
+            Self::Three(u, v, w) => vec![u, v, w].into_iter(),
+            Self::Many(vec) => vec.into_iter(),
         }
     }
 }

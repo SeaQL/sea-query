@@ -3,7 +3,7 @@ use super::*;
 type_to_value!(Decimal, Decimal, Decimal(None));
 
 impl Value {
-    pub fn is_decimal(&self) -> bool {
+    pub const fn is_decimal(&self) -> bool {
         matches!(self, Self::Decimal(_))
     }
 

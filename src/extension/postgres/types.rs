@@ -282,19 +282,19 @@ impl TypeDropStatement {
     }
 
     /// Set `IF EXISTS`
-    pub fn if_exists(&mut self) -> &mut Self {
+    pub const fn if_exists(&mut self) -> &mut Self {
         self.if_exists = true;
         self
     }
 
     /// Set `CASCADE`
-    pub fn cascade(&mut self) -> &mut Self {
+    pub const fn cascade(&mut self) -> &mut Self {
         self.option = Some(TypeDropOpt::Cascade);
         self
     }
 
     /// Set `RESTRICT`
-    pub fn restrict(&mut self) -> &mut Self {
+    pub const fn restrict(&mut self) -> &mut Self {
         self.option = Some(TypeDropOpt::Restrict);
         self
     }
@@ -455,7 +455,7 @@ impl TypeAlterOpt {
         T: IntoIden,
     {
         match self {
-            TypeAlterOpt::Add {
+            Self::Add {
                 value: iden,
                 if_not_exists,
                 ..
@@ -474,7 +474,7 @@ impl TypeAlterOpt {
         T: IntoIden,
     {
         match self {
-            TypeAlterOpt::Add {
+            Self::Add {
                 value: iden,
                 if_not_exists,
                 ..
@@ -490,7 +490,7 @@ impl TypeAlterOpt {
     /// Changes only `ADD VALUE x` options into `ADD VALUE IF NOT EXISTS x` options, does nothing otherwise
     pub fn if_not_exists(self) -> Self {
         match self {
-            TypeAlterOpt::Add {
+            Self::Add {
                 value, placement, ..
             } => Self::Add {
                 value,

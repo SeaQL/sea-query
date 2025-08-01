@@ -13,11 +13,11 @@ impl TableBuilder for SqliteQueryBuilder {
         let mut is_auto_increment = false;
 
         for column_spec in column_def.spec.iter() {
-            if let ColumnSpec::PrimaryKey = column_spec {
+            if matches!(column_spec, ColumnSpec::PrimaryKey) {
                 is_primary_key = true;
                 continue;
             }
-            if let ColumnSpec::AutoIncrement = column_spec {
+            if matches!(column_spec, ColumnSpec::AutoIncrement) {
                 is_auto_increment = true;
                 continue;
             }
@@ -202,7 +202,7 @@ impl SqliteQueryBuilder {
     }
 }
 
-fn integer(ty: &str) -> &str {
+const fn integer(ty: &str) -> &str {
     if cfg!(feature = "option-sqlite-exact-column-type") {
         "integer"
     } else {

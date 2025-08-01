@@ -91,7 +91,7 @@ pub mod with_array;
 mod with_pgvector;
 
 /// [`Value`] types variant for Postgres array
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum ArrayType {
     Bool,
     TinyInt,
@@ -273,6 +273,7 @@ pub enum Value {
 }
 
 /// This test is to check if the size of [`Value`] exceeds the limit.
+///
 /// If the size exceeds the limit, you should box the variant.
 /// Previously, the size was 24. We bumped it to 32 such that `String`
 /// can be unboxed.
@@ -313,7 +314,7 @@ impl Value {
     /// // one liner:
     /// assert_eq!(Into::<Value>::into(2.2).as_null(), Value::Double(None));
     /// ```
-    pub fn as_null(&self) -> Self {
+    pub const fn as_null(&self) -> Self {
         match self {
             Self::Bool(_) => Self::Bool(None),
             Self::TinyInt(_) => Self::TinyInt(None),
@@ -388,7 +389,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(ty, _) => Self::Array(ty.clone(), None),
+            Self::Array(ty, _) => Self::Array(*ty, None),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -492,7 +493,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(ty, _) => Self::Array(ty.clone(), Some(Default::default())),
+            Self::Array(ty, _) => Self::Array(*ty, Some(Default::default())),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -510,37 +511,34 @@ impl Value {
 }
 
 impl From<&[u8]> for Value {
-    fn from(x: &[u8]) -> Value {
-        Value::Bytes(Some(x.into()))
+    fn from(x: &[u8]) -> Self {
+        Self::Bytes(Some(x.into()))
     }
 }
 
 impl From<&str> for Value {
-    fn from(x: &str) -> Value {
-        Value::String(Some(x.to_owned()))
+    fn from(x: &str) -> Self {
+        Self::String(Some(x.to_owned()))
     }
 }
 
 impl From<&String> for Value {
-    fn from(x: &String) -> Value {
-        Value::String(Some(x.clone()))
+    fn from(x: &String) -> Self {
+        Self::String(Some(x.clone()))
     }
 }
 
 impl<T> From<Option<T>> for Value
 where
-    T: Into<Value> + Nullable,
+    T: Into<Self> + Nullable,
 {
-    fn from(x: Option<T>) -> Value {
-        match x {
-            Some(v) => v.into(),
-            None => T::null(),
-        }
+    fn from(x: Option<T>) -> Self {
+        x.map_or_else(T::null, Into::into)
     }
 }
 
 impl From<Cow<'_, str>> for Value {
-    fn from(x: Cow<'_, str>) -> Value {
+    fn from(x: Cow<'_, str>) -> Self {
         x.into_owned().into()
     }
 }

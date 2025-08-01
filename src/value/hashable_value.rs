@@ -82,69 +82,69 @@ impl Hash for Value {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         mem::discriminant(self).hash(state);
         match self {
-            Value::Bool(v) => v.hash(state),
-            Value::TinyInt(v) => v.hash(state),
-            Value::SmallInt(v) => v.hash(state),
-            Value::Int(v) => v.hash(state),
-            Value::BigInt(v) => v.hash(state),
-            Value::TinyUnsigned(v) => v.hash(state),
-            Value::SmallUnsigned(v) => v.hash(state),
-            Value::Unsigned(v) => v.hash(state),
-            Value::BigUnsigned(v) => v.hash(state),
-            Value::Float(v) => hash_f32(v, state),
-            Value::Double(v) => hash_f64(v, state),
-            Value::String(v) => v.hash(state),
-            Value::Char(v) => v.hash(state),
-            Value::Bytes(v) => v.hash(state),
+            Self::Bool(v) => v.hash(state),
+            Self::TinyInt(v) => v.hash(state),
+            Self::SmallInt(v) => v.hash(state),
+            Self::Int(v) => v.hash(state),
+            Self::BigInt(v) => v.hash(state),
+            Self::TinyUnsigned(v) => v.hash(state),
+            Self::SmallUnsigned(v) => v.hash(state),
+            Self::Unsigned(v) => v.hash(state),
+            Self::BigUnsigned(v) => v.hash(state),
+            Self::Float(v) => hash_f32(v, state),
+            Self::Double(v) => hash_f64(v, state),
+            Self::String(v) => v.hash(state),
+            Self::Char(v) => v.hash(state),
+            Self::Bytes(v) => v.hash(state),
 
             #[cfg(feature = "with-json")]
-            Value::Json(value) => hash_json(value, state),
+            Self::Json(value) => hash_json(value, state),
 
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(naive_date) => naive_date.hash(state),
+            Self::ChronoDate(naive_date) => naive_date.hash(state),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(naive_time) => naive_time.hash(state),
+            Self::ChronoTime(naive_time) => naive_time.hash(state),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(naive_date_time) => naive_date_time.hash(state),
+            Self::ChronoDateTime(naive_date_time) => naive_date_time.hash(state),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(date_time) => date_time.hash(state),
+            Self::ChronoDateTimeUtc(date_time) => date_time.hash(state),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(date_time) => date_time.hash(state),
+            Self::ChronoDateTimeLocal(date_time) => date_time.hash(state),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(date_time) => date_time.hash(state),
+            Self::ChronoDateTimeWithTimeZone(date_time) => date_time.hash(state),
 
             #[cfg(feature = "with-time")]
-            Value::TimeDate(date) => date.hash(state),
+            Self::TimeDate(date) => date.hash(state),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(time) => time.hash(state),
+            Self::TimeTime(time) => time.hash(state),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(primitive_date_time) => primitive_date_time.hash(state),
+            Self::TimeDateTime(primitive_date_time) => primitive_date_time.hash(state),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(offset_date_time) => offset_date_time.hash(state),
+            Self::TimeDateTimeWithTimeZone(offset_date_time) => offset_date_time.hash(state),
 
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(uuid) => uuid.hash(state),
+            Self::Uuid(uuid) => uuid.hash(state),
 
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(decimal) => decimal.hash(state),
+            Self::Decimal(decimal) => decimal.hash(state),
 
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(big_decimal) => big_decimal.hash(state),
+            Self::BigDecimal(big_decimal) => big_decimal.hash(state),
 
             #[cfg(feature = "postgres-array")]
-            Value::Array(array_type, vec) => {
+            Self::Array(array_type, vec) => {
                 array_type.hash(state);
                 vec.hash(state);
             }
 
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(vector) => hash_vector(vector, state),
+            Self::Vector(vector) => hash_vector(vector, state),
 
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(ip_network) => ip_network.hash(state),
+            Self::IpNetwork(ip_network) => ip_network.hash(state),
 
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(mac_address) => mac_address.hash(state),
+            Self::MacAddress(mac_address) => mac_address.hash(state),
         }
     }
 }

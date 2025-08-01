@@ -58,7 +58,7 @@ impl TableDropStatement {
     }
 
     /// Drop table if exists
-    pub fn if_exists(&mut self) -> &mut Self {
+    pub const fn if_exists(&mut self) -> &mut Self {
         self.if_exists = true;
         self
     }

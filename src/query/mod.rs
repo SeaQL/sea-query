@@ -84,7 +84,7 @@ impl Query {
     }
 
     /// Construct [`Returning`]
-    pub fn returning() -> Returning {
+    pub const fn returning() -> Returning {
         Returning::new()
     }
 }

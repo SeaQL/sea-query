@@ -55,7 +55,7 @@ pub struct CommonTableExpression {
 
 impl CommonTableExpression {
     /// Construct a new [`CommonTableExpression`]
-    pub fn new() -> CommonTableExpression {
+    pub fn new() -> Self {
         Self::default()
     }
 
@@ -92,7 +92,7 @@ impl CommonTableExpression {
     /// This will affect how during the execution of [WithQuery] the CTE in the [WithClause] will be
     /// executed. If the database doesn't support this syntax this option specified here will be
     /// ignored and not appear in the generated sql.
-    pub fn materialized(&mut self, materialized: bool) -> &mut Self {
+    pub const fn materialized(&mut self, materialized: bool) -> &mut Self {
         self.materialized = Some(materialized);
         self
     }
@@ -147,23 +147,19 @@ impl CommonTableExpression {
         let vec: Option<Vec<DynIden>> = selects
             .iter()
             .map(|select| {
-                if let Some(ident) = &select.alias {
-                    Some(ident.clone())
-                } else {
-                    match &select.expr {
-                        Expr::Column(column) => match column {
-                            ColumnRef::Column(iden) => Some(iden.clone()),
-                            ColumnRef::TableColumn(table, column) => {
-                                Some(format!("{table}_{column}").into_iden())
-                            }
-                            ColumnRef::SchemaTableColumn(schema, table, column) => {
-                                Some(format!("{schema}_{table}_{column}").into_iden())
-                            }
-                            _ => None,
-                        },
+                select.alias.clone().or_else(|| match &select.expr {
+                    Expr::Column(column) => match column {
+                        ColumnRef::Column(iden) => Some(iden.clone()),
+                        ColumnRef::TableColumn(table, column) => {
+                            Some(format!("{table}_{column}").into_iden())
+                        }
+                        ColumnRef::SchemaTableColumn(schema, table, column) => {
+                            Some(format!("{schema}_{table}_{column}").into_iden())
+                        }
                         _ => None,
-                    }
-                }
+                    },
+                    _ => None,
+                })
             })
             .collect();
 
@@ -224,7 +220,7 @@ impl Search {
     }
 
     /// The traversal order to be used.
-    pub fn order(&mut self, order: SearchOrder) -> &mut Self {
+    pub const fn order(&mut self, order: SearchOrder) -> &mut Self {
         self.order = Some(order);
         self
     }
@@ -247,10 +243,11 @@ impl Search {
 }
 
 /// For recursive [WithQuery] [WithClause]s the CYCLE sql clause can be specified to avoid creating
-/// an infinite traversals that loops on graph cycles indefinitely. You specify an expression that
-/// identifies a node in the graph and that will be used to determine during the iteration of
-/// the execution of the query when appending of new values whether the new values are distinct new
-/// nodes or are already visited and therefore they should be added again into the result.
+/// an infinite traversals that loops on graph cycles indefinitely.
+///
+/// You specify an expression that identifies a node in the graph. That expression will be used during the iteration of the query execution to determine whether new values are distinct new nodes or are already visited when new values is appended.
+///
+/// Therefore they should be added again into the result.
 ///
 /// A query can have both SEARCH and CYCLE clauses.
 ///
@@ -438,7 +435,7 @@ impl WithClause {
     ///
     /// You can only specify a single [CommonTableExpression] containing a union query
     /// if this is set to true.
-    pub fn recursive(&mut self, recursive: bool) -> &mut Self {
+    pub const fn recursive(&mut self, recursive: bool) -> &mut Self {
         self.recursive = recursive;
         self
     }
@@ -480,8 +477,8 @@ impl WithClause {
 }
 
 impl From<CommonTableExpression> for WithClause {
-    fn from(cte: CommonTableExpression) -> WithClause {
-        WithClause::new().cte(cte).to_owned()
+    fn from(cte: CommonTableExpression) -> Self {
+        Self::new().cte(cte).to_owned()
     }
 }
 
@@ -545,7 +542,7 @@ impl WithQuery {
     }
 
     /// Set the [WithClause::recursive]. See that method for more information.
-    pub fn recursive(&mut self, recursive: bool) -> &mut Self {
+    pub const fn recursive(&mut self, recursive: bool) -> &mut Self {
         self.with_clause.recursive = recursive;
         self
     }
