@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-rusqlite"
-version = "0.8.0-rc.1"
+version = "0.8.0-rc.5"
 authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2024"
 description = "Binder traits for connecting sea-query with Rusqlite"
@@ -17,8 +17,8 @@ rust-version = "1.85.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false }
-rusqlite = { version = "0.36" }
+sea-query = { version = "1.0.0-rc.5", path = "..", default-features = false }
+rusqlite = { version = "0.37" }
 
 [features]
 with-chrono = ["rusqlite/chrono", "sea-query/with-chrono"]
