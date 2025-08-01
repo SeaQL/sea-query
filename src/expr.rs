@@ -5,6 +5,8 @@
 //!
 //! [`ExprTrait`] provides "operator" methods for building expressions.
 
+use std::borrow::Cow;
+
 use crate::{func::*, query::*, types::*, value::*};
 
 /// A legacy compatibility alias for [`Expr`].
@@ -37,8 +39,8 @@ pub enum Expr {
     SubQuery(Option<SubQueryOper>, Box<SubQueryStatement>),
     Value(Value),
     Values(Vec<Value>),
-    Custom(String),
-    CustomWithExpr(String, Vec<Expr>),
+    Custom(Cow<'static, str>),
+    CustomWithExpr(Cow<'static, str>, Vec<Expr>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
@@ -1857,7 +1859,7 @@ impl Expr {
     /// ```
     pub fn cust<T>(s: T) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
     {
         Self::Custom(s.into())
     }
@@ -1934,7 +1936,7 @@ impl Expr {
     /// ```
     pub fn cust_with_values<T, V, I>(s: T, v: I) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
@@ -1982,7 +1984,7 @@ impl Expr {
     /// ```
     pub fn cust_with_expr<T, E>(s: T, expr: E) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
         E: Into<Self>,
     {
         Self::CustomWithExpr(s.into(), vec![expr.into()])
@@ -1991,7 +1993,7 @@ impl Expr {
     /// Express any custom expression with [`Expr`]. Use this if your expression needs other expressions.
     pub fn cust_with_exprs<T, I>(s: T, v: I) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = Expr>,
     {
         Self::CustomWithExpr(s.into(), v.into_iter().collect())
