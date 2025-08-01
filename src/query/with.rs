@@ -245,9 +245,7 @@ impl Search {
 /// For recursive [WithQuery] [WithClause]s the CYCLE sql clause can be specified to avoid creating
 /// an infinite traversals that loops on graph cycles indefinitely.
 ///
-/// You specify an expression that identifies a node in the graph. That expression will be used during the iteration of the query execution to determine whether new values are distinct new nodes or are already visited when new values is appended.
-///
-/// Therefore they should be added again into the result.
+/// You specify an expression that identifies a node in the graph, which is used during the query execution iteration, to determine newly appended values are distinct new nodes or are already visited, and therefore they should be added into the result again.
 ///
 /// A query can have both SEARCH and CYCLE clauses.
 ///
