@@ -145,8 +145,8 @@ impl QueryBuilder for MysqlQueryBuilder {
         self.prepare_order(order_expr, sql);
     }
 
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value, self as _);
     }
 
     fn prepare_on_conflict_target(&self, _: &[OnConflictTarget], _: &mut dyn SqlWriter) {

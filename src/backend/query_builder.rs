@@ -194,12 +194,12 @@ pub trait QueryBuilder:
     fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &select.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            self.prepare_value(limit.clone(), sql);
         }
 
         if let Some(offset) = &select.offset {
             write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(offset, sql);
+            self.prepare_value(offset.clone(), sql);
         }
     }
 
@@ -302,7 +302,7 @@ pub trait QueryBuilder:
     fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &update.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            self.prepare_value(limit.clone(), sql);
         }
     }
 
@@ -348,7 +348,7 @@ pub trait QueryBuilder:
     fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &delete.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            self.prepare_value(limit.clone(), sql);
         }
     }
 
@@ -400,7 +400,7 @@ pub trait QueryBuilder:
                 write!(sql, ")").unwrap();
             }
             Expr::Value(val) => {
-                self.prepare_value(val, sql);
+                self.prepare_value(val.clone(), sql);
             }
             Expr::Values(list) => {
                 write!(sql, "(").unwrap();
@@ -408,7 +408,7 @@ pub trait QueryBuilder:
                     if !first {
                         write!(sql, ", ").unwrap();
                     }
-                    self.prepare_value(val, sql);
+                    self.prepare_value(val.clone(), sql);
                     false
                 });
                 write!(sql, ")").unwrap();
@@ -984,7 +984,7 @@ pub trait QueryBuilder:
     }
 
     /// Write [`Value`] into SQL statement as parameter.
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter);
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
@@ -1005,7 +1005,7 @@ pub trait QueryBuilder:
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                self.prepare_value(&value, sql);
+                self.prepare_value(value, sql);
                 false
             });
 
@@ -1385,12 +1385,12 @@ pub trait QueryBuilder:
         match *frame {
             Frame::UnboundedPreceding => write!(sql, "UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
-                self.prepare_value(&v.into(), sql);
+                self.prepare_value(v.into(), sql);
                 write!(sql, "PRECEDING").unwrap();
             }
             Frame::CurrentRow => write!(sql, "CURRENT ROW").unwrap(),
             Frame::Following(v) => {
-                self.prepare_value(&v.into(), sql);
+                self.prepare_value(v.into(), sql);
                 write!(sql, "FOLLOWING").unwrap();
             }
             Frame::UnboundedFollowing => write!(sql, "UNBOUNDED FOLLOWING").unwrap(),
@@ -1605,8 +1605,8 @@ impl QueryBuilder for CommonSqlQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value, self as _);
     }
 }
 
