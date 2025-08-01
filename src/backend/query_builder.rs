@@ -473,9 +473,9 @@ pub trait QueryBuilder:
 
             self.prepare_simple_expr(&case.result, sql);
         }
-        if let Some(r#else) = r#else.clone() {
+        if let Some(r#else) = r#else {
             write!(sql, " ELSE ").unwrap();
-            self.prepare_simple_expr(&r#else, sql);
+            self.prepare_simple_expr(r#else, sql);
         }
 
         write!(sql, " END)").unwrap();
