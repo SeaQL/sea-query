@@ -410,14 +410,21 @@ fn test_decimal_value() {
 fn test_array_value() {
     let array = vec![1, 2, 3, 4, 5];
     let v: Value = array.into();
+    assert_eq!(v, Value::array(vec![1, 2, 3, 4, 5]));
     let out: Vec<i32> = v.unwrap();
     assert_eq!(out, vec![1, 2, 3, 4, 5]);
+
+    let array = vec!["1".to_owned(), "2".to_owned()];
+    let v: Value = array.clone().into();
+    assert_eq!(v, Value::array(array));
 }
 
 #[test]
 #[cfg(feature = "postgres-array")]
 fn test_option_array_value() {
-    let v: Value = Value::array(ArrayType::Int, None);
+    let v: Value = Option::<Vec<i32>>::None.into();
+    assert_eq!(v, Value::array_null::<i32>());
+    assert!(matches!(v, Value::Array(_, _)));
     let out: Option<Vec<i32>> = v.unwrap();
     assert_eq!(out, None);
 }

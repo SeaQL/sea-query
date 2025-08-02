@@ -81,10 +81,7 @@ where
     T: Into<Value> + NotU8 + ValueType,
 {
     fn from(x: Vec<T>) -> Value {
-        Value::array(
-            T::array_type(),
-            x.into_iter().map(|e| e.into()).collect::<Vec<_>>(),
-        )
+        Value::array(x)
     }
 }
 
@@ -93,7 +90,7 @@ where
     T: Into<Value> + NotU8 + ValueType,
 {
     fn null() -> Value {
-        Value::array(T::array_type(), None)
+        Value::array_null::<T>()
     }
 }
 
@@ -126,8 +123,22 @@ where
 
 impl Value {
     #[inline]
-    pub fn array<T: Into<Option<Vec<Value>>>>(array_type: ArrayType, value: T) -> Self {
-        Self::Array(array_type, value.into().map(Box::new))
+    pub fn array<T: Into<Value> + NotU8 + ValueType, I: IntoIterator<Item = T>>(values: I) -> Self {
+        Self::Array(
+            T::array_type(),
+            Some(
+                values
+                    .into_iter()
+                    .map(|v| v.into())
+                    .collect::<Vec<_>>()
+                    .into(),
+            ),
+        )
+    }
+
+    #[inline]
+    pub fn array_null<T: Into<Value> + NotU8 + ValueType>() -> Self {
+        Self::Array(T::array_type(), None)
     }
 
     pub fn is_array(&self) -> bool {

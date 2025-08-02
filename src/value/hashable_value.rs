@@ -322,22 +322,14 @@ mod tests {
     #[cfg(feature = "postgres-array")]
     #[test]
     fn test_hash_value_array() {
-        use crate::ArrayType;
-
         assert_eq!(
             Into::<Value>::into(vec![0i32, 1, 2]),
-            Value::array(
-                ArrayType::Int,
-                vec![Value::int(0), Value::int(1), Value::int(2)]
-            )
+            Value::array(vec![0i32, 1, 2])
         );
 
         assert_eq!(
             Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-            Value::array(
-                ArrayType::Float,
-                vec![Value::float(0f32), Value::float(1.0), Value::float(2.0)]
-            )
+            Value::array(vec![0f32, 1.0, 2.0])
         );
 
         let hash_set: std::collections::HashSet<Value> = [
