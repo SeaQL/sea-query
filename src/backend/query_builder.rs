@@ -1688,24 +1688,33 @@ where
                 if v.is_empty() {
                     write!(s, "'{{}}'").unwrap()
                 } else {
-                    write!(
-                        s,
-                        "ARRAY [{}]",
-                        v.iter()
-                            .map(|element| self.value_to_string(element))
-                            .collect::<Vec<String>>()
-                            .join(",")
-                    )
-                    .unwrap()
+                    write!(s, "ARRAY [").unwrap();
+
+                    let mut viter = v.iter();
+
+                    if let Some(element) = viter.next() {
+                        self.write_value(s, element);
+                    }
+
+                    for element in viter {
+                        write!(s, ", ").unwrap();
+                        self.write_value(s, element);
+                    }
+
+                    write!(s, "]").unwrap();
                 }
             }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => {
                 write!(s, "'[").unwrap();
-                for (i, &element) in v.as_slice().iter().enumerate() {
-                    if i != 0 {
-                        write!(s, ",").unwrap();
-                    }
+                let mut viter = v.as_slice().iter();
+
+                if let Some(element) = viter.next() {
+                    write!(s, "{element}").unwrap();
+                }
+
+                for element in viter {
+                    write!(s, ",").unwrap();
                     write!(s, "{element}").unwrap();
                 }
                 write!(s, "]'").unwrap();
