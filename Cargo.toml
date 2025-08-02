@@ -93,7 +93,7 @@ all-types = [
     "with-bigdecimal",
     "with-uuid",
     "with-time",
-    "with-juff",
+    "with-jiff",
     "with-ipnetwork",
     "with-mac_address",
 ]
