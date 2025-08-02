@@ -1043,7 +1043,7 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
-    fn write_value(&self, s: &mut String, value: &Value) {
+    fn write_value(&self, buffer: &mut dyn Write, value: &Value) {
         match value {
             Value::Bool(None)
             | Value::TinyInt(None)
@@ -1058,106 +1058,111 @@ pub trait QueryBuilder:
             | Value::Double(None)
             | Value::String(None)
             | Value::Char(None)
-            | Value::Bytes(None) => write!(s, "NULL").unwrap(),
+            | Value::Bytes(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-json")]
-            Value::Json(None) => write!(s, "NULL").unwrap(),
+            Value::Json(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDate(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoTime(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTime(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeUtc(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeLocal(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeWithTimeZone(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeDate(None) => write!(s, "NULL").unwrap(),
+            Value::TimeDate(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(None) => write!(s, "NULL").unwrap(),
+            Value::TimeTime(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
+            Value::TimeDateTime(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            Value::TimeDateTimeWithTimeZone(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffDate(None) => write!(s, "NULL").unwrap(),
+            Value::JiffDate(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffTime(None) => write!(s, "NULL").unwrap(),
+            Value::JiffTime(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffDateTime(None) => write!(s, "NULL").unwrap(),
+            Value::JiffDateTime(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffTimestamp(None) => write!(s, "NULL").unwrap(),
+            Value::JiffTimestamp(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffZoned(None) => write!(s, "NULL").unwrap(),
+            Value::JiffZoned(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => write!(s, "NULL").unwrap(),
+            Value::Decimal(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
+            Value::BigDecimal(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            Value::Uuid(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
+            Value::IpNetwork(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(None) => write!(s, "NULL").unwrap(),
+            Value::MacAddress(None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, None) => write!(s, "NULL").unwrap(),
+            Value::Array(_, None) => write!(buffer, "NULL").unwrap(),
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(None) => write!(s, "NULL").unwrap(),
-            Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::SmallInt(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Int(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::BigInt(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::TinyUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::SmallUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Unsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::BigUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Float(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Double(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::String(Some(v)) => self.write_string_quoted(v, s),
-            Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), s)
+            Value::Vector(None) => write!(buffer, "NULL").unwrap(),
+            Value::Bool(Some(b)) => {
+                write!(buffer, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap()
             }
-            Value::Bytes(Some(v)) => self.write_bytes(v, s),
+            Value::TinyInt(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::SmallInt(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::Int(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::BigInt(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::TinyUnsigned(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::SmallUnsigned(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::Unsigned(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::BigUnsigned(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::Float(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::Double(Some(v)) => write!(buffer, "{v}").unwrap(),
+            Value::String(Some(v)) => self.write_string_quoted_dyn(v, buffer),
+            Value::Char(Some(v)) => {
+                self.write_string_quoted_dyn(std::str::from_utf8(&[*v as u8]).unwrap(), buffer)
+            }
+            Value::Bytes(Some(v)) => self.write_bytes_dyn(v, buffer),
             #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), s),
+            Value::Json(Some(v)) => self.write_string_quoted_dyn(&v.to_string(), buffer),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
+            Value::ChronoDate(Some(v)) => write!(buffer, "'{}'", v.format("%Y-%m-%d")).unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
+            Value::ChronoTime(Some(v)) => write!(buffer, "'{}'", v.format("%H:%M:%S")).unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
+                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
+                write!(buffer, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
+                write!(buffer, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
-            }
+            Value::TimeDateTime(Some(v)) => write!(
+                buffer,
+                "'{}'",
+                v.format(time_format::FORMAT_DATETIME).unwrap()
+            )
+            .unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
-                s,
+                buffer,
                 "'{}'",
                 v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
             )
@@ -1165,73 +1170,73 @@ pub trait QueryBuilder:
             // Jiff date and time dosen't need format string
             // The default behavior is what we want
             #[cfg(feature = "with-jiff")]
-            Value::JiffDate(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::JiffDate(Some(v)) => write!(buffer, "'{v}'").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffTime(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::JiffTime(Some(v)) => write!(buffer, "'{v}'").unwrap(),
             // Both JiffDateTime and JiffTimestamp map to timestamp
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(Some(v)) => {
                 use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
-                write!(s, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR)).unwrap()
+                write!(buffer, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR)).unwrap()
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(Some(v)) => {
                 use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
-                write!(s, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR)).unwrap()
+                write!(buffer, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR)).unwrap()
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffZoned(Some(v)) => {
                 // Zoned map to timestamp with timezone
 
                 use crate::with_jiff::JIFF_ZONE_FMT_STR;
-                write!(s, "'{}'", v.strftime(JIFF_ZONE_FMT_STR)).unwrap()
+                write!(buffer, "'{}'", v.strftime(JIFF_ZONE_FMT_STR)).unwrap()
             }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Decimal(Some(v)) => write!(buffer, "{v}").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::BigDecimal(Some(v)) => write!(buffer, "{v}").unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::Uuid(Some(v)) => write!(buffer, "'{v}'").unwrap(),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => {
                 if v.is_empty() {
-                    write!(s, "'{{}}'").unwrap()
+                    write!(buffer, "'{{}}'").unwrap()
                 } else {
-                    write!(s, "ARRAY [").unwrap();
+                    write!(buffer, "ARRAY [").unwrap();
 
                     let mut viter = v.iter();
 
                     if let Some(element) = viter.next() {
-                        self.write_value(s, element);
+                        self.write_value(buffer, element);
                     }
 
                     for element in viter {
-                        write!(s, ", ").unwrap();
-                        self.write_value(s, element);
+                        write!(buffer, ", ").unwrap();
+                        self.write_value(buffer, element);
                     }
 
-                    write!(s, "]").unwrap();
+                    write!(buffer, "]").unwrap();
                 }
             }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => {
-                write!(s, "'[").unwrap();
+                write!(buffer, "'[").unwrap();
                 let mut viter = v.as_slice().iter();
 
                 if let Some(element) = viter.next() {
-                    write!(s, "{element}").unwrap();
+                    write!(buffer, "{element}").unwrap();
                 }
 
                 for element in viter {
-                    write!(s, ",").unwrap();
-                    write!(s, "{element}").unwrap();
+                    write!(buffer, ",").unwrap();
+                    write!(buffer, "{element}").unwrap();
                 }
-                write!(s, "]'").unwrap();
+                write!(buffer, "]'").unwrap();
             }
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::IpNetwork(Some(v)) => write!(buffer, "'{v}'").unwrap(),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::MacAddress(Some(v)) => write!(buffer, "'{v}'").unwrap(),
         };
     }
 
@@ -1543,8 +1548,23 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
+    fn write_string_quoted_dyn(&self, string: &str, buffer: &mut dyn Write) {
+        write!(buffer, "'{}'", self.escape_string(string)).unwrap()
+    }
+
+    #[doc(hidden)]
     /// Write bytes enclosed with engine specific byte syntax
     fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
+        write!(buffer, "x'").unwrap();
+        for b in bytes {
+            write!(buffer, "{b:02X}").unwrap();
+        }
+        write!(buffer, "'").unwrap();
+    }
+
+    #[doc(hidden)]
+    /// Write bytes enclosed with engine specific byte syntax
+    fn write_bytes_dyn(&self, bytes: &[u8], buffer: &mut dyn Write) {
         write!(buffer, "x'").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap();
