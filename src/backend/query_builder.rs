@@ -1058,56 +1058,54 @@ pub trait QueryBuilder:
             | Value::Double(None)
             | Value::String(None)
             | Value::Char(None)
-            | Value::Bytes(None) => write!(buffer, "NULL").unwrap(),
+            | Value::Bytes(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-json")]
-            Value::Json(None) => write!(buffer, "NULL").unwrap(),
+            Value::Json(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(None) => write!(buffer, "NULL").unwrap(),
+            Value::ChronoDate(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(None) => write!(buffer, "NULL").unwrap(),
+            Value::ChronoTime(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(None) => write!(buffer, "NULL").unwrap(),
+            Value::ChronoDateTime(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(None) => write!(buffer, "NULL").unwrap(),
+            Value::ChronoDateTimeUtc(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(None) => write!(buffer, "NULL").unwrap(),
+            Value::ChronoDateTimeLocal(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(None) => write!(buffer, "NULL").unwrap(),
+            Value::ChronoDateTimeWithTimeZone(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeDate(None) => write!(buffer, "NULL").unwrap(),
+            Value::TimeDate(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(None) => write!(buffer, "NULL").unwrap(),
+            Value::TimeTime(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(None) => write!(buffer, "NULL").unwrap(),
+            Value::TimeDateTime(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(None) => write!(buffer, "NULL").unwrap(),
+            Value::TimeDateTimeWithTimeZone(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffDate(None) => write!(buffer, "NULL").unwrap(),
+            Value::JiffDate(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffTime(None) => write!(buffer, "NULL").unwrap(),
+            Value::JiffTime(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffDateTime(None) => write!(buffer, "NULL").unwrap(),
+            Value::JiffDateTime(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffTimestamp(None) => write!(buffer, "NULL").unwrap(),
+            Value::JiffTimestamp(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-jiff")]
-            Value::JiffZoned(None) => write!(buffer, "NULL").unwrap(),
+            Value::JiffZoned(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => write!(buffer, "NULL").unwrap(),
+            Value::Decimal(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => write!(buffer, "NULL").unwrap(),
+            Value::BigDecimal(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => write!(buffer, "NULL").unwrap(),
+            Value::Uuid(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(None) => write!(buffer, "NULL").unwrap(),
+            Value::IpNetwork(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(None) => write!(buffer, "NULL").unwrap(),
+            Value::MacAddress(None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, None) => write!(buffer, "NULL").unwrap(),
+            Value::Array(_, None) => buffer.write_str("NULL").unwrap(),
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(None) => write!(buffer, "NULL").unwrap(),
-            Value::Bool(Some(b)) => {
-                write!(buffer, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap()
-            }
+            Value::Vector(None) => buffer.write_str("NULL").unwrap(),
+            Value::Bool(Some(b)) => buffer.write_str(if *b { "TRUE" } else { "FALSE" }).unwrap(),
             Value::TinyInt(Some(v)) => write!(buffer, "{v}").unwrap(),
             Value::SmallInt(Some(v)) => write!(buffer, "{v}").unwrap(),
             Value::Int(Some(v)) => write!(buffer, "{v}").unwrap(),
@@ -1200,9 +1198,9 @@ pub trait QueryBuilder:
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => {
                 if v.is_empty() {
-                    write!(buffer, "'{{}}'").unwrap()
+                    buffer.write_str("{}").unwrap();
                 } else {
-                    write!(buffer, "ARRAY [").unwrap();
+                    buffer.write_str("ARRAY [").unwrap();
 
                     let mut viter = v.iter();
 
@@ -1211,11 +1209,10 @@ pub trait QueryBuilder:
                     }
 
                     for element in viter {
-                        write!(buffer, ", ").unwrap();
+                        buffer.write_str(", ").unwrap();
                         self.write_value(buffer, element);
                     }
-
-                    write!(buffer, "]").unwrap();
+                    buffer.write_str("]").unwrap();
                 }
             }
             #[cfg(feature = "postgres-vector")]
@@ -1228,10 +1225,11 @@ pub trait QueryBuilder:
                 }
 
                 for element in viter {
-                    write!(buffer, ",").unwrap();
+                    buffer.write_str(",").unwrap();
+
                     write!(buffer, "{element}").unwrap();
                 }
-                write!(buffer, "]'").unwrap();
+                buffer.write_str("]").unwrap();
             }
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(Some(v)) => write!(buffer, "'{v}'").unwrap(),
