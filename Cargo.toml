@@ -3,7 +3,7 @@ members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
-version = "1.0.0-rc.5"
+version = "1.0.0-rc.7"
 authors = [
     "Chris Tsang <chris.2y3@outlook.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
@@ -38,6 +38,7 @@ rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.4", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
 time = { version = "0.3.36", default-features = false, optional = true, features = ["macros", "formatting"] }
+jiff = { version = "0.2.15", default-features = false, optional = true, features = ["std", "perf-inline"] }
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 ordered-float = { version = "4.6", default-features = false, optional = true }
@@ -67,6 +68,7 @@ with-rust_decimal = ["rust_decimal"]
 with-bigdecimal = ["bigdecimal"]
 with-uuid = ["uuid"]
 with-time = ["time"]
+with-jiff = ["jiff"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
 tests-cfg = []
@@ -91,6 +93,7 @@ all-types = [
     "with-bigdecimal",
     "with-uuid",
     "with-time",
+    "with-jiff",
     "with-ipnetwork",
     "with-mac_address",
 ]
@@ -129,4 +132,8 @@ required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
 
 [[bench]]
 name = "basic"
+harness = false
+
+[[bench]]
+name = "value"
 harness = false

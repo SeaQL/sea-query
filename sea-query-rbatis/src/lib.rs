@@ -1,5 +1,7 @@
-use rbs::to_value;
+#![forbid(unsafe_code)]
+
 use rbs::Value as RbValue;
+use rbs::to_value;
 use sea_query::*;
 pub trait SqlxBinder {
     fn build_rbs<T: QueryBuilder>(&self, query_builder: T) -> (String, Vec<rbs::Value>);
@@ -79,19 +81,35 @@ fn to_rb_values(values: Values) -> Vec<rbs::Value> {
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(t) => {
-                args.push(Value::ChronoDateTime(t).chrono_as_naive_utc_in_string().to());
+                args.push(
+                    Value::ChronoDateTime(t)
+                        .chrono_as_naive_utc_in_string()
+                        .to(),
+                );
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(t) => {
-                args.push(Value::ChronoDateTimeUtc(t).chrono_as_naive_utc_in_string().to());
+                args.push(
+                    Value::ChronoDateTimeUtc(t)
+                        .chrono_as_naive_utc_in_string()
+                        .to(),
+                );
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(t) => {
-                args.push(Value::ChronoDateTimeLocal(t).chrono_as_naive_utc_in_string().to());
+                args.push(
+                    Value::ChronoDateTimeLocal(t)
+                        .chrono_as_naive_utc_in_string()
+                        .to(),
+                );
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(t) => {
-                args.push(Value::ChronoDateTimeWithTimeZone(t).chrono_as_naive_utc_in_string().to());
+                args.push(
+                    Value::ChronoDateTimeWithTimeZone(t)
+                        .chrono_as_naive_utc_in_string()
+                        .to(),
+                );
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(t) => {
@@ -107,7 +125,11 @@ fn to_rb_values(values: Values) -> Vec<rbs::Value> {
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(t) => {
-                args.push(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string().to());
+                args.push(
+                    Value::TimeDateTimeWithTimeZone(t)
+                        .time_as_naive_utc_in_string()
+                        .to(),
+                );
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(uuid) => {

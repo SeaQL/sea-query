@@ -41,33 +41,33 @@ impl TransformValue for Pg {
             }
             Value::Float(v) => build!(Float, v),
             Value::Double(v) => build!(Double, v),
-            Value::String(v) => build!(Text, v.map(|v| *v)),
+            Value::String(v) => build!(Text, v),
             Value::Char(v) => build!(Text, v.map(|v| v.to_string())),
-            Value::Bytes(v) => build!(Blob, v.map(|v| *v)),
+            Value::Bytes(v) => build!(Blob, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(v) => build!(Date, v.map(|v| *v)),
+            Value::ChronoDate(v) => build!(Date, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(v) => build!(Time, v.map(|v| *v)),
+            Value::ChronoTime(v) => build!(Time, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(v) => build!(Timestamp, v.map(|v| *v)),
+            Value::ChronoDateTime(v) => build!(Timestamp, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::ChronoDateTimeUtc(v) => build!(Timestamptz, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::ChronoDateTimeLocal(v) => build!(Timestamptz, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::ChronoDateTimeWithTimeZone(v) => build!(Timestamptz, v),
             #[cfg(feature = "with-time")]
-            Value::TimeDate(v) => build!(Date, v.map(|v| *v)),
+            Value::TimeDate(v) => build!(Date, v),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(v) => build!(Time, v.map(|v| *v)),
+            Value::TimeTime(v) => build!(Time, v),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(v) => build!(Timestamp, v.map(|v| *v)),
+            Value::TimeDateTime(v) => build!(Timestamp, v),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(v) => build!(Timestamptz, v.map(|v| *v)),
+            Value::TimeDateTimeWithTimeZone(v) => build!(Timestamptz, v),
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(v) => build!(Uuid, v.map(|v| *v)),
+            Value::Uuid(v) => build!(Uuid, v),
             #[cfg(feature = "with-rust_decimal-postgres")]
-            Value::Decimal(v) => build!(Numeric, v.map(|v| *v)),
+            Value::Decimal(v) => build!(Numeric, v),
             #[cfg(all(
                 feature = "with-rust_decimal",
                 not(feature = "with-rust_decimal-postgres")
@@ -76,9 +76,9 @@ impl TransformValue for Pg {
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => build!(Numeric, v.map(|v| *v)),
             #[cfg(feature = "with-json")]
-            Value::Json(v) => build!(Json, v.map(|v| *v)),
+            Value::Json(v) => build!(Json, v),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(v) => build!(Inet, v.map(|v| *v)),
+            Value::IpNetwork(v) => build!(Inet, v),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(v) => build!(MacAddr, v.map(|v| v.bytes())),
             #[cfg(feature = "postgres-array")]
@@ -206,7 +206,7 @@ impl TransformValue for Pg {
                 }
             },
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(v) => build!(pgvector::sql_types::Vector, v.map(|v| *v)),
+            Value::Vector(v) => build!(pgvector::sql_types::Vector, v),
         };
         Ok(transformed)
     }

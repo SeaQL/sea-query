@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Enhancements
 
+* `#![forbid(unsafe_code)]` in all workspace crates.
+
 * Removed unnecessary `'static` bounds from type signatures.
 
 ### New features
@@ -29,10 +31,14 @@ pub struct SeaRc;                                 // new
 ```
 * `impl From<Expr> for Condition`. Now you can use that instead of
   `ConditionExpression`, which has been removed.
+* Addded `DatabaseName`, `SchemaName`, `TableName`, `ColumnName` types.
 
 ### Breaking Changes
 
+* Unboxed variants of `Value`
+
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
+
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
     |
@@ -120,6 +126,9 @@ impl Iden for Glyph {
     }
 }
 ```
+* Reworked `TableRef` and `ColumnRef` variants.
+* Turned `SchemaTable` into a type alias of `TableName`. Code that accesses the
+  fields inside may not compile. Other existing code should still compile.
 * Removed `ConditionExpression` from the public API. Instead, just convert
   between `Condition` and `Expr` using `From`/`Into`.
 * Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait`.
@@ -136,6 +145,13 @@ impl Iden for Glyph {
 ### Upgrades
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
+
+## 0.32.7 - pending
+
+### Bug Fixes
+
+* Fix incorrect casting of `ChronoDateTimeWithTimeZone` in `Value::Array` https://github.com/SeaQL/sea-query/pull/933
+* Add missing parenthesis to `WINDOW` clause https://github.com/SeaQL/sea-query/pull/919
 
 ## 0.32.6 - 2025-05-27
 

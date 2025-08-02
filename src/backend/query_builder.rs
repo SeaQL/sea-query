@@ -184,8 +184,9 @@ pub trait QueryBuilder:
         if let Some((name, query)) = &select.window {
             write!(sql, " WINDOW ").unwrap();
             self.prepare_iden(name, sql);
-            write!(sql, " AS ").unwrap();
+            write!(sql, " AS (").unwrap();
             self.prepare_window_statement(query, sql);
+            write!(sql, ")").unwrap();
         }
     }
 
@@ -193,12 +194,12 @@ pub trait QueryBuilder:
     fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &select.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            self.prepare_value(limit.clone(), sql);
         }
 
         if let Some(offset) = &select.offset {
             write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(offset, sql);
+            self.prepare_value(offset.clone(), sql);
         }
     }
 
@@ -301,7 +302,7 @@ pub trait QueryBuilder:
     fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &update.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            self.prepare_value(limit.clone(), sql);
         }
     }
 
@@ -347,7 +348,7 @@ pub trait QueryBuilder:
     fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &delete.limit {
             write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            self.prepare_value(limit.clone(), sql);
         }
     }
 
@@ -399,7 +400,7 @@ pub trait QueryBuilder:
                 write!(sql, ")").unwrap();
             }
             Expr::Value(val) => {
-                self.prepare_value(val, sql);
+                self.prepare_value(val.clone(), sql);
             }
             Expr::Values(list) => {
                 write!(sql, "(").unwrap();
@@ -407,7 +408,7 @@ pub trait QueryBuilder:
                     if !first {
                         write!(sql, ", ").unwrap();
                     }
-                    self.prepare_value(val, sql);
+                    self.prepare_value(val.clone(), sql);
                     false
                 });
                 write!(sql, ")").unwrap();
@@ -472,9 +473,9 @@ pub trait QueryBuilder:
 
             self.prepare_simple_expr(&case.result, sql);
         }
-        if let Some(r#else) = r#else.clone() {
+        if let Some(r#else) = r#else {
             write!(sql, " ELSE ").unwrap();
-            self.prepare_simple_expr(&r#else, sql);
+            self.prepare_simple_expr(r#else, sql);
         }
 
         write!(sql, " END)").unwrap();
@@ -595,27 +596,21 @@ pub trait QueryBuilder:
 
     fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut dyn SqlWriter) {
         match column_ref {
-            ColumnRef::Column(column) => self.prepare_iden(column, sql),
-            ColumnRef::TableColumn(table, column) => {
-                self.prepare_iden(table, sql);
-                write!(sql, ".").unwrap();
+            ColumnRef::Column(ColumnName(table_name, column)) => {
+                if let Some(table_name) = table_name {
+                    self.prepare_table_name(table_name, sql);
+                    write!(sql, ".").unwrap();
+                }
                 self.prepare_iden(column, sql);
             }
-            ColumnRef::SchemaTableColumn(schema, table, column) => {
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(table, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(column, sql);
-            }
-            ColumnRef::Asterisk => {
+            ColumnRef::Asterisk(table_name) => {
+                if let Some(table_name) = table_name {
+                    self.prepare_table_name(table_name, sql);
+                    write!(sql, ".").unwrap();
+                }
                 write!(sql, "*").unwrap();
             }
-            ColumnRef::TableAsterisk(table) => {
-                self.prepare_iden(table, sql);
-                write!(sql, ".*").unwrap();
-            }
-        };
+        }
     }
 
     /// Translate [`UnOper`] into SQL statement.
@@ -983,7 +978,7 @@ pub trait QueryBuilder:
     }
 
     /// Write [`Value`] into SQL statement as parameter.
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter);
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
@@ -1004,7 +999,7 @@ pub trait QueryBuilder:
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                self.prepare_value(&value, sql);
+                self.prepare_value(value, sql);
                 false
             });
 
@@ -1080,6 +1075,16 @@ pub trait QueryBuilder:
             Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDate(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDateTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTimestamp(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffZoned(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
@@ -1151,6 +1156,30 @@ pub trait QueryBuilder:
                 v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
             )
             .unwrap(),
+            // Jiff date and time dosen't need format string
+            // The default behavior is what we want
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDate(Some(v)) => write!(s, "'{v}'").unwrap(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTime(Some(v)) => write!(s, "'{v}'").unwrap(),
+            // Both JiffDateTime and JiffTimestamp map to timestamp
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDateTime(Some(v)) => {
+                use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
+                write!(s, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR)).unwrap()
+            }
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTimestamp(Some(v)) => {
+                use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
+                write!(s, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR)).unwrap()
+            }
+            #[cfg(feature = "with-jiff")]
+            Value::JiffZoned(Some(v)) => {
+                // Zoned map to timestamp with timezone
+
+                use crate::with_jiff::JIFF_ZONE_FMT_STR;
+                write!(s, "'{}'", v.strftime(JIFF_ZONE_FMT_STR)).unwrap()
+            }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
@@ -1384,12 +1413,12 @@ pub trait QueryBuilder:
         match *frame {
             Frame::UnboundedPreceding => write!(sql, "UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
-                self.prepare_value(&v.into(), sql);
+                self.prepare_value(v.into(), sql);
                 write!(sql, "PRECEDING").unwrap();
             }
             Frame::CurrentRow => write!(sql, "CURRENT ROW").unwrap(),
             Frame::Following(v) => {
-                self.prepare_value(&v.into(), sql);
+                self.prepare_value(v.into(), sql);
                 write!(sql, "FOLLOWING").unwrap();
             }
             Frame::UnboundedFollowing => write!(sql, "UNBOUNDED FOLLOWING").unwrap(),
@@ -1604,8 +1633,8 @@ impl QueryBuilder for CommonSqlQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value, self as _);
     }
 }
 

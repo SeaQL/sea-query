@@ -170,8 +170,8 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value, self as _);
     }
 
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {

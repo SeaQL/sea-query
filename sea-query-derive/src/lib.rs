@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use std::convert::{TryFrom, TryInto};
 
 use darling::FromMeta;
