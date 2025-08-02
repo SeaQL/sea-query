@@ -45,6 +45,11 @@ fmt_uuid_to_box_value!(uuid::fmt::Simple, simple);
 fmt_uuid_to_box_value!(uuid::fmt::Urn, urn);
 
 impl Value {
+    #[inline]
+    pub fn uuid<T: Into<Option<Uuid>>>(value: T) -> Self {
+        Self::Uuid(value.into())
+    }
+
     pub fn is_uuid(&self) -> bool {
         matches!(self, Self::Uuid(_))
     }

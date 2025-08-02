@@ -3,6 +3,11 @@ use super::*;
 type_to_value!(Decimal, Decimal, Decimal(None));
 
 impl Value {
+    #[inline]
+    pub fn decimal<T: Into<Option<Decimal>>>(value: T) -> Self {
+        Self::Decimal(value.into())
+    }
+
     pub fn is_decimal(&self) -> bool {
         matches!(self, Self::Decimal(_))
     }

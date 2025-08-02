@@ -125,6 +125,11 @@ where
 }
 
 impl Value {
+    #[inline]
+    pub fn array<T: Into<Option<Vec<Value>>>>(array_type: ArrayType, value: T) -> Self {
+        Self::Array(array_type, value.into().map(Box::new))
+    }
+
     pub fn is_array(&self) -> bool {
         matches!(self, Self::Array(_, _))
     }
