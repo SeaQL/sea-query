@@ -26,9 +26,16 @@ async fn main() {
 
     // Schema
 
+    let sql = Table::drop()
+        .table(Character::Table)
+        .if_exists()
+        .build(PostgresQueryBuilder);
+
+    let result = sqlx::query(&sql).execute(&mut *pool).await;
+    println!("Drop table character: {result:?}\n");
+
     let sql = Table::create()
         .table(Character::Table)
-        .if_not_exists()
         .col(
             ColumnDef::new(Character::Id)
                 .integer()
@@ -78,11 +85,12 @@ async fn main() {
                 .unwrap()
                 .with_scale(3)
                 .into(),
-            NaiveDate::from_ymd_opt(2020, 8, 20)
-                .unwrap()
-                .and_hms_opt(0, 0, 0)
-                .unwrap()
-                .into(),
+            // NaiveDate::from_ymd_opt(2020, 8, 20)
+            //     .unwrap()
+            //     .and_hms_opt(0, 0, 0)
+            //     .unwrap()
+            //     .into(),
+            jiff::civil::date(2020, 8, 20).at(0, 0, 0, 0).into(),
             IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8)
                 .unwrap()
                 .into(),
