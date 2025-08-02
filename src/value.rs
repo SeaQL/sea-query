@@ -280,15 +280,15 @@ pub enum Value {
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffDateTime(Option<jiff::civil::DateTime>),
+    JiffDateTime(Option<Box<jiff::civil::DateTime>>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffTimestamp(Option<Timestamp>),
+    JiffTimestamp(Option<Box<Timestamp>>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffZoned(Option<Zoned>),
+    JiffZoned(Option<Box<Zoned>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -326,8 +326,8 @@ pub enum Value {
 pub const VALUE_SIZE: usize = check_value_size();
 
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > 120 {
-        panic!("the size of Value shouldn't be greater than 120 bytes")
+    if std::mem::size_of::<Value>() > 32 {
+        panic!("the size of Value shouldn't be greater than 32 bytes")
     }
     std::mem::size_of::<Value>()
 }
@@ -556,17 +556,19 @@ impl Value {
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffDateTime(_) => {
-                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0)))
+                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0).into()))
             }
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH)),
+            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH.into())),
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffZoned(_) => Self::JiffZoned(Some(
-                Timestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC),
+                Timestamp::UNIX_EPOCH
+                    .to_zoned(jiff::tz::TimeZone::UTC)
+                    .into(),
             )),
 
             #[cfg(feature = "with-uuid")]
@@ -803,7 +805,7 @@ type_to_value!(char, Char, Char(None));
 type_to_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
 type_to_value!(String, String, String(StringLen::None));
 
-#[cfg(feature = "with-bigdecimal")]
+#[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
 macro_rules! type_to_box_value {
     ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
@@ -841,5 +843,6 @@ macro_rules! type_to_box_value {
         }
     };
 }
-#[cfg(feature = "with-bigdecimal")]
+
+#[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
 use type_to_box_value;
