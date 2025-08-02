@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Fix incorrect casting of `ChronoDateTimeWithTimeZone` in `Value::Array` https://github.com/SeaQL/sea-query/pull/933
 * Add missing parenthesis to `WINDOW` clause https://github.com/SeaQL/sea-query/pull/919
+```sql
+SELECT .. OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "ww")
+```
+* Fix serializing iden as a value in `ALTER TYPE ... RENAME TO ...` statements https://github.com/SeaQL/sea-query/pull/924
+```sql
+ALTER TYPE "font" RENAME TO "typeface"
+```
+* Fixed the issue where milliseconds were truncated when formatting `Value::Constant` https://github.com/SeaQL/sea-query/pull/929
+```sql
+'2025-01-01 00:00:00.000000'
+                    ^^^^^^^
+```
 
 ## 0.32.6 - 2025-05-27
 
