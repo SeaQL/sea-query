@@ -1081,15 +1081,15 @@ pub trait QueryBuilder:
             Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffDate(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffDateTime(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffTimestamp(None) => write!(s, "NULL").unwrap(),
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffZoned(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
@@ -1164,22 +1164,22 @@ pub trait QueryBuilder:
             .unwrap(),
             // Jiff date and time dosen't need format string
             // The default behavior is what we want
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffDate(Some(v)) => write!(s, "'{v}'").unwrap(),
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffTime(Some(v)) => write!(s, "'{v}'").unwrap(),
             // Both JiffDateTime and JiffTimestamp map to timestamp
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffDateTime(Some(v)) => {
                 use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
                 write!(s, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR)).unwrap()
             }
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffTimestamp(Some(v)) => {
                 use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
                 write!(s, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR)).unwrap()
             }
-            #[cfg(feature = "jiff")]
+            #[cfg(feature = "with-juff")]
             Value::JiffZoned(Some(v)) => {
                 // Zoned map to timestamp with timezone
 
