@@ -138,6 +138,10 @@ impl Iden for Glyph {
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
 
+### Bug Fixes
+
+* Fixed the issue where milliseconds were truncated when formatting `Value::Constant`
+
 ### Upgrades
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
