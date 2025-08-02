@@ -4,7 +4,7 @@ mod insert;
 mod select;
 mod update;
 
-use crate::DynIden;
+use crate::{DynIden, TableName};
 
 pub trait AuditTrait {
     fn audit(&self) -> Result<QueryAccessAudit, Error>;
@@ -25,7 +25,10 @@ pub struct QueryAccessAudit {
 #[non_exhaustive]
 pub struct QueryAccessRequest {
     pub access_type: AccessType,
-    pub schema_table: SchemaTable,
+    /// Legacy naming, kept for compatibility. It should be `table_name`.
+    ///
+    /// The table name can be qualified as `(database.)(schema.)table`.
+    pub schema_table: TableName,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -47,8 +50,11 @@ pub enum SchemaOper {
     Truncate,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct SchemaTable(pub Option<DynIden>, pub DynIden);
+/// A table name, optionally qualified as `(database.)(schema.)table`.
+///
+/// This is a legacy type alias, to preserve some compatibility.
+/// It's going to be deprecated in the future.
+pub type SchemaTable = TableName;
 
 impl QueryAccessAudit {
     /// This filters the selects from access requests.

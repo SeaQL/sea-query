@@ -60,7 +60,10 @@ impl IndexBuilder for MysqlQueryBuilder {
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            // Support only "naked" table names with no schema or alias.
+            TableRef::Table(TableName(None, _), None) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
             _ => panic!("Not supported"),
         }
     }

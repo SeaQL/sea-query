@@ -987,10 +987,7 @@ impl SelectStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().selects(),
-    ///     [SchemaTable(
-    ///         Some(Font::Table.into_iden()),
-    ///         Char::Table.into_iden()
-    ///     )]
+    ///     [TableName(Some(Font::Table.into()), Char::Table.into_iden())]
     /// );
     /// ```
     pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
@@ -1051,7 +1048,7 @@ impl SelectStatement {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .column(ColumnRef::Asterisk)
+    ///     .column(Asterisk)
     ///     .from_function(Func::random(), "func")
     ///     .to_owned();
     ///
@@ -1083,7 +1080,7 @@ impl SelectStatement {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .column(ColumnRef::Asterisk)
+    ///     .column(Asterisk)
     ///     .from(Char::Table)
     ///     .from_clear()
     ///     .from(Font::Table)
@@ -2365,14 +2362,14 @@ impl SelectStatement {
     ///             .to_owned();
     ///
     /// let select = SelectStatement::new()
-    ///         .column(ColumnRef::Asterisk)
+    ///         .column(Asterisk)
     ///         .from("cte_traversal")
     ///         .to_owned();
     ///
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column("id".into_column_ref()), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = select.with(with_clause).to_owned();
@@ -2437,11 +2434,11 @@ impl SelectStatement {
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column("id".into_column_ref()), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = SelectStatement::new()
-    ///         .column(ColumnRef::Asterisk)
+    ///         .column(Asterisk)
     ///         .from("cte_traversal")
     ///         .with_cte(with_clause)
     ///         .to_owned();

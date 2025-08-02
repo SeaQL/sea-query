@@ -31,6 +31,7 @@ pub struct SeaRc;                                 // new
 ```
 * `impl From<Expr> for Condition`. Now you can use that instead of
   `ConditionExpression`, which has been removed.
+* Addded `DatabaseName`, `SchemaName`, `TableName`, `ColumnName` types.
 
 ### Breaking Changes
 
@@ -125,6 +126,9 @@ impl Iden for Glyph {
     }
 }
 ```
+* Reworked `TableRef` and `ColumnRef` variants.
+* Turned `SchemaTable` into a type alias of `TableName`. Code that accesses the
+  fields inside may not compile. Other existing code should still compile.
 * Removed `ConditionExpression` from the public API. Instead, just convert
   between `Condition` and `Expr` using `From`/`Into`.
 * Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait`.

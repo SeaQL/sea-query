@@ -101,9 +101,8 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
 
     fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
-            TableRef::Table(_)
-            | TableRef::SchemaTable(_, _)
-            | TableRef::DatabaseSchemaTable(_, _, _) => self.prepare_table_ref_iden(table_ref, sql),
+            // Support only unaliased (but potentialy qualified) table names.
+            TableRef::Table(.., None) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),
         }
     }
