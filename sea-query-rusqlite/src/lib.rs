@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use rusqlite::{
     Result, ToSql,
     types::{Null, ToSqlOutput},

@@ -1,5 +1,6 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(missing_debug_implementations)]
+#![forbid(unsafe_code)]
 
 //! <div align="center">
 //!
@@ -24,6 +25,8 @@
 //! We provide integration for [SQLx](https://crates.io/crates/sqlx),
 //! [postgres](https://crates.io/crates/postgres) and [rusqlite](https://crates.io/crates/rusqlite).
 //! See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
+//!
+//! SeaQuery is written in 100% safe Rust. All workspace crates `#![forbid(unsafe_code)]`.
 //!
 //! SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 //!

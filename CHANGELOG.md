@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Enhancements
 
+* `#![forbid(unsafe_code)]` in all workspace crates.
+
 * Removed unnecessary `'static` bounds from type signatures.
 
 ### New features
