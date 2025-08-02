@@ -284,7 +284,7 @@ fn test_chrono_query() {
 
     let query = Query::select().expr(timestamp).to_owned();
 
-    let formatted = "2020-01-01 02:02:02 +08:00";
+    let formatted = "2020-01-01 02:02:02.000000 +08:00";
 
     assert_eq!(
         query.to_string(MysqlQueryBuilder),

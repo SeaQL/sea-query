@@ -7,12 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.0.0 - pending
 
-### Enhancements
-
-* `#![forbid(unsafe_code)]` in all workspace crates.
-
-* Removed unnecessary `'static` bounds from type signatures.
-
 ### New features
 
 * Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangably. There may be a few compile
@@ -33,12 +27,18 @@ pub struct SeaRc;                                 // new
   `ConditionExpression`, which has been removed.
 * Addded `DatabaseName`, `SchemaName`, `TableName`, `ColumnName` types.
 
+### Enhancements
+
+* `#![forbid(unsafe_code)]` in all workspace crates https://github.com/SeaQL/sea-query/pull/930
+* Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
+* Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
+```rust
+assert_eq!(std::mem::size_of::<Value>(), 32);
+```
+
 ### Breaking Changes
 
-* Unboxed variants of `Value`
-
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
-
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
     |
@@ -138,6 +138,8 @@ impl Iden for Glyph {
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
 
+### Bug Fixes
+
 ### Upgrades
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
@@ -148,6 +150,18 @@ impl Iden for Glyph {
 
 * Fix incorrect casting of `ChronoDateTimeWithTimeZone` in `Value::Array` https://github.com/SeaQL/sea-query/pull/933
 * Add missing parenthesis to `WINDOW` clause https://github.com/SeaQL/sea-query/pull/919
+```sql
+SELECT .. OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "ww")
+```
+* Fix serializing iden as a value in `ALTER TYPE ... RENAME TO ...` statements https://github.com/SeaQL/sea-query/pull/924
+```sql
+ALTER TYPE "font" RENAME TO "typeface"
+```
+* Fixed the issue where milliseconds were truncated when formatting `Value::Constant` https://github.com/SeaQL/sea-query/pull/929
+```sql
+'2025-01-01 00:00:00.000000'
+                    ^^^^^^^
+```
 
 ## 0.32.6 - 2025-05-27
 
