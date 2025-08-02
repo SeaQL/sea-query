@@ -31,7 +31,7 @@ pub struct SeaRc;                                 // new
 
 * `#![forbid(unsafe_code)]` in all workspace crates https://github.com/SeaQL/sea-query/pull/930
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
-* Most `Value` variants are now unboxed. Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
+* Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
 ```rust
 assert_eq!(std::mem::size_of::<Value>(), 32);
 ```
