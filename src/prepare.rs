@@ -11,7 +11,7 @@ pub trait SqlWriter: Write + ToString {
 
 impl SqlWriter for String {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
-        self.push_str(&query_builder.value_to_string(&value))
+        query_builder.write_value(self, &value).unwrap();
     }
 
     fn as_writer(&mut self) -> &mut dyn Write {
@@ -92,24 +92,18 @@ where
                 let (ph, numbered) = query_builder.placeholder();
 
                 if !numbered && mark == ph {
-                    write!(
-                        output,
-                        "{}",
-                        query_builder.value_to_string(&params[counter])
-                    )
-                    .unwrap();
+                    query_builder
+                        .write_value(&mut output, &params[counter])
+                        .unwrap();
 
                     counter += 1;
                     continue;
                 } else if numbered && mark == ph {
                     if let Some(Token::Unquoted(next)) = tokenizer.peek() {
                         if let Ok(num) = next.parse::<usize>() {
-                            write!(
-                                output,
-                                "{}",
-                                query_builder.value_to_string(&params[num - 1])
-                            )
-                            .unwrap();
+                            query_builder
+                                .write_value(&mut output, &params[num - 1])
+                                .unwrap();
 
                             tokenizer.next();
                             continue;

@@ -647,7 +647,7 @@ impl IntoIterator for Values {
 
 impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", CommonSqlQueryBuilder.value_to_string(self))
+        CommonSqlQueryBuilder.write_value(f, self)
     }
 }
 
