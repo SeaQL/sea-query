@@ -11,6 +11,7 @@ publish = false
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 time = { version = "0.3.36", features = ["macros"] }
+jiff = { version = "0.2.15", features = ["std"] }
 uuid = { version = "1", features = ["serde", "v4"] }
 serde_json = "1"
 rust_decimal = { version = "1" }
@@ -28,6 +29,7 @@ sea-query-binder = { path = "../../sea-query-binder", features = [
     "with-bigdecimal",
     "with-uuid",
     "with-time",
+    "with-jiff",
     "with-ipnetwork",
     "with-mac_address",
     "runtime-async-std-native-tls",

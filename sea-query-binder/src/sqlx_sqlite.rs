@@ -90,6 +90,26 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDate(j) => {
+                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTime(j) => {
+                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDateTime(j) => {
+                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTimestamp(j) => {
+                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffZoned(_) => {
+                    unimplemented!("no support by jiff-sqlx");
+                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);

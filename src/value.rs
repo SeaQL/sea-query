@@ -14,7 +14,7 @@ use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, 
 use time::{OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "with-jiff")]
-use jiff::{Timestamp, Zoned};
+use jiff::{Timestamp as JiffTimestamp, Zoned as JiffZoned};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
@@ -284,11 +284,11 @@ pub enum Value {
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffTimestamp(Option<Timestamp>),
+    JiffTimestamp(Option<JiffTimestamp>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffZoned(Option<Zoned>),
+    JiffZoned(Option<JiffZoned>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -561,12 +561,12 @@ impl Value {
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH)),
+            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(JiffTimestamp::UNIX_EPOCH)),
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffZoned(_) => Self::JiffZoned(Some(
-                Timestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC),
+                JiffTimestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC),
             )),
 
             #[cfg(feature = "with-uuid")]
