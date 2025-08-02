@@ -21,11 +21,13 @@ sea-query = { version = "1.0.0-rc.30", path = "..", default-features = false, fe
 sqlx = { version = "0.8", default-features = false, optional = true }
 ipnetwork = { version = "0.20", default-features = false, optional = true } # pin dependency
 pgvector = { version = "0.4", default-features = false, optional = true } # requires feature flag
+jiff = { version = "0.2.15", default-features = false, optional = true, features = ["std", "perf-inline"] }
+jiff-sqlx = { version = "0.1", optional = true }
 
 [features]
 sqlx-mysql = ["sqlx/mysql"]
-sqlx-postgres = ["sqlx/postgres", "sea-query/backend-postgres"]
-sqlx-sqlite = ["sqlx/sqlite"]
+sqlx-postgres = ["sqlx/postgres", "sea-query/backend-postgres", "jiff-sqlx?/postgres"]
+sqlx-sqlite = ["sqlx/sqlite", "jiff-sqlx?/sqlite"]
 sqlx-any = ["sqlx/any"]
 with-chrono = ["sqlx?/chrono", "sea-query/with-chrono"]
 with-json = ["sqlx?/json", "sea-query/with-json"]
@@ -35,6 +37,7 @@ with-uuid = ["sqlx?/uuid", "sea-query/with-uuid"]
 with-time = ["sqlx?/time", "sea-query/with-time"]
 with-ipnetwork = ["sqlx?/ipnetwork", "sea-query/with-ipnetwork"]
 with-mac_address = ["sqlx?/mac_address", "sea-query/with-mac_address"]
+with-jiff = ["sea-query/with-jiff", "jiff", "jiff-sqlx"]
 postgres-array = ["sea-query/postgres-array"]
 postgres-vector = ["sea-query/postgres-vector", "pgvector/sqlx"]
 runtime-async-std = ["sqlx?/runtime-async-std"]
