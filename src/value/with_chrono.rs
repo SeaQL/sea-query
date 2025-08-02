@@ -5,28 +5,62 @@ type_to_value!(NaiveDate, ChronoDate, Date);
 type_to_value!(NaiveTime, ChronoTime, Time);
 type_to_value!(NaiveDateTime, ChronoDateTime, DateTime);
 
+impl Value {
+    #[inline]
+    pub fn chrono_date<T: Into<Option<NaiveDate>>>(value: T) -> Self {
+        Self::ChronoDate(value.into())
+    }
+
+    #[inline]
+    pub fn chrono_time<T: Into<Option<NaiveTime>>>(value: T) -> Self {
+        Self::ChronoTime(value.into())
+    }
+
+    #[inline]
+    pub fn chrono_date_time<T: Into<Option<NaiveDateTime>>>(value: T) -> Self {
+        Self::ChronoDateTime(value.into())
+    }
+
+    #[inline]
+    pub fn chrono_date_time_utc<T: Into<Option<DateTime<Utc>>>>(value: T) -> Self {
+        Self::ChronoDateTimeUtc(value.into())
+    }
+
+    #[inline]
+    pub fn chrono_date_time_local<T: Into<Option<DateTime<Local>>>>(value: T) -> Self {
+        Self::ChronoDateTimeLocal(value.into())
+    }
+
+    #[inline]
+    pub fn chrono_date_time_with_time_zone<T: Into<Option<DateTime<FixedOffset>>>>(
+        value: T,
+    ) -> Self {
+        Self::ChronoDateTimeWithTimeZone(value.into())
+    }
+}
+
 impl From<DateTime<Utc>> for Value {
     fn from(v: DateTime<Utc>) -> Value {
-        Value::ChronoDateTimeUtc(Some(v))
+        Value::chrono_date_time_utc(v)
     }
 }
 
 impl From<DateTime<Local>> for Value {
     fn from(v: DateTime<Local>) -> Value {
-        Value::ChronoDateTimeLocal(Some(v))
+        Value::chrono_date_time_local(v)
     }
 }
 
 impl From<DateTime<FixedOffset>> for Value {
     fn from(x: DateTime<FixedOffset>) -> Value {
         let v = DateTime::<FixedOffset>::from_naive_utc_and_offset(x.naive_utc(), x.offset().fix());
-        Value::ChronoDateTimeWithTimeZone(Some(v))
+        Value::chrono_date_time_with_time_zone(v)
     }
 }
 
 impl Nullable for DateTime<Utc> {
     fn null() -> Value {
-        Value::ChronoDateTimeUtc(None)
+        Value::chrono_date_time_utc(None)
     }
 }
 
@@ -53,7 +87,7 @@ impl ValueType for DateTime<Utc> {
 
 impl Nullable for DateTime<Local> {
     fn null() -> Value {
-        Value::ChronoDateTimeLocal(None)
+        Value::chrono_date_time_local(None)
     }
 }
 
@@ -80,7 +114,7 @@ impl ValueType for DateTime<Local> {
 
 impl Nullable for DateTime<FixedOffset> {
     fn null() -> Value {
-        Value::ChronoDateTimeWithTimeZone(None)
+        Value::chrono_date_time_with_time_zone(None)
     }
 }
 

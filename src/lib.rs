@@ -111,10 +111,10 @@
 //!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
 //!             .to_owned(),
 //!         Values(vec![
-//!             Value::String(Some("A".to_owned())),
-//!             Value::Int(Some(1)),
-//!             Value::Int(Some(2)),
-//!             Value::Int(Some(3))
+//!             Value::string("A".to_owned()),
+//!             Value::int(1),
+//!             Value::int(2),
+//!             Value::int(3)
 //!         ])
 //!     )
 //! );
@@ -534,7 +534,7 @@
 //!     .col(ColumnDef::new(Char::Character).string().not_null())
 //!     .col(ColumnDef::new(Char::SizeW).integer().not_null())
 //!     .col(ColumnDef::new(Char::SizeH).integer().not_null())
-//!     .col(ColumnDef::new(Char::FontId).integer().default(Value::Int(None)))
+//!     .col(ColumnDef::new(Char::FontId).integer().default(Value::int(None)))
 //!     .foreign_key(
 //!         ForeignKey::create()
 //!             .name("FK_2e303c3a712662f1fc2a4d0aad6")

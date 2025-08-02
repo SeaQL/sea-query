@@ -332,6 +332,79 @@ const fn check_value_size() -> usize {
     std::mem::size_of::<Value>()
 }
 
+// Constructors
+impl Value {
+    #[inline]
+    pub fn bool<T: Into<Option<bool>>>(value: T) -> Self {
+        Self::Bool(value.into())
+    }
+
+    #[inline]
+    pub fn tiny_int<T: Into<Option<i8>>>(value: T) -> Self {
+        Self::TinyInt(value.into())
+    }
+
+    #[inline]
+    pub fn small_int<T: Into<Option<i16>>>(value: T) -> Self {
+        Self::SmallInt(value.into())
+    }
+
+    #[inline]
+    pub fn int<T: Into<Option<i32>>>(value: T) -> Self {
+        Self::Int(value.into())
+    }
+
+    #[inline]
+    pub fn big_int<T: Into<Option<i64>>>(value: T) -> Self {
+        Self::BigInt(value.into())
+    }
+
+    #[inline]
+    pub fn tiny_unsigned<T: Into<Option<u8>>>(value: T) -> Self {
+        Self::TinyUnsigned(value.into())
+    }
+
+    #[inline]
+    pub fn small_unsigned<T: Into<Option<u16>>>(value: T) -> Self {
+        Self::SmallUnsigned(value.into())
+    }
+
+    #[inline]
+    pub fn unsigned<T: Into<Option<u32>>>(value: T) -> Self {
+        Self::Unsigned(value.into())
+    }
+
+    #[inline]
+    pub fn big_unsigned<T: Into<Option<u64>>>(value: T) -> Self {
+        Self::BigUnsigned(value.into())
+    }
+
+    #[inline]
+    pub fn float<T: Into<Option<f32>>>(value: T) -> Self {
+        Self::Float(value.into())
+    }
+
+    #[inline]
+    pub fn double<T: Into<Option<f64>>>(value: T) -> Self {
+        Self::Double(value.into())
+    }
+
+    #[inline]
+    pub fn string<T: Into<Option<String>>>(value: T) -> Self {
+        Self::String(value.into())
+    }
+
+    #[inline]
+    pub fn char<T: Into<Option<char>>>(value: T) -> Self {
+        Self::Char(value.into())
+    }
+
+    #[inline]
+    pub fn bytes<T: Into<Option<Vec<u8>>>>(value: T) -> Self {
+        Self::Bytes(value.into())
+    }
+}
+
 impl Value {
     pub fn unwrap<T>(self) -> T
     where
@@ -352,13 +425,13 @@ impl Value {
     /// ```
     /// use sea_query::Value;
     ///
-    /// let v = Value::Int(Some(2));
+    /// let v = Value::int(2);
     /// let n = v.as_null();
     ///
-    /// assert_eq!(n, Value::Int(None));
+    /// assert_eq!(n, Value::int(None));
     ///
     /// // one liner:
-    /// assert_eq!(Into::<Value>::into(2.2).as_null(), Value::Double(None));
+    /// assert_eq!(Into::<Value>::into(2.2).as_null(), Value::double(None));
     /// ```
     pub fn as_null(&self) -> Self {
         match self {
@@ -476,9 +549,9 @@ impl Value {
     /// ```
     /// use sea_query::Value;
     ///
-    /// let v = Value::Int(None);
+    /// let v = Value::int(None);
     /// let n = v.dummy_value();
-    /// assert_eq!(n, Value::Int(Some(0)));
+    /// assert_eq!(n, Value::int(0));
     /// ```
     pub fn dummy_value(&self) -> Self {
         match self {
@@ -602,19 +675,19 @@ impl Value {
 
 impl From<&[u8]> for Value {
     fn from(x: &[u8]) -> Value {
-        Value::Bytes(Some(x.into()))
+        Value::bytes(x.to_vec())
     }
 }
 
 impl From<&str> for Value {
     fn from(x: &str) -> Value {
-        Value::String(Some(x.to_owned()))
+        Value::string(x.to_owned())
     }
 }
 
 impl From<&String> for Value {
     fn from(x: &String) -> Value {
-        Value::String(Some(x.clone()))
+        Value::string(x.clone())
     }
 }
 

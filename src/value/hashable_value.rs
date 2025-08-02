@@ -258,29 +258,29 @@ mod tests {
     #[test]
     fn test_hash_value_0() {
         let hash_set: std::collections::HashSet<Value> = [
-            Value::Int(None),
-            Value::Int(None),
-            Value::BigInt(None),
-            Value::BigInt(None),
-            Value::Float(None),
-            Value::Float(None),           // Null is not NaN
-            Value::Float(Some(f32::NAN)), // NaN considered equal
-            Value::Float(Some(f32::NAN)),
-            Value::Double(None),
-            Value::Double(None),
-            Value::Double(Some(f64::NAN)),
-            Value::Double(Some(f64::NAN)),
+            Value::int(None),
+            Value::int(None),
+            Value::big_int(None),
+            Value::big_int(None),
+            Value::float(None),
+            Value::float(None),     // Null is not NaN
+            Value::float(f32::NAN), // NaN considered equal
+            Value::float(f32::NAN),
+            Value::double(None),
+            Value::double(None),
+            Value::double(f64::NAN),
+            Value::double(f64::NAN),
         ]
         .into_iter()
         .collect();
 
         let unique: std::collections::HashSet<Value> = [
-            Value::Int(None),
-            Value::BigInt(None),
-            Value::Float(None),
-            Value::Double(None),
-            Value::Float(Some(f32::NAN)),
-            Value::Double(Some(f64::NAN)),
+            Value::int(None),
+            Value::big_int(None),
+            Value::float(None),
+            Value::double(None),
+            Value::float(f32::NAN),
+            Value::double(f64::NAN),
         ]
         .into_iter()
         .collect();
@@ -291,27 +291,27 @@ mod tests {
     #[test]
     fn test_hash_value_1() {
         let hash_set: std::collections::HashSet<Value> = [
-            Value::Int(None),
-            Value::Int(Some(1)),
-            Value::Int(Some(1)),
-            Value::BigInt(Some(2)),
-            Value::BigInt(Some(2)),
-            Value::Float(Some(3.0)),
-            Value::Float(Some(3.0)),
-            Value::Double(Some(3.0)),
-            Value::Double(Some(3.0)),
-            Value::BigInt(Some(5)),
+            Value::int(None),
+            Value::int(1),
+            Value::int(1),
+            Value::big_int(2),
+            Value::big_int(2),
+            Value::float(3.0),
+            Value::float(3.0),
+            Value::double(3.0),
+            Value::double(3.0),
+            Value::big_int(5),
         ]
         .into_iter()
         .collect();
 
         let unique: std::collections::HashSet<Value> = [
-            Value::BigInt(Some(5)),
-            Value::Double(Some(3.0)),
-            Value::Float(Some(3.0)),
-            Value::BigInt(Some(2)),
-            Value::Int(Some(1)),
-            Value::Int(None),
+            Value::big_int(5),
+            Value::double(3.0),
+            Value::float(3.0),
+            Value::big_int(2),
+            Value::int(1),
+            Value::int(None),
         ]
         .into_iter()
         .collect();
@@ -326,25 +326,17 @@ mod tests {
 
         assert_eq!(
             Into::<Value>::into(vec![0i32, 1, 2]),
-            Value::Array(
+            Value::array(
                 ArrayType::Int,
-                Some(Box::new(vec![
-                    Value::Int(Some(0)),
-                    Value::Int(Some(1)),
-                    Value::Int(Some(2))
-                ]))
+                vec![Value::int(0), Value::int(1), Value::int(2)]
             )
         );
 
         assert_eq!(
             Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-            Value::Array(
+            Value::array(
                 ArrayType::Float,
-                Some(Box::new(vec![
-                    Value::Float(Some(0f32)),
-                    Value::Float(Some(1.0)),
-                    Value::Float(Some(2.0))
-                ]))
+                vec![Value::float(0f32), Value::float(1.0), Value::float(2.0)]
             )
         );
 
