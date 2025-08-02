@@ -4,15 +4,37 @@ type_to_value!(time::Date, TimeDate, Date);
 type_to_value!(time::Time, TimeTime, Time);
 type_to_value!(PrimitiveDateTime, TimeDateTime, DateTime);
 
+impl Value {
+    #[inline]
+    pub fn time_date<T: Into<Option<time::Date>>>(value: T) -> Self {
+        Self::TimeDate(value.into())
+    }
+
+    #[inline]
+    pub fn time_time<T: Into<Option<time::Time>>>(value: T) -> Self {
+        Self::TimeTime(value.into())
+    }
+
+    #[inline]
+    pub fn time_date_time<T: Into<Option<PrimitiveDateTime>>>(value: T) -> Self {
+        Self::TimeDateTime(value.into())
+    }
+
+    #[inline]
+    pub fn time_date_time_with_time_zone<T: Into<Option<OffsetDateTime>>>(value: T) -> Self {
+        Self::TimeDateTimeWithTimeZone(value.into())
+    }
+}
+
 impl From<OffsetDateTime> for Value {
     fn from(v: OffsetDateTime) -> Value {
-        Value::TimeDateTimeWithTimeZone(Some(v))
+        Value::time_date_time_with_time_zone(v)
     }
 }
 
 impl Nullable for OffsetDateTime {
     fn null() -> Value {
-        Value::TimeDateTimeWithTimeZone(None)
+        Value::time_date_time_with_time_zone(None)
     }
 }
 

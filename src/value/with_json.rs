@@ -3,10 +3,17 @@ use super::*;
 type_to_value!(Json, Json, Json);
 
 impl Value {
+    #[inline]
+    pub fn json<T: Into<Option<Json>>>(value: T) -> Self {
+        Self::Json(value.into())
+    }
+
+    #[inline]
     pub fn is_json(&self) -> bool {
         matches!(self, Self::Json(_))
     }
 
+    #[inline]
     pub fn as_ref_json(&self) -> Option<&Json> {
         match self {
             Self::Json(v) => v.as_ref(),

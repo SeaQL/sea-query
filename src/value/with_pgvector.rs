@@ -1,14 +1,21 @@
 use super::*;
 
+impl Value {
+    #[inline]
+    pub fn vector<T: Into<Option<pgvector::Vector>>>(value: T) -> Self {
+        Self::Vector(value.into())
+    }
+}
+
 impl From<pgvector::Vector> for Value {
     fn from(x: pgvector::Vector) -> Value {
-        Value::Vector(Some(x))
+        Value::vector(x)
     }
 }
 
 impl Nullable for pgvector::Vector {
     fn null() -> Value {
-        Value::Vector(None)
+        Value::vector(None)
     }
 }
 

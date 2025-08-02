@@ -3,6 +3,11 @@ use super::*;
 type_to_value!(IpNetwork, IpNetwork, Inet);
 
 impl Value {
+    #[inline]
+    pub fn ip_network<T: Into<Option<IpNetwork>>>(value: T) -> Self {
+        Self::IpNetwork(value.into())
+    }
+
     pub fn is_ipnetwork(&self) -> bool {
         matches!(self, Self::IpNetwork(_))
     }

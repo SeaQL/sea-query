@@ -1082,7 +1082,7 @@ fn insert_3() {
                 "04108048005887010020060000204E0180400400".into(),
                 3.1415.into(),
             ])
-            .values_panic([Value::String(None).into(), 2.1345.into(),])
+            .values_panic([Value::string(None).into(), 2.1345.into(),])
             .to_string(MysqlQueryBuilder),
         "INSERT INTO `glyph` (`image`, `aspect`) VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"
     );

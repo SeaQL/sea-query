@@ -77,7 +77,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// );
     /// assert_eq!(
     ///     params,
-    ///     Values(vec![Value::Int(Some(0)), Value::Int(Some(2))])
+    ///     Values(vec![Value::int(0), Value::int(2)])
     /// );
     /// ```
     fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
@@ -118,7 +118,7 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     /// let (sql, values) = sql.into_parts();
     /// assert_eq!(
     ///     values,
-    ///     Values(vec![Value::Int(Some(0)), Value::Int(Some(2))])
+    ///     Values(vec![Value::int(0), Value::int(2)])
     /// );
     /// ```
     fn build_collect<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) -> String {

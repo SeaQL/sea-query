@@ -81,7 +81,7 @@ fn create_3() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default(Value::int(None))
             )
             .col(
                 ColumnDef::new(Char::CreatedAt)
@@ -284,7 +284,7 @@ fn create_12() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None)),
+                    .default(Value::int(None)),
             )
             .col(
                 ColumnDef::new(Char::CreatedAt)

@@ -212,7 +212,7 @@ impl UpdateStatement {
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
-    ///     .value(Glyph::Aspect, Expr::value(Value::Int(None)))
+    ///     .value(Glyph::Aspect, Expr::value(Value::int(None)))
     ///     .to_owned();
     ///
     /// assert_eq!(

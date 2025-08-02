@@ -3,6 +3,11 @@ use super::*;
 type_to_value!(MacAddress, MacAddress, MacAddr);
 
 impl Value {
+    #[inline]
+    pub fn mac_address<T: Into<Option<MacAddress>>>(value: T) -> Self {
+        Self::MacAddress(value.into())
+    }
+
     pub fn is_mac_address(&self) -> bool {
         matches!(self, Self::MacAddress(_))
     }

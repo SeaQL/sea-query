@@ -73,54 +73,51 @@ fn test_box_value() {
 
 #[test]
 fn test_value_tuple() {
-    assert_eq!(
-        1i32.into_value_tuple(),
-        ValueTuple::One(Value::Int(Some(1)))
-    );
+    assert_eq!(1i32.into_value_tuple(), ValueTuple::One(Value::int(1)));
     assert_eq!(
         "b".into_value_tuple(),
-        ValueTuple::One(Value::String(Some("b".to_owned())))
+        ValueTuple::One(Value::string("b".to_owned()))
     );
     assert_eq!(
         (1i32, "b").into_value_tuple(),
-        ValueTuple::Two(Value::Int(Some(1)), Value::String(Some("b".to_owned())))
+        ValueTuple::Two(Value::int(1), Value::string("b".to_owned()))
     );
     assert_eq!(
         (1i32, 2.4f64, "b").into_value_tuple(),
         ValueTuple::Three(
-            Value::Int(Some(1)),
-            Value::Double(Some(2.4)),
-            Value::String(Some("b".to_owned()))
+            Value::int(1),
+            Value::double(2.4),
+            Value::string("b".to_owned())
         )
     );
     assert_eq!(
         (1i32, 2.4f64, "b", 123u8).into_value_tuple(),
         ValueTuple::Many(vec![
-            Value::Int(Some(1)),
-            Value::Double(Some(2.4)),
-            Value::String(Some("b".to_owned())),
-            Value::TinyUnsigned(Some(123))
+            Value::int(1),
+            Value::double(2.4),
+            Value::string("b".to_owned()),
+            Value::tiny_unsigned(123)
         ])
     );
     assert_eq!(
         (1i32, 2.4f64, "b", 123u8, 456u16).into_value_tuple(),
         ValueTuple::Many(vec![
-            Value::Int(Some(1)),
-            Value::Double(Some(2.4)),
-            Value::String(Some("b".to_owned())),
-            Value::TinyUnsigned(Some(123)),
-            Value::SmallUnsigned(Some(456))
+            Value::int(1),
+            Value::double(2.4),
+            Value::string("b".to_owned()),
+            Value::tiny_unsigned(123),
+            Value::small_unsigned(456)
         ])
     );
     assert_eq!(
         (1i32, 2.4f64, "b", 123u8, 456u16, 789u32).into_value_tuple(),
         ValueTuple::Many(vec![
-            Value::Int(Some(1)),
-            Value::Double(Some(2.4)),
-            Value::String(Some("b".to_owned())),
-            Value::TinyUnsigned(Some(123)),
-            Value::SmallUnsigned(Some(456)),
-            Value::Unsigned(Some(789))
+            Value::int(1),
+            Value::double(2.4),
+            Value::string("b".to_owned()),
+            Value::tiny_unsigned(123),
+            Value::small_unsigned(456),
+            Value::unsigned(789)
         ])
     );
 }
@@ -167,46 +164,46 @@ fn test_from_value_tuple() {
 #[test]
 fn test_value_tuple_iter() {
     let mut iter = (1i32).into_value_tuple().into_iter();
-    assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
+    assert_eq!(iter.next().unwrap(), Value::int(1));
     assert_eq!(iter.next(), None);
 
     let mut iter = (1i32, 2.4f64).into_value_tuple().into_iter();
-    assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
-    assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
+    assert_eq!(iter.next().unwrap(), Value::int(1));
+    assert_eq!(iter.next().unwrap(), Value::double(2.4));
     assert_eq!(iter.next(), None);
 
     let mut iter = (1i32, 2.4f64, "b").into_value_tuple().into_iter();
-    assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
-    assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-    assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
+    assert_eq!(iter.next().unwrap(), Value::int(1));
+    assert_eq!(iter.next().unwrap(), Value::double(2.4));
+    assert_eq!(iter.next().unwrap(), Value::string("b".to_owned()));
     assert_eq!(iter.next(), None);
 
     let mut iter = (1i32, 2.4f64, "b", 123u8).into_value_tuple().into_iter();
-    assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
-    assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-    assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
-    assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
+    assert_eq!(iter.next().unwrap(), Value::int(1));
+    assert_eq!(iter.next().unwrap(), Value::double(2.4));
+    assert_eq!(iter.next().unwrap(), Value::string("b".to_owned()));
+    assert_eq!(iter.next().unwrap(), Value::tiny_unsigned(123));
     assert_eq!(iter.next(), None);
 
     let mut iter = (1i32, 2.4f64, "b", 123u8, 456u16)
         .into_value_tuple()
         .into_iter();
-    assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
-    assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-    assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
-    assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
-    assert_eq!(iter.next().unwrap(), Value::SmallUnsigned(Some(456)));
+    assert_eq!(iter.next().unwrap(), Value::int(1));
+    assert_eq!(iter.next().unwrap(), Value::double(2.4));
+    assert_eq!(iter.next().unwrap(), Value::string("b".to_owned()));
+    assert_eq!(iter.next().unwrap(), Value::tiny_unsigned(123));
+    assert_eq!(iter.next().unwrap(), Value::small_unsigned(456));
     assert_eq!(iter.next(), None);
 
     let mut iter = (1i32, 2.4f64, "b", 123u8, 456u16, 789u32)
         .into_value_tuple()
         .into_iter();
-    assert_eq!(iter.next().unwrap(), Value::Int(Some(1)));
-    assert_eq!(iter.next().unwrap(), Value::Double(Some(2.4)));
-    assert_eq!(iter.next().unwrap(), Value::String(Some("b".to_owned())));
-    assert_eq!(iter.next().unwrap(), Value::TinyUnsigned(Some(123)));
-    assert_eq!(iter.next().unwrap(), Value::SmallUnsigned(Some(456)));
-    assert_eq!(iter.next().unwrap(), Value::Unsigned(Some(789)));
+    assert_eq!(iter.next().unwrap(), Value::int(1));
+    assert_eq!(iter.next().unwrap(), Value::double(2.4));
+    assert_eq!(iter.next().unwrap(), Value::string("b".to_owned()));
+    assert_eq!(iter.next().unwrap(), Value::tiny_unsigned(123));
+    assert_eq!(iter.next().unwrap(), Value::small_unsigned(456));
+    assert_eq!(iter.next().unwrap(), Value::unsigned(789));
     assert_eq!(iter.next(), None);
 }
 
@@ -413,14 +410,21 @@ fn test_decimal_value() {
 fn test_array_value() {
     let array = vec![1, 2, 3, 4, 5];
     let v: Value = array.into();
+    assert_eq!(v, Value::array(vec![1, 2, 3, 4, 5]));
     let out: Vec<i32> = v.unwrap();
     assert_eq!(out, vec![1, 2, 3, 4, 5]);
+
+    let array = vec!["1".to_owned(), "2".to_owned()];
+    let v: Value = array.clone().into();
+    assert_eq!(v, Value::array(array));
 }
 
 #[test]
 #[cfg(feature = "postgres-array")]
 fn test_option_array_value() {
-    let v: Value = Value::Array(ArrayType::Int, None);
+    let v: Value = Option::<Vec<i32>>::None.into();
+    assert_eq!(v, Value::array_null::<i32>());
+    assert!(matches!(v, Value::Array(_, _)));
     let out: Option<Vec<i32>> = v.unwrap();
     assert_eq!(out, None);
 }

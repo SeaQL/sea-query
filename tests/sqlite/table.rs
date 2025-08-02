@@ -75,7 +75,7 @@ fn create_3() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default(Value::int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -229,7 +229,7 @@ fn create_with_unique_index() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default(Value::int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -274,7 +274,7 @@ fn create_with_primary_unique_index() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default(Value::int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -321,7 +321,7 @@ fn create_with_unique_index_constraint() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None)),
+                    .default(Value::int(None)),
             )
             .foreign_key(
                 ForeignKey::create()

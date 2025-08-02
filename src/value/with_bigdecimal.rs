@@ -3,6 +3,11 @@ use super::*;
 type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 
 impl Value {
+    #[inline]
+    pub fn big_decimal<T: Into<Option<BigDecimal>>>(value: T) -> Self {
+        Self::BigDecimal(value.into().map(Box::new))
+    }
+
     pub fn is_big_decimal(&self) -> bool {
         matches!(self, Self::BigDecimal(_))
     }
