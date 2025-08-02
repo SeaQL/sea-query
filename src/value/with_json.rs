@@ -83,6 +83,16 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "jiff")]
+        Value::JiffDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "jiff")]
+        Value::JiffTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "jiff")]
+        Value::JiffDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "jiff")]
+        Value::JiffTimestamp(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "jiff")]
+        Value::JiffZoned(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(Some(v)) => {
             use rust_decimal::prelude::ToPrimitive;

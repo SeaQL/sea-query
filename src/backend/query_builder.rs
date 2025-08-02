@@ -1081,6 +1081,16 @@ pub trait QueryBuilder:
             Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "jiff")]
+            Value::JiffDate(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "jiff")]
+            Value::JiffTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "jiff")]
+            Value::JiffDateTime(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "jiff")]
+            Value::JiffTimestamp(None) => write!(s, "NULL").unwrap(),
+            #[cfg(feature = "jiff")]
+            Value::JiffZoned(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => write!(s, "NULL").unwrap(),
             #[cfg(feature = "with-bigdecimal")]
@@ -1152,6 +1162,30 @@ pub trait QueryBuilder:
                 v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
             )
             .unwrap(),
+            // Jiff date and time dosen't need format string
+            // The default behavior is what we want
+            #[cfg(feature = "jiff")]
+            Value::JiffDate(Some(v)) => write!(s, "'{v}'").unwrap(),
+            #[cfg(feature = "jiff")]
+            Value::JiffTime(Some(v)) => write!(s, "'{v}'").unwrap(),
+            // Both JiffDateTime and JiffTimestamp map to timestamp
+            #[cfg(feature = "jiff")]
+            Value::JiffDateTime(Some(v)) => {
+                use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
+                write!(s, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR)).unwrap()
+            }
+            #[cfg(feature = "jiff")]
+            Value::JiffTimestamp(Some(v)) => {
+                use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
+                write!(s, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR)).unwrap()
+            }
+            #[cfg(feature = "jiff")]
+            Value::JiffZoned(Some(v)) => {
+                // Zoned map to timestamp with timezone
+
+                use crate::with_jiff::JIFF_ZONE_FMT_STR;
+                write!(s, "'{}'", v.strftime(JIFF_ZONE_FMT_STR)).unwrap()
+            }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
             #[cfg(feature = "with-bigdecimal")]

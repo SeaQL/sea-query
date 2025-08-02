@@ -48,6 +48,17 @@ impl PartialEq for Value {
             #[cfg(feature = "with-time")]
             (Self::TimeDateTimeWithTimeZone(l), Self::TimeDateTimeWithTimeZone(r)) => l == r,
 
+            #[cfg(feature = "jiff")]
+            (Self::JiffDate(l), Self::JiffDate(r)) => l == r,
+            #[cfg(feature = "jiff")]
+            (Self::JiffTime(l), Self::JiffTime(r)) => l == r,
+            #[cfg(feature = "jiff")]
+            (Self::JiffDateTime(l), Self::JiffDateTime(r)) => l == r,
+            #[cfg(feature = "jiff")]
+            (Self::JiffTimestamp(l), Self::JiffTimestamp(r)) => l == r,
+            #[cfg(feature = "jiff")]
+            (Self::JiffZoned(l), Self::JiffZoned(r)) => l == r,
+
             #[cfg(feature = "with-uuid")]
             (Self::Uuid(l), Self::Uuid(r)) => l == r,
 
@@ -121,6 +132,17 @@ impl Hash for Value {
             Value::TimeDateTime(primitive_date_time) => primitive_date_time.hash(state),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(offset_date_time) => offset_date_time.hash(state),
+
+            #[cfg(feature = "jiff")]
+            Value::JiffDate(date) => date.hash(state),
+            #[cfg(feature = "jiff")]
+            Value::JiffTime(time) => time.hash(state),
+            #[cfg(feature = "jiff")]
+            Value::JiffDateTime(datetime) => datetime.hash(state),
+            #[cfg(feature = "jiff")]
+            Value::JiffTimestamp(timestamp) => timestamp.hash(state),
+            #[cfg(feature = "jiff")]
+            Value::JiffZoned(zoned) => zoned.hash(state),
 
             #[cfg(feature = "with-uuid")]
             Value::Uuid(uuid) => uuid.hash(state),
