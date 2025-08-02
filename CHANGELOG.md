@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `#![forbid(unsafe_code)]` in all workspace crates.
 
 * Removed unnecessary `'static` bounds from type signatures.
+* `cast_as_quoted` now allows you to [qualify the type
+  name](https://github.com/SeaQL/sea-query/issues/827).
 
 ### New features
 
