@@ -81,38 +81,48 @@ where
     I: IntoIterator<Item = Value>,
 {
     let params: Vec<Value> = params.into_iter().collect();
-    let tokenizer = Tokenizer::new(sql);
-    let tokens: Vec<Token> = tokenizer.iter().collect();
     let mut counter = 0;
-    let mut output = Vec::new();
-    let mut i = 0;
-    while i < tokens.len() {
-        let token = &tokens[i];
+    let mut output = String::new();
+
+    let mut tokenizer = Tokenizer::new(sql).iter().peekable();
+
+    while let Some(token) = tokenizer.next() {
         match token {
-            Token::Punctuation(mark) => {
-                if (mark.as_ref(), false) == query_builder.placeholder() {
-                    output.push(query_builder.value_to_string(&params[counter]));
+            Token::Punctuation(ref mark) => {
+                let (ph, numbered) = query_builder.placeholder();
+
+                if !numbered && mark == ph {
+                    write!(
+                        output,
+                        "{}",
+                        query_builder.value_to_string(&params[counter])
+                    )
+                    .unwrap();
+
                     counter += 1;
-                    i += 1;
                     continue;
-                } else if (mark.as_ref(), true) == query_builder.placeholder()
-                    && i + 1 < tokens.len()
-                {
-                    if let Token::Unquoted(next) = &tokens[i + 1] {
+                } else if numbered && mark == ph {
+                    if let Some(Token::Unquoted(next)) = tokenizer.peek() {
                         if let Ok(num) = next.parse::<usize>() {
-                            output.push(query_builder.value_to_string(&params[num - 1]));
-                            i += 2;
+                            write!(
+                                output,
+                                "{}",
+                                query_builder.value_to_string(&params[num - 1])
+                            )
+                            .unwrap();
+
+                            tokenizer.next();
                             continue;
                         }
                     }
                 }
-                output.push(mark.clone())
+                output.push_str(mark.as_ref());
             }
-            _ => output.push(token.to_string()),
+            _ => write!(output, "{token}").unwrap(),
         }
-        i += 1;
     }
-    output.into_iter().collect()
+
+    output
 }
 
 #[cfg(test)]
