@@ -13,6 +13,9 @@ use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, 
 #[cfg(feature = "with-time")]
 use time::{OffsetDateTime, PrimitiveDateTime};
 
+#[cfg(feature = "jiff")]
+use jiff::{Timestamp, Zoned};
+
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
 
@@ -61,6 +64,10 @@ pub mod time_format;
 #[cfg(feature = "with-time")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
 mod with_time;
+
+#[cfg(feature = "jiff")]
+#[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+pub(crate) mod with_jiff;
 
 #[cfg(feature = "with-rust_decimal")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
@@ -151,6 +158,26 @@ pub enum ArrayType {
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone,
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffDate,
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffTime,
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffDateTime,
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffTimestamp,
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffZoned,
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -243,6 +270,26 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Option<OffsetDateTime>),
 
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffDate(Option<jiff::civil::Date>),
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffTime(Option<jiff::civil::Time>),
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffDateTime(Option<jiff::civil::DateTime>),
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffTimestamp(Option<Timestamp>),
+
+    #[cfg(feature = "jiff")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+    JiffZoned(Option<Zoned>),
+
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Option<Uuid>),
@@ -279,8 +326,8 @@ pub enum Value {
 pub const VALUE_SIZE: usize = check_value_size();
 
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > 32 {
-        panic!("the size of Value shouldn't be greater than 32 bytes")
+    if std::mem::size_of::<Value>() > 120 {
+        panic!("the size of Value shouldn't be greater than 120 bytes")
     }
     std::mem::size_of::<Value>()
 }
@@ -373,6 +420,26 @@ impl Value {
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
             Self::TimeDateTimeWithTimeZone(_) => Self::TimeDateTimeWithTimeZone(None),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffDate(_) => Self::JiffDate(None),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffTime(_) => Self::JiffTime(None),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffDateTime(_) => Self::JiffDateTime(None),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffTimestamp(_) => Self::JiffTimestamp(None),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffZoned(_) => Self::JiffZoned(None),
 
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -477,6 +544,30 @@ impl Value {
             Self::TimeDateTimeWithTimeZone(_) => {
                 Self::TimeDateTimeWithTimeZone(Some(OffsetDateTime::UNIX_EPOCH))
             }
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffDate(_) => Self::JiffDate(Some(jiff::civil::date(1970, 1, 1))),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffTime(_) => Self::JiffTime(Some(jiff::civil::time(0, 0, 0, 0))),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffDateTime(_) => {
+                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0)))
+            }
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH)),
+
+            #[cfg(feature = "jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "jiff")))]
+            Self::JiffZoned(_) => Self::JiffZoned(Some(
+                Timestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC),
+            )),
 
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
