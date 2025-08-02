@@ -25,14 +25,16 @@ rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.4", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
 time = { version = "0.3.36", default-features = false, optional = true, features = ["macros", "formatting"] }
+jiff = { version = "0.2.15", default-features = false, optional = true, features = ["std", "perf-inline"] }
+jiff-sqlx = { version = "0.1", optional = true }
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 pgvector = { version = "~0.4", default-features = false, optional = true }
 
 [features]
 sqlx-mysql = ["sqlx/mysql"]
-sqlx-postgres = ["sqlx/postgres"]
-sqlx-sqlite = ["sqlx/sqlite"]
+sqlx-postgres = ["sqlx/postgres", "jiff-sqlx?/postgres"]
+sqlx-sqlite = ["sqlx/sqlite", "jiff-sqlx?/sqlite"]
 sqlx-any = ["sqlx/any"]
 with-chrono = ["sqlx?/chrono", "sea-query/with-chrono", "chrono"]
 with-json = ["sqlx?/json", "sea-query/with-json", "serde_json"]
@@ -40,6 +42,7 @@ with-rust_decimal = ["sqlx?/rust_decimal", "sea-query/with-rust_decimal", "rust_
 with-bigdecimal = ["sqlx?/bigdecimal", "sea-query/with-bigdecimal", "bigdecimal"]
 with-uuid = ["sqlx?/uuid", "sea-query/with-uuid", "uuid"]
 with-time = ["sqlx?/time", "sea-query/with-time", "time"]
+with-jiff = ["sea-query/with-jiff", "jiff", "jiff-sqlx"]
 with-ipnetwork = ["sqlx?/ipnetwork", "sea-query/with-ipnetwork", "ipnetwork"]
 with-mac_address = ["sqlx?/mac_address", "sea-query/with-mac_address", "mac_address"]
 postgres-array = ["sea-query/postgres-array"]
