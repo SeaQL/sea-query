@@ -61,16 +61,27 @@ pub trait QuotedBuilder {
 pub trait EscapeBuilder {
     /// Escape a SQL string literal
     fn escape_string(&self, string: &str) -> String {
-        string
-            .replace('\\', "\\\\")
-            .replace('"', "\\\"")
-            .replace('\'', "\\'")
-            .replace('\0', "\\0")
-            .replace('\x08', "\\b")
-            .replace('\x09', "\\t")
-            .replace('\x1a', "\\z")
-            .replace('\n', "\\n")
-            .replace('\r', "\\r")
+        let mut escaped = String::with_capacity(string.len() + 8);
+        self.write_escaped(&mut escaped, string);
+        escaped
+    }
+
+    fn write_escaped(&self, buffer: &mut dyn Write, string: &str) {
+        for c in string.chars() {
+            match c {
+                '\\' => write!(buffer, "\\\\"),
+                '"' => write!(buffer, "\\\""),
+                '\'' => write!(buffer, "\\'"),
+                '\0' => write!(buffer, "\\0"),
+                '\x08' => write!(buffer, "\\b"),
+                '\x09' => write!(buffer, "\\t"),
+                '\x1a' => write!(buffer, "\\z"),
+                '\n' => write!(buffer, "\\n"),
+                '\r' => write!(buffer, "\\r"),
+                _ => write!(buffer, "{}", c),
+            }
+            .unwrap()
+        }
     }
 
     /// Unescape a SQL string literal
