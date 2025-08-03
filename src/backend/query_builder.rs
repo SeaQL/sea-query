@@ -140,11 +140,13 @@ pub trait QueryBuilder:
             }
         );
 
-        sql.write_str(" FROM ").unwrap();
         let mut from_tables = select.from.iter();
         join_io!(
             from_tables,
             table_ref,
+            first {
+                sql.write_str(" FROM ").unwrap();
+            },
             join {
                 sql.write_str(", ").unwrap();
             },
@@ -1851,6 +1853,7 @@ mod tests {
     #[cfg(feature = "with-chrono")]
     use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
+    #[cfg(feature = "with-chrono")]
     use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
 
     /// [Postgresql reference](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT-TIMES)
