@@ -23,16 +23,11 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             );
         }
 
-        write!(sql, "DROP FOREIGN KEY ").unwrap();
+        sql.write_str("DROP FOREIGN KEY ").unwrap();
         if let Some(name) = &drop.foreign_key.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
     }
 
@@ -48,41 +43,47 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             );
         }
 
-        write!(sql, "FOREIGN KEY (").unwrap();
-        create.foreign_key.columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            self.prepare_iden(col, sql);
-            false
-        });
-        write!(sql, ")").unwrap();
+        sql.write_str("FOREIGN KEY (").unwrap();
 
-        write!(sql, " REFERENCES ").unwrap();
+        let mut cols = create.foreign_key.columns.iter();
+        intersperse_with!(
+            cols,
+            col,
+            {
+                sql.write_str(", ").unwrap();
+            },
+            {
+                self.prepare_iden(col, sql);
+            }
+        );
+
+        sql.write_str(") REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
             self.prepare_table_ref_fk_stmt(ref_table, sql);
         }
-        write!(sql, " (").unwrap();
-        create
-            .foreign_key
-            .ref_columns
-            .iter()
-            .fold(true, |first, col| {
-                if !first {
-                    write!(sql, ", ").unwrap();
-                }
+        sql.write_str(" (").unwrap();
+
+        let mut ref_cols = create.foreign_key.ref_columns.iter();
+        intersperse_with!(
+            ref_cols,
+            col,
+            {
+                sql.write_str(", ").unwrap();
+            },
+            {
                 self.prepare_iden(col, sql);
-                false
-            });
-        write!(sql, ")").unwrap();
+            }
+        );
+
+        sql.write_str(")").unwrap();
 
         if let Some(foreign_key_action) = &create.foreign_key.on_delete {
-            write!(sql, " ON DELETE ").unwrap();
+            sql.write_str(" ON DELETE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
         }
 
         if let Some(foreign_key_action) = &create.foreign_key.on_update {
-            write!(sql, " ON UPDATE ").unwrap();
+            sql.write_str(" ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
         }
     }
