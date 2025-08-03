@@ -284,7 +284,7 @@ pub enum Value {
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffTimestamp(Option<Box<Timestamp>>),
+    JiffTimestamp(Option<Timestamp>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
