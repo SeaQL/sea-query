@@ -813,6 +813,7 @@ type_to_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
 type_to_value!(String, String, String(StringLen::None));
 
 #[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
+#[allow(unused)]
 macro_rules! type_to_box_value {
     ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
@@ -852,4 +853,5 @@ macro_rules! type_to_box_value {
 }
 
 #[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
+#[allow(unused)]
 use type_to_box_value;
