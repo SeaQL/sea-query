@@ -126,14 +126,14 @@ pub trait TypeBuilder: QuotedBuilder {
             }
             TypeRef::SchemaType(schema, name) => {
                 self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
+                sql.write_str(".").unwrap();
                 self.prepare_iden(name, sql);
             }
             TypeRef::DatabaseSchemaType(database, schema, name) => {
                 self.prepare_iden(database, sql);
-                write!(sql, ".").unwrap();
+                sql.write_str(".").unwrap();
                 self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
+                sql.write_str(".").unwrap();
                 self.prepare_iden(name, sql);
             }
         }
