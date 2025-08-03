@@ -49,10 +49,10 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         intersperse_with!(
             cols,
             col,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 self.prepare_iden(col, sql);
             }
         );
@@ -67,10 +67,10 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         intersperse_with!(
             ref_cols,
             col,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 self.prepare_iden(col, sql);
             }
         );

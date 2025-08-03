@@ -21,10 +21,10 @@ impl TypeBuilder for PostgresQueryBuilder {
             intersperse_with!(
                 vals,
                 val,
-                {
+                join {
                     sql.write_str(", ").unwrap();
                 },
-                {
+                do {
                     self.prepare_value(val.to_string().into(), sql);
                 }
             );
@@ -45,10 +45,10 @@ impl TypeBuilder for PostgresQueryBuilder {
         intersperse_with!(
             names,
             name,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 self.prepare_type_ref(name, sql);
             }
         );

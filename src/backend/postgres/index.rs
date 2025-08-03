@@ -139,10 +139,10 @@ impl IndexBuilder for PostgresQueryBuilder {
         intersperse_with!(
             cols,
             col,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 match col {
                     IndexColumn::TableColumn(column) => {
                         self.prepare_index_column_with_table_column(column, sql);
@@ -178,10 +178,10 @@ impl PostgresQueryBuilder {
         intersperse_with!(
             cols,
             col,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 self.prepare_iden(col, sql);
             }
         );

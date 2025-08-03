@@ -25,10 +25,10 @@ impl QueryBuilder for MysqlQueryBuilder {
         intersperse_with!(
             hints,
             hint,
-            {
+            join {
                 sql.write_str(" ").unwrap();
             },
-            {
+            do {
                 match hint.r#type {
                     IndexHintType::Use => {
                         sql.write_str("USE INDEX ").unwrap();
@@ -168,15 +168,19 @@ impl QueryBuilder for MysqlQueryBuilder {
             Some(OnConflictAction::DoNothing(pk_cols)) => {
                 if !pk_cols.is_empty() {
                     self.prepare_on_conflict_do_update_keywords(sql);
-                    pk_cols.iter().fold(true, |first, pk_col| {
-                        if !first {
-                            sql.write_str(", ").unwrap()
+                    let mut pk_cols_iter = pk_cols.iter();
+                    intersperse_with!(
+                        pk_cols_iter,
+                        pk_col,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            self.prepare_iden(pk_col, sql);
+                            sql.write_str(" = ").unwrap();
+                            self.prepare_iden(pk_col, sql);
                         }
-                        self.prepare_iden(pk_col, sql);
-                        sql.write_str(" = ").unwrap();
-                        self.prepare_iden(pk_col, sql);
-                        false
-                    });
+                    );
                 } else {
                     sql.write_str(" IGNORE").unwrap();
                 }

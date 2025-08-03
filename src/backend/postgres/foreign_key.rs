@@ -56,10 +56,10 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         intersperse_with!(
             fk_cols,
             col,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 self.prepare_iden(col, sql);
             }
         );
@@ -75,10 +75,10 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         intersperse_with!(
             fk_ref_cols,
             col,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 self.prepare_iden(col, sql);
             }
         );

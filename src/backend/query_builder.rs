@@ -40,15 +40,19 @@ pub trait QueryBuilder:
             let num_rows = insert.default_values.unwrap();
             self.insert_default_values(num_rows, sql);
         } else {
-            sql.write_str(" ").unwrap();
-            sql.write_str("(").unwrap();
-            insert.columns.iter().fold(true, |first, col| {
-                if !first {
-                    sql.write_str(", ").unwrap()
+            sql.write_str(" (").unwrap();
+            let mut cols = insert.columns.iter();
+            intersperse_with!(
+                cols,
+                col,
+                join {
+                    sql.write_str(", ").unwrap();
+                },
+                do {
+                    self.prepare_iden(col, sql);
                 }
-                self.prepare_iden(col, sql);
-                false
-            });
+            );
+
             sql.write_str(")").unwrap();
 
             self.prepare_output(&insert.returning, sql);
@@ -58,21 +62,30 @@ pub trait QueryBuilder:
                 match source {
                     InsertValueSource::Values(values) => {
                         sql.write_str("VALUES ").unwrap();
-                        values.iter().fold(true, |first, row| {
-                            if !first {
-                                sql.write_str(", ").unwrap()
+                        let mut vals = values.iter();
+                        intersperse_with!(
+                            vals,
+                            row,
+                            join {
+                                sql.write_str(", ").unwrap();
+                            },
+                            do {
+                                sql.write_str("(").unwrap();
+                                let mut cols = row.iter();
+                                intersperse_with!(
+                                    cols,
+                                    col,
+                                    join {
+                                        sql.write_str(", ").unwrap();
+                                    },
+                                    do {
+                                        self.prepare_simple_expr(col, sql);
+                                    }
+                                );
+
+                                sql.write_str(")").unwrap();
                             }
-                            sql.write_str("(").unwrap();
-                            row.iter().fold(true, |first, col| {
-                                if !first {
-                                    sql.write_str(", ").unwrap()
-                                }
-                                self.prepare_simple_expr(col, sql);
-                                false
-                            });
-                            sql.write_str(")").unwrap();
-                            false
-                        });
+                        );
                     }
                     InsertValueSource::Select(select_query) => {
                         self.prepare_select_statement(select_query.deref(), sql);
@@ -115,46 +128,56 @@ pub trait QueryBuilder:
             sql.write_str(" ").unwrap();
         }
 
-        select.selects.iter().fold(true, |first, expr| {
-            if !first {
-                sql.write_str(", ").unwrap()
+        let mut selects = select.selects.iter();
+        intersperse_with!(
+            selects,
+            expr,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_select_expr(expr, sql);
             }
-            self.prepare_select_expr(expr, sql);
-            false
-        });
+        );
 
-        if !select.from.is_empty() {
-            sql.write_str(" FROM ").unwrap();
-            select.from.iter().fold(true, |first, table_ref| {
-                if !first {
-                    sql.write_str(", ").unwrap()
-                }
+        sql.write_str(" FROM ").unwrap();
+        let mut from_tables = select.from.iter();
+        intersperse_with!(
+            from_tables,
+            table_ref,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_table_ref(table_ref, sql);
-                false
-            });
-            self.prepare_index_hints(select, sql);
-            self.prepare_table_sample(select, sql);
-        }
-
-        if !select.join.is_empty() {
-            for expr in select.join.iter() {
-                sql.write_str(" ").unwrap();
-                self.prepare_join_expr(expr, sql);
+            },
+            last {
+                self.prepare_index_hints(select, sql);
+                self.prepare_table_sample(select, sql);
             }
+        );
+
+        for expr in select.join.iter() {
+            sql.write_str(" ").unwrap();
+            self.prepare_join_expr(expr, sql);
         }
 
         self.prepare_condition(&select.r#where, "WHERE", sql);
 
-        if !select.groups.is_empty() {
-            sql.write_str(" GROUP BY ").unwrap();
-            select.groups.iter().fold(true, |first, expr| {
-                if !first {
-                    sql.write_str(", ").unwrap()
-                }
+        let mut groups = select.groups.iter();
+        intersperse_with!(
+            groups,
+            expr,
+            first {
+                sql.write_str(" GROUP BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_simple_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
         self.prepare_condition(&select.having, "HAVING", sql);
 
@@ -164,16 +187,20 @@ pub trait QueryBuilder:
             });
         }
 
-        if !select.orders.is_empty() {
-            sql.write_str(" ORDER BY ").unwrap();
-            select.orders.iter().fold(true, |first, expr| {
-                if !first {
-                    sql.write_str(", ").unwrap()
-                }
+        let mut orders = select.orders.iter();
+        intersperse_with!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
         self.prepare_select_limit_offset(select, sql);
 
@@ -220,16 +247,20 @@ pub trait QueryBuilder:
 
         sql.write_str(" SET ").unwrap();
 
-        update.values.iter().fold(true, |first, row| {
-            if !first {
-                sql.write_str(", ").unwrap()
+        let mut values = update.values.iter();
+        intersperse_with!(
+            values,
+            row,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                let (col, v) = row;
+                self.prepare_update_column(&update.table, &update.from, col, sql);
+                sql.write_str(" = ").unwrap();
+                self.prepare_simple_expr(v, sql);
             }
-            let (col, v) = row;
-            self.prepare_update_column(&update.table, &update.from, col, sql);
-            sql.write_str(" = ").unwrap();
-            self.prepare_simple_expr(v, sql);
-            false
-        });
+        );
 
         self.prepare_update_from(&update.from, sql);
 
@@ -249,21 +280,20 @@ pub trait QueryBuilder:
     }
 
     fn prepare_update_from(&self, from: &[TableRef], sql: &mut dyn SqlWriter) {
-        if from.is_empty() {
-            return;
-        }
-
-        sql.write_str(" FROM ").unwrap();
-
-        from.iter().fold(true, |first, table_ref| {
-            if !first {
-                sql.write_str(", ").unwrap()
+        let mut from_iter = from.iter();
+        intersperse_with!(
+            from_iter,
+            table_ref,
+            first {
+                sql.write_str(" FROM ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_table_ref(table_ref, sql);
             }
-
-            self.prepare_table_ref(table_ref, sql);
-
-            false
-        });
+        );
     }
 
     fn prepare_update_column(
@@ -287,16 +317,20 @@ pub trait QueryBuilder:
 
     /// Translate ORDER BY expression in [`UpdateStatement`].
     fn prepare_update_order_by(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
-        if !update.orders.is_empty() {
-            sql.write_str(" ORDER BY ").unwrap();
-            update.orders.iter().fold(true, |first, expr| {
-                if !first {
-                    sql.write_str(", ").unwrap();
-                }
+        let mut orders = update.orders.iter();
+        intersperse_with!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
     }
 
     /// Translate LIMIT expression in [`UpdateStatement`].
@@ -333,16 +367,20 @@ pub trait QueryBuilder:
 
     /// Translate ORDER BY expression in [`DeleteStatement`].
     fn prepare_delete_order_by(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
-        if !delete.orders.is_empty() {
-            sql.write_str(" ORDER BY ").unwrap();
-            delete.orders.iter().fold(true, |first, expr| {
-                if !first {
-                    sql.write_str(", ").unwrap();
-                }
+        let mut orders = delete.orders.iter();
+        intersperse_with!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
     }
 
     /// Translate LIMIT expression in [`DeleteStatement`].
@@ -405,13 +443,17 @@ pub trait QueryBuilder:
             }
             Expr::Values(list) => {
                 sql.write_str("(").unwrap();
-                list.iter().fold(true, |first, val| {
-                    if !first {
+                let mut iter = list.iter();
+                intersperse_with!(
+                    iter,
+                    val,
+                    join {
                         sql.write_str(", ").unwrap();
+                    },
+                    do {
+                        self.prepare_value(val.clone(), sql);
                     }
-                    self.prepare_value(val.clone(), sql);
-                    false
-                });
+                );
                 sql.write_str(")").unwrap();
             }
             Expr::Custom(s) => {
@@ -507,16 +549,21 @@ pub trait QueryBuilder:
             LockType::KeyShare => "KEY SHARE",
         })
         .unwrap();
-        if !lock.tables.is_empty() {
-            sql.write_str(" OF ").unwrap();
-            lock.tables.iter().fold(true, |first, table_ref| {
-                if !first {
-                    sql.write_str(", ").unwrap();
-                }
+        let mut tables = lock.tables.iter();
+        intersperse_with!(
+            tables,
+            table_ref,
+            first {
+                sql.write_str(" OF ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_table_ref(table_ref, sql);
-                false
-            });
-        }
+            }
+        );
+
         if let Some(behavior) = lock.behavior {
             match behavior {
                 LockBehavior::Nowait => sql.write_str(" NOWAIT").unwrap(),
@@ -967,23 +1014,32 @@ pub trait QueryBuilder:
     /// Translate a `&[ValueTuple]` into a VALUES list.
     fn prepare_values_list(&self, value_tuples: &[ValueTuple], sql: &mut dyn SqlWriter) {
         sql.write_str("VALUES ").unwrap();
-        value_tuples.iter().fold(true, |first, value_tuple| {
-            if !first {
+        let mut tuples = value_tuples.iter();
+        intersperse_with!(
+            tuples,
+            value_tuple,
+            join {
                 sql.write_str(", ").unwrap();
-            }
-            sql.write_str(self.values_list_tuple_prefix()).unwrap();
-            sql.write_str("(").unwrap();
-            value_tuple.clone().into_iter().fold(true, |first, value| {
-                if !first {
-                    sql.write_str(", ").unwrap();
-                }
-                self.prepare_value(value, sql);
-                false
-            });
+            },
+            do {
+                sql.write_str(self.values_list_tuple_prefix()).unwrap();
+                sql.write_str("(").unwrap();
 
-            sql.write_str(")").unwrap();
-            false
-        });
+                let mut values = value_tuple.clone().into_iter();
+                intersperse_with!(
+                    values,
+                    value,
+                    join {
+                        sql.write_str(", ").unwrap();
+                    },
+                    do {
+                        self.prepare_value(value, sql);
+                    }
+                );
+
+                sql.write_str(")").unwrap();
+            }
+        );
     }
 
     /// Translate [`Expr::Tuple`] into SQL statement.
@@ -1284,27 +1340,30 @@ pub trait QueryBuilder:
         on_conflict_targets: &[OnConflictTarget],
         sql: &mut dyn SqlWriter,
     ) {
-        if on_conflict_targets.is_empty() {
-            return;
-        }
-
-        sql.write_str("(").unwrap();
-        on_conflict_targets.iter().fold(true, |first, target| {
-            if !first {
-                sql.write_str(", ").unwrap()
-            }
-            match target {
-                OnConflictTarget::ConflictColumn(col) => {
-                    self.prepare_iden(col, sql);
+        let mut targets = on_conflict_targets.iter();
+        intersperse_with!(
+            targets,
+            target,
+            first {
+                sql.write_str("(").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                match target {
+                    OnConflictTarget::ConflictColumn(col) => {
+                        self.prepare_iden(col, sql);
+                    }
+                    OnConflictTarget::ConflictExpr(expr) => {
+                        self.prepare_simple_expr(expr, sql);
+                    }
                 }
-
-                OnConflictTarget::ConflictExpr(expr) => {
-                    self.prepare_simple_expr(expr, sql);
-                }
+            },
+            last {
+                sql.write_str(")").unwrap();
             }
-            false
-        });
-        sql.write_str(")").unwrap();
+        );
     }
 
     #[doc(hidden)]
@@ -1329,24 +1388,28 @@ pub trait QueryBuilder:
                 }
                 OnConflictAction::Update(update_strats) => {
                     self.prepare_on_conflict_do_update_keywords(sql);
-                    update_strats.iter().fold(true, |first, update_strat| {
-                        if !first {
-                            sql.write_str(", ").unwrap()
-                        }
-                        match update_strat {
-                            OnConflictUpdate::Column(col) => {
-                                self.prepare_iden(col, sql);
-                                sql.write_str(" = ").unwrap();
-                                self.prepare_on_conflict_excluded_table(col, sql);
+                    let mut update_strats_iter = update_strats.iter();
+                    intersperse_with!(
+                        update_strats_iter,
+                        update_strat,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            match update_strat {
+                                OnConflictUpdate::Column(col) => {
+                                    self.prepare_iden(col, sql);
+                                    sql.write_str(" = ").unwrap();
+                                    self.prepare_on_conflict_excluded_table(col, sql);
+                                }
+                                OnConflictUpdate::Expr(col, expr) => {
+                                    self.prepare_iden(col, sql);
+                                    sql.write_str(" = ").unwrap();
+                                    self.prepare_simple_expr(expr, sql);
+                                }
                             }
-                            OnConflictUpdate::Expr(col, expr) => {
-                                self.prepare_iden(col, sql);
-                                sql.write_str(" = ").unwrap();
-                                self.prepare_simple_expr(expr, sql);
-                            }
                         }
-                        false
-                    });
+                    );
                 }
             }
         }
@@ -1396,22 +1459,30 @@ pub trait QueryBuilder:
             match &returning {
                 ReturningClause::All => sql.write_str("*").unwrap(),
                 ReturningClause::Columns(cols) => {
-                    cols.iter().fold(true, |first, column_ref| {
-                        if !first {
-                            sql.write_str(", ").unwrap()
+                    let mut cols_iter = cols.iter();
+                    intersperse_with!(
+                        cols_iter,
+                        column_ref,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            self.prepare_column_ref(column_ref, sql);
                         }
-                        self.prepare_column_ref(column_ref, sql);
-                        false
-                    });
+                    );
                 }
                 ReturningClause::Exprs(exprs) => {
-                    exprs.iter().fold(true, |first, expr| {
-                        if !first {
-                            sql.write_str(", ").unwrap()
+                    let mut exprs_iter = exprs.iter();
+                    intersperse_with!(
+                        exprs_iter,
+                        expr,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            self.prepare_simple_expr(expr, sql);
                         }
-                        self.prepare_simple_expr(expr, sql);
-                        false
-                    });
+                    );
                 }
             }
         }
@@ -1472,27 +1543,35 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Translate [`WindowStatement`] into SQL statement.
     fn prepare_window_statement(&self, window: &WindowStatement, sql: &mut dyn SqlWriter) {
-        if !window.partition_by.is_empty() {
-            sql.write_str("PARTITION BY ").unwrap();
-            window.partition_by.iter().fold(true, |first, expr| {
-                if !first {
-                    sql.write_str(", ").unwrap()
-                }
+        let mut partition_iter = window.partition_by.iter();
+        intersperse_with!(
+            partition_iter,
+            expr,
+            first {
+                sql.write_str("PARTITION BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_simple_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
-        if !window.order_by.is_empty() {
-            sql.write_str(" ORDER BY ").unwrap();
-            window.order_by.iter().fold(true, |first, expr| {
-                if !first {
-                    sql.write_str(", ").unwrap()
-                }
+        let mut order_iter = window.order_by.iter();
+        intersperse_with!(
+            order_iter,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
         if let Some(frame) = &window.frame {
             match frame.r#type {
@@ -1749,18 +1828,22 @@ pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
     )
 }
 
-macro_rules! intersperse_with{
-    ($iter:ident, $item:ident, $join:expr, $do:expr) => {
+macro_rules! intersperse_with {
+    ($iter:ident, $item:ident $(, first $first:expr)?, join $join:expr, do $do:expr $(, last $last:expr)?) => {
         if let Some($item) = $iter.next() {
+            $($first)?
             $do
-        }
 
-        for $item in $iter {
-            $join
-            $do
+            for $item in $iter {
+                $join
+                $do
+            }
+
+            $($last)?
         }
     };
 }
+
 pub(crate) use intersperse_with;
 
 #[cfg(test)]

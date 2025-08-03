@@ -159,13 +159,17 @@ pub trait TableBuilder:
             sql.write_str("IF EXISTS ").unwrap();
         }
 
-        drop.tables.iter().fold(true, |first, table| {
-            if !first {
+        let mut tables = drop.tables.iter();
+        intersperse_with!(
+            tables,
+            table,
+            join {
                 sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_table_ref_table_stmt(table, sql);
             }
-            self.prepare_table_ref_table_stmt(table, sql);
-            false
-        });
+        );
 
         for drop_opt in drop.options.iter() {
             self.prepare_table_drop_opt(drop_opt, sql);

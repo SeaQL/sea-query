@@ -68,10 +68,10 @@ impl QueryBuilder for PostgresQueryBuilder {
                 intersperse_with!(
                     cols,
                     col,
-                    {
+                    join {
                         sql.write_str(", ").unwrap();
                     },
-                    {
+                    do {
                         self.prepare_column_ref(col, sql);
                     }
                 );

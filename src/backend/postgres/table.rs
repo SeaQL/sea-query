@@ -134,10 +134,10 @@ impl TableBuilder for PostgresQueryBuilder {
         intersperse_with!(
             opts,
             opt,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 match opt {
                     TableAlterOption::AddColumn(AddColumnOption {
                         column,

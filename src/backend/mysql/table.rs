@@ -118,10 +118,10 @@ impl TableBuilder for MysqlQueryBuilder {
                 intersperse_with!(
                     viter,
                     variant,
-                    {
+                    join {
                         sql.write_str("', '").unwrap();
                     },
-                    {
+                    do {
                         sql.write_str(&variant.0).unwrap();
                     }
                 );
@@ -167,10 +167,10 @@ impl TableBuilder for MysqlQueryBuilder {
         intersperse_with!(
             opts,
             opt,
-            {
+            join {
                 sql.write_str(", ").unwrap();
             },
-            {
+            do {
                 match opt {
                     TableAlterOption::AddColumn(AddColumnOption {
                         column,
