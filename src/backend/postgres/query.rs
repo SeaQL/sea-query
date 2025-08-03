@@ -184,7 +184,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         buffer.write_str("'").unwrap();
     }
 
-    fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut dyn Write) {
         write!(buffer, "'\\x").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap();

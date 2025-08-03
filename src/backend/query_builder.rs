@@ -1118,7 +1118,7 @@ pub trait QueryBuilder:
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buffer)
             }
-            Value::Bytes(Some(v)) => self.write_bytes_dyn(v, buffer),
+            Value::Bytes(Some(v)) => self.write_bytes(v, buffer),
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buffer),
             #[cfg(feature = "with-chrono")]
@@ -1545,17 +1545,7 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Write bytes enclosed with engine specific byte syntax
-    fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
-        write!(buffer, "x'").unwrap();
-        for b in bytes {
-            write!(buffer, "{b:02X}").unwrap();
-        }
-        write!(buffer, "'").unwrap();
-    }
-
-    #[doc(hidden)]
-    /// Write bytes enclosed with engine specific byte syntax
-    fn write_bytes_dyn(&self, bytes: &[u8], buffer: &mut dyn Write) {
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut dyn Write) {
         write!(buffer, "x'").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap();
