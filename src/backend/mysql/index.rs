@@ -13,6 +13,7 @@ impl IndexBuilder for MysqlQueryBuilder {
             sql.write_char(self.quote().left()).unwrap();
             sql.write_str(name).unwrap();
             sql.write_char(self.quote().right()).unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         self.prepare_index_type(&create.index_type, sql);

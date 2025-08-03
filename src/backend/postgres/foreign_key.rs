@@ -46,6 +46,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
             sql.write_char(self.quote().left()).unwrap();
             sql.write_str(name).unwrap();
             sql.write_char(self.quote().right()).unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         sql.write_str("FOREIGN KEY (").unwrap();
