@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New features
 
+* `#![forbid(unsafe_code)]` in all workspace crates https://github.com/SeaQL/sea-query/pull/930
 * Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangably. There may be a few compile
 errors and some clippy warnings, basically just remove the redundant `.into()` https://github.com/SeaQL/sea-query/pull/889
 ```rust
@@ -23,22 +24,40 @@ pub struct DynIden(pub(crate) Cow<'static, str>); // new
 pub struct SeaRc<I>(pub(crate) RcOrArc<I>);       // old
 pub struct SeaRc;                                 // new
 ```
-* `impl From<Expr> for Condition`. Now you can use that instead of
-  `ConditionExpression`, which has been removed.
-* Addded `DatabaseName`, `SchemaName`, `TableName`, `ColumnName` types.
+* Reworked `TableRef` and `ColumnRef` variants. `SchemaTable` is now a type alias of `TableName` https://github.com/SeaQL/sea-query/pull/927
+```rust
+// the following variants are collapsed into one:
+enum TableRef {
+    Table(DynIden),
+    SchemaTable(DynIden, DynIden),
+    DatabaseSchemaTable(DynIden, DynIden, DynIden),
+    TableAlias(DynIden, DynIden),
+    SchemaTableAlias(DynIden, DynIden, DynIden),
+    DatabaseSchemaTableAlias(DynIden, DynIden, DynIden, DynIden),
+    ..
+}
+// now it's just:
+enum TableRef {
+    Table(TableName, Option<DynIden>), // optional Alias
+    ..
+}
+// because it's restructured to:
+pub struct DatabaseName(pub DynIden);
+pub struct SchemaName(pub Option<DatabaseName>, pub DynIden);
+pub struct TableName(pub Option<SchemaName>, pub DynIden);
+// so TableName can represent [database.][schema.]table
+```
 
 ### Enhancements
 
-* `#![forbid(unsafe_code)]` in all workspace crates https://github.com/SeaQL/sea-query/pull/930
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
 * Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
 ```rust
 assert_eq!(std::mem::size_of::<Value>(), 32);
 ```
+* `impl From<Expr> for Condition`. Now you can use `Expr` instead of `ConditionExpression`, which has been removed from the public API https://github.com/SeaQL/sea-query/pull/915
 
 ### Breaking Changes
-
-* Replace `ColumnSpec::Check(Expr)` with `ColumnSpec::Check(Check)` to support named check constraints
 
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
 ```rust
@@ -98,7 +117,7 @@ error[E0308]: mismatched types
 For more information about this error, try `rustc --explain E0308`.
 error: could not compile `seaography` (lib) due to 1 previous error
 ```
-* The method signature of `Iden::unquoted` is changed. If you're implementing `Iden` manually, you can modify it like below.
+* The method signature of `Iden::unquoted` is changed. If you're implementing `Iden` manually, you can modify it like below https://github.com/SeaQL/sea-query/pull/909
 ```rust
 error[E0050]: method `unquoted` has 2 parameters but the declaration in trait `types::Iden::unquoted` has 1
   --> src/tests_cfg.rs:31:17
@@ -128,17 +147,29 @@ impl Iden for Glyph {
     }
 }
 ```
-* Reworked `TableRef` and `ColumnRef` variants.
-* Turned `SchemaTable` into a type alias of `TableName`. Code that accesses the
-  fields inside may not compile. Other existing code should still compile.
-* Removed `ConditionExpression` from the public API. Instead, just convert
-  between `Condition` and `Expr` using `From`/`Into`.
-* Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait`.
+* Removed `ConditionExpression` from the public API. Instead, just convert between `Condition` and `Expr` using `From`/`Into` https://github.com/SeaQL/sea-query/pull/915
+```rust
+error[E0603]: enum `ConditionExpression` is private
+   --> tests/mysql/query.rs:734:20
+    |
+ >  |     use sea_query::ConditionExpression;
+    |                    ^^^^^^^^^^^^^^^^^^^ private enum
+ >  |     Cond::all().add(ConditionExpression::Expr(Expr::new(
+    |                     ^^^^^^^^^^^^^^^^^^^ use of undeclared type `ConditionExpression`
+```
+```rust
+// simply do the following
+Cond::all().add(Expr::new(..))
+```
+
+### Minor breaking changes
+
+* Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait` https://github.com/SeaQL/sea-query/pull/914
 
   Now you can use database-specific operators with all expression types.
-
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
+* Replaced `ColumnSpec::Check(Expr)` with `ColumnSpec::Check(Check)` to support named check constraints https://github.com/SeaQL/sea-query/pull/920
 
 ### Upgrades
 

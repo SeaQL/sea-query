@@ -217,7 +217,7 @@ pub trait IntoColumnRef {
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
 pub enum TableRef {
-    /// A table identifier. Potentially qualified. Potentially remaned using an alias
+    /// A table identifier with optional Alias. Potentially qualified.
     Table(TableName, Option<DynIden>),
     /// Subquery with alias
     SubQuery(Box<SelectStatement>, DynIden),
