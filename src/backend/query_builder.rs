@@ -42,7 +42,7 @@ pub trait QueryBuilder:
         } else {
             sql.write_str(" (").unwrap();
             let mut cols = insert.columns.iter();
-            intersperse_with!(
+            join_io!(
                 cols,
                 col,
                 join {
@@ -63,7 +63,7 @@ pub trait QueryBuilder:
                     InsertValueSource::Values(values) => {
                         sql.write_str("VALUES ").unwrap();
                         let mut vals = values.iter();
-                        intersperse_with!(
+                        join_io!(
                             vals,
                             row,
                             join {
@@ -72,7 +72,7 @@ pub trait QueryBuilder:
                             do {
                                 sql.write_str("(").unwrap();
                                 let mut cols = row.iter();
-                                intersperse_with!(
+                                join_io!(
                                     cols,
                                     col,
                                     join {
@@ -129,7 +129,7 @@ pub trait QueryBuilder:
         }
 
         let mut selects = select.selects.iter();
-        intersperse_with!(
+        join_io!(
             selects,
             expr,
             join {
@@ -142,7 +142,7 @@ pub trait QueryBuilder:
 
         sql.write_str(" FROM ").unwrap();
         let mut from_tables = select.from.iter();
-        intersperse_with!(
+        join_io!(
             from_tables,
             table_ref,
             join {
@@ -165,7 +165,7 @@ pub trait QueryBuilder:
         self.prepare_condition(&select.r#where, "WHERE", sql);
 
         let mut groups = select.groups.iter();
-        intersperse_with!(
+        join_io!(
             groups,
             expr,
             first {
@@ -188,7 +188,7 @@ pub trait QueryBuilder:
         }
 
         let mut orders = select.orders.iter();
-        intersperse_with!(
+        join_io!(
             orders,
             expr,
             first {
@@ -248,7 +248,7 @@ pub trait QueryBuilder:
         sql.write_str(" SET ").unwrap();
 
         let mut values = update.values.iter();
-        intersperse_with!(
+        join_io!(
             values,
             row,
             join {
@@ -281,7 +281,7 @@ pub trait QueryBuilder:
 
     fn prepare_update_from(&self, from: &[TableRef], sql: &mut dyn SqlWriter) {
         let mut from_iter = from.iter();
-        intersperse_with!(
+        join_io!(
             from_iter,
             table_ref,
             first {
@@ -318,7 +318,7 @@ pub trait QueryBuilder:
     /// Translate ORDER BY expression in [`UpdateStatement`].
     fn prepare_update_order_by(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         let mut orders = update.orders.iter();
-        intersperse_with!(
+        join_io!(
             orders,
             expr,
             first {
@@ -368,7 +368,7 @@ pub trait QueryBuilder:
     /// Translate ORDER BY expression in [`DeleteStatement`].
     fn prepare_delete_order_by(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         let mut orders = delete.orders.iter();
-        intersperse_with!(
+        join_io!(
             orders,
             expr,
             first {
@@ -444,7 +444,7 @@ pub trait QueryBuilder:
             Expr::Values(list) => {
                 sql.write_str("(").unwrap();
                 let mut iter = list.iter();
-                intersperse_with!(
+                join_io!(
                     iter,
                     val,
                     join {
@@ -550,7 +550,7 @@ pub trait QueryBuilder:
         })
         .unwrap();
         let mut tables = lock.tables.iter();
-        intersperse_with!(
+        join_io!(
             tables,
             table_ref,
             first {
@@ -1015,7 +1015,7 @@ pub trait QueryBuilder:
     fn prepare_values_list(&self, value_tuples: &[ValueTuple], sql: &mut dyn SqlWriter) {
         sql.write_str("VALUES ").unwrap();
         let mut tuples = value_tuples.iter();
-        intersperse_with!(
+        join_io!(
             tuples,
             value_tuple,
             join {
@@ -1026,7 +1026,7 @@ pub trait QueryBuilder:
                 sql.write_str("(").unwrap();
 
                 let mut values = value_tuple.clone().into_iter();
-                intersperse_with!(
+                join_io!(
                     values,
                     value,
                     join {
@@ -1341,7 +1341,7 @@ pub trait QueryBuilder:
         sql: &mut dyn SqlWriter,
     ) {
         let mut targets = on_conflict_targets.iter();
-        intersperse_with!(
+        join_io!(
             targets,
             target,
             first {
@@ -1389,7 +1389,7 @@ pub trait QueryBuilder:
                 OnConflictAction::Update(update_strats) => {
                     self.prepare_on_conflict_do_update_keywords(sql);
                     let mut update_strats_iter = update_strats.iter();
-                    intersperse_with!(
+                    join_io!(
                         update_strats_iter,
                         update_strat,
                         join {
@@ -1460,7 +1460,7 @@ pub trait QueryBuilder:
                 ReturningClause::All => sql.write_str("*").unwrap(),
                 ReturningClause::Columns(cols) => {
                     let mut cols_iter = cols.iter();
-                    intersperse_with!(
+                    join_io!(
                         cols_iter,
                         column_ref,
                         join {
@@ -1473,7 +1473,7 @@ pub trait QueryBuilder:
                 }
                 ReturningClause::Exprs(exprs) => {
                     let mut exprs_iter = exprs.iter();
-                    intersperse_with!(
+                    join_io!(
                         exprs_iter,
                         expr,
                         join {
@@ -1544,7 +1544,7 @@ pub trait QueryBuilder:
     /// Translate [`WindowStatement`] into SQL statement.
     fn prepare_window_statement(&self, window: &WindowStatement, sql: &mut dyn SqlWriter) {
         let mut partition_iter = window.partition_by.iter();
-        intersperse_with!(
+        join_io!(
             partition_iter,
             expr,
             first {
@@ -1559,7 +1559,7 @@ pub trait QueryBuilder:
         );
 
         let mut order_iter = window.order_by.iter();
-        intersperse_with!(
+        join_io!(
             order_iter,
             expr,
             first {
@@ -1828,7 +1828,7 @@ pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
     )
 }
 
-macro_rules! intersperse_with {
+macro_rules! join_io {
     ($iter:ident, $item:ident $(, first $first:expr)?, join $join:expr, do $do:expr $(, last $last:expr)?) => {
         if let Some($item) = $iter.next() {
             $($first)?
@@ -1844,7 +1844,7 @@ macro_rules! intersperse_with {
     };
 }
 
-pub(crate) use intersperse_with;
+pub(crate) use join_io;
 
 #[cfg(test)]
 mod tests {

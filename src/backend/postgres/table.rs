@@ -131,7 +131,7 @@ impl TableBuilder for PostgresQueryBuilder {
 
         let mut opts = alter.options.iter();
 
-        intersperse_with!(
+        join_io!(
             opts,
             opt,
             join {

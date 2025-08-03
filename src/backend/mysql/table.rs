@@ -115,7 +115,7 @@ impl TableBuilder for MysqlQueryBuilder {
                 sql.write_str("ENUM('").unwrap();
 
                 let mut viter = variants.iter();
-                intersperse_with!(
+                join_io!(
                     viter,
                     variant,
                     join {
@@ -164,7 +164,7 @@ impl TableBuilder for MysqlQueryBuilder {
 
         let mut opts = alter.options.iter();
 
-        intersperse_with!(
+        join_io!(
             opts,
             opt,
             join {

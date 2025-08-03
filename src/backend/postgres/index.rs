@@ -136,7 +136,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         sql.write_str("(").unwrap();
 
         let mut cols = columns.iter();
-        intersperse_with!(
+        join_io!(
             cols,
             col,
             join {
@@ -175,7 +175,7 @@ impl PostgresQueryBuilder {
         sql.write_str("INCLUDE (").unwrap();
 
         let mut cols = columns.iter();
-        intersperse_with!(
+        join_io!(
             cols,
             col,
             join {

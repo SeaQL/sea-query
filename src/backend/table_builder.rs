@@ -160,7 +160,7 @@ pub trait TableBuilder:
         }
 
         let mut tables = drop.tables.iter();
-        intersperse_with!(
+        join_io!(
             tables,
             table,
             join {

@@ -18,7 +18,7 @@ impl TypeBuilder for PostgresQueryBuilder {
             sql.write_str(" (").unwrap();
 
             let mut vals = create.values.iter();
-            intersperse_with!(
+            join_io!(
                 vals,
                 val,
                 join {
@@ -42,7 +42,7 @@ impl TypeBuilder for PostgresQueryBuilder {
 
         let mut names = drop.names.iter();
 
-        intersperse_with!(
+        join_io!(
             names,
             name,
             join {

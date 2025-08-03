@@ -53,7 +53,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
 
         let mut fk_cols = create.foreign_key.columns.iter();
 
-        intersperse_with!(
+        join_io!(
             fk_cols,
             col,
             join {
@@ -72,7 +72,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
 
         let mut fk_ref_cols = create.foreign_key.ref_columns.iter();
 
-        intersperse_with!(
+        join_io!(
             fk_ref_cols,
             col,
             join {

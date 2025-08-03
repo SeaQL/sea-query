@@ -65,7 +65,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                 sql.write_str("DISTINCT ON (").unwrap();
 
                 let mut cols = cols.iter();
-                intersperse_with!(
+                join_io!(
                     cols,
                     col,
                     join {

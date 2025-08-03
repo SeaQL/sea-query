@@ -22,7 +22,7 @@ impl QueryBuilder for MysqlQueryBuilder {
 
         let mut hints = select.index_hints.iter();
 
-        intersperse_with!(
+        join_io!(
             hints,
             hint,
             join {
@@ -169,7 +169,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                 if !pk_cols.is_empty() {
                     self.prepare_on_conflict_do_update_keywords(sql);
                     let mut pk_cols_iter = pk_cols.iter();
-                    intersperse_with!(
+                    join_io!(
                         pk_cols_iter,
                         pk_col,
                         join {

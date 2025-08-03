@@ -46,7 +46,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         sql.write_str("FOREIGN KEY (").unwrap();
 
         let mut cols = create.foreign_key.columns.iter();
-        intersperse_with!(
+        join_io!(
             cols,
             col,
             join {
@@ -64,7 +64,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         sql.write_str(" (").unwrap();
 
         let mut ref_cols = create.foreign_key.ref_columns.iter();
-        intersperse_with!(
+        join_io!(
             ref_cols,
             col,
             join {
