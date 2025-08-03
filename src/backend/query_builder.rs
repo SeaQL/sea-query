@@ -26,7 +26,8 @@ pub trait QueryBuilder:
         self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
-            write!(sql, " INTO ").unwrap();
+            sql.write_str(" INTO ").unwrap();
+
             self.prepare_table_ref(table, sql);
         }
 
@@ -35,41 +36,41 @@ pub trait QueryBuilder:
             && insert.source.is_none()
         {
             self.prepare_output(&insert.returning, sql);
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
             let num_rows = insert.default_values.unwrap();
             self.insert_default_values(num_rows, sql);
         } else {
-            write!(sql, " ").unwrap();
-            write!(sql, "(").unwrap();
+            sql.write_str(" ").unwrap();
+            sql.write_str("(").unwrap();
             insert.columns.iter().fold(true, |first, col| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    sql.write_str(", ").unwrap()
                 }
                 self.prepare_iden(col, sql);
                 false
             });
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
 
             self.prepare_output(&insert.returning, sql);
 
             if let Some(source) = &insert.source {
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
                 match source {
                     InsertValueSource::Values(values) => {
-                        write!(sql, "VALUES ").unwrap();
+                        sql.write_str("VALUES ").unwrap();
                         values.iter().fold(true, |first, row| {
                             if !first {
-                                write!(sql, ", ").unwrap()
+                                sql.write_str(", ").unwrap()
                             }
-                            write!(sql, "(").unwrap();
+                            sql.write_str("(").unwrap();
                             row.iter().fold(true, |first, col| {
                                 if !first {
-                                    write!(sql, ", ").unwrap()
+                                    sql.write_str(", ").unwrap()
                                 }
                                 self.prepare_simple_expr(col, sql);
                                 false
                             });
-                            write!(sql, ")").unwrap();
+                            sql.write_str(")").unwrap();
                             false
                         });
                     }
@@ -92,13 +93,13 @@ pub trait QueryBuilder:
         sql: &mut dyn SqlWriter,
     ) {
         match union_type {
-            UnionType::Intersect => write!(sql, " INTERSECT (").unwrap(),
-            UnionType::Distinct => write!(sql, " UNION (").unwrap(),
-            UnionType::Except => write!(sql, " EXCEPT (").unwrap(),
-            UnionType::All => write!(sql, " UNION ALL (").unwrap(),
+            UnionType::Intersect => sql.write_str(" INTERSECT (").unwrap(),
+            UnionType::Distinct => sql.write_str(" UNION (").unwrap(),
+            UnionType::Except => sql.write_str(" EXCEPT (").unwrap(),
+            UnionType::All => sql.write_str(" UNION ALL (").unwrap(),
         }
         self.prepare_select_statement(select_statement, sql);
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     /// Translate [`SelectStatement`] into SQL statement.
@@ -107,26 +108,26 @@ pub trait QueryBuilder:
             self.prepare_with_clause(with, sql);
         }
 
-        write!(sql, "SELECT ").unwrap();
+        sql.write_str("SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
             self.prepare_select_distinct(distinct, sql);
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         select.selects.iter().fold(true, |first, expr| {
             if !first {
-                write!(sql, ", ").unwrap()
+                sql.write_str(", ").unwrap()
             }
             self.prepare_select_expr(expr, sql);
             false
         });
 
         if !select.from.is_empty() {
-            write!(sql, " FROM ").unwrap();
+            sql.write_str(" FROM ").unwrap();
             select.from.iter().fold(true, |first, table_ref| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    sql.write_str(", ").unwrap()
                 }
                 self.prepare_table_ref(table_ref, sql);
                 false
@@ -137,7 +138,7 @@ pub trait QueryBuilder:
 
         if !select.join.is_empty() {
             for expr in select.join.iter() {
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
                 self.prepare_join_expr(expr, sql);
             }
         }
@@ -145,10 +146,10 @@ pub trait QueryBuilder:
         self.prepare_condition(&select.r#where, "WHERE", sql);
 
         if !select.groups.is_empty() {
-            write!(sql, " GROUP BY ").unwrap();
+            sql.write_str(" GROUP BY ").unwrap();
             select.groups.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    sql.write_str(", ").unwrap()
                 }
                 self.prepare_simple_expr(expr, sql);
                 false
@@ -164,10 +165,10 @@ pub trait QueryBuilder:
         }
 
         if !select.orders.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
+            sql.write_str(" ORDER BY ").unwrap();
             select.orders.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    sql.write_str(", ").unwrap()
                 }
                 self.prepare_order_expr(expr, sql);
                 false
@@ -177,28 +178,28 @@ pub trait QueryBuilder:
         self.prepare_select_limit_offset(select, sql);
 
         if let Some(lock) = &select.lock {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
             self.prepare_select_lock(lock, sql);
         }
 
         if let Some((name, query)) = &select.window {
-            write!(sql, " WINDOW ").unwrap();
+            sql.write_str(" WINDOW ").unwrap();
             self.prepare_iden(name, sql);
-            write!(sql, " AS (").unwrap();
+            sql.write_str(" AS (").unwrap();
             self.prepare_window_statement(query, sql);
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
         }
     }
 
     // Translate the LIMIT and OFFSET expression in [`SelectStatement`]
     fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &select.limit {
-            write!(sql, " LIMIT ").unwrap();
+            sql.write_str(" LIMIT ").unwrap();
             self.prepare_value(limit.clone(), sql);
         }
 
         if let Some(offset) = &select.offset {
-            write!(sql, " OFFSET ").unwrap();
+            sql.write_str(" OFFSET ").unwrap();
             self.prepare_value(offset.clone(), sql);
         }
     }
@@ -209,7 +210,7 @@ pub trait QueryBuilder:
             self.prepare_with_clause(with, sql);
         }
 
-        write!(sql, "UPDATE ").unwrap();
+        sql.write_str("UPDATE ").unwrap();
 
         if let Some(table) = &update.table {
             self.prepare_table_ref(table, sql);
@@ -217,15 +218,15 @@ pub trait QueryBuilder:
 
         self.prepare_update_join(&update.from, &update.r#where, sql);
 
-        write!(sql, " SET ").unwrap();
+        sql.write_str(" SET ").unwrap();
 
         update.values.iter().fold(true, |first, row| {
             if !first {
-                write!(sql, ", ").unwrap()
+                sql.write_str(", ").unwrap()
             }
             let (col, v) = row;
             self.prepare_update_column(&update.table, &update.from, col, sql);
-            write!(sql, " = ").unwrap();
+            sql.write_str(" = ").unwrap();
             self.prepare_simple_expr(v, sql);
             false
         });
@@ -252,11 +253,11 @@ pub trait QueryBuilder:
             return;
         }
 
-        write!(sql, " FROM ").unwrap();
+        sql.write_str(" FROM ").unwrap();
 
         from.iter().fold(true, |first, table_ref| {
             if !first {
-                write!(sql, ", ").unwrap()
+                sql.write_str(", ").unwrap()
             }
 
             self.prepare_table_ref(table_ref, sql);
@@ -287,10 +288,10 @@ pub trait QueryBuilder:
     /// Translate ORDER BY expression in [`UpdateStatement`].
     fn prepare_update_order_by(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if !update.orders.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
+            sql.write_str(" ORDER BY ").unwrap();
             update.orders.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap();
+                    sql.write_str(", ").unwrap();
                 }
                 self.prepare_order_expr(expr, sql);
                 false
@@ -301,7 +302,7 @@ pub trait QueryBuilder:
     /// Translate LIMIT expression in [`UpdateStatement`].
     fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &update.limit {
-            write!(sql, " LIMIT ").unwrap();
+            sql.write_str(" LIMIT ").unwrap();
             self.prepare_value(limit.clone(), sql);
         }
     }
@@ -312,10 +313,10 @@ pub trait QueryBuilder:
             self.prepare_with_clause(with, sql);
         }
 
-        write!(sql, "DELETE ").unwrap();
+        sql.write_str("DELETE ").unwrap();
 
         if let Some(table) = &delete.table {
-            write!(sql, "FROM ").unwrap();
+            sql.write_str("FROM ").unwrap();
             self.prepare_table_ref(table, sql);
         }
 
@@ -333,10 +334,10 @@ pub trait QueryBuilder:
     /// Translate ORDER BY expression in [`DeleteStatement`].
     fn prepare_delete_order_by(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if !delete.orders.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
+            sql.write_str(" ORDER BY ").unwrap();
             delete.orders.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap();
+                    sql.write_str(", ").unwrap();
                 }
                 self.prepare_order_expr(expr, sql);
                 false
@@ -347,7 +348,7 @@ pub trait QueryBuilder:
     /// Translate LIMIT expression in [`DeleteStatement`].
     fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &delete.limit {
-            write!(sql, " LIMIT ").unwrap();
+            sql.write_str(" LIMIT ").unwrap();
             self.prepare_value(limit.clone(), sql);
         }
     }
@@ -367,15 +368,15 @@ pub trait QueryBuilder:
             }
             Expr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql);
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
                 let drop_expr_paren =
                     self.inner_expr_well_known_greater_precedence(expr, &(*op).into());
                 if !drop_expr_paren {
-                    write!(sql, "(").unwrap();
+                    sql.write_str("(").unwrap();
                 }
                 self.prepare_simple_expr(expr, sql);
                 if !drop_expr_paren {
-                    write!(sql, ")").unwrap();
+                    sql.write_str(")").unwrap();
                 }
             }
             Expr::FunctionCall(func) => {
@@ -395,26 +396,26 @@ pub trait QueryBuilder:
                 if let Some(oper) = oper {
                     self.prepare_sub_query_oper(oper, sql);
                 }
-                write!(sql, "(").unwrap();
+                sql.write_str("(").unwrap();
                 self.prepare_query_statement(sel.deref(), sql);
-                write!(sql, ")").unwrap();
+                sql.write_str(")").unwrap();
             }
             Expr::Value(val) => {
                 self.prepare_value(val.clone(), sql);
             }
             Expr::Values(list) => {
-                write!(sql, "(").unwrap();
+                sql.write_str("(").unwrap();
                 list.iter().fold(true, |first, val| {
                     if !first {
-                        write!(sql, ", ").unwrap();
+                        sql.write_str(", ").unwrap();
                     }
                     self.prepare_value(val.clone(), sql);
                     false
                 });
-                write!(sql, ")").unwrap();
+                sql.write_str(")").unwrap();
             }
             Expr::Custom(s) => {
-                write!(sql, "{s}").unwrap();
+                sql.write_str(s).unwrap();
             }
             Expr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
@@ -424,7 +425,7 @@ pub trait QueryBuilder:
                     match token {
                         Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
                             Some(Token::Punctuation(mark)) if mark == placeholder => {
-                                write!(sql, "{mark}").unwrap();
+                                sql.write_str(mark).unwrap();
                                 tokenizer.next();
                             }
                             Some(Token::Unquoted(tok)) if numbered => {
@@ -438,7 +439,7 @@ pub trait QueryBuilder:
                                 count += 1;
                             }
                         },
-                        _ => write!(sql, "{token}").unwrap(),
+                        _ => sql.write_str(token.as_str()).unwrap(),
                     };
                 }
             }
@@ -462,30 +463,30 @@ pub trait QueryBuilder:
 
     /// Translate [`CaseStatement`] into SQL statement.
     fn prepare_case_statement(&self, stmts: &CaseStatement, sql: &mut dyn SqlWriter) {
-        write!(sql, "(CASE").unwrap();
+        sql.write_str("(CASE").unwrap();
 
         let CaseStatement { when, r#else } = stmts;
 
         for case in when.iter() {
-            write!(sql, " WHEN (").unwrap();
+            sql.write_str(" WHEN (").unwrap();
             self.prepare_condition_where(&case.condition, sql);
-            write!(sql, ") THEN ").unwrap();
+            sql.write_str(") THEN ").unwrap();
 
             self.prepare_simple_expr(&case.result, sql);
         }
         if let Some(r#else) = r#else {
-            write!(sql, " ELSE ").unwrap();
+            sql.write_str(" ELSE ").unwrap();
             self.prepare_simple_expr(r#else, sql);
         }
 
-        write!(sql, " END)").unwrap();
+        sql.write_str(" END)").unwrap();
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
     fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {
         match select_distinct {
-            SelectDistinct::All => write!(sql, "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::All => sql.write_str("ALL").unwrap(),
+            SelectDistinct::Distinct => sql.write_str("DISTINCT").unwrap(),
             _ => {}
         }
     }
@@ -510,10 +511,10 @@ pub trait QueryBuilder:
         )
         .unwrap();
         if !lock.tables.is_empty() {
-            write!(sql, " OF ").unwrap();
+            sql.write_str(" OF ").unwrap();
             lock.tables.iter().fold(true, |first, table_ref| {
                 if !first {
-                    write!(sql, ", ").unwrap();
+                    sql.write_str(", ").unwrap();
                 }
                 self.prepare_table_ref(table_ref, sql);
                 false
@@ -521,8 +522,8 @@ pub trait QueryBuilder:
         }
         if let Some(behavior) = lock.behavior {
             match behavior {
-                LockBehavior::Nowait => write!(sql, " NOWAIT").unwrap(),
-                LockBehavior::SkipLocked => write!(sql, " SKIP LOCKED").unwrap(),
+                LockBehavior::Nowait => sql.write_str(" NOWAIT").unwrap(),
+                LockBehavior::SkipLocked => sql.write_str(" SKIP LOCKED").unwrap(),
             }
         }
     }
@@ -532,20 +533,20 @@ pub trait QueryBuilder:
         self.prepare_simple_expr(&select_expr.expr, sql);
         match &select_expr.window {
             Some(WindowSelectType::Name(name)) => {
-                write!(sql, " OVER ").unwrap();
+                sql.write_str(" OVER ").unwrap();
                 self.prepare_iden(name, sql);
             }
             Some(WindowSelectType::Query(window)) => {
-                write!(sql, " OVER ").unwrap();
-                write!(sql, "( ").unwrap();
+                sql.write_str(" OVER ").unwrap();
+                sql.write_str("( ").unwrap();
                 self.prepare_window_statement(window, sql);
-                write!(sql, " )").unwrap();
+                sql.write_str(" )").unwrap();
             }
             None => {}
         };
 
         if let Some(alias) = &select_expr.alias {
-            write!(sql, " AS ").unwrap();
+            sql.write_str(" AS ").unwrap();
             self.prepare_iden(alias, sql);
         };
     }
@@ -553,7 +554,7 @@ pub trait QueryBuilder:
     /// Translate [`JoinExpr`] into SQL statement.
     fn prepare_join_expr(&self, join_expr: &JoinExpr, sql: &mut dyn SqlWriter) {
         self.prepare_join_type(&join_expr.join, sql);
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
         self.prepare_join_table_ref(join_expr, sql);
         if let Some(on) = &join_expr.on {
             self.prepare_join_on(on, sql);
@@ -562,7 +563,7 @@ pub trait QueryBuilder:
 
     fn prepare_join_table_ref(&self, join_expr: &JoinExpr, sql: &mut dyn SqlWriter) {
         if join_expr.lateral {
-            write!(sql, "LATERAL ").unwrap();
+            sql.write_str("LATERAL ").unwrap();
         }
         self.prepare_table_ref(&join_expr.table, sql);
     }
@@ -571,23 +572,23 @@ pub trait QueryBuilder:
     fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::SubQuery(query, alias) => {
-                write!(sql, "(").unwrap();
+                sql.write_str("(").unwrap();
                 self.prepare_select_statement(query, sql);
-                write!(sql, ")").unwrap();
-                write!(sql, " AS ").unwrap();
+                sql.write_str(")").unwrap();
+                sql.write_str(" AS ").unwrap();
                 self.prepare_iden(alias, sql);
             }
             TableRef::ValuesList(values, alias) => {
-                write!(sql, "(").unwrap();
+                sql.write_str("(").unwrap();
                 self.prepare_values_list(values, sql);
-                write!(sql, ")").unwrap();
-                write!(sql, " AS ").unwrap();
+                sql.write_str(")").unwrap();
+                sql.write_str(" AS ").unwrap();
                 self.prepare_iden(alias, sql);
             }
             TableRef::FunctionCall(func, alias) => {
                 self.prepare_function_name(&func.func, sql);
                 self.prepare_function_arguments(func, sql);
-                write!(sql, " AS ").unwrap();
+                sql.write_str(" AS ").unwrap();
                 self.prepare_iden(alias, sql);
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
@@ -599,16 +600,16 @@ pub trait QueryBuilder:
             ColumnRef::Column(ColumnName(table_name, column)) => {
                 if let Some(table_name) = table_name {
                     self.prepare_table_name(table_name, sql);
-                    write!(sql, ".").unwrap();
+                    sql.write_str(".").unwrap();
                 }
                 self.prepare_iden(column, sql);
             }
             ColumnRef::Asterisk(table_name) => {
                 if let Some(table_name) = table_name {
                     self.prepare_table_name(table_name, sql);
-                    write!(sql, ".").unwrap();
+                    sql.write_str(".").unwrap();
                 }
-                write!(sql, "*").unwrap();
+                sql.write_str("*").unwrap();
             }
         }
     }
@@ -698,7 +699,9 @@ pub trait QueryBuilder:
             LogicalChainOper::Or(simple_expr) => (simple_expr, "OR"),
         };
         if i > 0 {
-            write!(sql, " {oper} ").unwrap();
+            sql.write_str(" ").unwrap();
+            sql.write_str(oper).unwrap();
+            sql.write_str(" ").unwrap();
         }
         let both_binary = match simple_expr {
             Expr::Binary(_, _, right) => {
@@ -708,18 +711,18 @@ pub trait QueryBuilder:
         };
         let need_parentheses = length > 1 && both_binary;
         if need_parentheses {
-            write!(sql, "(").unwrap();
+            sql.write_str("(").unwrap();
         }
         self.prepare_simple_expr(simple_expr, sql);
         if need_parentheses {
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
         }
     }
 
     /// Translate [`Function`] into SQL statement.
     fn prepare_function_name_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
         if let Function::Custom(iden) = function {
-            write!(sql, "{iden}").unwrap()
+            sql.write_str(&iden.0).unwrap()
         } else {
             write!(
                 sql,
@@ -754,17 +757,17 @@ pub trait QueryBuilder:
     }
 
     fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
+        sql.write_str("(").unwrap();
         for (i, expr) in func.args.iter().enumerate() {
             if i != 0 {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             if func.mods[i].distinct {
-                write!(sql, "DISTINCT ").unwrap();
+                sql.write_str("DISTINCT ").unwrap();
             }
             self.prepare_simple_expr(expr, sql);
         }
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
@@ -790,34 +793,32 @@ pub trait QueryBuilder:
     ) {
         if with_clause.recursive {
             if let Some(search) = &with_clause.search {
-                write!(
-                    sql,
-                    "SEARCH {} FIRST BY ",
-                    match &search.order.as_ref().unwrap() {
-                        SearchOrder::BREADTH => "BREADTH",
-                        SearchOrder::DEPTH => "DEPTH",
-                    }
-                )
+                sql.write_str("SEARCH ").unwrap();
+                sql.write_str(match &search.order.as_ref().unwrap() {
+                    SearchOrder::BREADTH => "BREADTH",
+                    SearchOrder::DEPTH => "DEPTH",
+                })
                 .unwrap();
+                sql.write_str(" FIRST BY ").unwrap();
 
                 self.prepare_simple_expr(&search.expr.as_ref().unwrap().expr, sql);
 
-                write!(sql, " SET ").unwrap();
+                sql.write_str(" SET ").unwrap();
 
                 self.prepare_iden(search.expr.as_ref().unwrap().alias.as_ref().unwrap(), sql);
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
             }
             if let Some(cycle) = &with_clause.cycle {
-                write!(sql, "CYCLE ").unwrap();
+                sql.write_str("CYCLE ").unwrap();
 
                 self.prepare_simple_expr(cycle.expr.as_ref().unwrap(), sql);
 
-                write!(sql, " SET ").unwrap();
+                sql.write_str(" SET ").unwrap();
 
                 self.prepare_iden(cycle.set_as.as_ref().unwrap(), sql);
-                write!(sql, " USING ").unwrap();
+                sql.write_str(" USING ").unwrap();
                 self.prepare_iden(cycle.using.as_ref().unwrap(), sql);
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
             }
         }
     }
@@ -832,7 +833,7 @@ pub trait QueryBuilder:
 
         for cte in &with_clause.cte_expressions {
             if !cte_first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             cte_first = false;
 
@@ -848,31 +849,31 @@ pub trait QueryBuilder:
         self.prepare_iden(cte.table_name.as_ref().unwrap(), sql);
 
         if cte.cols.is_empty() {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         } else {
-            write!(sql, " (").unwrap();
+            sql.write_str(" (").unwrap();
 
             let mut col_first = true;
             for col in &cte.cols {
                 if !col_first {
-                    write!(sql, ", ").unwrap();
+                    sql.write_str(", ").unwrap();
                 }
                 col_first = false;
                 self.prepare_iden(col, sql);
             }
 
-            write!(sql, ") ").unwrap();
+            sql.write_str(") ").unwrap();
         }
 
-        write!(sql, "AS ").unwrap();
+        sql.write_str("AS ").unwrap();
 
         self.prepare_with_query_clause_materialization(cte, sql);
 
-        write!(sql, "(").unwrap();
+        sql.write_str("(").unwrap();
 
         self.prepare_query_statement(cte.query.as_ref().unwrap().deref(), sql);
 
-        write!(sql, ") ").unwrap();
+        sql.write_str(") ").unwrap();
     }
 
     fn prepare_with_query_clause_materialization(
@@ -891,18 +892,18 @@ pub trait QueryBuilder:
     }
 
     fn prepare_with_clause_start(&self, with_clause: &WithClause, sql: &mut dyn SqlWriter) {
-        write!(sql, "WITH ").unwrap();
+        sql.write_str("WITH ").unwrap();
 
         if with_clause.recursive {
-            write!(sql, "RECURSIVE ").unwrap();
+            sql.write_str("RECURSIVE ").unwrap();
         }
     }
 
     fn prepare_insert(&self, replace: bool, sql: &mut dyn SqlWriter) {
         if replace {
-            write!(sql, "REPLACE").unwrap();
+            sql.write_str("REPLACE").unwrap();
         } else {
-            write!(sql, "INSERT").unwrap();
+            sql.write_str("INSERT").unwrap();
         }
     }
 
@@ -950,8 +951,8 @@ pub trait QueryBuilder:
     /// Translate [`Order`] into SQL statement.
     fn prepare_order(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         match &order_expr.order {
-            Order::Asc => write!(sql, " ASC").unwrap(),
-            Order::Desc => write!(sql, " DESC").unwrap(),
+            Order::Asc => sql.write_str(" ASC").unwrap(),
+            Order::Desc => sql.write_str(" DESC").unwrap(),
             Order::Field(values) => self.prepare_field_order(order_expr, values, sql),
         }
     }
@@ -963,17 +964,22 @@ pub trait QueryBuilder:
         values: &Values,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CASE ").unwrap();
+        sql.write_str("CASE ").unwrap();
         let mut i = 0;
         for value in &values.0 {
-            write!(sql, "WHEN ").unwrap();
+            sql.write_str("WHEN ").unwrap();
             self.prepare_simple_expr(&order_expr.expr, sql);
-            write!(sql, "=").unwrap();
+            sql.write_str("=").unwrap();
             self.write_value(sql, value).unwrap();
-            write!(sql, " THEN {i} ").unwrap();
+            sql.write_str(" THEN ").unwrap();
+            write!(sql, "{i}").unwrap();
+            sql.write_str(" ").unwrap();
             i += 1;
         }
-        write!(sql, "ELSE {i} END").unwrap();
+
+        sql.write_str("ELSE ").unwrap();
+        write!(sql, "{i}").unwrap();
+        sql.write_str(" END").unwrap();
     }
 
     /// Write [`Value`] into SQL statement as parameter.
@@ -986,46 +992,46 @@ pub trait QueryBuilder:
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
     fn prepare_values_list(&self, value_tuples: &[ValueTuple], sql: &mut dyn SqlWriter) {
-        write!(sql, "VALUES ").unwrap();
+        sql.write_str("VALUES ").unwrap();
         value_tuples.iter().fold(true, |first, value_tuple| {
             if !first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
-            write!(sql, "{}", self.values_list_tuple_prefix()).unwrap();
-            write!(sql, "(").unwrap();
+            sql.write_str(self.values_list_tuple_prefix()).unwrap();
+            sql.write_str("(").unwrap();
             value_tuple.clone().into_iter().fold(true, |first, value| {
                 if !first {
-                    write!(sql, ", ").unwrap();
+                    sql.write_str(", ").unwrap();
                 }
                 self.prepare_value(value, sql);
                 false
             });
 
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
             false
         });
     }
 
     /// Translate [`Expr::Tuple`] into SQL statement.
     fn prepare_tuple(&self, exprs: &[Expr], sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
+        sql.write_str("(").unwrap();
         for (i, expr) in exprs.iter().enumerate() {
             if i != 0 {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             self.prepare_simple_expr(expr, sql);
         }
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     /// Translate [`Keyword`] into SQL statement.
     fn prepare_keyword(&self, keyword: &Keyword, sql: &mut dyn SqlWriter) {
         match keyword {
-            Keyword::Null => write!(sql, "NULL").unwrap(),
-            Keyword::CurrentDate => write!(sql, "CURRENT_DATE").unwrap(),
-            Keyword::CurrentTime => write!(sql, "CURRENT_TIME").unwrap(),
-            Keyword::CurrentTimestamp => write!(sql, "CURRENT_TIMESTAMP").unwrap(),
-            Keyword::Custom(iden) => write!(sql, "{iden}").unwrap(),
+            Keyword::Null => sql.write_str("NULL").unwrap(),
+            Keyword::CurrentDate => sql.write_str("CURRENT_DATE").unwrap(),
+            Keyword::CurrentTime => sql.write_str("CURRENT_TIME").unwrap(),
+            Keyword::CurrentTimestamp => sql.write_str("CURRENT_TIMESTAMP").unwrap(),
+            Keyword::Custom(iden) => sql.write_str(&iden.0).unwrap(),
         }
     }
 
@@ -1259,10 +1265,10 @@ pub trait QueryBuilder:
             return;
         }
 
-        write!(sql, "(").unwrap();
+        sql.write_str("(").unwrap();
         on_conflict_targets.iter().fold(true, |first, target| {
             if !first {
-                write!(sql, ", ").unwrap()
+                sql.write_str(", ").unwrap()
             }
             match target {
                 OnConflictTarget::ConflictColumn(col) => {
@@ -1275,7 +1281,7 @@ pub trait QueryBuilder:
             }
             false
         });
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     #[doc(hidden)]
@@ -1296,23 +1302,23 @@ pub trait QueryBuilder:
         if let Some(action) = on_conflict_action {
             match action {
                 OnConflictAction::DoNothing(_) => {
-                    write!(sql, " DO NOTHING").unwrap();
+                    sql.write_str(" DO NOTHING").unwrap();
                 }
                 OnConflictAction::Update(update_strats) => {
                     self.prepare_on_conflict_do_update_keywords(sql);
                     update_strats.iter().fold(true, |first, update_strat| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            sql.write_str(", ").unwrap()
                         }
                         match update_strat {
                             OnConflictUpdate::Column(col) => {
                                 self.prepare_iden(col, sql);
-                                write!(sql, " = ").unwrap();
+                                sql.write_str(" = ").unwrap();
                                 self.prepare_on_conflict_excluded_table(col, sql);
                             }
                             OnConflictUpdate::Expr(col, expr) => {
                                 self.prepare_iden(col, sql);
-                                write!(sql, " = ").unwrap();
+                                sql.write_str(" = ").unwrap();
                                 self.prepare_simple_expr(expr, sql);
                             }
                         }
@@ -1326,26 +1332,22 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Write ON CONFLICT keywords
     fn prepare_on_conflict_keywords(&self, sql: &mut dyn SqlWriter) {
-        write!(sql, " ON CONFLICT ").unwrap();
+        sql.write_str(" ON CONFLICT ").unwrap();
     }
 
     #[doc(hidden)]
     /// Write ON CONFLICT keywords
     fn prepare_on_conflict_do_update_keywords(&self, sql: &mut dyn SqlWriter) {
-        write!(sql, " DO UPDATE SET ").unwrap();
+        sql.write_str(" DO UPDATE SET ").unwrap();
     }
 
     #[doc(hidden)]
     /// Write ON CONFLICT update action by retrieving value from the excluded table
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}excluded{}",
-            self.quote().left(),
-            self.quote().right()
-        )
-        .unwrap();
-        write!(sql, ".").unwrap();
+        sql.write_char(self.quote().left()).unwrap();
+        sql.write_str("excluded").unwrap();
+        sql.write_char(self.quote().right()).unwrap();
+        sql.write_str(".").unwrap();
         self.prepare_iden(col, sql);
     }
 
@@ -1367,13 +1369,13 @@ pub trait QueryBuilder:
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(&self, returning: &Option<ReturningClause>, sql: &mut dyn SqlWriter) {
         if let Some(returning) = returning {
-            write!(sql, " RETURNING ").unwrap();
+            sql.write_str(" RETURNING ").unwrap();
             match &returning {
-                ReturningClause::All => write!(sql, "*").unwrap(),
+                ReturningClause::All => sql.write_str("*").unwrap(),
                 ReturningClause::Columns(cols) => {
                     cols.iter().fold(true, |first, column_ref| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            sql.write_str(", ").unwrap()
                         }
                         self.prepare_column_ref(column_ref, sql);
                         false
@@ -1382,7 +1384,7 @@ pub trait QueryBuilder:
                 ReturningClause::Exprs(exprs) => {
                     exprs.iter().fold(true, |first, expr| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            sql.write_str(", ").unwrap()
                         }
                         self.prepare_simple_expr(expr, sql);
                         false
@@ -1403,13 +1405,17 @@ pub trait QueryBuilder:
         match &condition.contents {
             ConditionHolderContents::Empty => (),
             ConditionHolderContents::Chain(conditions) => {
-                write!(sql, " {keyword} ").unwrap();
+                sql.write_str(" ").unwrap();
+                sql.write_str(keyword).unwrap();
+                sql.write_str(" ").unwrap();
                 for (i, log_chain_oper) in conditions.iter().enumerate() {
                     self.prepare_logical_chain_oper(log_chain_oper, i, conditions.len(), sql);
                 }
             }
             ConditionHolderContents::Condition(c) => {
-                write!(sql, " {keyword} ").unwrap();
+                sql.write_str(" ").unwrap();
+                sql.write_str(keyword).unwrap();
+                sql.write_str(" ").unwrap();
                 self.prepare_condition_where(c, sql);
             }
         }
@@ -1426,17 +1432,17 @@ pub trait QueryBuilder:
     /// Translate [`Frame`] into SQL statement.
     fn prepare_frame(&self, frame: &Frame, sql: &mut dyn SqlWriter) {
         match *frame {
-            Frame::UnboundedPreceding => write!(sql, "UNBOUNDED PRECEDING").unwrap(),
+            Frame::UnboundedPreceding => sql.write_str("UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
                 self.prepare_value(v.into(), sql);
-                write!(sql, "PRECEDING").unwrap();
+                sql.write_str("PRECEDING").unwrap();
             }
-            Frame::CurrentRow => write!(sql, "CURRENT ROW").unwrap(),
+            Frame::CurrentRow => sql.write_str("CURRENT ROW").unwrap(),
             Frame::Following(v) => {
                 self.prepare_value(v.into(), sql);
-                write!(sql, "FOLLOWING").unwrap();
+                sql.write_str("FOLLOWING").unwrap();
             }
-            Frame::UnboundedFollowing => write!(sql, "UNBOUNDED FOLLOWING").unwrap(),
+            Frame::UnboundedFollowing => sql.write_str("UNBOUNDED FOLLOWING").unwrap(),
         }
     }
 
@@ -1444,10 +1450,10 @@ pub trait QueryBuilder:
     /// Translate [`WindowStatement`] into SQL statement.
     fn prepare_window_statement(&self, window: &WindowStatement, sql: &mut dyn SqlWriter) {
         if !window.partition_by.is_empty() {
-            write!(sql, "PARTITION BY ").unwrap();
+            sql.write_str("PARTITION BY ").unwrap();
             window.partition_by.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    sql.write_str(", ").unwrap()
                 }
                 self.prepare_simple_expr(expr, sql);
                 false
@@ -1455,10 +1461,10 @@ pub trait QueryBuilder:
         }
 
         if !window.order_by.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
+            sql.write_str(" ORDER BY ").unwrap();
             window.order_by.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    sql.write_str(", ").unwrap()
                 }
                 self.prepare_order_expr(expr, sql);
                 false
@@ -1467,13 +1473,13 @@ pub trait QueryBuilder:
 
         if let Some(frame) = &window.frame {
             match frame.r#type {
-                FrameType::Range => write!(sql, " RANGE ").unwrap(),
-                FrameType::Rows => write!(sql, " ROWS ").unwrap(),
+                FrameType::Range => sql.write_str(" RANGE ").unwrap(),
+                FrameType::Rows => sql.write_str(" ROWS ").unwrap(),
             };
             if let Some(end) = &frame.end {
-                write!(sql, "BETWEEN ").unwrap();
+                sql.write_str("BETWEEN ").unwrap();
                 self.prepare_frame(&frame.start, sql);
-                write!(sql, " AND ").unwrap();
+                sql.write_str(" AND ").unwrap();
                 self.prepare_frame(end, sql);
             } else {
                 self.prepare_frame(&frame.start, sql);
@@ -1495,16 +1501,16 @@ pub trait QueryBuilder:
 
         let left_paren = !drop_left_higher_precedence && !drop_left_assoc;
         if left_paren {
-            write!(sql, "(").unwrap();
+            sql.write_str("(").unwrap();
         }
         self.prepare_simple_expr(left, sql);
         if left_paren {
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
         }
 
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
         self.prepare_bin_oper(op, sql);
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
 
         // If right has higher precedence than op, we can drop parentheses around right
         let drop_right_higher_precedence =
@@ -1529,28 +1535,28 @@ pub trait QueryBuilder:
             && !drop_right_between_hack
             && !drop_right_as_hack;
         if right_paren {
-            write!(sql, "(").unwrap();
+            sql.write_str("(").unwrap();
         }
         self.prepare_simple_expr(right, sql);
         if right_paren {
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
         }
     }
 
-    #[doc(hidden)]
-    /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut dyn Write) {
-        write!(buffer, "'{}'", self.escape_string(string)).unwrap()
+        buffer.write_str("'").unwrap();
+        self.write_escaped(buffer, string);
+        buffer.write_str("'").unwrap();
     }
 
     #[doc(hidden)]
     /// Write bytes enclosed with engine specific byte syntax
     fn write_bytes(&self, bytes: &[u8], buffer: &mut dyn Write) {
-        write!(buffer, "x'").unwrap();
+        buffer.write_str("x'").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap();
         }
-        write!(buffer, "'").unwrap();
+        buffer.write_str("'").unwrap();
     }
 
     #[doc(hidden)]
@@ -1591,14 +1597,15 @@ pub trait QueryBuilder:
 
     /// Write insert default rows expression.
     fn insert_default_values(&self, num_rows: u32, sql: &mut dyn SqlWriter) {
-        write!(sql, "VALUES ").unwrap();
-        (0..num_rows).fold(true, |first, _| {
-            if !first {
-                write!(sql, ", ").unwrap()
+        sql.write_str("VALUES ").unwrap();
+        if num_rows > 0 {
+            sql.write_str(self.insert_default_keyword()).unwrap();
+
+            for _ in 1..num_rows {
+                sql.write_str(", ").unwrap();
+                sql.write_str(self.insert_default_keyword()).unwrap();
             }
-            write!(sql, "{}", self.insert_default_keyword()).unwrap();
-            false
-        });
+        }
     }
 
     /// Write TRUE constant

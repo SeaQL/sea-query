@@ -10,14 +10,11 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(name) = &create.index.name {
-            write!(
-                sql,
-                "CONSTRAINT {}{}{} ",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_str("CONSTRAINT ").unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         self.prepare_index_prefix(create, sql);
@@ -52,7 +49,9 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     /// Write the column index prefix.
     fn write_column_index_prefix(&self, col_prefix: &Option<u32>, sql: &mut dyn SqlWriter) {
         if let Some(prefix) = col_prefix {
-            write!(sql, " ({prefix})").unwrap();
+            sql.write_str(" (").unwrap();
+            write!(sql, "{prefix}").unwrap();
+            sql.write_str(")").unwrap();
         }
     }
 
@@ -67,8 +66,8 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
         self.write_column_index_prefix(&column.prefix, sql);
         if let Some(order) = &column.order {
             match order {
-                IndexOrder::Asc => write!(sql, " ASC").unwrap(),
-                IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+                IndexOrder::Asc => sql.write_str(" ASC").unwrap(),
+                IndexOrder::Desc => sql.write_str(" DESC").unwrap(),
             }
         }
     }
@@ -76,20 +75,22 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     #[doc(hidden)]
     /// Write the column index prefix.
     fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
-        columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
+        sql.write_str("(").unwrap();
+
+        for (idx, col) in columns.iter().enumerate() {
+            if idx > 0 {
+                sql.write_str(", ").unwrap();
             }
+
             match col {
                 IndexColumn::TableColumn(column) => {
                     self.prepare_index_column_with_table_column(column, sql);
                 }
                 IndexColumn::Expr(_) => panic!("Not supported"),
             }
-            false
-        });
-        write!(sql, ")").unwrap();
+        }
+
+        sql.write_str(")").unwrap();
     }
 
     #[doc(hidden)]

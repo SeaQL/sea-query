@@ -47,7 +47,7 @@ impl Tokenizer {
         while !self.end() {
             let c = self.get();
             if Self::is_space(c) {
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
             } else {
                 break;
             }
@@ -66,11 +66,11 @@ impl Tokenizer {
         while !self.end() {
             let c = self.get();
             if Self::is_alphanumeric(c) {
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
                 first = false;
                 self.inc();
             } else if !first && Self::is_identifier(c) {
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
                 self.inc();
             } else {
                 break;
@@ -91,12 +91,12 @@ impl Tokenizer {
         while !self.end() {
             let c = self.get();
             if first && Self::is_string_delimiter_start(c) {
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
                 first = false;
                 start = c;
                 self.inc();
             } else if !first && !escape && Self::is_string_delimiter_end_for(start, c) {
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
                 self.inc();
                 if self.end() {
                     break;
@@ -104,12 +104,13 @@ impl Tokenizer {
                 if !Self::is_string_escape_for(start, self.get()) {
                     break;
                 } else {
-                    write!(string, "{}", self.get()).unwrap();
+                    string.write_char(self.get()).unwrap();
+
                     self.inc();
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
                 self.inc();
             } else {
                 break;
@@ -142,12 +143,12 @@ impl Tokenizer {
                 if !Self::is_string_escape_for(start, self.get()) {
                     break;
                 } else {
-                    write!(string, "{c}").unwrap();
+                    string.write_char(c).unwrap();
                     self.inc();
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
                 self.inc();
             } else {
                 break;
@@ -161,7 +162,7 @@ impl Tokenizer {
         if !self.end() {
             let c = self.get();
             if !Self::is_space(c) && !Self::is_alphanumeric(c) {
-                write!(string, "{c}").unwrap();
+                string.write_char(c).unwrap();
                 self.inc();
             }
         }
@@ -270,16 +271,7 @@ impl Token {
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Token::Unquoted(string) => string,
-                Token::Space(string) => string,
-                Token::Quoted(string) => string,
-                Token::Punctuation(string) => string,
-            }
-        )
+        f.write_str(self.as_str())
     }
 }
 
