@@ -243,9 +243,9 @@ impl TableBuilder for PostgresQueryBuilder {
 impl PostgresQueryBuilder {
     fn prepare_column_auto_increment(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
         let num_ty = match column_type {
-            ColumnType::SmallInteger => "SMALLINT",
-            ColumnType::Integer => "INTEGER",
-            ColumnType::BigInteger => "BIGINT",
+            ColumnType::SmallInteger => "smallint",
+            ColumnType::Integer => "integer",
+            ColumnType::BigInteger => "bigint",
             _ => unimplemented!("{:?} doesn't support auto increment", column_type),
         };
 
