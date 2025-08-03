@@ -9,26 +9,23 @@ impl IndexBuilder for PostgresQueryBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(name) = &create.index.name {
-            write!(
-                sql,
-                "CONSTRAINT {}{}{} ",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_str("CONSTRAINT ").unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         self.prepare_index_prefix(create, sql);
 
         if create.nulls_not_distinct {
-            write!(sql, "NULLS NOT DISTINCT ").unwrap();
+            sql.write_str("NULLS NOT DISTINCT ").unwrap();
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
 
         if !create.include_columns.is_empty() {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
             self.prepare_include_columns(&create.include_columns, sql);
         }
     }
@@ -38,41 +35,36 @@ impl IndexBuilder for PostgresQueryBuilder {
         create: &IndexCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE ").unwrap();
+        sql.write_str("CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
-        write!(sql, "INDEX ").unwrap();
+        sql.write_str("INDEX ").unwrap();
 
         if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap();
+            sql.write_str("IF NOT EXISTS ").unwrap();
         }
 
         if let Some(name) = &create.index.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
 
-        write!(sql, " ON ").unwrap();
+        sql.write_str(" ON ").unwrap();
         if let Some(table) = &create.table {
             self.prepare_table_ref_index_stmt(table, sql);
         }
 
         self.prepare_index_type(&create.index_type, sql);
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
 
         if !create.include_columns.is_empty() {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
             self.prepare_include_columns(&create.include_columns, sql);
         }
 
         if create.nulls_not_distinct {
-            write!(sql, " NULLS NOT DISTINCT").unwrap();
+            sql.write_str(" NULLS NOT DISTINCT").unwrap();
         }
         self.prepare_filter(&create.r#where, sql);
     }
@@ -90,10 +82,10 @@ impl IndexBuilder for PostgresQueryBuilder {
     }
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
-        write!(sql, "DROP INDEX ").unwrap();
+        sql.write_str("DROP INDEX ").unwrap();
 
         if drop.if_exists {
-            write!(sql, "IF EXISTS ").unwrap();
+            sql.write_str("IF EXISTS ").unwrap();
         }
 
         if let Some(table) = &drop.table {
@@ -106,73 +98,71 @@ impl IndexBuilder for PostgresQueryBuilder {
                 (None, None, _table) => {}
                 (None, Some(schema), _table) => {
                     self.prepare_iden(schema, sql);
-                    write!(sql, ".").unwrap();
+                    sql.write_str(".").unwrap();
                 }
                 (Some(_db), _schema, _table) => panic!("Not supported"),
             }
         }
         if let Some(name) = &drop.index.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
     }
 
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut dyn SqlWriter) {
         if let Some(index_type) = col_index_type {
-            write!(
-                sql,
-                " USING {}",
-                match index_type {
-                    IndexType::BTree => "BTREE".to_owned(),
-                    IndexType::FullText => "GIN".to_owned(),
-                    IndexType::Hash => "HASH".to_owned(),
-                    IndexType::Custom(custom) => custom.to_string(),
-                }
-            )
-            .unwrap();
+            sql.write_str(" USING ").unwrap();
+            match index_type {
+                IndexType::BTree => sql.write_str("BTREE"),
+                IndexType::FullText => sql.write_str("GIN"),
+                IndexType::Hash => sql.write_str("HASH"),
+                IndexType::Custom(custom) => sql.write_str(&custom.0),
+            }
+            .unwrap()
         }
     }
 
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
         if create.primary {
-            write!(sql, "PRIMARY KEY ").unwrap();
+            sql.write_str("PRIMARY KEY ").unwrap();
         }
         if create.unique {
-            write!(sql, "UNIQUE ").unwrap();
+            sql.write_str("UNIQUE ").unwrap();
         }
     }
 
     fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
-        columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            match col {
-                IndexColumn::TableColumn(column) => {
-                    self.prepare_index_column_with_table_column(column, sql);
-                }
-                IndexColumn::Expr(column) => {
-                    write!(sql, "(").unwrap();
-                    self.prepare_simple_expr(&column.expr, sql);
-                    write!(sql, ")").unwrap();
-                    if let Some(order) = &column.order {
-                        match order {
-                            IndexOrder::Asc => write!(sql, " ASC").unwrap(),
-                            IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+        sql.write_str("(").unwrap();
+
+        let mut cols = columns.iter();
+        intersperse_with!(
+            cols,
+            col,
+            {
+                sql.write_str(", ").unwrap();
+            },
+            {
+                match col {
+                    IndexColumn::TableColumn(column) => {
+                        self.prepare_index_column_with_table_column(column, sql);
+                    }
+                    IndexColumn::Expr(column) => {
+                        sql.write_str("(").unwrap();
+                        self.prepare_simple_expr(&column.expr, sql);
+                        sql.write_str(")").unwrap();
+                        if let Some(order) = &column.order {
+                            match order {
+                                IndexOrder::Asc => sql.write_str(" ASC").unwrap(),
+                                IndexOrder::Desc => sql.write_str(" DESC").unwrap(),
+                            }
                         }
                     }
                 }
             }
-            false
-        });
-        write!(sql, ")").unwrap();
+        );
+
+        sql.write_str(")").unwrap();
     }
 
     fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut dyn SqlWriter) {
@@ -182,14 +172,20 @@ impl IndexBuilder for PostgresQueryBuilder {
 
 impl PostgresQueryBuilder {
     fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut dyn SqlWriter) {
-        write!(sql, "INCLUDE (").unwrap();
-        columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
+        sql.write_str("INCLUDE (").unwrap();
+
+        let mut cols = columns.iter();
+        intersperse_with!(
+            cols,
+            col,
+            {
+                sql.write_str(", ").unwrap();
+            },
+            {
+                self.prepare_iden(col, sql);
             }
-            self.prepare_iden(col, sql);
-            false
-        });
-        write!(sql, ")").unwrap();
+        );
+
+        sql.write_str(")").unwrap();
     }
 }
