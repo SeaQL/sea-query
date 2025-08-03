@@ -69,16 +69,16 @@ pub trait EscapeBuilder {
     fn write_escaped(&self, buffer: &mut dyn Write, string: &str) {
         for c in string.chars() {
             match c {
-                '\\' => write!(buffer, "\\\\"),
-                '"' => write!(buffer, "\\\""),
-                '\'' => write!(buffer, "\\'"),
-                '\0' => write!(buffer, "\\0"),
-                '\x08' => write!(buffer, "\\b"),
-                '\x09' => write!(buffer, "\\t"),
-                '\x1a' => write!(buffer, "\\z"),
-                '\n' => write!(buffer, "\\n"),
-                '\r' => write!(buffer, "\\r"),
-                _ => write!(buffer, "{}", c),
+                '\\' => buffer.write_str("\\\\"),
+                '"' => buffer.write_str("\\\""),
+                '\'' => buffer.write_str("\\'"),
+                '\0' => buffer.write_str("\\0"),
+                '\x08' => buffer.write_str("\\b"),
+                '\x09' => buffer.write_str("\\t"),
+                '\x1a' => buffer.write_str("\\z"),
+                '\n' => buffer.write_str("\\n"),
+                '\r' => buffer.write_str("\\r"),
+                _ => buffer.write_char(c),
             }
             .unwrap()
         }
