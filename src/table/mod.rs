@@ -12,6 +12,7 @@ use crate::SchemaBuilder;
 
 mod alter;
 mod column;
+mod constraint;
 mod create;
 mod drop;
 mod rename;
@@ -19,6 +20,7 @@ mod truncate;
 
 pub use alter::*;
 pub use column::*;
+pub use constraint::*;
 pub use create::*;
 pub use drop::*;
 pub use rename::*;

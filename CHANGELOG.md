@@ -38,6 +38,8 @@ assert_eq!(std::mem::size_of::<Value>(), 32);
 
 ### Breaking Changes
 
+* Replace `ColumnSpec::Check(Expr)` with `ColumnSpec::Check(Check)` to support named check constraints
+
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
@@ -137,8 +139,6 @@ impl Iden for Glyph {
 
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
-
-### Bug Fixes
 
 ### Upgrades
 

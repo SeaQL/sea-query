@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{expr::*, types::*};
+use crate::{expr::*, table::Check, types::*};
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -179,7 +179,7 @@ pub enum ColumnSpec {
     AutoIncrement,
     UniqueKey,
     PrimaryKey,
-    Check(Expr),
+    Check(Check),
     Generated { expr: Expr, stored: bool },
     Extra(String),
     Comment(String),
@@ -687,6 +687,7 @@ impl ColumnDef {
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
+    ///
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
@@ -699,12 +700,25 @@ impl ColumnDef {
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10) )"#,
     /// );
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Glyph::Id)
+    ///                 .integer()
+    ///                 .not_null()
+    ///                 .check(("positive_id", Expr::col(Glyph::Id).gt(10)))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CONSTRAINT `positive_id` CHECK (`id` > 10) )"#,
+    /// );
     /// ```
-    pub fn check<T>(&mut self, value: T) -> &mut Self
+    pub fn check<T>(&mut self, check: T) -> &mut Self
     where
-        T: Into<Expr>,
+        T: Into<Check>,
     {
-        self.spec.push(ColumnSpec::Check(value.into()));
+        self.spec.push(ColumnSpec::Check(check.into()));
         self
     }
 
