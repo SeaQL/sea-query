@@ -48,8 +48,14 @@ impl SqlWriterValues {
 }
 
 impl Write for SqlWriterValues {
+    #[inline]
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         self.string.write_str(s)
+    }
+
+    #[inline]
+    fn write_char(&mut self, c: char) -> std::fmt::Result {
+        self.string.write_char(c)
     }
 }
 
@@ -66,7 +72,7 @@ impl SqlWriter for SqlWriterValues {
         if self.numbered {
             let counter = self.counter;
 
-            write!(self.string, "{counter}").unwrap();
+            self.string.write_str(&counter.to_string()).unwrap();
         }
         self.values.push(value)
     }
