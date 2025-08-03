@@ -4,7 +4,7 @@ use jiff::{Timestamp, Zoned, civil};
 type_to_value!(civil::Date, JiffDate, Date);
 type_to_value!(civil::Time, JiffTime, Time);
 type_to_value!(civil::DateTime, JiffDateTime, DateTime);
-type_to_box_value!(Timestamp, JiffTimestamp, Timestamp);
+type_to_value!(Timestamp, JiffTimestamp, Timestamp);
 type_to_box_value!(Zoned, JiffZoned, TimestampWithTimeZone);
 
 impl Value {
@@ -25,7 +25,7 @@ impl Value {
 
     #[inline]
     pub fn jiff_timestamp<T: Into<Option<Timestamp>>>(v: T) -> Value {
-        Value::JiffTimestamp(v.into().map(Into::into))
+        Value::JiffTimestamp(v.into())
     }
 
     #[inline]
@@ -78,7 +78,7 @@ impl Value {
 
     pub fn as_ref_jiff_timestamp(&self) -> Option<&Timestamp> {
         match self {
-            Self::JiffTimestamp(v) => v.as_deref(),
+            Self::JiffTimestamp(v) => v.as_ref(),
             _ => panic!("not Value::JiffTimestamp"),
         }
     }
