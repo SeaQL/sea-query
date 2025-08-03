@@ -3,7 +3,7 @@ use jiff::{Timestamp, Zoned, civil};
 
 type_to_value!(civil::Date, JiffDate, Date);
 type_to_value!(civil::Time, JiffTime, Time);
-type_to_box_value!(civil::DateTime, JiffDateTime, DateTime);
+type_to_value!(civil::DateTime, JiffDateTime, DateTime);
 type_to_box_value!(Timestamp, JiffTimestamp, Timestamp);
 type_to_box_value!(Zoned, JiffZoned, TimestampWithTimeZone);
 
@@ -20,7 +20,7 @@ impl Value {
 
     #[inline]
     pub fn jiff_date_time<T: Into<Option<civil::DateTime>>>(v: T) -> Value {
-        Value::JiffDateTime(v.into().map(Into::into))
+        Value::JiffDateTime(v.into())
     }
 
     #[inline]
@@ -71,7 +71,7 @@ impl Value {
 
     pub fn as_ref_jiff_date_time(&self) -> Option<&civil::DateTime> {
         match self {
-            Self::JiffDateTime(v) => v.as_deref(),
+            Self::JiffDateTime(v) => v.as_ref(),
             _ => panic!("not Value::JiffDateTime"),
         }
     }
