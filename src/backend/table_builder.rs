@@ -9,11 +9,11 @@ pub trait TableBuilder:
         create: &TableCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE ").unwrap();
+        sql.write_str("CREATE ").unwrap();
 
         self.prepare_create_temporary_table(create, sql);
 
-        write!(sql, "TABLE ").unwrap();
+        sql.write_str("TABLE ").unwrap();
 
         self.prepare_create_table_if_not_exists(create, sql);
 
@@ -21,12 +21,12 @@ pub trait TableBuilder:
             self.prepare_table_ref_table_stmt(table_ref, sql);
         }
 
-        write!(sql, " ( ").unwrap();
+        sql.write_str(" ( ").unwrap();
         let mut first = true;
 
         create.columns.iter().for_each(|column_def| {
             if !first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             self.prepare_column_def(column_def, sql);
             first = false;
@@ -34,7 +34,7 @@ pub trait TableBuilder:
 
         create.indexes.iter().for_each(|index| {
             if !first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             self.prepare_table_index_expression(index, sql);
             first = false;
@@ -42,7 +42,7 @@ pub trait TableBuilder:
 
         create.foreign_keys.iter().for_each(|foreign_key| {
             if !first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             self.prepare_foreign_key_create_statement_internal(foreign_key, sql, Mode::Creation);
             first = false;
@@ -50,18 +50,19 @@ pub trait TableBuilder:
 
         create.check.iter().for_each(|check| {
             if !first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             self.prepare_check_constraint(check, sql);
             first = false;
         });
 
-        write!(sql, " )").unwrap();
+        sql.write_str(" )").unwrap();
 
         self.prepare_table_opt(create, sql);
 
         if let Some(extra) = &create.extra {
-            write!(sql, " {extra}").unwrap();
+            sql.write_str(" ").unwrap();
+            sql.write_str(extra).unwrap();
         }
     }
 
@@ -93,22 +94,22 @@ pub trait TableBuilder:
     /// Translate [`ColumnSpec`] into SQL statement.
     fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter) {
         match column_spec {
-            ColumnSpec::Null => write!(sql, "NULL").unwrap(),
-            ColumnSpec::NotNull => write!(sql, "NOT NULL").unwrap(),
+            ColumnSpec::Null => sql.write_str("NULL").unwrap(),
+            ColumnSpec::NotNull => sql.write_str("NOT NULL").unwrap(),
             ColumnSpec::Default(value) => {
-                write!(sql, "DEFAULT ").unwrap();
+                sql.write_str("DEFAULT ").unwrap();
                 QueryBuilder::prepare_simple_expr(self, value, sql);
             }
-            ColumnSpec::AutoIncrement => {
-                write!(sql, "{}", self.column_spec_auto_increment_keyword()).unwrap()
-            }
-            ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
-            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
+            ColumnSpec::AutoIncrement => sql
+                .write_str(self.column_spec_auto_increment_keyword())
+                .unwrap(),
+            ColumnSpec::UniqueKey => sql.write_str("UNIQUE").unwrap(),
+            ColumnSpec::PrimaryKey => sql.write_str("PRIMARY KEY").unwrap(),
             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
             ColumnSpec::Generated { expr, stored } => {
                 self.prepare_generated_column(expr, *stored, sql)
             }
-            ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
+            ColumnSpec::Extra(string) => sql.write_str(string).unwrap(),
             ColumnSpec::Comment(comment) => self.column_comment(comment, sql),
             ColumnSpec::Using(_) => {}
         }
@@ -128,17 +129,21 @@ pub trait TableBuilder:
     /// Default function
     fn prepare_table_opt_def(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
         for table_opt in create.options.iter() {
-            write!(sql, " ").unwrap();
-            write!(
-                sql,
-                "{}",
-                match table_opt {
-                    TableOpt::Engine(s) => format!("ENGINE={s}"),
-                    TableOpt::Collate(s) => format!("COLLATE={s}"),
-                    TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={s}"),
+            sql.write_str(" ").unwrap();
+            match table_opt {
+                TableOpt::Engine(s) => {
+                    sql.write_str("ENGINE=").unwrap();
+                    sql.write_str(s).unwrap();
                 }
-            )
-            .unwrap()
+                TableOpt::Collate(s) => {
+                    sql.write_str("COLLATE=").unwrap();
+                    sql.write_str(s).unwrap();
+                }
+                TableOpt::CharacterSet(s) => {
+                    sql.write_str("DEFAULT CHARSET=").unwrap();
+                    sql.write_str(s).unwrap();
+                }
+            }
         }
     }
 
@@ -148,15 +153,15 @@ pub trait TableBuilder:
 
     /// Translate [`TableDropStatement`] into SQL statement.
     fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut dyn SqlWriter) {
-        write!(sql, "DROP TABLE ").unwrap();
+        sql.write_str("DROP TABLE ").unwrap();
 
         if drop.if_exists {
-            write!(sql, "IF EXISTS ").unwrap();
+            sql.write_str("IF EXISTS ").unwrap();
         }
 
         drop.tables.iter().fold(true, |first, table| {
             if !first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             self.prepare_table_ref_table_stmt(table, sql);
             false
@@ -169,15 +174,10 @@ pub trait TableBuilder:
 
     /// Translate [`TableDropOpt`] into SQL statement.
     fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            " {}",
-            match drop_opt {
-                TableDropOpt::Restrict => "RESTRICT",
-                TableDropOpt::Cascade => "CASCADE",
-            }
-        )
-        .unwrap();
+        match drop_opt {
+            TableDropOpt::Restrict => sql.write_str(" RESTRICT").unwrap(),
+            TableDropOpt::Cascade => sql.write_str(" CASCADE").unwrap(),
+        }
     }
 
     /// Translate [`TableTruncateStatement`] into SQL statement.
@@ -186,7 +186,7 @@ pub trait TableBuilder:
         truncate: &TableTruncateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "TRUNCATE TABLE ").unwrap();
+        sql.write_str("TRUNCATE TABLE ").unwrap();
 
         if let Some(table) = &truncate.table {
             self.prepare_table_ref_table_stmt(table, sql);
@@ -195,20 +195,20 @@ pub trait TableBuilder:
 
     /// Translate the check constraint into SQL statement
     fn prepare_check_constraint(&self, check: &Expr, sql: &mut dyn SqlWriter) {
-        write!(sql, "CHECK (").unwrap();
+        sql.write_str("CHECK (").unwrap();
         QueryBuilder::prepare_simple_expr(self, check, sql);
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     /// Translate the generated column into SQL statement
     fn prepare_generated_column(&self, r#gen: &Expr, stored: bool, sql: &mut dyn SqlWriter) {
-        write!(sql, "GENERATED ALWAYS AS (").unwrap();
+        sql.write_str("GENERATED ALWAYS AS (").unwrap();
         QueryBuilder::prepare_simple_expr(self, r#gen, sql);
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
         if stored {
-            write!(sql, " STORED").unwrap();
+            sql.write_str(" STORED").unwrap();
         } else {
-            write!(sql, " VIRTUAL").unwrap();
+            sql.write_str(" VIRTUAL").unwrap();
         }
     }
 
@@ -219,7 +219,7 @@ pub trait TableBuilder:
         sql: &mut dyn SqlWriter,
     ) {
         if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap();
+            sql.write_str("IF NOT EXISTS ").unwrap();
         }
     }
 
@@ -230,7 +230,7 @@ pub trait TableBuilder:
         sql: &mut dyn SqlWriter,
     ) {
         if create.temporary {
-            write!(sql, "TEMPORARY ").unwrap();
+            sql.write_str("TEMPORARY ").unwrap();
         }
     }
 
