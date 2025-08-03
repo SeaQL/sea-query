@@ -174,14 +174,14 @@ impl QueryBuilder for PostgresQueryBuilder {
         sql.push_param(value, self as _);
     }
 
-    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        let escaped = self.escape_string(string);
-        let string = if escaped.find('\\').is_some() {
-            "E'".to_owned() + &escaped + "'"
+    fn write_string_quoted(&self, string: &str, buffer: &mut dyn Write) {
+        if need_escape(string) {
+            buffer.write_str("E'").unwrap();
         } else {
-            "'".to_owned() + &escaped + "'"
-        };
-        write!(buffer, "{string}").unwrap()
+            buffer.write_str("'").unwrap();
+        }
+        self.write_escaped(buffer, string);
+        buffer.write_str("'").unwrap();
     }
 
     fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {

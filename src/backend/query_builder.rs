@@ -1114,13 +1114,13 @@ pub trait QueryBuilder:
             Value::BigUnsigned(Some(v)) => write!(buffer, "{v}")?,
             Value::Float(Some(v)) => write!(buffer, "{v}")?,
             Value::Double(Some(v)) => write!(buffer, "{v}")?,
-            Value::String(Some(v)) => self.write_string_quoted_dyn(v, buffer),
+            Value::String(Some(v)) => self.write_string_quoted(v, buffer),
             Value::Char(Some(v)) => {
-                self.write_string_quoted_dyn(std::str::from_utf8(&[*v as u8]).unwrap(), buffer)
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buffer)
             }
             Value::Bytes(Some(v)) => self.write_bytes_dyn(v, buffer),
             #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted_dyn(&v.to_string(), buffer),
+            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buffer),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(Some(v)) => write!(buffer, "'{}'", v.format("%Y-%m-%d"))?,
             #[cfg(feature = "with-chrono")]
@@ -1539,12 +1539,7 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
-    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        write!(buffer, "'{}'", self.escape_string(string)).unwrap()
-    }
-
-    #[doc(hidden)]
-    fn write_string_quoted_dyn(&self, string: &str, buffer: &mut dyn Write) {
+    fn write_string_quoted(&self, string: &str, buffer: &mut dyn Write) {
         write!(buffer, "'{}'", self.escape_string(string)).unwrap()
     }
 
