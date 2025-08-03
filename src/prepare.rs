@@ -194,12 +194,6 @@ mod tests_postgres {
 
     #[test]
     fn inject_parameters_7() {
-        let mut buf1 = String::new();
-        let mut buf2 = String::new();
-        assert_eq!(
-            PostgresQueryBuilder.write_string_quoted("B'C", &mut buf1),
-            PostgresQueryBuilder.write_string_quoted("B'C", &mut buf2)
-        );
         assert_eq!(
             inject_parameters("WHERE A = $1", [Value::from("B'C")], &PostgresQueryBuilder),
             "WHERE A = E'B\\'C'"
