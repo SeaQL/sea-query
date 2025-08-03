@@ -1194,7 +1194,7 @@ pub trait QueryBuilder:
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => {
                 if v.is_empty() {
-                    buffer.write_str("{}")?;
+                    buffer.write_str("'{}'")?;
                 } else {
                     buffer.write_str("ARRAY [")?;
 
@@ -1205,7 +1205,7 @@ pub trait QueryBuilder:
                     }
 
                     for element in viter {
-                        buffer.write_str(", ")?;
+                        buffer.write_str(",")?;
                         self.write_value(buffer, element)?;
                     }
                     buffer.write_str("]")?;
@@ -1225,7 +1225,7 @@ pub trait QueryBuilder:
 
                     write!(buffer, "{element}")?;
                 }
-                buffer.write_str("]")?;
+                buffer.write_str("]'")?;
             }
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(Some(v)) => write!(buffer, "'{v}'")?,
