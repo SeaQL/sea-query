@@ -20,7 +20,7 @@ impl fmt::Display for PgInterval {
             PgInterval::HourToSecond => "HOUR TO SECOND",
             PgInterval::MinuteToSecond => "MINUTE TO SECOND",
         };
-        write!(f, "{fields}")
+        f.write_str(fields)
     }
 }
 

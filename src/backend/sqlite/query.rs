@@ -7,32 +7,25 @@ impl QueryBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match oper {
-                SubQueryOper::Exists => "EXISTS",
-                SubQueryOper::Any => panic!("Operator 'ANY' doesnot support"),
-                SubQueryOper::Some => panic!("Operator 'SOME' doesnot support"),
-                SubQueryOper::All => panic!("Operator 'ALL' doesnot support"),
-            }
-        )
+        sql.write_str(match oper {
+            SubQueryOper::Exists => "EXISTS",
+            SubQueryOper::Any => panic!("Operator 'ANY' doesnot support"),
+            SubQueryOper::Some => panic!("Operator 'SOME' doesnot support"),
+            SubQueryOper::All => panic!("Operator 'ALL' doesnot support"),
+        })
         .unwrap();
     }
 
     fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
         match bin_oper {
-            BinOper::SqliteOperator(bin_oper) => write!(
-                sql,
-                "{}",
-                match bin_oper {
+            BinOper::SqliteOperator(bin_oper) => sql
+                .write_str(match bin_oper {
                     SqliteBinOper::Glob => "GLOB",
                     SqliteBinOper::Match => "MATCH",
                     SqliteBinOper::GetJsonField => "->",
                     SqliteBinOper::CastJsonField => "->>",
-                }
-            )
-            .unwrap(),
+                })
+                .unwrap(),
             _ => self.prepare_bin_oper_common(bin_oper, sql),
         }
     }
@@ -44,10 +37,10 @@ impl QueryBuilder for SqliteQueryBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         match union_type {
-            UnionType::Intersect => write!(sql, " INTERSECT ").unwrap(),
-            UnionType::Distinct => write!(sql, " UNION ").unwrap(),
-            UnionType::Except => write!(sql, " EXCEPT ").unwrap(),
-            UnionType::All => write!(sql, " UNION ALL ").unwrap(),
+            UnionType::Intersect => sql.write_str(" INTERSECT ").unwrap(),
+            UnionType::Distinct => sql.write_str(" UNION ").unwrap(),
+            UnionType::Except => sql.write_str(" EXCEPT ").unwrap(),
+            UnionType::All => sql.write_str(" UNION ALL ").unwrap(),
         }
         self.prepare_select_statement(select_statement, sql);
     }
@@ -67,8 +60,8 @@ impl QueryBuilder for SqliteQueryBuilder {
         self.prepare_order(order_expr, sql);
         match order_expr.nulls {
             None => (),
-            Some(NullOrdering::Last) => write!(sql, " NULLS LAST").unwrap(),
-            Some(NullOrdering::First) => write!(sql, " NULLS FIRST").unwrap(),
+            Some(NullOrdering::Last) => sql.write_str(" NULLS LAST").unwrap(),
+            Some(NullOrdering::First) => sql.write_str(" NULLS FIRST").unwrap(),
         }
     }
 
@@ -90,6 +83,6 @@ impl QueryBuilder for SqliteQueryBuilder {
 
     fn insert_default_values(&self, _: u32, sql: &mut dyn SqlWriter) {
         // SQLite doesn't support inserting multiple rows with default values
-        write!(sql, "DEFAULT VALUES").unwrap()
+        sql.write_str("DEFAULT VALUES").unwrap()
     }
 }
