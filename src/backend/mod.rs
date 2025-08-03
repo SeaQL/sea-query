@@ -43,18 +43,21 @@ pub trait QuotedBuilder {
     /// To prepare iden and write to SQL.
     fn prepare_iden(&self, iden: &DynIden, sql: &mut dyn SqlWriter) {
         let q = self.quote();
-        let byte = [q.1];
-        let qq: &str = std::str::from_utf8(&byte).unwrap();
+        let qq = q.1 as char;
 
-        let string;
-        let quoted: &str = match &iden.0 {
-            Cow::Borrowed(s) => s,
+        sql.write_char(q.left()).unwrap();
+        match &iden.0 {
+            Cow::Borrowed(s) => sql.write_str(s).unwrap(),
             Cow::Owned(s) => {
-                string = s.replace(qq, qq.repeat(2).as_str());
-                &string
+                for char in s.chars() {
+                    if char == qq {
+                        sql.write_char(char).unwrap()
+                    }
+                    sql.write_char(char).unwrap()
+                }
             }
         };
-        write!(sql, "{}{}{}", q.left(), quoted, q.right()).unwrap();
+        sql.write_char(q.right()).unwrap();
     }
 }
 
