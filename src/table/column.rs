@@ -602,6 +602,42 @@ impl ColumnDef {
     }
 
     /// Use a custom type on this column.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(ColumnDef::new(Char::Id).custom("new_type").not_null().primary_key())
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE `character` ("#,
+    ///             r#"`id` new_type NOT NULL PRIMARY KEY"#,
+    ///         r#")"#,
+    ///     ].join(" ")
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///             r#""id" new_type NOT NULL PRIMARY KEY"#,
+    ///         r#")"#,
+    ///     ].join(" ")
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(SqliteQueryBuilder),
+    ///     [
+    ///        r#"CREATE TABLE "character" ("#,
+    ///            r#""id" new_type NOT NULL PRIMARY KEY"#,
+    ///        r#")"#,
+    ///     ].join(" ")
+    /// );
+    /// ```
     pub fn custom<T>(&mut self, name: T) -> &mut Self
     where
         T: IntoIden,
