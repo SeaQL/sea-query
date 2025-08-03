@@ -288,7 +288,7 @@ pub enum Value {
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffZoned(Option<Box<Zoned>>),
+    JiffZoned(Option<Zoned>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
