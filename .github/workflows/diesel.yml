@@ -6,6 +6,7 @@ on:
       - '.github/workflows/diesel.yml'
       - 'examples/diesel_*/**'
       - 'sea-query-diesel/**'
+      - 'src/**'
   push:
     branches:
       - master
@@ -16,6 +17,7 @@ on:
       - '.github/workflows/diesel.yml'
       - 'examples/diesel_*/**'
       - 'sea-query-diesel/**'
+      - 'src/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref || github.run_id }}

@@ -41,7 +41,7 @@ fn select_3() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Char::Table)]
+        [Char::Table.into_iden()]
     );
 }
 
@@ -63,7 +63,7 @@ fn select_4() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -80,7 +80,7 @@ fn select_5() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -99,7 +99,7 @@ fn select_6() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -131,7 +131,7 @@ fn select_8() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
+        [Char::Table.into_iden(), Font::Table.into_iden()]
     );
 }
 
@@ -156,9 +156,9 @@ fn select_9() {
     assert_eq!(
         query.audit_unwrap().selected_tables(),
         [
-            SeaRc::new(Char::Table),
-            SeaRc::new(Font::Table),
-            SeaRc::new(Glyph::Table),
+            Char::Table.into_iden(),
+            Font::Table.into_iden(),
+            Glyph::Table.into_iden(),
         ]
     );
 }
@@ -181,7 +181,7 @@ fn select_10() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
+        [Char::Table.into_iden(), Font::Table.into_iden()]
     );
 }
 
@@ -359,7 +359,7 @@ fn select_22() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Char::Table)]
+        [Char::Table.into_iden()]
     );
 }
 
@@ -497,7 +497,7 @@ fn select_32() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Char::Table)]
+        [Char::Table.into_iden()]
     );
 }
 
@@ -517,7 +517,7 @@ fn select_33a() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -541,7 +541,7 @@ fn select_33b() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table), SeaRc::new(Font::Table)]
+        [Glyph::Table.into_iden(), Font::Table.into_iden()]
     );
 }
 
@@ -708,7 +708,7 @@ fn select_41() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1002,7 +1002,7 @@ fn select_55() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Char::Table), SeaRc::new(Font::Table)]
+        [Char::Table.into_iden(), Font::Table.into_iden()]
     );
 }
 
@@ -1101,7 +1101,7 @@ fn select_58() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1124,7 +1124,7 @@ fn select_59() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1220,7 +1220,7 @@ fn select_63() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1241,7 +1241,7 @@ fn insert_2() {
     );
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1273,7 +1273,7 @@ fn insert_4() {
                 .unwrap()
                 .into()])
             .to_string(PostgresQueryBuilder),
-        "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00')"
+        "INSERT INTO \"glyph\" (\"image\") VALUES ('1970-01-01 00:00:00.000000')"
     );
 }
 
@@ -1335,11 +1335,11 @@ fn insert_from_select() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Font::Table)]
+        [Font::Table.into_iden()]
     );
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1377,11 +1377,11 @@ fn insert_6() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1398,7 +1398,7 @@ fn insert_7() {
     assert_eq!(query.audit_unwrap().selected_tables(), []);
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1415,11 +1415,11 @@ fn insert_8() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1491,11 +1491,11 @@ fn insert_11() {
     );
     assert_eq!(
         insert.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
     assert_eq!(
         insert.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1527,7 +1527,7 @@ fn insert_on_conflict_1() {
     assert_eq!(query.audit_unwrap().selected_tables(), []);
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1828,11 +1828,11 @@ fn insert_returning_specific_columns() {
     );
     assert_eq!(
         query.audit_unwrap().selected_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1855,7 +1855,7 @@ fn update_1() {
     );
     assert_eq!(
         query.audit_unwrap().updated_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 
@@ -1939,7 +1939,7 @@ fn delete_1() {
     );
     assert_eq!(
         query.audit_unwrap().deleted_tables(),
-        [SeaRc::new(Glyph::Table)]
+        [Glyph::Table.into_iden()]
     );
 }
 

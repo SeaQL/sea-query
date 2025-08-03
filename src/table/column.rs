@@ -824,7 +824,7 @@ impl ColumnDef {
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
-            name: std::mem::replace(&mut self.name, SeaRc::new(NullAlias::new())),
+            name: std::mem::replace(&mut self.name, NullAlias::new().into_iden()),
             types: self.types.take(),
             spec: std::mem::take(&mut self.spec),
         }

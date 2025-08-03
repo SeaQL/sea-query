@@ -25,6 +25,16 @@ pub struct SeaRc;                                 // new
 ```
 * `impl From<Expr> for Condition`. Now you can use that instead of
   `ConditionExpression`, which has been removed.
+* Addded `DatabaseName`, `SchemaName`, `TableName`, `ColumnName` types.
+
+### Enhancements
+
+* `#![forbid(unsafe_code)]` in all workspace crates https://github.com/SeaQL/sea-query/pull/930
+* Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
+* Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
+```rust
+assert_eq!(std::mem::size_of::<Value>(), 32);
+```
 
 ### Breaking Changes
 
@@ -118,6 +128,9 @@ impl Iden for Glyph {
     }
 }
 ```
+* Reworked `TableRef` and `ColumnRef` variants.
+* Turned `SchemaTable` into a type alias of `TableName`. Code that accesses the
+  fields inside may not compile. Other existing code should still compile.
 * Removed `ConditionExpression` from the public API. Instead, just convert
   between `Condition` and `Expr` using `From`/`Into`.
 * Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait`.
@@ -127,10 +140,28 @@ impl Iden for Glyph {
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
 
-
 ### Upgrades
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
+
+## 0.32.7 - pending
+
+### Bug Fixes
+
+* Fix incorrect casting of `ChronoDateTimeWithTimeZone` in `Value::Array` https://github.com/SeaQL/sea-query/pull/933
+* Add missing parenthesis to `WINDOW` clause https://github.com/SeaQL/sea-query/pull/919
+```sql
+SELECT .. OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "ww")
+```
+* Fix serializing iden as a value in `ALTER TYPE ... RENAME TO ...` statements https://github.com/SeaQL/sea-query/pull/924
+```sql
+ALTER TYPE "font" RENAME TO "typeface"
+```
+* Fixed the issue where milliseconds were truncated when formatting `Value::Constant` https://github.com/SeaQL/sea-query/pull/929
+```sql
+'2025-01-01 00:00:00.000000'
+                    ^^^^^^^
+```
 
 ## 0.32.6 - 2025-05-27
 

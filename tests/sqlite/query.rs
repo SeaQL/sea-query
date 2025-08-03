@@ -1098,7 +1098,7 @@ fn insert_4() {
                 .unwrap()
                 .into()])
             .to_string(SqliteQueryBuilder),
-        r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
+        r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00.000000')"#
     );
 }
 
@@ -1797,19 +1797,19 @@ fn recursive_with_multiple_ctes() {
         .column(Asterisk)
         .from(Char::Table)
         .to_owned();
-    let sub_select1_name = SeaRc::new("sub1");
+    let sub_select1_name = "sub1";
     let mut sub_select1_cte = CommonTableExpression::new();
-    sub_select1_cte.table_name(sub_select1_name.clone());
-    sub_select1_cte.column(SeaRc::new("a"));
+    sub_select1_cte.table_name(sub_select1_name);
+    sub_select1_cte.column("a");
     sub_select1_cte.query(sub_select1);
     let sub_select2 = Query::select()
         .column(Asterisk)
         .from(Char::Table)
         .to_owned();
-    let sub_select2_name = SeaRc::new("sub2");
+    let sub_select2_name = "sub2";
     let mut sub_select2_cte = CommonTableExpression::new();
-    sub_select2_cte.table_name(sub_select2_name.clone());
-    sub_select2_cte.column(SeaRc::new("b"));
+    sub_select2_cte.table_name(sub_select2_name);
+    sub_select2_cte.column("b");
     sub_select2_cte.query(sub_select2);
 
     let mut with = WithClause::new();
@@ -1818,13 +1818,11 @@ fn recursive_with_multiple_ctes() {
         .cte(sub_select2_cte);
 
     let mut main_sel2 = Query::select();
-    main_sel2
-        .expr(Expr::col(Asterisk))
-        .from(TableRef::Table(sub_select2_name));
+    main_sel2.expr(Expr::col(Asterisk)).from(sub_select2_name);
     let mut main_sel1 = Query::select();
     main_sel1
         .expr(Expr::col(Asterisk))
-        .from(TableRef::Table(sub_select1_name))
+        .from(sub_select1_name)
         .union(UnionType::All, main_sel2);
 
     let query = with.query(main_sel1);

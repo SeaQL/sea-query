@@ -1,6 +1,7 @@
 use crate::{
-    ColumnRef, DynIden, Expr, IntoIden, QueryBuilder, QueryStatementBuilder, QueryStatementWriter,
-    SelectExpr, SelectStatement, SqlWriter, SubQueryStatement, TableRef, Values,
+    ColumnRef, DynIden, Expr, IdenList, IntoIden, QueryBuilder, QueryStatementBuilder,
+    QueryStatementWriter, SelectExpr, SelectStatement, SqlWriter, SubQueryStatement, TableName,
+    TableRef, Values,
 };
 use inherent::inherent;
 
@@ -115,14 +116,8 @@ impl CommonTableExpression {
         cte.try_set_cols_from_selects(&select.selects);
         if let Some(from) = select.from.first() {
             match from {
-                TableRef::Table(iden) => cte.set_table_name_from_select(iden),
-                TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden),
-                TableRef::DatabaseSchemaTable(_, _, iden) => cte.set_table_name_from_select(iden),
-                TableRef::TableAlias(_, iden) => cte.set_table_name_from_select(iden),
-                TableRef::SchemaTableAlias(_, _, iden) => cte.set_table_name_from_select(iden),
-                TableRef::DatabaseSchemaTableAlias(_, _, _, iden) => {
-                    cte.set_table_name_from_select(iden)
-                }
+                TableRef::Table(_, Some(alias)) => cte.set_table_name_from_select(alias),
+                TableRef::Table(TableName(_, tbl), None) => cte.set_table_name_from_select(tbl),
                 _ => {}
             }
         }
@@ -151,16 +146,17 @@ impl CommonTableExpression {
                     Some(ident.clone())
                 } else {
                     match &select.expr {
-                        Expr::Column(column) => match column {
-                            ColumnRef::Column(iden) => Some(iden.clone()),
-                            ColumnRef::TableColumn(table, column) => {
-                                Some(format!("{table}_{column}").into_iden())
+                        Expr::Column(ColumnRef::Column(column_name)) => {
+                            // We could depend on `itertools` instead of joining manually.
+                            let mut joined_column_name = String::new();
+                            for part in column_name.clone().into_iter() {
+                                joined_column_name.push_str(&part.0);
+                                joined_column_name.push('_');
                             }
-                            ColumnRef::SchemaTableColumn(schema, table, column) => {
-                                Some(format!("{schema}_{table}_{column}").into_iden())
-                            }
-                            _ => None,
-                        },
+                            // Remove the trailing underscore after the column name.
+                            joined_column_name.pop();
+                            Some(joined_column_name.into_iden())
+                        }
                         _ => None,
                     }
                 }
@@ -394,14 +390,14 @@ impl Cycle {
 ///             .to_owned();
 ///
 /// let select = SelectStatement::new()
-///         .column(ColumnRef::Asterisk)
+///         .column(Asterisk)
 ///         .from("cte_traversal")
 ///         .to_owned();
 ///
 /// let with_clause = WithClause::new()
 ///         .recursive(true)
 ///         .cte(common_table_expression)
-///         .cycle(Cycle::new_from_expr_set_using(Expr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+///         .cycle(Cycle::new_from_expr_set_using(Expr::Column("id".into_column_ref()), "looped", "traversal_path"))
 ///         .to_owned();
 ///
 /// let query = select.with(with_clause).to_owned();
@@ -473,7 +469,7 @@ impl WithClause {
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
-        T: Into<SubQueryStatement> + 'static,
+        T: Into<SubQueryStatement>,
     {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }

@@ -90,7 +90,7 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.audit_unwrap().deleted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// assert_eq!(query.audit_unwrap().selected_tables(), []);
     /// ```
@@ -136,11 +136,11 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.audit_unwrap().deleted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// assert_eq!(
     ///     query.audit_unwrap().selected_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn returning(&mut self, returning_cols: ReturningClause) -> &mut Self {
@@ -249,11 +249,11 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.audit_unwrap().deleted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// assert_eq!(
     ///     query.audit_unwrap().selected_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
@@ -298,11 +298,11 @@ impl DeleteStatement {
     /// );
     /// assert_eq!(
     ///     query.audit_unwrap().deleted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// assert_eq!(
     ///     query.audit_unwrap().selected_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {

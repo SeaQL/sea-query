@@ -43,7 +43,7 @@ pub(crate) enum InsertValueSource {
 /// );
 /// assert_eq!(
 ///     query.audit().unwrap().inserted_tables(),
-///     [SeaRc::new(Glyph::Table)]
+///     [Glyph::Table.into_iden()]
 /// );
 /// ```
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -168,11 +168,11 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().selected_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().inserted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     ///
@@ -216,11 +216,11 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().selected_tables(),
-    ///     [SeaRc::new(Font::Table)]
+    ///     [Font::Table.into_iden()]
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().inserted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn select_from<S>(&mut self, select: S) -> Result<&mut Self>
@@ -360,7 +360,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().inserted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn values_from_panic<I, J>(&mut self, values_iter: J) -> &mut Self

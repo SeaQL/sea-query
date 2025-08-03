@@ -21,7 +21,7 @@ impl TypeBuilder for PostgresQueryBuilder {
                 if count > 0 {
                     write!(sql, ", ").unwrap();
                 }
-                self.prepare_value(&val.to_string().into(), sql);
+                self.prepare_value(val.to_string().into(), sql);
             }
 
             write!(sql, ")").unwrap();
@@ -97,29 +97,29 @@ impl PostgresQueryBuilder {
                 if *if_not_exists {
                     write!(sql, "IF NOT EXISTS ").unwrap();
                 }
-                self.prepare_value(&value.to_string().into(), sql);
+                self.prepare_value(value.to_string().into(), sql);
                 if let Some(add_option) = placement {
                     match add_option {
                         TypeAlterAddOpt::Before(before_value) => {
                             write!(sql, " BEFORE ").unwrap();
-                            self.prepare_value(&before_value.to_string().into(), sql);
+                            self.prepare_value(before_value.to_string().into(), sql);
                         }
                         TypeAlterAddOpt::After(after_value) => {
                             write!(sql, " AFTER ").unwrap();
-                            self.prepare_value(&after_value.to_string().into(), sql);
+                            self.prepare_value(after_value.to_string().into(), sql);
                         }
                     }
                 }
             }
             TypeAlterOpt::Rename(new_name) => {
                 write!(sql, " RENAME TO ").unwrap();
-                self.prepare_value(&new_name.to_string().into(), sql);
+                self.prepare_iden(new_name, sql);
             }
             TypeAlterOpt::RenameValue(existing, new_name) => {
                 write!(sql, " RENAME VALUE ").unwrap();
-                self.prepare_value(&existing.to_string().into(), sql);
+                self.prepare_value(existing.to_string().into(), sql);
                 write!(sql, " TO ").unwrap();
-                self.prepare_value(&new_name.to_string().into(), sql);
+                self.prepare_value(new_name.to_string().into(), sql);
             }
         }
     }

@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use std::error::Error;
 
 use bytes::BytesMut;
@@ -76,29 +78,29 @@ impl ToSql for PostgresValue {
             Value::Char(v) => v.map(|v| v.to_string()).to_sql(ty, out),
             Value::Bytes(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-json")]
-            Value::Json(v) => v.as_deref().to_sql(ty, out),
+            Value::Json(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(v) => v.as_deref().to_sql(ty, out),
+            Value::ChronoDate(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(v) => v.as_deref().to_sql(ty, out),
+            Value::ChronoTime(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(v) => v.as_deref().to_sql(ty, out),
+            Value::ChronoDateTime(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(v) => v.as_deref().to_sql(ty, out),
+            Value::ChronoDateTimeUtc(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(v) => v.as_deref().to_sql(ty, out),
+            Value::ChronoDateTimeLocal(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
+            Value::ChronoDateTimeWithTimeZone(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-time")]
-            Value::TimeDate(v) => v.as_deref().to_sql(ty, out),
+            Value::TimeDate(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(v) => v.as_deref().to_sql(ty, out),
+            Value::TimeTime(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(v) => v.as_deref().to_sql(ty, out),
+            Value::TimeDateTime(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(v) => v.as_deref().to_sql(ty, out),
+            Value::TimeDateTimeWithTimeZone(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(v) => v.as_deref().to_sql(ty, out),
+            Value::Decimal(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => {
                 use bigdecimal::ToPrimitive;
@@ -107,7 +109,7 @@ impl ToSql for PostgresValue {
                     .to_sql(ty, out)
             }
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(v) => v.as_deref().to_sql(ty, out),
+            Value::Uuid(v) => v.to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => v
                 .iter()
@@ -123,19 +125,16 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(v) => {
                 use cidr::IpCidr;
-                v.as_deref()
-                    .map(|v| {
-                        IpCidr::new(v.network(), v.prefix())
-                            .expect("Fail to convert IpNetwork to IpCidr")
-                    })
-                    .to_sql(ty, out)
+                v.map(|v| {
+                    IpCidr::new(v.network(), v.prefix())
+                        .expect("Fail to convert IpNetwork to IpCidr")
+                })
+                .to_sql(ty, out)
             }
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(v) => {
                 use eui48::MacAddress;
-                v.as_deref()
-                    .map(|v| MacAddress::new(v.bytes()))
-                    .to_sql(ty, out)
+                v.map(|v| MacAddress::new(v.bytes())).to_sql(ty, out)
             }
         }
     }
