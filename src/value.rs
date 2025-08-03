@@ -300,11 +300,11 @@ pub enum Value {
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-    BigDecimal(Option<Box<BigDecimal>>),
+    BigDecimal(Option<BigDecimal>),
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(ArrayType, Option<Box<Vec<Value>>>),
+    Array(ArrayType, Option<Vec<Value>>),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]

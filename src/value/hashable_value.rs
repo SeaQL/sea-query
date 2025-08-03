@@ -328,11 +328,11 @@ mod tests {
             Into::<Value>::into(vec![0i32, 1, 2]),
             Value::Array(
                 ArrayType::Int,
-                Some(Box::new(vec![
+                Some(vec![
                     Value::Int(Some(0)),
                     Value::Int(Some(1)),
                     Value::Int(Some(2))
-                ]))
+                ])
             )
         );
 
@@ -340,11 +340,11 @@ mod tests {
             Into::<Value>::into(vec![0f32, 1.0, 2.0]),
             Value::Array(
                 ArrayType::Float,
-                Some(Box::new(vec![
+                Some(vec![
                     Value::Float(Some(0f32)),
                     Value::Float(Some(1.0)),
                     Value::Float(Some(2.0))
-                ]))
+                ])
             )
         );
 
