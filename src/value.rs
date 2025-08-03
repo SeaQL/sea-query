@@ -327,8 +327,8 @@ pub enum Value {
 pub const VALUE_SIZE: usize = check_value_size();
 
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > 128 {
-        panic!("the size of Value shouldn't be greater than 32 bytes")
+    if std::mem::size_of::<Value>() > 104 {
+        panic!("the size of Value shouldn't be greater than 104 bytes")
     }
     std::mem::size_of::<Value>()
 }
@@ -557,19 +557,17 @@ impl Value {
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffDateTime(_) => {
-                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0).into()))
+                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0)))
             }
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH.into())),
+            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH)),
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffZoned(_) => Self::JiffZoned(Some(
-                Timestamp::UNIX_EPOCH
-                    .to_zoned(jiff::tz::TimeZone::UTC)
-                    .into(),
+                Timestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC),
             )),
 
             #[cfg(feature = "with-uuid")]
