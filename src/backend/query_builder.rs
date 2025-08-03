@@ -499,16 +499,13 @@ pub trait QueryBuilder:
 
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "FOR {}",
-            match lock.r#type {
-                LockType::Update => "UPDATE",
-                LockType::NoKeyUpdate => "NO KEY UPDATE",
-                LockType::Share => "SHARE",
-                LockType::KeyShare => "KEY SHARE",
-            }
-        )
+        sql.write_str("FOR ").unwrap();
+        sql.write_str(match lock.r#type {
+            LockType::Update => "UPDATE",
+            LockType::NoKeyUpdate => "NO KEY UPDATE",
+            LockType::Share => "SHARE",
+            LockType::KeyShare => "KEY SHARE",
+        })
         .unwrap();
         if !lock.tables.is_empty() {
             sql.write_str(" OF ").unwrap();
@@ -616,53 +613,45 @@ pub trait QueryBuilder:
 
     /// Translate [`UnOper`] into SQL statement.
     fn prepare_un_oper(&self, un_oper: &UnOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match un_oper {
-                UnOper::Not => "NOT",
-            }
-        )
+        sql.write_str(match un_oper {
+            UnOper::Not => "NOT",
+        })
         .unwrap();
     }
 
     fn prepare_bin_oper_common(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match bin_oper {
-                BinOper::And => "AND",
-                BinOper::Or => "OR",
-                BinOper::Like => "LIKE",
-                BinOper::NotLike => "NOT LIKE",
-                BinOper::Is => "IS",
-                BinOper::IsNot => "IS NOT",
-                BinOper::In => "IN",
-                BinOper::NotIn => "NOT IN",
-                BinOper::Between => "BETWEEN",
-                BinOper::NotBetween => "NOT BETWEEN",
-                BinOper::Equal => "=",
-                BinOper::NotEqual => "<>",
-                BinOper::SmallerThan => "<",
-                BinOper::GreaterThan => ">",
-                BinOper::SmallerThanOrEqual => "<=",
-                BinOper::GreaterThanOrEqual => ">=",
-                BinOper::Add => "+",
-                BinOper::Sub => "-",
-                BinOper::Mul => "*",
-                BinOper::Div => "/",
-                BinOper::Mod => "%",
-                BinOper::LShift => "<<",
-                BinOper::RShift => ">>",
-                BinOper::As => "AS",
-                BinOper::Escape => "ESCAPE",
-                BinOper::Custom(raw) => raw,
-                BinOper::BitAnd => "&",
-                BinOper::BitOr => "|",
-                #[allow(unreachable_patterns)]
-                _ => unimplemented!(),
-            }
-        )
+        sql.write_str(match bin_oper {
+            BinOper::And => "AND",
+            BinOper::Or => "OR",
+            BinOper::Like => "LIKE",
+            BinOper::NotLike => "NOT LIKE",
+            BinOper::Is => "IS",
+            BinOper::IsNot => "IS NOT",
+            BinOper::In => "IN",
+            BinOper::NotIn => "NOT IN",
+            BinOper::Between => "BETWEEN",
+            BinOper::NotBetween => "NOT BETWEEN",
+            BinOper::Equal => "=",
+            BinOper::NotEqual => "<>",
+            BinOper::SmallerThan => "<",
+            BinOper::GreaterThan => ">",
+            BinOper::SmallerThanOrEqual => "<=",
+            BinOper::GreaterThanOrEqual => ">=",
+            BinOper::Add => "+",
+            BinOper::Sub => "-",
+            BinOper::Mul => "*",
+            BinOper::Div => "/",
+            BinOper::Mod => "%",
+            BinOper::LShift => "<<",
+            BinOper::RShift => ">>",
+            BinOper::As => "AS",
+            BinOper::Escape => "ESCAPE",
+            BinOper::Custom(raw) => raw,
+            BinOper::BitAnd => "&",
+            BinOper::BitOr => "|",
+            #[allow(unreachable_patterns)]
+            _ => unimplemented!(),
+        })
         .unwrap();
     }
 
@@ -673,16 +662,12 @@ pub trait QueryBuilder:
 
     /// Translate [`SubQueryOper`] into SQL statement.
     fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match oper {
-                SubQueryOper::Exists => "EXISTS",
-                SubQueryOper::Any => "ANY",
-                SubQueryOper::Some => "SOME",
-                SubQueryOper::All => "ALL",
-            }
-        )
+        sql.write_str(match oper {
+            SubQueryOper::Exists => "EXISTS",
+            SubQueryOper::Any => "ANY",
+            SubQueryOper::Some => "SOME",
+            SubQueryOper::All => "ALL",
+        })
         .unwrap();
     }
 
@@ -724,34 +709,30 @@ pub trait QueryBuilder:
         if let Function::Custom(iden) = function {
             sql.write_str(&iden.0).unwrap()
         } else {
-            write!(
-                sql,
-                "{}",
-                match function {
-                    Function::Max => "MAX",
-                    Function::Min => "MIN",
-                    Function::Sum => "SUM",
-                    Function::Avg => "AVG",
-                    Function::Abs => "ABS",
-                    Function::Coalesce => "COALESCE",
-                    Function::Count => "COUNT",
-                    Function::IfNull => self.if_null_function(),
-                    Function::Greatest => self.greatest_function(),
-                    Function::Least => self.least_function(),
-                    Function::CharLength => self.char_length_function(),
-                    Function::Cast => "CAST",
-                    Function::Lower => "LOWER",
-                    Function::Upper => "UPPER",
-                    Function::BitAnd => "BIT_AND",
-                    Function::BitOr => "BIT_OR",
-                    Function::Custom(_) => "",
-                    Function::Random => self.random_function(),
-                    Function::Round => "ROUND",
-                    Function::Md5 => "MD5",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::PgFunction(_) => unimplemented!(),
-                }
-            )
+            sql.write_str(match function {
+                Function::Max => "MAX",
+                Function::Min => "MIN",
+                Function::Sum => "SUM",
+                Function::Avg => "AVG",
+                Function::Abs => "ABS",
+                Function::Coalesce => "COALESCE",
+                Function::Count => "COUNT",
+                Function::IfNull => self.if_null_function(),
+                Function::Greatest => self.greatest_function(),
+                Function::Least => self.least_function(),
+                Function::CharLength => self.char_length_function(),
+                Function::Cast => "CAST",
+                Function::Lower => "LOWER",
+                Function::Upper => "UPPER",
+                Function::BitAnd => "BIT_AND",
+                Function::BitOr => "BIT_OR",
+                Function::Custom(_) => "",
+                Function::Random => self.random_function(),
+                Function::Round => "ROUND",
+                Function::Md5 => "MD5",
+                #[cfg(feature = "backend-postgres")]
+                Function::PgFunction(_) => unimplemented!(),
+            })
             .unwrap();
         }
     }
@@ -882,12 +863,9 @@ pub trait QueryBuilder:
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(materialized) = cte.materialized {
-            write!(
-                sql,
-                "{} MATERIALIZED ",
-                if materialized { "" } else { "NOT" }
-            )
-            .unwrap()
+            sql.write_str(if materialized { "" } else { "NOT" })
+                .unwrap();
+            sql.write_str(" MATERIALIZED ").unwrap();
         }
     }
 
@@ -917,18 +895,14 @@ pub trait QueryBuilder:
     }
 
     fn prepare_join_type_common(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match join_type {
-                JoinType::Join => "JOIN",
-                JoinType::CrossJoin => "CROSS JOIN",
-                JoinType::InnerJoin => "INNER JOIN",
-                JoinType::LeftJoin => "LEFT JOIN",
-                JoinType::RightJoin => "RIGHT JOIN",
-                JoinType::FullOuterJoin => "FULL OUTER JOIN",
-            }
-        )
+        sql.write_str(match join_type {
+            JoinType::Join => "JOIN",
+            JoinType::CrossJoin => "CROSS JOIN",
+            JoinType::InnerJoin => "INNER JOIN",
+            JoinType::LeftJoin => "LEFT JOIN",
+            JoinType::RightJoin => "RIGHT JOIN",
+            JoinType::FullOuterJoin => "FULL OUTER JOIN",
+        })
         .unwrap()
     }
 
@@ -972,13 +946,13 @@ pub trait QueryBuilder:
             sql.write_str("=").unwrap();
             self.write_value(sql, value).unwrap();
             sql.write_str(" THEN ").unwrap();
-            write!(sql, "{i}").unwrap();
+            sql.write_str(&i.to_string()).unwrap();
             sql.write_str(" ").unwrap();
             i += 1;
         }
 
         sql.write_str("ELSE ").unwrap();
-        write!(sql, "{i}").unwrap();
+        sql.write_str(&i.to_string()).unwrap();
         sql.write_str(" END").unwrap();
     }
 
@@ -1110,16 +1084,16 @@ pub trait QueryBuilder:
             #[cfg(feature = "postgres-vector")]
             Value::Vector(None) => buffer.write_str("NULL")?,
             Value::Bool(Some(b)) => buffer.write_str(if *b { "TRUE" } else { "FALSE" })?,
-            Value::TinyInt(Some(v)) => write!(buffer, "{v}")?,
-            Value::SmallInt(Some(v)) => write!(buffer, "{v}")?,
-            Value::Int(Some(v)) => write!(buffer, "{v}")?,
-            Value::BigInt(Some(v)) => write!(buffer, "{v}")?,
-            Value::TinyUnsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::SmallUnsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::Unsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::BigUnsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::Float(Some(v)) => write!(buffer, "{v}")?,
-            Value::Double(Some(v)) => write!(buffer, "{v}")?,
+            Value::TinyInt(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::SmallInt(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::Int(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::BigInt(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::TinyUnsigned(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::SmallUnsigned(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::Unsigned(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::BigUnsigned(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::Float(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::Double(Some(v)) => buffer.write_str(&v.to_string())?,
             Value::String(Some(v)) => self.write_string_quoted(v, buffer),
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buffer)
@@ -1128,75 +1102,117 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-json")]
             Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buffer),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => write!(buffer, "'{}'", v.format("%Y-%m-%d"))?,
+            Value::ChronoDate(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format("%Y-%m-%d").to_string())?;
+                buffer.write_str("'")?;
+            }
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(buffer, "'{}'", v.format("%H:%M:%S%.6f")).unwrap(),
+            Value::ChronoTime(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format("%H:%M:%S%.6f").to_string())?;
+                buffer.write_str("'")?;
+            }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f")).unwrap()
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f").to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
-                write!(buffer, "'{}'", v.format(time_format::FORMAT_DATE).unwrap())?
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format(time_format::FORMAT_DATE).unwrap().to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => {
-                write!(buffer, "'{}'", v.format(time_format::FORMAT_TIME).unwrap())?
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format(time_format::FORMAT_TIME).unwrap().to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(Some(v)) => write!(
-                buffer,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME).unwrap()
-            )?,
+            Value::TimeDateTime(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.format(time_format::FORMAT_DATETIME).unwrap().to_string())?;
+                buffer.write_str("'")?;
+            }
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
-                buffer,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
-            )?,
+            Value::TimeDateTimeWithTimeZone(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(
+                    &v.format(time_format::FORMAT_DATETIME_TZ)
+                        .unwrap()
+                        .to_string(),
+                )?;
+                buffer.write_str("'")?;
+            }
             // Jiff date and time dosen't need format string
             // The default behavior is what we want
             #[cfg(feature = "with-jiff")]
-            Value::JiffDate(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::JiffDate(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.to_string())?;
+                buffer.write_str("'")?;
+            }
             #[cfg(feature = "with-jiff")]
-            Value::JiffTime(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::JiffTime(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.to_string())?;
+                buffer.write_str("'")?;
+            }
             // Both JiffDateTime and JiffTimestamp map to timestamp
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(Some(v)) => {
                 use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
-                write!(buffer, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR))?
+                buffer.write_str("'")?;
+                buffer.write_str(&v.strftime(JIFF_DATE_TIME_FMT_STR).to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(Some(v)) => {
                 use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
-                write!(buffer, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR))?
+                buffer.write_str("'")?;
+                buffer.write_str(&v.strftime(JIFF_TIMESTAMP_FMT_STR).to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffZoned(Some(v)) => {
                 // Zoned map to timestamp with timezone
 
                 use crate::with_jiff::JIFF_ZONE_FMT_STR;
-                write!(buffer, "'{}'", v.strftime(JIFF_ZONE_FMT_STR))?
+                buffer.write_str("'")?;
+                buffer.write_str(&v.strftime(JIFF_ZONE_FMT_STR).to_string())?;
+                buffer.write_str("'")?;
             }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(buffer, "{v}")?,
+            Value::Decimal(Some(v)) => buffer.write_str(&v.to_string())?,
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(buffer, "{v}")?,
+            Value::BigDecimal(Some(v)) => buffer.write_str(&v.to_string())?,
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::Uuid(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.to_string())?;
+                buffer.write_str("'")?;
+            }
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => {
                 if v.is_empty() {
@@ -1219,24 +1235,31 @@ pub trait QueryBuilder:
             }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => {
-                write!(buffer, "'[")?;
+                buffer.write_str("'[")?;
                 let mut viter = v.as_slice().iter();
 
                 if let Some(element) = viter.next() {
-                    write!(buffer, "{element}")?;
+                    buffer.write_str(&element.to_string())?;
                 }
 
                 for element in viter {
                     buffer.write_str(",")?;
-
-                    write!(buffer, "{element}")?;
+                    buffer.write_str(&element.to_string())?;
                 }
                 buffer.write_str("]'")?;
             }
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::IpNetwork(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.to_string())?;
+                buffer.write_str("'")?;
+            }
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::MacAddress(Some(v)) => {
+                buffer.write_str("'")?;
+                buffer.write_str(&v.to_string())?;
+                buffer.write_str("'")?;
+            }
         };
 
         Ok(())
@@ -1554,7 +1577,7 @@ pub trait QueryBuilder:
     fn write_bytes(&self, bytes: &[u8], buffer: &mut dyn Write) {
         buffer.write_str("x'").unwrap();
         for b in bytes {
-            write!(buffer, "{b:02X}").unwrap();
+            buffer.write_str(&format!("{b:02X}")).unwrap();
         }
         buffer.write_str("'").unwrap();
     }
@@ -1725,6 +1748,20 @@ pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
         BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod
     )
 }
+
+macro_rules! intersperse_with{
+    ($iter:ident, $item:ident, $join:expr, $do:expr) => {
+        if let Some($item) = $iter.next() {
+            $do
+        }
+
+        for $item in $iter {
+            $join
+            $do
+        }
+    };
+}
+pub(crate) use intersperse_with;
 
 #[cfg(test)]
 mod tests {
