@@ -1,6 +1,14 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![warn(clippy::nursery)]
 #![deny(missing_debug_implementations)]
 #![forbid(unsafe_code)]
+#![allow(
+    clippy::derive_partial_eq_without_eq,
+    clippy::option_if_let_else,
+    clippy::redundant_pub_crate,
+    clippy::use_self,
+    clippy::missing_const_for_fn
+)]
 
 //! <div align="center">
 //!

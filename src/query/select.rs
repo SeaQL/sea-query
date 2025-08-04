@@ -592,11 +592,7 @@ impl SelectStatement {
         T: IntoColumnRef,
         I: IntoIterator<Item = T>,
     {
-        self.exprs(
-            cols.into_iter()
-                .map(|c| Expr::Column(c.into_column_ref()))
-                .collect::<Vec<Expr>>(),
-        )
+        self.exprs(cols.into_iter().map(|c| Expr::Column(c.into_column_ref())))
     }
 
     /// Select column.
@@ -1794,11 +1790,7 @@ impl SelectStatement {
         T: IntoColumnRef,
         I: IntoIterator<Item = T>,
     {
-        self.add_group_by(
-            cols.into_iter()
-                .map(|c| Expr::Column(c.into_column_ref()))
-                .collect::<Vec<_>>(),
-        )
+        self.add_group_by(cols.into_iter().map(|c| Expr::Column(c.into_column_ref())))
     }
 
     /// Add a group by column.

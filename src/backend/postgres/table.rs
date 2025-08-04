@@ -262,11 +262,12 @@ impl PostgresQueryBuilder {
                 .spec
                 .iter()
                 .position(|s| matches!(s, ColumnSpec::AutoIncrement));
+
+            write!(sql, " ").unwrap();
+
             if is_auto_increment.is_some() {
-                write!(sql, " ").unwrap();
                 self.prepare_column_auto_increment(column_type, sql);
             } else {
-                write!(sql, " ").unwrap();
                 self.prepare_column_type(column_type, sql);
             }
         }
@@ -281,7 +282,7 @@ impl PostgresQueryBuilder {
         f(column_def, sql);
 
         for column_spec in column_def.spec.iter() {
-            if let ColumnSpec::AutoIncrement = column_spec {
+            if matches!(column_spec, ColumnSpec::AutoIncrement) {
                 continue;
             }
             if let ColumnSpec::Comment(_) = column_spec {
