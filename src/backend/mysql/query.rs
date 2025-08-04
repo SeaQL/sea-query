@@ -92,9 +92,7 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         use std::ops::Deref;
 
-        if from.is_empty() {
-            self.prepare_iden(column, sql);
-        } else {
+        if !from.is_empty() {
             if let Some(table) = table {
                 // Support only "naked" table names with no schema or alias.
                 if let TableRef::Table(TableName(None, table), None) = table.deref() {
@@ -103,8 +101,8 @@ impl QueryBuilder for MysqlQueryBuilder {
                     return;
                 }
             }
-            self.prepare_iden(column, sql);
         }
+        self.prepare_iden(column, sql)
     }
 
     fn prepare_update_condition(

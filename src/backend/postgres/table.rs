@@ -262,11 +262,12 @@ impl PostgresQueryBuilder {
                 .spec
                 .iter()
                 .position(|s| matches!(s, ColumnSpec::AutoIncrement));
+
+            write!(sql, " ").unwrap();
+
             if is_auto_increment.is_some() {
-                write!(sql, " ").unwrap();
                 self.prepare_column_auto_increment(column_type, sql);
             } else {
-                write!(sql, " ").unwrap();
                 self.prepare_column_type(column_type, sql);
             }
         }
