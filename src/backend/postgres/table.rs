@@ -282,7 +282,7 @@ impl PostgresQueryBuilder {
         f(column_def, sql);
 
         for column_spec in column_def.spec.iter() {
-            if let ColumnSpec::AutoIncrement = column_spec {
+            if matches!(column_spec, ColumnSpec::AutoIncrement) {
                 continue;
             }
             if let ColumnSpec::Comment(_) = column_spec {
