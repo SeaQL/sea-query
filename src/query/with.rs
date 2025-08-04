@@ -242,12 +242,10 @@ impl Search {
     }
 }
 
-/// For recursive [WithQuery] [WithClause]s the CYCLE sql clause can be specified to avoid creating
-/// an infinite traversals that loops on graph cycles indefinitely. You specify an expression that
-/// identifies a node in the graph and that will be used to determine during the iteration of
-/// the execution of the query when appending of new values whether the new values are distinct new
-/// nodes or are already visited and therefore they should be added again into the result.
+/// For recursive [`WithQuery`] [`WithClauses`](WithClause) the CYCLE sql clause can be specified to avoid creating
+/// an infinite traversals that loops on graph cycles indefinitely.
 ///
+/// You specify an expression that identifies a node in the graph, which is used during the query execution iteration, to determine newly appended values are distinct new nodes or are already visited, and therefore they should be added into the result again.
 /// A query can have both SEARCH and CYCLE clauses.
 ///
 /// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
