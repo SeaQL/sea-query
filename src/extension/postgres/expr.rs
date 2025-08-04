@@ -11,15 +11,25 @@ pub trait PgExpr: ExprTrait {
     /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .columns([Font::Name, Font::Variant, Font::Language])
-    ///     .from(Font::Table)
-    ///     .and_where(Expr::val("a").concatenate("b").concat("c").concat("d"))
-    ///     .to_owned();
+    ///     .expr(Expr::val("a").concatenate("b"))
+    ///     .take();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "name", "variant", "language" FROM "font" WHERE 'a' || 'b' || 'c' || 'd'"#
+    ///     r#"SELECT 'a' || 'b'"#
     /// );
+    ///
+    /// #[cfg(feature = "postgres-array")]
+    /// {
+    ///     let query = Query::select()
+    ///         .expr(Expr::val(vec!["a".to_owned()]).concatenate(vec!["b".to_owned()]))
+    ///         .take();
+    ///
+    ///     assert_eq!(
+    ///         query.to_string(PostgresQueryBuilder),
+    ///         r#"SELECT ARRAY ['a'] || ARRAY ['b']"#
+    ///     );
+    /// }
     /// ```
     fn concatenate<T>(self, right: T) -> Expr
     where
@@ -27,6 +37,7 @@ pub trait PgExpr: ExprTrait {
     {
         self.binary(PgBinOper::Concatenate, right)
     }
+
     /// Alias of [`PgExpr::concatenate`]
     fn concat<T>(self, right: T) -> Expr
     where
