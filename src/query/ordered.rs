@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{expr::*, types::*};
 
 pub trait OrderedStatement {
@@ -111,12 +113,12 @@ pub trait OrderedStatement {
     /// Order by custom string.
     fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order)>,
     {
         cols.into_iter().for_each(|(c, order)| {
             self.add_order_by(OrderExpr {
-                expr: Expr::Custom(c.to_string()),
+                expr: Expr::Custom(c.into()),
                 order,
                 nulls: None,
             });
@@ -191,12 +193,12 @@ pub trait OrderedStatement {
     /// Order by custom string with nulls order option.
     fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order, NullOrdering)>,
     {
         cols.into_iter().for_each(|(c, order, nulls)| {
             self.add_order_by(OrderExpr {
-                expr: Expr::Custom(c.to_string()),
+                expr: Expr::Custom(c.into()),
                 order,
                 nulls: Some(nulls),
             });
