@@ -1,7 +1,7 @@
 use chrono::NaiveDate;
 use sea_query::{
-    ColumnDef, Expr, Func, Iden, MysqlQueryBuilder, OnConflict, Order, PostgresQueryBuilder, Query,
-    QueryBuilder, SchemaBuilder, SqliteQueryBuilder, Table,
+    ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, OnConflict, Order,
+    PostgresQueryBuilder, Query, QueryBuilder, SchemaBuilder, SqliteQueryBuilder, Table,
 };
 use sqlx::{AnyPool, Row};
 use std::env;

@@ -3,7 +3,10 @@ use super::*;
 impl ForeignKeyBuilder for MysqlQueryBuilder {
     fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            // Support only "naked" table names with no schema or alias.
+            TableRef::Table(TableName(None, _), None) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
             _ => panic!("Not supported"),
         }
     }
@@ -71,7 +74,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql.as_writer(), self.quote());
+            self.prepare_iden(col, sql);
             false
         });
         write!(sql, ")").unwrap();
@@ -91,7 +94,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(col, sql);
                 false
             });
         write!(sql, ")").unwrap();

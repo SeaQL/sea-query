@@ -51,8 +51,8 @@ use crate::Iden;
 pub struct PgLTree;
 
 impl Iden for PgLTree {
-    fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-        write!(s, "ltree").unwrap();
+    fn unquoted(&self) -> &str {
+        "ltree"
     }
 }
 

@@ -5,11 +5,11 @@ use diesel::deserialize::{self, FromSql};
 use diesel::sql_types::BigInt;
 use diesel::sql_types::{Blob, Text};
 use diesel::{Connection, QueryableByName, RunQueryDsl, SqliteConnection};
-use sea_query::{Alias, ColumnDef, Expr, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
+use sea_query::{ColumnDef, Expr, ExprTrait, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
 use sea_query_diesel::DieselBinder;
 use serde_json::json;
-use time::macros::{date, time};
 use time::PrimitiveDateTime;
+use time::macros::{date, time};
 use uuid::Uuid;
 
 // NOTE: Until https://github.com/diesel-rs/diesel/issues/3693 is fixed, we can't mix and match

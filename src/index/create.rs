@@ -1,7 +1,7 @@
 use inherent::inherent;
 
-use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
 use crate::{ConditionHolder, ConditionalStatement, IntoCondition};
+use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
 use super::common::*;
 
@@ -222,6 +222,7 @@ pub struct IndexCreateStatement {
 
 /// Specification of a table index
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum IndexType {
     BTree,
     FullText,

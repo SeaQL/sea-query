@@ -1,12 +1,12 @@
 use crate::{
+    FunctionCall, QueryStatement, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement,
+    WindowStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
-    query::{condition::*, OrderedStatement},
+    query::{OrderedStatement, condition::*},
     types::*,
     value::*,
-    FunctionCall, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement, WindowStatement,
-    WithClause, WithQuery,
 };
 use inherent::inherent;
 
@@ -46,7 +46,7 @@ pub struct SelectStatement {
     pub(crate) from: Vec<TableRef>,
     pub(crate) join: Vec<JoinExpr>,
     pub(crate) r#where: ConditionHolder,
-    pub(crate) groups: Vec<SimpleExpr>,
+    pub(crate) groups: Vec<Expr>,
     pub(crate) having: ConditionHolder,
     pub(crate) unions: Vec<(UnionType, SelectStatement)>,
     pub(crate) orders: Vec<OrderExpr>,
@@ -54,7 +54,7 @@ pub struct SelectStatement {
     pub(crate) offset: Option<Value>,
     pub(crate) lock: Option<LockClause>,
     pub(crate) window: Option<(DynIden, WindowStatement)>,
-    pub(crate) with: Option<WithClause>,
+    pub(crate) with: Option<Box<WithClause>>,
     #[cfg(feature = "backend-postgres")]
     pub(crate) table_sample: Option<crate::extension::postgres::TableSample>,
     #[cfg(feature = "backend-mysql")]
@@ -63,6 +63,7 @@ pub struct SelectStatement {
 
 /// List of distinct keywords that can be used in select statement
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SelectDistinct {
     All,
     Distinct,
@@ -72,6 +73,7 @@ pub enum SelectDistinct {
 
 /// Window type in [`SelectExpr`]
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum WindowSelectType {
     /// Name in [`SelectStatement`]
     Name(DynIden),
@@ -82,7 +84,7 @@ pub enum WindowSelectType {
 /// Select expression used in select statement
 #[derive(Debug, Clone, PartialEq)]
 pub struct SelectExpr {
-    pub expr: SimpleExpr,
+    pub expr: Expr,
     pub alias: Option<DynIden>,
     pub window: Option<WindowSelectType>,
 }
@@ -98,6 +100,7 @@ pub struct JoinExpr {
 
 /// List of lock types that can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LockType {
     /// Exclusive lock
     Update,
@@ -109,6 +112,7 @@ pub enum LockType {
 
 /// List of lock behavior can be used in select statement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LockBehavior {
     Nowait,
     SkipLocked,
@@ -123,6 +127,7 @@ pub struct LockClause {
 
 /// List of union types that can be used in union clause
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum UnionType {
     Intersect,
     Distinct,
@@ -132,7 +137,7 @@ pub enum UnionType {
 
 impl<T> From<T> for SelectExpr
 where
-    T: Into<SimpleExpr>,
+    T: Into<Expr>,
 {
     fn from(expr: T) -> Self {
         SelectExpr {
@@ -528,7 +533,7 @@ impl SelectStatement {
     where
         C: IntoColumnRef,
     {
-        self.expr(SimpleExpr::Column(col.into_column_ref()))
+        self.expr(Expr::Column(col.into_column_ref()))
     }
 
     /// Select columns.
@@ -587,11 +592,7 @@ impl SelectStatement {
         T: IntoColumnRef,
         I: IntoIterator<Item = T>,
     {
-        self.exprs(
-            cols.into_iter()
-                .map(|c| SimpleExpr::Column(c.into_column_ref()))
-                .collect::<Vec<SimpleExpr>>(),
-        )
+        self.exprs(cols.into_iter().map(|c| Expr::Column(c.into_column_ref())))
     }
 
     /// Select column.
@@ -621,7 +622,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_as<T, A>(&mut self, expr: T, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         A: IntoIden,
     {
         self.expr(SelectExpr {
@@ -662,7 +663,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_window<T>(&mut self, expr: T, window: WindowStatement) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.expr(SelectExpr {
             expr: expr.into(),
@@ -703,7 +704,7 @@ impl SelectStatement {
     /// ```
     pub fn expr_window_as<T, A>(&mut self, expr: T, window: WindowStatement, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         A: IntoIden,
     {
         self.expr(SelectExpr {
@@ -729,20 +730,20 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         W: IntoIden,
     {
         self.expr(SelectExpr {
@@ -768,20 +769,20 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn expr_window_name_as<T, W, A>(&mut self, expr: T, window: W, alias: A) -> &mut Self
     where
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         A: IntoIden,
         W: IntoIden,
     {
@@ -941,11 +942,9 @@ impl SelectStatement {
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///
-    /// let table_as: DynIden = SeaRc::new("char");
-    ///
     /// let query = Query::select()
-    ///     .from_as(Char::Table, table_as.clone())
-    ///     .column((table_as.clone(), Char::Character))
+    ///     .from_as(Char::Table, "char")
+    ///     .column(("char", Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -963,13 +962,11 @@ impl SelectStatement {
     /// ```
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
-    ///
-    /// let table_as = "alias";
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .from_as((Font::Table, Char::Table), table_as.clone())
-    ///     .column((table_as, Char::Character))
+    ///     .from_as((Font::Table, Char::Table), "alias")
+    ///     .column(("alias", Char::Character))
     ///     .to_owned();
     ///
     /// assert_eq!(
@@ -983,6 +980,10 @@ impl SelectStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "alias"."character" FROM "font"."character" AS "alias""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selects(),
+    ///     [TableName(Some(Font::Table.into()), Char::Table.into_iden())]
     /// );
     /// ```
     pub fn from_as<R, A>(&mut self, tbl_ref: R, alias: A) -> &mut Self
@@ -998,7 +999,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .columns([Glyph::Image])
@@ -1023,12 +1024,16 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "image" FROM (SELECT "image", "aspect" FROM "glyph") AS "subglyph""#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
     /// ```
     pub fn from_subquery<T>(&mut self, query: SelectStatement, alias: T) -> &mut Self
     where
         T: IntoIden,
     {
-        self.from_from(TableRef::SubQuery(query, alias.into_iden()))
+        self.from_from(TableRef::SubQuery(query.into(), alias.into_iden()))
     }
 
     /// From function call.
@@ -1039,7 +1044,7 @@ impl SelectStatement {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .column(ColumnRef::Asterisk)
+    ///     .column(Asterisk)
     ///     .from_function(Func::random(), "func")
     ///     .to_owned();
     ///
@@ -1071,7 +1076,7 @@ impl SelectStatement {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .column(ColumnRef::Asterisk)
+    ///     .column(Asterisk)
     ///     .from(Char::Table)
     ///     .from_clear()
     ///     .from(Font::Table)
@@ -1106,7 +1111,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
@@ -1126,6 +1131,10 @@ impl SelectStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden(), Font::Table.into_iden()]
     /// );
     ///
     /// // Constructing chained join conditions
@@ -1168,7 +1177,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
@@ -1188,6 +1197,10 @@ impl SelectStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden(), Font::Table.into_iden()]
     /// );
     ///
     /// // Constructing chained join conditions
@@ -1408,7 +1421,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
@@ -1428,6 +1441,10 @@ impl SelectStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden(), Font::Table.into_iden()]
     /// );
     ///
     /// // Constructing chained join conditions
@@ -1457,6 +1474,10 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden(), Font::Table.into_iden()]
+    /// );
     /// ```
     pub fn join<R, C>(&mut self, join: JoinType, tbl_ref: R, condition: C) -> &mut Self
     where
@@ -1482,45 +1503,45 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
-    ///     .column((Font::Table, Font::Name))
+    ///     .column(("f", Font::Name))
     ///     .from(Char::Table)
     ///     .join_as(
     ///         JoinType::RightJoin,
     ///         Font::Table,
     ///         "f",
-    ///         Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id))
+    ///         Expr::col((Char::Table, Char::FontId)).equals(("f", Font::Id))
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT `character`, `f`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `f`.`id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "f"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "f"."id""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "f"."name" FROM "character" RIGHT JOIN "font" AS "f" ON "character"."font_id" = "f"."id""#
     /// );
     ///
     /// // Constructing chained join conditions
     /// assert_eq!(
     ///     Query::select()
     ///         .column(Char::Character)
-    ///         .column((Font::Table, Font::Name))
+    ///         .column(("f", Font::Name))
     ///         .from(Char::Table)
     ///         .join_as(
     ///             JoinType::RightJoin,
     ///             Font::Table,
     ///             "f",
     ///             Condition::all()
-    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
-    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals(("f", Font::Id)))
+    ///                 .add(Expr::col((Char::Table, Char::FontId)).equals(("f", Font::Id)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT `character`, `f`.`name` FROM `character` RIGHT JOIN `font` AS `f` ON `character`.`font_id` = `f`.`id` AND `character`.`font_id` = `f`.`id`"#
     /// );
     /// ```
     pub fn join_as<R, A, C>(
@@ -1550,17 +1571,16 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{tests_cfg::*, audit::*, *};
     ///
-    /// let sub_glyph: DynIden = SeaRc::new("sub_glyph");
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)
     ///     .join_subquery(
     ///         JoinType::LeftJoin,
     ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
-    ///         sub_glyph.clone(),
-    ///         Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id))
+    ///         "sub_glyph",
+    ///         Expr::col((Font::Table, Font::Id)).equals(("sub_glyph", Glyph::Id))
     ///     )
     ///     .to_owned();
     ///
@@ -1576,6 +1596,10 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "name" FROM "font" LEFT JOIN (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Font::Table.into_iden(), Glyph::Table.into_iden()]
+    /// );
     ///
     /// // Constructing chained join conditions
     /// assert_eq!(
@@ -1585,13 +1609,17 @@ impl SelectStatement {
     ///         .join_subquery(
     ///             JoinType::LeftJoin,
     ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
-    ///             sub_glyph.clone(),
+    ///             "sub_glyph",
     ///             Condition::all()
-    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
-    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals(("sub_glyph", Glyph::Id)))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals(("sub_glyph", Glyph::Id)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Font::Table.into_iden(), Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn join_subquery<T, C>(
@@ -1607,7 +1635,7 @@ impl SelectStatement {
     {
         self.join_join(
             join,
-            TableRef::SubQuery(query, alias.into_iden()),
+            TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
@@ -1620,17 +1648,16 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, tests_cfg::*};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
-    /// let sub_glyph: DynIden = SeaRc::new("sub_glyph");
     /// let query = Query::select()
     ///     .column(Font::Name)
     ///     .from(Font::Table)
     ///     .join_lateral(
     ///         JoinType::LeftJoin,
     ///         Query::select().column(Glyph::Id).from(Glyph::Table).take(),
-    ///         sub_glyph.clone(),
-    ///         Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id))
+    ///         "sub_glyph",
+    ///         Expr::col((Font::Table, Font::Id)).equals(("sub_glyph", Glyph::Id))
     ///     )
     ///     .to_owned();
     ///
@@ -1642,6 +1669,10 @@ impl SelectStatement {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "name" FROM "font" LEFT JOIN LATERAL (SELECT "id" FROM "glyph") AS "sub_glyph" ON "font"."id" = "sub_glyph"."id""#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Font::Table.into_iden(), Glyph::Table.into_iden()]
+    /// );
     ///
     /// // Constructing chained join conditions
     /// assert_eq!(
@@ -1651,10 +1682,10 @@ impl SelectStatement {
     ///         .join_lateral(
     ///             JoinType::LeftJoin,
     ///             Query::select().column(Glyph::Id).from(Glyph::Table).take(),
-    ///             sub_glyph.clone(),
+    ///             "sub_glyph",
     ///             Condition::all()
-    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
-    ///                 .add(Expr::col((Font::Table, Font::Id)).equals((sub_glyph.clone(), Glyph::Id)))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals(("sub_glyph", Glyph::Id)))
+    ///                 .add(Expr::col((Font::Table, Font::Id)).equals(("sub_glyph", Glyph::Id)))
     ///         )
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"SELECT `name` FROM `font` LEFT JOIN LATERAL (SELECT `id` FROM `glyph`) AS `sub_glyph` ON `font`.`id` = `sub_glyph`.`id` AND `font`.`id` = `sub_glyph`.`id`"#
@@ -1673,7 +1704,7 @@ impl SelectStatement {
     {
         self.join_join(
             join,
-            TableRef::SubQuery(query, alias.into_iden()),
+            TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
                 condition.into_condition(),
             ))),
@@ -1759,11 +1790,7 @@ impl SelectStatement {
         T: IntoColumnRef,
         I: IntoIterator<Item = T>,
     {
-        self.add_group_by(
-            cols.into_iter()
-                .map(|c| SimpleExpr::Column(c.into_column_ref()))
-                .collect::<Vec<_>>(),
-        )
+        self.add_group_by(cols.into_iter().map(|c| Expr::Column(c.into_column_ref())))
     }
 
     /// Add a group by column.
@@ -1827,7 +1854,7 @@ impl SelectStatement {
     /// ```
     pub fn add_group_by<I>(&mut self, expr: I) -> &mut Self
     where
-        I: IntoIterator<Item = SimpleExpr>,
+        I: IntoIterator<Item = Expr>,
     {
         self.groups.append(&mut expr.into_iter().collect());
         self
@@ -1902,7 +1929,7 @@ impl SelectStatement {
     ///     r#"SELECT "aspect", MAX("image") FROM "glyph" GROUP BY "aspect" HAVING "aspect" > 2 AND "aspect" < 8"#
     /// );
     /// ```
-    pub fn and_having(&mut self, other: SimpleExpr) -> &mut Self {
+    pub fn and_having(&mut self, other: Expr) -> &mut Self {
         self.cond_having(other)
     }
 
@@ -2205,7 +2232,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
@@ -2231,6 +2258,10 @@ impl SelectStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden()]
+    /// );
     /// ```
     pub fn union(&mut self, union_type: UnionType, query: SelectStatement) -> &mut Self {
         self.unions.push((union_type, query));
@@ -2242,7 +2273,7 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
     ///     .column(Char::Character)
@@ -2255,24 +2286,27 @@ impl SelectStatement {
     ///             .and_where(Expr::col(Char::FontId).eq(4))
     ///             .to_owned()),
     ///         (UnionType::Distinct, Query::select()
-    ///             .column(Char::Character)
-    ///             .from(Char::Table)
-    ///             .and_where(Expr::col(Char::FontId).eq(3))
+    ///             .column(Glyph::Image)
+    ///             .from(Glyph::Table)
     ///             .to_owned()),
     ///     ])
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL (SELECT `character` FROM `character` WHERE `font_id` = 4) UNION (SELECT `character` FROM `character` WHERE `font_id` = 3)"#
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 UNION ALL (SELECT `character` FROM `character` WHERE `font_id` = 4) UNION (SELECT `image` FROM `glyph`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL (SELECT "character" FROM "character" WHERE "font_id" = 4) UNION (SELECT "character" FROM "character" WHERE "font_id" = 3)"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL (SELECT "character" FROM "character" WHERE "font_id" = 4) UNION (SELECT "image" FROM "glyph")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "character" FROM "character" WHERE "font_id" = 3"#
+    ///     r#"SELECT "character" FROM "character" WHERE "font_id" = 5 UNION ALL SELECT "character" FROM "character" WHERE "font_id" = 4 UNION SELECT "image" FROM "glyph""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden(), Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn unions<T: IntoIterator<Item = (UnionType, SelectStatement)>>(
@@ -2288,14 +2322,14 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{*, IntoCondition, IntoIden, audit::AuditTrait, tests_cfg::*};
     ///
     /// let base_query = SelectStatement::new()
     ///                     .column("id")
     ///                     .expr(1i32)
     ///                     .column("next")
     ///                     .column("value")
-    ///                     .from("table")
+    ///                     .from(Task::Table)
     ///                     .to_owned();
     ///
     /// let cte_referencing = SelectStatement::new()
@@ -2303,11 +2337,11 @@ impl SelectStatement {
     ///                             .expr(Expr::col("depth").add(1i32))
     ///                             .column("next")
     ///                             .column("value")
-    ///                             .from("table")
+    ///                             .from(Task::Table)
     ///                             .join(
     ///                                 JoinType::InnerJoin,
     ///                                 "cte_traversal",
-    ///                                 Expr::col(("cte_traversal", "next")).equals(("table", "id"))
+    ///                                 Expr::col(("cte_traversal", "next")).equals((Task::Table, "id"))
     ///                             )
     ///                             .to_owned();
     ///
@@ -2320,29 +2354,33 @@ impl SelectStatement {
     ///             .to_owned();
     ///
     /// let select = SelectStatement::new()
-    ///         .column(ColumnRef::Asterisk)
+    ///         .column(Asterisk)
     ///         .from("cte_traversal")
     ///         .to_owned();
     ///
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column("id".into_column_ref()), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = select.with(with_clause).to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `table` UNION ALL (SELECT `id`, `depth` + 1, `next`, `value` FROM `table` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `table`.`id`)) SELECT * FROM `cte_traversal`"#
+    ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `task` UNION ALL (SELECT `id`, `depth` + 1, `next`, `value` FROM `task` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `task`.`id`)) SELECT * FROM `cte_traversal`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL (SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id")) CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "task" UNION ALL (SELECT "id", "depth" + 1, "next", "value" FROM "task" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "task"."id")) CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "task" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "task" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "task"."id") SELECT * FROM "cte_traversal""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Task::Table.into_iden()]
     /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
@@ -2354,14 +2392,14 @@ impl SelectStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{*, IntoCondition, IntoIden, audit::AuditTrait, tests_cfg::*};
     ///
     /// let base_query = SelectStatement::new()
     ///                     .column("id")
     ///                     .expr(1i32)
     ///                     .column("next")
     ///                     .column("value")
-    ///                     .from("table")
+    ///                     .from(Task::Table)
     ///                     .to_owned();
     ///
     /// let cte_referencing = SelectStatement::new()
@@ -2369,11 +2407,11 @@ impl SelectStatement {
     ///                             .expr(Expr::col("depth").add(1i32))
     ///                             .column("next")
     ///                             .column("value")
-    ///                             .from("table")
+    ///                             .from(Task::Table)
     ///                             .join(
     ///                                 JoinType::InnerJoin,
     ///                                 "cte_traversal",
-    ///                                 Expr::col(("cte_traversal", "next")).equals(("table", "id"))
+    ///                                 Expr::col(("cte_traversal", "next")).equals((Task::Table, "id"))
     ///                             )
     ///                             .to_owned();
     ///
@@ -2388,30 +2426,34 @@ impl SelectStatement {
     /// let with_clause = WithClause::new()
     ///         .recursive(true)
     ///         .cte(common_table_expression)
-    ///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+    ///         .cycle(Cycle::new_from_expr_set_using(Expr::Column("id".into_column_ref()), "looped", "traversal_path"))
     ///         .to_owned();
     ///
     /// let query = SelectStatement::new()
-    ///         .column(ColumnRef::Asterisk)
+    ///         .column(Asterisk)
     ///         .from("cte_traversal")
     ///         .with_cte(with_clause)
     ///         .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `table` UNION ALL (SELECT `id`, `depth` + 1, `next`, `value` FROM `table` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `table`.`id`)) SELECT * FROM `cte_traversal`"#
+    ///     r#"WITH RECURSIVE `cte_traversal` (`id`, `depth`, `next`, `value`) AS (SELECT `id`, 1, `next`, `value` FROM `task` UNION ALL (SELECT `id`, `depth` + 1, `next`, `value` FROM `task` INNER JOIN `cte_traversal` ON `cte_traversal`.`next` = `task`.`id`)) SELECT * FROM `cte_traversal`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL (SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id")) CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "task" UNION ALL (SELECT "id", "depth" + 1, "next", "value" FROM "task" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "task"."id")) CYCLE "id" SET "looped" USING "traversal_path" SELECT * FROM "cte_traversal""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "table" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "table" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "table"."id") SELECT * FROM "cte_traversal""#
+    ///     r#"WITH RECURSIVE "cte_traversal" ("id", "depth", "next", "value") AS (SELECT "id", 1, "next", "value" FROM "task" UNION ALL SELECT "id", "depth" + 1, "next", "value" FROM "task" INNER JOIN "cte_traversal" ON "cte_traversal"."next" = "task"."id") SELECT * FROM "cte_traversal""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Task::Table.into_iden()]
     /// );
     /// ```
     pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
-        self.with = Some(clause.into());
+        self.with = Some(Box::new(clause.into()));
         self
     }
 
@@ -2430,15 +2472,15 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS PARTITION BY `font_size`"#
+    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS PARTITION BY "font_size""#
+    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn window<A>(&mut self, name: A, window: WindowStatement) -> &mut Self
@@ -2460,16 +2502,24 @@ impl QueryStatementBuilder for SelectStatement {
         query_builder.prepare_select_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::SelectStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<SelectStatement> for QueryStatement {
+    fn from(s: SelectStatement) -> Self {
+        Self::Select(s)
+    }
+}
+
+impl From<SelectStatement> for SubQueryStatement {
+    fn from(s: SelectStatement) -> Self {
+        Self::SelectStatement(s)
+    }
 }
 
 #[inherent]
@@ -2503,7 +2553,7 @@ impl OrderedStatement for SelectStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -2522,7 +2572,7 @@ impl OrderedStatement for SelectStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -2551,6 +2601,6 @@ impl ConditionalStatement for SelectStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }

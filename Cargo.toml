@@ -3,20 +3,20 @@ members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
-version = "0.32.6"
+version = "1.0.0-rc.7"
 authors = [
     "Chris Tsang <chris.2y3@outlook.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
     "Ivan Krivosheev <py.krivosheev@gmail.com>",
 ]
-edition = "2021"
+edition = "2024"
 description = "🔱 A dynamic query builder for MySQL, Postgres and SQLite"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
 categories = ["database"]
 keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
-rust-version = "1.62"
+rust-version = "1.85.0"
 # STUB
 
 [package.metadata.docs.rs]
@@ -29,7 +29,7 @@ path = "src/lib.rs"
 
 [dependencies]
 inherent = "1.0"
-sea-query-derive = { version = "0.4.2", path = "sea-query-derive", default-features = false, optional = true }
+sea-query-derive = { version = "1.0.0-rc", path = "sea-query-derive", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4.27", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
@@ -38,6 +38,7 @@ rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal = { version = "0.4", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
 time = { version = "0.3.36", default-features = false, optional = true, features = ["macros", "formatting"] }
+jiff = { version = "0.2.15", default-features = false, optional = true, features = ["std", "perf-inline"] }
 ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 ordered-float = { version = "4.6", default-features = false, optional = true }
@@ -50,10 +51,11 @@ pretty_assertions = { version = "1" }
 
 [features]
 # STUB
+audit = []
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
-default = ["derive", "backend-mysql", "backend-postgres", "backend-sqlite"]
+default = ["derive", "audit", "backend-mysql", "backend-postgres", "backend-sqlite"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-derive"]
 hashable-value = ["ordered-float"]
@@ -67,6 +69,7 @@ with-rust_decimal = ["rust_decimal"]
 with-bigdecimal = ["bigdecimal"]
 with-uuid = ["uuid"]
 with-time = ["time"]
+with-jiff = ["jiff"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
 with-postgres-point = ["sqlx", "sqlx/postgres"]
@@ -80,6 +83,7 @@ all-features = [
     "hashable-value",
     "thread-safe",
     "all-types",
+    "audit",
 ] # everything except option-*
 all-types = [
     "postgres-array",
@@ -91,6 +95,7 @@ all-types = [
     "with-bigdecimal",
     "with-uuid",
     "with-time",
+    "with-jiff",
     "with-ipnetwork",
     "with-mac_address",
 ]
@@ -110,17 +115,17 @@ required-features = ["tests-cfg"]
 [[test]]
 name = "test-mysql"
 path = "tests/mysql/mod.rs"
-required-features = ["tests-cfg", "backend-mysql"]
+required-features = ["tests-cfg", "backend-mysql", "audit"]
 
 [[test]]
 name = "test-postgres"
 path = "tests/postgres/mod.rs"
-required-features = ["tests-cfg", "backend-postgres"]
+required-features = ["tests-cfg", "backend-postgres", "audit"]
 
 [[test]]
 name = "test-sqlite"
 path = "tests/sqlite/mod.rs"
-required-features = ["tests-cfg", "backend-sqlite"]
+required-features = ["tests-cfg", "backend-sqlite", "audit"]
 
 [[test]]
 name = "option-more-parentheses"
@@ -129,4 +134,8 @@ required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
 
 [[bench]]
 name = "basic"
+harness = false
+
+[[bench]]
+name = "value"
 harness = false

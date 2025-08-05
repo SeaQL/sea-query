@@ -1,6 +1,6 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{extension::postgres::Type, PostgresQueryBuilder};
+use sea_query::{PostgresQueryBuilder, extension::postgres::Type};
 
 #[test]
 fn create_1() {
@@ -41,17 +41,12 @@ fn create_3() {
     }
 
     impl sea_query::Iden for Tea {
-        fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-            write!(
-                s,
-                "{}",
-                match self {
-                    Self::Enum => "tea",
-                    Self::EverydayTea => "EverydayTea",
-                    Self::BreakfastTea => "BreakfastTea",
-                }
-            )
-            .unwrap();
+        fn unquoted(&self) -> &str {
+            match self {
+                Self::Enum => "tea",
+                Self::EverydayTea => "EverydayTea",
+                Self::BreakfastTea => "BreakfastTea",
+            }
         }
     }
 }
@@ -141,7 +136,7 @@ fn alter_4() {
             .name(Font::Table)
             .rename_to("typeface")
             .to_string(PostgresQueryBuilder),
-        r#"ALTER TYPE "font" RENAME TO 'typeface'"#
+        r#"ALTER TYPE "font" RENAME TO "typeface""#
     )
 }
 
@@ -163,6 +158,6 @@ fn alter_6() {
             .name(("schema", Font::Table))
             .rename_to("typeface")
             .to_string(PostgresQueryBuilder),
-        r#"ALTER TYPE "schema"."font" RENAME TO 'typeface'"#
+        r#"ALTER TYPE "schema"."font" RENAME TO "typeface""#
     )
 }

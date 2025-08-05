@@ -1,9 +1,8 @@
+#![forbid(unsafe_code)]
+
 use diesel::backend::Backend;
 use diesel::result::QueryResult;
-use sea_query::{
-    DeleteStatement, InsertStatement, QueryStatementWriter, SelectStatement, UpdateStatement,
-    WithQuery,
-};
+use sea_query::{DeleteStatement, InsertStatement, SelectStatement, UpdateStatement, WithQuery};
 
 use self::backend::{ExtractBuilder, TransformValue};
 pub use self::query::SeaQuery;

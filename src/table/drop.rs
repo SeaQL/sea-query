@@ -1,6 +1,6 @@
 use inherent::inherent;
 
-use crate::{backend::SchemaBuilder, types::*, SchemaStatementBuilder};
+use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
 /// Drop a table
 ///
@@ -36,6 +36,7 @@ pub struct TableDropStatement {
 
 /// All available table drop options
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum TableDropOpt {
     Restrict,
     Cascade,

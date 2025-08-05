@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 //! Driver library for using SeaQuery with SQLx
 //!
 //! This library introduces various traits that add methods to the query types from `sea-query`.

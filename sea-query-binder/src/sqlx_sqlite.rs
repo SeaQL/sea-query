@@ -42,57 +42,57 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     let _ = args.add(d);
                 }
                 Value::String(s) => {
-                    let _ = args.add(s.map(|s| *s));
+                    let _ = args.add(s);
                 }
                 Value::Char(c) => {
                     let _ = args.add(c.map(|c| c.to_string()));
                 }
                 Value::Bytes(b) => {
-                    let _ = args.add(b.map(|b| *b));
+                    let _ = args.add(b);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
-                    let _ = args.add(d.map(|d| *d));
+                    let _ = args.add(d);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t.map(|t| *t));
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
-                    let _ = args.add(uuid.map(|uuid| *uuid));
+                    let _ = args.add(uuid);
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(decimal) => {
@@ -106,7 +106,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
-                    let _ = args.add(j.map(|j| *j));
+                    let _ = args.add(j);
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(_) => {

@@ -650,7 +650,7 @@ fn select_43() {
     let statement = Query::select()
         .column(Glyph::Id)
         .from(Glyph::Table)
-        .cond_where(Cond::all().add_option::<SimpleExpr>(None))
+        .cond_where(Cond::all().add_option::<Expr>(None))
         .to_string(SqliteQueryBuilder);
 
     assert_eq!(statement, r#"SELECT "id" FROM "glyph" WHERE TRUE"#);
@@ -736,10 +736,10 @@ fn select_48() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+            Cond::all().add_option(Some(
                 Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::value(100)])
                     .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
-            ))),
+            )),
         )
         .to_string(SqliteQueryBuilder);
 
@@ -755,13 +755,13 @@ fn select_48a() {
         .column(Glyph::Id)
         .from(Glyph::Table)
         .cond_where(
-            Cond::all().add_option(Some(ConditionExpression::SimpleExpr(
+            Cond::all().add_option(Some(
                 Expr::tuple([
                     Expr::col(Glyph::Aspect).into(),
                     Expr::value(String::from("100")),
                 ])
                 .in_tuples([(8, String::from("100"))]),
-            ))),
+            )),
         )
         .to_string(SqliteQueryBuilder);
 
@@ -1098,7 +1098,7 @@ fn insert_4() {
                 .unwrap()
                 .into()])
             .to_string(SqliteQueryBuilder),
-        r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00')"#
+        r#"INSERT INTO "glyph" ("image") VALUES ('1970-01-01 00:00:00.000000')"#
     );
 }
 
@@ -1782,10 +1782,7 @@ fn sub_query_with_fn() {
         .to_owned();
 
     let select = Query::select()
-        .expr(Func::cust(ArrayFunc).arg(SimpleExpr::SubQuery(
-            None,
-            Box::new(sub_select.into_sub_query_statement()),
-        )))
+        .expr(Func::cust(ArrayFunc).arg(Expr::SubQuery(None, Box::new(sub_select.into()))))
         .to_owned();
 
     assert_eq!(
@@ -1800,19 +1797,19 @@ fn recursive_with_multiple_ctes() {
         .column(Asterisk)
         .from(Char::Table)
         .to_owned();
-    let sub_select1_name = SeaRc::new("sub1");
+    let sub_select1_name = "sub1";
     let mut sub_select1_cte = CommonTableExpression::new();
-    sub_select1_cte.table_name(sub_select1_name.clone());
-    sub_select1_cte.column(SeaRc::new("a"));
+    sub_select1_cte.table_name(sub_select1_name);
+    sub_select1_cte.column("a");
     sub_select1_cte.query(sub_select1);
     let sub_select2 = Query::select()
         .column(Asterisk)
         .from(Char::Table)
         .to_owned();
-    let sub_select2_name = SeaRc::new("sub2");
+    let sub_select2_name = "sub2";
     let mut sub_select2_cte = CommonTableExpression::new();
-    sub_select2_cte.table_name(sub_select2_name.clone());
-    sub_select2_cte.column(SeaRc::new("b"));
+    sub_select2_cte.table_name(sub_select2_name);
+    sub_select2_cte.column("b");
     sub_select2_cte.query(sub_select2);
 
     let mut with = WithClause::new();
@@ -1821,13 +1818,11 @@ fn recursive_with_multiple_ctes() {
         .cte(sub_select2_cte);
 
     let mut main_sel2 = Query::select();
-    main_sel2
-        .expr(Expr::col(Asterisk))
-        .from(TableRef::Table(sub_select2_name));
+    main_sel2.expr(Expr::col(Asterisk)).from(sub_select2_name);
     let mut main_sel1 = Query::select();
     main_sel1
         .expr(Expr::col(Asterisk))
-        .from(TableRef::Table(sub_select1_name))
+        .from(sub_select1_name)
         .union(UnionType::All, main_sel2);
 
     let query = with.query(main_sel1);

@@ -1,7 +1,7 @@
 use crate::{
-    ColumnRef, DynIden, IntoIden, QueryStatementBuilder, QueryStatementWriter, SelectExpr,
-    SelectStatement, SimpleExpr, SqlWriter, SubQueryStatement, TableRef, Values,
-    {Alias, QueryBuilder},
+    ColumnRef, DynIden, Expr, IdenList, IntoIden, QueryBuilder, QueryStatementBuilder,
+    QueryStatementWriter, SelectExpr, SelectStatement, SqlWriter, SubQueryStatement, TableName,
+    TableRef, Values,
 };
 use inherent::inherent;
 
@@ -102,9 +102,9 @@ impl CommonTableExpression {
     /// columns.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
-        Q: QueryStatementBuilder,
+        Q: Into<SubQueryStatement>,
     {
-        self.query = Some(Box::new(query.into_sub_query_statement()));
+        self.query = Some(Box::new(query.into()));
         self
     }
 
@@ -116,23 +116,17 @@ impl CommonTableExpression {
         cte.try_set_cols_from_selects(&select.selects);
         if let Some(from) = select.from.first() {
             match from {
-                TableRef::Table(iden) => cte.set_table_name_from_select(iden),
-                TableRef::SchemaTable(_, iden) => cte.set_table_name_from_select(iden),
-                TableRef::DatabaseSchemaTable(_, _, iden) => cte.set_table_name_from_select(iden),
-                TableRef::TableAlias(_, iden) => cte.set_table_name_from_select(iden),
-                TableRef::SchemaTableAlias(_, _, iden) => cte.set_table_name_from_select(iden),
-                TableRef::DatabaseSchemaTableAlias(_, _, _, iden) => {
-                    cte.set_table_name_from_select(iden)
-                }
+                TableRef::Table(_, Some(alias)) => cte.set_table_name_from_select(alias),
+                TableRef::Table(TableName(_, tbl), None) => cte.set_table_name_from_select(tbl),
                 _ => {}
             }
         }
-        cte.query = Some(Box::new(select.into_sub_query_statement()));
+        cte.query = Some(Box::new(select.into()));
         cte
     }
 
     fn set_table_name_from_select(&mut self, iden: &DynIden) {
-        self.table_name = Some(Alias::new(format!("cte_{}", iden.to_string())).into_iden())
+        self.table_name = Some(format!("cte_{iden}").into_iden())
     }
 
     /// Set up the columns of the CTE to match the given [SelectStatement] selected columns.
@@ -152,23 +146,17 @@ impl CommonTableExpression {
                     Some(ident.clone())
                 } else {
                     match &select.expr {
-                        SimpleExpr::Column(column) => match column {
-                            ColumnRef::Column(iden) => Some(iden.clone()),
-                            ColumnRef::TableColumn(table, column) => Some(
-                                Alias::new(format!("{}_{}", table.to_string(), column.to_string()))
-                                    .into_iden(),
-                            ),
-                            ColumnRef::SchemaTableColumn(schema, table, column) => Some(
-                                Alias::new(format!(
-                                    "{}_{}_{}",
-                                    schema.to_string(),
-                                    table.to_string(),
-                                    column.to_string()
-                                ))
-                                .into_iden(),
-                            ),
-                            _ => None,
-                        },
+                        Expr::Column(ColumnRef::Column(column_name)) => {
+                            // We could depend on `itertools` instead of joining manually.
+                            let mut joined_column_name = String::new();
+                            for part in column_name.clone().into_iter() {
+                                joined_column_name.push_str(&part.0);
+                                joined_column_name.push('_');
+                            }
+                            // Remove the trailing underscore after the column name.
+                            joined_column_name.pop();
+                            Some(joined_column_name.into_iden())
+                        }
                         _ => None,
                     }
                 }
@@ -187,6 +175,7 @@ impl CommonTableExpression {
 /// For recursive [WithQuery] [WithClause]s the traversing order can be specified in some databases
 /// that support this functionality.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum SearchOrder {
     /// Breadth first traversal during the execution of the recursive query.
     BREADTH,
@@ -253,18 +242,17 @@ impl Search {
     }
 }
 
-/// For recursive [WithQuery] [WithClause]s the CYCLE sql clause can be specified to avoid creating
-/// an infinite traversals that loops on graph cycles indefinitely. You specify an expression that
-/// identifies a node in the graph and that will be used to determine during the iteration of
-/// the execution of the query when appending of new values whether the new values are distinct new
-/// nodes or are already visited and therefore they should be added again into the result.
+/// For recursive [WithQuery] [WithClauses](WithClause) the CYCLE sql clause can be specified to avoid creating
+/// an infinite traversals that loops on graph cycles indefinitely.
+///
+/// You specify an expression that identifies a node in the graph, which is used during the query execution iteration, to determine newly appended values are distinct new nodes or are already visited, and therefore they should be added into the result again.
 ///
 /// A query can have both SEARCH and CYCLE clauses.
 ///
 /// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Cycle {
-    pub(crate) expr: Option<SimpleExpr>,
+    pub(crate) expr: Option<Expr>,
     pub(crate) set_as: Option<DynIden>,
     pub(crate) using: Option<DynIden>,
 }
@@ -274,7 +262,7 @@ impl Cycle {
     /// given [SelectExpr] must have an alias specified.
     pub fn new_from_expr_set_using<EXPR, ID1, ID2>(expr: EXPR, set: ID1, using: ID2) -> Self
     where
-        EXPR: Into<SimpleExpr>,
+        EXPR: Into<Expr>,
         ID1: IntoIden,
         ID2: IntoIden,
     {
@@ -293,7 +281,7 @@ impl Cycle {
     /// The expression identifying nodes.
     pub fn expr<EXPR>(&mut self, expr: EXPR) -> &mut Self
     where
-        EXPR: Into<SimpleExpr>,
+        EXPR: Into<Expr>,
     {
         self.expr = Some(expr.into());
         self
@@ -401,14 +389,14 @@ impl Cycle {
 ///             .to_owned();
 ///
 /// let select = SelectStatement::new()
-///         .column(ColumnRef::Asterisk)
+///         .column(Asterisk)
 ///         .from("cte_traversal")
 ///         .to_owned();
 ///
 /// let with_clause = WithClause::new()
 ///         .recursive(true)
 ///         .cte(common_table_expression)
-///         .cycle(Cycle::new_from_expr_set_using(SimpleExpr::Column(ColumnRef::Column("id".into_iden())), "looped", "traversal_path"))
+///         .cycle(Cycle::new_from_expr_set_using(Expr::Column("id".into_column_ref()), "looped", "traversal_path"))
 ///         .to_owned();
 ///
 /// let query = select.with(with_clause).to_owned();
@@ -480,7 +468,7 @@ impl WithClause {
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
-        T: QueryStatementBuilder + 'static,
+        T: Into<SubQueryStatement>,
     {
         WithQuery::new().with_clause(self).query(query).to_owned()
     }
@@ -578,9 +566,9 @@ impl WithQuery {
     /// Set the query that you execute with the [WithClause].
     pub fn query<T>(&mut self, query: T) -> &mut Self
     where
-        T: QueryStatementBuilder,
+        T: Into<SubQueryStatement>,
     {
-        self.query = Some(Box::new(query.into_sub_query_statement()));
+        self.query = Some(Box::new(query.into()));
         self
     }
 }
@@ -589,9 +577,11 @@ impl QueryStatementBuilder for WithQuery {
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
         query_builder.prepare_with_query(self, sql);
     }
+}
 
-    fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::WithStatement(self)
+impl From<WithQuery> for SubQueryStatement {
+    fn from(s: WithQuery) -> Self {
+        Self::WithStatement(s)
     }
 }
 

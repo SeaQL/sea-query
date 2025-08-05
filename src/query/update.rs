@@ -1,14 +1,14 @@
 use inherent::inherent;
 
 use crate::{
+    QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
-    query::{condition::*, OrderedStatement},
+    query::{OrderedStatement, condition::*},
     types::*,
     value::*,
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SubQueryStatement, WithClause,
-    WithQuery,
 };
 
 /// Update existing rows in the table
@@ -41,7 +41,7 @@ use crate::{
 pub struct UpdateStatement {
     pub(crate) table: Option<Box<TableRef>>,
     pub(crate) from: Vec<TableRef>,
-    pub(crate) values: Vec<(DynIden, Box<SimpleExpr>)>,
+    pub(crate) values: Vec<(DynIden, Box<Expr>)>,
     pub(crate) r#where: ConditionHolder,
     pub(crate) orders: Vec<OrderExpr>,
     pub(crate) limit: Option<Value>,
@@ -53,6 +53,19 @@ impl UpdateStatement {
     /// Construct a new [`UpdateStatement`]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn take(&mut self) -> Self {
+        Self {
+            table: self.table.take(),
+            from: std::mem::take(&mut self.from),
+            values: std::mem::take(&mut self.values),
+            r#where: std::mem::take(&mut self.r#where),
+            orders: std::mem::take(&mut self.orders),
+            limit: self.limit.take(),
+            returning: self.returning.take(),
+            with: self.with.take(),
+        }
     }
 
     /// Specify which table to update.
@@ -79,7 +92,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -103,6 +116,14 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "tokens" = "character"."character" FROM "character" WHERE "glyph"."image" = "character"."user_data""#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden()]
+    /// );
     /// ```
     pub fn from<R>(&mut self, tbl_ref: R) -> &mut Self
     where
@@ -122,7 +143,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -144,11 +165,16 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m'"#
     /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
+    /// assert_eq!(query.audit().unwrap().selected_tables(), []);
     /// ```
     pub fn values<T, I>(&mut self, values: I) -> &mut Self
     where
         T: IntoIden,
-        I: IntoIterator<Item = (T, SimpleExpr)>,
+        I: IntoIterator<Item = (T, Expr)>,
     {
         for (k, v) in values.into_iter() {
             self.values.push((k.into_iden(), Box::new(v)));
@@ -156,7 +182,7 @@ impl UpdateStatement {
         self
     }
 
-    /// Update column value by [`SimpleExpr`].
+    /// Update column value by [`Expr`].
     ///
     /// # Examples
     ///
@@ -205,7 +231,7 @@ impl UpdateStatement {
     pub fn value<C, T>(&mut self, col: C, value: T) -> &mut Self
     where
         C: IntoIden,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.values.push((col.into_iden(), Box::new(value.into())));
         self
@@ -222,7 +248,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
+    /// use sea_query::{audit::*, tests_cfg::*, *};
     ///
     /// let query = Query::update()
     ///     .table(Glyph::Table)
@@ -242,6 +268,14 @@ impl UpdateStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"UPDATE "glyph" SET "aspect" = 2.1345, "image" = '235m' RETURNING "id""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().updated_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn returning(&mut self, returning: ReturningClause) -> &mut Self {
@@ -321,7 +355,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -353,6 +387,14 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().updated_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
     /// ```
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
@@ -363,7 +405,7 @@ impl UpdateStatement {
     /// # Examples
     ///
     /// ```
-    /// use sea_query::{*, IntoCondition, IntoIden, tests_cfg::*};
+    /// use sea_query::{IntoCondition, IntoIden, audit::*, tests_cfg::*, *};
     ///
     /// let select = SelectStatement::new()
     ///         .columns([Glyph::Id])
@@ -395,6 +437,14 @@ impl UpdateStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"WITH "cte" ("id") AS (SELECT "id" FROM "glyph" WHERE "image" LIKE '0%') UPDATE "glyph" SET "aspect" = 60 * 24 * 24 WHERE "id" IN (SELECT "id" FROM "cte")"#
     /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().updated_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
+    /// assert_eq!(
+    ///     query.audit_unwrap().selected_tables(),
+    ///     [Glyph::Table.into_iden()]
+    /// );
     /// ```
     pub fn with_cte<C: Into<WithClause>>(&mut self, clause: C) -> &mut Self {
         self.with = Some(clause.into());
@@ -402,7 +452,7 @@ impl UpdateStatement {
     }
 
     /// Get column values
-    pub fn get_values(&self) -> &[(DynIden, Box<SimpleExpr>)] {
+    pub fn get_values(&self) -> &[(DynIden, Box<Expr>)] {
         &self.values
     }
 }
@@ -417,16 +467,24 @@ impl QueryStatementBuilder for UpdateStatement {
         query_builder.prepare_update_statement(self, sql);
     }
 
-    pub fn into_sub_query_statement(self) -> SubQueryStatement {
-        SubQueryStatement::UpdateStatement(self)
-    }
-
     pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
         query_builder: &dyn QueryBuilder,
         sql: &mut dyn SqlWriter,
     ) -> String;
+}
+
+impl From<UpdateStatement> for QueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::Update(s)
+    }
+}
+
+impl From<UpdateStatement> for SubQueryStatement {
+    fn from(s: UpdateStatement) -> Self {
+        Self::UpdateStatement(s)
+    }
 }
 
 #[inherent]
@@ -459,7 +517,7 @@ impl OrderedStatement for UpdateStatement {
     where
         T: IntoColumnRef;
 
-    pub fn order_by_expr(&mut self, expr: SimpleExpr, order: Order) -> &mut Self;
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: ToString,
@@ -478,7 +536,7 @@ impl OrderedStatement for UpdateStatement {
         T: IntoColumnRef;
     pub fn order_by_expr_with_nulls(
         &mut self,
-        expr: SimpleExpr,
+        expr: Expr,
         order: Order,
         nulls: NullOrdering,
     ) -> &mut Self;
@@ -507,6 +565,6 @@ impl ConditionalStatement for UpdateStatement {
         self
     }
 
-    pub fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self;
-    pub fn and_where(&mut self, other: SimpleExpr) -> &mut Self;
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
+    pub fn and_where(&mut self, other: Expr) -> &mut Self;
 }

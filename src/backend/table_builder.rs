@@ -68,9 +68,8 @@ pub trait TableBuilder:
     /// Translate [`TableRef`] into SQL statement.
     fn prepare_table_ref_table_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
-            TableRef::Table(_)
-            | TableRef::SchemaTable(_, _)
-            | TableRef::DatabaseSchemaTable(_, _, _) => self.prepare_table_ref_iden(table_ref, sql),
+            // Support only unaliased (but potentialy qualified) table names.
+            TableRef::Table(.., None) => self.prepare_table_ref_iden(table_ref, sql),
             _ => panic!("Not supported"),
         }
     }
@@ -195,16 +194,21 @@ pub trait TableBuilder:
     }
 
     /// Translate the check constraint into SQL statement
-    fn prepare_check_constraint(&self, check: &SimpleExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_check_constraint(&self, check: &Check, sql: &mut dyn SqlWriter) {
+        if let Some(name) = &check.name {
+            write!(sql, "CONSTRAINT ",).unwrap();
+            self.prepare_iden(name, sql);
+            write!(sql, " ",).unwrap();
+        }
         write!(sql, "CHECK (").unwrap();
-        QueryBuilder::prepare_simple_expr(self, check, sql);
+        QueryBuilder::prepare_simple_expr(self, &check.expr, sql);
         write!(sql, ")").unwrap();
     }
 
     /// Translate the generated column into SQL statement
-    fn prepare_generated_column(&self, gen: &SimpleExpr, stored: bool, sql: &mut dyn SqlWriter) {
+    fn prepare_generated_column(&self, r#gen: &Expr, stored: bool, sql: &mut dyn SqlWriter) {
         write!(sql, "GENERATED ALWAYS AS (").unwrap();
-        QueryBuilder::prepare_simple_expr(self, gen, sql);
+        QueryBuilder::prepare_simple_expr(self, r#gen, sql);
         write!(sql, ")").unwrap();
         if stored {
             write!(sql, " STORED").unwrap();

@@ -1,4 +1,4 @@
-use crate::{expr::SimpleExpr, types::LogicalChainOper};
+use crate::{ExprTrait, expr::Expr, types::LogicalChainOper};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConditionType {
@@ -20,13 +20,16 @@ pub trait IntoCondition {
 
 pub type Cond = Condition;
 
-/// Represents anything that can be passed to an [`Condition::any`] or [`Condition::all`]'s [`Condition::add`] method.
+/// An internal representation of conditions.
+/// May be refactored away in the future if we can get our head around it.
 ///
-/// The arguments are automatically converted to the right enum.
+/// It used to be in the public interface of [`Condition::add`] and [`Condition::add_option`],
+/// in order to accept anything resembling a condition or an expression.
+/// Nowadays, we achieve that with traits.
 #[derive(Debug, Clone, PartialEq)]
-pub enum ConditionExpression {
+pub(crate) enum ConditionExpression {
     Condition(Condition),
-    SimpleExpr(SimpleExpr),
+    Expr(Expr),
 }
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -68,16 +71,11 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add<C>(mut self, condition: C) -> Self
     where
-        C: Into<ConditionExpression>,
+        C: Into<Condition>,
     {
-        let mut expr: ConditionExpression = condition.into();
-        if let ConditionExpression::Condition(ref mut c) = expr {
-            // Skip the junction if there is only one.
-            if c.conditions.len() == 1 && !c.negate {
-                expr = c.conditions.pop().unwrap();
-            }
-        }
-        self.conditions.push(expr);
+        let condition: Condition = condition.into();
+        let condition: ConditionExpression = condition.into();
+        self.conditions.push(condition);
         self
     }
 
@@ -96,7 +94,7 @@ impl Condition {
     ///     .cond_where(
     ///         Cond::all()
     ///             .add_option(Some(Expr::col((Glyph::Table, Glyph::Image)).like("A%")))
-    ///             .add_option(None::<SimpleExpr>),
+    ///             .add_option(None::<Expr>),
     ///     )
     ///     .to_owned();
     ///
@@ -108,7 +106,7 @@ impl Condition {
     #[allow(clippy::should_implement_trait)]
     pub fn add_option<C>(self, other: Option<C>) -> Self
     where
-        C: Into<ConditionExpression>,
+        C: Into<Condition>,
     {
         if let Some(other) = other {
             self.add(other)
@@ -262,13 +260,13 @@ impl Condition {
     }
 }
 
-impl From<Condition> for SimpleExpr {
+impl From<Condition> for Expr {
     fn from(cond: Condition) -> Self {
         let mut inner_exprs = vec![];
         for ce in cond.conditions {
             inner_exprs.push(match ce {
                 ConditionExpression::Condition(c) => c.into(),
-                ConditionExpression::SimpleExpr(e) => e,
+                ConditionExpression::Expr(e) => e,
             });
         }
         let mut inner_exprs_into_iter = inner_exprs.into_iter();
@@ -282,24 +280,20 @@ impl From<Condition> for SimpleExpr {
             }
             out_expr
         } else {
-            SimpleExpr::Constant(match cond.condition_type {
+            Expr::Constant(match cond.condition_type {
                 ConditionType::Any => false.into(),
                 ConditionType::All => true.into(),
             })
         };
-        if cond.negate {
-            expr.not()
-        } else {
-            expr
-        }
+        if cond.negate { expr.not() } else { expr }
     }
 }
 
-impl From<ConditionExpression> for SimpleExpr {
+impl From<ConditionExpression> for Expr {
     fn from(ce: ConditionExpression) -> Self {
         match ce {
             ConditionExpression::Condition(c) => c.into(),
-            ConditionExpression::SimpleExpr(e) => e,
+            ConditionExpression::Expr(e) => e,
         }
     }
 }
@@ -310,9 +304,29 @@ impl From<Condition> for ConditionExpression {
     }
 }
 
-impl From<SimpleExpr> for ConditionExpression {
-    fn from(condition: SimpleExpr) -> Self {
-        ConditionExpression::SimpleExpr(condition)
+impl From<Expr> for ConditionExpression {
+    fn from(condition: Expr) -> Self {
+        ConditionExpression::Expr(condition)
+    }
+}
+
+impl From<Expr> for Condition {
+    fn from(condition: Expr) -> Self {
+        Condition {
+            negate: false,
+            condition_type: ConditionType::All,
+            conditions: vec![ConditionExpression::Expr(condition)],
+        }
+    }
+}
+
+impl From<ConditionExpression> for Condition {
+    fn from(ce: ConditionExpression) -> Self {
+        Condition {
+            negate: false,
+            condition_type: ConditionType::All,
+            conditions: vec![ce],
+        }
     }
 }
 
@@ -408,7 +422,7 @@ pub trait ConditionalStatement {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
-    fn and_where(&mut self, other: SimpleExpr) -> &mut Self {
+    fn and_where(&mut self, other: Expr) -> &mut Self {
         self.cond_where(other)
     }
 
@@ -430,7 +444,7 @@ pub trait ConditionalStatement {
     ///     r#"SELECT `image` FROM `glyph` WHERE `aspect` IN (3, 4) AND `image` LIKE 'A%'"#
     /// );
     /// ```
-    fn and_where_option(&mut self, other: Option<SimpleExpr>) -> &mut Self {
+    fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self {
         if let Some(other) = other {
             self.and_where(other);
         }
@@ -599,7 +613,7 @@ pub trait ConditionalStatement {
         C: IntoCondition;
 }
 
-impl IntoCondition for SimpleExpr {
+impl IntoCondition for Expr {
     fn into_condition(self) -> Condition {
         Condition::all().add(self)
     }

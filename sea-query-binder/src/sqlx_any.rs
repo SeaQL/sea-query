@@ -42,13 +42,13 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     let _ = args.add(d);
                 }
                 Value::String(s) => {
-                    let _ = args.add(s.map(|s| *s));
+                    let _ = args.add(s);
                 }
                 Value::Char(c) => {
                     let _ = args.add(c.map(|c| c.to_string()));
                 }
                 Value::Bytes(b) => {
-                    let _ = args.add(b.map(|b| *b));
+                    let _ = args.add(b);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(t) => {

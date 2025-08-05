@@ -28,19 +28,19 @@ impl QueryBuilder for MysqlQueryBuilder {
                     write!(sql, "USE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    hint.index.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Ignore => {
                     write!(sql, "IGNORE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    hint.index.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Force => {
                     write!(sql, "FORCE INDEX ",).unwrap();
                     self.prepare_index_hint_scope(&hint.scope, sql);
                     write!(sql, "(").unwrap();
-                    hint.index.prepare(sql.as_writer(), self.quote());
+                    self.prepare_iden(&hint.index, sql);
                 }
             }
             write!(sql, ")").unwrap();
@@ -92,20 +92,17 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         use std::ops::Deref;
 
-        if from.is_empty() {
-            column.prepare(sql.as_writer(), self.quote());
-        } else {
+        if !from.is_empty() {
             if let Some(table) = table {
-                if let TableRef::Table(table) = table.deref() {
-                    self.prepare_column_ref(
-                        &ColumnRef::TableColumn(table.clone(), column.clone()),
-                        sql,
-                    );
+                // Support only "naked" table names with no schema or alias.
+                if let TableRef::Table(TableName(None, table), None) = table.deref() {
+                    let column_name = ColumnName::from((table.clone(), column.clone()));
+                    self.prepare_column_ref(&ColumnRef::Column(column_name), sql);
                     return;
                 }
             }
-            column.prepare(sql.as_writer(), self.quote());
         }
+        self.prepare_iden(column, sql)
     }
 
     fn prepare_update_condition(
@@ -145,8 +142,8 @@ impl QueryBuilder for MysqlQueryBuilder {
         self.prepare_order(order_expr, sql);
     }
 
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value, self as _);
     }
 
     fn prepare_on_conflict_target(&self, _: &[OnConflictTarget], _: &mut dyn SqlWriter) {
@@ -166,9 +163,9 @@ impl QueryBuilder for MysqlQueryBuilder {
                         if !first {
                             write!(sql, ", ").unwrap()
                         }
-                        pk_col.prepare(sql.as_writer(), self.quote());
+                        self.prepare_iden(pk_col, sql);
                         write!(sql, " = ").unwrap();
-                        pk_col.prepare(sql.as_writer(), self.quote());
+                        self.prepare_iden(pk_col, sql);
                         false
                     });
                 } else {
@@ -189,7 +186,7 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
         write!(sql, "VALUES(").unwrap();
-        col.prepare(sql.as_writer(), self.quote());
+        self.prepare_iden(col, sql);
         write!(sql, ")").unwrap();
     }
 

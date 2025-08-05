@@ -1,7 +1,7 @@
 use inherent::inherent;
 
 use crate::{
-    backend::SchemaBuilder, types::*, ForeignKeyAction, SchemaStatementBuilder, TableForeignKey,
+    ForeignKeyAction, SchemaStatementBuilder, TableForeignKey, backend::SchemaBuilder, types::*,
 };
 
 /// Create a foreign key constraint for an existing table. Unsupported by Sqlite

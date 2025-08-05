@@ -3,7 +3,10 @@ use super::*;
 impl ForeignKeyBuilder for SqliteQueryBuilder {
     fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            // Support only "naked" table names with no schema or alias.
+            TableRef::Table(TableName(None, _), None) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
             _ => panic!("Not supported"),
         }
     }
@@ -15,7 +18,9 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         mode: Mode,
     ) {
         if mode != Mode::Creation {
-            panic!("Sqlite does not support modification of foreign key constraints to existing tables");
+            panic!(
+                "Sqlite does not support modification of foreign key constraints to existing tables"
+            );
         }
 
         write!(sql, "DROP FOREIGN KEY ").unwrap();
@@ -38,7 +43,9 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         mode: Mode,
     ) {
         if mode != Mode::Creation {
-            panic!("Sqlite does not support modification of foreign key constraints to existing tables");
+            panic!(
+                "Sqlite does not support modification of foreign key constraints to existing tables"
+            );
         }
 
         write!(sql, "FOREIGN KEY (").unwrap();
@@ -46,7 +53,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             if !first {
                 write!(sql, ", ").unwrap();
             }
-            col.prepare(sql.as_writer(), self.quote());
+            self.prepare_iden(col, sql);
             false
         });
         write!(sql, ")").unwrap();
@@ -64,7 +71,7 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
                 if !first {
                     write!(sql, ", ").unwrap();
                 }
-                col.prepare(sql.as_writer(), self.quote());
+                self.prepare_iden(col, sql);
                 false
             });
         write!(sql, ")").unwrap();
