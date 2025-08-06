@@ -197,6 +197,59 @@ error[E0603]: enum `ConditionExpression` is private
 // simply do the following
 Cond::all().add(Expr::new(..))
 ```
+* Reworked `ColumnRef` variants may cause compile error.
+```rust
+error[E0277]: the trait bound `fn(std::option::Option<TableName>) -> sea_query::ColumnRef {sea_query::ColumnRef::Asterisk}: IntoColumnRef` is not satisfied
+    --> src/executor/query.rs:1599:21
+    |
+ >  |             .column(ColumnRef::Asterisk)
+    |              ------ ^^^^^^^^^^^^^^^^^^^ the trait `sea_query::Iden` is not implemented for fn item `fn(std::option::Option<TableName>) -> sea_query::ColumnRef {sea_query::ColumnRef::Asterisk}`
+    |              |
+    |              required by a bound introduced by this call
+
+error[E0308]: mismatched types
+    --> src/executor/query.rs:1607:54
+    |
+ >  |                 SimpleExpr::Column(ColumnRef::Column("id".into_iden()))
+    |                                    ----------------- ^^^^^^^^^^^^^^^^ expected `ColumnName`, found `DynIden`
+    |                                    |
+    |                                    arguments to this enum variant are incorrect
+```
+In the former case `Asterisk` has an additional inner `Option<TableName>`, you can simply put `None`.
+```rust
+.column(ColumnRef::Asterisk(None))
+```
+In the latter case, `&'static str` can now be used in most methods that accepts `ColumnRef`.
+```rust
+Expr::column("id")
+```
+* Reworked `TableRef` variants may cause compile error.
+```rust
+error[E0061]: this enum variant takes 2 arguments but 1 argument was supplied
+   --> src/entity/relation.rs:526:15
+    |
+ >  |     from_tbl: TableRef::Table("foo".into_iden()),
+    |               ^^^^^^^^^^^^^^^-------------------
+    |                              ||
+    |                              |expected `TableName`, found `DynIden`
+    |                              argument #2 of type `Option<DynIden>` is missing
+```
+It's recommended to use the `IntoTableRef` trait to convert types instead of constructing AST manually.
+```rust
+use sea_orm::sea_query::IntoTableRef;
+
+from_tbl: "foo".into_table_ref(),
+```
+* Unboxed `Value` variants may cause compile error. Simply remove the `Box` in these cases https://github.com/SeaQL/sea-query/pull/925
+```rust
+error[E0308]: mismatched types
+   --> /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sea-schema-0.17.0-rc.3/src/sqlite/def/table.rs:248:59
+    |
+ >  | Value::String(Some(Box::new(string_value.to_string()))));
+    |               ---- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `String`, found `Box<String>`
+    |               |
+    |               arguments to this enum variant are incorrect
+```
 
 ### Minor breaking changes
 
