@@ -717,36 +717,36 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Function`] into SQL statement.
-    fn prepare_function_name_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
-        if let Function::Custom(iden) = function {
+    fn prepare_function_name_common(&self, function: &Func, sql: &mut dyn SqlWriter) {
+        if let Func::Custom(iden) = function {
             write!(sql, "{iden}").unwrap()
         } else {
             write!(
                 sql,
                 "{}",
                 match function {
-                    Function::Max => "MAX",
-                    Function::Min => "MIN",
-                    Function::Sum => "SUM",
-                    Function::Avg => "AVG",
-                    Function::Abs => "ABS",
-                    Function::Coalesce => "COALESCE",
-                    Function::Count => "COUNT",
-                    Function::IfNull => self.if_null_function(),
-                    Function::Greatest => self.greatest_function(),
-                    Function::Least => self.least_function(),
-                    Function::CharLength => self.char_length_function(),
-                    Function::Cast => "CAST",
-                    Function::Lower => "LOWER",
-                    Function::Upper => "UPPER",
-                    Function::BitAnd => "BIT_AND",
-                    Function::BitOr => "BIT_OR",
-                    Function::Custom(_) => "",
-                    Function::Random => self.random_function(),
-                    Function::Round => "ROUND",
-                    Function::Md5 => "MD5",
+                    Func::Max => "MAX",
+                    Func::Min => "MIN",
+                    Func::Sum => "SUM",
+                    Func::Avg => "AVG",
+                    Func::Abs => "ABS",
+                    Func::Coalesce => "COALESCE",
+                    Func::Count => "COUNT",
+                    Func::IfNull => self.if_null_function(),
+                    Func::Greatest => self.greatest_function(),
+                    Func::Least => self.least_function(),
+                    Func::CharLength => self.char_length_function(),
+                    Func::Cast => "CAST",
+                    Func::Lower => "LOWER",
+                    Func::Upper => "UPPER",
+                    Func::BitAnd => "BIT_AND",
+                    Func::BitOr => "BIT_OR",
+                    Func::Custom(_) => "",
+                    Func::Random => self.random_function(),
+                    Func::Round => "ROUND",
+                    Func::Md5 => "MD5",
                     #[cfg(feature = "backend-postgres")]
-                    Function::PgFunction(_) => unimplemented!(),
+                    Func::PgFunction(_) => unimplemented!(),
                 }
             )
             .unwrap();
@@ -906,7 +906,7 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_function_name(&self, function: &Function, sql: &mut dyn SqlWriter) {
+    fn prepare_function_name(&self, function: &Func, sql: &mut dyn SqlWriter) {
         self.prepare_function_name_common(function, sql)
     }
 

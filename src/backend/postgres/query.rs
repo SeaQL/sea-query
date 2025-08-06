@@ -111,31 +111,31 @@ impl QueryBuilder for PostgresQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_function_name(&self, function: &Function, sql: &mut dyn SqlWriter) {
+    fn prepare_function_name(&self, function: &Func, sql: &mut dyn SqlWriter) {
         match function {
-            Function::PgFunction(function) => write!(
+            Func::PgFunction(function) => write!(
                 sql,
                 "{}",
                 match function {
-                    PgFunction::ToTsquery => "TO_TSQUERY",
-                    PgFunction::ToTsvector => "TO_TSVECTOR",
-                    PgFunction::PhrasetoTsquery => "PHRASETO_TSQUERY",
-                    PgFunction::PlaintoTsquery => "PLAINTO_TSQUERY",
-                    PgFunction::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
-                    PgFunction::TsRank => "TS_RANK",
-                    PgFunction::TsRankCd => "TS_RANK_CD",
-                    PgFunction::StartsWith => "STARTS_WITH",
-                    PgFunction::GenRandomUUID => "GEN_RANDOM_UUID",
-                    PgFunction::JsonBuildObject => "JSON_BUILD_OBJECT",
-                    PgFunction::JsonAgg => "JSON_AGG",
-                    PgFunction::ArrayAgg => "ARRAY_AGG",
-                    PgFunction::DateTrunc => "DATE_TRUNC",
+                    PgFunc::ToTsquery => "TO_TSQUERY",
+                    PgFunc::ToTsvector => "TO_TSVECTOR",
+                    PgFunc::PhrasetoTsquery => "PHRASETO_TSQUERY",
+                    PgFunc::PlaintoTsquery => "PLAINTO_TSQUERY",
+                    PgFunc::WebsearchToTsquery => "WEBSEARCH_TO_TSQUERY",
+                    PgFunc::TsRank => "TS_RANK",
+                    PgFunc::TsRankCd => "TS_RANK_CD",
+                    PgFunc::StartsWith => "STARTS_WITH",
+                    PgFunc::GenRandomUUID => "GEN_RANDOM_UUID",
+                    PgFunc::JsonBuildObject => "JSON_BUILD_OBJECT",
+                    PgFunc::JsonAgg => "JSON_AGG",
+                    PgFunc::ArrayAgg => "ARRAY_AGG",
+                    PgFunc::DateTrunc => "DATE_TRUNC",
                     #[cfg(feature = "postgres-array")]
-                    PgFunction::Any => "ANY",
+                    PgFunc::Any => "ANY",
                     #[cfg(feature = "postgres-array")]
-                    PgFunction::Some => "SOME",
+                    PgFunc::Some => "SOME",
                     #[cfg(feature = "postgres-array")]
-                    PgFunction::All => "ALL",
+                    PgFunc::All => "ALL",
                 }
             )
             .unwrap(),
