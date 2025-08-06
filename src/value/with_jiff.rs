@@ -3,9 +3,9 @@ use jiff::{Timestamp, Zoned, civil};
 
 type_to_value!(civil::Date, JiffDate, Date);
 type_to_value!(civil::Time, JiffTime, Time);
-type_to_box_value!(civil::DateTime, JiffDateTime, DateTime);
-type_to_box_value!(Timestamp, JiffTimestamp, Timestamp);
-type_to_box_value!(Zoned, JiffZoned, TimestampWithTimeZone);
+type_to_value!(civil::DateTime, JiffDateTime, DateTime);
+type_to_value!(Timestamp, JiffTimestamp, Timestamp);
+type_to_value!(Zoned, JiffZoned, TimestampWithTimeZone);
 
 impl Value {
     #[inline]
@@ -20,17 +20,17 @@ impl Value {
 
     #[inline]
     pub fn jiff_date_time<T: Into<Option<civil::DateTime>>>(v: T) -> Value {
-        Value::JiffDateTime(v.into().map(Into::into))
+        Value::JiffDateTime(v.into())
     }
 
     #[inline]
     pub fn jiff_timestamp<T: Into<Option<Timestamp>>>(v: T) -> Value {
-        Value::JiffTimestamp(v.into().map(Into::into))
+        Value::JiffTimestamp(v.into())
     }
 
     #[inline]
     pub fn jiff_zoned<T: Into<Option<Zoned>>>(v: T) -> Value {
-        Value::JiffZoned(v.into().map(Into::into))
+        Value::JiffZoned(v.into())
     }
 }
 
@@ -71,21 +71,21 @@ impl Value {
 
     pub fn as_ref_jiff_date_time(&self) -> Option<&civil::DateTime> {
         match self {
-            Self::JiffDateTime(v) => v.as_deref(),
+            Self::JiffDateTime(v) => v.as_ref(),
             _ => panic!("not Value::JiffDateTime"),
         }
     }
 
     pub fn as_ref_jiff_timestamp(&self) -> Option<&Timestamp> {
         match self {
-            Self::JiffTimestamp(v) => v.as_deref(),
+            Self::JiffTimestamp(v) => v.as_ref(),
             _ => panic!("not Value::JiffTimestamp"),
         }
     }
 
     pub fn as_ref_jiff_zoned(&self) -> Option<&Zoned> {
         match self {
-            Self::JiffZoned(v) => v.as_deref(),
+            Self::JiffZoned(v) => v.as_ref(),
             _ => panic!("not Value::JiffZoned"),
         }
     }
