@@ -6,13 +6,13 @@ macro_rules! fmt_uuid_to_box_value {
     ( $type: ty, $conversion_fn: ident ) => {
         impl From<$type> for Value {
             fn from(x: $type) -> Value {
-                Value::Uuid(Some(x.into_uuid()))
+                Value::uuid(x.into_uuid())
             }
         }
 
         impl Nullable for $type {
             fn null() -> Value {
-                Value::Uuid(None)
+                Value::uuid(None)
             }
         }
 
@@ -45,6 +45,11 @@ fmt_uuid_to_box_value!(uuid::fmt::Simple, simple);
 fmt_uuid_to_box_value!(uuid::fmt::Urn, urn);
 
 impl Value {
+    #[inline]
+    pub fn uuid<T: Into<Option<Uuid>>>(value: T) -> Self {
+        Self::Uuid(value.into())
+    }
+
     pub fn is_uuid(&self) -> bool {
         matches!(self, Self::Uuid(_))
     }

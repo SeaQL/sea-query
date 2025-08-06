@@ -75,7 +75,7 @@ fn create_3() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None))
+                    .default(Value::int(None))
             )
             .foreign_key(
                 ForeignKey::create()
@@ -717,7 +717,7 @@ fn create_19() {
             .col(
                 ColumnDef::new(Char::FontId)
                     .integer()
-                    .default(Value::Int(None)),
+                    .default(Value::int(None)),
             )
             .index(
                 Index::create()
