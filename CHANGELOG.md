@@ -193,8 +193,8 @@ error[E0603]: enum `ConditionExpression` is private
  >  |     Cond::all().add(ConditionExpression::Expr(Expr::new(
     |                     ^^^^^^^^^^^^^^^^^^^ use of undeclared type `ConditionExpression`
 ```
+Simply do the following:
 ```rust
-// simply do the following
 Cond::all().add(Expr::new(..))
 ```
 * Reworked `ColumnRef` variants may cause compile error.
@@ -240,6 +240,9 @@ use sea_orm::sea_query::IntoTableRef;
 
 from_tbl: "foo".into_table_ref(),
 ```
+
+### Minor breaking changes
+
 * Unboxed `Value` variants may cause compile error. Simply remove the `Box` in these cases https://github.com/SeaQL/sea-query/pull/925
 ```rust
 error[E0308]: mismatched types
@@ -250,9 +253,6 @@ error[E0308]: mismatched types
     |               |
     |               arguments to this enum variant are incorrect
 ```
-
-### Minor breaking changes
-
 * Blanket-implemented `SqliteExpr` and `PgExpr` for `T where T: ExprTrait` https://github.com/SeaQL/sea-query/pull/914
 
   Now you can use database-specific operators with all expression types.
