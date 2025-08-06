@@ -665,6 +665,10 @@ pub trait ValueType: Sized {
         Self::try_from(v).expect(msg)
     }
 
+    fn is_option() -> bool {
+        false
+    }
+
     fn type_name() -> String;
 
     fn array_type() -> ArrayType;
@@ -686,6 +690,10 @@ where
         } else {
             Ok(Some(T::try_from(v)?))
         }
+    }
+
+    fn is_option() -> bool {
+        true
     }
 
     fn type_name() -> String {

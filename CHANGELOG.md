@@ -264,7 +264,11 @@ error[E0308]: mismatched types
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
 
-## 0.32.7 - pending
+## 0.32.7 - 2025-08-06
+
+### Enhancements
+
+* Added `ValueType::is_option`
 
 ### Bug Fixes
 
