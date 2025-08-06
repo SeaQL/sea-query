@@ -1,5 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![warn(clippy::nursery)]
+#![warn(clippy::nursery, clippy::pedantic)]
 #![deny(missing_debug_implementations)]
 #![forbid(unsafe_code)]
 #![allow(
