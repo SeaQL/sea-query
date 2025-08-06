@@ -737,7 +737,7 @@ fn select_48() {
         .from(Glyph::Table)
         .cond_where(
             Cond::all().add_option(Some(
-                Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::value(100)])
+                Expr::tuple([Expr::col(Glyph::Aspect), Expr::value(100)])
                     .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
             )),
         )
@@ -757,7 +757,7 @@ fn select_48a() {
         .cond_where(
             Cond::all().add_option(Some(
                 Expr::tuple([
-                    Expr::col(Glyph::Aspect).into(),
+                    Expr::col(Glyph::Aspect),
                     Expr::value(String::from("100")),
                 ])
                 .in_tuples([(8, String::from("100"))]),
