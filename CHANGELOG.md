@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 0.32.7 - pending
+## 0.32.7 - 2025-08-06
+
+### Enhancements
+
+* Added `ValueType::is_option`
 
 ### Bug Fixes
 
