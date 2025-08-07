@@ -87,8 +87,7 @@ impl CommonTableExpression {
         T: IntoIden,
         I: IntoIterator<Item = T>,
     {
-        self.cols
-            .extend(cols.into_iter().map(|col| col.into_iden()));
+        self.cols.extend(cols.into_iter().map(IntoIden::into_iden));
         self
     }
 

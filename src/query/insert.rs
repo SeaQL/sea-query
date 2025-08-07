@@ -130,7 +130,7 @@ impl InsertStatement {
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
+        self.columns = columns.into_iter().map(IntoIden::into_iden).collect();
         self
     }
 

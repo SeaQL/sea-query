@@ -166,7 +166,7 @@ impl TableIndex {
     pub fn get_column_names(&self) -> Vec<String> {
         self.columns
             .iter()
-            .filter_map(|col| col.name().map(|name| name.to_string()))
+            .filter_map(|col| col.name().map(ToString::to_string))
             .collect()
     }
 
