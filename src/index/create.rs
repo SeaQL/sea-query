@@ -208,6 +208,7 @@ use super::common::*;
 /// );
 /// ```
 #[derive(Default, Debug, Clone)]
+#[expect(clippy::struct_excessive_bools, reason = "Not a state machine")]
 pub struct IndexCreateStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
