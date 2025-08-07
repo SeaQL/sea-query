@@ -53,10 +53,10 @@ impl Tokenizer {
             }
             self.inc();
         }
-        if !string.is_empty() {
-            Some(Token::Space(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Space(string))
         }
     }
 
@@ -76,10 +76,10 @@ impl Tokenizer {
                 break;
             }
         }
-        if !string.is_empty() {
-            Some(Token::Unquoted(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Unquoted(string))
         }
     }
 
@@ -101,11 +101,11 @@ impl Tokenizer {
                 if self.end() {
                     break;
                 }
-                if !Self::is_string_escape_for(start, self.get()) {
-                    break;
-                } else {
+                if Self::is_string_escape_for(start, self.get()) {
                     write!(string, "{}", self.get()).unwrap();
                     self.inc();
+                } else {
+                    break;
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
@@ -115,10 +115,10 @@ impl Tokenizer {
                 break;
             }
         }
-        if !string.is_empty() {
-            Some(Token::Quoted(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Quoted(string))
         }
     }
 
@@ -139,11 +139,11 @@ impl Tokenizer {
                 if self.end() {
                     break;
                 }
-                if !Self::is_string_escape_for(start, self.get()) {
-                    break;
-                } else {
+                if Self::is_string_escape_for(start, self.get()) {
                     write!(string, "{c}").unwrap();
                     self.inc();
+                } else {
+                    break;
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
@@ -165,10 +165,10 @@ impl Tokenizer {
                 self.inc();
             }
         }
-        if !string.is_empty() {
-            Some(Token::Punctuation(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Punctuation(string))
         }
     }
 

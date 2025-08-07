@@ -450,10 +450,10 @@ impl SelectStatement {
             .into_iter()
             .map(|col| col.into_column_ref())
             .collect::<Vec<ColumnRef>>();
-        self.distinct = if !cols.is_empty() {
-            Some(SelectDistinct::DistinctOn(cols))
-        } else {
+        self.distinct = if cols.is_empty() {
             None
+        } else {
+            Some(SelectDistinct::DistinctOn(cols))
         };
         self
     }
