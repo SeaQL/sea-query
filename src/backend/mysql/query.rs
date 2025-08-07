@@ -90,16 +90,12 @@ impl QueryBuilder for MysqlQueryBuilder {
         column: &DynIden,
         sql: &mut dyn SqlWriter,
     ) {
-        use std::ops::Deref;
-
         if !from.is_empty() {
-            if let Some(table) = table {
+            if let Some(TableRef::Table(TableName(None, table), None)) = table.as_deref() {
                 // Support only "naked" table names with no schema or alias.
-                if let TableRef::Table(TableName(None, table), None) = table.deref() {
-                    let column_name = ColumnName::from((table.clone(), column.clone()));
-                    self.prepare_column_ref(&ColumnRef::Column(column_name), sql);
-                    return;
-                }
+                let column_name = ColumnName::from((table.clone(), column.clone()));
+                self.prepare_column_ref(&ColumnRef::Column(column_name), sql);
+                return;
             }
         }
         self.prepare_iden(column, sql);

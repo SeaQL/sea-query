@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use crate::*;
 
 const QUOTE: Quote = Quote(b'"', b'"');
@@ -74,7 +72,7 @@ pub trait QueryBuilder:
                         });
                     }
                     InsertValueSource::Select(select_query) => {
-                        self.prepare_select_statement(select_query.deref(), sql);
+                        self.prepare_select_statement(select_query, sql);
                     }
                 }
             }
@@ -396,7 +394,7 @@ pub trait QueryBuilder:
                     self.prepare_sub_query_oper(oper, sql);
                 }
                 write!(sql, "(").unwrap();
-                self.prepare_query_statement(sel.deref(), sql);
+                self.prepare_query_statement(sel, sql);
                 write!(sql, ")").unwrap();
             }
             Expr::Value(val) => {
@@ -772,7 +770,7 @@ pub trait QueryBuilder:
 
     fn prepare_with_query(&self, query: &WithQuery, sql: &mut dyn SqlWriter) {
         self.prepare_with_clause(&query.with_clause, sql);
-        self.prepare_query_statement(query.query.as_ref().unwrap().deref(), sql);
+        self.prepare_query_statement(query.query.as_ref().unwrap(), sql);
     }
 
     fn prepare_with_clause(&self, with_clause: &WithClause, sql: &mut dyn SqlWriter) {
@@ -870,7 +868,7 @@ pub trait QueryBuilder:
 
         write!(sql, "(").unwrap();
 
-        self.prepare_query_statement(cte.query.as_ref().unwrap().deref(), sql);
+        self.prepare_query_statement(cte.query.as_ref().unwrap(), sql);
 
         write!(sql, ") ").unwrap();
     }
