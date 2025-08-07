@@ -157,7 +157,9 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         match on_conflict_action {
             Some(OnConflictAction::DoNothing(pk_cols)) => {
-                if !pk_cols.is_empty() {
+                if pk_cols.is_empty() {
+                    write!(sql, " IGNORE").unwrap();
+                } else {
                     self.prepare_on_conflict_do_update_keywords(sql);
                     pk_cols.iter().fold(true, |first, pk_col| {
                         if !first {
@@ -168,8 +170,6 @@ impl QueryBuilder for MysqlQueryBuilder {
                         self.prepare_iden(pk_col, sql);
                         false
                     });
-                } else {
-                    write!(sql, " IGNORE").unwrap();
                 }
             }
             _ => self.prepare_on_conflict_action_common(on_conflict_action, sql),
