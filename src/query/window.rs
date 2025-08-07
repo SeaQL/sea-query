@@ -103,7 +103,7 @@ impl WindowStatement {
     }
 
     /// Construct a new [`WindowStatement`] with PARTITION BY custom
-    pub fn partition_by_custom<T>(col: T) -> Self
+    pub fn partition_by_custom<T>(col: &T) -> Self
     where
         T: ToString,
     {

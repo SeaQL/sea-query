@@ -100,7 +100,7 @@ impl SeaRc {
     /// Note that most `Iden`s are statically known
     /// and their representations aren't actually "rendered" and allocated at runtime.
     #[allow(clippy::new_ret_no_self)]
-    pub fn new<I>(i: I) -> DynIden
+    pub fn new<I>(i: &I) -> DynIden
     where
         I: Iden,
     {

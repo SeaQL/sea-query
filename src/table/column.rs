@@ -187,7 +187,7 @@ pub enum ColumnSpec {
 }
 
 // All interval fields
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum PgInterval {
     Year,
@@ -206,7 +206,7 @@ pub enum PgInterval {
 }
 
 // All possible inputs to DATE_TRUNC (https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC)
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum PgDateTruncUnit {
     Microseconds,
