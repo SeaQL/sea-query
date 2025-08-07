@@ -18,8 +18,3 @@ cd ..
 cd sea-query-rusqlite
 cargo publish
 cd ..
-
-# publish `sea-query-postgres`
-cd sea-query-postgres
-cargo publish
-cd ..
