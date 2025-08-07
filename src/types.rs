@@ -787,7 +787,7 @@ impl NullAlias {
 }
 
 impl Iden for NullAlias {
-    fn unquoted(&self) -> &str {
+    fn unquoted(&self) -> &'static str {
         ""
     }
 }

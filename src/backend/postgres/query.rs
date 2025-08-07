@@ -192,7 +192,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         write!(buffer, "'").unwrap();
     }
 
-    fn if_null_function(&self) -> &str {
+    fn if_null_function(&self) -> &'static str {
         "COALESCE"
     }
 }

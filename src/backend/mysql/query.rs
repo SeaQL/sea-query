@@ -2,7 +2,7 @@ use super::*;
 use crate::extension::mysql::*;
 
 impl QueryBuilder for MysqlQueryBuilder {
-    fn values_list_tuple_prefix(&self) -> &str {
+    fn values_list_tuple_prefix(&self) -> &'static str {
         "ROW"
     }
 
@@ -194,11 +194,11 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_returning(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
 
-    fn random_function(&self) -> &str {
+    fn random_function(&self) -> &'static str {
         "RAND"
     }
 
-    fn insert_default_keyword(&self) -> &str {
+    fn insert_default_keyword(&self) -> &'static str {
         "()"
     }
 }

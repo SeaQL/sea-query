@@ -76,15 +76,15 @@ impl QueryBuilder for SqliteQueryBuilder {
         sql.push_param(value, self as _);
     }
 
-    fn greatest_function(&self) -> &str {
+    fn greatest_function(&self) -> &'static str {
         "MAX"
     }
 
-    fn least_function(&self) -> &str {
+    fn least_function(&self) -> &'static str {
         "MIN"
     }
 
-    fn char_length_function(&self) -> &str {
+    fn char_length_function(&self) -> &'static str {
         "LENGTH"
     }
 
