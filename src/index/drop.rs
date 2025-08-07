@@ -32,6 +32,7 @@ pub struct IndexDropStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
     pub(crate) if_exists: bool,
+    pub(crate) concurrently: bool,
 }
 
 impl IndexDropStatement {
@@ -60,6 +61,12 @@ impl IndexDropStatement {
 
     pub fn if_exists(&mut self) -> &mut Self {
         self.if_exists = true;
+        self
+    }
+
+    /// Set index to be dropped concurrently. Only available on Postgres.
+    pub fn concurrently(&mut self) -> &mut Self {
+        self.concurrently = true;
         self
     }
 }
