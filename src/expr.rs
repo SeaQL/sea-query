@@ -28,6 +28,7 @@ pub type SimpleExpr = Expr;
 /// workaround, and consider reporting your issue.
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
+#[must_use]
 pub enum Expr {
     Column(ColumnRef),
     Tuple(Vec<Expr>),
@@ -1528,7 +1529,6 @@ impl Expr {
     }
 
     #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
-    #[must_use]
     pub fn asterisk() -> Self {
         Self::col(Asterisk)
     }
@@ -2023,7 +2023,6 @@ impl Expr {
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
-    #[must_use]
     pub fn max(self) -> Self {
         Func::max(self).into()
     }
@@ -2053,7 +2052,6 @@ impl Expr {
     ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// ```
-    #[must_use]
     pub fn min(self) -> Self {
         Func::min(self).into()
     }
@@ -2083,7 +2081,6 @@ impl Expr {
     ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// ```
-    #[must_use]
     pub fn sum(self) -> Self {
         Func::sum(self).into()
     }
@@ -2113,7 +2110,6 @@ impl Expr {
     ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// ```
-    #[must_use]
     pub fn count(self) -> Self {
         Func::count(self).into()
     }
@@ -2143,7 +2139,6 @@ impl Expr {
     ///     r#"SELECT COUNT(DISTINCT "character"."size_w") FROM "character""#
     /// );
     /// ```
-    #[must_use]
     pub fn count_distinct(self) -> Self {
         Func::count_distinct(self).into()
     }
@@ -2205,7 +2200,6 @@ impl Expr {
     ///     r#"SELECT EXISTS(SELECT "id" FROM "character") AS "character_exists", EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
     /// );
     /// ```
-    #[must_use]
     pub fn exists(sel: SelectStatement) -> Self {
         Self::SubQuery(Some(SubQueryOper::Exists), Box::new(sel.into()))
     }
@@ -2234,7 +2228,6 @@ impl Expr {
     ///     r#"SELECT "id" FROM "character" WHERE "id" = ANY(SELECT "id" FROM "character")"#
     /// );
     /// ```
-    #[must_use]
     pub fn any(sel: SelectStatement) -> Self {
         Self::SubQuery(Some(SubQueryOper::Any), Box::new(sel.into()))
     }
@@ -2263,13 +2256,11 @@ impl Expr {
     ///     r#"SELECT "id" FROM "character" WHERE "id" <> SOME(SELECT "id" FROM "character")"#
     /// );
     /// ```
-    #[must_use]
     pub fn some(sel: SelectStatement) -> Self {
         Self::SubQuery(Some(SubQueryOper::Some), Box::new(sel.into()))
     }
 
     /// Express a `ALL` sub-query expression.
-    #[must_use]
     pub fn all(sel: SelectStatement) -> Self {
         Self::SubQuery(Some(SubQueryOper::All), Box::new(sel.into()))
     }
@@ -2325,7 +2316,6 @@ impl Expr {
     ///     r#"SELECT CURRENT_DATE"#
     /// );
     /// ```
-    #[must_use]
     pub fn current_date() -> Self {
         Self::Keyword(Keyword::CurrentDate)
     }
@@ -2349,7 +2339,6 @@ impl Expr {
     ///     r#"SELECT CURRENT_TIME"#
     /// );
     /// ```
-    #[must_use]
     pub fn current_time() -> Self {
         Self::Keyword(Keyword::CurrentTime)
     }
@@ -2376,7 +2365,6 @@ impl Expr {
     ///     r#"SELECT CURRENT_TIMESTAMP"#
     /// );
     /// ```
-    #[must_use]
     pub fn current_timestamp() -> Self {
         Self::Keyword(Keyword::CurrentTimestamp)
     }

@@ -56,6 +56,7 @@ impl UpdateStatement {
         Self::default()
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),

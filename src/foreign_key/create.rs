@@ -172,6 +172,7 @@ impl ForeignKeyCreateStatement {
         &self.foreign_key
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             foreign_key: self.foreign_key.take(),

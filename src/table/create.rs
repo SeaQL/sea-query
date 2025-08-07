@@ -414,6 +414,7 @@ impl TableCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),

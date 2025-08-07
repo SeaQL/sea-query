@@ -66,6 +66,7 @@ impl InsertStatement {
     }
 
     /// Take the ownership of data in the current [`SelectStatement`]
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             replace: self.replace,

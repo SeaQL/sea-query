@@ -85,6 +85,7 @@ impl WindowStatement {
         Self::default()
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             partition_by: std::mem::take(&mut self.partition_by),

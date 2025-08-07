@@ -870,6 +870,7 @@ impl ColumnDef {
         self.spec.as_ref()
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),

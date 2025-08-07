@@ -69,6 +69,7 @@ impl Condition {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
+    #[must_use]
     pub fn add<C>(mut self, condition: C) -> Self
     where
         C: Into<Condition>,
@@ -104,6 +105,7 @@ impl Condition {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
+    #[must_use]
     pub fn add_option<C>(self, other: Option<C>) -> Self
     where
         C: Into<Condition>,

@@ -825,6 +825,7 @@ impl FunctionCall {
     }
 
     /// Append an argument to the function call
+    #[must_use]
     pub fn arg<T>(self, arg: T) -> Self
     where
         T: Into<Expr>,
@@ -842,6 +843,7 @@ impl FunctionCall {
     }
 
     /// Replace the arguments of the function call
+    #[must_use]
     pub fn args<I>(mut self, args: I) -> Self
     where
         I: IntoIterator<Item = Expr>,
@@ -856,7 +858,6 @@ impl FunctionCall {
         &self.func
     }
 
-    #[must_use]
     pub fn get_args(&self) -> &[Expr] {
         &self.args
     }

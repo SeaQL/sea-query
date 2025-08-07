@@ -156,6 +156,7 @@ impl SelectStatement {
     }
 
     /// Take the ownership of data in the current [`SelectStatement`]
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             distinct: self.distinct.take(),

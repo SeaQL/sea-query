@@ -91,6 +91,7 @@ pub enum TypeDropOpt {
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
+#[must_use]
 pub enum TypeAlterOpt {
     Add {
         value: DynIden,
@@ -342,6 +343,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive'"#
     /// );
     /// ```
+    #[must_use]
     pub fn name<T>(mut self, name: T) -> Self
     where
         T: IntoTypeRef,
@@ -350,6 +352,7 @@ impl TypeAlterStatement {
         self
     }
 
+    #[must_use]
     pub fn add_value<T>(self, value: T) -> Self
     where
         T: IntoIden,
@@ -375,6 +378,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
     /// )
     /// ```
+    #[must_use]
     pub fn before<T>(mut self, value: T) -> Self
     where
         T: IntoIden,
@@ -385,6 +389,7 @@ impl TypeAlterStatement {
         self
     }
 
+    #[must_use]
     pub fn after<T>(mut self, value: T) -> Self
     where
         T: IntoIden,
@@ -418,6 +423,7 @@ impl TypeAlterStatement {
         self
     }
 
+    #[must_use]
     pub fn rename_to<T>(self, name: T) -> Self
     where
         T: IntoIden,
@@ -438,6 +444,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )
     /// ```
+    #[must_use]
     pub fn rename_value<T, V>(self, existing: T, new_name: V) -> Self
     where
         T: IntoIden,
@@ -495,7 +502,6 @@ impl TypeAlterOpt {
     }
 
     /// Changes only `ADD VALUE x` options into `ADD VALUE IF NOT EXISTS x` options, does nothing otherwise
-    #[must_use]
     pub fn if_not_exists(self) -> Self {
         match self {
             TypeAlterOpt::Add {

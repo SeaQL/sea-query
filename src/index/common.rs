@@ -172,6 +172,7 @@ impl TableIndex {
             .collect()
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             name: self.name.take(),

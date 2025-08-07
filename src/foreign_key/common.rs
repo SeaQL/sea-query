@@ -130,6 +130,7 @@ impl TableForeignKey {
         self.on_update
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             name: self.name.take(),

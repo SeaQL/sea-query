@@ -76,6 +76,7 @@ impl TableDropStatement {
         self
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             tables: std::mem::take(&mut self.tables),

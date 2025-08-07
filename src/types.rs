@@ -684,6 +684,7 @@ where
 
 impl TableRef {
     /// Add or replace the current alias
+    #[must_use]
     pub fn alias<A>(self, alias: A) -> Self
     where
         A: IntoIden,
