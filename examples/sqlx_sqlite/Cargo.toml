@@ -16,7 +16,7 @@ serde_json = "1"
 async-std = { version = "1.8", features = [ "attributes" ] }
 sqlx = "0.8"
 sea-query = { path = "../../" }
-sea-query-binder = { path = "../../sea-query-binder", features = [
+sea-query-sqlx = { path = "../../sea-query-sqlx", features = [
     "sqlx-sqlite",
     "with-chrono",
     "with-json",
@@ -27,4 +27,4 @@ sea-query-binder = { path = "../../sea-query-binder", features = [
 
 # NOTE: if you are copying this example into your own project, use the following line instead:
 # sea-query = { version = "1.0.0-rc.1" }
-# sea-query-binder = { version = "0", features = [...] }
+# sea-query-sqlx = { version = "0", features = [...] }

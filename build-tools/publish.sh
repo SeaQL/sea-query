@@ -9,8 +9,8 @@ cd ..
 # publish `sea-query`
 cargo publish
 
-# publish `sea-query-binder`
-cd sea-query-binder
+# publish `sea-query-sqlx`
+cd sea-query-sqlx
 cargo publish
 cd ..
 

@@ -2,7 +2,7 @@
 # A separate workspace
 
 [package]
-name = "sea-query-binder"
+name = "sea-query-sqlx"
 version = "0.8.0-rc.7"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2024"
