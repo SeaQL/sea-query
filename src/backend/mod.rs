@@ -179,6 +179,7 @@ impl Oper {
         )
     }
 
+    #[allow(clippy::match_wildcard_for_single_variants)]
     pub(crate) fn is_arithmetic(&self) -> bool {
         match self {
             Oper::BinOper(b) => {
@@ -191,6 +192,7 @@ impl Oper {
         }
     }
 
+    #[allow(clippy::match_wildcard_for_single_variants)]
     pub(crate) fn is_comparison(&self) -> bool {
         match self {
             Oper::BinOper(b) => {

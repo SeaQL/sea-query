@@ -263,7 +263,7 @@ fn wrap_result(access: Vec<QueryAccessRequest>) -> QueryAccessAudit {
                     AccessType::Insert => &mut insert_set,
                     AccessType::Update => &mut update_set,
                     AccessType::Delete => &mut delete_set,
-                    _ => todo!(),
+                    AccessType::Schema(_) => todo!(),
                 };
                 if set.contains(&access.schema_table) {
                     None
