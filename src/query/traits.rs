@@ -21,7 +21,7 @@ pub trait QueryStatementBuilder: Debug + Into<SubQueryStatement> {
         sql.to_string()
     }
 
-    /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
+    /// Build corresponding SQL statement into the [`SqlWriter`] for certain database backend and collect query parameters
     fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter);
 
     fn into_sub_query_statement(self) -> SubQueryStatement {
