@@ -198,7 +198,7 @@ impl TypeCreateStatement {
         T: IntoIden,
         I: IntoIterator<Item = T>,
     {
-        for v in values.into_iter() {
+        for v in values {
             self.values.push(v.into_iden());
         }
         self
@@ -275,7 +275,7 @@ impl TypeDropStatement {
         T: IntoTypeRef,
         I: IntoIterator<Item = T>,
     {
-        for n in names.into_iter() {
+        for n in names {
             self.names.push(n.into_type_ref());
         }
         self

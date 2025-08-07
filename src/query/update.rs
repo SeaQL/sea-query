@@ -176,7 +176,7 @@ impl UpdateStatement {
         T: IntoIden,
         I: IntoIterator<Item = (T, Expr)>,
     {
-        for (k, v) in values.into_iter() {
+        for (k, v) in values {
             self.values.push((k.into_iden(), Box::new(v)));
         }
         self
