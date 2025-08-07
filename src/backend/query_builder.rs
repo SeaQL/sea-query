@@ -136,7 +136,7 @@ pub trait QueryBuilder:
         }
 
         if !select.join.is_empty() {
-            for expr in select.join.iter() {
+            for expr in &select.join {
                 write!(sql, " ").unwrap();
                 self.prepare_join_expr(expr, sql);
             }
@@ -466,7 +466,7 @@ pub trait QueryBuilder:
 
         let CaseStatement { when, r#else } = stmts;
 
-        for case in when.iter() {
+        for case in when {
             write!(sql, " WHEN (").unwrap();
             self.prepare_condition_where(&case.condition, sql);
             write!(sql, ") THEN ").unwrap();

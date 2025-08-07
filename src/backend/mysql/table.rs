@@ -18,7 +18,7 @@ impl TableBuilder for MysqlQueryBuilder {
             self.prepare_column_type(column_type, sql);
         }
 
-        for column_spec in column_def.spec.iter() {
+        for column_spec in &column_def.spec {
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
         }
