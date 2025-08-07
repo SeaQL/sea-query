@@ -378,13 +378,13 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as tiny_integer
+    /// Set column type as tiny integer
     pub fn tiny_integer(&mut self) -> &mut Self {
         self.types = Some(ColumnType::TinyInteger);
         self
     }
 
-    /// Set column type as small_integer
+    /// Set column type as small integer
     pub fn small_integer(&mut self) -> &mut Self {
         self.types = Some(ColumnType::SmallInteger);
         self
@@ -396,19 +396,19 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as big_integer
+    /// Set column type as big integer
     pub fn big_integer(&mut self) -> &mut Self {
         self.types = Some(ColumnType::BigInteger);
         self
     }
 
-    /// Set column type as tiny_unsigned
+    /// Set column type as tiny unsigned
     pub fn tiny_unsigned(&mut self) -> &mut Self {
         self.types = Some(ColumnType::TinyUnsigned);
         self
     }
 
-    /// Set column type as small_unsigned
+    /// Set column type as small unsigned
     pub fn small_unsigned(&mut self) -> &mut Self {
         self.types = Some(ColumnType::SmallUnsigned);
         self
@@ -420,7 +420,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as big_unsigned
+    /// Set column type as big unsigned
     pub fn big_unsigned(&mut self) -> &mut Self {
         self.types = Some(ColumnType::BigUnsigned);
         self
@@ -450,7 +450,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as date_time
+    /// Set column type as date time
     pub fn date_time(&mut self) -> &mut Self {
         self.types = Some(ColumnType::DateTime);
         self

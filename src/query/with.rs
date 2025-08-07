@@ -5,26 +5,26 @@ use crate::{
 };
 use inherent::inherent;
 
-/// A table definition inside a WITH clause ([WithClause]).
+/// A table definition inside a WITH clause ([`WithClause`]).
 ///
-/// A WITH clause can contain one or multiple common table expressions ([CommonTableExpression]).
+/// A WITH clause can contain one or multiple common table expressions ([`CommonTableExpression`]).
 ///
 /// These named queries can act as a "query local table" that are materialized during execution and
 /// then can be used by the query prefixed with the WITH clause.
 ///
-/// A WITH clause can contain multiple of these [CommonTableExpression]. (Except in the case of
-/// recursive WITH query which can only contain one [CommonTableExpression]).
+/// A WITH clause can contain multiple of these [`CommonTableExpression`]. (Except in the case of
+/// recursive WITH query which can only contain one [`CommonTableExpression`]).
 ///
-/// A [CommonTableExpression] is a name, column names and a query returning data for those columns.
+/// A [`CommonTableExpression`] is a name, column names and a query returning data for those columns.
 ///
 /// Some databases (like sqlite) restrict the acceptable kinds of queries inside of the WITH clause
-/// common table expressions. These databases only allow [SelectStatement]s to form a common table
+/// common table expressions. These databases only allow [`SelectStatement`]s to form a common table
 /// expression.
 ///
 /// Other databases like postgres allow modification queries (UPDATE, DELETE) inside of the WITH
 /// clause but they have to return a table. (They must have a RETURNING clause).
 ///
-/// sea-query doesn't check this or restrict the kind of [CommonTableExpression] that you can create
+/// sea-query doesn't check this or restrict the kind of [`CommonTableExpression`] that you can create
 /// in rust. This means that you can put an UPDATE or DELETE queries into WITH clause and sea-query
 /// will succeed in generating that kind of sql query but the execution inside the database will
 /// fail because they are invalid.
@@ -33,7 +33,7 @@ use inherent::inherent;
 /// sense and valid for that database that you are using.
 ///
 /// NOTE that for recursive WITH queries (in sql: "WITH RECURSIVE") you can only have a
-/// single [CommonTableExpression] inside of the WITH clause. That query must match certain
+/// single [`CommonTableExpression`] inside of the WITH clause. That query must match certain
 /// requirements:
 ///   * It is a query of UNION or UNION ALL of two queries.
 ///   * The first part of the query (the left side of the UNION) must be executable first in itself.
@@ -41,11 +41,14 @@ use inherent::inherent;
 ///   * The self reference must appear in the right hand side of the UNION.
 ///   * The query can only have a single self-reference.
 ///   * Recursive data-modifying statements are not supported, but you can use the results of a
-///     recursive SELECT query in a data-modifying statement. (like so: WITH RECURSIVE
-///     cte_name(a,b,c,d) AS (SELECT ... UNION SELECT ... FROM ... JOIN cte_name ON ... WHERE ...)
-///     DELETE FROM table WHERE table.a = cte_name.a)
-///
-/// It is mandatory to set the [Self::table_name] and the [Self::query].
+///     recursive SELECT query in a data-modifying statement.
+///     like so:
+///     ```sql
+///     WITH RECURSIVE
+///         cte_name(a,b,c,d) AS (SELECT ... UNION SELECT ... FROM ... JOIN cte_name ON ... WHERE ...)
+///     DELETE FROM table WHERE table.a = cte_name.a
+///     ```
+/// It is mandatory to set the [`Self::table_name`] the [`Self::query`].
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
@@ -90,7 +93,7 @@ impl CommonTableExpression {
     }
 
     /// Some databases allow you to put "MATERIALIZED" or "NOT MATERIALIZED" in the CTE definition.
-    /// This will affect how during the execution of [WithQuery] the CTE in the [WithClause] will be
+    /// This will affect how during the execution of [`WithQuery`] the CTE in the [`WithClause`] will be
     /// executed. If the database doesn't support this syntax this option specified here will be
     /// ignored and not appear in the generated sql.
     pub fn materialized(&mut self, materialized: bool) -> &mut Self {
@@ -129,7 +132,7 @@ impl CommonTableExpression {
         self.table_name = Some(format!("cte_{iden}").into_iden())
     }
 
-    /// Set up the columns of the CTE to match the given [SelectStatement] selected columns.
+    /// Set up the columns of the CTE to match the given [`SelectStatement`] selected columns.
     /// This will fail if the select contains non named columns like expressions of wildcards.
     ///
     /// Returns true if the column setup from the select query was successful. If the returned
@@ -172,7 +175,7 @@ impl CommonTableExpression {
     }
 }
 
-/// For recursive [WithQuery] [WithClause]s the traversing order can be specified in some databases
+/// For recursive [`WithQuery`] [`WithClause`]s the traversing order can be specified in some databases
 /// that support this functionality.
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
@@ -183,16 +186,16 @@ pub enum SearchOrder {
     DEPTH,
 }
 
-/// For recursive [WithQuery] [WithClause]s the traversing order can be specified in some databases
+/// For recursive [`WithQuery`] [`WithClause`]s the traversing order can be specified in some databases
 /// that support this functionality.
 ///
-/// The clause contains the type of traversal: [SearchOrder] and the expression that is used to
+/// The clause contains the type of traversal: [`SearchOrder`] and the expression that is used to
 /// construct the current path.
 ///
 /// A query can have both SEARCH and CYCLE clauses.
 ///
-/// Setting [Self::order] and [Self::expr] is mandatory. The [SelectExpr] used must specify an alias
-/// which will be the name that you can use to order the result of the [CommonTableExpression].
+/// Setting [`Self::order`] and [`Self::expr`] is mandatory. The [`SelectExpr`] used must specify an alias
+/// which will be the name that you can use to order the result of the [`CommonTableExpression`].
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Search {
     pub(crate) order: Option<SearchOrder>,
@@ -200,8 +203,8 @@ pub struct Search {
 }
 
 impl Search {
-    /// Create a complete [Search] specification from the [SearchOrder] and a [SelectExpr]. The
-    /// given [SelectExpr] must have an alias specified.
+    /// Create a complete [Search] specification from the [`SearchOrder`] and a [`SelectExpr`]. The
+    /// given [`SelectExpr`] must have an alias specified.
     pub fn new_from_order_and_expr<EXPR>(order: SearchOrder, expr: EXPR) -> Self
     where
         EXPR: Into<SelectExpr>,
@@ -225,11 +228,11 @@ impl Search {
         self
     }
 
-    /// The given [SelectExpr] must have an alias specified.
+    /// The given [`SelectExpr`] must have an alias specified.
     ///
     /// The actual expression will be the one used to track the path in the graph.
     ///
-    /// The alias of the given [SelectExpr] will be the name of the order column generated by this
+    /// The alias of the given [`SelectExpr`] will be the name of the order column generated by this
     /// clause.
     pub fn expr<EXPR>(&mut self, expr: EXPR) -> &mut Self
     where
@@ -242,14 +245,14 @@ impl Search {
     }
 }
 
-/// For recursive [WithQuery] [WithClauses](WithClause) the CYCLE sql clause can be specified to avoid creating
+/// For recursive [`WithQuery`] [`WithClauses`](WithClause) the CYCLE sql clause can be specified to avoid creating
 /// an infinite traversals that loops on graph cycles indefinitely.
 ///
 /// You specify an expression that identifies a node in the graph, which is used during the query execution iteration, to determine newly appended values are distinct new nodes or are already visited, and therefore they should be added into the result again.
 ///
 /// A query can have both SEARCH and CYCLE clauses.
 ///
-/// Setting [Self::set], [Self::expr] and [Self::using] is mandatory.
+/// Setting [`Self::set`], [`Self::expr`] and [`Self::using`] is mandatory.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Cycle {
     pub(crate) expr: Option<Expr>,
@@ -258,8 +261,8 @@ pub struct Cycle {
 }
 
 impl Cycle {
-    /// Create a complete [Search] specification from the [SearchOrder] and a [SelectExpr]. The
-    /// given [SelectExpr] must have an alias specified.
+    /// Create a complete [Search] specification from the [`SearchOrder`] and a [`SelectExpr`]. The
+    /// given [`SelectExpr`] must have an alias specified.
     pub fn new_from_expr_set_using<EXPR, ID1, ID2>(expr: EXPR, set: ID1, using: ID2) -> Self
     where
         EXPR: Into<Expr>,
@@ -298,7 +301,7 @@ impl Cycle {
     }
 
     /// The name of the array typed column that contains the node ids (generated using the
-    /// [Self::expr]) that specify the current nodes path that will be generated by this clause.
+    /// [`Self::expr`]) that specify the current nodes path that will be generated by this clause.
     pub fn using<ID>(&mut self, using: ID) -> &mut Self
     where
         ID: IntoIden,
@@ -308,26 +311,26 @@ impl Cycle {
     }
 }
 
-/// A WITH clause can contain one or multiple common table expressions ([CommonTableExpression]).
+/// A WITH clause can contain one or multiple common table expressions ([`CommonTableExpression`]).
 ///
-/// You can use this to generate [WithQuery] by calling [WithClause::query].
+/// You can use this to generate [`WithQuery`] by calling [`WithClause::query`].
 ///
 /// These named queries can act as a "query local table" that are materialized during execution and
 /// then can be used by the query prefixed with the WITH clause.
 ///
-/// A WITH clause can contain multiple of these [CommonTableExpression]. (Except in the case of
-/// recursive WITH query which can only contain one [CommonTableExpression]).
+/// A WITH clause can contain multiple of these [`CommonTableExpression`]. (Except in the case of
+/// recursive WITH query which can only contain one [`CommonTableExpression`]).
 ///
-/// A [CommonTableExpression] is a name, column names and a query returning data for those columns.
+/// A [`CommonTableExpression`] is a name, column names and a query returning data for those columns.
 ///
 /// Some databases (like sqlite) restrict the acceptable kinds of queries inside of the WITH clause
-/// common table expressions. These databases only allow [SelectStatement]s to form a common table
+/// common table expressions. These databases only allow [`SelectStatement`]s to form a common table
 /// expression.
 ///
 /// Other databases like postgres allow modification queries (UPDATE, DELETE) inside of the WITH
 /// clause but they have to return a table. (They must have a RETURNING clause).
 ///
-/// sea-query doesn't check this or restrict the kind of [CommonTableExpression] that you can create
+/// sea-query doesn't check this or restrict the kind of [`CommonTableExpression`] that you can create
 /// in rust. This means that you can put an UPDATE or DELETE queries into WITH clause and sea-query
 /// will succeed in generating that kind of sql query but the execution inside the database will
 /// fail because they are invalid.
@@ -336,7 +339,7 @@ impl Cycle {
 /// sense and valid for that database that you are using.
 ///
 /// NOTE that for recursive WITH queries (in sql: "WITH RECURSIVE") you can only have a
-/// single [CommonTableExpression] inside of the WITH clause. That query must match certain
+/// single [`CommonTableExpression`] inside of the WITH clause. That query must match certain
 /// requirements:
 ///   * It is a query of UNION or UNION ALL of two queries.
 ///   * The first part of the query (the left side of the UNION) must be executable first in itself.
@@ -344,11 +347,14 @@ impl Cycle {
 ///   * The self reference must appear in the right hand side of the UNION.
 ///   * The query can only have a single self-reference.
 ///   * Recursive data-modifying statements are not supported, but you can use the results of a
-///     recursive SELECT query in a data-modifying statement. (like so: WITH RECURSIVE
-///     cte_name(a,b,c,d) AS (SELECT ... UNION SELECT ... FROM ... JOIN cte_name ON ... WHERE ...)
-///     DELETE FROM table WHERE table.a = cte_name.a)
+///     recursive SELECT query in a data-modifying statement. like so:
+///     ```sql
+///     WITH RECURSIVE
+///         cte_name(a,b,c,d) AS (SELECT ... UNION SELECT ... FROM ... JOIN cte_name ON ... WHERE ...)
+///     DELETE FROM table WHERE table.a = cte_name.a
+///     ```
+/// It is mandatory to set the [`Self::cte`]. With queries must have at least one CTE.
 ///
-/// It is mandatory to set the [Self::cte]. With queries must have at least one CTE.
 /// Recursive with query generation will panic if you specify more than one CTE.
 ///
 /// # Examples
@@ -431,7 +437,7 @@ impl WithClause {
     /// Sets whether this clause is a recursive with clause of not.
     /// If set to true it will generate a 'WITH RECURSIVE' query.
     ///
-    /// You can only specify a single [CommonTableExpression] containing a union query
+    /// You can only specify a single [`CommonTableExpression`] containing a union query
     /// if this is set to true.
     pub fn recursive(&mut self, recursive: bool) -> &mut Self {
         self.recursive = recursive;
@@ -458,13 +464,13 @@ impl WithClause {
         self
     }
 
-    /// Add a [CommonTableExpression] to this with clause.
+    /// Add a [`CommonTableExpression`] to this with clause.
     pub fn cte(&mut self, cte: CommonTableExpression) -> &mut Self {
         self.cte_expressions.push(cte);
         self
     }
 
-    /// You can turn this into a [WithQuery] using this function. The resulting WITH query will
+    /// You can turn this into a [`WithQuery`] using this function. The resulting WITH query will
     /// execute the argument query with this WITH clause.
     pub fn query<T>(self, query: T) -> WithQuery
     where
@@ -480,26 +486,26 @@ impl From<CommonTableExpression> for WithClause {
     }
 }
 
-/// A WITH query. A simple SQL query that has a WITH clause ([WithClause]).
+/// A WITH query. A simple SQL query that has a WITH clause ([`WithClause`]).
 ///
-/// The [WithClause] can contain one or multiple common table expressions ([CommonTableExpression]).
+/// The [`WithClause`] can contain one or multiple common table expressions ([`CommonTableExpression`]).
 ///
 /// These named queries can act as a "query local table" that are materialized during execution and
 /// then can be used by the query prefixed with the WITH clause.
 ///
-/// A WITH clause can contain multiple of these [CommonTableExpression]. (Except in the case of
-/// recursive WITH query which can only contain one [CommonTableExpression]).
+/// A WITH clause can contain multiple of these [`CommonTableExpression`]. (Except in the case of
+/// recursive WITH query which can only contain one [`CommonTableExpression`]).
 ///
-/// A [CommonTableExpression] is a name, column names and a query returning data for those columns.
+/// A [`CommonTableExpression`] is a name, column names and a query returning data for those columns.
 ///
 /// Some databases (like sqlite) restrict the acceptable kinds of queries inside of the WITH clause
-/// common table expressions. These databases only allow [SelectStatement]s to form a common table
+/// common table expressions. These databases only allow [`SelectStatement`]s to form a common table
 /// expression.
 ///
 /// Other databases like postgres allow modification queries (UPDATE, DELETE) inside of the WITH
 /// clause but they have to return a table. (They must have a RETURNING clause).
 ///
-/// sea-query doesn't check this or restrict the kind of [CommonTableExpression] that you can create
+/// sea-query doesn't check this or restrict the kind of [`CommonTableExpression`] that you can create
 /// in rust. This means that you can put an UPDATE or DELETE queries into WITH clause and sea-query
 /// will succeed in generating that kind of sql query but the execution inside the database will
 /// fail because they are invalid.
@@ -508,7 +514,7 @@ impl From<CommonTableExpression> for WithClause {
 /// sense and valid for that database that you are using.
 ///
 /// NOTE that for recursive WITH queries (in sql: "WITH RECURSIVE") you can only have a
-/// single [CommonTableExpression] inside of the WITH clause. That query must match certain
+/// single [`CommonTableExpression`] inside of the WITH clause. That query must match certain
 /// requirements:
 ///   * It is a query of UNION or UNION ALL of two queries.
 ///   * The first part of the query (the left side of the UNION) must be executable first in itself.
@@ -516,11 +522,15 @@ impl From<CommonTableExpression> for WithClause {
 ///   * The self reference must appear in the right hand side of the UNION.
 ///   * The query can only have a single self-reference.
 ///   * Recursive data-modifying statements are not supported, but you can use the results of a
-///     recursive SELECT query in a data-modifying statement. (like so: WITH RECURSIVE
-///     cte_name(a,b,c,d) AS (SELECT ... UNION SELECT ... FROM ... JOIN cte_name ON ... WHERE ...)
-///     DELETE FROM table WHERE table.a = cte_name.a)
+///     recursive SELECT query in a data-modifying statement.
+///     like so:
+///     ```sql
+///     WITH RECURSIVE
+///         cte_name(a,b,c,d) AS (SELECT ... UNION SELECT ... FROM ... JOIN cte_name ON ... WHERE ...)
+///     DELETE FROM table WHERE table.a = cte_name.a
+///     ```
 ///
-/// It is mandatory to set the [Self::cte] and the [Self::query].
+/// It is mandatory to set the [`Self::cte`] and the [`Self::query`].
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct WithQuery {
     pub(crate) with_clause: WithClause,
@@ -533,37 +543,37 @@ impl WithQuery {
         Self::default()
     }
 
-    /// Set the whole [WithClause].
+    /// Set the whole [`WithClause`].
     pub fn with_clause(&mut self, with_clause: WithClause) -> &mut Self {
         self.with_clause = with_clause;
         self
     }
 
-    /// Set the [WithClause::recursive]. See that method for more information.
+    /// Set the [`WithClause::recursive`]. See that method for more information.
     pub fn recursive(&mut self, recursive: bool) -> &mut Self {
         self.with_clause.recursive = recursive;
         self
     }
 
-    /// Add the [WithClause::search]. See that method for more information.
+    /// Add the [`WithClause::search`]. See that method for more information.
     pub fn search(&mut self, search: Search) -> &mut Self {
         self.with_clause.search = Some(search);
         self
     }
 
-    /// Set the [WithClause::cycle]. See that method for more information.
+    /// Set the [`WithClause::cycle`]. See that method for more information.
     pub fn cycle(&mut self, cycle: Cycle) -> &mut Self {
         self.with_clause.cycle = Some(cycle);
         self
     }
 
-    /// Add a [CommonTableExpression] to the with clause. See [WithClause::cte].
+    /// Add a [`CommonTableExpression`] to the with clause. See [`WithClause::cte`].
     pub fn cte(&mut self, cte: CommonTableExpression) -> &mut Self {
         self.with_clause.cte_expressions.push(cte);
         self
     }
 
-    /// Set the query that you execute with the [WithClause].
+    /// Set the query that you execute with the [`WithClause`].
     pub fn query<T>(&mut self, query: T) -> &mut Self
     where
         T: Into<SubQueryStatement>,

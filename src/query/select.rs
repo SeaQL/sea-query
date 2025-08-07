@@ -75,7 +75,7 @@ pub enum SelectDistinct {
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
 pub enum WindowSelectType {
-    /// Name in [`SelectStatement`]
+    /// Name in [[`SelectStatement`]]
     Name(DynIden),
     /// Inline query in [`SelectExpr`]
     Query(WindowStatement),
@@ -2227,7 +2227,7 @@ impl SelectStatement {
         self.lock(LockType::Update)
     }
 
-    /// Union with another SelectStatement that must have the same selected fields.
+    /// Union with another [`SelectStatement`] that must have the same selected fields.
     ///
     /// # Examples
     ///
@@ -2268,7 +2268,7 @@ impl SelectStatement {
         self
     }
 
-    /// Union with multiple SelectStatement that must have the same selected fields.
+    /// Union with multiple [`SelectStatement`] that must have the same selected fields.
     ///
     /// # Examples
     ///
@@ -2317,7 +2317,7 @@ impl SelectStatement {
         self
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -2387,7 +2387,7 @@ impl SelectStatement {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///

@@ -1490,7 +1490,7 @@ pub trait ExprTrait: Sized {
 }
 
 /// This generic implementation covers all expression types,
-/// including [ColumnRef], [Value], [FunctionCall], [Expr]...
+/// including [`ColumnRef`], [Value], [`FunctionCall`], [Expr]...
 impl<T> ExprTrait for T
 where
     T: Into<Expr>,

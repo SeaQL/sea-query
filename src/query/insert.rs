@@ -197,6 +197,7 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
     /// );
     /// ```
+    /// ```
     /// use sea_query::{audit::*, tests_cfg::*, *};
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
@@ -483,7 +484,7 @@ impl InsertStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -531,7 +532,7 @@ impl InsertStatement {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///

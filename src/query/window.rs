@@ -39,7 +39,7 @@ pub trait OverStatement {
     }
 }
 
-/// frame_start or frame_end clause
+/// `frame_start` or `frame_end` clause
 #[derive(Debug, Clone, PartialEq)]
 pub enum Frame {
     UnboundedPreceding,
@@ -112,7 +112,7 @@ impl WindowStatement {
         window
     }
 
-    /// frame clause for frame_start
+    /// frame clause for `frame_start`
     /// # Examples:
     ///
     /// ```
@@ -145,7 +145,7 @@ impl WindowStatement {
         self.frame(r#type, start, None)
     }
 
-    /// frame clause for BETWEEN frame_start AND frame_end
+    /// frame clause for BETWEEN `frame_start` AND `frame_end`
     ///
     /// # Examples:
     ///

@@ -535,7 +535,7 @@ pub trait ConditionalStatement {
     /// );
     /// ```
     ///
-    /// Calling multiple times; will be ANDed togother
+    /// Calling this method multiple times will combine the conditions with AND.
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};

@@ -71,25 +71,25 @@ impl QueryAccessAudit {
             .collect()
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of [`SchemaTable`].
     /// Intended for testing only.
     pub fn selected_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Select)
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of [`SchemaTable`].
     /// Intended for testing only.
     pub fn inserted_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Insert)
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of [`SchemaTable`].
     /// Intended for testing only.
     pub fn updated_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Update)
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of [`SchemaTable`].
     /// Intended for testing only.
     pub fn deleted_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Delete)

@@ -299,7 +299,7 @@ impl IndexCreateStatement {
 
     /// Set index as full text.
     /// On MySQL, this is `FULLTEXT`.
-    /// On PgSQL, this is `GIN`.
+    /// On PostgreSQL, this is `GIN`.
     pub fn full_text(&mut self) -> &mut Self {
         self.index_type(IndexType::FullText)
     }
