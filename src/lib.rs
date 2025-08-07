@@ -29,14 +29,14 @@
 //! SeaQuery is a query builder to help you construct dynamic SQL queries in Rust.
 //! You can construct expressions, queries and schema as abstract syntax trees using an ergonomic API.
 //! We support MySQL, Postgres and SQLite behind a common interface that aligns their behaviour where appropriate.
+//! MS SQL Server Support is available under [SeaORM X](https://www.sea-ql.org/SeaORM-X/).
 //!
+//! SeaQuery is written in 100% safe Rust. All workspace crates has `#![forbid(unsafe_code)]`.
+//!
+//! SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 //! We provide integration for [SQLx](https://crates.io/crates/sqlx),
 //! [postgres](https://crates.io/crates/postgres) and [rusqlite](https://crates.io/crates/rusqlite).
 //! See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
-//!
-//! SeaQuery is written in 100% safe Rust. All workspace crates `#![forbid(unsafe_code)]`.
-//!
-//! SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 //!
 //! [![GitHub stars](https://img.shields.io/github/stars/SeaQL/sea-query.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/sea-query/stargazers/)
 //! If you like what we do, consider starring, commenting, sharing and contributing!
@@ -98,7 +98,7 @@
 //!     1. [Index Create](#index-create)
 //!     1. [Index Drop](#index-drop)
 //!
-//! ### Motivation
+//! ## Motivation
 //!
 //! Why would you want to use a dynamic query builder?
 //!
@@ -110,19 +110,21 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! assert_eq!(
 //!     Query::select()
-//!         .column(Glyph::Image)
+//!         .expr(Expr::col(Char::SizeW).add(1).mul(2))
 //!         .from(Glyph::Table)
 //!         .and_where(Expr::col(Glyph::Image).like("A"))
-//!         .and_where(Expr::col(Glyph::Id).is_in([1, 2, 3]))
+//!         .and_where(Expr::col(Glyph::Id).is_in([3, 4, 5]))
 //!         .build(PostgresQueryBuilder),
 //!     (
-//!         r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
+//!         r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
 //!             .to_owned(),
 //!         Values(vec![
-//!             Value::String(Some("A".to_owned())),
-//!             Value::Int(Some(1)),
-//!             Value::Int(Some(2)),
-//!             Value::Int(Some(3))
+//!             1.into(),
+//!             2.into(),
+//!             "A".to_owned().into(),
+//!             3.into(),
+//!             4.into(),
+//!             5.into(),
 //!         ])
 //!     )
 //! );
@@ -148,6 +150,75 @@
 //!         |q| {},
 //!     );
 //! ```
+//!
+//! Conditions can be arbitrarily complex:
+//!
+//! ```
+//! # use sea_query::{*, tests_cfg::*};
+//! assert_eq!(
+//!     Query::select()
+//!         .column(Glyph::Id)
+//!         .from(Glyph::Table)
+//!         .cond_where(
+//!             Cond::any()
+//!                 .add(
+//!                     Cond::all()
+//!                         .add(Expr::col(Glyph::Aspect).is_null())
+//!                         .add(Expr::col(Glyph::Image).is_null())
+//!                 )
+//!                 .add(
+//!                     Cond::all()
+//!                         .add(Expr::col(Glyph::Aspect).is_in([3, 4]))
+//!                         .add(Expr::col(Glyph::Image).like("A%"))
+//!                 )
+//!         )
+//!         .to_string(PostgresQueryBuilder),
+//!     [
+//!         r#"SELECT "id" FROM "glyph""#,
+//!         r#"WHERE"#,
+//!         r#"("aspect" IS NULL AND "image" IS NULL)"#,
+//!         r#"OR"#,
+//!         r#"("aspect" IN (3, 4) AND "image" LIKE 'A%')"#,
+//!     ]
+//!     .join(" ")
+//! );
+//! ```
+//!
+//! 3. Cross database support
+//!
+//! With SeaQuery, you can target multiple database backends while maintaining a single source of query logic.
+//!
+//! ```
+//! # use sea_query::{tests_cfg::*, *};
+//! let query = Query::insert()
+//!     .into_table(Glyph::Table)
+//!     .columns([Glyph::Aspect, Glyph::Image])
+//!     .values_panic([
+//!         2.into(),
+//!         3.into(),
+//!     ])
+//!     .on_conflict(
+//!         OnConflict::column(Glyph::Id)
+//!             .update_columns([Glyph::Aspect, Glyph::Image])
+//!             .to_owned(),
+//!     )
+//!     .to_owned();
+//!
+//! assert_eq!(
+//!     query.to_string(MysqlQueryBuilder),
+//!     r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#
+//! );
+//! assert_eq!(
+//!     query.to_string(PostgresQueryBuilder),
+//!     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
+//! );
+//! assert_eq!(
+//!     query.to_string(SqliteQueryBuilder),
+//!     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
+//! );
+//! ```
+//!
+//! ## Basics
 //!
 //! ### Iden
 //!
@@ -351,6 +422,8 @@
 //! `to_string` builds a SQL statement as string with parameters injected. This is good for testing
 //! and debugging.
 //!
+//! ## Query Statement
+//!
 //! ### Query Select
 //!
 //! ```rust
@@ -454,6 +527,8 @@
 //! );
 //! ```
 //!
+//! ## Advanced
+//!
 //! ### Aggregate Functions
 //!
 //! `max`, `min`, `sum`, `avg`, `count` etc
@@ -530,6 +605,8 @@
 //! );
 //! ```
 //!
+//! ## Schema Statement
+//!
 //! ### Table Create
 //!
 //! ```rust
@@ -542,10 +619,10 @@
 //!     .col(ColumnDef::new(Char::Character).string().not_null())
 //!     .col(ColumnDef::new(Char::SizeW).integer().not_null())
 //!     .col(ColumnDef::new(Char::SizeH).integer().not_null())
-//!     .col(ColumnDef::new(Char::FontId).integer().default(Value::Int(None)))
+//!     .col(ColumnDef::new(Char::FontId).integer().default(Expr::val(1)))
 //!     .foreign_key(
 //!         ForeignKey::create()
-//!             .name("FK_2e303c3a712662f1fc2a4d0aad6")
+//!             .name("character_fk")
 //!             .from(Char::Table, Char::FontId)
 //!             .to(Font::Table, Font::Id)
 //!             .on_delete(ForeignKeyAction::Cascade)
@@ -562,8 +639,8 @@
 //!             r#"`character` varchar(255) NOT NULL,"#,
 //!             r#"`size_w` int NOT NULL,"#,
 //!             r#"`size_h` int NOT NULL,"#,
-//!             r#"`font_id` int DEFAULT NULL,"#,
-//!             r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
+//!             r#"`font_id` int DEFAULT 1,"#,
+//!             r#"CONSTRAINT `character_fk`"#,
 //!                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
 //!                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
 //!         r#")"#,
@@ -578,8 +655,8 @@
 //!             r#""character" varchar NOT NULL,"#,
 //!             r#""size_w" integer NOT NULL,"#,
 //!             r#""size_h" integer NOT NULL,"#,
-//!             r#""font_id" integer DEFAULT NULL,"#,
-//!             r#"CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
+//!             r#""font_id" integer DEFAULT 1,"#,
+//!             r#"CONSTRAINT "character_fk""#,
 //!                 r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
 //!                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
 //!         r#")"#,
@@ -594,7 +671,7 @@
 //!            r#""character" varchar NOT NULL,"#,
 //!            r#""size_w" integer NOT NULL,"#,
 //!            r#""size_h" integer NOT NULL,"#,
-//!            r#""font_id" integer DEFAULT NULL,"#,
+//!            r#""font_id" integer DEFAULT 1,"#,
 //!            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
 //!        r#")"#,
 //!     ].join(" ")
