@@ -368,7 +368,7 @@ impl ColumnDef {
 
     /// Set column type as string
     pub fn string(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::String(Default::default()));
+        self.types = Some(ColumnType::String(StringLen::default()));
         self
     }
 

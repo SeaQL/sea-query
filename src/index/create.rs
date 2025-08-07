@@ -235,7 +235,7 @@ impl IndexCreateStatement {
     pub fn new() -> Self {
         Self {
             table: None,
-            index: Default::default(),
+            index: TableIndex::default(),
             primary: false,
             unique: false,
             nulls_not_distinct: false,

@@ -285,7 +285,7 @@ impl InsertStatement {
             let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
                 values
             } else {
-                self.source = Some(InsertValueSource::Values(Default::default()));
+                self.source = Some(InsertValueSource::Values(Vec::new()));
                 if let Some(InsertValueSource::Values(values)) = &mut self.source {
                     values
                 } else {
