@@ -257,10 +257,10 @@ impl Token {
     #[must_use]
     pub fn as_str(&self) -> &str {
         match self {
-            Self::Quoted(string) => string,
-            Self::Unquoted(string) => string,
-            Self::Space(string) => string,
-            Self::Punctuation(string) => string,
+            Token::Quoted(string)
+            | Token::Unquoted(string)
+            | Token::Space(string)
+            | Token::Punctuation(string) => string,
         }
     }
 
@@ -277,16 +277,7 @@ impl Token {
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Token::Unquoted(string) => string,
-                Token::Space(string) => string,
-                Token::Quoted(string) => string,
-                Token::Punctuation(string) => string,
-            }
-        )
+        f.write_str(self.as_str())
     }
 }
 

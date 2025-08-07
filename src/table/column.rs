@@ -117,15 +117,13 @@ pub enum StringLen {
 impl PartialEq for ColumnType {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Char(l0), Self::Char(r0)) => l0 == r0,
-            (Self::String(l0), Self::String(r0)) => l0 == r0,
-            (Self::Decimal(l0), Self::Decimal(r0)) => l0 == r0,
+            (Self::String(l0), Self::String(r0)) | (Self::VarBinary(l0), Self::VarBinary(r0)) => {
+                l0 == r0
+            }
+            (Self::Decimal(l0), Self::Decimal(r0)) | (Self::Money(l0), Self::Money(r0)) => l0 == r0,
             (Self::Interval(l0, l1), Self::Interval(r0, r1)) => l0 == r0 && l1 == r1,
-            (Self::Binary(l0), Self::Binary(r0)) => l0 == r0,
-            (Self::VarBinary(l0), Self::VarBinary(r0)) => l0 == r0,
-            (Self::Bit(l0), Self::Bit(r0)) => l0 == r0,
-            (Self::VarBit(l0), Self::VarBit(r0)) => l0 == r0,
-            (Self::Money(l0), Self::Money(r0)) => l0 == r0,
+            (Self::Binary(l0), Self::Binary(r0)) | (Self::VarBit(l0), Self::VarBit(r0)) => l0 == r0,
+            (Self::Bit(l0), Self::Bit(r0)) | (Self::Char(l0), Self::Char(r0)) => l0 == r0,
             (Self::Custom(l0), Self::Custom(r0)) => l0.to_string() == r0.to_string(),
             (
                 Self::Enum {
