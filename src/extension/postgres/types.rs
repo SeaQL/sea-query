@@ -142,22 +142,26 @@ pub trait TypeBuilder: QuotedBuilder {
 
 impl Type {
     /// Construct type [`TypeCreateStatement`]
+    #[must_use]
     pub fn create() -> TypeCreateStatement {
         TypeCreateStatement::new()
     }
 
     /// Construct type [`TypeDropStatement`]
+    #[must_use]
     pub fn drop() -> TypeDropStatement {
         TypeDropStatement::new()
     }
 
     /// Construct type [`TypeAlterStatement`]
+    #[must_use]
     pub fn alter() -> TypeAlterStatement {
         TypeAlterStatement::new()
     }
 }
 
 impl TypeCreateStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -206,6 +210,7 @@ impl TypeCreateStatement {
 }
 
 impl TypeDropStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -301,6 +306,7 @@ impl TypeDropStatement {
 }
 
 impl TypeAlterStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -404,6 +410,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" ADD VALUE IF NOT EXISTS 'weight' AFTER 'variant'"#
     /// )
     /// ```
+    #[must_use]
     pub fn if_not_exists(mut self) -> Self {
         if let Some(option) = self.option {
             self.option = Some(option.if_not_exists());
@@ -488,6 +495,7 @@ impl TypeAlterOpt {
     }
 
     /// Changes only `ADD VALUE x` options into `ADD VALUE IF NOT EXISTS x` options, does nothing otherwise
+    #[must_use]
     pub fn if_not_exists(self) -> Self {
         match self {
             TypeAlterOpt::Add {

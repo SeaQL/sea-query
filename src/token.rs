@@ -19,6 +19,7 @@ pub enum Token {
 }
 
 impl Tokenizer {
+    #[must_use]
     pub fn new(string: &str) -> Self {
         Self {
             chars: string.chars().collect(),
@@ -233,22 +234,27 @@ impl Iterator for Tokenizer {
 }
 
 impl Token {
+    #[must_use]
     pub fn is_quoted(&self) -> bool {
         matches!(self, Self::Quoted(_))
     }
 
+    #[must_use]
     pub fn is_unquoted(&self) -> bool {
         matches!(self, Self::Unquoted(_))
     }
 
+    #[must_use]
     pub fn is_space(&self) -> bool {
         matches!(self, Self::Space(_))
     }
 
+    #[must_use]
     pub fn is_punctuation(&self) -> bool {
         matches!(self, Self::Punctuation(_))
     }
 
+    #[must_use]
     pub fn as_str(&self) -> &str {
         match self {
             Self::Quoted(string) => string,
@@ -258,6 +264,7 @@ impl Token {
         }
     }
 
+    #[must_use]
     pub fn unquote(&self) -> Option<String> {
         if self.is_quoted() {
             let tokenizer = Tokenizer::new(self.as_str());

@@ -32,6 +32,7 @@ pub struct ForeignKeyDropStatement {
 
 impl ForeignKeyDropStatement {
     /// Construct a new [`ForeignKeyDropStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

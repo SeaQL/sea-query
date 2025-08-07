@@ -49,6 +49,7 @@ pub struct DeleteStatement {
 
 impl DeleteStatement {
     /// Construct a new [`DeleteStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -256,6 +257,7 @@ impl DeleteStatement {
     ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }

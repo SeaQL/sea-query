@@ -38,6 +38,7 @@ pub enum OnConflictUpdate {
 impl OnConflict {
     /// Create a ON CONFLICT expression without target column,
     /// a special method designed for MySQL
+    #[must_use]
     pub fn new() -> Self {
         Default::default()
     }

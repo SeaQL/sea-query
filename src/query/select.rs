@@ -150,6 +150,7 @@ where
 
 impl SelectStatement {
     /// Construct a new [`SelectStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -2383,6 +2384,7 @@ impl SelectStatement {
     ///     [Task::Table.into_iden()]
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }

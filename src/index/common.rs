@@ -144,6 +144,7 @@ impl IntoIndexColumn for (Expr, IndexOrder) {
 
 impl TableIndex {
     /// Construct a new table index
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -163,6 +164,7 @@ impl TableIndex {
         self
     }
 
+    #[must_use]
     pub fn get_column_names(&self) -> Vec<String> {
         self.columns
             .iter()

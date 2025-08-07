@@ -57,6 +57,7 @@ pub enum TableAlterOption {
 
 impl TableAlterStatement {
     /// Construct alter table statement
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

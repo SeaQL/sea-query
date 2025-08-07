@@ -20,6 +20,7 @@ pub struct Returning;
 
 impl Returning {
     /// Constructs a new [`Returning`].
+    #[must_use]
     pub fn new() -> Self {
         Self
     }
@@ -46,6 +47,7 @@ impl Returning {
     ///     r#"DELETE FROM "glyph" WHERE "id" = 1 RETURNING *"#
     /// );
     /// ```
+    #[must_use]
     pub fn all(&self) -> ReturningClause {
         ReturningClause::All
     }

@@ -35,6 +35,7 @@ impl CaseStatement {
     ///     r#"SELECT (CASE WHEN ("glyph"."aspect" IN (2, 4)) THEN TRUE ELSE FALSE END) AS "is_even" FROM "glyph""#
     /// );
     /// ```
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

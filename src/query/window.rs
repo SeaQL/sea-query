@@ -80,6 +80,7 @@ pub struct WindowStatement {
 
 impl WindowStatement {
     /// Construct a new [`WindowStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

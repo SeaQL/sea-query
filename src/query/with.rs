@@ -56,6 +56,7 @@ pub struct CommonTableExpression {
 
 impl CommonTableExpression {
     /// Construct a new [`CommonTableExpression`]
+    #[must_use]
     pub fn new() -> CommonTableExpression {
         Self::default()
     }
@@ -111,6 +112,7 @@ impl CommonTableExpression {
     /// Create a CTE from a [SelectStatement] if the selections are named columns then this will
     /// return a [CommonTableExpression] that has the column names set. The [Self::table_name] is
     /// set if the [SelectStatement] from clause contains at least one table.
+    #[must_use]
     pub fn from_select(select: SelectStatement) -> Self {
         let mut cte = Self::default();
         cte.try_set_cols_from_selects(&select.selects);
@@ -215,6 +217,7 @@ impl Search {
     }
 
     /// Constructs a new empty [Search].
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -274,6 +277,7 @@ impl Cycle {
     }
 
     /// Constructs a new empty [Cycle].
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -424,6 +428,7 @@ pub struct WithClause {
 
 impl WithClause {
     /// Constructs a new [WithClause].
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -529,6 +534,7 @@ pub struct WithQuery {
 
 impl WithQuery {
     /// Constructs a new empty [WithQuery].
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

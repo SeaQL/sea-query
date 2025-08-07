@@ -51,6 +51,7 @@ pub struct UpdateStatement {
 
 impl UpdateStatement {
     /// Construct a new [`UpdateStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -396,6 +397,7 @@ impl UpdateStatement {
     ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
@@ -452,6 +454,7 @@ impl UpdateStatement {
     }
 
     /// Get column values
+    #[must_use]
     pub fn get_values(&self) -> &[(DynIden, Box<Expr>)] {
         &self.values
     }

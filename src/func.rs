@@ -767,6 +767,7 @@ impl Func {
     ///
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
     /// ```
+    #[must_use]
     pub fn random() -> FunctionCall {
         FunctionCall::new(Func::Random)
     }
@@ -850,14 +851,17 @@ impl FunctionCall {
         self
     }
 
+    #[must_use]
     pub fn get_func(&self) -> &Func {
         &self.func
     }
 
+    #[must_use]
     pub fn get_args(&self) -> &[Expr] {
         &self.args
     }
 
+    #[must_use]
     pub fn get_mods(&self) -> &[FuncArgMod] {
         &self.mods
     }

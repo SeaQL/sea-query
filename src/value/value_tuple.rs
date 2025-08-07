@@ -21,6 +21,7 @@ pub trait FromValueTuple: Sized {
 }
 
 impl ValueTuple {
+    #[must_use]
     pub fn arity(&self) -> usize {
         match self {
             Self::One(_) => 1,

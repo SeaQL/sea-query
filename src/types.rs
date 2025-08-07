@@ -76,6 +76,7 @@ pub trait IdenStatic: Iden + Copy + 'static {
 pub struct DynIden(pub(crate) Cow<'static, str>);
 
 impl DynIden {
+    #[must_use]
     pub fn inner(&self) -> Cow<'static, str> {
         self.0.clone()
     }
@@ -107,6 +108,7 @@ impl SeaRc {
         DynIden(i.quoted())
     }
 
+    #[must_use]
     pub fn clone(iden: &DynIden) -> DynIden {
         iden.clone()
     }
@@ -201,6 +203,7 @@ pub enum ColumnRef {
 impl ColumnRef {
     #[doc(hidden)]
     /// Returns the unqualified column name if it's not an asterisk.
+    #[must_use]
     pub fn column(&self) -> Option<&DynIden> {
         match self {
             ColumnRef::Column(ColumnName(_table_ref, column_itself)) => Some(column_itself),
@@ -229,6 +232,7 @@ pub enum TableRef {
 
 impl TableRef {
     #[doc(hidden)]
+    #[must_use]
     pub fn sea_orm_table(&self) -> &DynIden {
         match self {
             TableRef::Table(TableName(_, tbl), _)
@@ -239,6 +243,7 @@ impl TableRef {
     }
 
     #[doc(hidden)]
+    #[must_use]
     pub fn sea_orm_table_alias(&self) -> Option<&DynIden> {
         match self {
             TableRef::Table(_, None) | TableRef::SubQuery(_, _) | TableRef::ValuesList(_, _) => {
@@ -453,14 +458,17 @@ pub enum SubQueryOper {
 // Impl begins
 
 impl Quote {
+    #[must_use]
     pub fn new(c: u8) -> Self {
         Self(c, c)
     }
 
+    #[must_use]
     pub fn left(&self) -> char {
         char::from(self.0)
     }
 
+    #[must_use]
     pub fn right(&self) -> char {
         char::from(self.1)
     }
@@ -743,6 +751,7 @@ impl Iden for &'static str {
 /// assert!(!is_static_iden("a|b|c"));
 /// assert!(!is_static_iden("a'b'c"));
 /// ```
+#[must_use]
 pub const fn is_static_iden(string: &str) -> bool {
     let bytes = string.as_bytes();
     if bytes.is_empty() {
@@ -770,6 +779,7 @@ pub const fn is_static_iden(string: &str) -> bool {
 }
 
 impl NullAlias {
+    #[must_use]
     pub fn new() -> Self {
         Self
     }
@@ -803,6 +813,7 @@ impl LikeExpr {
         }
     }
 
+    #[must_use]
     pub fn escape(self, c: char) -> Self {
         Self {
             pattern: self.pattern,

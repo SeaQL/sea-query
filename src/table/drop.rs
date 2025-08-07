@@ -44,6 +44,7 @@ pub enum TableDropOpt {
 
 impl TableDropStatement {
     /// Construct drop table statement
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

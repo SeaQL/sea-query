@@ -42,6 +42,7 @@ impl SqlWriterValues {
         }
     }
 
+    #[must_use]
     pub fn into_parts(self) -> (String, Values) {
         (self.string, Values(self.values))
     }

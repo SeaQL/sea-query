@@ -59,31 +59,37 @@ pub enum SubQueryStatement {
 
 impl Query {
     /// Construct table [`SelectStatement`]
+    #[must_use]
     pub fn select() -> SelectStatement {
         SelectStatement::new()
     }
 
     /// Construct table [`InsertStatement`]
+    #[must_use]
     pub fn insert() -> InsertStatement {
         InsertStatement::new()
     }
 
     /// Construct table [`UpdateStatement`]
+    #[must_use]
     pub fn update() -> UpdateStatement {
         UpdateStatement::new()
     }
 
     /// Construct table [`DeleteStatement`]
+    #[must_use]
     pub fn delete() -> DeleteStatement {
         DeleteStatement::new()
     }
 
     /// Construct [`WithClause`]
+    #[must_use]
     pub fn with() -> WithClause {
         WithClause::new()
     }
 
     /// Construct [`Returning`]
+    #[must_use]
     pub fn returning() -> Returning {
         Returning::new()
     }

@@ -8,11 +8,13 @@ pub struct Extension;
 
 impl Extension {
     /// Creates a new [`ExtensionCreateStatement`]
+    #[must_use]
     pub fn create() -> ExtensionCreateStatement {
         ExtensionCreateStatement::new()
     }
 
     /// Creates a new [`ExtensionDropStatement`]
+    #[must_use]
     pub fn drop() -> ExtensionDropStatement {
         ExtensionDropStatement::new()
     }
@@ -67,6 +69,7 @@ pub struct ExtensionCreateStatement {
 }
 
 impl ExtensionCreateStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -149,6 +152,7 @@ pub struct ExtensionDropStatement {
 }
 
 impl ExtensionDropStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

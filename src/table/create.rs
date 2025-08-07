@@ -110,6 +110,7 @@ pub enum TablePartition {}
 
 impl TableCreateStatement {
     /// Construct create table statement
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -279,22 +280,27 @@ impl TableCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn get_table_name(&self) -> Option<&TableRef> {
         self.table.as_ref()
     }
 
+    #[must_use]
     pub fn get_columns(&self) -> &Vec<ColumnDef> {
         self.columns.as_ref()
     }
 
+    #[must_use]
     pub fn get_comment(&self) -> Option<&String> {
         self.comment.as_ref()
     }
 
+    #[must_use]
     pub fn get_foreign_key_create_stmts(&self) -> &Vec<ForeignKeyCreateStatement> {
         self.foreign_keys.as_ref()
     }
 
+    #[must_use]
     pub fn get_indexes(&self) -> &Vec<IndexCreateStatement> {
         self.indexes.as_ref()
     }
@@ -341,6 +347,7 @@ impl TableCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn get_extra(&self) -> Option<&String> {
         self.extra.as_ref()
     }

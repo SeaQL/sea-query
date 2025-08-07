@@ -58,6 +58,7 @@ pub type SchemaTable = TableName;
 
 impl QueryAccessAudit {
     /// This filters the selects from access requests.
+    #[must_use]
     pub fn selects(&self) -> Vec<SchemaTable> {
         self.requests
             .iter()
@@ -73,24 +74,28 @@ impl QueryAccessAudit {
 
     /// Warning: this discards the schema part of SchemaTable.
     /// Intended for testing only.
+    #[must_use]
     pub fn selected_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Select)
     }
 
     /// Warning: this discards the schema part of SchemaTable.
     /// Intended for testing only.
+    #[must_use]
     pub fn inserted_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Insert)
     }
 
     /// Warning: this discards the schema part of SchemaTable.
     /// Intended for testing only.
+    #[must_use]
     pub fn updated_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Update)
     }
 
     /// Warning: this discards the schema part of SchemaTable.
     /// Intended for testing only.
+    #[must_use]
     pub fn deleted_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Delete)
     }

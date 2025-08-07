@@ -60,6 +60,7 @@ pub struct InsertStatement {
 
 impl InsertStatement {
     /// Construct a new [`InsertStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -527,6 +528,7 @@ impl InsertStatement {
     ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }

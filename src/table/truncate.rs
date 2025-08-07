@@ -28,6 +28,7 @@ pub struct TableTruncateStatement {
 
 impl TableTruncateStatement {
     /// Construct truncate table statement
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

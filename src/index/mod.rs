@@ -27,11 +27,13 @@ pub enum IndexStatement {
 
 impl Index {
     /// Construct index [`IndexCreateStatement`]
+    #[must_use]
     pub fn create() -> IndexCreateStatement {
         IndexCreateStatement::new()
     }
 
     /// Construct index [`IndexDropStatement`]
+    #[must_use]
     pub fn drop() -> IndexDropStatement {
         IndexDropStatement::new()
     }

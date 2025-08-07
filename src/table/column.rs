@@ -157,6 +157,7 @@ impl ColumnType {
         ColumnType::Custom(Alias::new(ty).into_iden())
     }
 
+    #[must_use]
     pub fn string(length: Option<u32>) -> ColumnType {
         match length {
             Some(s) => ColumnType::String(StringLen::N(s)),
@@ -164,6 +165,7 @@ impl ColumnType {
         }
     }
 
+    #[must_use]
     pub fn var_binary(length: u32) -> ColumnType {
         ColumnType::VarBinary(StringLen::N(length))
     }
@@ -853,14 +855,17 @@ impl ColumnDef {
         self
     }
 
+    #[must_use]
     pub fn get_column_name(&self) -> String {
         self.name.to_string()
     }
 
+    #[must_use]
     pub fn get_column_type(&self) -> Option<&ColumnType> {
         self.types.as_ref()
     }
 
+    #[must_use]
     pub fn get_column_spec(&self) -> &Vec<ColumnSpec> {
         self.spec.as_ref()
     }

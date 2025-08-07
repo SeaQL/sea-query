@@ -36,6 +36,7 @@ pub struct IndexDropStatement {
 
 impl IndexDropStatement {
     /// Construct a new [`IndexDropStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

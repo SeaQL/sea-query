@@ -79,6 +79,7 @@ pub struct ForeignKeyCreateStatement {
 
 impl ForeignKeyCreateStatement {
     /// Construct a new [`ForeignKeyCreateStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -166,6 +167,7 @@ impl ForeignKeyCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn get_foreign_key(&self) -> &TableForeignKey {
         &self.foreign_key
     }
