@@ -485,6 +485,7 @@ impl Value {
     /// assert_eq!(n, Value::Int(Some(0)));
     /// ```
     #[must_use]
+    #[expect(clippy::default_trait_access)]
     pub fn dummy_value(&self) -> Self {
         match self {
             Self::Bool(_) => Self::Bool(Some(Default::default())),

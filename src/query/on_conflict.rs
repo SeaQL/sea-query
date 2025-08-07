@@ -40,7 +40,7 @@ impl OnConflict {
     /// a special method designed for MySQL
     #[must_use]
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     /// Set ON CONFLICT target column
