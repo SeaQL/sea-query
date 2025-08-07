@@ -22,8 +22,10 @@ impl TableBuilder for PostgresQueryBuilder {
                     _ => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "smallint".into(),
-                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
+                ColumnType::TinyInteger
+                | ColumnType::TinyUnsigned
+                | ColumnType::SmallInteger
+                | ColumnType::SmallUnsigned => "smallint".into(),
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
                 ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
                 ColumnType::Float => "real".into(),
@@ -151,7 +153,6 @@ impl TableBuilder for PostgresQueryBuilder {
                             write!(sql, ", ").unwrap();
                         }
                         match column_spec {
-                            ColumnSpec::AutoIncrement => {}
                             ColumnSpec::Null => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
                                 self.prepare_iden(&column_def.name, sql);
@@ -179,13 +180,14 @@ impl TableBuilder for PostgresQueryBuilder {
                                 write!(sql, ")").unwrap();
                             }
                             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
-                            ColumnSpec::Generated { .. } => {}
                             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
-                            ColumnSpec::Comment(_) => {}
                             ColumnSpec::Using(expr) => {
                                 write!(sql, " USING ").unwrap();
                                 QueryBuilder::prepare_simple_expr(self, expr, sql);
                             }
+                            ColumnSpec::Generated { .. }
+                            | ColumnSpec::AutoIncrement
+                            | ColumnSpec::Comment(_) => {}
                         }
                         false
                     });

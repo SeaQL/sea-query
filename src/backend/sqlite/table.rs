@@ -91,12 +91,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 write!(sql, "DROP COLUMN ").unwrap();
                 self.prepare_iden(col_name, sql);
             }
-            TableAlterOption::DropForeignKey(_) => {
-                panic!(
-                    "Sqlite does not support modification of foreign key constraints to existing tables"
-                );
-            }
-            TableAlterOption::AddForeignKey(_) => {
+            TableAlterOption::DropForeignKey(_) | TableAlterOption::AddForeignKey(_) => {
                 panic!(
                     "Sqlite does not support modification of foreign key constraints to existing tables"
                 );
