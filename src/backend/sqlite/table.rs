@@ -42,7 +42,7 @@ impl TableBuilder for SqliteQueryBuilder {
         self.prepare_column_type(&[], column_type, sql)
     }
 
-    fn column_spec_auto_increment_keyword(&self) -> &str {
+    fn column_spec_auto_increment_keyword(&self) -> &'static str {
         "AUTOINCREMENT"
     }
 

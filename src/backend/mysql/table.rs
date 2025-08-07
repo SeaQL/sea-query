@@ -110,7 +110,7 @@ impl TableBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn column_spec_auto_increment_keyword(&self) -> &str {
+    fn column_spec_auto_increment_keyword(&self) -> &'static str {
         "AUTO_INCREMENT"
     }
 

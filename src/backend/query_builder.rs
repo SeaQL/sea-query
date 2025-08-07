@@ -13,7 +13,7 @@ pub trait QueryBuilder:
     }
 
     /// Prefix for tuples in VALUES list (e.g. ROW for MySQL)
-    fn values_list_tuple_prefix(&self) -> &str {
+    fn values_list_tuple_prefix(&self) -> &'static str {
         ""
     }
 
@@ -1540,37 +1540,37 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// The name of the function that represents the "if null" condition.
-    fn if_null_function(&self) -> &str {
+    fn if_null_function(&self) -> &'static str {
         "IFNULL"
     }
 
     #[doc(hidden)]
     /// The name of the function that represents the "greatest" function.
-    fn greatest_function(&self) -> &str {
+    fn greatest_function(&self) -> &'static str {
         "GREATEST"
     }
 
     #[doc(hidden)]
     /// The name of the function that represents the "least" function.
-    fn least_function(&self) -> &str {
+    fn least_function(&self) -> &'static str {
         "LEAST"
     }
 
     #[doc(hidden)]
     /// The name of the function that returns the char length.
-    fn char_length_function(&self) -> &str {
+    fn char_length_function(&self) -> &'static str {
         "CHAR_LENGTH"
     }
 
     #[doc(hidden)]
     /// The name of the function that returns a random number
-    fn random_function(&self) -> &str {
+    fn random_function(&self) -> &'static str {
         // Returning it with parens as part of the name because the tuple preparer can't deal with empty lists
         "RANDOM"
     }
 
     /// The keywords for insert default row.
-    fn insert_default_keyword(&self) -> &str {
+    fn insert_default_keyword(&self) -> &'static str {
         "(DEFAULT)"
     }
 
