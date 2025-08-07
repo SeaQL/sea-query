@@ -43,7 +43,7 @@ pub trait QueryBuilder:
             write!(sql, "(").unwrap();
             insert.columns.iter().fold(true, |first, col| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    write!(sql, ", ").unwrap();
                 }
                 self.prepare_iden(col, sql);
                 false
@@ -59,12 +59,12 @@ pub trait QueryBuilder:
                         write!(sql, "VALUES ").unwrap();
                         values.iter().fold(true, |first, row| {
                             if !first {
-                                write!(sql, ", ").unwrap()
+                                write!(sql, ", ").unwrap();
                             }
                             write!(sql, "(").unwrap();
                             row.iter().fold(true, |first, col| {
                                 if !first {
-                                    write!(sql, ", ").unwrap()
+                                    write!(sql, ", ").unwrap();
                                 }
                                 self.prepare_simple_expr(col, sql);
                                 false
@@ -116,7 +116,7 @@ pub trait QueryBuilder:
 
         select.selects.iter().fold(true, |first, expr| {
             if !first {
-                write!(sql, ", ").unwrap()
+                write!(sql, ", ").unwrap();
             }
             self.prepare_select_expr(expr, sql);
             false
@@ -126,7 +126,7 @@ pub trait QueryBuilder:
             write!(sql, " FROM ").unwrap();
             select.from.iter().fold(true, |first, table_ref| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    write!(sql, ", ").unwrap();
                 }
                 self.prepare_table_ref(table_ref, sql);
                 false
@@ -148,7 +148,7 @@ pub trait QueryBuilder:
             write!(sql, " GROUP BY ").unwrap();
             select.groups.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    write!(sql, ", ").unwrap();
                 }
                 self.prepare_simple_expr(expr, sql);
                 false
@@ -167,7 +167,7 @@ pub trait QueryBuilder:
             write!(sql, " ORDER BY ").unwrap();
             select.orders.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    write!(sql, ", ").unwrap();
                 }
                 self.prepare_order_expr(expr, sql);
                 false
@@ -221,7 +221,7 @@ pub trait QueryBuilder:
 
         update.values.iter().fold(true, |first, row| {
             if !first {
-                write!(sql, ", ").unwrap()
+                write!(sql, ", ").unwrap();
             }
             let (col, v) = row;
             self.prepare_update_column(&update.table, &update.from, col, sql);
@@ -256,7 +256,7 @@ pub trait QueryBuilder:
 
         from.iter().fold(true, |first, table_ref| {
             if !first {
-                write!(sql, ", ").unwrap()
+                write!(sql, ", ").unwrap();
             }
 
             self.prepare_table_ref(table_ref, sql);
@@ -384,10 +384,10 @@ pub trait QueryBuilder:
             }
             Expr::Binary(left, op, right) => match (op, right.as_ref()) {
                 (BinOper::In, Expr::Tuple(t)) if t.is_empty() => {
-                    self.binary_expr(&1i32.into(), &BinOper::Equal, &2i32.into(), sql)
+                    self.binary_expr(&1i32.into(), &BinOper::Equal, &2i32.into(), sql);
                 }
                 (BinOper::NotIn, Expr::Tuple(t)) if t.is_empty() => {
-                    self.binary_expr(&1i32.into(), &BinOper::Equal, &1i32.into(), sql)
+                    self.binary_expr(&1i32.into(), &BinOper::Equal, &1i32.into(), sql);
                 }
                 _ => self.binary_expr(left, op, right, sql),
             },
@@ -719,7 +719,7 @@ pub trait QueryBuilder:
     /// Translate [`Function`] into SQL statement.
     fn prepare_function_name_common(&self, function: &Func, sql: &mut dyn SqlWriter) {
         if let Func::Custom(iden) = function {
-            write!(sql, "{iden}").unwrap()
+            write!(sql, "{iden}").unwrap();
         } else {
             write!(
                 sql,
@@ -886,7 +886,7 @@ pub trait QueryBuilder:
                 "{} MATERIALIZED ",
                 if materialized { "" } else { "NOT" }
             )
-            .unwrap()
+            .unwrap();
         }
     }
 
@@ -907,12 +907,12 @@ pub trait QueryBuilder:
     }
 
     fn prepare_function_name(&self, function: &Func, sql: &mut dyn SqlWriter) {
-        self.prepare_function_name_common(function, sql)
+        self.prepare_function_name_common(function, sql);
     }
 
     /// Translate [`JoinType`] into SQL statement.
     fn prepare_join_type(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
-        self.prepare_join_type_common(join_type, sql)
+        self.prepare_join_type_common(join_type, sql);
     }
 
     fn prepare_join_type_common(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
@@ -928,7 +928,7 @@ pub trait QueryBuilder:
                 JoinType::FullOuterJoin => "FULL OUTER JOIN",
             }
         )
-        .unwrap()
+        .unwrap();
     }
 
     /// Translate [`OrderExpr`] into SQL statement.
@@ -1112,7 +1112,7 @@ pub trait QueryBuilder:
             Value::Double(Some(v)) => write!(s, "{v}").unwrap(),
             Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
             Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s);
             }
             Value::Bytes(Some(v)) => self.write_bytes(v, &mut s),
             #[cfg(feature = "with-json")]
@@ -1247,7 +1247,7 @@ pub trait QueryBuilder:
         write!(sql, "(").unwrap();
         on_conflict_targets.iter().fold(true, |first, target| {
             if !first {
-                write!(sql, ", ").unwrap()
+                write!(sql, ", ").unwrap();
             }
             match target {
                 OnConflictTarget::ConflictColumn(col) => {
@@ -1287,7 +1287,7 @@ pub trait QueryBuilder:
                     self.prepare_on_conflict_do_update_keywords(sql);
                     update_strats.iter().fold(true, |first, update_strat| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            write!(sql, ", ").unwrap();
                         }
                         match update_strat {
                             OnConflictUpdate::Column(col) => {
@@ -1341,7 +1341,7 @@ pub trait QueryBuilder:
         on_conflict_condition: &ConditionHolder,
         sql: &mut dyn SqlWriter,
     ) {
-        self.prepare_condition(on_conflict_condition, "WHERE", sql)
+        self.prepare_condition(on_conflict_condition, "WHERE", sql);
     }
 
     #[doc(hidden)]
@@ -1358,7 +1358,7 @@ pub trait QueryBuilder:
                 ReturningClause::Columns(cols) => {
                     cols.iter().fold(true, |first, column_ref| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            write!(sql, ", ").unwrap();
                         }
                         self.prepare_column_ref(column_ref, sql);
                         false
@@ -1367,7 +1367,7 @@ pub trait QueryBuilder:
                 ReturningClause::Exprs(exprs) => {
                     exprs.iter().fold(true, |first, expr| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            write!(sql, ", ").unwrap();
                         }
                         self.prepare_simple_expr(expr, sql);
                         false
@@ -1432,7 +1432,7 @@ pub trait QueryBuilder:
             write!(sql, "PARTITION BY ").unwrap();
             window.partition_by.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    write!(sql, ", ").unwrap();
                 }
                 self.prepare_simple_expr(expr, sql);
                 false
@@ -1443,7 +1443,7 @@ pub trait QueryBuilder:
             write!(sql, " ORDER BY ").unwrap();
             window.order_by.iter().fold(true, |first, expr| {
                 if !first {
-                    write!(sql, ", ").unwrap()
+                    write!(sql, ", ").unwrap();
                 }
                 self.prepare_order_expr(expr, sql);
                 false
@@ -1525,7 +1525,7 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        write!(buffer, "'{}'", self.escape_string(string)).unwrap()
+        write!(buffer, "'{}'", self.escape_string(string)).unwrap();
     }
 
     #[doc(hidden)]
@@ -1579,7 +1579,7 @@ pub trait QueryBuilder:
         write!(sql, "VALUES ").unwrap();
         (0..num_rows).fold(true, |first, _| {
             if !first {
-                write!(sql, ", ").unwrap()
+                write!(sql, ", ").unwrap();
             }
             write!(sql, "{}", self.insert_default_keyword()).unwrap();
             false

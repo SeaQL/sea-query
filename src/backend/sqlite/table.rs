@@ -39,7 +39,7 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
-        self.prepare_column_type(&[], column_type, sql)
+        self.prepare_column_type(&[], column_type, sql);
     }
 
     fn column_spec_auto_increment_keyword(&self) -> &'static str {
@@ -190,7 +190,7 @@ impl SqliteQueryBuilder {
                 ColumnType::LTree => unimplemented!("LTree is not available in Sqlite."),
             }
         )
-        .unwrap()
+        .unwrap();
     }
 }
 

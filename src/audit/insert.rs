@@ -22,7 +22,7 @@ impl AuditTrait for InsertStatement {
         });
 
         if let Some(InsertValueSource::Select(select)) = &self.source {
-            requests.append(&mut select.audit()?.requests)
+            requests.append(&mut select.audit()?.requests);
         }
 
         if let Some(with) = &self.with {

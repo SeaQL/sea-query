@@ -90,6 +90,6 @@ impl QueryBuilder for SqliteQueryBuilder {
 
     fn insert_default_values(&self, _: u32, sql: &mut dyn SqlWriter) {
         // SQLite doesn't support inserting multiple rows with default values
-        write!(sql, "DEFAULT VALUES").unwrap()
+        write!(sql, "DEFAULT VALUES").unwrap();
     }
 }

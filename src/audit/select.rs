@@ -214,13 +214,13 @@ impl Walker {
                 for oper in chain {
                     match oper {
                         LogicalChainOper::Or(expr) | LogicalChainOper::And(expr) => {
-                            self.recurse_audit_expr(expr)?
+                            self.recurse_audit_expr(expr)?;
                         }
                     }
                 }
             }
             ConditionHolderContents::Condition(condition) => {
-                self.recurse_audit_condition(condition)?
+                self.recurse_audit_condition(condition)?;
             }
         }
         Ok(())

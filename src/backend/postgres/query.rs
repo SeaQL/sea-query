@@ -181,7 +181,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         } else {
             "'".to_owned() + &escaped + "'"
         };
-        write!(buffer, "{string}").unwrap()
+        write!(buffer, "{string}").unwrap();
     }
 
     fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
