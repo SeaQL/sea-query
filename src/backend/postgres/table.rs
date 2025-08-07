@@ -126,7 +126,7 @@ impl TableBuilder for PostgresQueryBuilder {
                                 .iter()
                                 .any(|v| matches!(v, ColumnSpec::AutoIncrement))
                             {
-                                self.prepare_column_auto_increment(column_type, sql);
+                                Self::prepare_column_auto_increment(column_type, sql);
                             } else {
                                 self.prepare_column_type(column_type, sql);
                             }
@@ -245,7 +245,7 @@ impl TableBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_column_auto_increment(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
+    fn prepare_column_auto_increment(column_type: &ColumnType, sql: &mut dyn SqlWriter) {
         let num_ty = match column_type {
             ColumnType::SmallInteger => "smallint",
             ColumnType::Integer => "integer",
@@ -270,7 +270,7 @@ impl PostgresQueryBuilder {
             write!(sql, " ").unwrap();
 
             if is_auto_increment.is_some() {
-                self.prepare_column_auto_increment(column_type, sql);
+                Self::prepare_column_auto_increment(column_type, sql);
             } else {
                 self.prepare_column_type(column_type, sql);
             }
