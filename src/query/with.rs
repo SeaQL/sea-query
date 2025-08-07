@@ -128,7 +128,7 @@ impl CommonTableExpression {
     }
 
     fn set_table_name_from_select(&mut self, iden: &DynIden) {
-        self.table_name = Some(format!("cte_{iden}").into_iden())
+        self.table_name = Some(format!("cte_{iden}").into_iden());
     }
 
     /// Set up the columns of the CTE to match the given [`SelectStatement`] selected columns.

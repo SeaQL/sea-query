@@ -86,7 +86,7 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::LTree => "ltree".into(),
             }
         )
-        .unwrap()
+        .unwrap();
     }
 
     fn column_spec_auto_increment_keyword(&self) -> &'static str {
@@ -161,7 +161,7 @@ impl TableBuilder for PostgresQueryBuilder {
                             ColumnSpec::NotNull => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
                                 self.prepare_iden(&column_def.name, sql);
-                                write!(sql, " SET NOT NULL").unwrap()
+                                write!(sql, " SET NOT NULL").unwrap();
                             }
                             ColumnSpec::Default(v) => {
                                 write!(sql, "ALTER COLUMN ").unwrap();

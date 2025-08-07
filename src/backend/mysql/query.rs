@@ -21,7 +21,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
         for (i, hint) in select.index_hints.iter().enumerate() {
             if i != 0 {
-                write!(sql, " ").unwrap()
+                write!(sql, " ").unwrap();
             }
             match hint.r#type {
                 IndexHintType::Use => {
@@ -102,7 +102,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                 }
             }
         }
-        self.prepare_iden(column, sql)
+        self.prepare_iden(column, sql);
     }
 
     fn prepare_update_condition(
@@ -129,11 +129,11 @@ impl QueryBuilder for MysqlQueryBuilder {
             None => (),
             Some(NullOrdering::Last) => {
                 self.prepare_simple_expr(&order_expr.expr, sql);
-                write!(sql, " IS NULL ASC, ").unwrap()
+                write!(sql, " IS NULL ASC, ").unwrap();
             }
             Some(NullOrdering::First) => {
                 self.prepare_simple_expr(&order_expr.expr, sql);
-                write!(sql, " IS NULL DESC, ").unwrap()
+                write!(sql, " IS NULL DESC, ").unwrap();
             }
         }
         if !matches!(order_expr.order, Order::Field(_)) {
@@ -163,7 +163,7 @@ impl QueryBuilder for MysqlQueryBuilder {
                     self.prepare_on_conflict_do_update_keywords(sql);
                     pk_cols.iter().fold(true, |first, pk_col| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            write!(sql, ", ").unwrap();
                         }
                         self.prepare_iden(pk_col, sql);
                         write!(sql, " = ").unwrap();

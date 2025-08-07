@@ -10,7 +10,7 @@ impl ExtensionBuilder for PostgresQueryBuilder {
         write!(sql, "CREATE EXTENSION ").unwrap();
 
         if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap()
+            write!(sql, "IF NOT EXISTS ").unwrap();
         }
 
         write!(sql, "{}", create.name).unwrap();

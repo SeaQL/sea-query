@@ -11,7 +11,7 @@ pub trait SqlWriter: Write + ToString {
 
 impl SqlWriter for String {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
-        self.push_str(&query_builder.value_to_string(&value))
+        self.push_str(&query_builder.value_to_string(&value));
     }
 
     fn as_writer(&mut self) -> &mut dyn Write {
@@ -68,7 +68,7 @@ impl SqlWriter for SqlWriterValues {
         } else {
             write!(self.string, "{}", self.placeholder).unwrap();
         }
-        self.values.push(value)
+        self.values.push(value);
     }
 
     fn as_writer(&mut self) -> &mut dyn Write {
@@ -106,7 +106,7 @@ where
                         }
                     }
                 }
-                output.push(mark.clone())
+                output.push(mark.clone());
             }
             _ => output.push(token.to_string()),
         }

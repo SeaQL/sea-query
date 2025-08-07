@@ -654,7 +654,7 @@ impl ConditionHolder {
     pub fn add_and_or(&mut self, condition: LogicalChainOper) {
         match &mut self.contents {
             ConditionHolderContents::Empty => {
-                self.contents = ConditionHolderContents::Chain(vec![condition])
+                self.contents = ConditionHolderContents::Chain(vec![condition]);
             }
             ConditionHolderContents::Chain(c) => c.push(condition),
             ConditionHolderContents::Condition(_) => {

@@ -7,7 +7,7 @@ impl TableBuilder for MysqlQueryBuilder {
             let comment = self.escape_string(comment);
             write!(sql, " COMMENT '{comment}'").unwrap();
         }
-        self.prepare_table_opt_def(create, sql)
+        self.prepare_table_opt_def(create, sql);
     }
 
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
@@ -188,6 +188,6 @@ impl TableBuilder for MysqlQueryBuilder {
     /// column comment
     fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
         let comment = self.escape_string(comment);
-        write!(sql, "COMMENT '{comment}'").unwrap()
+        write!(sql, "COMMENT '{comment}'").unwrap();
     }
 }

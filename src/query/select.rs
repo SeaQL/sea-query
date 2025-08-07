@@ -218,9 +218,9 @@ impl SelectStatement {
         F: FnOnce(&mut Self),
     {
         if b {
-            if_true(self)
+            if_true(self);
         } else {
-            if_false(self)
+            if_false(self);
         }
         self
     }

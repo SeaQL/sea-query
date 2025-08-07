@@ -57,7 +57,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         }
 
         if let Some(option) = &alter.option {
-            self.prepare_alter_type_opt(option, sql)
+            self.prepare_alter_type_opt(option, sql);
         }
     }
 }
@@ -71,7 +71,7 @@ impl PostgresQueryBuilder {
                 TypeAs::Enum => "ENUM",
             }
         )
-        .unwrap()
+        .unwrap();
     }
 
     fn prepare_drop_type_opt(&self, opt: &TypeDropOpt, sql: &mut dyn SqlWriter) {
@@ -83,7 +83,7 @@ impl PostgresQueryBuilder {
                 TypeDropOpt::Restrict => "RESTRICT",
             }
         )
-        .unwrap()
+        .unwrap();
     }
 
     fn prepare_alter_type_opt(&self, opt: &TypeAlterOpt, sql: &mut dyn SqlWriter) {

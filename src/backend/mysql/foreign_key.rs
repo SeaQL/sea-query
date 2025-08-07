@@ -5,7 +5,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         match table_ref {
             // Support only "naked" table names with no schema or alias.
             TableRef::Table(TableName(None, _), None) => {
-                self.prepare_table_ref_iden(table_ref, sql)
+                self.prepare_table_ref_iden(table_ref, sql);
             }
             _ => panic!("Not supported"),
         }
