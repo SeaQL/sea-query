@@ -694,7 +694,7 @@ pub trait ExprTrait: Sized {
     {
         self.binary(
             BinOper::In,
-            Expr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+            Expr::Tuple(v.into_iter().map(Into::into).collect()),
         )
     }
 
@@ -797,7 +797,7 @@ pub trait ExprTrait: Sized {
     {
         self.binary(
             BinOper::NotIn,
-            Expr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+            Expr::Tuple(v.into_iter().map(Into::into).collect()),
         )
     }
 

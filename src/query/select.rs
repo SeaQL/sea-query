@@ -371,7 +371,7 @@ impl SelectStatement {
         I: IntoIterator<Item = T>,
     {
         self.selects
-            .append(&mut exprs.into_iter().map(|c| c.into()).collect());
+            .append(&mut exprs.into_iter().map(Into::into).collect());
         self
     }
 
@@ -450,7 +450,7 @@ impl SelectStatement {
     {
         let cols = cols
             .into_iter()
-            .map(|col| col.into_column_ref())
+            .map(IntoColumnRef::into_column_ref)
             .collect::<Vec<ColumnRef>>();
         self.distinct = if cols.is_empty() {
             None
@@ -931,7 +931,7 @@ impl SelectStatement {
     {
         let value_tuples: Vec<ValueTuple> = value_tuples
             .into_iter()
-            .map(|vt| vt.into_value_tuple())
+            .map(IntoValueTuple::into_value_tuple)
             .collect();
         assert!(!value_tuples.is_empty());
         self.from_from(TableRef::ValuesList(value_tuples, alias.into_iden()))
@@ -2080,7 +2080,10 @@ impl SelectStatement {
     {
         self.lock = Some(LockClause {
             r#type,
-            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            tables: tables
+                .into_iter()
+                .map(IntoTableRef::into_table_ref)
+                .collect(),
             behavior: None,
         });
         self
@@ -2161,7 +2164,10 @@ impl SelectStatement {
     {
         self.lock = Some(LockClause {
             r#type,
-            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            tables: tables
+                .into_iter()
+                .map(IntoTableRef::into_table_ref)
+                .collect(),
             behavior: Some(behavior),
         });
         self

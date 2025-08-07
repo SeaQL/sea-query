@@ -138,8 +138,8 @@ impl PartialEq for ColumnType {
                 l_name.to_string() == r_name.to_string()
                     && l_variants
                         .iter()
-                        .map(|v| v.to_string())
-                        .eq(r_variants.iter().map(|v| v.to_string()))
+                        .map(ToString::to_string)
+                        .eq(r_variants.iter().map(ToString::to_string))
             }
             (Self::Array(l0), Self::Array(r0)) => l0 == r0,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),

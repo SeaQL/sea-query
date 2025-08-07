@@ -79,7 +79,7 @@ impl TableBuilder for MysqlQueryBuilder {
                     "ENUM('{}')",
                     variants
                         .iter()
-                        .map(|v| v.to_string())
+                        .map(ToString::to_string)
                         .collect::<Vec<_>>()
                         .join("', '")
                 ),
