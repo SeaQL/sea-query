@@ -25,79 +25,76 @@ impl TableBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match column_type {
-                ColumnType::Char(length) => match length {
-                    Some(length) => format!("char({length})"),
-                    None => "char".into(),
-                },
-                ColumnType::String(length) => match length {
-                    StringLen::N(length) => format!("varchar({length})"),
-                    StringLen::None => "varchar(255)".into(),
-                    StringLen::Max => "varchar(65535)".into(),
-                },
-                ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "tinyint".into(),
-                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
-                ColumnType::Integer | ColumnType::Unsigned => "int".into(),
-                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
-                ColumnType::Float => "float".into(),
-                ColumnType::Double => "double".into(),
-                ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
-                    None => "decimal".into(),
-                },
-                ColumnType::DateTime => "datetime".into(),
-                ColumnType::Timestamp => "timestamp".into(),
-                ColumnType::TimestampWithTimeZone => "timestamp".into(),
-                ColumnType::Time => "time".into(),
-                ColumnType::Date => "date".into(),
-                ColumnType::Year => "year".into(),
-                ColumnType::Interval(_, _) => "unsupported".into(),
-                ColumnType::Binary(length) => format!("binary({length})"),
-                ColumnType::VarBinary(length) => match length {
-                    StringLen::N(length) => format!("varbinary({length})"),
-                    StringLen::None => "varbinary(255)".into(),
-                    StringLen::Max => "varbinary(65535)".into(),
-                },
-                ColumnType::Blob => "blob".into(),
-                ColumnType::Bit(length) => {
-                    match length {
-                        Some(length) => format!("bit({length})"),
-                        None => "bit".into(),
-                    }
+        match column_type {
+            ColumnType::Char(length) => match length {
+                Some(length) => write!(sql, "char({length})"),
+                None => write!(sql, "char"),
+            },
+            ColumnType::String(length) => match length {
+                StringLen::N(length) => write!(sql, "varchar({length})"),
+                StringLen::None => write!(sql, "varchar(255)"),
+                StringLen::Max => write!(sql, "varchar(65535)"),
+            },
+            ColumnType::Text => write!(sql, "text"),
+            ColumnType::TinyInteger | ColumnType::TinyUnsigned => write!(sql, "tinyint"),
+            ColumnType::SmallInteger | ColumnType::SmallUnsigned => write!(sql, "smallint"),
+            ColumnType::Integer | ColumnType::Unsigned => write!(sql, "int"),
+            ColumnType::BigInteger | ColumnType::BigUnsigned => write!(sql, "bigint"),
+            ColumnType::Float => write!(sql, "float"),
+            ColumnType::Double => write!(sql, "double"),
+            ColumnType::Decimal(precision) => match precision {
+                Some((precision, scale)) => write!(sql, "decimal({precision}, {scale})"),
+                None => write!(sql, "decimal"),
+            },
+            ColumnType::DateTime => write!(sql, "datetime"),
+            ColumnType::Timestamp => write!(sql, "timestamp"),
+            ColumnType::TimestampWithTimeZone => write!(sql, "timestamp"),
+            ColumnType::Time => write!(sql, "time"),
+            ColumnType::Date => write!(sql, "date"),
+            ColumnType::Year => write!(sql, "year"),
+            ColumnType::Interval(_, _) => write!(sql, "unsupported"),
+            ColumnType::Binary(length) => write!(sql, "binary({length})"),
+            ColumnType::VarBinary(length) => match length {
+                StringLen::N(length) => write!(sql, "varbinary({length})"),
+                StringLen::None => write!(sql, "varbinary(255)"),
+                StringLen::Max => write!(sql, "varbinary(65535)"),
+            },
+            ColumnType::Blob => write!(sql, "blob"),
+            ColumnType::Bit(length) => match length {
+                Some(length) => write!(sql, "bit({length})"),
+                None => write!(sql, "bit"),
+            },
+            ColumnType::VarBit(length) => write!(sql, "bit({length})"),
+            ColumnType::Boolean => write!(sql, "bool"),
+            ColumnType::Money(precision) => match precision {
+                Some((precision, scale)) => write!(sql, "decimal({precision}, {scale})"),
+                None => write!(sql, "decimal"),
+            },
+            ColumnType::Json => write!(sql, "json"),
+            ColumnType::JsonBinary => write!(sql, "json"),
+            ColumnType::Uuid => write!(sql, "binary(16)"),
+            ColumnType::Custom(iden) => write!(sql, "{iden}"),
+            ColumnType::Enum { variants, .. } => {
+                write!(sql, "ENUM('").unwrap();
+                let mut viter = variants.iter();
+                if let Some(variant) = viter.next() {
+                    write!(sql, "{variant}",).unwrap();
                 }
-                ColumnType::VarBit(length) => {
-                    format!("bit({length})")
+                for variant in viter {
+                    write!(sql, "', '").unwrap();
+                    write!(sql, "{variant}",).unwrap();
                 }
-                ColumnType::Boolean => "bool".into(),
-                ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
-                    None => "decimal".into(),
-                },
-                ColumnType::Json => "json".into(),
-                ColumnType::JsonBinary => "json".into(),
-                ColumnType::Uuid => "binary(16)".into(),
-                ColumnType::Custom(iden) => iden.to_string(),
-                ColumnType::Enum { variants, .. } => format!(
-                    "ENUM('{}')",
-                    variants
-                        .iter()
-                        .map(|v| v.to_string())
-                        .collect::<Vec<_>>()
-                        .join("', '")
-                ),
-                ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
-                ColumnType::Vector(_) => unimplemented!("Vector is not available in MySQL."),
-                ColumnType::Cidr => unimplemented!("Cidr is not available in MySQL."),
-                ColumnType::Inet => unimplemented!("Inet is not available in MySQL."),
-                ColumnType::MacAddr => unimplemented!("MacAddr is not available in MySQL."),
-                ColumnType::LTree => unimplemented!("LTree is not available in MySQL."),
+                write!(sql, "')")
             }
-        )
+            ColumnType::Array(_) => unimplemented!("Array is not available in MySQL."),
+            ColumnType::Vector(_) => unimplemented!("Vector is not available in MySQL."),
+            ColumnType::Cidr => unimplemented!("Cidr is not available in MySQL."),
+            ColumnType::Inet => unimplemented!("Inet is not available in MySQL."),
+            ColumnType::MacAddr => unimplemented!("MacAddr is not available in MySQL."),
+            ColumnType::LTree => unimplemented!("LTree is not available in MySQL."),
+        }
         .unwrap();
+
         if matches!(
             column_type,
             ColumnType::TinyUnsigned
