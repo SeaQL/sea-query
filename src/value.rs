@@ -327,9 +327,10 @@ pub enum Value {
 pub const VALUE_SIZE: usize = check_value_size();
 
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > 32 {
-        panic!("the size of Value shouldn't be greater than 32 bytes")
-    }
+    assert!(
+        (std::mem::size_of::<Value>() <= 32),
+        "the size of Value shouldn't be greater than 32 bytes"
+    );
     std::mem::size_of::<Value>()
 }
 

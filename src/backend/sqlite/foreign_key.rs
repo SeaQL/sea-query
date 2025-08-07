@@ -17,11 +17,10 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         sql: &mut dyn SqlWriter,
         mode: Mode,
     ) {
-        if mode != Mode::Creation {
-            panic!(
-                "Sqlite does not support modification of foreign key constraints to existing tables"
-            );
-        }
+        assert!(
+            mode == Mode::Creation,
+            "Sqlite does not support modification of foreign key constraints to existing tables"
+        );
 
         write!(sql, "DROP FOREIGN KEY ").unwrap();
         if let Some(name) = &drop.foreign_key.name {
@@ -42,11 +41,10 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
         sql: &mut dyn SqlWriter,
         mode: Mode,
     ) {
-        if mode != Mode::Creation {
-            panic!(
-                "Sqlite does not support modification of foreign key constraints to existing tables"
-            );
-        }
+        assert!(
+            mode == Mode::Creation,
+            "Sqlite does not support modification of foreign key constraints to existing tables"
+        );
 
         write!(sql, "FOREIGN KEY (").unwrap();
         create.foreign_key.columns.iter().fold(true, |first, col| {

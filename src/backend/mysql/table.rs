@@ -115,9 +115,10 @@ impl TableBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
-        if alter.options.is_empty() {
-            panic!("No alter option found")
-        };
+        assert!(
+            !alter.options.is_empty(),
+            "Alter options should not be empty"
+        );
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
             self.prepare_table_ref_table_stmt(table, sql);

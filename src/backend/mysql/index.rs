@@ -70,9 +70,10 @@ impl IndexBuilder for MysqlQueryBuilder {
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
 
-        if drop.if_exists {
-            panic!("Mysql does not support IF EXISTS for DROP INDEX")
-        }
+        assert!(
+            !drop.if_exists,
+            "Mysql does not support IF EXISTS for DROP INDEX"
+        );
 
         if let Some(name) = &drop.index.name {
             write!(
