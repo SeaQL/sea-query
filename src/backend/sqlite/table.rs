@@ -6,7 +6,7 @@ impl TableBuilder for SqliteQueryBuilder {
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
-            self.prepare_column_type(&column_def.spec, column_type, sql);
+            Self::prepare_column_type(&column_def.spec, column_type, sql);
         }
 
         let mut is_primary_key = false;
@@ -39,7 +39,7 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
-        self.prepare_column_type(&[], column_type, sql);
+        Self::prepare_column_type(&[], column_type, sql);
     }
 
     fn column_spec_auto_increment_keyword(&self) -> &'static str {
@@ -117,7 +117,6 @@ impl TableBuilder for SqliteQueryBuilder {
 
 impl SqliteQueryBuilder {
     fn prepare_column_type(
-        &self,
         column_specs: &[ColumnSpec],
         column_type: &ColumnType,
         sql: &mut dyn SqlWriter,

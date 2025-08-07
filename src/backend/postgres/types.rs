@@ -11,7 +11,7 @@ impl TypeBuilder for PostgresQueryBuilder {
 
         if let Some(as_type) = &create.as_type {
             write!(sql, " AS ").unwrap();
-            self.prepare_create_as_type(as_type, sql);
+            Self::prepare_create_as_type(as_type, sql);
         }
 
         if !create.values.is_empty() {
@@ -45,7 +45,7 @@ impl TypeBuilder for PostgresQueryBuilder {
 
         if let Some(option) = &drop.option {
             write!(sql, " ").unwrap();
-            self.prepare_drop_type_opt(option, sql);
+            Self::prepare_drop_type_opt(option, sql);
         }
     }
 
@@ -63,7 +63,7 @@ impl TypeBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_create_as_type(&self, as_type: &TypeAs, sql: &mut dyn SqlWriter) {
+    fn prepare_create_as_type(as_type: &TypeAs, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",
@@ -74,7 +74,7 @@ impl PostgresQueryBuilder {
         .unwrap();
     }
 
-    fn prepare_drop_type_opt(&self, opt: &TypeDropOpt, sql: &mut dyn SqlWriter) {
+    fn prepare_drop_type_opt(opt: &TypeDropOpt, sql: &mut dyn SqlWriter) {
         write!(
             sql,
             "{}",
