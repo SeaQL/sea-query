@@ -283,7 +283,7 @@ impl PostgresQueryBuilder {
 
         f(column_def, sql);
 
-        for column_spec in column_def.spec.iter() {
+        for column_spec in &column_def.spec {
             if matches!(column_spec, ColumnSpec::AutoIncrement) {
                 continue;
             }

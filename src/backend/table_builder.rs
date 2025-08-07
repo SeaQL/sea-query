@@ -127,7 +127,7 @@ pub trait TableBuilder:
 
     /// Default function
     fn prepare_table_opt_def(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
-        for table_opt in create.options.iter() {
+        for table_opt in &create.options {
             write!(sql, " ").unwrap();
             write!(
                 sql,
@@ -162,7 +162,7 @@ pub trait TableBuilder:
             false
         });
 
-        for drop_opt in drop.options.iter() {
+        for drop_opt in &drop.options {
             self.prepare_table_drop_opt(drop_opt, sql);
         }
     }
