@@ -200,18 +200,20 @@ impl QueryBuilder for PostgresQueryBuilder {
 fn is_pg_comparison(b: &BinOper) -> bool {
     matches!(
         b,
-        BinOper::PgOperator(PgBinOper::Contained)
-            | BinOper::PgOperator(PgBinOper::Contains)
-            | BinOper::PgOperator(PgBinOper::Similarity)
-            | BinOper::PgOperator(PgBinOper::WordSimilarity)
-            | BinOper::PgOperator(PgBinOper::StrictWordSimilarity)
-            | BinOper::PgOperator(PgBinOper::Matches)
+        BinOper::PgOperator(
+            PgBinOper::Contained
+                | PgBinOper::Contains
+                | PgBinOper::Similarity
+                | PgBinOper::WordSimilarity
+                | PgBinOper::StrictWordSimilarity
+                | PgBinOper::Matches
+        )
     )
 }
 
 fn is_ilike(b: &BinOper) -> bool {
     matches!(
         b,
-        BinOper::PgOperator(PgBinOper::ILike) | BinOper::PgOperator(PgBinOper::NotILike)
+        BinOper::PgOperator(PgBinOper::ILike | PgBinOper::NotILike)
     )
 }

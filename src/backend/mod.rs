@@ -140,43 +140,28 @@ impl Oper {
     pub(crate) fn is_logical(&self) -> bool {
         matches!(
             self,
-            Oper::UnOper(UnOper::Not) | Oper::BinOper(BinOper::And) | Oper::BinOper(BinOper::Or)
+            Oper::UnOper(UnOper::Not) | Oper::BinOper(BinOper::And | BinOper::Or)
         )
     }
 
     pub(crate) fn is_between(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::Between) | Oper::BinOper(BinOper::NotBetween)
-        )
+        matches!(self, Oper::BinOper(BinOper::Between | BinOper::NotBetween))
     }
 
     pub(crate) fn is_like(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::Like) | Oper::BinOper(BinOper::NotLike)
-        )
+        matches!(self, Oper::BinOper(BinOper::Like | BinOper::NotLike))
     }
 
     pub(crate) fn is_in(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::In) | Oper::BinOper(BinOper::NotIn)
-        )
+        matches!(self, Oper::BinOper(BinOper::In | BinOper::NotIn))
     }
 
     pub(crate) fn is_is(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::Is) | Oper::BinOper(BinOper::IsNot)
-        )
+        matches!(self, Oper::BinOper(BinOper::Is | BinOper::IsNot))
     }
 
     pub(crate) fn is_shift(&self) -> bool {
-        matches!(
-            self,
-            Oper::BinOper(BinOper::LShift) | Oper::BinOper(BinOper::RShift)
-        )
+        matches!(self, Oper::BinOper(BinOper::LShift | BinOper::RShift))
     }
 
     #[allow(clippy::match_wildcard_for_single_variants)]
