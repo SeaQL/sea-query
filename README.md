@@ -92,7 +92,8 @@ Why would you want to use a dynamic query builder?
 
 1. Parameter bindings
 
-One of the headaches when using raw SQL is parameter binding. With SeaQuery you can:
+One of the headaches when using raw SQL is parameter binding. With SeaQuery you can inject parameters
+right alongside the expression, and the $N sequencing will be handled for you. No more "off by one" errors!
 
 ```rust
 assert_eq!(
@@ -117,27 +118,56 @@ assert_eq!(
 );
 ```
 
-2. Dynamic query
-
-You can construct the query at runtime based on user inputs:
+If you need an "escape hatch" to construct complex queries, you can use custom expressions,
+and still have the benefit of sequentially-binded parameters.
 
 ```rust
-Query::select()
-    .column(Char::Character)
-    .from(Char::Table)
-    .conditions(
-        // some runtime condition
-        true,
-        // if condition is true then add the following condition
-        |q| {
-            q.and_where(Expr::col(Char::Id).eq(1));
-        },
-        // otherwise leave it as is
-        |q| {},
-    );
+assert_eq!(
+    Query::select()
+        .columns([Char::SizeW, Char::SizeH])
+        .from(Char::Table)
+        .and_where(Expr::col(Char::Id).eq(1)) // this is $1
+        // custom expressions only need to define local parameter sequence.
+        // its global sequence will be re-written.
+        // here, we flip the order of $2 & $1 to make it look tricker!
+        .and_where(Expr::cust_with_values("\"size_w\" = $2 * $1", [3, 2]))
+        .and_where(Expr::col(Char::SizeH).gt(4)) // this is $N?
+        .build(PostgresQueryBuilder),
+    (
+        r#"SELECT "size_w", "size_h" FROM "character" WHERE "id" = $1 AND ("size_w" = $2 * $3) AND "size_h" > $4"#
+            .to_owned(),
+        Values(vec![1.into(), 2.into(), 3.into(), 4.into()])
+    )
+);
 ```
 
-Conditions can be arbitrarily complex:
+2. Dynamic query
+
+You can construct the query at runtime based on user inputs with a fluent interface,
+so you don't have to append `WHERE` or `AND` conditionally.
+
+```rust
+fn query(value: Option<i32>) -> SelectStatement {
+    Query::select()
+        .column(Char::Character)
+        .from(Char::Table)
+        .apply_if(value, |q, v| {
+            q.and_where(Expr::col(Char::FontId).eq(v));
+        })
+        .take()
+}
+
+assert_eq!(
+    query(Some(5)).to_string(MysqlQueryBuilder),
+    "SELECT `character` FROM `character` WHERE `font_id` = 5"
+);
+assert_eq!(
+    query(None).to_string(MysqlQueryBuilder),
+    "SELECT `character` FROM `character`"
+);
+```
+
+Conditions can be arbitrarily complex, thanks to SeaQuery's internal AST:
 
 ```rust
 assert_eq!(
@@ -168,6 +198,9 @@ assert_eq!(
     .join(" ")
 );
 ```
+
+There is no superfluous parentheses `((((` cluttering the query, because SeaQuery respects
+operator precedence when injecting them.
 
 3. Cross database support
 

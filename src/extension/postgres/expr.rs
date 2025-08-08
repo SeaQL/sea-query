@@ -10,9 +10,7 @@ pub trait PgExpr: ExprTrait {
     /// ```
     /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
     ///
-    /// let query = Query::select()
-    ///     .expr(Expr::val("a").concatenate("b"))
-    ///     .take();
+    /// let query = Query::select().expr(Expr::val("a").concatenate("b")).take();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
