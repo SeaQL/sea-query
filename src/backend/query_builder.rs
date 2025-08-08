@@ -423,7 +423,7 @@ pub trait QueryBuilder:
                 while let Some(token) = tokenizer.next() {
                     match token {
                         Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
-                            Some(Token::Punctuation(mark)) if mark == placeholder => {
+                            Some(Token::Punctuation(mark)) if mark == &placeholder => {
                                 write!(sql, "{mark}").unwrap();
                                 tokenizer.next();
                             }

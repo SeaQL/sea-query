@@ -3,100 +3,120 @@
 use std::fmt::Write;
 use std::iter::Iterator;
 
-#[derive(Debug, Default)]
-pub struct Tokenizer {
-    pub chars: Vec<char>,
-    pub p: usize,
+#[derive(Debug)]
+pub struct Tokenizer<'a> {
+    input: &'a str,
+    chars: std::str::Chars<'a>,
+    c: Option<char>,
+    p: usize,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum Token {
-    Quoted(String),
-    Unquoted(String),
-    Space(String),
-    Punctuation(String),
+pub enum Token<'a> {
+    Quoted(&'a str),
+    Unquoted(&'a str),
+    Space(&'a str),
+    Punctuation(&'a str),
 }
 
-impl Tokenizer {
-    pub fn new(string: &str) -> Self {
+impl<'a> Tokenizer<'a> {
+    pub fn new(string: &'a str) -> Self {
+        let mut chars = string.chars();
+        let c = chars.next();
         Self {
-            chars: string.chars().collect(),
+            input: string,
+            chars,
+            c,
             p: 0,
         }
     }
 
-    pub fn iter(self) -> impl Iterator<Item = Token> {
+    pub fn iter(self) -> impl Iterator<Item = Token<'a>> {
         self
     }
 
     fn get(&self) -> char {
-        self.chars[self.p]
+        self.c.unwrap()
     }
 
     fn inc(&mut self) {
-        self.p += 1;
+        let c = self.get();
+        self.c = self.chars.next();
+        self.p += c.len_utf8();
     }
 
     fn end(&self) -> bool {
-        self.p == self.chars.len()
+        self.c.is_none()
     }
 
-    fn space(&mut self) -> Option<Token> {
-        let mut string = String::new();
+    fn p_c(&self, c: char) -> usize {
+        self.p + c.len_utf8()
+    }
+
+    fn space(&mut self) -> Option<Token<'a>> {
+        let a = self.p;
+        let mut b = a;
+
         while !self.end() {
             let c = self.get();
             if Self::is_space(c) {
-                write!(string, "{c}").unwrap();
+                b = self.p_c(c);
             } else {
                 break;
             }
             self.inc();
         }
-        if !string.is_empty() {
-            Some(Token::Space(string))
+
+        if a != b {
+            Some(Token::Space(&self.input[a..b]))
         } else {
             None
         }
     }
 
-    fn unquoted(&mut self) -> Option<Token> {
-        let mut string = String::new();
+    fn unquoted(&mut self) -> Option<Token<'a>> {
+        let a = self.p;
+        let mut b = a;
+
         let mut first = true;
         while !self.end() {
             let c = self.get();
             if Self::is_alphanumeric(c) {
-                write!(string, "{c}").unwrap();
+                b = self.p_c(c);
                 first = false;
                 self.inc();
             } else if !first && Self::is_identifier(c) {
-                write!(string, "{c}").unwrap();
+                b = self.p_c(c);
                 self.inc();
             } else {
                 break;
             }
         }
-        if !string.is_empty() {
-            Some(Token::Unquoted(string))
+
+        if a != b {
+            Some(Token::Unquoted(&self.input[a..b]))
         } else {
             None
         }
     }
 
-    fn quoted(&mut self) -> Option<Token> {
-        let mut string = String::new();
+    fn quoted(&mut self) -> Option<Token<'a>> {
+        let a = self.p;
+        let mut b = a;
+
         let mut first = true;
         let mut escape = false;
         let mut start = ' ';
         while !self.end() {
             let c = self.get();
             if first && Self::is_string_delimiter_start(c) {
-                write!(string, "{c}").unwrap();
+                b = self.p_c(c);
                 first = false;
                 start = c;
                 self.inc();
             } else if !first && !escape && Self::is_string_delimiter_end_for(start, c) {
-                write!(string, "{c}").unwrap();
+                b = self.p_c(c);
                 self.inc();
                 if self.end() {
                     break;
@@ -104,19 +124,19 @@ impl Tokenizer {
                 if !Self::is_string_escape_for(start, self.get()) {
                     break;
                 } else {
-                    write!(string, "{}", self.get()).unwrap();
+                    b = self.p_c(c);
                     self.inc();
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
-                write!(string, "{c}").unwrap();
+                b = self.p_c(c);
                 self.inc();
             } else {
                 break;
             }
         }
-        if !string.is_empty() {
-            Some(Token::Quoted(string))
+        if a != b {
+            Some(Token::Quoted(&self.input[a..b]))
         } else {
             None
         }
@@ -156,17 +176,20 @@ impl Tokenizer {
         string
     }
 
-    fn punctuation(&mut self) -> Option<Token> {
-        let mut string = String::new();
+    fn punctuation(&mut self) -> Option<Token<'a>> {
+        let a = self.p;
+        let mut b = a;
+
         if !self.end() {
             let c = self.get();
             if !Self::is_space(c) && !Self::is_alphanumeric(c) {
-                write!(string, "{c}").unwrap();
+                b = self.p_c(c);
                 self.inc();
             }
         }
-        if !string.is_empty() {
-            Some(Token::Punctuation(string))
+
+        if a != b {
+            Some(Token::Punctuation(&self.input[a..b]))
         } else {
             None
         }
@@ -212,8 +235,8 @@ impl Tokenizer {
     }
 }
 
-impl Iterator for Tokenizer {
-    type Item = Token;
+impl<'a> Iterator for Tokenizer<'a> {
+    type Item = Token<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(space) = self.space() {
@@ -232,7 +255,7 @@ impl Iterator for Tokenizer {
     }
 }
 
-impl Token {
+impl Token<'_> {
     pub fn is_quoted(&self) -> bool {
         matches!(self, Self::Quoted(_))
     }
@@ -268,7 +291,7 @@ impl Token {
     }
 }
 
-impl std::fmt::Display for Token {
+impl std::fmt::Display for Token<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -303,18 +326,18 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Unquoted("SELECT".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Punctuation("*".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Unquoted("FROM".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Quoted("`character`".to_string()),
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Punctuation("*"),
+                Token::Space(" "),
+                Token::Unquoted("FROM"),
+                Token::Space(" "),
+                Token::Quoted("`character`"),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -326,26 +349,26 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Unquoted("SELECT".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Punctuation("*".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Unquoted("FROM".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Quoted("`character`".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Unquoted("WHERE".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Unquoted("id".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Punctuation("=".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Punctuation("?".to_string()),
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Punctuation("*"),
+                Token::Space(" "),
+                Token::Unquoted("FROM"),
+                Token::Space(" "),
+                Token::Quoted("`character`"),
+                Token::Space(" "),
+                Token::Unquoted("WHERE"),
+                Token::Space(" "),
+                Token::Unquoted("id"),
+                Token::Space(" "),
+                Token::Punctuation("="),
+                Token::Space(" "),
+                Token::Punctuation("?"),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -357,17 +380,17 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Punctuation("?".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Punctuation("=".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Quoted(r#""?""#.to_string()),
-                Token::Space(" ".to_string()),
+                Token::Punctuation("?"),
+                Token::Space(" "),
+                Token::Punctuation("="),
+                Token::Space(" "),
+                Token::Quoted(r#""?""#),
+                Token::Space(" "),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -376,10 +399,10 @@ mod tests {
         let string = r#""a\"bc""#;
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"".to_string())]);
+        assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"")]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -388,10 +411,10 @@ mod tests {
         let string = "abc123";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Unquoted(string.to_string())]);
+        assert_eq!(tokens, vec![Token::Unquoted(string)]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -403,16 +426,16 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Unquoted("2".to_string()),
-                Token::Punctuation(".".to_string()),
-                Token::Unquoted("3".to_string()),
-                Token::Punctuation("*".to_string()),
-                Token::Unquoted("4".to_string()),
+                Token::Unquoted("2"),
+                Token::Punctuation("."),
+                Token::Unquoted("3"),
+                Token::Punctuation("*"),
+                Token::Unquoted("4"),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -424,14 +447,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Quoted("\"a\\\\\"".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Unquoted("B".to_string()),
+                Token::Quoted("\"a\\\\\""),
+                Token::Space(" "),
+                Token::Unquoted("B"),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -440,16 +463,10 @@ mod tests {
         let string = r#"`a"b` "#;
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(
-            tokens,
-            vec![
-                Token::Quoted("`a\"b`".to_string()),
-                Token::Space(" ".to_string()),
-            ]
-        );
+        assert_eq!(tokens, vec![Token::Quoted("`a\"b`"), Token::Space(" ")]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -458,16 +475,10 @@ mod tests {
         let string = r"[ab] ";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(
-            tokens,
-            vec![
-                Token::Quoted("[ab]".to_string()),
-                Token::Space(" ".to_string()),
-            ]
-        );
+        assert_eq!(tokens, vec![Token::Quoted("[ab]"), Token::Space(" ")]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -479,14 +490,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Space(" ".to_string()),
-                Token::Quoted("'a\"b'".to_string()),
-                Token::Space(" ".to_string()),
+                Token::Space(" "),
+                Token::Quoted("'a\"b'"),
+                Token::Space(" "),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -498,14 +509,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Space(" ".to_string()),
-                Token::Quoted("`a``b`".to_string()),
-                Token::Space(" ".to_string()),
+                Token::Space(" "),
+                Token::Quoted("`a``b`"),
+                Token::Space(" "),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -517,14 +528,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Space(" ".to_string()),
-                Token::Quoted("'a''b'".to_string()),
-                Token::Space(" ".to_string()),
+                Token::Space(" "),
+                Token::Quoted("'a''b'"),
+                Token::Space(" "),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -536,14 +547,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Punctuation("(".to_string()),
-                Token::Punctuation("?".to_string()),
-                Token::Punctuation(")".to_string()),
+                Token::Punctuation("("),
+                Token::Punctuation("?"),
+                Token::Punctuation(")"),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -555,20 +566,20 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Punctuation("(".to_string()),
-                Token::Punctuation("$".to_string()),
-                Token::Unquoted("1".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Punctuation("=".to_string()),
-                Token::Space(" ".to_string()),
-                Token::Punctuation("$".to_string()),
-                Token::Unquoted("2".to_string()),
-                Token::Punctuation(")".to_string()),
+                Token::Punctuation("("),
+                Token::Punctuation("$"),
+                Token::Unquoted("1"),
+                Token::Space(" "),
+                Token::Punctuation("="),
+                Token::Space(" "),
+                Token::Punctuation("$"),
+                Token::Unquoted("2"),
+                Token::Punctuation(")"),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -580,14 +591,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Space(" ".to_string()),
-                Token::Quoted("\"Hello World\"".to_string()),
-                Token::Space(" ".to_string()),
+                Token::Space(" "),
+                Token::Quoted("\"Hello World\""),
+                Token::Space(" "),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -596,10 +607,10 @@ mod tests {
         let string = "abc_$123";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
-        assert_eq!(tokens, vec![Token::Unquoted(string.to_string())]);
+        assert_eq!(tokens, vec![Token::Unquoted(string)]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -610,14 +621,11 @@ mod tests {
         let tokens: Vec<Token> = tokenizer.iter().collect();
         assert_eq!(
             tokens,
-            vec![
-                Token::Punctuation("$".to_string()),
-                Token::Unquoted("abc$123".to_string()),
-            ]
+            vec![Token::Punctuation("$"), Token::Unquoted("abc$123"),]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -629,14 +637,14 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Punctuation("_".to_string()),
-                Token::Punctuation("$".to_string()),
-                Token::Unquoted("abc_123$".to_string()),
+                Token::Punctuation("_"),
+                Token::Punctuation("$"),
+                Token::Unquoted("abc_123$"),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 
@@ -657,7 +665,7 @@ mod tests {
     #[test]
     fn test_21() {
         assert_eq!(
-            Token::Quoted("'a\\nb'".to_owned()).unquote().unwrap(),
+            Token::Quoted("'a\\nb'").unquote().unwrap(),
             "a\\nb".to_owned()
         );
     }
@@ -670,14 +678,54 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                Token::Space(" ".to_string()),
-                Token::Quoted("\"Hello\\nWorld\"".to_string()),
-                Token::Space(" ".to_string()),
+                Token::Space(" "),
+                Token::Quoted("\"Hello\\nWorld\""),
+                Token::Space(" "),
             ]
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.to_string()).collect::<String>()
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_23() {
+        let string = "{ab} '{cd}'";
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Punctuation("{"),
+                Token::Unquoted("ab"),
+                Token::Punctuation("}"),
+                Token::Space(" "),
+                Token::Quoted("'{cd}'"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_24() {
+        let string = r#"新"老虎","#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("新"),
+                Token::Quoted("\"老虎\""),
+                Token::Punctuation(","),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
 }

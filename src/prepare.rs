@@ -77,7 +77,8 @@ impl SqlWriter for SqlWriterValues {
     }
 }
 
-pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
+#[cfg(test)]
+fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
 where
     I: IntoIterator<Item = Value>,
 {
@@ -89,7 +90,7 @@ where
 
     while let Some(token) = tokenizer.next() {
         match token {
-            Token::Punctuation(ref mark) => {
+            Token::Punctuation(mark) => {
                 let (ph, numbered) = query_builder.placeholder();
 
                 if !numbered && mark == ph {
