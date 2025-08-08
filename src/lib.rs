@@ -162,22 +162,29 @@
 //!
 //! ```
 //! # use sea_query::{*, tests_cfg::*};
-//! fn query(value: Option<i32>) -> SelectStatement {
+//! fn query(a: Option<i32>, b: Option<char>) -> SelectStatement {
 //!     Query::select()
 //!         .column(Char::Character)
 //!         .from(Char::Table)
-//!         .apply_if(value, |q, v| {
+//!         .apply_if(a, |q, v| {
 //!             q.and_where(Expr::col(Char::FontId).eq(v));
+//!         })
+//!         .apply_if(b, |q, v| {
+//!             q.and_where(Expr::col(Char::Ascii).like(v));
 //!         })
 //!         .take()
 //! }
 //!
 //! assert_eq!(
-//!     query(Some(5)).to_string(MysqlQueryBuilder),
+//!     query(Some(5), Some('A')).to_string(MysqlQueryBuilder),
+//!     "SELECT `character` FROM `character` WHERE `font_id` = 5 AND `ascii` LIKE 'A'"
+//! );
+//! assert_eq!(
+//!     query(Some(5), None).to_string(MysqlQueryBuilder),
 //!     "SELECT `character` FROM `character` WHERE `font_id` = 5"
 //! );
 //! assert_eq!(
-//!     query(None).to_string(MysqlQueryBuilder),
+//!     query(None, None).to_string(MysqlQueryBuilder),
 //!     "SELECT `character` FROM `character`"
 //! );
 //! ```
