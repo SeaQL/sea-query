@@ -164,7 +164,7 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! fn query(a: Option<i32>, b: Option<char>) -> SelectStatement {
 //!     Query::select()
-//!         .column(Char::Character)
+//!         .column(Char::Id)
 //!         .from(Char::Table)
 //!         .apply_if(a, |q, v| {
 //!             q.and_where(Expr::col(Char::FontId).eq(v));
@@ -177,15 +177,15 @@
 //!
 //! assert_eq!(
 //!     query(Some(5), Some('A')).to_string(MysqlQueryBuilder),
-//!     "SELECT `character` FROM `character` WHERE `font_id` = 5 AND `ascii` LIKE 'A'"
+//!     "SELECT `id` FROM `character` WHERE `font_id` = 5 AND `ascii` LIKE 'A'"
 //! );
 //! assert_eq!(
 //!     query(Some(5), None).to_string(MysqlQueryBuilder),
-//!     "SELECT `character` FROM `character` WHERE `font_id` = 5"
+//!     "SELECT `id` FROM `character` WHERE `font_id` = 5"
 //! );
 //! assert_eq!(
 //!     query(None, None).to_string(MysqlQueryBuilder),
-//!     "SELECT `character` FROM `character`"
+//!     "SELECT `id` FROM `character`"
 //! );
 //! ```
 //!
