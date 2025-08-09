@@ -1,3 +1,5 @@
+pub mod seaql;
+
 use crate::QueryBuilder;
 use std::fmt::Write;
 
@@ -14,7 +16,7 @@ pub trait U8Parameter: Sized {
         1
     }
 
-    fn iter_p(self) -> Option<Self> {
+    fn iter_p(&self) -> Option<&Self> {
         Some(self)
     }
 }
@@ -24,7 +26,7 @@ pub trait SingleParameter: Sized {
         1
     }
 
-    fn iter_p(self) -> Option<Self> {
+    fn iter_p(&self) -> Option<&Self> {
         Some(self)
     }
 }
@@ -32,7 +34,7 @@ pub trait SingleParameter: Sized {
 pub trait ArrayParameter: Sized {
     fn p_len(&self) -> usize;
 
-    fn iter_p(self) -> Self {
+    fn iter_p(&self) -> &Self {
         self
     }
 }
@@ -54,7 +56,7 @@ impl SingleParameter for String {}
 impl U8Parameter for &u8 {}
 impl U8Parameter for &[u8] {}
 impl U8Parameter for Vec<u8> {}
-impl<const N: usize> U8Parameter for [u8; N] {}
+impl<const N: usize> U8Parameter for &[u8; N] {}
 
 impl<T> ArrayParameter for &[T]
 where
@@ -158,13 +160,13 @@ mod test {
         assert_eq!(builder.finish(), "SELECT $1, $2, $3, $4, $5, $6");
 
         let mut values = Values::default();
-        for v in a.iter_p().into_iter() {
+        for v in (&a).iter_p().iter() {
             values.bind(v);
         }
-        for v in b.iter_p().into_iter() {
+        for v in (&b).iter_p().iter() {
             values.bind(v);
         }
-        for v in c.iter_p().into_iter() {
+        for v in (&c).iter_p().iter() {
             values.bind(v);
         }
 
@@ -184,16 +186,16 @@ mod test {
         assert_eq!((&d).p_len(), 1);
 
         let mut values = Values::default();
-        for v in a.iter_p().into_iter() {
+        for v in (&a).iter_p().iter() {
             values.bind(v);
         }
-        for v in b.iter_p().into_iter() {
+        for v in (&b).iter_p().iter() {
             values.bind(v);
         }
-        for v in c.iter_p().into_iter() {
+        for v in (&c).iter_p().iter() {
             values.bind(v);
         }
-        for v in d.iter_p().into_iter() {
+        for v in (&d).iter_p().iter() {
             values.bind(v);
         }
 
@@ -211,13 +213,13 @@ mod test {
         assert_eq!((&c).p_len(), 1);
 
         let mut values = Values::default();
-        for v in a.iter_p().into_iter() {
+        for v in (&a).iter_p().iter() {
             values.bind(v);
         }
-        for v in b.iter_p().into_iter() {
+        for v in (&b).iter_p().iter() {
             values.bind(v);
         }
-        for v in c.iter_p().into_iter() {
+        for v in (&c).iter_p().iter() {
             values.bind(v);
         }
 

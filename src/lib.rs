@@ -940,7 +940,7 @@ pub mod func;
 pub mod index;
 pub mod prepare;
 pub mod query;
-mod raw_sql;
+pub mod raw_sql;
 pub mod schema;
 pub mod table;
 pub mod token;
@@ -958,7 +958,6 @@ pub use func::*;
 pub use index::*;
 pub use prepare::*;
 pub use query::*;
-pub use raw_sql::*;
 pub use schema::*;
 pub use table::*;
 pub use token::*;
@@ -966,7 +965,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::{Iden, IdenStatic, enum_def};
+pub use sea_query_derive::{Iden, IdenStatic, enum_def, raw_sql};
 
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;

@@ -130,6 +130,11 @@ name = "option-more-parentheses"
 path = "tests/more-parentheses.rs"
 required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
 
+[[test]]
+name = "test-raw-sql"
+path = "tests/raw_sql.rs"
+required-features = ["derive"]
+
 [[bench]]
 name = "basic"
 harness = false

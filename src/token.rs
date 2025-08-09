@@ -1,8 +1,7 @@
-//! Tokenizer for processing SQL.
-
 use std::fmt::Write;
 use std::iter::Iterator;
 
+/// Tokenizer for processing SQL.
 #[derive(Debug)]
 pub struct Tokenizer<'a> {
     input: &'a str,
@@ -309,7 +308,6 @@ impl std::fmt::Display for Token<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_0() {
