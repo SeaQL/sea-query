@@ -102,12 +102,12 @@ option-sqlite-exact-column-type = []
 
 [[test]]
 name = "test-derive"
-path = "tests/derive/mod.rs"
+path = "tests/derive.rs"
 required-features = ["derive"]
 
 [[test]]
 name = "test-error"
-path = "tests/error/mod.rs"
+path = "tests/error.rs"
 required-features = ["tests-cfg"]
 
 [[test]]
