@@ -60,11 +60,13 @@ pub struct InsertStatement {
 
 impl InsertStatement {
     /// Construct a new [`InsertStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Take the ownership of data in the current [`SelectStatement`]
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             replace: self.replace,
@@ -130,7 +132,7 @@ impl InsertStatement {
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
+        self.columns = columns.into_iter().map(IntoIden::into_iden).collect();
         self
     }
 
@@ -196,6 +198,7 @@ impl InsertStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
     /// );
+    /// ```
     /// ```
     /// use sea_query::{audit::*, tests_cfg::*, *};
     /// let query = Query::insert()
@@ -285,7 +288,7 @@ impl InsertStatement {
             let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
                 values
             } else {
-                self.source = Some(InsertValueSource::Values(Default::default()));
+                self.source = Some(InsertValueSource::Values(Vec::new()));
                 if let Some(InsertValueSource::Values(values)) = &mut self.source {
                     values
                 } else {
@@ -483,7 +486,7 @@ impl InsertStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -527,11 +530,12 @@ impl InsertStatement {
     ///     r#"WITH "cte" ("id", "image", "aspect") AS (SELECT "id", "image", "aspect" FROM "glyph") INSERT INTO "glyph" ("id", "image", "aspect") SELECT "id", "image", "aspect" FROM "cte""#
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///

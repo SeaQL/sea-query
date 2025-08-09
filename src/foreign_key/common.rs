@@ -26,6 +26,7 @@ pub enum ForeignKeyAction {
 impl ForeignKeyAction {
     #[doc(hidden)]
     /// Return the PascalCase name of the action
+    #[must_use]
     pub fn variant_name(&self) -> &'static str {
         match self {
             Self::Restrict => "Restrict",
@@ -39,6 +40,7 @@ impl ForeignKeyAction {
 
 impl TableForeignKey {
     /// Construct a new foreign key
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -100,29 +102,32 @@ impl TableForeignKey {
         self
     }
 
+    #[must_use]
     pub fn get_ref_table(&self) -> Option<&TableRef> {
         self.ref_table.as_ref()
     }
 
+    #[must_use]
     pub fn get_columns(&self) -> Vec<String> {
-        self.columns.iter().map(|col| col.to_string()).collect()
+        self.columns.iter().map(ToString::to_string).collect()
     }
 
+    #[must_use]
     pub fn get_ref_columns(&self) -> Vec<String> {
-        self.ref_columns
-            .iter()
-            .map(|ref_col| ref_col.to_string())
-            .collect()
+        self.ref_columns.iter().map(ToString::to_string).collect()
     }
 
+    #[must_use]
     pub fn get_on_delete(&self) -> Option<ForeignKeyAction> {
         self.on_delete
     }
 
+    #[must_use]
     pub fn get_on_update(&self) -> Option<ForeignKeyAction> {
         self.on_update
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             name: self.name.take(),

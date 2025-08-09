@@ -75,7 +75,7 @@ pub enum SelectDistinct {
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
 pub enum WindowSelectType {
-    /// Name in [`SelectStatement`]
+    /// Name in [[`SelectStatement`]]
     Name(DynIden),
     /// Inline query in [`SelectExpr`]
     Query(WindowStatement),
@@ -149,12 +149,14 @@ where
 }
 
 impl SelectStatement {
-    /// Construct a new [`SelectStatement`]
+    /// Construct a new [[`SelectStatement`]]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Take the ownership of data in the current [`SelectStatement`]
+    /// Take the ownership of data in the current [[`SelectStatement`]]
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             distinct: self.distinct.take(),
@@ -218,9 +220,9 @@ impl SelectStatement {
         F: FnOnce(&mut Self),
     {
         if b {
-            if_true(self)
+            if_true(self);
         } else {
-            if_false(self)
+            if_false(self);
         }
         self
     }
@@ -369,7 +371,7 @@ impl SelectStatement {
         I: IntoIterator<Item = T>,
     {
         self.selects
-            .append(&mut exprs.into_iter().map(|c| c.into()).collect());
+            .append(&mut exprs.into_iter().map(Into::into).collect());
         self
     }
 
@@ -448,12 +450,12 @@ impl SelectStatement {
     {
         let cols = cols
             .into_iter()
-            .map(|col| col.into_column_ref())
+            .map(IntoColumnRef::into_column_ref)
             .collect::<Vec<ColumnRef>>();
-        self.distinct = if !cols.is_empty() {
-            Some(SelectDistinct::DistinctOn(cols))
-        } else {
+        self.distinct = if cols.is_empty() {
             None
+        } else {
+            Some(SelectDistinct::DistinctOn(cols))
         };
         self
     }
@@ -929,7 +931,7 @@ impl SelectStatement {
     {
         let value_tuples: Vec<ValueTuple> = value_tuples
             .into_iter()
-            .map(|vt| vt.into_value_tuple())
+            .map(IntoValueTuple::into_value_tuple)
             .collect();
         assert!(!value_tuples.is_empty());
         self.from_from(TableRef::ValuesList(value_tuples, alias.into_iden()))
@@ -2078,7 +2080,10 @@ impl SelectStatement {
     {
         self.lock = Some(LockClause {
             r#type,
-            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            tables: tables
+                .into_iter()
+                .map(IntoTableRef::into_table_ref)
+                .collect(),
             behavior: None,
         });
         self
@@ -2159,7 +2164,10 @@ impl SelectStatement {
     {
         self.lock = Some(LockClause {
             r#type,
-            tables: tables.into_iter().map(|t| t.into_table_ref()).collect(),
+            tables: tables
+                .into_iter()
+                .map(IntoTableRef::into_table_ref)
+                .collect(),
             behavior: Some(behavior),
         });
         self
@@ -2227,7 +2235,7 @@ impl SelectStatement {
         self.lock(LockType::Update)
     }
 
-    /// Union with another SelectStatement that must have the same selected fields.
+    /// Union with another [`SelectStatement`] that must have the same selected fields.
     ///
     /// # Examples
     ///
@@ -2268,7 +2276,7 @@ impl SelectStatement {
         self
     }
 
-    /// Union with multiple SelectStatement that must have the same selected fields.
+    /// Union with multiple [`SelectStatement`] that must have the same selected fields.
     ///
     /// # Examples
     ///
@@ -2317,7 +2325,7 @@ impl SelectStatement {
         self
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -2383,11 +2391,12 @@ impl SelectStatement {
     ///     [Task::Table.into_iden()]
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///

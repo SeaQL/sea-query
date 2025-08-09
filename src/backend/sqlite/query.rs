@@ -76,20 +76,20 @@ impl QueryBuilder for SqliteQueryBuilder {
         sql.push_param(value, self as _);
     }
 
-    fn greatest_function(&self) -> &str {
+    fn greatest_function(&self) -> &'static str {
         "MAX"
     }
 
-    fn least_function(&self) -> &str {
+    fn least_function(&self) -> &'static str {
         "MIN"
     }
 
-    fn char_length_function(&self) -> &str {
+    fn char_length_function(&self) -> &'static str {
         "LENGTH"
     }
 
     fn insert_default_values(&self, _: u32, sql: &mut dyn SqlWriter) {
         // SQLite doesn't support inserting multiple rows with default values
-        write!(sql, "DEFAULT VALUES").unwrap()
+        write!(sql, "DEFAULT VALUES").unwrap();
     }
 }

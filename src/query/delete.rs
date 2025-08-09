@@ -49,10 +49,12 @@ pub struct DeleteStatement {
 
 impl DeleteStatement {
     /// Construct a new [`DeleteStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
@@ -211,7 +213,7 @@ impl DeleteStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -256,11 +258,12 @@ impl DeleteStatement {
     ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///

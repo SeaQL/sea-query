@@ -62,7 +62,7 @@ impl IndexBuilder for MysqlQueryBuilder {
         match table_ref {
             // Support only "naked" table names with no schema or alias.
             TableRef::Table(TableName(None, _), None) => {
-                self.prepare_table_ref_iden(table_ref, sql)
+                self.prepare_table_ref_iden(table_ref, sql);
             }
             _ => panic!("Not supported"),
         }
@@ -70,9 +70,10 @@ impl IndexBuilder for MysqlQueryBuilder {
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
         write!(sql, "DROP INDEX ").unwrap();
 
-        if drop.if_exists {
-            panic!("Mysql does not support IF EXISTS for DROP INDEX")
-        }
+        assert!(
+            !drop.if_exists,
+            "Mysql does not support IF EXISTS for DROP INDEX"
+        );
 
         if let Some(name) = &drop.index.name {
             write!(

@@ -109,7 +109,6 @@ impl Walker {
 
     fn recurse_audit_expr(&mut self, expr: &Expr) -> Result<(), Error> {
         match expr {
-            Expr::Column(_) => (),
             Expr::Unary(_, expr) | Expr::AsEnum(_, expr) => self.recurse_audit_expr(expr)?,
             Expr::FunctionCall(function) => self.recurse_audit_function(function)?,
             Expr::Binary(left, _, right) => {
@@ -117,18 +116,19 @@ impl Walker {
                 self.recurse_audit_expr(right)?;
             }
             Expr::SubQuery(_, subquery) => self.recurse_audit_subquery(subquery)?,
-            Expr::Value(_) => (),
-            Expr::Values(_) => (),
-            Expr::Custom(_) => (),
             Expr::CustomWithExpr(_, exprs) | Expr::Tuple(exprs) => {
                 for expr in exprs {
                     self.recurse_audit_expr(expr)?;
                 }
             }
-            Expr::Keyword(_) => (),
             Expr::Case(case) => self.recurse_audit_case(case)?,
-            Expr::Constant(_) => (),
-            Expr::TypeName(_) => (),
+            Expr::Value(_)
+            | Expr::Column(_)
+            | Expr::Values(_)
+            | Expr::Custom(_)
+            | Expr::Keyword(_)
+            | Expr::Constant(_)
+            | Expr::TypeName(_) => (),
         }
         Ok(())
     }
@@ -213,13 +213,14 @@ impl Walker {
             ConditionHolderContents::Chain(chain) => {
                 for oper in chain {
                     match oper {
-                        LogicalChainOper::And(expr) => self.recurse_audit_expr(expr)?,
-                        LogicalChainOper::Or(expr) => self.recurse_audit_expr(expr)?,
+                        LogicalChainOper::Or(expr) | LogicalChainOper::And(expr) => {
+                            self.recurse_audit_expr(expr)?;
+                        }
                     }
                 }
             }
             ConditionHolderContents::Condition(condition) => {
-                self.recurse_audit_condition(condition)?
+                self.recurse_audit_condition(condition)?;
             }
         }
         Ok(())
@@ -262,7 +263,7 @@ fn wrap_result(access: Vec<QueryAccessRequest>) -> QueryAccessAudit {
                     AccessType::Insert => &mut insert_set,
                     AccessType::Update => &mut update_set,
                     AccessType::Delete => &mut delete_set,
-                    _ => todo!(),
+                    AccessType::Schema(_) => todo!(),
                 };
                 if set.contains(&access.schema_table) {
                     None

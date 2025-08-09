@@ -51,10 +51,12 @@ pub struct UpdateStatement {
 
 impl UpdateStatement {
     /// Construct a new [`UpdateStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
@@ -176,7 +178,7 @@ impl UpdateStatement {
         T: IntoIden,
         I: IntoIterator<Item = (T, Expr)>,
     {
-        for (k, v) in values.into_iter() {
+        for (k, v) in values {
             self.values.push((k.into_iden(), Box::new(v)));
         }
         self
@@ -350,7 +352,7 @@ impl UpdateStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -396,11 +398,12 @@ impl UpdateStatement {
     ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
+    #[must_use]
     pub fn with(self, clause: WithClause) -> WithQuery {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -452,6 +455,7 @@ impl UpdateStatement {
     }
 
     /// Get column values
+    #[must_use]
     pub fn get_values(&self) -> &[(DynIden, Box<Expr>)] {
         &self.values
     }

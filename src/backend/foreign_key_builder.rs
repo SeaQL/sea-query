@@ -15,7 +15,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
         create: &ForeignKeyCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        self.prepare_foreign_key_create_statement_internal(create, sql, Mode::Alter)
+        self.prepare_foreign_key_create_statement_internal(create, sql, Mode::Alter);
     }
 
     /// Translate [`ForeignKeyDropStatement`] into SQL statement.
@@ -24,7 +24,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
         drop: &ForeignKeyDropStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        self.prepare_foreign_key_drop_statement_internal(drop, sql, Mode::Alter)
+        self.prepare_foreign_key_drop_statement_internal(drop, sql, Mode::Alter);
     }
 
     /// Translate [`ForeignKeyAction`] into SQL statement.
@@ -44,7 +44,7 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
                 ForeignKeyAction::SetDefault => "SET DEFAULT",
             }
         )
-        .unwrap()
+        .unwrap();
     }
 
     /// Translate [`TableRef`] into SQL statement.

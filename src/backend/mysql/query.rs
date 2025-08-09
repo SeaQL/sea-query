@@ -2,7 +2,7 @@ use super::*;
 use crate::extension::mysql::*;
 
 impl QueryBuilder for MysqlQueryBuilder {
-    fn values_list_tuple_prefix(&self) -> &str {
+    fn values_list_tuple_prefix(&self) -> &'static str {
         "ROW"
     }
 
@@ -21,24 +21,24 @@ impl QueryBuilder for MysqlQueryBuilder {
         }
         for (i, hint) in select.index_hints.iter().enumerate() {
             if i != 0 {
-                write!(sql, " ").unwrap()
+                write!(sql, " ").unwrap();
             }
             match hint.r#type {
                 IndexHintType::Use => {
                     write!(sql, "USE INDEX ",).unwrap();
-                    self.prepare_index_hint_scope(&hint.scope, sql);
+                    Self::prepare_index_hint_scope(hint.scope, sql);
                     write!(sql, "(").unwrap();
                     self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Ignore => {
                     write!(sql, "IGNORE INDEX ",).unwrap();
-                    self.prepare_index_hint_scope(&hint.scope, sql);
+                    Self::prepare_index_hint_scope(hint.scope, sql);
                     write!(sql, "(").unwrap();
                     self.prepare_iden(&hint.index, sql);
                 }
                 IndexHintType::Force => {
                     write!(sql, "FORCE INDEX ",).unwrap();
-                    self.prepare_index_hint_scope(&hint.scope, sql);
+                    Self::prepare_index_hint_scope(hint.scope, sql);
                     write!(sql, "(").unwrap();
                     self.prepare_iden(&hint.index, sql);
                 }
@@ -90,19 +90,15 @@ impl QueryBuilder for MysqlQueryBuilder {
         column: &DynIden,
         sql: &mut dyn SqlWriter,
     ) {
-        use std::ops::Deref;
-
         if !from.is_empty() {
-            if let Some(table) = table {
+            if let Some(TableRef::Table(TableName(None, table), None)) = table.as_deref() {
                 // Support only "naked" table names with no schema or alias.
-                if let TableRef::Table(TableName(None, table), None) = table.deref() {
-                    let column_name = ColumnName::from((table.clone(), column.clone()));
-                    self.prepare_column_ref(&ColumnRef::Column(column_name), sql);
-                    return;
-                }
+                let column_name = ColumnName::from((table.clone(), column.clone()));
+                self.prepare_column_ref(&ColumnRef::Column(column_name), sql);
+                return;
             }
         }
-        self.prepare_iden(column, sql)
+        self.prepare_iden(column, sql);
     }
 
     fn prepare_update_condition(
@@ -129,11 +125,11 @@ impl QueryBuilder for MysqlQueryBuilder {
             None => (),
             Some(NullOrdering::Last) => {
                 self.prepare_simple_expr(&order_expr.expr, sql);
-                write!(sql, " IS NULL ASC, ").unwrap()
+                write!(sql, " IS NULL ASC, ").unwrap();
             }
             Some(NullOrdering::First) => {
                 self.prepare_simple_expr(&order_expr.expr, sql);
-                write!(sql, " IS NULL DESC, ").unwrap()
+                write!(sql, " IS NULL DESC, ").unwrap();
             }
         }
         if !matches!(order_expr.order, Order::Field(_)) {
@@ -157,19 +153,19 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         match on_conflict_action {
             Some(OnConflictAction::DoNothing(pk_cols)) => {
-                if !pk_cols.is_empty() {
+                if pk_cols.is_empty() {
+                    write!(sql, " IGNORE").unwrap();
+                } else {
                     self.prepare_on_conflict_do_update_keywords(sql);
                     pk_cols.iter().fold(true, |first, pk_col| {
                         if !first {
-                            write!(sql, ", ").unwrap()
+                            write!(sql, ", ").unwrap();
                         }
                         self.prepare_iden(pk_col, sql);
                         write!(sql, " = ").unwrap();
                         self.prepare_iden(pk_col, sql);
                         false
                     });
-                } else {
-                    write!(sql, " IGNORE").unwrap();
                 }
             }
             _ => self.prepare_on_conflict_action_common(on_conflict_action, sql),
@@ -194,17 +190,17 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_returning(&self, _returning: &Option<ReturningClause>, _sql: &mut dyn SqlWriter) {}
 
-    fn random_function(&self) -> &str {
+    fn random_function(&self) -> &'static str {
         "RAND"
     }
 
-    fn insert_default_keyword(&self) -> &str {
+    fn insert_default_keyword(&self) -> &'static str {
         "()"
     }
 }
 
 impl MysqlQueryBuilder {
-    fn prepare_index_hint_scope(&self, index_hint_scope: &IndexHintScope, sql: &mut dyn SqlWriter) {
+    fn prepare_index_hint_scope(index_hint_scope: IndexHintScope, sql: &mut dyn SqlWriter) {
         match index_hint_scope {
             IndexHintScope::Join => {
                 write!(sql, "FOR JOIN ").unwrap();

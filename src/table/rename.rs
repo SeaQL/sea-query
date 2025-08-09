@@ -32,6 +32,7 @@ pub struct TableRenameStatement {
 
 impl TableRenameStatement {
     /// Construct rename table statement
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -47,6 +48,7 @@ impl TableRenameStatement {
         self
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             from_name: self.from_name.take(),

@@ -767,6 +767,7 @@ impl Func {
     ///
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
     /// ```
+    #[must_use]
     pub fn random() -> FunctionCall {
         FunctionCall::new(Func::Random)
     }
@@ -824,11 +825,12 @@ impl FunctionCall {
     }
 
     /// Append an argument to the function call
+    #[must_use]
     pub fn arg<T>(self, arg: T) -> Self
     where
         T: Into<Expr>,
     {
-        self.arg_with(arg, Default::default())
+        self.arg_with(arg, FuncArgMod::default())
     }
 
     pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
@@ -841,15 +843,17 @@ impl FunctionCall {
     }
 
     /// Replace the arguments of the function call
+    #[must_use]
     pub fn args<I>(mut self, args: I) -> Self
     where
         I: IntoIterator<Item = Expr>,
     {
         self.args = args.into_iter().collect();
-        self.mods = vec![Default::default(); self.args.len()];
+        self.mods = vec![FuncArgMod::default(); self.args.len()];
         self
     }
 
+    #[must_use]
     pub fn get_func(&self) -> &Func {
         &self.func
     }
@@ -858,6 +862,7 @@ impl FunctionCall {
         &self.args
     }
 
+    #[must_use]
     pub fn get_mods(&self) -> &[FuncArgMod] {
         &self.mods
     }

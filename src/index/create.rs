@@ -208,6 +208,7 @@ use super::common::*;
 /// );
 /// ```
 #[derive(Default, Debug, Clone)]
+#[expect(clippy::struct_excessive_bools, reason = "Not a state machine")]
 pub struct IndexCreateStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) index: TableIndex,
@@ -232,10 +233,11 @@ pub enum IndexType {
 
 impl IndexCreateStatement {
     /// Construct a new [`IndexCreateStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self {
             table: None,
-            index: Default::default(),
+            index: TableIndex::default(),
             primary: false,
             unique: false,
             nulls_not_distinct: false,
@@ -299,7 +301,7 @@ impl IndexCreateStatement {
 
     /// Set index as full text.
     /// On MySQL, this is `FULLTEXT`.
-    /// On PgSQL, this is `GIN`.
+    /// On PostgreSQL, this is `GIN`.
     pub fn full_text(&mut self) -> &mut Self {
         self.index_type(IndexType::FullText)
     }
@@ -318,22 +320,27 @@ impl IndexCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn is_primary_key(&self) -> bool {
         self.primary
     }
 
+    #[must_use]
     pub fn is_unique_key(&self) -> bool {
         self.unique
     }
 
+    #[must_use]
     pub fn is_nulls_not_distinct(&self) -> bool {
         self.nulls_not_distinct
     }
 
+    #[must_use]
     pub fn get_index_spec(&self) -> &TableIndex {
         &self.index
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),

@@ -327,13 +327,15 @@ pub enum Value {
 pub const VALUE_SIZE: usize = check_value_size();
 
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > 32 {
-        panic!("the size of Value shouldn't be greater than 32 bytes")
-    }
+    assert!(
+        (std::mem::size_of::<Value>() <= 32),
+        "the size of Value shouldn't be greater than 32 bytes"
+    );
     std::mem::size_of::<Value>()
 }
 
 impl Value {
+    #[must_use]
     pub fn unwrap<T>(self) -> T
     where
         T: ValueType,
@@ -341,6 +343,7 @@ impl Value {
         T::unwrap(self)
     }
 
+    #[must_use]
     pub fn expect<T>(self, msg: &str) -> T
     where
         T: ValueType,
@@ -361,6 +364,7 @@ impl Value {
     /// // one liner:
     /// assert_eq!(Into::<Value>::into(2.2).as_null(), Value::Double(None));
     /// ```
+    #[must_use]
     pub fn as_null(&self) -> Self {
         match self {
             Self::Bool(_) => Self::Bool(None),
@@ -481,6 +485,8 @@ impl Value {
     /// let n = v.dummy_value();
     /// assert_eq!(n, Value::Int(Some(0)));
     /// ```
+    #[must_use]
+    #[expect(clippy::default_trait_access, reason = "Consistency")]
     pub fn dummy_value(&self) -> Self {
         match self {
             Self::Bool(_) => Self::Bool(Some(Default::default())),
@@ -657,14 +663,17 @@ impl std::fmt::Display for Value {
 pub trait ValueType: Sized {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr>;
 
+    #[must_use]
     fn unwrap(v: Value) -> Self {
         Self::try_from(v).unwrap()
     }
 
+    #[must_use]
     fn expect(v: Value, msg: &str) -> Self {
         Self::try_from(v).expect(msg)
     }
 
+    #[must_use]
     fn is_option() -> bool {
         false
     }
@@ -675,6 +684,7 @@ pub trait ValueType: Sized {
 
     fn column_type() -> ColumnType;
 
+    #[must_use]
     fn enum_type_name() -> Option<&'static str> {
         None
     }

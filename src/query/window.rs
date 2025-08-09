@@ -39,7 +39,7 @@ pub trait OverStatement {
     }
 }
 
-/// frame_start or frame_end clause
+/// `frame_start` or `frame_end` clause
 #[derive(Debug, Clone, PartialEq)]
 pub enum Frame {
     UnboundedPreceding,
@@ -80,10 +80,12 @@ pub struct WindowStatement {
 
 impl WindowStatement {
     /// Construct a new [`WindowStatement`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             partition_by: std::mem::take(&mut self.partition_by),
@@ -103,7 +105,7 @@ impl WindowStatement {
     }
 
     /// Construct a new [`WindowStatement`] with PARTITION BY custom
-    pub fn partition_by_custom<T>(col: T) -> Self
+    pub fn partition_by_custom<T>(col: &T) -> Self
     where
         T: ToString,
     {
@@ -112,7 +114,7 @@ impl WindowStatement {
         window
     }
 
-    /// frame clause for frame_start
+    /// frame clause for `frame_start`
     /// # Examples:
     ///
     /// ```
@@ -145,7 +147,7 @@ impl WindowStatement {
         self.frame(r#type, start, None)
     }
 
-    /// frame clause for BETWEEN frame_start AND frame_end
+    /// frame clause for BETWEEN `frame_start` AND `frame_end`
     ///
     /// # Examples:
     ///

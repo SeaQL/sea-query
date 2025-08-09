@@ -1,5 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![warn(clippy::nursery)]
+#![warn(clippy::nursery, clippy::pedantic)]
 #![deny(missing_debug_implementations)]
 #![forbid(unsafe_code)]
 #![allow(
@@ -7,7 +7,9 @@
     clippy::option_if_let_else,
     clippy::redundant_pub_crate,
     clippy::use_self,
-    clippy::missing_const_for_fn
+    clippy::missing_const_for_fn,
+    clippy::wildcard_imports,
+    clippy::enum_glob_use
 )]
 
 //! <div align="center">

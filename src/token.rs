@@ -19,6 +19,7 @@ pub enum Token {
 }
 
 impl Tokenizer {
+    #[must_use]
     pub fn new(string: &str) -> Self {
         Self {
             chars: string.chars().collect(),
@@ -53,10 +54,10 @@ impl Tokenizer {
             }
             self.inc();
         }
-        if !string.is_empty() {
-            Some(Token::Space(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Space(string))
         }
     }
 
@@ -76,10 +77,10 @@ impl Tokenizer {
                 break;
             }
         }
-        if !string.is_empty() {
-            Some(Token::Unquoted(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Unquoted(string))
         }
     }
 
@@ -101,11 +102,11 @@ impl Tokenizer {
                 if self.end() {
                     break;
                 }
-                if !Self::is_string_escape_for(start, self.get()) {
-                    break;
-                } else {
+                if Self::is_string_escape_for(start, self.get()) {
                     write!(string, "{}", self.get()).unwrap();
                     self.inc();
+                } else {
+                    break;
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
@@ -115,10 +116,10 @@ impl Tokenizer {
                 break;
             }
         }
-        if !string.is_empty() {
-            Some(Token::Quoted(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Quoted(string))
         }
     }
 
@@ -139,11 +140,11 @@ impl Tokenizer {
                 if self.end() {
                     break;
                 }
-                if !Self::is_string_escape_for(start, self.get()) {
-                    break;
-                } else {
+                if Self::is_string_escape_for(start, self.get()) {
                     write!(string, "{c}").unwrap();
                     self.inc();
+                } else {
+                    break;
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
@@ -165,10 +166,10 @@ impl Tokenizer {
                 self.inc();
             }
         }
-        if !string.is_empty() {
-            Some(Token::Punctuation(string))
-        } else {
+        if string.is_empty() {
             None
+        } else {
+            Some(Token::Punctuation(string))
         }
     }
 
@@ -233,31 +234,37 @@ impl Iterator for Tokenizer {
 }
 
 impl Token {
+    #[must_use]
     pub fn is_quoted(&self) -> bool {
         matches!(self, Self::Quoted(_))
     }
 
+    #[must_use]
     pub fn is_unquoted(&self) -> bool {
         matches!(self, Self::Unquoted(_))
     }
 
+    #[must_use]
     pub fn is_space(&self) -> bool {
         matches!(self, Self::Space(_))
     }
 
+    #[must_use]
     pub fn is_punctuation(&self) -> bool {
         matches!(self, Self::Punctuation(_))
     }
 
+    #[must_use]
     pub fn as_str(&self) -> &str {
         match self {
-            Self::Quoted(string) => string,
-            Self::Unquoted(string) => string,
-            Self::Space(string) => string,
-            Self::Punctuation(string) => string,
+            Token::Quoted(string)
+            | Token::Unquoted(string)
+            | Token::Space(string)
+            | Token::Punctuation(string) => string,
         }
     }
 
+    #[must_use]
     pub fn unquote(&self) -> Option<String> {
         if self.is_quoted() {
             let tokenizer = Tokenizer::new(self.as_str());
@@ -270,16 +277,7 @@ impl Token {
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Token::Unquoted(string) => string,
-                Token::Space(string) => string,
-                Token::Quoted(string) => string,
-                Token::Punctuation(string) => string,
-            }
-        )
+        f.write_str(self.as_str())
     }
 }
 

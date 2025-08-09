@@ -110,6 +110,7 @@ pub enum TablePartition {}
 
 impl TableCreateStatement {
     /// Construct create table statement
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -279,28 +280,33 @@ impl TableCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn get_table_name(&self) -> Option<&TableRef> {
         self.table.as_ref()
     }
 
+    #[must_use]
     pub fn get_columns(&self) -> &Vec<ColumnDef> {
         self.columns.as_ref()
     }
 
+    #[must_use]
     pub fn get_comment(&self) -> Option<&String> {
         self.comment.as_ref()
     }
 
+    #[must_use]
     pub fn get_foreign_key_create_stmts(&self) -> &Vec<ForeignKeyCreateStatement> {
         self.foreign_keys.as_ref()
     }
 
+    #[must_use]
     pub fn get_indexes(&self) -> &Vec<IndexCreateStatement> {
         self.indexes.as_ref()
     }
 
     /// Rewriting extra param. You should take care self about concat extra params. Add extra after options.
-    /// Example for PostgresSQL [Citus](https://github.com/citusdata/citus) extension:
+    /// Example for PostgreSQL [Citus](https://github.com/citusdata/citus) extension:
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     /// let table = Table::create()
@@ -341,6 +347,7 @@ impl TableCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn get_extra(&self) -> Option<&String> {
         self.extra.as_ref()
     }
@@ -348,10 +355,10 @@ impl TableCreateStatement {
     /// Create temporary table
     ///
     /// Ref:
-    /// - PostgreSQL: https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-TEMPORARY
-    /// - MySQL: https://dev.mysql.com/doc/refman/9.2/en/create-temporary-table.html
-    /// - MariaDB: https://mariadb.com/kb/en/create-table/#create-temporary-table
-    /// - SQLite: https://sqlite.org/lang_createtable.html
+    /// - PostgreSQL: <https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-TEMPORARY>
+    /// - MySQL: <https://dev.mysql.com/doc/refman/9.2/en/create-temporary-table.html>
+    /// - MariaDB: <https://mariadb.com/kb/en/create-table/#create-temporary-table>
+    /// - SQLite: <https://sqlite.org/lang_createtable.html>
     ///
     /// # Examples
     ///
@@ -407,6 +414,7 @@ impl TableCreateStatement {
         self
     }
 
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),

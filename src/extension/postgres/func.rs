@@ -350,6 +350,7 @@ impl PgFunc {
     ///     r#"SELECT GEN_RANDOM_UUID()"#
     /// );
     /// ```
+    #[must_use]
     pub fn gen_random_uuid() -> FunctionCall {
         FunctionCall::new(Func::PgFunction(PgFunc::GenRandomUUID))
     }
@@ -373,6 +374,7 @@ impl PgFunc {
     ///     r#"SELECT JSON_BUILD_OBJECT('a', 1, 'b', '2')"#
     /// );
     /// ```
+    #[must_use]
     pub fn json_build_object<T>(pairs: Vec<(T, T)>) -> FunctionCall
     where
         T: Into<Expr>,

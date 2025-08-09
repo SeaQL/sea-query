@@ -28,11 +28,13 @@ pub enum ForeignKeyStatement {
 
 impl ForeignKey {
     /// Construct foreign key [`ForeignKeyCreateStatement`]
+    #[must_use]
     pub fn create() -> ForeignKeyCreateStatement {
         ForeignKeyCreateStatement::new()
     }
 
     /// Construct foreign key [`ForeignKeyDropStatement`]
+    #[must_use]
     pub fn drop() -> ForeignKeyDropStatement {
         ForeignKeyDropStatement::new()
     }

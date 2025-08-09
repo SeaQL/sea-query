@@ -7,7 +7,7 @@ impl TableBuilder for MysqlQueryBuilder {
             let comment = self.escape_string(comment);
             write!(sql, " COMMENT '{comment}'").unwrap();
         }
-        self.prepare_table_opt_def(create, sql)
+        self.prepare_table_opt_def(create, sql);
     }
 
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
@@ -18,7 +18,7 @@ impl TableBuilder for MysqlQueryBuilder {
             self.prepare_column_type(column_type, sql);
         }
 
-        for column_spec in column_def.spec.iter() {
+        for column_spec in &column_def.spec {
             write!(sql, " ").unwrap();
             self.prepare_column_spec(column_spec, sql);
         }
@@ -45,13 +45,12 @@ impl TableBuilder for MysqlQueryBuilder {
                 ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
                 ColumnType::Float => "float".into(),
                 ColumnType::Double => "double".into(),
-                ColumnType::Decimal(precision) => match precision {
+                ColumnType::Decimal(precision) | ColumnType::Money(precision) => match precision {
                     Some((precision, scale)) => format!("decimal({precision}, {scale})"),
                     None => "decimal".into(),
                 },
                 ColumnType::DateTime => "datetime".into(),
-                ColumnType::Timestamp => "timestamp".into(),
-                ColumnType::TimestampWithTimeZone => "timestamp".into(),
+                ColumnType::Timestamp | ColumnType::TimestampWithTimeZone => "timestamp".into(),
                 ColumnType::Time => "time".into(),
                 ColumnType::Date => "date".into(),
                 ColumnType::Year => "year".into(),
@@ -73,19 +72,14 @@ impl TableBuilder for MysqlQueryBuilder {
                     format!("bit({length})")
                 }
                 ColumnType::Boolean => "bool".into(),
-                ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
-                    None => "decimal".into(),
-                },
-                ColumnType::Json => "json".into(),
-                ColumnType::JsonBinary => "json".into(),
+                ColumnType::Json | ColumnType::JsonBinary => "json".into(),
                 ColumnType::Uuid => "binary(16)".into(),
                 ColumnType::Custom(iden) => iden.to_string(),
                 ColumnType::Enum { variants, .. } => format!(
                     "ENUM('{}')",
                     variants
                         .iter()
-                        .map(|v| v.to_string())
+                        .map(ToString::to_string)
                         .collect::<Vec<_>>()
                         .join("', '")
                 ),
@@ -110,14 +104,15 @@ impl TableBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn column_spec_auto_increment_keyword(&self) -> &str {
+    fn column_spec_auto_increment_keyword(&self) -> &'static str {
         "AUTO_INCREMENT"
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
-        if alter.options.is_empty() {
-            panic!("No alter option found")
-        };
+        assert!(
+            !alter.options.is_empty(),
+            "Alter options should not be empty"
+        );
         write!(sql, "ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
             self.prepare_table_ref_table_stmt(table, sql);
@@ -194,6 +189,6 @@ impl TableBuilder for MysqlQueryBuilder {
     /// column comment
     fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
         let comment = self.escape_string(comment);
-        write!(sql, "COMMENT '{comment}'").unwrap()
+        write!(sql, "COMMENT '{comment}'").unwrap();
     }
 }

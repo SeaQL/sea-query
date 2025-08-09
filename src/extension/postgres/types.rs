@@ -91,6 +91,7 @@ pub enum TypeDropOpt {
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
+#[must_use]
 pub enum TypeAlterOpt {
     Add {
         value: DynIden,
@@ -142,22 +143,26 @@ pub trait TypeBuilder: QuotedBuilder {
 
 impl Type {
     /// Construct type [`TypeCreateStatement`]
+    #[must_use]
     pub fn create() -> TypeCreateStatement {
         TypeCreateStatement::new()
     }
 
     /// Construct type [`TypeDropStatement`]
+    #[must_use]
     pub fn drop() -> TypeDropStatement {
         TypeDropStatement::new()
     }
 
     /// Construct type [`TypeAlterStatement`]
+    #[must_use]
     pub fn alter() -> TypeAlterStatement {
         TypeAlterStatement::new()
     }
 }
 
 impl TypeCreateStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -198,7 +203,7 @@ impl TypeCreateStatement {
         T: IntoIden,
         I: IntoIterator<Item = T>,
     {
-        for v in values.into_iter() {
+        for v in values {
             self.values.push(v.into_iden());
         }
         self
@@ -206,6 +211,7 @@ impl TypeCreateStatement {
 }
 
 impl TypeDropStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -275,7 +281,7 @@ impl TypeDropStatement {
         T: IntoTypeRef,
         I: IntoIterator<Item = T>,
     {
-        for n in names.into_iter() {
+        for n in names {
             self.names.push(n.into_type_ref());
         }
         self
@@ -301,6 +307,7 @@ impl TypeDropStatement {
 }
 
 impl TypeAlterStatement {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -336,6 +343,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font_family" ADD VALUE 'cursive'"#
     /// );
     /// ```
+    #[must_use]
     pub fn name<T>(mut self, name: T) -> Self
     where
         T: IntoTypeRef,
@@ -344,6 +352,7 @@ impl TypeAlterStatement {
         self
     }
 
+    #[must_use]
     pub fn add_value<T>(self, value: T) -> Self
     where
         T: IntoIden,
@@ -369,6 +378,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" ADD VALUE 'weight' BEFORE 'variant'"#
     /// )
     /// ```
+    #[must_use]
     pub fn before<T>(mut self, value: T) -> Self
     where
         T: IntoIden,
@@ -379,6 +389,7 @@ impl TypeAlterStatement {
         self
     }
 
+    #[must_use]
     pub fn after<T>(mut self, value: T) -> Self
     where
         T: IntoIden,
@@ -404,6 +415,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" ADD VALUE IF NOT EXISTS 'weight' AFTER 'variant'"#
     /// )
     /// ```
+    #[must_use]
     pub fn if_not_exists(mut self) -> Self {
         if let Some(option) = self.option {
             self.option = Some(option.if_not_exists());
@@ -411,6 +423,7 @@ impl TypeAlterStatement {
         self
     }
 
+    #[must_use]
     pub fn rename_to<T>(self, name: T) -> Self
     where
         T: IntoIden,
@@ -431,6 +444,7 @@ impl TypeAlterStatement {
     ///     r#"ALTER TYPE "font" RENAME VALUE 'variant' TO 'language'"#
     /// )
     /// ```
+    #[must_use]
     pub fn rename_value<T, V>(self, existing: T, new_name: V) -> Self
     where
         T: IntoIden,

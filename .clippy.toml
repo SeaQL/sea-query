@@ -1,0 +1,9 @@
+doc-valid-idents = [
+	"SeaQL",
+	"SeaQuery",
+	"MySQL",
+	"SQLite",
+	"MariaDB",
+	"PostgreSQL",
+	"..",
+]

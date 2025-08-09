@@ -44,26 +44,31 @@ pub enum TableStatement {
 
 impl Table {
     /// Construct table [`TableCreateStatement`]
+    #[must_use]
     pub fn create() -> TableCreateStatement {
         TableCreateStatement::new()
     }
 
     /// Construct table [`TableAlterStatement`]
+    #[must_use]
     pub fn alter() -> TableAlterStatement {
         TableAlterStatement::new()
     }
 
     /// Construct table [`TableDropStatement`]
+    #[must_use]
     pub fn drop() -> TableDropStatement {
         TableDropStatement::new()
     }
 
     /// Construct table [`TableRenameStatement`]
+    #[must_use]
     pub fn rename() -> TableRenameStatement {
         TableRenameStatement::new()
     }
 
     /// Construct table [`TableTruncateStatement`]
+    #[must_use]
     pub fn truncate() -> TableTruncateStatement {
         TableTruncateStatement::new()
     }

@@ -69,6 +69,7 @@ impl Condition {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
+    #[must_use]
     pub fn add<C>(mut self, condition: C) -> Self
     where
         C: Into<Condition>,
@@ -104,6 +105,7 @@ impl Condition {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
+    #[must_use]
     pub fn add_option<C>(self, other: Option<C>) -> Self
     where
         C: Into<Condition>,
@@ -137,6 +139,7 @@ impl Condition {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) OR `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
+    #[must_use]
     pub fn any() -> Condition {
         Condition {
             negate: false,
@@ -167,6 +170,7 @@ impl Condition {
     ///     r#"SELECT `image` FROM `glyph` WHERE `glyph`.`aspect` IN (3, 4) AND `glyph`.`image` LIKE 'A%'"#
     /// );
     /// ```
+    #[must_use]
     pub fn all() -> Condition {
         Condition {
             negate: false,
@@ -224,6 +228,7 @@ impl Condition {
     /// );
     /// ```
     #[allow(clippy::should_implement_trait)]
+    #[must_use]
     pub fn not(mut self) -> Self {
         self.negate = !self.negate;
         self
@@ -240,6 +245,7 @@ impl Condition {
     ///
     /// assert!(is_empty);
     /// ```
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.conditions.is_empty()
     }
@@ -255,6 +261,7 @@ impl Condition {
     ///
     /// assert_eq!(len, 0);
     /// ```
+    #[must_use]
     pub fn len(&self) -> usize {
         self.conditions.len()
     }
@@ -535,7 +542,7 @@ pub trait ConditionalStatement {
     /// );
     /// ```
     ///
-    /// Calling multiple times; will be ANDed togother
+    /// Calling this method multiple times will combine the conditions with AND.
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -626,15 +633,18 @@ impl IntoCondition for Condition {
 }
 
 impl ConditionHolder {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[must_use]
     pub fn new_with_condition(condition: Condition) -> Self {
         let contents = ConditionHolderContents::Condition(condition);
         Self { contents }
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         match &self.contents {
             ConditionHolderContents::Empty => true,
@@ -643,6 +653,7 @@ impl ConditionHolder {
         }
     }
 
+    #[must_use]
     pub fn is_one(&self) -> bool {
         match &self.contents {
             ConditionHolderContents::Empty => true,
@@ -654,7 +665,7 @@ impl ConditionHolder {
     pub fn add_and_or(&mut self, condition: LogicalChainOper) {
         match &mut self.contents {
             ConditionHolderContents::Empty => {
-                self.contents = ConditionHolderContents::Chain(vec![condition])
+                self.contents = ConditionHolderContents::Chain(vec![condition]);
             }
             ConditionHolderContents::Chain(c) => c.push(condition),
             ConditionHolderContents::Condition(_) => {
