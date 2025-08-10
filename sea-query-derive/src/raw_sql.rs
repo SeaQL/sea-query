@@ -12,28 +12,35 @@ use syn::{
 
 struct CallArgs {
     module: Ident,
-    _colon1: Token![::],
     backend: Ident,
-    _colon2: Token![::],
     method: Ident,
-    _comma: Token![,],
-    sql_holder: Ident,
-    _assign: Token![=],
+    sql_holder: Option<Ident>,
     sql_input: LitStr,
 }
 
 impl Parse for CallArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let module: Ident = input.parse()?;
+        let _colon1: Token![::] = input.parse()?;
+        let backend: Ident = input.parse()?;
+        let _colon2: Token![::] = input.parse()?;
+        let method: Ident = input.parse()?;
+        let _comma: Token![,] = input.parse()?;
+        let sql_holder = if input.peek(Ident) {
+            let ident = input.parse()?;
+            let _assign: Token![=] = input.parse()?;
+            Some(ident)
+        } else {
+            None
+        };
+        let sql_input: LitStr = input.parse()?;
+
         Ok(CallArgs {
-            module: input.parse()?,
-            _colon1: input.parse()?,
-            backend: input.parse()?,
-            _colon2: input.parse()?,
-            method: input.parse()?,
-            _comma: input.parse()?,
-            sql_holder: input.parse()?,
-            _assign: input.parse()?,
-            sql_input: input.parse()?,
+            module,
+            backend,
+            method,
+            sql_holder,
+            sql_input,
         })
     }
 }
@@ -45,7 +52,6 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         method,
         sql_holder,
         sql_input,
-        ..
     } = syn::parse(input)?;
 
     let mut expand_array = true;
@@ -135,13 +141,19 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         fragment.clear();
     }
 
+    let (maybe_let, sql_holder) = if let Some(sql_holder) = sql_holder {
+        (quote!(), sql_holder)
+    } else {
+        (quote!(let), Ident::new("sql", Span::call_site()))
+    };
+
     let output = quote! {{
         use sea_query::raw_sql::*;
         let mut builder = RawSqlQueryBuilder::new(#backend);
         builder
             #(#fragments)*;
 
-        #sql_holder = builder.finish();
+        #maybe_let #sql_holder = builder.finish();
         let mut query = #module::#method(&#sql_holder);
         #(#params)*;
 

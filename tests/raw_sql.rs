@@ -6,18 +6,17 @@ fn test_raw_sql_1() {
         i: String,
     }
 
-    fn call(a: i32) {
+    fn call_pg(a: i32) {
         let b = B {
             i: "hello".to_owned(),
         };
         let c = [1, 2, 3];
-        let sql;
         let query = sea_query::raw_sql!(
             seaql::postgres::query,
-            sql = r#"SELECT {a}, {b.i} FROM "bar" WHERE "id" in ({..c})"#
+            r#"SELECT {a}, {b.i} FROM "bar" WHERE "id" in ({..c})"#
         );
         assert_eq!(
-            sql,
+            query.sql,
             r#"SELECT $1, $2 FROM "bar" WHERE "id" in ($3, $4, $5)"#
         );
         assert_eq!(
@@ -32,7 +31,34 @@ fn test_raw_sql_1() {
         );
     }
 
-    call(12);
+    call_pg(12);
+
+    fn call_sqlite(a: i32) {
+        let b = B {
+            i: "hello".to_owned(),
+        };
+        let c = [1, 2, 3];
+        let query = sea_query::raw_sql!(
+            seaql::sqlite::query,
+            r#"SELECT {a}, {b.i} FROM "bar" WHERE "id" in ({c})"#
+        );
+        assert_eq!(
+            query.sql,
+            r#"SELECT ?, ? FROM "bar" WHERE "id" in (?, ?, ?)"#
+        );
+        assert_eq!(
+            query.values,
+            Values(vec![
+                12.into(),
+                "hello".into(),
+                1.into(),
+                2.into(),
+                3.into(),
+            ])
+        );
+    }
+
+    call_sqlite(12);
 }
 
 #[test]
@@ -73,7 +99,7 @@ fn test_raw_sql_3() {
         sql = r#"A = {a}, B = {b}, C = {c}, D = ({d}), E = ({e}), F = ({f})"#
     );
     assert_eq!(
-        query.sql,
+        sql,
         r#"A = ?, B = ?, C = ?, D = (?), E = (?, ?, ?), F = (?, ?, ?)"#
     );
     assert_eq!(
@@ -123,7 +149,7 @@ fn test_raw_sql_5() {
         sql = r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({d})"#
     );
     assert_eq!(
-        query.sql,
+        sql,
         r#"SELECT ("size_w" + ?) * ? FROM "glyph" WHERE "image" LIKE ? AND "id" IN (?, ?, ?)"#
     );
     assert_eq!(
@@ -139,13 +165,12 @@ fn test_raw_sql_5() {
     );
 
     // postgres has to expand array manually
-    let ss;
     let query = sea_query::raw_sql!(
         seaql::postgres::query,
-        ss = r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
+        r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
     );
     assert_eq!(
-        ss,
+        query.sql,
         r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
     );
     assert_eq!(

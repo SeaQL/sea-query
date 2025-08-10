@@ -1,19 +1,19 @@
 use crate::{Value, Values};
 
 #[derive(Debug)]
-pub struct Query<'a> {
-    pub sql: &'a str,
+pub struct Query {
+    pub sql: String,
     pub values: Values,
 }
 
-pub fn query(sql: &str) -> Query<'_> {
+pub fn query(sql: &str) -> Query {
     Query {
-        sql,
+        sql: sql.to_owned(),
         values: Values(Default::default()),
     }
 }
 
-impl Query<'_> {
+impl Query {
     pub fn bind<V: Into<Value> + Clone>(mut self, v: &V) -> Self {
         self.values.0.push(v.to_owned().into());
         self
@@ -21,7 +21,7 @@ impl Query<'_> {
 
     /// Matches the signature of [`SqlWriterValues::into_parts`]
     pub fn into_parts(self) -> (String, Values) {
-        (self.sql.to_owned(), self.values)
+        (self.sql, self.values)
     }
 }
 
