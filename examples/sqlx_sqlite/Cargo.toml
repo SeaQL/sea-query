@@ -13,9 +13,9 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 time = { version = "0.3.36", features = ["macros"] }
 uuid = { version = "1", features = ["serde", "v4"] }
 serde_json = "1"
-async-std = { version = "1.8", features = [ "attributes" ] }
+async-std = { version = "1.8", features = ["attributes"] }
 sqlx = "0.8"
-sea-query = { path = "../../" }
+sea-query = { path = "../../", features = ["sqlx-utils"]}
 sea-query-sqlx = { path = "../../sea-query-sqlx", features = [
     "sqlx-sqlite",
     "with-chrono",

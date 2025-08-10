@@ -664,10 +664,10 @@ pub trait ExprTrait: Sized {
     /// ```
     /// use sea_query::Values;
     ///
-    /// let set: Vec<i32> = vec![1, 2, 3];
+    /// let ids: Vec<i32> = vec![1, 2, 3];
     /// let query = sea_query::raw_sql!(
     ///     seaql::sqlite::query,
-    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN ({..set})"#
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN ({..ids})"#
     /// );
     ///
     /// assert_eq!(

@@ -71,6 +71,7 @@ with-time = ["time"]
 with-jiff = ["jiff"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
+sqlx-utils = []
 tests-cfg = []
 all-features = [
     "backend-mysql",
@@ -82,6 +83,7 @@ all-features = [
     "thread-safe",
     "all-types",
     "audit",
+    "sqlx-utils",
 ] # everything except option-*
 all-types = [
     "postgres-array",

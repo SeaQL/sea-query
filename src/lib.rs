@@ -259,6 +259,80 @@
 //! );
 //! ```
 //!
+//! 4. Improved raw SQL ergonomics
+//!
+//! SeaQuery 1.0 added a new [`raw_sql!`] macro with named parameters, nested field access, array expansion and tuple expansion.
+//! It surely will make crafting complex query easier.
+//!
+//! ```
+//! # use sea_query::Values;
+//! let (a, b, c) = (1, 2, "A");
+//! let d = vec![3, 4, 5];
+//! let query = sea_query::raw_sql!(
+//!     seaql::postgres::query,
+//!     r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
+//! );
+//! assert_eq!(
+//!     query.sql,
+//!     r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
+//! );
+//! assert_eq!(
+//!     query.values,
+//!     Values(vec![
+//!         1.into(),
+//!         2.into(),
+//!         "A".into(),
+//!         3.into(),
+//!         4.into(),
+//!         5.into()
+//!     ])
+//! );
+//! ```
+//!
+//! Insert with vector-of-tuple expansion.
+//!
+//! ```
+//! # use sea_query::Values;
+//! let values = vec![(2.1345, "24B"), (5.15, "12A")];
+//! let query = sea_query::raw_sql!(
+//!     seaql::postgres::query,
+//!     r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:1),}"#
+//! );
+//!
+//! assert_eq!(
+//!     query.sql,
+//!     r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2), ($3, $4)"#
+//! );
+//! assert_eq!(
+//!     query.values,
+//!     Values(vec![2.1345.into(), "24B".into(), 5.15.into(), "12A".into()])
+//! );
+//! ```
+//!
+//! Update with nested field access.
+//!
+//! ```
+//! # use sea_query::Values;
+//! struct Character {
+//!     id: i32,
+//!     font_size: u16,
+//! }
+//! let c = Character {
+//!     id: 11,
+//!     font_size: 22,
+//! };
+//! let query = sea_query::raw_sql!(
+//!     seaql::mysql::query,
+//!     "UPDATE `character` SET `font_size` = {c.font_size} WHERE `id` = {c.id}"
+//! );
+//!
+//! assert_eq!(
+//!     query.sql,
+//!     "UPDATE `character` SET `font_size` = ? WHERE `id` = ?"
+//! );
+//! assert_eq!(query.values, Values(vec![22u16.into(), 11i32.into()]));
+//! ```
+//!
 //! ## Basics
 //!
 //! ### Iden
@@ -942,6 +1016,7 @@ pub mod prepare;
 pub mod query;
 pub mod raw_sql;
 pub mod schema;
+#[cfg(feature = "sqlx-utils")]
 pub mod sqlx;
 pub mod table;
 pub mod token;
