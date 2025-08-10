@@ -225,3 +225,45 @@ fn test_raw_sql_7() {
         ])
     );
 }
+
+#[test]
+fn test_raw_sql_8() {
+    let values = (1, "2");
+
+    let query = sea_query::raw_sql!(
+        seaql::mysql::query,
+        "INSERT INTO `glyph` (`aspect`, `image`) VALUES ({values.0:1})"
+    );
+    assert_eq!(
+        query.sql,
+        "INSERT INTO `glyph` (`aspect`, `image`) VALUES (?, ?)"
+    );
+    assert_eq!(query.values, Values(vec![1.into(), "2".into()]));
+}
+
+#[test]
+fn test_raw_sql_9() {
+    let values = vec![(1, "2", 3), (4, "5", 6)];
+    let z = 42;
+
+    let query = sea_query::raw_sql!(
+        seaql::postgres::query,
+        r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:2),} SELECT {z}"#
+    );
+    assert_eq!(
+        query.sql,
+        r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2, $3), ($4, $5, $6) SELECT $7"#
+    );
+    assert_eq!(
+        query.values,
+        Values(vec![
+            1.into(),
+            "2".into(),
+            3.into(),
+            4.into(),
+            "5".into(),
+            6.into(),
+            42.into(),
+        ])
+    );
+}

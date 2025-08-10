@@ -95,6 +95,18 @@ impl RawSqlQueryBuilder {
         self
     }
 
+    pub fn push_tuple_parameter_groups(&mut self, len: usize, tuple_arity: usize) -> &mut Self {
+        for i in 0..len {
+            if i > 0 {
+                self.sql.push_str(", ");
+            }
+            self.sql.push('(');
+            self.push_parameters(tuple_arity);
+            self.sql.push(')');
+        }
+        self
+    }
+
     pub fn finish(self) -> String {
         self.sql
     }

@@ -241,6 +241,7 @@ impl InsertStatement {
     }
 
     /// Specify a row of values to be inserted.
+    /// Return error when number of values not matching number of columns.
     ///
     /// # Examples
     ///
@@ -268,6 +269,14 @@ impl InsertStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
+    /// );
+    ///
+    /// assert!(
+    ///     Query::insert()
+    ///         .into_table(Glyph::Table)
+    ///         .columns([Glyph::Aspect, Glyph::Image])
+    ///         .values([1.into()])
+    ///         .is_err()
     /// );
     /// ```
     pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
@@ -322,6 +331,27 @@ impl InsertStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
+    /// );
+    /// ```
+    ///
+    /// The same query can be constructed using the `raw_sql!` macro.
+    ///
+    /// ```
+    /// use sea_query::Values;
+    ///
+    /// let values = vec![(2.1345, "24B"), (5.15, "12A")];
+    /// let query = sea_query::raw_sql!(
+    ///     seaql::postgres::query,
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:1),}"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.sql,
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2), ($3, $4)"#
+    /// );
+    /// assert_eq!(
+    ///     query.values,
+    ///     Values(vec![2.1345.into(), "24B".into(), 5.15.into(), "12A".into()])
     /// );
     /// ```
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self

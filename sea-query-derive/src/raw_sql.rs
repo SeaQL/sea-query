@@ -69,6 +69,8 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
     let mut in_brace = false;
     let mut dot_count = 0;
     let mut interpolate = false;
+    let mut nested_group = false;
+    let mut has_comma = false;
     let mut fragment = String::new();
     let mut vars: Vec<&str> = Default::default();
     let mut muls: Vec<u32> = Default::default();
@@ -79,7 +81,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                 in_brace = true;
             }
             Token::Punctuation("}") => {
-                assert!(in_brace, "Non-matching closing brace }}");
+                assert!(in_brace, "unmatched closing brace }}");
 
                 if interpolate {
                     assert!(muls.len() >= 2, "expect 2 numbers around :");
@@ -113,8 +115,19 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                 }
                 if !muls.is_empty() {
                     // there is a range operator `a:b`
+                    let top = {
+                        let v = Ident::new(vars[0], Span::call_site());
+                        quote!(#v)
+                    };
                     let len = muls.len();
-                    fragments.push(quote!(.push_parameters(#len)));
+                    if nested_group {
+                        assert!(has_comma, "..(), must end with comma ,");
+                        fragments.push(quote!(.push_tuple_parameter_groups((&#top).p_len(), #len)));
+                    } else {
+                        fragments.push(quote!(.push_parameters(#len)));
+                    }
+
+                    let mut group = Vec::new();
                     for (j, mul) in muls.iter().enumerate() {
                         let mut var = var.clone();
                         let mul = Member::Unnamed(Index {
@@ -122,7 +135,17 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                             span: Span::call_site(),
                         });
                         var.extend(quote!(#mul));
-                        params.push(quote! { query = query.bind(&#var); });
+                        group.push(quote! { query = query.bind(&#var); });
+                    }
+
+                    if nested_group {
+                        params.push(quote! {
+                            for #top in (&#top).iter_p().iter() {
+                                #(#group)*
+                            }
+                        });
+                    } else {
+                        params.append(&mut group);
                     }
                 } else if dot_count == 2 {
                     // there is a spread operator `{..a}`
@@ -140,6 +163,8 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                 in_brace = false;
                 dot_count = 0;
                 interpolate = false;
+                nested_group = false;
+                has_comma = false;
                 vars.clear();
                 muls.clear();
             }
@@ -165,6 +190,15 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                     interpolate = true;
                 }
             }
+            Token::Punctuation("(") if in_brace => {
+                nested_group = true;
+            }
+            Token::Punctuation(")") if in_brace => {
+                assert!(nested_group, "unmatched closing parenthesis )")
+            }
+            Token::Punctuation(",") if in_brace && nested_group => {
+                has_comma = true;
+            }
             _ => {
                 fragment.push_str(token.as_str());
             }
@@ -189,7 +223,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
 
         #maybe_let #sql_holder = builder.finish();
         let mut query = #module::#method(&#sql_holder);
-        #(#params)*;
+        #(#params)*
 
         query
     }};

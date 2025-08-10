@@ -749,4 +749,31 @@ mod tests {
             tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
     }
+
+    #[test]
+    fn test_26() {
+        let string = r#"{..(a.1:2)}"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Punctuation("{"),
+                Token::Punctuation("."),
+                Token::Punctuation("."),
+                Token::Punctuation("("),
+                Token::Unquoted("a"),
+                Token::Punctuation("."),
+                Token::Unquoted("1"),
+                Token::Punctuation(":"),
+                Token::Unquoted("2"),
+                Token::Punctuation(")"),
+                Token::Punctuation("}"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
 }
