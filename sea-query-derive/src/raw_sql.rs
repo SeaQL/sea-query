@@ -12,8 +12,10 @@ use syn::{
 
 struct CallArgs {
     module: Ident,
-    _colon: Token![::],
+    _colon1: Token![::],
     backend: Ident,
+    _colon2: Token![::],
+    method: Ident,
     _comma: Token![,],
     sql_input: LitStr,
 }
@@ -22,8 +24,10 @@ impl Parse for CallArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(CallArgs {
             module: input.parse()?,
-            _colon: input.parse()?,
+            _colon1: input.parse()?,
             backend: input.parse()?,
+            _colon2: input.parse()?,
+            method: input.parse()?,
             _comma: input.parse()?,
             sql_input: input.parse()?,
         })
@@ -34,6 +38,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
     let CallArgs {
         module,
         backend,
+        method,
         sql_input,
         ..
     } = syn::parse(input)?;
@@ -76,18 +81,18 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                     let v = Ident::new(v, Span::call_site());
                     var.extend(quote!(#v));
                 }
+                // only expand when surrounded by parenthesis `({a})`
+                // or there is a spread operator `{..a}`
                 if (expand_array && paren_depth > 0) || dot_count == 2 {
-                    // only expand when surrounded by parenthesis `({a})`
-                    // or there is a spread operator `{..a}`
                     fragments.push(quote!(.push_parameters((&#var).p_len())));
                     params.push(quote! {
                         for v in (&#var).iter_p().iter() {
-                            query.bind(v);
+                            query = query.bind(v);
                         }
                     });
                 } else {
                     fragments.push(quote!(.push_parameters(1)));
-                    params.push(quote! { query.bind(#var); });
+                    params.push(quote! { query = query.bind(&#var); });
                 }
 
                 in_brace = false;
@@ -131,7 +136,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         builder
             #(#fragments)*;
 
-        let mut query = #module::query(builder.finish());
+        let mut query = #module::#method(&builder.finish());
         #(#params)*;
         query
     }};

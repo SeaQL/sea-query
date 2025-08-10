@@ -11,13 +11,16 @@ pub struct RawSqlQueryBuilder {
     numbered: bool,
 }
 
+#[repr(transparent)]
+pub struct ParameterHolder<'a, T>(&'a T);
+
 pub trait U8Parameter: Sized {
     fn p_len(&self) -> usize {
         1
     }
 
-    fn iter_p(&self) -> Option<&Self> {
-        Some(self)
+    fn iter_p(&self) -> ParameterHolder<'_, Self> {
+        ParameterHolder(self)
     }
 }
 
@@ -26,8 +29,8 @@ pub trait SingleParameter: Sized {
         1
     }
 
-    fn iter_p(&self) -> Option<&Self> {
-        Some(self)
+    fn iter_p(&self) -> ParameterHolder<'_, Self> {
+        ParameterHolder(self)
     }
 }
 
@@ -82,6 +85,22 @@ where
 {
     fn p_len(&self) -> usize {
         self.len()
+    }
+}
+
+impl<T> std::fmt::Debug for ParameterHolder<'_, T>
+where
+    T: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl<'a, T> ParameterHolder<'a, T> {
+    /// The purpose is to match the type of std::slice::Iter::Item
+    pub fn iter(self) -> std::iter::Once<&'a T> {
+        std::iter::once(self.0)
     }
 }
 
