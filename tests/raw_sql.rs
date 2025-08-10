@@ -11,12 +11,13 @@ fn test_raw_sql_1() {
             i: "hello".to_owned(),
         };
         let c = [1, 2, 3];
+        let sql;
         let query = sea_query::raw_sql!(
             seaql::postgres::query,
-            r#"SELECT {a}, {b.i} FROM "bar" WHERE "id" in ({..c})"#
+            sql = r#"SELECT {a}, {b.i} FROM "bar" WHERE "id" in ({..c})"#
         );
         assert_eq!(
-            query.sql,
+            sql,
             r#"SELECT $1, $2 FROM "bar" WHERE "id" in ($3, $4, $5)"#
         );
         assert_eq!(
@@ -47,7 +48,8 @@ fn test_raw_sql_2() {
     let a = A { b: B { c: 42 } };
 
     // spread or no spread, should be same
-    let query = sea_query::raw_sql!(seaql::postgres::query, r#"SELECT {a.b.c}, {..a.b.c}"#);
+    let s;
+    let query = sea_query::raw_sql!(seaql::postgres::query, s = r#"SELECT {a.b.c}, {..a.b.c}"#);
 
     assert_eq!(query.sql, r#"SELECT $1, $2"#);
     assert_eq!(query.values, Values(vec![42.into(), 42.into()]));
@@ -65,9 +67,10 @@ fn test_raw_sql_3() {
     let e = vec![5i32, 6, 7]; // vec is expanded
     let f = &e; // just a borrow
 
+    let sql;
     let query = sea_query::raw_sql!(
         seaql::sqlite::query,
-        r#"A = {a}, B = {b}, C = {c}, D = ({d}), E = ({e}), F = ({f})"#
+        sql = r#"A = {a}, B = {b}, C = {c}, D = ({d}), E = ({e}), F = ({f})"#
     );
     assert_eq!(
         query.sql,
@@ -93,9 +96,10 @@ fn test_raw_sql_3() {
 #[test]
 fn test_raw_sql_4() {
     // just to test no-op
+    let sql;
     let query = sea_query::raw_sql!(
         seaql::sqlite::query,
-        r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
+        sql = r#"SELECT "character".*, "font"."name" FROM "character" INNER JOIN "font" ON "character"."font_id" = "font"."id""#
     );
 
     assert_eq!(
@@ -113,9 +117,10 @@ fn test_raw_sql_5() {
     let c = "A";
     let d = vec![3i32, 4, 5];
 
+    let sql;
     let query = sea_query::raw_sql!(
         seaql::sqlite::query,
-        r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({d})"#
+        sql = r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({d})"#
     );
     assert_eq!(
         query.sql,
@@ -134,12 +139,13 @@ fn test_raw_sql_5() {
     );
 
     // postgres has to expand array manually
+    let ss;
     let query = sea_query::raw_sql!(
         seaql::postgres::query,
-        r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
+        ss = r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
     );
     assert_eq!(
-        query.sql,
+        ss,
         r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
     );
     assert_eq!(

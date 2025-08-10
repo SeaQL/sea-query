@@ -942,6 +942,7 @@ pub mod prepare;
 pub mod query;
 pub mod raw_sql;
 pub mod schema;
+pub mod sqlx;
 pub mod table;
 pub mod token;
 pub mod types;

@@ -17,6 +17,8 @@ struct CallArgs {
     _colon2: Token![::],
     method: Ident,
     _comma: Token![,],
+    sql_holder: Ident,
+    _assign: Token![=],
     sql_input: LitStr,
 }
 
@@ -29,6 +31,8 @@ impl Parse for CallArgs {
             _colon2: input.parse()?,
             method: input.parse()?,
             _comma: input.parse()?,
+            sql_holder: input.parse()?,
+            _assign: input.parse()?,
             sql_input: input.parse()?,
         })
     }
@@ -39,6 +43,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         module,
         backend,
         method,
+        sql_holder,
         sql_input,
         ..
     } = syn::parse(input)?;
@@ -136,8 +141,10 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         builder
             #(#fragments)*;
 
-        let mut query = #module::#method(&builder.finish());
+        #sql_holder = builder.finish();
+        let mut query = #module::#method(&#sql_holder);
         #(#params)*;
+
         query
     }};
 
