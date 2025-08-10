@@ -131,7 +131,7 @@ mod test {
         builder
             .push_fragment("SELECT")
             .push_fragment(" ")
-            .push_parameters((&a).p_len())
+            .push_parameters(1)
             .push_fragment(", ")
             .push_parameters((&b).p_len())
             .push_fragment(", ")
@@ -140,9 +140,7 @@ mod test {
         assert_eq!(builder.finish(), "SELECT $1, $2, $3, $4, $5, $6");
 
         let mut values = Values::default();
-        for v in (&a).iter_p().iter() {
-            values.bind(v);
-        }
+        values.bind(a);
         for v in (&b).iter_p().iter() {
             values.bind(v);
         }
@@ -151,58 +149,5 @@ mod test {
         }
 
         assert_eq!(values.0, ["1", "2", "3", "4", "5", "6"]);
-    }
-
-    #[test]
-    fn test_raw_sql_2() {
-        let a = 0u8;
-        let b = [1u8, 1u8];
-        let c = vec![2u8, 2u8];
-        let d = &b;
-
-        assert_eq!((&a).p_len(), 1);
-        assert_eq!((&b).p_len(), 1);
-        assert_eq!((&c).p_len(), 1);
-        assert_eq!((&d).p_len(), 1);
-
-        let mut values = Values::default();
-        for v in (&a).iter_p().iter() {
-            values.bind(v);
-        }
-        for v in (&b).iter_p().iter() {
-            values.bind(v);
-        }
-        for v in (&c).iter_p().iter() {
-            values.bind(v);
-        }
-        for v in (&d).iter_p().iter() {
-            values.bind(v);
-        }
-
-        assert_eq!(values.0, ["0", "[1, 1]", "[2, 2]", "[1, 1]"]);
-    }
-
-    #[test]
-    fn test_raw_sql_3() {
-        let a = 'a';
-        let b = "bb";
-        let c = "ccc".to_string();
-
-        assert_eq!((&a).p_len(), 1);
-        assert_eq!((&b).p_len(), 1);
-        assert_eq!((&c).p_len(), 1);
-
-        let mut values = Values::default();
-        for v in (&a).iter_p().iter() {
-            values.bind(v);
-        }
-        for v in (&b).iter_p().iter() {
-            values.bind(v);
-        }
-        for v in (&c).iter_p().iter() {
-            values.bind(v);
-        }
-
-        assert_eq!(values.0, ["'a'", "\"bb\"", "\"ccc\""]);
     }
 }

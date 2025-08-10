@@ -5,7 +5,7 @@ use token::*;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
-    Ident, LitStr, Token,
+    Ident, Index, LitStr, Member, Token,
     parse::{Parse, ParseStream},
     parse_macro_input,
 };
@@ -68,9 +68,10 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
     let mut tokens = Tokenizer::new(&sql_input);
     let mut in_brace = false;
     let mut dot_count = 0;
+    let mut interpolate = false;
     let mut fragment = String::new();
     let mut vars: Vec<&str> = Default::default();
-    let mut paren_depth = 0;
+    let mut muls: Vec<u32> = Default::default();
 
     for token in tokens {
         match token {
@@ -79,17 +80,52 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
             }
             Token::Punctuation("}") => {
                 assert!(in_brace, "Non-matching closing brace }}");
+
+                if interpolate {
+                    assert!(muls.len() >= 2, "expect 2 numbers around :");
+                    let a = muls[muls.len() - 2];
+                    let b = muls[muls.len() - 1];
+                    assert!(a < b, "expect a < b in a:b");
+                    muls = (a..=b).collect();
+                } else {
+                    muls.clear();
+                }
+
                 let mut var = TokenStream::new();
                 for (i, v) in vars.iter().enumerate() {
                     if i > 0 {
                         var.extend(quote!(.));
                     }
-                    let v = Ident::new(v, Span::call_site());
-                    var.extend(quote!(#v));
+                    if is_ascii_digits(v) {
+                        if interpolate {
+                            // skip .x
+                            break;
+                        }
+                        let v = Member::Unnamed(Index {
+                            index: v.parse().unwrap(),
+                            span: Span::call_site(),
+                        });
+                        var.extend(quote!(#v));
+                    } else {
+                        let v = Ident::new(v, Span::call_site());
+                        var.extend(quote!(#v));
+                    }
                 }
-                // only expand when surrounded by parenthesis `({a})`
-                // or there is a spread operator `{..a}`
-                if dot_count == 2 {
+                if !muls.is_empty() {
+                    // there is a range operator `a:b`
+                    let len = muls.len();
+                    fragments.push(quote!(.push_parameters(#len)));
+                    for (j, mul) in muls.iter().enumerate() {
+                        let mut var = var.clone();
+                        let mul = Member::Unnamed(Index {
+                            index: *mul,
+                            span: Span::call_site(),
+                        });
+                        var.extend(quote!(#mul));
+                        params.push(quote! { query = query.bind(&#var); });
+                    }
+                } else if dot_count == 2 {
+                    // there is a spread operator `{..a}`
                     fragments.push(quote!(.push_parameters((&#var).p_len())));
                     params.push(quote! {
                         for v in (&#var).iter_p().iter() {
@@ -103,7 +139,9 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
 
                 in_brace = false;
                 dot_count = 0;
+                interpolate = false;
                 vars.clear();
+                muls.clear();
             }
             Token::Unquoted(var) if in_brace => {
                 if !fragment.is_empty() {
@@ -111,6 +149,9 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                     fragment.clear();
                 }
                 vars.push(var);
+                if is_ascii_digits(var) {
+                    muls.push(var.parse().expect("index out of range"));
+                }
             }
             Token::Punctuation(".") if in_brace => {
                 if vars.is_empty() {
@@ -118,13 +159,11 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                     dot_count += 1;
                 }
             }
-            Token::Punctuation("(") => {
-                paren_depth += 1;
-                fragment.push_str(token.as_str());
-            }
-            Token::Punctuation(")") => {
-                paren_depth -= 1;
-                fragment.push_str(token.as_str());
+            Token::Punctuation(":") if in_brace => {
+                if !vars.is_empty() {
+                    // postfix :
+                    interpolate = true;
+                }
             }
             _ => {
                 fragment.push_str(token.as_str());
@@ -156,4 +195,8 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
     }};
 
     Ok(output)
+}
+
+fn is_ascii_digits(s: &str) -> bool {
+    s.chars().all(|c| c.is_ascii_digit())
 }

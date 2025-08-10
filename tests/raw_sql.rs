@@ -203,3 +203,25 @@ fn test_raw_sql_6() {
         ])
     );
 }
+
+#[test]
+fn test_raw_sql_7() {
+    let var = (1, "2".to_owned(), 3);
+
+    let query = sea_query::raw_sql!(
+        seaql::postgres::query,
+        r#"SELECT {var.0}, {var.1}, {var.2}, {var.0:2}"#
+    );
+    assert_eq!(query.sql, r#"SELECT $1, $2, $3, $4, $5, $6"#);
+    assert_eq!(
+        query.values,
+        Values(vec![
+            1.into(),
+            "2".into(),
+            3.into(),
+            1.into(),
+            "2".into(),
+            3.into(),
+        ])
+    );
+}
