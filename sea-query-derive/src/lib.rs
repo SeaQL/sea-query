@@ -5,6 +5,7 @@ use syn::{DeriveInput, parse_macro_input};
 
 mod enum_def;
 mod iden;
+mod raw_query;
 mod raw_sql;
 mod sqlx;
 
@@ -28,6 +29,14 @@ pub fn enum_def(args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn raw_sql(input: TokenStream) -> TokenStream {
     match raw_sql::expand(input) {
+        Ok(token_stream) => token_stream.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
+}
+
+#[proc_macro]
+pub fn raw_query(input: TokenStream) -> TokenStream {
+    match raw_query::expand(input) {
         Ok(token_stream) => token_stream.into(),
         Err(err) => err.to_compile_error().into(),
     }

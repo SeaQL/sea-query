@@ -3,11 +3,10 @@ mod token;
 use token::*;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned};
+use quote::quote;
 use syn::{
     Ident, Index, LitStr, Member, Token,
     parse::{Parse, ParseStream},
-    parse_macro_input,
 };
 
 struct CallArgs {
@@ -65,7 +64,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
     let mut params = Vec::new();
 
     let sql_input = sql_input.value();
-    let mut tokens = Tokenizer::new(&sql_input);
+    let tokens = Tokenizer::new(&sql_input);
     let mut in_brace = false;
     let mut dot_count = 0;
     let mut interpolate = false;
@@ -128,7 +127,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                     }
 
                     let mut group = Vec::new();
-                    for (j, mul) in muls.iter().enumerate() {
+                    for mul in muls.iter() {
                         let mut var = var.clone();
                         let mul = Member::Unnamed(Index {
                             index: *mul,

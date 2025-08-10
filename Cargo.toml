@@ -71,7 +71,7 @@ with-time = ["time"]
 with-jiff = ["jiff"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
-sqlx-utils = []
+sqlx-utils = ["derive"]
 tests-cfg = []
 all-features = [
     "backend-mysql",

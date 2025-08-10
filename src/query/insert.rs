@@ -334,14 +334,14 @@ impl InsertStatement {
     /// );
     /// ```
     ///
-    /// The same query can be constructed using the `raw_sql!` macro.
+    /// The same query can be constructed using the `raw_query!` macro.
     ///
     /// ```
     /// use sea_query::Values;
     ///
     /// let values = vec![(2.1345, "24B"), (5.15, "12A")];
-    /// let query = sea_query::raw_sql!(
-    ///     seaql::postgres::query,
+    /// let query = sea_query::raw_query!(
+    ///     PostgresQueryBuilder,
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:1),}"#
     /// );
     ///

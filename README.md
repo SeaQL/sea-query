@@ -244,16 +244,17 @@ assert_eq!(
 
 4. Improved raw SQL ergonomics
 
-SeaQuery 1.0 added a new [`raw_sql!`] macro with named parameters, nested field access, array expansion and tuple expansion.
+SeaQuery 1.0 added a new `raw_query!` macro with named parameters, nested field access, array expansion and tuple expansion.
 It surely will make crafting complex query easier.
 
 ```rust
 let (a, b, c) = (1, 2, "A");
 let d = vec![3, 4, 5];
-let query = sea_query::raw_sql!(
-    seaql::postgres::query,
+let query = sea_query::raw_query!(
+    PostgresQueryBuilder,
     r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
 );
+
 assert_eq!(
     query.sql,
     r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
@@ -275,8 +276,8 @@ Insert with vector-of-tuple expansion.
 
 ```rust
 let values = vec![(2.1345, "24B"), (5.15, "12A")];
-let query = sea_query::raw_sql!(
-    seaql::postgres::query,
+let query = sea_query::raw_query!(
+    PostgresQueryBuilder,
     r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:1),}"#
 );
 
@@ -301,8 +302,8 @@ let c = Character {
     id: 11,
     font_size: 22,
 };
-let query = sea_query::raw_sql!(
-    seaql::mysql::query,
+let query = sea_query::raw_query!(
+    MysqlQueryBuilder,
     "UPDATE `character` SET `font_size` = {c.font_size} WHERE `id` = {c.id}"
 );
 

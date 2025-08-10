@@ -659,14 +659,14 @@ pub trait ExprTrait: Sized {
     /// );
     /// ```
     ///
-    /// The same query can be constructed using the `raw_sql!` macro.
+    /// The same query can be constructed using the `raw_query!` macro.
     ///
     /// ```
     /// use sea_query::Values;
     ///
     /// let ids: Vec<i32> = vec![1, 2, 3];
-    /// let query = sea_query::raw_sql!(
-    ///     seaql::sqlite::query,
+    /// let query = sea_query::raw_query!(
+    ///     SqliteQueryBuilder,
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN ({..ids})"#
     /// );
     ///

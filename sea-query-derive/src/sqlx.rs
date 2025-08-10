@@ -1,9 +1,8 @@
-use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned};
+use proc_macro2::TokenStream;
+use quote::quote;
 use syn::{
     Ident, LitStr, Token,
     parse::{Parse, ParseStream},
-    parse_macro_input,
 };
 
 struct CallArgs {
