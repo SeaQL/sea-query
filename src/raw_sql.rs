@@ -14,26 +14,6 @@ pub struct RawSqlQueryBuilder {
 #[repr(transparent)]
 pub struct ParameterHolder<'a, T>(&'a T);
 
-pub trait U8Parameter: Sized {
-    fn p_len(&self) -> usize {
-        1
-    }
-
-    fn iter_p(&self) -> ParameterHolder<'_, Self> {
-        ParameterHolder(self)
-    }
-}
-
-pub trait SingleParameter: Sized {
-    fn p_len(&self) -> usize {
-        1
-    }
-
-    fn iter_p(&self) -> ParameterHolder<'_, Self> {
-        ParameterHolder(self)
-    }
-}
-
 pub trait ArrayParameter: Sized {
     fn p_len(&self) -> usize;
 
@@ -42,28 +22,9 @@ pub trait ArrayParameter: Sized {
     }
 }
 
-impl SingleParameter for bool {}
-impl SingleParameter for i8 {}
-impl SingleParameter for i16 {}
-impl SingleParameter for i32 {}
-impl SingleParameter for i64 {}
-impl SingleParameter for u16 {}
-impl SingleParameter for u32 {}
-impl SingleParameter for u64 {}
-impl SingleParameter for f32 {}
-impl SingleParameter for f64 {}
-impl SingleParameter for char {}
-impl SingleParameter for &str {}
-impl SingleParameter for String {}
-
-impl U8Parameter for &u8 {}
-impl U8Parameter for &[u8] {}
-impl U8Parameter for Vec<u8> {}
-impl<const N: usize> U8Parameter for &[u8; N] {}
-
 impl<T> ArrayParameter for &[T]
 where
-    T: SingleParameter,
+    T: Sized,
 {
     fn p_len(&self) -> usize {
         self.len()
@@ -72,7 +33,7 @@ where
 
 impl<T, const N: usize> ArrayParameter for [T; N]
 where
-    T: SingleParameter,
+    T: Sized,
 {
     fn p_len(&self) -> usize {
         N
@@ -81,7 +42,7 @@ where
 
 impl<T> ArrayParameter for Vec<T>
 where
-    T: SingleParameter,
+    T: Sized,
 {
     fn p_len(&self) -> usize {
         self.len()

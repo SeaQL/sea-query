@@ -54,13 +54,8 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         sql_input,
     } = syn::parse(input)?;
 
-    let mut expand_array = true;
-
     let backend = match backend.to_string().as_str() {
-        "postgres" => {
-            expand_array = false;
-            quote!(sea_query::PostgresQueryBuilder)
-        }
+        "postgres" => quote!(sea_query::PostgresQueryBuilder),
         "mysql" => quote!(sea_query::MysqlQueryBuilder),
         "sqlite" => quote!(sea_query::SqliteQueryBuilder),
         _ => quote!(#backend),
@@ -94,7 +89,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                 }
                 // only expand when surrounded by parenthesis `({a})`
                 // or there is a spread operator `{..a}`
-                if (expand_array && paren_depth > 0) || dot_count == 2 {
+                if dot_count == 2 {
                     fragments.push(quote!(.push_parameters((&#var).p_len())));
                     params.push(quote! {
                         for v in (&#var).iter_p().iter() {

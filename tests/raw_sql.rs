@@ -40,7 +40,7 @@ fn test_raw_sql_1() {
         let c = [1, 2, 3];
         let query = sea_query::raw_sql!(
             seaql::sqlite::query,
-            r#"SELECT {a}, {b.i} FROM "bar" WHERE "id" in ({c})"#
+            r#"SELECT {a}, {b.i} FROM "bar" WHERE "id" in ({..c})"#
         );
         assert_eq!(
             query.sql,
@@ -73,12 +73,11 @@ fn test_raw_sql_2() {
 
     let a = A { b: B { c: 42 } };
 
-    // spread or no spread, should be same
     let s;
-    let query = sea_query::raw_sql!(seaql::postgres::query, s = r#"SELECT {a.b.c}, {..a.b.c}"#);
+    let query = sea_query::raw_sql!(seaql::postgres::query, s = r#"SELECT {a.b.c}"#);
 
-    assert_eq!(query.sql, r#"SELECT $1, $2"#);
-    assert_eq!(query.values, Values(vec![42.into(), 42.into()]));
+    assert_eq!(query.sql, r#"SELECT $1"#);
+    assert_eq!(query.values, Values(vec![42.into()]));
 }
 
 #[test]
@@ -96,7 +95,7 @@ fn test_raw_sql_3() {
     let sql;
     let query = sea_query::raw_sql!(
         seaql::sqlite::query,
-        sql = r#"A = {a}, B = {b}, C = {c}, D = ({d}), E = ({e}), F = ({f})"#
+        sql = r#"A = {a}, B = {b}, C = {c}, D = ({d}), E = ({..e}), F = ({..f})"#
     );
     assert_eq!(
         sql,
@@ -146,7 +145,7 @@ fn test_raw_sql_5() {
     let sql;
     let query = sea_query::raw_sql!(
         seaql::sqlite::query,
-        sql = r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({d})"#
+        sql = r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
     );
     assert_eq!(
         sql,
@@ -164,7 +163,6 @@ fn test_raw_sql_5() {
         ])
     );
 
-    // postgres has to expand array manually
     let query = sea_query::raw_sql!(
         seaql::postgres::query,
         r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
@@ -182,6 +180,26 @@ fn test_raw_sql_5() {
             3.into(),
             4.into(),
             5.into()
+        ])
+    );
+}
+
+#[test]
+fn test_raw_sql_6() {
+    let a = Some(1);
+    let b = Option::<i32>::None;
+    let c = Some("c".to_owned());
+    let d = Option::<String>::None;
+
+    let query = sea_query::raw_sql!(seaql::sqlite::query, r#"SELECT {a}, {b}, {c}, {d}"#);
+    assert_eq!(query.sql, r#"SELECT ?, ?, ?, ?"#);
+    assert_eq!(
+        query.values,
+        Values(vec![
+            1.into(),
+            Option::<i32>::None.into(),
+            "c".into(),
+            Option::<String>::None.into(),
         ])
     );
 }
