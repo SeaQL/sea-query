@@ -1,6 +1,6 @@
 //! Base types used throughout sea-query.
 
-use crate::{FunctionCall, ValueTuple, Values, expr::*, query::*};
+use crate::{expr::*, query::*, FunctionCall, ValueTuple, Values};
 use std::{borrow::Cow, fmt::Debug, iter::Flatten};
 
 #[cfg(feature = "backend-postgres")]
@@ -100,7 +100,8 @@ impl SeaRc {
     /// Note that most `Iden`s are statically known
     /// and their representations aren't actually "rendered" and allocated at runtime.
     #[allow(clippy::new_ret_no_self)]
-    pub fn new<I>(i: &I) -> DynIden
+    #[expect(clippy::needless_pass_by_value, reason = "compatibility")]
+    pub fn new<I>(i: I) -> DynIden
     where
         I: Iden,
     {
@@ -830,8 +831,8 @@ where
 #[cfg(test)]
 mod tests {
     pub use crate::{tests_cfg::*, *};
-    pub use Character as CharReexport;
     use pretty_assertions::assert_eq;
+    pub use Character as CharReexport;
 
     #[test]
     fn test_identifier() {
