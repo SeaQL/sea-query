@@ -9,7 +9,10 @@
     clippy::use_self,
     clippy::missing_const_for_fn,
     clippy::wildcard_imports,
-    clippy::enum_glob_use
+    clippy::enum_glob_use,
+    // We should consider enabling it someday.
+    // This would help users understand that the function returns a value instead of producing side effects.
+    clippy::must_use_candidate
 )]
 
 //! <div align="center">
@@ -848,7 +851,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::{Iden, IdenStatic, enum_def};
+pub use sea_query_derive::{enum_def, Iden, IdenStatic};
 
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;
