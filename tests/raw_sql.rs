@@ -62,6 +62,39 @@ fn test_raw_sql_1() {
 }
 
 #[test]
+fn test_raw_sql_1a() {
+    let a = 1;
+    struct B {
+        b: i32,
+    }
+    let b = B { b: 2 };
+    let c = "A";
+    let d = vec![3, 4, 5];
+
+    let query = sea_query::raw_query!(
+        PostgresQueryBuilder,
+        r#"SELECT ("size_w" + {a}) * {b.b} FROM "glyph"
+        WHERE "image" LIKE {c} AND "id" IN ({..d})"#
+    );
+    assert_eq!(
+        query.sql,
+        r#"SELECT ("size_w" + $1) * $2 FROM "glyph"
+        WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
+    );
+    assert_eq!(
+        query.values,
+        Values(vec![
+            1.into(),
+            2.into(),
+            "A".into(),
+            3.into(),
+            4.into(),
+            5.into()
+        ])
+    );
+}
+
+#[test]
 fn test_raw_sql_2() {
     struct A {
         b: B,
@@ -249,11 +282,11 @@ fn test_raw_sql_9() {
 
     let query = sea_query::raw_sql!(
         seaql::postgres::query,
-        r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:2),} SELECT {z}"#
+        r#"INSERT INTO "glyph" ("aspect", "image", "font_size") VALUES {..(values.0:2),} SELECT {z}"#
     );
     assert_eq!(
         query.sql,
-        r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2, $3), ($4, $5, $6) SELECT $7"#
+        r#"INSERT INTO "glyph" ("aspect", "image", "font_size") VALUES ($1, $2, $3), ($4, $5, $6) SELECT $7"#
     );
     assert_eq!(
         query.values,
