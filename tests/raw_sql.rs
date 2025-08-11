@@ -243,6 +243,7 @@ fn test_raw_sql_8() {
 
 #[test]
 fn test_raw_sql_9() {
+    // test vector of tuple expansion
     let values = vec![(1, "2", 3), (4, "5", 6)];
     let z = 42;
 
@@ -263,6 +264,78 @@ fn test_raw_sql_9() {
             4.into(),
             "5".into(),
             6.into(),
+            42.into(),
+        ])
+    );
+}
+
+#[test]
+fn test_raw_sql_10() {
+    // array expansion, but without tuple expansion
+    let values = vec![(1, "2", 3), (4, "5", 6)];
+    let z = 42;
+
+    let query = sea_query::raw_sql!(
+        seaql::postgres::query,
+        r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0, values.1, values.2),} SELECT {z}"#
+    );
+    assert_eq!(
+        query.sql,
+        r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2, $3), ($4, $5, $6) SELECT $7"#
+    );
+    assert_eq!(
+        query.values,
+        Values(vec![
+            1.into(),
+            "2".into(),
+            3.into(),
+            4.into(),
+            "5".into(),
+            6.into(),
+            42.into(),
+        ])
+    );
+}
+
+#[test]
+fn test_raw_sql_11() {
+    struct Item {
+        a: i32,
+        b: String,
+        c: u16,
+    }
+    // array expansion, but without tuple expansion
+    let values = vec![
+        Item {
+            a: 11,
+            b: "1b".to_owned(),
+            c: 13,
+        },
+        Item {
+            a: 21,
+            b: "2b".to_owned(),
+            c: 23,
+        },
+    ];
+    let z = 42;
+
+    let query = sea_query::raw_sql!(
+        seaql::postgres::query,
+        r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.a, values.b, values.c),} SELECT {z}"#
+    );
+    assert_eq!(
+        query.sql,
+        r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2, $3), ($4, $5, $6) SELECT $7"#
+    );
+    assert_eq!(
+        query.values,
+        Values(vec![
+            11.into(),
+            "1b".into(),
+            13u16.into(),
+            21.into(),
+            "2b".into(),
+            23u16.into(),
             42.into(),
         ])
     );

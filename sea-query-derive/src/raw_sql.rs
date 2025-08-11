@@ -66,13 +66,19 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
     let sql_input = sql_input.value();
     let tokens = Tokenizer::new(&sql_input);
     let mut in_brace = false;
+    let mut in_paren = false;
     let mut dot_count = 0;
     let mut interpolate = false;
-    let mut nested_group = false;
-    let mut has_comma = false;
+    let mut nested_eval = false;
+    let mut has_ending_comma = false;
     let mut fragment = String::new();
-    let mut vars: Vec<&str> = Default::default();
-    let mut muls: Vec<u32> = Default::default();
+    let mut vars: Vec<Var> = vec![Default::default()];
+
+    #[derive(Default)]
+    struct Var<'a> {
+        parts: Vec<&'a str>, // named parts, i.e. a.b.c
+        members: Vec<u32>,   // tuple members
+    }
 
     for token in tokens {
         match token {
@@ -82,124 +88,157 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
             Token::Punctuation("}") => {
                 assert!(in_brace, "unmatched closing brace }}");
 
-                if interpolate {
-                    assert!(muls.len() >= 2, "expect 2 numbers around :");
-                    let a = muls[muls.len() - 2];
-                    let b = muls[muls.len() - 1];
-                    assert!(a < b, "expect a < b in a:b");
-                    muls = (a..=b).collect();
-                } else {
-                    muls.clear();
+                for vars in vars.iter_mut() {
+                    if interpolate {
+                        assert!(vars.members.len() >= 2, "expect 2 numbers around :");
+                        let a = vars.members[vars.members.len() - 2];
+                        let b = vars.members[vars.members.len() - 1];
+                        assert!(a < b, "expect a < b in a:b");
+                        vars.members = (a..=b).collect();
+                    } else {
+                        vars.members.clear();
+                    }
                 }
 
-                let mut var = TokenStream::new();
-                for (i, v) in vars.iter().enumerate() {
-                    if i > 0 {
-                        var.extend(quote!(.));
-                    }
-                    if is_ascii_digits(v) {
-                        if interpolate {
-                            // skip .x
-                            break;
+                let top = {
+                    let v = Ident::new(vars[0].parts[0], Span::call_site());
+                    quote!(#v)
+                };
+                if nested_eval {
+                    assert!(has_ending_comma, "..(), must end with comma ,");
+                    let group_size: usize = vars
+                        .iter()
+                        .map(|var| {
+                            if var.members.is_empty() {
+                                1
+                            } else {
+                                var.members.len()
+                            }
+                        })
+                        .sum();
+                    fragments
+                        .push(quote!(.push_tuple_parameter_groups((&#top).p_len(), #group_size)));
+                }
+                let mut group = Vec::new();
+
+                for vars in vars {
+                    let mut var = TokenStream::new();
+                    for (i, v) in vars.parts.iter().enumerate() {
+                        if i > 0 {
+                            var.extend(quote!(.));
                         }
-                        let v = Member::Unnamed(Index {
-                            index: v.parse().unwrap(),
-                            span: Span::call_site(),
-                        });
-                        var.extend(quote!(#v));
-                    } else {
-                        let v = Ident::new(v, Span::call_site());
-                        var.extend(quote!(#v));
+                        if is_ascii_digits(v) {
+                            if interpolate {
+                                // skip .x
+                                break;
+                            }
+                            let v = Member::Unnamed(Index {
+                                index: v.parse().unwrap(),
+                                span: Span::call_site(),
+                            });
+                            var.extend(quote!(#v));
+                        } else {
+                            let v = Ident::new(v, Span::call_site());
+                            var.extend(quote!(#v));
+                        }
                     }
-                }
-                if !muls.is_empty() {
-                    // there is a range operator `a:b`
-                    let top = {
-                        let v = Ident::new(vars[0], Span::call_site());
-                        quote!(#v)
-                    };
-                    let len = muls.len();
-                    if nested_group {
-                        assert!(has_comma, "..(), must end with comma ,");
-                        fragments.push(quote!(.push_tuple_parameter_groups((&#top).p_len(), #len)));
-                    } else {
-                        fragments.push(quote!(.push_parameters(#len)));
-                    }
+                    if !vars.members.is_empty() {
+                        // there is a range operator `a:b`
+                        if !nested_eval {
+                            let len = vars.members.len();
+                            fragments.push(quote!(.push_parameters(#len)));
+                        }
 
-                    let mut group = Vec::new();
-                    for mul in muls.iter() {
-                        let mut var = var.clone();
-                        let mul = Member::Unnamed(Index {
-                            index: *mul,
-                            span: Span::call_site(),
-                        });
-                        var.extend(quote!(#mul));
-                        group.push(quote! { query = query.bind(&#var); });
-                    }
-
-                    if nested_group {
-                        params.push(quote! {
-                            for #top in (&#top).iter_p().iter() {
-                                #(#group)*
+                        for mul in vars.members.iter() {
+                            let mut var = var.clone();
+                            let mul = Member::Unnamed(Index {
+                                index: *mul,
+                                span: Span::call_site(),
+                            });
+                            var.extend(quote!(#mul));
+                            group.push(quote! { query = query.bind(&#var); });
+                        }
+                    } else if dot_count == 2 && !nested_eval {
+                        // non nested spread `..a`
+                        fragments.push(quote!(.push_parameters((&#var).p_len())));
+                        group.push(quote! {
+                            for v in (&#var).iter_p().iter() {
+                                query = query.bind(v);
                             }
                         });
                     } else {
-                        params.append(&mut group);
+                        if !nested_eval {
+                            fragments.push(quote!(.push_parameters(1)));
+                        }
+                        group.push(quote! { query = query.bind(&#var); });
                     }
-                } else if dot_count == 2 {
-                    // there is a spread operator `{..a}`
-                    fragments.push(quote!(.push_parameters((&#var).p_len())));
+                }
+
+                if nested_eval {
                     params.push(quote! {
-                        for v in (&#var).iter_p().iter() {
-                            query = query.bind(v);
+                        for #top in (&#top).iter_p().iter() {
+                            #(#group)*
                         }
                     });
                 } else {
-                    fragments.push(quote!(.push_parameters(1)));
-                    params.push(quote! { query = query.bind(&#var); });
+                    params.append(&mut group);
                 }
 
                 in_brace = false;
+                in_paren = false;
                 dot_count = 0;
                 interpolate = false;
-                nested_group = false;
-                has_comma = false;
-                vars.clear();
-                muls.clear();
+                nested_eval = false;
+                has_ending_comma = false;
+                vars = vec![Default::default()];
             }
             Token::Unquoted(var) if in_brace => {
                 if !fragment.is_empty() {
                     fragments.push(quote!(.push_fragment(#fragment)));
                     fragment.clear();
                 }
-                vars.push(var);
+                vars.last_mut().unwrap().parts.push(var);
                 if is_ascii_digits(var) {
-                    muls.push(var.parse().expect("index out of range"));
+                    vars.last_mut()
+                        .unwrap()
+                        .members
+                        .push(var.parse().expect("index out of range"));
                 }
             }
             Token::Punctuation(".") if in_brace => {
-                if vars.is_empty() {
+                if vars.last_mut().unwrap().parts.is_empty() {
                     // prefix ..
                     dot_count += 1;
                 }
             }
             Token::Punctuation(":") if in_brace => {
-                if !vars.is_empty() {
+                if !vars.last_mut().unwrap().parts.is_empty() {
                     // postfix :
                     interpolate = true;
                 }
             }
             Token::Punctuation("(") if in_brace => {
-                nested_group = true;
+                nested_eval = true;
+                in_paren = true;
             }
             Token::Punctuation(")") if in_brace => {
-                assert!(nested_group, "unmatched closing parenthesis )")
+                assert!(in_paren, "unmatched closing parenthesis )");
+                in_paren = false
             }
-            Token::Punctuation(",") if in_brace && nested_group => {
-                has_comma = true;
+            Token::Punctuation(",") if in_brace && in_paren && nested_eval => {
+                // push a new variable
+                vars.push(Default::default());
+            }
+            Token::Punctuation(",") if in_brace && !in_paren && nested_eval => {
+                has_ending_comma = true;
+            }
+            Token::Punctuation(",") if in_brace && !in_paren && !nested_eval => {
+                panic!("unknown extra comma ,")
             }
             _ => {
-                fragment.push_str(token.as_str());
+                if !in_brace {
+                    fragment.push_str(token.as_str());
+                }
             }
         }
     }

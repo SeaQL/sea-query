@@ -353,6 +353,32 @@ impl InsertStatement {
     ///     query.values,
     ///     Values(vec![2.1345.into(), "24B".into(), 5.15.into(), "12A".into()])
     /// );
+    ///
+    /// // same as above but with named fields:
+    ///
+    /// struct Item<'a> {
+    ///     aspect: f64,
+    ///     image: &'a str,
+    /// };
+    ///
+    /// let values = vec![
+    ///     Item {
+    ///         aspect: 2.1345,
+    ///         image: "24B",
+    ///     },
+    ///     Item {
+    ///         aspect: 5.15,
+    ///         image: "12A",
+    ///     },
+    /// ];
+    ///
+    /// let new_query = sea_query::raw_query!(
+    ///     PostgresQueryBuilder,
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.aspect, values.image),}"#
+    /// );
+    ///
+    /// assert_eq!(query.sql, new_query.sql);
+    /// assert_eq!(query.values, new_query.values);
     /// ```
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
