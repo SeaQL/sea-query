@@ -3,11 +3,13 @@
 #![deny(missing_debug_implementations)]
 #![forbid(unsafe_code)]
 #![allow(
+    // compatibility
     clippy::derive_partial_eq_without_eq,
-    clippy::option_if_let_else,
     clippy::redundant_pub_crate,
-    clippy::use_self,
     clippy::missing_const_for_fn,
+    //
+    clippy::option_if_let_else,
+    clippy::use_self,
     clippy::wildcard_imports,
     clippy::enum_glob_use,
     // We should consider enabling it someday.
