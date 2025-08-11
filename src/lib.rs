@@ -102,7 +102,7 @@
 //!
 //! Why would you want to use a dynamic query builder?
 //!
-//! 1. Parameter bindings
+//! ### 1. Parameter bindings
 //!
 //! One of the headaches when using raw SQL is parameter binding. With SeaQuery you can inject parameters
 //! right alongside the expression, and the $N sequencing will be handled for you. No more "off by one" errors!
@@ -155,7 +155,7 @@
 //! );
 //! ```
 //!
-//! 2. Dynamic query
+//! ### 2. Dynamic query
 //!
 //! You can construct the query at runtime based on user inputs with a fluent interface,
 //! so you don't have to append `WHERE` or `AND` conditionally.
@@ -225,7 +225,7 @@
 //! There is no superfluous parentheses `((((` cluttering the query, because SeaQuery respects
 //! operator precedence when injecting them.
 //!
-//! 3. Cross database support
+//! ### 3. Cross database support
 //!
 //! With SeaQuery, you can target multiple database backends while maintaining a single source of query logic.
 //!
@@ -259,7 +259,7 @@
 //! );
 //! ```
 //!
-//! 4. Improved raw SQL ergonomics
+//! ### 4. Improved raw SQL ergonomics
 //!
 //! SeaQuery 1.0 added a new `raw_query!` macro with named parameters, nested field access, array expansion and tuple expansion.
 //! It surely will make crafting complex query easier.
