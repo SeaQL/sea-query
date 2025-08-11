@@ -11,7 +11,8 @@ pub trait QueryBuilder:
     }
 
     /// Prefix for tuples in VALUES list (e.g. ROW for MySQL)
-    fn values_list_tuple_prefix(&self) -> &'static str {
+    #[expect(clippy::unnecessary_literal_bound, reason = "compatibility")]
+    fn values_list_tuple_prefix(&self) -> &str {
         ""
     }
 
