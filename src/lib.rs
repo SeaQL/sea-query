@@ -12,7 +12,9 @@
     clippy::enum_glob_use,
     // We should consider enabling it someday.
     // This would help users understand that the function returns a value instead of producing side effects.
-    clippy::must_use_candidate
+    clippy::must_use_candidate,
+    // semantics
+    clippy::manual_assert
 )]
 
 //! <div align="center">
