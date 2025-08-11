@@ -198,9 +198,15 @@ pub trait TableBuilder:
     }
 
     /// Translate the check constraint into SQL statement
-    fn prepare_check_constraint(&self, check: &Expr, sql: &mut dyn SqlWriter) {
+    fn prepare_check_constraint(&self, check: &Check, sql: &mut dyn SqlWriter) {
+        if let Some(name) = &check.name {
+            sql.write_str("CONSTRAINT ").unwrap();
+            self.prepare_iden(name, sql);
+            sql.write_str(" ").unwrap();
+        }
+
         sql.write_str("CHECK (").unwrap();
-        QueryBuilder::prepare_simple_expr(self, check, sql);
+        QueryBuilder::prepare_simple_expr(self, &check.expr, sql);
         sql.write_str(")").unwrap();
     }
 

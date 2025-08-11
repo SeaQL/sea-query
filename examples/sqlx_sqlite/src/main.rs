@@ -2,7 +2,7 @@ use chrono::{NaiveDate, NaiveDateTime};
 use sea_query::{
     ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
 };
-use sea_query_binder::SqlxBinder;
+use sea_query_sqlx::SqlxBinder;
 use serde_json::{Value as Json, json};
 use sqlx::{Row, SqlitePool};
 use time::{

@@ -118,6 +118,12 @@ impl std::fmt::Display for DynIden {
     }
 }
 
+impl From<&'static str> for DynIden {
+    fn from(s: &'static str) -> Self {
+        Self(Cow::Borrowed(s))
+    }
+}
+
 pub trait IntoIden {
     fn into_iden(self) -> DynIden;
 }
@@ -211,7 +217,7 @@ pub trait IntoColumnRef {
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
 pub enum TableRef {
-    /// A table identifier. Potentially qualified. Potentially remaned using an alias
+    /// A table identifier with optional Alias. Potentially qualified.
     Table(TableName, Option<DynIden>),
     /// Subquery with alias
     SubQuery(Box<SelectStatement>, DynIden),

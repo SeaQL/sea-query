@@ -320,6 +320,7 @@ pub enum Value {
 }
 
 /// This test is to check if the size of [`Value`] exceeds the limit.
+///
 /// If the size exceeds the limit, you should box the variant.
 /// Previously, the size was 24. We bumped it to 32 such that `String`
 /// can be unboxed.
@@ -664,6 +665,10 @@ pub trait ValueType: Sized {
         Self::try_from(v).expect(msg)
     }
 
+    fn is_option() -> bool {
+        false
+    }
+
     fn type_name() -> String;
 
     fn array_type() -> ArrayType;
@@ -685,6 +690,10 @@ where
         } else {
             Ok(Some(T::try_from(v)?))
         }
+    }
+
+    fn is_option() -> bool {
+        true
     }
 
     fn type_name() -> String {

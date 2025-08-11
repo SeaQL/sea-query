@@ -4,7 +4,7 @@ use rust_decimal::Decimal;
 use sea_query::{
     ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table,
 };
-use sea_query_binder::SqlxBinder;
+use sea_query_sqlx::SqlxBinder;
 use sqlx::{MySqlPool, Row, types::chrono::NaiveDateTime};
 use time::{
     PrimitiveDateTime,
