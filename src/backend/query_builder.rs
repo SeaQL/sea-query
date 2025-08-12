@@ -969,7 +969,7 @@ pub trait QueryBuilder:
             write!(sql, "WHEN ").unwrap();
             self.prepare_simple_expr(&order_expr.expr, sql);
             write!(sql, "=").unwrap();
-            self.write_value(sql, value).unwrap();
+            self.write_value(sql.as_writer(), value).unwrap();
             write!(sql, " THEN {i} ").unwrap();
             i += 1;
         }
@@ -981,7 +981,7 @@ pub trait QueryBuilder:
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        self.write_value(sql, value).unwrap();
+        self.write_value(sql.as_writer(), value).unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
@@ -1041,7 +1041,7 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
-    fn write_value(&self, buffer: &mut dyn Write, value: &Value) -> fmt::Result {
+    fn write_value(&self, buf: &mut dyn Write, value: &Value) -> fmt::Result {
         match value {
             Value::Bool(None)
             | Value::TinyInt(None)
@@ -1056,181 +1056,179 @@ pub trait QueryBuilder:
             | Value::Double(None)
             | Value::String(None)
             | Value::Char(None)
-            | Value::Bytes(None) => buffer.write_str("NULL")?,
+            | Value::Bytes(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-json")]
-            Value::Json(None) => buffer.write_str("NULL")?,
+            Value::Json(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(None) => buffer.write_str("NULL")?,
+            Value::ChronoDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(None) => buffer.write_str("NULL")?,
+            Value::ChronoTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTimeUtc(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTimeLocal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDate(None) => buffer.write_str("NULL")?,
+            Value::TimeDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeTime(None) => buffer.write_str("NULL")?,
+            Value::TimeTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(None) => buffer.write_str("NULL")?,
+            Value::TimeDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(None) => buffer.write_str("NULL")?,
+            Value::TimeDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffDate(None) => buffer.write_str("NULL")?,
+            Value::JiffDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffTime(None) => buffer.write_str("NULL")?,
+            Value::JiffTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffDateTime(None) => buffer.write_str("NULL")?,
+            Value::JiffDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffTimestamp(None) => buffer.write_str("NULL")?,
+            Value::JiffTimestamp(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffZoned(None) => buffer.write_str("NULL")?,
+            Value::JiffZoned(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => buffer.write_str("NULL")?,
+            Value::Decimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => buffer.write_str("NULL")?,
+            Value::BigDecimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => buffer.write_str("NULL")?,
+            Value::Uuid(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(None) => buffer.write_str("NULL")?,
+            Value::IpNetwork(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(None) => buffer.write_str("NULL")?,
+            Value::MacAddress(None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, None) => buffer.write_str("NULL")?,
+            Value::Array(_, None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(None) => buffer.write_str("NULL")?,
-            Value::Bool(Some(b)) => buffer.write_str(if *b { "TRUE" } else { "FALSE" })?,
-            Value::TinyInt(Some(v)) => write!(buffer, "{v}")?,
-            Value::SmallInt(Some(v)) => write!(buffer, "{v}")?,
-            Value::Int(Some(v)) => write!(buffer, "{v}")?,
-            Value::BigInt(Some(v)) => write!(buffer, "{v}")?,
-            Value::TinyUnsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::SmallUnsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::Unsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::BigUnsigned(Some(v)) => write!(buffer, "{v}")?,
-            Value::Float(Some(v)) => write!(buffer, "{v}")?,
-            Value::Double(Some(v)) => write!(buffer, "{v}")?,
-            Value::String(Some(v)) => self.write_string_quoted(v, buffer),
+            Value::Vector(None) => buf.write_str("NULL")?,
+            Value::Bool(Some(b)) => buf.write_str(if *b { "TRUE" } else { "FALSE" })?,
+            Value::TinyInt(Some(v)) => write!(buf, "{v}")?,
+            Value::SmallInt(Some(v)) => write!(buf, "{v}")?,
+            Value::Int(Some(v)) => write!(buf, "{v}")?,
+            Value::BigInt(Some(v)) => write!(buf, "{v}")?,
+            Value::TinyUnsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::SmallUnsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::Unsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::BigUnsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::Float(Some(v)) => write!(buf, "{v}")?,
+            Value::Double(Some(v)) => write!(buf, "{v}")?,
+            Value::String(Some(v)) => self.write_string_quoted(v, buf),
             Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buffer)
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
             }
-            Value::Bytes(Some(v)) => self.write_bytes(v, buffer),
+            Value::Bytes(Some(v)) => self.write_bytes(v, buf),
             #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buffer),
+            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buf),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => write!(buffer, "'{}'", v.format("%Y-%m-%d"))?,
+            Value::ChronoDate(Some(v)) => write!(buf, "'{}'", v.format("%Y-%m-%d"))?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(buffer, "'{}'", v.format("%H:%M:%S%.6f")).unwrap(),
+            Value::ChronoTime(Some(v)) => write!(buf, "'{}'", v.format("%H:%M:%S%.6f")).unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(buffer, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
-                write!(buffer, "'{}'", v.format(time_format::FORMAT_DATE).unwrap())?
+                write!(buf, "'{}'", v.format(time_format::FORMAT_DATE).unwrap())?
             }
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => {
-                write!(buffer, "'{}'", v.format(time_format::FORMAT_TIME).unwrap())?
+                write!(buf, "'{}'", v.format(time_format::FORMAT_TIME).unwrap())?
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(Some(v)) => write!(
-                buffer,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME).unwrap()
-            )?,
+            Value::TimeDateTime(Some(v)) => {
+                write!(buf, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap())?
+            }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
-                buffer,
+                buf,
                 "'{}'",
                 v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
             )?,
             // Jiff date and time dosen't need format string
             // The default behavior is what we want
             #[cfg(feature = "with-jiff")]
-            Value::JiffDate(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::JiffDate(Some(v)) => write!(buf, "'{v}'")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffTime(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::JiffTime(Some(v)) => write!(buf, "'{v}'")?,
             // Both JiffDateTime and JiffTimestamp map to timestamp
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(Some(v)) => {
                 use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
-                write!(buffer, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR))?
+                write!(buf, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR))?
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(Some(v)) => {
                 use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
-                write!(buffer, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR))?
+                write!(buf, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR))?
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffZoned(Some(v)) => {
                 // Zoned map to timestamp with timezone
 
                 use crate::with_jiff::JIFF_ZONE_FMT_STR;
-                write!(buffer, "'{}'", v.strftime(JIFF_ZONE_FMT_STR))?
+                write!(buf, "'{}'", v.strftime(JIFF_ZONE_FMT_STR))?
             }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(buffer, "{v}")?,
+            Value::Decimal(Some(v)) => write!(buf, "{v}")?,
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(buffer, "{v}")?,
+            Value::BigDecimal(Some(v)) => write!(buf, "{v}")?,
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::Uuid(Some(v)) => write!(buf, "'{v}'")?,
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => {
                 if v.is_empty() {
-                    buffer.write_str("'{}'")?;
+                    buf.write_str("'{}'")?;
                 } else {
-                    buffer.write_str("ARRAY [")?;
+                    buf.write_str("ARRAY [")?;
 
                     let mut viter = v.iter();
 
                     if let Some(element) = viter.next() {
-                        self.write_value(buffer, element)?;
+                        self.write_value(buf, element)?;
                     }
 
                     for element in viter {
-                        buffer.write_str(",")?;
-                        self.write_value(buffer, element)?;
+                        buf.write_str(",")?;
+                        self.write_value(buf, element)?;
                     }
-                    buffer.write_str("]")?;
+                    buf.write_str("]")?;
                 }
             }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => {
-                write!(buffer, "'[")?;
+                write!(buf, "'[")?;
                 let mut viter = v.as_slice().iter();
 
                 if let Some(element) = viter.next() {
-                    write!(buffer, "{element}")?;
+                    write!(buf, "{element}")?;
                 }
 
                 for element in viter {
-                    buffer.write_str(",")?;
+                    buf.write_str(",")?;
 
-                    write!(buffer, "{element}")?;
+                    write!(buf, "{element}")?;
                 }
-                buffer.write_str("]'")?;
+                buf.write_str("]'")?;
             }
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::IpNetwork(Some(v)) => write!(buf, "'{v}'")?,
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(buffer, "'{v}'")?,
+            Value::MacAddress(Some(v)) => write!(buf, "'{v}'")?,
         };
 
         Ok(())

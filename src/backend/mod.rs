@@ -61,16 +61,17 @@ pub trait QuotedBuilder {
     }
 }
 
-pub(crate) fn need_escape(s: &str) -> bool {
-    s.chars().any(|c| {
-        matches!(
-            c,
-            '\r' | '\n' | '\x1a' | '\x09' | '\x08' | '\0' | '\'' | '"' | '\\'
-        )
-    })
-}
-
 pub trait EscapeBuilder {
+    /// Return if string literal needs to be escaped
+    fn need_escape(&self, s: &str) -> bool {
+        s.chars().any(|c| {
+            matches!(
+                c,
+                '\r' | '\n' | '\x1a' | '\x09' | '\x08' | '\0' | '\'' | '"' | '\\'
+            )
+        })
+    }
+
     /// Escape a SQL string literal
     fn escape_string(&self, string: &str) -> String {
         let mut escaped = String::with_capacity(string.len() + 8);
