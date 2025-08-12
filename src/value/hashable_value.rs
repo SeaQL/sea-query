@@ -17,14 +17,14 @@ impl PartialEq for Value {
             (Self::SmallUnsigned(l), Self::SmallUnsigned(r)) => l == r,
             (Self::Unsigned(l), Self::Unsigned(r)) => l == r,
             (Self::BigUnsigned(l), Self::BigUnsigned(r)) => l == r,
-            (Self::Float(l), Self::Float(r)) => cmp_f32(l, r),
-            (Self::Double(l), Self::Double(r)) => cmp_f64(l, r),
+            (Self::Float(l), Self::Float(r)) => cmp_f32(l.as_ref(), r.as_ref()),
+            (Self::Double(l), Self::Double(r)) => cmp_f64(l.as_ref(), r.as_ref()),
             (Self::String(l), Self::String(r)) => l == r,
             (Self::Char(l), Self::Char(r)) => l == r,
             (Self::Bytes(l), Self::Bytes(r)) => l == r,
 
             #[cfg(feature = "with-json")]
-            (Self::Json(l), Self::Json(r)) => cmp_json(l, r),
+            (Self::Json(l), Self::Json(r)) => cmp_json(l.as_ref(), r.as_ref()),
 
             #[cfg(feature = "with-chrono")]
             (Self::ChronoDate(l), Self::ChronoDate(r)) => l == r,
@@ -74,7 +74,7 @@ impl PartialEq for Value {
             }
 
             #[cfg(feature = "postgres-vector")]
-            (Self::Vector(l), Self::Vector(r)) => cmp_vector(l, r),
+            (Self::Vector(l), Self::Vector(r)) => cmp_vector(l.as_ref(), r.as_ref()),
 
             #[cfg(feature = "with-ipnetwork")]
             (Self::IpNetwork(l), Self::IpNetwork(r)) => l == r,
@@ -102,14 +102,14 @@ impl Hash for Value {
             Value::SmallUnsigned(v) => v.hash(state),
             Value::Unsigned(v) => v.hash(state),
             Value::BigUnsigned(v) => v.hash(state),
-            Value::Float(v) => hash_f32(v, state),
-            Value::Double(v) => hash_f64(v, state),
+            Value::Float(v) => hash_f32(v.as_ref(), state),
+            Value::Double(v) => hash_f64(v.as_ref(), state),
             Value::String(v) => v.hash(state),
             Value::Char(v) => v.hash(state),
             Value::Bytes(v) => v.hash(state),
 
             #[cfg(feature = "with-json")]
-            Value::Json(value) => hash_json(value, state),
+            Value::Json(value) => hash_json(value.as_ref(), state),
 
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(naive_date) => naive_date.hash(state),
@@ -160,7 +160,7 @@ impl Hash for Value {
             }
 
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(vector) => hash_vector(vector, state),
+            Value::Vector(vector) => hash_vector(vector.as_ref(), state),
 
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(ip_network) => ip_network.hash(state),
@@ -171,21 +171,21 @@ impl Hash for Value {
     }
 }
 
-fn hash_f32<H: Hasher>(v: &Option<f32>, state: &mut H) {
+fn hash_f32<H: Hasher>(v: Option<&f32>, state: &mut H) {
     match v {
         Some(v) => OrderedFloat(*v).hash(state),
         None => "null".hash(state),
     }
 }
 
-fn hash_f64<H: Hasher>(v: &Option<f64>, state: &mut H) {
+fn hash_f64<H: Hasher>(v: Option<&f64>, state: &mut H) {
     match v {
         Some(v) => OrderedFloat(*v).hash(state),
         None => "null".hash(state),
     }
 }
 
-fn cmp_f32(l: &Option<f32>, r: &Option<f32>) -> bool {
+fn cmp_f32(l: Option<&f32>, r: Option<&f32>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
         (None, None) => true,
@@ -193,7 +193,7 @@ fn cmp_f32(l: &Option<f32>, r: &Option<f32>) -> bool {
     }
 }
 
-fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
+fn cmp_f64(l: Option<&f64>, r: Option<&f64>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => OrderedFloat(*l).eq(&OrderedFloat(*r)),
         (None, None) => true,
@@ -202,7 +202,7 @@ fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
 }
 
 #[cfg(feature = "with-json")]
-fn hash_json<H: Hasher>(v: &Option<Json>, state: &mut H) {
+fn hash_json<H: Hasher>(v: Option<&Json>, state: &mut H) {
     match v {
         Some(v) => serde_json::to_string(v).unwrap().hash(state),
         None => "null".hash(state),
@@ -210,7 +210,7 @@ fn hash_json<H: Hasher>(v: &Option<Json>, state: &mut H) {
 }
 
 #[cfg(feature = "with-json")]
-fn cmp_json(l: &Option<Json>, r: &Option<Json>) -> bool {
+fn cmp_json(l: Option<&Json>, r: Option<&Json>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => serde_json::to_string(l)
             .unwrap()
@@ -221,11 +221,11 @@ fn cmp_json(l: &Option<Json>, r: &Option<Json>) -> bool {
 }
 
 #[cfg(feature = "postgres-vector")]
-fn hash_vector<H: Hasher>(v: &Option<pgvector::Vector>, state: &mut H) {
+fn hash_vector<H: Hasher>(v: Option<&pgvector::Vector>, state: &mut H) {
     match v {
         Some(v) => {
-            for &value in v.as_slice().iter() {
-                hash_f32(&Some(value), state);
+            for &value in v.as_slice() {
+                hash_f32(Some(&value), state);
             }
         }
         None => "null".hash(state),
@@ -233,7 +233,7 @@ fn hash_vector<H: Hasher>(v: &Option<pgvector::Vector>, state: &mut H) {
 }
 
 #[cfg(feature = "postgres-vector")]
-fn cmp_vector(l: &Option<pgvector::Vector>, r: &Option<pgvector::Vector>) -> bool {
+fn cmp_vector(l: Option<&pgvector::Vector>, r: Option<&pgvector::Vector>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => {
             let (l, r) = (l.as_slice(), r.as_slice());
@@ -241,7 +241,7 @@ fn cmp_vector(l: &Option<pgvector::Vector>, r: &Option<pgvector::Vector>) -> boo
                 return false;
             }
             for (l, r) in l.iter().zip(r.iter()) {
-                if !cmp_f32(&Some(*l), &Some(*r)) {
+                if !cmp_f32(Some(l), Some(r)) {
                     return false;
                 }
             }
