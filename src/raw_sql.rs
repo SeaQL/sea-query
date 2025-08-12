@@ -14,7 +14,7 @@ pub struct RawSqlQueryBuilder {
 impl RawSqlQueryBuilder {
     #[expect(
         clippy::needless_pass_by_value,
-        reason = "Query builders are all zero size types"
+        reason = "Query builders are all zero-sized types"
     )]
     pub fn new<T: QueryBuilder>(backend: T) -> Self {
         let (placeholder, numbered) = backend.placeholder();

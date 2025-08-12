@@ -7,17 +7,18 @@
     clippy::derive_partial_eq_without_eq,
     clippy::redundant_pub_crate,
     clippy::missing_const_for_fn,
-    //
-    clippy::option_if_let_else,
-    clippy::use_self,
-    clippy::wildcard_imports,
-    clippy::enum_glob_use,
     // We should consider enabling it someday.
     // This would help users understand that the function returns a value instead of producing side effects.
     clippy::must_use_candidate,
     clippy::return_self_not_must_use,
     // semantics
-    clippy::manual_assert
+    clippy::manual_assert,
+    //
+    clippy::option_if_let_else,
+    clippy::use_self,
+    clippy::wildcard_imports,
+    clippy::enum_glob_use,
+    clippy::missing_errors_doc,
 )]
 
 //! <div align="center">
