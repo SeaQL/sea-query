@@ -4,7 +4,7 @@ use rust_decimal::Decimal;
 use sea_query::{
     ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
 };
-use sea_query_binder::SqlxBinder;
+use sea_query_sqlx::SqlxBinder;
 use sqlx::{PgPool, Row};
 use std::net::{IpAddr, Ipv4Addr};
 use time::{

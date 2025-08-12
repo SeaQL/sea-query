@@ -6,13 +6,35 @@ use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt, quote};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
-use super::{attr::IdenAttr, error::ErrorMsg};
-use crate::{find_attr, is_static_iden};
+use super::{
+    DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, find_attr, is_static_iden,
+};
 
 pub(crate) trait WriteArm {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream;
     fn flattened(variant: TokenStream, name: &Ident) -> TokenStream;
 }
+
+impl WriteArm for DeriveIden {
+    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
+        quote! { Self::#variant => #name }
+    }
+
+    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
+        quote! { Self::#variant => #name.unquoted() }
+    }
+}
+
+impl WriteArm for DeriveIdenStatic {
+    fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
+        quote! { Self::#variant => #name }
+    }
+
+    fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
+        quote! { Self::#variant => #name.as_str() }
+    }
+}
+
 pub(crate) struct IdenVariant<'a, T> {
     ident: &'a Ident,
     fields: &'a Fields,

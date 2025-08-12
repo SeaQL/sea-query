@@ -658,7 +658,27 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (1, 2, 3)"#
     /// );
     /// ```
-    /// Empty value list
+    ///
+    /// The same query can be constructed using the `raw_query!` macro.
+    ///
+    /// ```
+    /// use sea_query::Values;
+    ///
+    /// let ids: Vec<i32> = vec![1, 2, 3];
+    /// let query = sea_query::raw_query!(
+    ///     SqliteQueryBuilder,
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN ({..ids})"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.sql,
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" IN (?, ?, ?)"#
+    /// );
+    /// assert_eq!(query.values, Values(vec![1.into(), 2.into(), 3.into()]));
+    /// ```
+    ///
+    /// Empty value list is converted to an always false expression due to SQL syntax.
+    ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     ///

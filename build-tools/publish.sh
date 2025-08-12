@@ -9,17 +9,12 @@ cd ..
 # publish `sea-query`
 cargo publish
 
-# publish `sea-query-binder`
-cd sea-query-binder
+# publish `sea-query-sqlx`
+cd sea-query-sqlx
 cargo publish
 cd ..
 
 # publish `sea-query-rusqlite`
 cd sea-query-rusqlite
-cargo publish
-cd ..
-
-# publish `sea-query-postgres`
-cd sea-query-postgres
 cargo publish
 cd ..

@@ -56,6 +56,7 @@ pub struct TableName(pub Option<SchemaName>, pub DynIden);
 ```rust
 assert_eq!(std::mem::size_of::<Value>(), 32);
 ```
+* Merged `Func`/`Function` and `PgFunc`/`PgFunction`. Now the latter is just an alias of the former https://github.com/SeaQL/sea-query/pull/944
 * `impl From<Expr> for Condition`. Now you can use `Expr` instead of `ConditionExpression`, which has been removed from the public API https://github.com/SeaQL/sea-query/pull/915
 ```rust
 Cond::all().add(ConditionExpression::Expr(Expr::new(..))) // old
