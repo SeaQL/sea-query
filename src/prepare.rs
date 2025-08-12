@@ -73,7 +73,7 @@ impl SqlWriter for SqlWriterValues {
         if self.numbered {
             let counter = self.counter;
 
-            self.string.write_str(&counter.to_string()).unwrap();
+            write!(self.string, "{counter}").unwrap();
         }
         self.values.push(value)
     }

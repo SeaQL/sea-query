@@ -75,19 +75,28 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     #[doc(hidden)]
     /// Write the column index prefix.
     fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
+        macro_rules! prepare {
+            ($i:ident) => {
+                match $i {
+                    IndexColumn::TableColumn(column) => {
+                        self.prepare_index_column_with_table_column(column, sql);
+                    }
+                    IndexColumn::Expr(_) => panic!("Not supported"),
+                }
+            };
+        }
+
         sql.write_str("(").unwrap();
 
-        for (idx, col) in columns.iter().enumerate() {
-            if idx > 0 {
-                sql.write_str(", ").unwrap();
-            }
+        let mut citer = columns.iter();
 
-            match col {
-                IndexColumn::TableColumn(column) => {
-                    self.prepare_index_column_with_table_column(column, sql);
-                }
-                IndexColumn::Expr(_) => panic!("Not supported"),
-            }
+        if let Some(col) = citer.next() {
+            prepare!(col)
+        }
+
+        for col in citer {
+            sql.write_str(", ").unwrap();
+            prepare!(col)
         }
 
         sql.write_str(")").unwrap();

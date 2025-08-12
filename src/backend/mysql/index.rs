@@ -105,47 +105,38 @@ impl IndexBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
+        macro_rules! prepare {
+            ($i:ident) => {
+                match $i {
+                    IndexColumn::TableColumn(column) => {
+                        self.prepare_index_column_with_table_column(column, sql);
+                    }
+                    IndexColumn::Expr(column) => {
+                        sql.write_str("(").unwrap();
+                        self.prepare_simple_expr(&column.expr, sql);
+                        sql.write_str(")").unwrap();
+                        if let Some(order) = &column.order {
+                            match order {
+                                IndexOrder::Asc => sql.write_str(" ASC").unwrap(),
+                                IndexOrder::Desc => sql.write_str(" DESC").unwrap(),
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
         sql.write_str("(").unwrap();
 
         let mut cols = columns.iter();
 
         if let Some(col) = cols.next() {
-            match col {
-                IndexColumn::TableColumn(column) => {
-                    self.prepare_index_column_with_table_column(column, sql);
-                }
-                IndexColumn::Expr(column) => {
-                    sql.write_str("(").unwrap();
-                    self.prepare_simple_expr(&column.expr, sql);
-                    sql.write_str(")").unwrap();
-                    if let Some(order) = &column.order {
-                        match order {
-                            IndexOrder::Asc => sql.write_str(" ASC").unwrap(),
-                            IndexOrder::Desc => sql.write_str(" DESC").unwrap(),
-                        }
-                    }
-                }
-            }
+            prepare!(col)
         }
 
         for col in cols {
             sql.write_str(", ").unwrap();
-            match col {
-                IndexColumn::TableColumn(column) => {
-                    self.prepare_index_column_with_table_column(column, sql);
-                }
-                IndexColumn::Expr(column) => {
-                    sql.write_str("(").unwrap();
-                    self.prepare_simple_expr(&column.expr, sql);
-                    sql.write_str(")").unwrap();
-                    if let Some(order) = &column.order {
-                        match order {
-                            IndexOrder::Asc => sql.write_str(" ASC").unwrap(),
-                            IndexOrder::Desc => sql.write_str(" DESC").unwrap(),
-                        }
-                    }
-                }
-            }
+            prepare!(col)
         }
 
         sql.write_str(")").unwrap();
