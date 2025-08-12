@@ -8,7 +8,7 @@ pub trait QueryBuilder:
     QuotedBuilder + EscapeBuilder + TableRefBuilder + OperLeftAssocDecider + PrecedenceDecider
 {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
-    fn placeholder(&self) -> (&str, bool) {
+    fn placeholder(&self) -> (&'static str, bool) {
         ("?", false)
     }
 
@@ -423,7 +423,7 @@ pub trait QueryBuilder:
                 while let Some(token) = tokenizer.next() {
                     match token {
                         Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
-                            Some(Token::Punctuation(mark)) if mark == placeholder => {
+                            Some(Token::Punctuation(mark)) if mark == &placeholder => {
                                 write!(sql, "{mark}").unwrap();
                                 tokenizer.next();
                             }
@@ -1722,8 +1722,6 @@ mod tests {
     #[cfg(feature = "with-chrono")]
     use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
-    use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
-
     /// [Postgresql reference](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT-TIMES)
     ///
     /// [Mysql reference](https://dev.mysql.com/doc/refman/8.4/en/fractional-seconds.html)
@@ -1732,6 +1730,8 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn format_time_constant() {
+        use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
+
         let time = NaiveTime::from_hms_micro_opt(1, 2, 3, 123456)
             .unwrap()
             .into();

@@ -90,7 +90,7 @@ Table of Content
 
 Why would you want to use a dynamic query builder?
 
-1. Parameter bindings
+### 1. Parameter bindings
 
 One of the headaches when using raw SQL is parameter binding. With SeaQuery you can inject parameters
 right alongside the expression, and the $N sequencing will be handled for you. No more "off by one" errors!
@@ -141,7 +141,7 @@ assert_eq!(
 );
 ```
 
-2. Dynamic query
+### 2. Dynamic query
 
 You can construct the query at runtime based on user inputs with a fluent interface,
 so you don't have to append `WHERE` or `AND` conditionally.
@@ -209,7 +209,7 @@ assert_eq!(
 There is no superfluous parentheses `((((` cluttering the query, because SeaQuery respects
 operator precedence when injecting them.
 
-3. Cross database support
+### 3. Cross database support
 
 With SeaQuery, you can target multiple database backends while maintaining a single source of query logic.
 
@@ -240,6 +240,78 @@ assert_eq!(
     query.to_string(SqliteQueryBuilder),
     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
 );
+```
+
+### 4. Improved raw SQL ergonomics
+
+SeaQuery 1.0 added a new `raw_query!` macro with named parameters, nested field access, array expansion and tuple expansion.
+It surely will make crafting complex query easier.
+
+```rust
+let (a, b, c) = (1, 2, "A");
+let d = vec![3, 4, 5];
+let query = sea_query::raw_query!(
+    PostgresQueryBuilder,
+    r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
+);
+
+assert_eq!(
+    query.sql,
+    r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
+);
+assert_eq!(
+    query.values,
+    Values(vec![
+        1.into(),
+        2.into(),
+        "A".into(),
+        3.into(),
+        4.into(),
+        5.into()
+    ])
+);
+```
+
+Insert with vector-of-tuple expansion.
+
+```rust
+let values = vec![(2.1345, "24B"), (5.15, "12A")];
+let query = sea_query::raw_query!(
+    PostgresQueryBuilder,
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:1),}"#
+);
+
+assert_eq!(
+    query.sql,
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2), ($3, $4)"#
+);
+assert_eq!(
+    query.values,
+    Values(vec![2.1345.into(), "24B".into(), 5.15.into(), "12A".into()])
+);
+```
+
+Update with nested field access.
+
+```rust
+struct Character {
+    id: i32,
+    font_size: u16,
+}
+let c = Character {
+    id: 11,
+    font_size: 22,
+};
+let query = sea_query::raw_query!(
+    MysqlQueryBuilder,
+    "UPDATE `character` SET `font_size` = {c.font_size} WHERE `id` = {c.id}"
+);
+
+assert_eq!(
+    query.sql,
+    "UPDATE `character` SET `font_size` = ? WHERE `id` = ?"
+);
+assert_eq!(query.values, Values(vec![22u16.into(), 11i32.into()]));
 ```
 
 ## Basics
