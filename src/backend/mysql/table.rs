@@ -5,7 +5,7 @@ impl TableBuilder for MysqlQueryBuilder {
         // comment
         if let Some(comment) = &create.comment {
             sql.write_str(" COMMENT '").unwrap();
-            self.write_escaped(sql, comment);
+            self.write_escaped(sql.as_writer(), comment);
             sql.write_str("'").unwrap();
         }
         self.prepare_table_opt_def(create, sql)
@@ -242,7 +242,7 @@ impl TableBuilder for MysqlQueryBuilder {
     /// column comment
     fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
         sql.write_str("COMMENT '").unwrap();
-        self.write_escaped(sql, comment);
+        self.write_escaped(sql.as_writer(), comment);
         sql.write_str("'").unwrap();
     }
 }

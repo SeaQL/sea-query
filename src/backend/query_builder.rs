@@ -993,7 +993,7 @@ pub trait QueryBuilder:
             sql.write_str("WHEN ").unwrap();
             self.prepare_simple_expr(&order_expr.expr, sql);
             sql.write_str("=").unwrap();
-            self.write_value(sql, value).unwrap();
+            self.write_value(sql.as_writer(), value).unwrap();
             sql.write_str(" THEN ").unwrap();
             sql.write_str(&i.to_string()).unwrap();
             sql.write_str(" ").unwrap();
@@ -1010,7 +1010,7 @@ pub trait QueryBuilder:
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        self.write_value(sql, value).unwrap();
+        self.write_value(sql.as_writer(), value).unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
@@ -1079,7 +1079,7 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
-    fn write_value(&self, buffer: &mut dyn Write, value: &Value) -> fmt::Result {
+    fn write_value(&self, buf: &mut dyn Write, value: &Value) -> fmt::Result {
         match value {
             Value::Bool(None)
             | Value::TinyInt(None)
@@ -1094,229 +1094,229 @@ pub trait QueryBuilder:
             | Value::Double(None)
             | Value::String(None)
             | Value::Char(None)
-            | Value::Bytes(None) => buffer.write_str("NULL")?,
+            | Value::Bytes(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-json")]
-            Value::Json(None) => buffer.write_str("NULL")?,
+            Value::Json(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(None) => buffer.write_str("NULL")?,
+            Value::ChronoDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(None) => buffer.write_str("NULL")?,
+            Value::ChronoTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTimeUtc(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTimeLocal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(None) => buffer.write_str("NULL")?,
+            Value::ChronoDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDate(None) => buffer.write_str("NULL")?,
+            Value::TimeDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeTime(None) => buffer.write_str("NULL")?,
+            Value::TimeTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(None) => buffer.write_str("NULL")?,
+            Value::TimeDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(None) => buffer.write_str("NULL")?,
+            Value::TimeDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffDate(None) => buffer.write_str("NULL")?,
+            Value::JiffDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffTime(None) => buffer.write_str("NULL")?,
+            Value::JiffTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffDateTime(None) => buffer.write_str("NULL")?,
+            Value::JiffDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffTimestamp(None) => buffer.write_str("NULL")?,
+            Value::JiffTimestamp(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
-            Value::JiffZoned(None) => buffer.write_str("NULL")?,
+            Value::JiffZoned(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => buffer.write_str("NULL")?,
+            Value::Decimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => buffer.write_str("NULL")?,
+            Value::BigDecimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => buffer.write_str("NULL")?,
+            Value::Uuid(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(None) => buffer.write_str("NULL")?,
+            Value::IpNetwork(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(None) => buffer.write_str("NULL")?,
+            Value::MacAddress(None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, None) => buffer.write_str("NULL")?,
+            Value::Array(_, None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(None) => buffer.write_str("NULL")?,
-            Value::Bool(Some(b)) => buffer.write_str(if *b { "TRUE" } else { "FALSE" })?,
-            Value::TinyInt(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::SmallInt(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::Int(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::BigInt(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::TinyUnsigned(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::SmallUnsigned(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::Unsigned(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::BigUnsigned(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::Float(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::Double(Some(v)) => buffer.write_str(&v.to_string())?,
-            Value::String(Some(v)) => self.write_string_quoted(v, buffer),
+            Value::Vector(None) => buf.write_str("NULL")?,
+            Value::Bool(Some(b)) => buf.write_str(if *b { "TRUE" } else { "FALSE" })?,
+            Value::TinyInt(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::SmallInt(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::Int(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::BigInt(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::TinyUnsigned(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::SmallUnsigned(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::Unsigned(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::BigUnsigned(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::Float(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::Double(Some(v)) => buf.write_str(&v.to_string())?,
+            Value::String(Some(v)) => self.write_string_quoted(v, buf),
             Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buffer)
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
             }
-            Value::Bytes(Some(v)) => self.write_bytes(v, buffer),
+            Value::Bytes(Some(v)) => self.write_bytes(v, buf),
             #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buffer),
+            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buf),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format("%Y-%m-%d").to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format("%Y-%m-%d").to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoTime(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format("%H:%M:%S%.6f").to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format("%H:%M:%S%.6f").to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f").to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f").to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format("%Y-%m-%d %H:%M:%S%.6f %:z").to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format(time_format::FORMAT_DATE).unwrap().to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_DATE).unwrap().to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format(time_format::FORMAT_TIME).unwrap().to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_TIME).unwrap().to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.format(time_format::FORMAT_DATETIME).unwrap().to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_DATETIME).unwrap().to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(
+                buf.write_str("'")?;
+                buf.write_str(
                     &v.format(time_format::FORMAT_DATETIME_TZ)
                         .unwrap()
                         .to_string(),
                 )?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
             }
             // Jiff date and time dosen't need format string
             // The default behavior is what we want
             #[cfg(feature = "with-jiff")]
             Value::JiffDate(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTime(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.to_string())?;
+                buf.write_str("'")?;
             }
             // Both JiffDateTime and JiffTimestamp map to timestamp
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(Some(v)) => {
                 use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
-                buffer.write_str("'")?;
-                buffer.write_str(&v.strftime(JIFF_DATE_TIME_FMT_STR).to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.strftime(JIFF_DATE_TIME_FMT_STR).to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(Some(v)) => {
                 use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
-                buffer.write_str("'")?;
-                buffer.write_str(&v.strftime(JIFF_TIMESTAMP_FMT_STR).to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.strftime(JIFF_TIMESTAMP_FMT_STR).to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffZoned(Some(v)) => {
                 // Zoned map to timestamp with timezone
 
                 use crate::with_jiff::JIFF_ZONE_FMT_STR;
-                buffer.write_str("'")?;
-                buffer.write_str(&v.strftime(JIFF_ZONE_FMT_STR).to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.strftime(JIFF_ZONE_FMT_STR).to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::Decimal(Some(v)) => buf.write_str(&v.to_string())?,
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => buffer.write_str(&v.to_string())?,
+            Value::BigDecimal(Some(v)) => buf.write_str(&v.to_string())?,
             #[cfg(feature = "with-uuid")]
             Value::Uuid(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => {
                 if v.is_empty() {
-                    buffer.write_str("'{}'")?;
+                    buf.write_str("'{}'")?;
                 } else {
-                    buffer.write_str("ARRAY [")?;
+                    buf.write_str("ARRAY [")?;
 
                     let mut viter = v.iter();
 
                     if let Some(element) = viter.next() {
-                        self.write_value(buffer, element)?;
+                        self.write_value(buf, element)?;
                     }
 
                     for element in viter {
-                        buffer.write_str(",")?;
-                        self.write_value(buffer, element)?;
+                        buf.write_str(",")?;
+                        self.write_value(buf, element)?;
                     }
-                    buffer.write_str("]")?;
+                    buf.write_str("]")?;
                 }
             }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => {
-                buffer.write_str("'[")?;
+                buf.write_str("'[")?;
                 let mut viter = v.as_slice().iter();
 
                 if let Some(element) = viter.next() {
-                    buffer.write_str(&element.to_string())?;
+                    buf.write_str(&element.to_string())?;
                 }
 
                 for element in viter {
-                    buffer.write_str(",")?;
-                    buffer.write_str(&element.to_string())?;
+                    buf.write_str(",")?;
+                    buf.write_str(&element.to_string())?;
                 }
-                buffer.write_str("]'")?;
+                buf.write_str("]'")?;
             }
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.to_string())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => {
-                buffer.write_str("'")?;
-                buffer.write_str(&v.to_string())?;
-                buffer.write_str("'")?;
+                buf.write_str("'")?;
+                buf.write_str(&v.to_string())?;
+                buf.write_str("'")?;
             }
         };
 
