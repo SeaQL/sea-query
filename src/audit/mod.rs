@@ -120,7 +120,7 @@ impl std::error::Error for Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Self::UnableToParseQuery => write!(f, "Unable to parse query"),
+            Self::UnableToParseQuery => f.write_str("Unable to parse query"),
         }
     }
 }

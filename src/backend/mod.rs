@@ -105,10 +105,8 @@ pub trait EscapeBuilder {
             if !escape && c == '\\' {
                 escape = true;
             } else if escape {
-                write!(
-                    output,
-                    "{}",
-                    match c {
+                output
+                    .write_char(match c {
                         '0' => '\0',
                         'b' => '\x08',
                         't' => '\x09',
@@ -116,12 +114,11 @@ pub trait EscapeBuilder {
                         'n' => '\n',
                         'r' => '\r',
                         c => c,
-                    }
-                )
-                .unwrap();
+                    })
+                    .unwrap();
                 escape = false;
             } else {
-                write!(output, "{c}").unwrap();
+                output.write_char(c).unwrap();
             }
         }
         output

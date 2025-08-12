@@ -33,17 +33,13 @@ pub trait ForeignKeyBuilder: QuotedBuilder + TableRefBuilder {
         foreign_key_action: &ForeignKeyAction,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(
-            sql,
-            "{}",
-            match foreign_key_action {
-                ForeignKeyAction::Restrict => "RESTRICT",
-                ForeignKeyAction::Cascade => "CASCADE",
-                ForeignKeyAction::SetNull => "SET NULL",
-                ForeignKeyAction::NoAction => "NO ACTION",
-                ForeignKeyAction::SetDefault => "SET DEFAULT",
-            }
-        )
+        sql.write_str(match foreign_key_action {
+            ForeignKeyAction::Restrict => "RESTRICT",
+            ForeignKeyAction::Cascade => "CASCADE",
+            ForeignKeyAction::SetNull => "SET NULL",
+            ForeignKeyAction::NoAction => "NO ACTION",
+            ForeignKeyAction::SetDefault => "SET DEFAULT",
+        })
         .unwrap()
     }
 
