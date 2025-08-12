@@ -756,11 +756,8 @@ fn select_48a() {
         .from(Glyph::Table)
         .cond_where(
             Cond::all().add_option(Some(
-                Expr::tuple([
-                    Expr::col(Glyph::Aspect),
-                    Expr::value(String::from("100")),
-                ])
-                .in_tuples([(8, String::from("100"))]),
+                Expr::tuple([Expr::col(Glyph::Aspect), Expr::value(String::from("100"))])
+                    .in_tuples([(8, String::from("100"))]),
             )),
         )
         .to_string(SqliteQueryBuilder);

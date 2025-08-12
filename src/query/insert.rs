@@ -202,12 +202,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
-    ///     .select_from(
-    ///         Query::select()
-    ///             .expr(Font::Name)
-    ///             .from(Font::Table)
-    ///             .take(),
-    ///     )
+    ///     .select_from(Query::select().expr(Font::Name).from(Font::Table).take())
     ///     .unwrap()
     ///     .take();
     ///

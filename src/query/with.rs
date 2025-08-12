@@ -207,7 +207,6 @@ impl Search {
     /// # Panics
     ///
     /// Panics if the given [`SelectExpr`] doesn't have an alias specified.
-    ///
     pub fn new_from_order_and_expr<EXPR>(order: SearchOrder, expr: EXPR) -> Self
     where
         EXPR: Into<SelectExpr>,
@@ -241,7 +240,6 @@ impl Search {
     /// # Panics
     ///
     /// Panics if the given [`SelectExpr`] doesn't have an alias specified.
-    ///
     pub fn expr<EXPR>(&mut self, expr: EXPR) -> &mut Self
     where
         EXPR: Into<SelectExpr>,
