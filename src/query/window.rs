@@ -103,7 +103,8 @@ impl WindowStatement {
     }
 
     /// Construct a new [`WindowStatement`] with PARTITION BY custom
-    pub fn partition_by_custom<T>(col: &T) -> Self
+    #[expect(clippy::needless_pass_by_value, reason = "This needs more discussion")]
+    pub fn partition_by_custom<T>(col: T) -> Self
     where
         T: ToString,
     {
