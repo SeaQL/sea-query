@@ -48,6 +48,10 @@ impl Value {
     pub fn is_uuid(&self) -> bool {
         matches!(self, Self::Uuid(_))
     }
+
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::Uuid`]
     pub fn as_ref_uuid(&self) -> Option<&Uuid> {
         match self {
             Self::Uuid(v) => v.as_ref(),

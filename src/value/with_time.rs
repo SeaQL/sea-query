@@ -42,6 +42,9 @@ impl Value {
         matches!(self, Self::TimeDate(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::TimeDate`]
     pub fn as_ref_time_date(&self) -> Option<&time::Date> {
         match self {
             Self::TimeDate(v) => v.as_ref(),
@@ -55,6 +58,9 @@ impl Value {
         matches!(self, Self::TimeTime(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::TimeTime`]
     pub fn as_ref_time_time(&self) -> Option<&time::Time> {
         match self {
             Self::TimeTime(v) => v.as_ref(),
@@ -68,6 +74,9 @@ impl Value {
         matches!(self, Self::TimeDateTime(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::TimeDateTime`]
     pub fn as_ref_time_date_time(&self) -> Option<&PrimitiveDateTime> {
         match self {
             Self::TimeDateTime(v) => v.as_ref(),
@@ -81,6 +90,9 @@ impl Value {
         matches!(self, Self::TimeDateTimeWithTimeZone(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::TimeDateTimeWithTimeZone`]
     pub fn as_ref_time_date_time_with_time_zone(&self) -> Option<&OffsetDateTime> {
         match self {
             Self::TimeDateTimeWithTimeZone(v) => v.as_ref(),
@@ -90,6 +102,9 @@ impl Value {
 }
 
 impl Value {
+    /// # Panics
+    ///
+    /// Panics if self is not a time value from [`time`] crate
     pub fn time_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
             Self::TimeDate(v) => v

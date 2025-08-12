@@ -83,7 +83,7 @@ where
     fn from(x: Vec<T>) -> Value {
         Value::Array(
             T::array_type(),
-            Some(Box::new(x.into_iter().map(|e| e.into()).collect())),
+            Some(Box::new(x.into_iter().map(Into::into).collect())),
         )
     }
 }
@@ -104,7 +104,7 @@ where
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
             Value::Array(ty, Some(v)) if T::array_type() == ty => {
-                Ok(v.into_iter().map(|e| e.unwrap()).collect())
+                Ok(v.into_iter().map(super::Value::unwrap).collect())
             }
             _ => Err(ValueTypeErr),
         }
@@ -129,9 +129,12 @@ impl Value {
         matches!(self, Self::Array(_, _))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::Array`]
     pub fn as_ref_array(&self) -> Option<&Vec<Value>> {
         match self {
-            Self::Array(_, v) => v.as_ref().map(|v| v.as_ref()),
+            Self::Array(_, v) => v.as_ref().map(AsRef::as_ref),
             _ => panic!("not Value::Array"),
         }
     }

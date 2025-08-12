@@ -7,6 +7,9 @@ impl Value {
         matches!(self, Self::MacAddress(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::MacAddress`]
     pub fn as_ref_mac_address(&self) -> Option<&MacAddress> {
         match self {
             Self::MacAddress(v) => v.as_ref(),

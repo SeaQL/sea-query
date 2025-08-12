@@ -7,6 +7,9 @@ impl Value {
         matches!(self, Self::Decimal(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::Decimal`]
     pub fn as_ref_decimal(&self) -> Option<&Decimal> {
         match self {
             Self::Decimal(v) => v.as_ref(),
@@ -14,6 +17,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if the conversion to [`f64`] fails
     pub fn decimal_to_f64(&self) -> Option<f64> {
         use rust_decimal::prelude::ToPrimitive;
 

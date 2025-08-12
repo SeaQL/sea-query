@@ -481,6 +481,10 @@ impl Value {
     /// let n = v.dummy_value();
     /// assert_eq!(n, Value::Int(Some(0)));
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if parse "0.0.0.0" to [`IpNetwork`] fails.
     #[expect(clippy::default_trait_access, reason = "Consistency")]
     pub fn dummy_value(&self) -> Self {
         match self {
