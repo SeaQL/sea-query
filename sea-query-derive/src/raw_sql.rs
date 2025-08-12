@@ -117,7 +117,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                         })
                         .sum();
                     fragments
-                        .push(quote!(.push_tuple_parameter_groups((&#top).p_len(), #group_size)));
+                        .push(quote!(.push_tuple_parameter_groups((&#top).len(), #group_size)));
                 }
                 let mut group = Vec::new();
 
@@ -160,9 +160,9 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
                         }
                     } else if dot_count == 2 && !nested_eval {
                         // non nested spread `..a`
-                        fragments.push(quote!(.push_parameters((&#var).p_len())));
+                        fragments.push(quote!(.push_parameters((&#var).len())));
                         group.push(quote! {
-                            for v in (&#var).iter_p().iter() {
+                            for v in (&#var).iter() {
                                 query = query.bind(v);
                             }
                         });
@@ -176,7 +176,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
 
                 if nested_eval {
                     params.push(quote! {
-                        for #top in (&#top).iter_p().iter() {
+                        for #top in (&#top).iter() {
                             #(#group)*
                         }
                     });

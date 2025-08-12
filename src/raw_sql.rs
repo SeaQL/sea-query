@@ -11,60 +11,6 @@ pub struct RawSqlQueryBuilder {
     numbered: bool,
 }
 
-#[repr(transparent)]
-pub struct ParameterHolder<'a, T>(&'a T);
-
-pub trait ArrayParameter: Sized {
-    fn p_len(&self) -> usize;
-
-    fn iter_p(&self) -> &Self {
-        self
-    }
-}
-
-impl<T> ArrayParameter for &[T]
-where
-    T: Sized,
-{
-    fn p_len(&self) -> usize {
-        self.len()
-    }
-}
-
-impl<T, const N: usize> ArrayParameter for [T; N]
-where
-    T: Sized,
-{
-    fn p_len(&self) -> usize {
-        N
-    }
-}
-
-impl<T> ArrayParameter for Vec<T>
-where
-    T: Sized,
-{
-    fn p_len(&self) -> usize {
-        self.len()
-    }
-}
-
-impl<T> std::fmt::Debug for ParameterHolder<'_, T>
-where
-    T: std::fmt::Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl<'a, T> ParameterHolder<'a, T> {
-    /// The purpose is to match the type of std::slice::Iter::Item
-    pub fn iter(self) -> std::iter::Once<&'a T> {
-        std::iter::once(self.0)
-    }
-}
-
 impl RawSqlQueryBuilder {
     pub fn new<T: QueryBuilder>(backend: T) -> Self {
         let (placeholder, numbered) = backend.placeholder();
@@ -145,18 +91,18 @@ mod test {
             .push_fragment(" ")
             .push_parameters(1)
             .push_fragment(", ")
-            .push_parameters((&b).p_len())
+            .push_parameters((&b).len())
             .push_fragment(", ")
-            .push_parameters((&c).p_len());
+            .push_parameters((&c).len());
 
         assert_eq!(builder.finish(), "SELECT $1, $2, $3, $4, $5, $6");
 
         let mut values = Values::default();
         values.bind(a);
-        for v in (&b).iter_p().iter() {
+        for v in (&b).iter() {
             values.bind(v);
         }
-        for v in (&c).iter_p().iter() {
+        for v in (&c).iter() {
             values.bind(v);
         }
 
