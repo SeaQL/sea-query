@@ -43,34 +43,57 @@ pub trait QuotedBuilder {
     /// To prepare iden and write to SQL.
     fn prepare_iden(&self, iden: &DynIden, sql: &mut dyn SqlWriter) {
         let q = self.quote();
-        let byte = [q.1];
-        let qq: &str = std::str::from_utf8(&byte).unwrap();
+        let qq = q.1 as char;
 
-        let string;
-        let quoted: &str = match &iden.0 {
-            Cow::Borrowed(s) => s,
+        sql.write_char(q.left()).unwrap();
+        match &iden.0 {
+            Cow::Borrowed(s) => sql.write_str(s).unwrap(),
             Cow::Owned(s) => {
-                string = s.replace(qq, qq.repeat(2).as_str());
-                &string
+                for char in s.chars() {
+                    if char == qq {
+                        sql.write_char(char).unwrap()
+                    }
+                    sql.write_char(char).unwrap()
+                }
             }
         };
-        write!(sql, "{}{}{}", q.left(), quoted, q.right()).unwrap();
+        sql.write_char(q.right()).unwrap();
     }
+}
+
+pub(crate) fn need_escape(s: &str) -> bool {
+    s.chars().any(|c| {
+        matches!(
+            c,
+            '\r' | '\n' | '\x1a' | '\x09' | '\x08' | '\0' | '\'' | '"' | '\\'
+        )
+    })
 }
 
 pub trait EscapeBuilder {
     /// Escape a SQL string literal
     fn escape_string(&self, string: &str) -> String {
-        string
-            .replace('\\', "\\\\")
-            .replace('"', "\\\"")
-            .replace('\'', "\\'")
-            .replace('\0', "\\0")
-            .replace('\x08', "\\b")
-            .replace('\x09', "\\t")
-            .replace('\x1a', "\\z")
-            .replace('\n', "\\n")
-            .replace('\r', "\\r")
+        let mut escaped = String::with_capacity(string.len() + 8);
+        self.write_escaped(&mut escaped, string);
+        escaped
+    }
+
+    fn write_escaped(&self, buffer: &mut dyn Write, string: &str) {
+        for c in string.chars() {
+            match c {
+                '\\' => buffer.write_str("\\\\"),
+                '"' => buffer.write_str("\\\""),
+                '\'' => buffer.write_str("\\'"),
+                '\0' => buffer.write_str("\\0"),
+                '\x08' => buffer.write_str("\\b"),
+                '\x09' => buffer.write_str("\\t"),
+                '\x1a' => buffer.write_str("\\z"),
+                '\n' => buffer.write_str("\\n"),
+                '\r' => buffer.write_str("\\r"),
+                _ => buffer.write_char(c),
+            }
+            .unwrap()
+        }
     }
 
     /// Unescape a SQL string literal

@@ -11,7 +11,7 @@ pub trait SqlWriter: Write + ToString {
 
 impl SqlWriter for String {
     fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
-        self.push_str(&query_builder.value_to_string(&value))
+        query_builder.write_value(self, &value).unwrap();
     }
 
     fn as_writer(&mut self) -> &mut dyn Write {
@@ -81,38 +81,42 @@ where
     I: IntoIterator<Item = Value>,
 {
     let params: Vec<Value> = params.into_iter().collect();
-    let tokenizer = Tokenizer::new(sql);
-    let tokens: Vec<Token> = tokenizer.iter().collect();
     let mut counter = 0;
-    let mut output = Vec::new();
-    let mut i = 0;
-    while i < tokens.len() {
-        let token = &tokens[i];
+    let mut output = String::new();
+
+    let mut tokenizer = Tokenizer::new(sql).iter().peekable();
+
+    while let Some(token) = tokenizer.next() {
         match token {
-            Token::Punctuation(mark) => {
-                if (mark.as_ref(), false) == query_builder.placeholder() {
-                    output.push(query_builder.value_to_string(&params[counter]));
+            Token::Punctuation(ref mark) => {
+                let (ph, numbered) = query_builder.placeholder();
+
+                if !numbered && mark == ph {
+                    query_builder
+                        .write_value(&mut output, &params[counter])
+                        .unwrap();
+
                     counter += 1;
-                    i += 1;
                     continue;
-                } else if (mark.as_ref(), true) == query_builder.placeholder()
-                    && i + 1 < tokens.len()
-                {
-                    if let Token::Unquoted(next) = &tokens[i + 1] {
+                } else if numbered && mark == ph {
+                    if let Some(Token::Unquoted(next)) = tokenizer.peek() {
                         if let Ok(num) = next.parse::<usize>() {
-                            output.push(query_builder.value_to_string(&params[num - 1]));
-                            i += 2;
+                            query_builder
+                                .write_value(&mut output, &params[num - 1])
+                                .unwrap();
+
+                            tokenizer.next();
                             continue;
                         }
                     }
                 }
-                output.push(mark.clone())
+                output.push_str(mark.as_ref());
             }
-            _ => output.push(token.to_string()),
+            _ => write!(output, "{token}").unwrap(),
         }
-        i += 1;
     }
-    output.into_iter().collect()
+
+    output
 }
 
 #[cfg(test)]
@@ -191,7 +195,7 @@ mod tests_postgres {
     #[test]
     fn inject_parameters_7() {
         assert_eq!(
-            inject_parameters("WHERE A = $1", ["B'C".into()], &PostgresQueryBuilder),
+            inject_parameters("WHERE A = $1", [Value::from("B'C")], &PostgresQueryBuilder),
             "WHERE A = E'B\\'C'"
         );
     }
