@@ -1,4 +1,4 @@
-use std::{fmt, ops::Deref};
+use std::fmt;
 
 use crate::*;
 
@@ -1042,6 +1042,7 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
+    #[expect(clippy::too_many_lines, reason = "TODO")]
     fn write_value(&self, buf: &mut dyn Write, value: &Value) -> fmt::Result {
         match value {
             Value::Bool(None)
@@ -1117,7 +1118,7 @@ pub trait QueryBuilder:
             Value::Double(Some(v)) => write!(buf, "{v}")?,
             Value::String(Some(v)) => self.write_string_quoted(v, buf),
             Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf);
             }
             Value::Bytes(Some(v)) => self.write_bytes(v, buf),
             #[cfg(feature = "with-json")]
@@ -1128,31 +1129,31 @@ pub trait QueryBuilder:
             Value::ChronoTime(Some(v)) => write!(buf, "'{}'", v.format("%H:%M:%S%.6f")).unwrap(),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f")).unwrap();
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap();
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap();
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap()
+                write!(buf, "'{}'", v.format("%Y-%m-%d %H:%M:%S%.6f %:z")).unwrap();
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
-                write!(buf, "'{}'", v.format(time_format::FORMAT_DATE).unwrap())?
+                write!(buf, "'{}'", v.format(time_format::FORMAT_DATE).unwrap())?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => {
-                write!(buf, "'{}'", v.format(time_format::FORMAT_TIME).unwrap())?
+                write!(buf, "'{}'", v.format(time_format::FORMAT_TIME).unwrap())?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => {
-                write!(buf, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap())?
+                write!(buf, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap())?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
@@ -1170,19 +1171,19 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(Some(v)) => {
                 use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
-                write!(buf, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR))?
+                write!(buf, "'{}'", v.strftime(JIFF_DATE_TIME_FMT_STR))?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(Some(v)) => {
                 use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
-                write!(buf, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR))?
+                write!(buf, "'{}'", v.strftime(JIFF_TIMESTAMP_FMT_STR))?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffZoned(Some(v)) => {
                 // Zoned map to timestamp with timezone
 
                 use crate::with_jiff::JIFF_ZONE_FMT_STR;
-                write!(buf, "'{}'", v.strftime(JIFF_ZONE_FMT_STR))?
+                write!(buf, "'{}'", v.strftime(JIFF_ZONE_FMT_STR))?;
             }
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(Some(v)) => write!(buf, "{v}")?,
@@ -1539,7 +1540,7 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Write a string surrounded by escaped quotes.
     fn write_string_quoted(&self, string: &str, buffer: &mut dyn Write) {
-        write!(buffer, "'{}'", self.escape_string(string)).unwrap()
+        write!(buffer, "'{}'", self.escape_string(string)).unwrap();
     }
 
     #[doc(hidden)]

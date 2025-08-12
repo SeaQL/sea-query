@@ -42,13 +42,12 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnType::BigInteger | ColumnType::BigUnsigned => write!(sql, "bigint"),
             ColumnType::Float => write!(sql, "float"),
             ColumnType::Double => write!(sql, "double"),
-            ColumnType::Decimal(precision) => match precision {
+            ColumnType::Decimal(precision) | ColumnType::Money(precision) => match precision {
                 Some((precision, scale)) => write!(sql, "decimal({precision}, {scale})"),
                 None => write!(sql, "decimal"),
             },
             ColumnType::DateTime => write!(sql, "datetime"),
-            ColumnType::Timestamp => write!(sql, "timestamp"),
-            ColumnType::TimestampWithTimeZone => write!(sql, "timestamp"),
+            ColumnType::Timestamp | ColumnType::TimestampWithTimeZone => write!(sql, "timestamp"),
             ColumnType::Time => write!(sql, "time"),
             ColumnType::Date => write!(sql, "date"),
             ColumnType::Year => write!(sql, "year"),
@@ -66,12 +65,7 @@ impl TableBuilder for MysqlQueryBuilder {
             },
             ColumnType::VarBit(length) => write!(sql, "bit({length})"),
             ColumnType::Boolean => write!(sql, "bool"),
-            ColumnType::Money(precision) => match precision {
-                Some((precision, scale)) => write!(sql, "decimal({precision}, {scale})"),
-                None => write!(sql, "decimal"),
-            },
-            ColumnType::Json => write!(sql, "json"),
-            ColumnType::JsonBinary => write!(sql, "json"),
+            ColumnType::Json | ColumnType::JsonBinary => write!(sql, "json"),
             ColumnType::Uuid => write!(sql, "binary(16)"),
             ColumnType::Custom(iden) => write!(sql, "{iden}"),
             ColumnType::Enum { variants, .. } => {

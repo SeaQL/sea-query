@@ -51,9 +51,9 @@ pub trait QuotedBuilder {
             Cow::Owned(s) => {
                 for char in s.chars() {
                     if char == qq {
-                        sql.write_char(char).unwrap()
+                        sql.write_char(char).unwrap();
                     }
-                    sql.write_char(char).unwrap()
+                    sql.write_char(char).unwrap();
                 }
             }
         };
@@ -93,7 +93,7 @@ pub trait EscapeBuilder {
                 '\r' => buffer.write_str("\\r"),
                 _ => buffer.write_char(c),
             }
-            .unwrap()
+            .unwrap();
         }
     }
 
