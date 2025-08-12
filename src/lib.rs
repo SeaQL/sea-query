@@ -15,6 +15,7 @@
     // We should consider enabling it someday.
     // This would help users understand that the function returns a value instead of producing side effects.
     clippy::must_use_candidate,
+        clippy::return_self_not_must_use,
     // semantics
     clippy::manual_assert
 )]
@@ -855,7 +856,7 @@ pub use types::*;
 pub use value::*;
 
 #[cfg(feature = "derive")]
-pub use sea_query_derive::{enum_def, Iden, IdenStatic};
+pub use sea_query_derive::{Iden, IdenStatic, enum_def};
 
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;
