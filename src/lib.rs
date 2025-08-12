@@ -15,7 +15,7 @@
     // We should consider enabling it someday.
     // This would help users understand that the function returns a value instead of producing side effects.
     clippy::must_use_candidate,
-        clippy::return_self_not_must_use,
+    clippy::return_self_not_must_use,
     // semantics
     clippy::manual_assert
 )]
