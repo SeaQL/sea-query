@@ -8,6 +8,10 @@ use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
 use crate::extension::sqlite::SqliteBinOper;
 
+mod qualification;
+
+pub use qualification::{MaybeQualifiedOnce, MaybeQualifiedTwice};
+
 /// A reference counted pointer: either [`Rc`][std::rc::Rc] or [`Arc`][std::sync::Arc],
 /// depending on the feature flags.
 ///
@@ -553,85 +557,6 @@ where
 {
     fn from(iden: T) -> Self {
         DatabaseName(iden.into_iden())
-    }
-}
-
-impl<T> From<T> for SchemaName
-where
-    T: IntoIden,
-{
-    fn from(iden: T) -> Self {
-        SchemaName(None, iden.into_iden())
-    }
-}
-
-impl<S, T> From<(S, T)> for SchemaName
-where
-    S: IntoIden,
-    T: IntoIden,
-{
-    fn from((db, schema): (S, T)) -> Self {
-        SchemaName(Some(db.into()), schema.into_iden())
-    }
-}
-
-impl<T> From<T> for TableName
-where
-    T: IntoIden,
-{
-    fn from(iden: T) -> Self {
-        TableName(None, iden.into_iden())
-    }
-}
-
-impl<S, T> From<(S, T)> for TableName
-where
-    S: IntoIden,
-    T: IntoIden,
-{
-    fn from((schema, table): (S, T)) -> Self {
-        TableName(Some(schema.into()), table.into_iden())
-    }
-}
-
-impl<S, T, U> From<(S, T, U)> for TableName
-where
-    S: IntoIden,
-    T: IntoIden,
-    U: IntoIden,
-{
-    fn from((db, schema, table): (S, T, U)) -> Self {
-        TableName(Some((db, schema).into()), table.into_iden())
-    }
-}
-
-impl<T> From<T> for ColumnName
-where
-    T: IntoIden,
-{
-    fn from(iden: T) -> Self {
-        ColumnName(None, iden.into_iden())
-    }
-}
-
-impl<S, T> From<(S, T)> for ColumnName
-where
-    S: IntoIden,
-    T: IntoIden,
-{
-    fn from((table, column): (S, T)) -> Self {
-        ColumnName(Some(table.into()), column.into_iden())
-    }
-}
-
-impl<S, T, U> From<(S, T, U)> for ColumnName
-where
-    S: IntoIden,
-    T: IntoIden,
-    U: IntoIden,
-{
-    fn from((schema, table, column): (S, T, U)) -> Self {
-        ColumnName(Some((schema, table).into()), column.into_iden())
     }
 }
 
