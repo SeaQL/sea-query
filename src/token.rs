@@ -136,9 +136,9 @@ impl<'a> Tokenizer<'a> {
             }
         }
         if a == b {
-            Some(Token::Quoted(&self.input[a..b]))
-        } else {
             None
+        } else {
+            Some(Token::Quoted(&self.input[a..b]))
         }
     }
 
@@ -274,10 +274,10 @@ impl Token<'_> {
 
     pub fn as_str(&self) -> &str {
         match self {
-            Token::Quoted(string)
-            | Token::Unquoted(string)
-            | Token::Space(string)
-            | Token::Punctuation(string) => string,
+            Self::Quoted(string)
+            | Self::Unquoted(string)
+            | Self::Space(string)
+            | Self::Punctuation(string) => string,
         }
     }
 
