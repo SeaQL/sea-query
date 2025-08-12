@@ -651,6 +651,9 @@ impl ConditionHolder {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if you mixed `and_where`/`or_where` and `cond_where` in statements.
     pub fn add_and_or(&mut self, condition: LogicalChainOper) {
         match &mut self.contents {
             ConditionHolderContents::Empty => {
@@ -663,6 +666,9 @@ impl ConditionHolder {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if you mixed `and_where`/`or_where` and `cond_where` in statements.
     pub fn add_condition(&mut self, mut addition: Condition) {
         match std::mem::take(&mut self.contents) {
             ConditionHolderContents::Empty => {

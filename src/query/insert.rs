@@ -381,6 +381,10 @@ impl InsertStatement {
     /// assert_eq!(query.sql, new_query.sql);
     /// assert_eq!(query.values, new_query.values);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of columns and the lengh of values mismatch.
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
         I: IntoIterator<Item = Expr>,

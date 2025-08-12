@@ -921,6 +921,10 @@ impl SelectStatement {
     ///     r#"SELECT * FROM (VALUES (1, 'hello'), (2, 'world')) AS "x""#
     /// );
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `value_tuples` is empty.
     pub fn from_values<I, V, A>(&mut self, value_tuples: I, alias: A) -> &mut Self
     where
         I: IntoIterator<Item = V>,
