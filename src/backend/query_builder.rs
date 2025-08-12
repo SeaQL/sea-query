@@ -1658,7 +1658,7 @@ pub trait QueryBuilder:
     fn write_bytes(&self, bytes: &[u8], buffer: &mut dyn Write) {
         buffer.write_str("x'").unwrap();
         for b in bytes {
-            buffer.write_str(&format!("{b:02X}")).unwrap();
+            write!(buffer, "{b:02X}").unwrap()
         }
         buffer.write_str("'").unwrap();
     }
