@@ -71,6 +71,7 @@ with-time = ["time"]
 with-jiff = ["jiff"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
+sqlx-utils = ["derive"]
 tests-cfg = []
 all-features = [
     "backend-mysql",
@@ -82,6 +83,7 @@ all-features = [
     "thread-safe",
     "all-types",
     "audit",
+    "sqlx-utils",
 ] # everything except option-*
 all-types = [
     "postgres-array",
@@ -102,12 +104,12 @@ option-sqlite-exact-column-type = []
 
 [[test]]
 name = "test-derive"
-path = "tests/derive/mod.rs"
+path = "tests/derive.rs"
 required-features = ["derive"]
 
 [[test]]
 name = "test-error"
-path = "tests/error/mod.rs"
+path = "tests/error.rs"
 required-features = ["tests-cfg"]
 
 [[test]]
@@ -129,6 +131,11 @@ required-features = ["tests-cfg", "backend-sqlite", "audit"]
 name = "option-more-parentheses"
 path = "tests/more-parentheses.rs"
 required-features = ["tests-cfg", "option-more-parentheses", "backend-mysql"]
+
+[[test]]
+name = "test-raw-sql"
+path = "tests/raw_sql.rs"
+required-features = ["derive"]
 
 [[bench]]
 name = "basic"

@@ -8,7 +8,7 @@ pub trait QueryBuilder:
     QuotedBuilder + EscapeBuilder + TableRefBuilder + OperLeftAssocDecider + PrecedenceDecider
 {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
-    fn placeholder(&self) -> (&str, bool) {
+    fn placeholder(&self) -> (&'static str, bool) {
         ("?", false)
     }
 
@@ -1870,6 +1870,8 @@ mod tests {
     #[test]
     #[cfg(feature = "with-chrono")]
     fn format_time_constant() {
+        use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
+
         let time = NaiveTime::from_hms_micro_opt(1, 2, 3, 123456)
             .unwrap()
             .into();

@@ -30,7 +30,7 @@ impl PrecedenceDecider for PostgresQueryBuilder {
 }
 
 impl QueryBuilder for PostgresQueryBuilder {
-    fn placeholder(&self) -> (&str, bool) {
+    fn placeholder(&self) -> (&'static str, bool) {
         ("$", true)
     }
 
