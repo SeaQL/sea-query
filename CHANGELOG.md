@@ -96,6 +96,10 @@ assert_eq!(
 
 ### Breaking Changes
 
+* Implemented IntoCondition for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<...> for Condition`.
+
+* Unboxed variants of `Value`
+
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope

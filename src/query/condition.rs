@@ -36,19 +36,17 @@ impl From<ConditionExpression> for Condition {
     }
 }
 
-pub trait IntoCondition {
-    fn into_condition(self) -> Condition;
-}
-
-impl<T> IntoCondition for T
-where
-    T: Into<Condition>,
-{
-    #[inline]
+/// A helper trait.
+///
+/// You shouldn't implement this manually.
+pub trait IntoCondition: Into<Condition> {
+    #[inline(always)]
     fn into_condition(self) -> Condition {
         self.into()
     }
 }
+
+impl<T> IntoCondition for T where T: Into<Condition> {}
 
 /// An internal representation of conditions.
 /// May be refactored away in the future if we can get our head around it.
