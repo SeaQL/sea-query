@@ -96,7 +96,7 @@ assert_eq!(
 
 ### Breaking Changes
 
-* Implemented IntoCondition for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<...> for Condition`.
+* Implemented `IntoCondition` for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for Condition`.
 
 * Unboxed variants of `Value`
 
