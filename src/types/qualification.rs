@@ -87,6 +87,21 @@ where
     }
 }
 
+/// Construct a [`TypeName`] from 1-3 parts (`(database?).(schema?).type`)
+impl<T> From<T> for TypeName
+where
+    T: MaybeQualifiedTwice,
+{
+    fn from(value: T) -> Self {
+        let (schema_parts, r#type) = value.into_3_parts();
+        let schema_name = schema_parts.map(|schema_parts| match schema_parts {
+            (Some(db), schema) => SchemaName(Some(DatabaseName(db)), schema),
+            (None, schema) => SchemaName(None, schema),
+        });
+        TypeName(schema_name, r#type)
+    }
+}
+
 /// Construct a [`TableName`] from 1-3 parts (`(database?).(schema?).table`)
 impl<T> From<T> for TableName
 where

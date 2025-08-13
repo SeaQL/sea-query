@@ -146,6 +146,10 @@ pub struct DatabaseName(pub DynIden);
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SchemaName(pub Option<DatabaseName>, pub DynIden);
 
+/// An SQL type name, potentially qualified as `(database.)(schema.)type`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct TypeName(pub Option<SchemaName>, pub DynIden);
+
 /// A table name, potentially qualified as `(database.)(schema.)table`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TableName(pub Option<SchemaName>, pub DynIden);
