@@ -535,7 +535,7 @@ pub trait ConditionalStatement {
     /// );
     /// ```
     ///
-    /// Calling multiple times; will be ANDed togother
+    /// Calling this method multiple times will combine the conditions with AND.
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -651,10 +651,13 @@ impl ConditionHolder {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if you mixed `and_where`/`or_where` and `cond_where` in statements.
     pub fn add_and_or(&mut self, condition: LogicalChainOper) {
         match &mut self.contents {
             ConditionHolderContents::Empty => {
-                self.contents = ConditionHolderContents::Chain(vec![condition])
+                self.contents = ConditionHolderContents::Chain(vec![condition]);
             }
             ConditionHolderContents::Chain(c) => c.push(condition),
             ConditionHolderContents::Condition(_) => {
@@ -663,6 +666,9 @@ impl ConditionHolder {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if you mixed `and_where`/`or_where` and `cond_where` in statements.
     pub fn add_condition(&mut self, mut addition: Condition) {
         match std::mem::take(&mut self.contents) {
             ConditionHolderContents::Empty => {

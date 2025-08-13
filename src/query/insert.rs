@@ -130,7 +130,7 @@ impl InsertStatement {
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        self.columns = columns.into_iter().map(|c| c.into_iden()).collect();
+        self.columns = columns.into_iter().map(IntoIden::into_iden).collect();
         self
     }
 
@@ -197,13 +197,14 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
     /// );
     /// ```
+    /// ```
     /// use sea_query::{audit::*, tests_cfg::*, *};
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
     ///     .select_from(
     ///         Query::select()
-    ///             .expr(Font::Name)
+    ///             .expr(Expr::col(Font::Name))
     ///             .from(Font::Table)
     ///             .take(),
     ///     )
@@ -294,7 +295,7 @@ impl InsertStatement {
             let values_source = if let Some(InsertValueSource::Values(values)) = &mut self.source {
                 values
             } else {
-                self.source = Some(InsertValueSource::Values(Default::default()));
+                self.source = Some(InsertValueSource::Values(Vec::new()));
                 if let Some(InsertValueSource::Values(values)) = &mut self.source {
                     values
                 } else {
@@ -380,6 +381,10 @@ impl InsertStatement {
     /// assert_eq!(query.sql, new_query.sql);
     /// assert_eq!(query.values, new_query.values);
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length of columns and the lengh of values mismatch.
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
         I: IntoIterator<Item = Expr>,
@@ -539,7 +544,7 @@ impl InsertStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -587,7 +592,7 @@ impl InsertStatement {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///

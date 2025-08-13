@@ -22,8 +22,10 @@ impl TableBuilder for PostgresQueryBuilder {
                     _ => "varchar".into(),
                 },
                 ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "smallint".into(),
-                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
+                ColumnType::TinyInteger
+                | ColumnType::TinyUnsigned
+                | ColumnType::SmallInteger
+                | ColumnType::SmallUnsigned => "smallint".into(),
                 ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
                 ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
                 ColumnType::Float => "real".into(),
@@ -84,13 +86,14 @@ impl TableBuilder for PostgresQueryBuilder {
                 ColumnType::LTree => "ltree".into(),
             }
         )
-        .unwrap()
+        .unwrap();
     }
 
-    fn column_spec_auto_increment_keyword(&self) -> &str {
+    fn column_spec_auto_increment_keyword(&self) -> &'static str {
         ""
     }
 
+    #[expect(clippy::too_many_lines, reason = "TODO")]
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
@@ -122,7 +125,7 @@ impl TableBuilder for PostgresQueryBuilder {
                                 .iter()
                                 .any(|v| matches!(v, ColumnSpec::AutoIncrement))
                             {
-                                self.prepare_column_auto_increment(column_type, sql);
+                                Self::prepare_column_auto_increment(column_type, sql);
                             } else {
                                 self.prepare_column_type(column_type, sql);
                             }
@@ -151,7 +154,6 @@ impl TableBuilder for PostgresQueryBuilder {
                             write!(sql, ", ").unwrap();
                         }
                         match column_spec {
-                            ColumnSpec::AutoIncrement => {}
                             ColumnSpec::Null => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
                                 self.prepare_iden(&column_def.name, sql);
@@ -160,7 +162,7 @@ impl TableBuilder for PostgresQueryBuilder {
                             ColumnSpec::NotNull => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
                                 self.prepare_iden(&column_def.name, sql);
-                                write!(sql, " SET NOT NULL").unwrap()
+                                write!(sql, " SET NOT NULL").unwrap();
                             }
                             ColumnSpec::Default(v) => {
                                 write!(sql, "ALTER COLUMN ").unwrap();
@@ -179,13 +181,14 @@ impl TableBuilder for PostgresQueryBuilder {
                                 write!(sql, ")").unwrap();
                             }
                             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
-                            ColumnSpec::Generated { .. } => {}
                             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
-                            ColumnSpec::Comment(_) => {}
                             ColumnSpec::Using(expr) => {
                                 write!(sql, " USING ").unwrap();
                                 QueryBuilder::prepare_simple_expr(self, expr, sql);
                             }
+                            ColumnSpec::Generated { .. }
+                            | ColumnSpec::AutoIncrement
+                            | ColumnSpec::Comment(_) => {}
                         }
                         false
                     });
@@ -241,7 +244,7 @@ impl TableBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_column_auto_increment(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
+    fn prepare_column_auto_increment(column_type: &ColumnType, sql: &mut dyn SqlWriter) {
         let num_ty = match column_type {
             ColumnType::SmallInteger => "smallint",
             ColumnType::Integer => "integer",
@@ -266,7 +269,7 @@ impl PostgresQueryBuilder {
             write!(sql, " ").unwrap();
 
             if is_auto_increment.is_some() {
-                self.prepare_column_auto_increment(column_type, sql);
+                Self::prepare_column_auto_increment(column_type, sql);
             } else {
                 self.prepare_column_type(column_type, sql);
             }
@@ -281,7 +284,7 @@ impl PostgresQueryBuilder {
 
         f(column_def, sql);
 
-        for column_spec in column_def.spec.iter() {
+        for column_spec in &column_def.spec {
             if matches!(column_spec, ColumnSpec::AutoIncrement) {
                 continue;
             }

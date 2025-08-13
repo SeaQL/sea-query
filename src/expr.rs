@@ -713,7 +713,7 @@ pub trait ExprTrait: Sized {
     {
         self.binary(
             BinOper::In,
-            Expr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+            Expr::Tuple(v.into_iter().map(Into::into).collect()),
         )
     }
 
@@ -816,7 +816,7 @@ pub trait ExprTrait: Sized {
     {
         self.binary(
             BinOper::NotIn,
-            Expr::Tuple(v.into_iter().map(|v| v.into()).collect()),
+            Expr::Tuple(v.into_iter().map(Into::into).collect()),
         )
     }
 
@@ -1510,7 +1510,7 @@ pub trait ExprTrait: Sized {
 }
 
 /// This generic implementation covers all expression types,
-/// including [ColumnRef], [Value], [FunctionCall], [Expr]...
+/// including [`ColumnRef`], [Value], [`FunctionCall`], [Expr]...
 impl<T> ExprTrait for T
 where
     T: Into<Expr>,

@@ -176,7 +176,7 @@ impl UpdateStatement {
         T: IntoIden,
         I: IntoIterator<Item = (T, Expr)>,
     {
-        for (k, v) in values.into_iter() {
+        for (k, v) in values {
             self.values.push((k.into_iden(), Box::new(v)));
         }
         self
@@ -350,7 +350,7 @@ impl UpdateStatement {
         self.returning(ReturningClause::All)
     }
 
-    /// Create a [WithQuery] by specifying a [WithClause] to execute this query with.
+    /// Create a [`WithQuery`] by specifying a [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///
@@ -400,7 +400,7 @@ impl UpdateStatement {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [`CommonTableExpression`](crate::CommonTableExpression) or [`WithClause`] to execute this query with.
     ///
     /// # Examples
     ///

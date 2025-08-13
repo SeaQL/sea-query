@@ -69,7 +69,7 @@ impl SqlWriter for SqlWriterValues {
         } else {
             write!(self.string, "{}", self.placeholder).unwrap();
         }
-        self.values.push(value)
+        self.values.push(value);
     }
 
     fn as_writer(&mut self) -> &mut dyn Write {

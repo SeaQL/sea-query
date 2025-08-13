@@ -106,7 +106,10 @@ impl Returning {
         T: IntoColumnRef,
         I: IntoIterator<Item = T>,
     {
-        let cols: Vec<_> = cols.into_iter().map(|c| c.into_column_ref()).collect();
+        let cols: Vec<_> = cols
+            .into_iter()
+            .map(IntoColumnRef::into_column_ref)
+            .collect();
         ReturningClause::Columns(cols)
     }
 

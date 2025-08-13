@@ -39,7 +39,7 @@ impl OnConflict {
     /// Create a ON CONFLICT expression without target column,
     /// a special method designed for MySQL
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     /// Set ON CONFLICT target column

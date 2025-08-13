@@ -9,7 +9,7 @@ pub struct Query {
 pub fn query(sql: &str) -> Query {
     Query {
         sql: sql.to_owned(),
-        values: Values(Default::default()),
+        values: Values(Vec::default()),
     }
 }
 
@@ -33,7 +33,7 @@ pub struct DebugQuery {
 pub fn debug(sql: &str) -> DebugQuery {
     DebugQuery {
         sql: sql.to_owned(),
-        params: Default::default(),
+        params: Vec::default(),
     }
 }
 

@@ -300,7 +300,7 @@ impl TableCreateStatement {
     }
 
     /// Rewriting extra param. You should take care self about concat extra params. Add extra after options.
-    /// Example for PostgresSQL [Citus](https://github.com/citusdata/citus) extension:
+    /// Example for PostgreSQL [Citus](https://github.com/citusdata/citus) extension:
     /// ```
     /// use sea_query::{tests_cfg::*, *};
     /// let table = Table::create()
@@ -348,10 +348,10 @@ impl TableCreateStatement {
     /// Create temporary table
     ///
     /// Ref:
-    /// - PostgreSQL: https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-TEMPORARY
-    /// - MySQL: https://dev.mysql.com/doc/refman/9.2/en/create-temporary-table.html
-    /// - MariaDB: https://mariadb.com/kb/en/create-table/#create-temporary-table
-    /// - SQLite: https://sqlite.org/lang_createtable.html
+    /// - PostgreSQL: <https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-TEMPORARY>
+    /// - MySQL: <https://dev.mysql.com/doc/refman/9.2/en/create-temporary-table.html>
+    /// - MariaDB: <https://mariadb.com/kb/en/create-table/#create-temporary-table>
+    /// - SQLite: <https://sqlite.org/lang_createtable.html>
     ///
     /// # Examples
     ///

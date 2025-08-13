@@ -130,6 +130,9 @@ impl Value {
         matches!(self, Self::ChronoDateTimeLocal(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::ChronoDate`]
     pub fn as_ref_chrono_date(&self) -> Option<&NaiveDate> {
         match self {
             Self::ChronoDate(v) => v.as_ref(),
@@ -137,6 +140,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::ChronoTime`]
     pub fn as_ref_chrono_time(&self) -> Option<&NaiveTime> {
         match self {
             Self::ChronoTime(v) => v.as_ref(),
@@ -144,6 +150,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::ChronoDateTime`]
     pub fn as_ref_chrono_date_time(&self) -> Option<&NaiveDateTime> {
         match self {
             Self::ChronoDateTime(v) => v.as_ref(),
@@ -151,6 +160,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::ChronoDateTimeUtc`]
     pub fn as_ref_chrono_date_time_utc(&self) -> Option<&DateTime<Utc>> {
         match self {
             Self::ChronoDateTimeUtc(v) => v.as_ref(),
@@ -158,6 +170,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::ChronoDateTimeWithTimeZone`]
     pub fn as_ref_chrono_date_time_with_time_zone(&self) -> Option<&DateTime<FixedOffset>> {
         match self {
             Self::ChronoDateTimeWithTimeZone(v) => v.as_ref(),
@@ -165,6 +180,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::ChronoDateTimeLocal`]
     pub fn as_ref_chrono_date_time_local(&self) -> Option<&DateTime<Local>> {
         match self {
             Self::ChronoDateTimeLocal(v) => v.as_ref(),
@@ -172,11 +190,14 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not a time value from [`chrono`] crate
     pub fn chrono_as_naive_utc_in_string(&self) -> Option<String> {
         match self {
-            Self::ChronoDate(v) => v.as_ref().map(|v| v.to_string()),
-            Self::ChronoTime(v) => v.as_ref().map(|v| v.to_string()),
-            Self::ChronoDateTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::ChronoDate(v) => v.as_ref().map(ToString::to_string),
+            Self::ChronoTime(v) => v.as_ref().map(ToString::to_string),
+            Self::ChronoDateTime(v) => v.as_ref().map(ToString::to_string),
             Self::ChronoDateTimeUtc(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
             Self::ChronoDateTimeLocal(v) => v.as_ref().map(|v| v.naive_utc().to_string()),
             Self::ChronoDateTimeWithTimeZone(v) => v.as_ref().map(|v| v.naive_utc().to_string()),

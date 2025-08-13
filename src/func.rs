@@ -828,7 +828,7 @@ impl FunctionCall {
     where
         T: Into<Expr>,
     {
-        self.arg_with(arg, Default::default())
+        self.arg_with(arg, FuncArgMod::default())
     }
 
     pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
@@ -846,7 +846,7 @@ impl FunctionCall {
         I: IntoIterator<Item = Expr>,
     {
         self.args = args.into_iter().collect();
-        self.mods = vec![Default::default(); self.args.len()];
+        self.mods = vec![FuncArgMod::default(); self.args.len()];
         self
     }
 

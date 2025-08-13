@@ -117,15 +117,13 @@ pub enum StringLen {
 impl PartialEq for ColumnType {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Char(l0), Self::Char(r0)) => l0 == r0,
-            (Self::String(l0), Self::String(r0)) => l0 == r0,
-            (Self::Decimal(l0), Self::Decimal(r0)) => l0 == r0,
+            (Self::String(l0), Self::String(r0)) | (Self::VarBinary(l0), Self::VarBinary(r0)) => {
+                l0 == r0
+            }
+            (Self::Decimal(l0), Self::Decimal(r0)) | (Self::Money(l0), Self::Money(r0)) => l0 == r0,
             (Self::Interval(l0, l1), Self::Interval(r0, r1)) => l0 == r0 && l1 == r1,
-            (Self::Binary(l0), Self::Binary(r0)) => l0 == r0,
-            (Self::VarBinary(l0), Self::VarBinary(r0)) => l0 == r0,
-            (Self::Bit(l0), Self::Bit(r0)) => l0 == r0,
-            (Self::VarBit(l0), Self::VarBit(r0)) => l0 == r0,
-            (Self::Money(l0), Self::Money(r0)) => l0 == r0,
+            (Self::Binary(l0), Self::Binary(r0)) | (Self::VarBit(l0), Self::VarBit(r0)) => l0 == r0,
+            (Self::Bit(l0), Self::Bit(r0)) | (Self::Char(l0), Self::Char(r0)) => l0 == r0,
             (Self::Custom(l0), Self::Custom(r0)) => l0.to_string() == r0.to_string(),
             (
                 Self::Enum {
@@ -140,8 +138,8 @@ impl PartialEq for ColumnType {
                 l_name.to_string() == r_name.to_string()
                     && l_variants
                         .iter()
-                        .map(|v| v.to_string())
-                        .eq(r_variants.iter().map(|v| v.to_string()))
+                        .map(ToString::to_string)
+                        .eq(r_variants.iter().map(ToString::to_string))
             }
             (Self::Array(l0), Self::Array(r0)) => l0 == r0,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
@@ -187,7 +185,7 @@ pub enum ColumnSpec {
 }
 
 // All interval fields
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum PgInterval {
     Year,
@@ -206,7 +204,7 @@ pub enum PgInterval {
 }
 
 // All possible inputs to DATE_TRUNC (https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-TRUNC)
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum PgDateTruncUnit {
     Microseconds,
@@ -368,7 +366,7 @@ impl ColumnDef {
 
     /// Set column type as string
     pub fn string(&mut self) -> &mut Self {
-        self.types = Some(ColumnType::String(Default::default()));
+        self.types = Some(ColumnType::String(StringLen::default()));
         self
     }
 
@@ -378,13 +376,13 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as tiny_integer
+    /// Set column type as tiny integer
     pub fn tiny_integer(&mut self) -> &mut Self {
         self.types = Some(ColumnType::TinyInteger);
         self
     }
 
-    /// Set column type as small_integer
+    /// Set column type as small integer
     pub fn small_integer(&mut self) -> &mut Self {
         self.types = Some(ColumnType::SmallInteger);
         self
@@ -396,19 +394,19 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as big_integer
+    /// Set column type as big integer
     pub fn big_integer(&mut self) -> &mut Self {
         self.types = Some(ColumnType::BigInteger);
         self
     }
 
-    /// Set column type as tiny_unsigned
+    /// Set column type as tiny unsigned
     pub fn tiny_unsigned(&mut self) -> &mut Self {
         self.types = Some(ColumnType::TinyUnsigned);
         self
     }
 
-    /// Set column type as small_unsigned
+    /// Set column type as small unsigned
     pub fn small_unsigned(&mut self) -> &mut Self {
         self.types = Some(ColumnType::SmallUnsigned);
         self
@@ -420,7 +418,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as big_unsigned
+    /// Set column type as big unsigned
     pub fn big_unsigned(&mut self) -> &mut Self {
         self.types = Some(ColumnType::BigUnsigned);
         self
@@ -450,7 +448,7 @@ impl ColumnDef {
         self
     }
 
-    /// Set column type as date_time
+    /// Set column type as date time
     pub fn date_time(&mut self) -> &mut Self {
         self.types = Some(ColumnType::DateTime);
         self

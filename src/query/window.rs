@@ -39,7 +39,7 @@ pub trait OverStatement {
     }
 }
 
-/// frame_start or frame_end clause
+/// `frame_start` or `frame_end` clause
 #[derive(Debug, Clone, PartialEq)]
 pub enum Frame {
     UnboundedPreceding,
@@ -103,6 +103,7 @@ impl WindowStatement {
     }
 
     /// Construct a new [`WindowStatement`] with PARTITION BY custom
+    #[expect(clippy::needless_pass_by_value, reason = "This needs more discussion")]
     pub fn partition_by_custom<T>(col: T) -> Self
     where
         T: ToString,
@@ -112,7 +113,7 @@ impl WindowStatement {
         window
     }
 
-    /// frame clause for frame_start
+    /// frame clause for `frame_start`
     /// # Examples:
     ///
     /// ```
@@ -145,7 +146,7 @@ impl WindowStatement {
         self.frame(r#type, start, None)
     }
 
-    /// frame clause for BETWEEN frame_start AND frame_end
+    /// frame clause for BETWEEN `frame_start` AND `frame_end`
     ///
     /// # Examples:
     ///

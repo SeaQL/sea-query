@@ -55,6 +55,9 @@ impl Value {
         matches!(self, Self::JiffZoned(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::JiffDate`]
     pub fn as_ref_jiff_date(&self) -> Option<&civil::Date> {
         match self {
             Self::JiffDate(v) => v.as_ref(),
@@ -62,6 +65,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::JiffTime`]
     pub fn as_ref_jiff_time(&self) -> Option<&civil::Time> {
         match self {
             Self::JiffTime(v) => v.as_ref(),
@@ -69,6 +75,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::JiffDateTime`]
     pub fn as_ref_jiff_date_time(&self) -> Option<&civil::DateTime> {
         match self {
             Self::JiffDateTime(v) => v.as_deref(),
@@ -76,6 +85,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::JiffTimestamp`]
     pub fn as_ref_jiff_timestamp(&self) -> Option<&Timestamp> {
         match self {
             Self::JiffTimestamp(v) => v.as_deref(),
@@ -83,6 +95,9 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::JiffZoned`]
     pub fn as_ref_jiff_zoned(&self) -> Option<&Zoned> {
         match self {
             Self::JiffZoned(v) => v.as_deref(),
@@ -99,8 +114,8 @@ impl Value {
     #[cfg(test)]
     pub(crate) fn jiff_value_to_string(&self) -> Option<String> {
         match self {
-            Self::JiffDate(v) => v.as_ref().map(|v| v.to_string()),
-            Self::JiffTime(v) => v.as_ref().map(|v| v.to_string()),
+            Self::JiffDate(v) => v.as_ref().map(ToString::to_string),
+            Self::JiffTime(v) => v.as_ref().map(ToString::to_string),
             Self::JiffDateTime(v) => v
                 .as_ref()
                 .map(|v| v.strftime(JIFF_DATE_TIME_FMT_STR).to_string()),

@@ -6,13 +6,13 @@ impl TableBuilder for SqliteQueryBuilder {
 
         if let Some(column_type) = &column_def.types {
             write!(sql, " ").unwrap();
-            self.prepare_column_type(&column_def.spec, column_type, sql);
+            Self::prepare_column_type(&column_def.spec, column_type, sql);
         }
 
         let mut is_primary_key = false;
         let mut is_auto_increment = false;
 
-        for column_spec in column_def.spec.iter() {
+        for column_spec in &column_def.spec {
             if matches!(column_spec, ColumnSpec::PrimaryKey) {
                 is_primary_key = true;
                 continue;
@@ -39,10 +39,10 @@ impl TableBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
-        self.prepare_column_type(&[], column_type, sql)
+        Self::prepare_column_type(&[], column_type, sql);
     }
 
-    fn column_spec_auto_increment_keyword(&self) -> &str {
+    fn column_spec_auto_increment_keyword(&self) -> &'static str {
         "AUTOINCREMENT"
     }
 
@@ -91,12 +91,7 @@ impl TableBuilder for SqliteQueryBuilder {
                 write!(sql, "DROP COLUMN ").unwrap();
                 self.prepare_iden(col_name, sql);
             }
-            TableAlterOption::DropForeignKey(_) => {
-                panic!(
-                    "Sqlite does not support modification of foreign key constraints to existing tables"
-                );
-            }
-            TableAlterOption::AddForeignKey(_) => {
+            TableAlterOption::DropForeignKey(_) | TableAlterOption::AddForeignKey(_) => {
                 panic!(
                     "Sqlite does not support modification of foreign key constraints to existing tables"
                 );
@@ -122,7 +117,6 @@ impl TableBuilder for SqliteQueryBuilder {
 
 impl SqliteQueryBuilder {
     fn prepare_column_type(
-        &self,
         column_specs: &[ColumnSpec],
         column_type: &ColumnType,
         sql: &mut dyn SqlWriter,
@@ -198,7 +192,7 @@ impl SqliteQueryBuilder {
                 ColumnType::LTree => unimplemented!("LTree is not available in Sqlite."),
             }
         )
-        .unwrap()
+        .unwrap();
     }
 }
 

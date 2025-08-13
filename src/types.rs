@@ -28,12 +28,12 @@ pub struct Quote(pub(crate) u8, pub(crate) u8);
 pub trait Iden {
     /// Return the to-be sanitized version of the identifier.
     ///
-    /// For example, for MySQL "hel`lo`" would have to be escaped as "hel``lo".
+    /// For example, for MySQL "hel\`lo\`" would have to be escaped as "hel\`\`lo".
     /// Note that this method doesn't do the actual escape,
     /// as it's backend specific.
     /// It only indicates whether the identifier needs to be escaped.
     ///
-    /// If the identifier doesn't need to be escaped, return `'static str`.
+    /// If the identifier doesn't need to be escaped, return `&'static str`.
     /// This can be deduced at compile-time by the `Iden` macro,
     /// or using the [`is_static_iden`] function.
     ///
@@ -100,6 +100,7 @@ impl SeaRc {
     /// Note that most `Iden`s are statically known
     /// and their representations aren't actually "rendered" and allocated at runtime.
     #[allow(clippy::new_ret_no_self)]
+    #[expect(clippy::needless_pass_by_value, reason = "compatibility")]
     pub fn new<I>(i: I) -> DynIden
     where
         I: Iden,
@@ -440,6 +441,7 @@ pub trait IntoLikeExpr {
     fn into_like_expr(self) -> LikeExpr;
 }
 
+#[expect(clippy::doc_markdown)]
 /// SubQuery operators
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[non_exhaustive]
@@ -776,7 +778,7 @@ impl NullAlias {
 }
 
 impl Iden for NullAlias {
-    fn unquoted(&self) -> &str {
+    fn unquoted(&self) -> &'static str {
         ""
     }
 }

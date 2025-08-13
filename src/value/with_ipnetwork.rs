@@ -7,6 +7,9 @@ impl Value {
         matches!(self, Self::IpNetwork(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::IpNetwork`]
     pub fn as_ref_ipnetwork(&self) -> Option<&IpNetwork> {
         match self {
             Self::IpNetwork(v) => v.as_ref(),
@@ -14,9 +17,12 @@ impl Value {
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::IpNetwork`]
     pub fn as_ipaddr(&self) -> Option<IpAddr> {
         match self {
-            Self::IpNetwork(v) => v.as_ref().map(|v| v.network()),
+            Self::IpNetwork(v) => v.as_ref().map(ipnetwork::IpNetwork::network),
             _ => panic!("not Value::IpNetwork"),
         }
     }

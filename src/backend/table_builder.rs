@@ -100,13 +100,13 @@ pub trait TableBuilder:
                 QueryBuilder::prepare_simple_expr(self, value, sql);
             }
             ColumnSpec::AutoIncrement => {
-                write!(sql, "{}", self.column_spec_auto_increment_keyword()).unwrap()
+                write!(sql, "{}", self.column_spec_auto_increment_keyword()).unwrap();
             }
             ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
             ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
             ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
             ColumnSpec::Generated { expr, stored } => {
-                self.prepare_generated_column(expr, *stored, sql)
+                self.prepare_generated_column(expr, *stored, sql);
             }
             ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
             ColumnSpec::Comment(comment) => self.column_comment(comment, sql),
@@ -122,12 +122,12 @@ pub trait TableBuilder:
 
     /// Translate [`TableOpt`] into SQL statement.
     fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
-        self.prepare_table_opt_def(create, sql)
+        self.prepare_table_opt_def(create, sql);
     }
 
     /// Default function
     fn prepare_table_opt_def(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
-        for table_opt in create.options.iter() {
+        for table_opt in &create.options {
             write!(sql, " ").unwrap();
             write!(
                 sql,
@@ -138,7 +138,7 @@ pub trait TableBuilder:
                     TableOpt::CharacterSet(s) => format!("DEFAULT CHARSET={s}"),
                 }
             )
-            .unwrap()
+            .unwrap();
         }
     }
 
@@ -162,7 +162,7 @@ pub trait TableBuilder:
             false
         });
 
-        for drop_opt in drop.options.iter() {
+        for drop_opt in &drop.options {
             self.prepare_table_drop_opt(drop_opt, sql);
         }
     }

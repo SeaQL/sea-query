@@ -1,13 +1,24 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![warn(clippy::nursery)]
+#![warn(clippy::nursery, clippy::pedantic)]
 #![deny(missing_debug_implementations)]
 #![forbid(unsafe_code)]
 #![allow(
+    // compatibility
     clippy::derive_partial_eq_without_eq,
-    clippy::option_if_let_else,
     clippy::redundant_pub_crate,
+    clippy::missing_const_for_fn,
+    // We should consider enabling it someday.
+    // This would help users understand that the function returns a value instead of producing side effects.
+    clippy::must_use_candidate,
+    clippy::return_self_not_must_use,
+    // semantics
+    clippy::manual_assert,
+    //
+    clippy::option_if_let_else,
     clippy::use_self,
-    clippy::missing_const_for_fn
+    clippy::wildcard_imports,
+    clippy::enum_glob_use,
+    clippy::missing_errors_doc,
 )]
 
 //! <div align="center">

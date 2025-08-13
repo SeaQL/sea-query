@@ -7,6 +7,9 @@ impl Value {
         matches!(self, Self::Json(_))
     }
 
+    /// # Panics
+    ///
+    /// Panics if self is not [`Value::Json`]
     pub fn as_ref_json(&self) -> Option<&Json> {
         match self {
             Self::Json(v) => v.as_ref(),
@@ -16,6 +19,10 @@ impl Value {
 }
 
 /// Convert value to json value
+///
+/// # Panics
+///
+/// Panics if value is [`Value::Bytes`] and it's not valid utf-8
 #[allow(clippy::many_single_char_names)]
 pub fn sea_value_to_json_value(value: &Value) -> Json {
     match value {

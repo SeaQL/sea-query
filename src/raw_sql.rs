@@ -12,10 +12,14 @@ pub struct RawSqlQueryBuilder {
 }
 
 impl RawSqlQueryBuilder {
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Query builders are all zero-sized types"
+    )]
     pub fn new<T: QueryBuilder>(backend: T) -> Self {
         let (placeholder, numbered) = backend.placeholder();
         Self {
-            sql: Default::default(),
+            sql: String::default(),
             parameter_index: 1,
             placeholder,
             numbered,
@@ -91,18 +95,18 @@ mod test {
             .push_fragment(" ")
             .push_parameters(1)
             .push_fragment(", ")
-            .push_parameters((&b).len())
+            .push_parameters(b.len())
             .push_fragment(", ")
-            .push_parameters((&c).len());
+            .push_parameters(c.len());
 
         assert_eq!(builder.finish(), "SELECT $1, $2, $3, $4, $5, $6");
 
         let mut values = Values::default();
         values.bind(a);
-        for v in (&b).iter() {
+        for v in &b {
             values.bind(v);
         }
-        for v in (&c).iter() {
+        for v in &c {
             values.bind(v);
         }
 

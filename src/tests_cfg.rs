@@ -30,9 +30,8 @@ pub type Char = Character;
 impl Iden for Character {
     fn unquoted(&self) -> &str {
         match self {
-            Self::Table => "character",
             Self::Id => "id",
-            Self::Character => "character",
+            Self::Character | Self::Table => "character",
             Self::FontSize => "font_size",
             Self::SizeW => "size_w",
             Self::SizeH => "size_h",

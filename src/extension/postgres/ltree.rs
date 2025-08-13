@@ -5,7 +5,7 @@ use crate::Iden;
 /// `ltree` stores a raber path which in this struct is represented as the
 /// tuple's first value.
 ///
-/// # PostcreSQL Reference
+/// # PostgreSQL Reference
 ///
 /// The following set of SQL statements can be used to create a table with
 /// a `ltree` column. Here the `ltree` column is called `path`.
@@ -51,7 +51,7 @@ use crate::Iden;
 pub struct PgLTree;
 
 impl Iden for PgLTree {
-    fn unquoted(&self) -> &str {
+    fn unquoted(&self) -> &'static str {
         "ltree"
     }
 }

@@ -68,10 +68,10 @@ impl<'a> Tokenizer<'a> {
             self.inc();
         }
 
-        if a != b {
-            Some(Token::Space(&self.input[a..b]))
-        } else {
+        if a == b {
             None
+        } else {
+            Some(Token::Space(&self.input[a..b]))
         }
     }
 
@@ -94,10 +94,10 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        if a != b {
-            Some(Token::Unquoted(&self.input[a..b]))
-        } else {
+        if a == b {
             None
+        } else {
+            Some(Token::Unquoted(&self.input[a..b]))
         }
     }
 
@@ -121,11 +121,11 @@ impl<'a> Tokenizer<'a> {
                 if self.end() {
                     break;
                 }
-                if !Self::is_string_escape_for(start, self.get()) {
-                    break;
-                } else {
+                if Self::is_string_escape_for(start, self.get()) {
                     b = self.p_c(c);
                     self.inc();
+                } else {
+                    break;
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
@@ -135,10 +135,10 @@ impl<'a> Tokenizer<'a> {
                 break;
             }
         }
-        if a != b {
-            Some(Token::Quoted(&self.input[a..b]))
-        } else {
+        if a == b {
             None
+        } else {
+            Some(Token::Quoted(&self.input[a..b]))
         }
     }
 
@@ -159,11 +159,11 @@ impl<'a> Tokenizer<'a> {
                 if self.end() {
                     break;
                 }
-                if !Self::is_string_escape_for(start, self.get()) {
-                    break;
-                } else {
+                if Self::is_string_escape_for(start, self.get()) {
                     write!(string, "{c}").unwrap();
                     self.inc();
+                } else {
+                    break;
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
@@ -188,10 +188,10 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        if a != b {
-            Some(Token::Punctuation(&self.input[a..b]))
-        } else {
+        if a == b {
             None
+        } else {
+            Some(Token::Punctuation(&self.input[a..b]))
         }
     }
 
@@ -274,10 +274,10 @@ impl Token<'_> {
 
     pub fn as_str(&self) -> &str {
         match self {
-            Self::Quoted(string) => string,
-            Self::Unquoted(string) => string,
-            Self::Space(string) => string,
-            Self::Punctuation(string) => string,
+            Self::Quoted(string)
+            | Self::Unquoted(string)
+            | Self::Space(string)
+            | Self::Punctuation(string) => string,
         }
     }
 
@@ -293,16 +293,7 @@ impl Token<'_> {
 
 impl std::fmt::Display for Token<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Token::Unquoted(string) => string,
-                Token::Space(string) => string,
-                Token::Quoted(string) => string,
-                Token::Punctuation(string) => string,
-            }
-        )
+        f.write_str(self.as_str())
     }
 }
 
@@ -336,7 +327,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -367,7 +358,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -389,7 +380,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -401,7 +392,7 @@ mod tests {
         assert_eq!(tokens, vec![Token::Quoted("\"a\\\"bc\"")]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -413,7 +404,7 @@ mod tests {
         assert_eq!(tokens, vec![Token::Unquoted(string)]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -434,7 +425,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -453,7 +444,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -465,7 +456,7 @@ mod tests {
         assert_eq!(tokens, vec![Token::Quoted("`a\"b`"), Token::Space(" ")]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -477,7 +468,7 @@ mod tests {
         assert_eq!(tokens, vec![Token::Quoted("[ab]"), Token::Space(" ")]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -496,7 +487,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -515,7 +506,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -534,7 +525,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -553,7 +544,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -578,7 +569,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -597,7 +588,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -609,7 +600,7 @@ mod tests {
         assert_eq!(tokens, vec![Token::Unquoted(string)]);
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -624,7 +615,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -643,7 +634,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -684,7 +675,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -705,7 +696,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -724,7 +715,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -747,7 +738,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 
@@ -774,7 +765,7 @@ mod tests {
         );
         assert_eq!(
             string,
-            tokens.iter().map(|x| x.as_str()).collect::<String>()
+            tokens.iter().map(super::Token::as_str).collect::<String>()
         );
     }
 }
