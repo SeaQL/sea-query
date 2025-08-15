@@ -74,7 +74,7 @@ impl TransformValue for Pg {
             ))]
             Value::Decimal(_) => bail!("Enable feature with-rust_decimal-postgres"),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(v) => build!(Numeric, v.map(|v| *v)),
+            Value::BigDecimal(v) => build!(Numeric, v),
             #[cfg(feature = "with-json")]
             Value::Json(v) => build!(Json, v),
             #[cfg(feature = "with-ipnetwork")]
