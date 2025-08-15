@@ -43,8 +43,6 @@ jobs:
           toolchain: nightly
           components: rustfmt
       - run: cargo fmt --manifest-path examples/${{ matrix.example }}/Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path examples/${{ matrix.example }}/Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path examples/${{ matrix.example }}/Cargo.toml --all -- --check
 
   diesel-build:
     name: Build `sea-query-diesel`
