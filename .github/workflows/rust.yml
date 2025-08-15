@@ -226,10 +226,10 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-derive/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-derive-test-${{ hashFiles('Cargo.toml', 'sea-query-derive/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
-      - run: cargo build --package sea-query-derive
+      - run: cargo test --package sea-query-derive --no-run
       - run: cargo test --package sea-query-derive
 
   sqlite:
