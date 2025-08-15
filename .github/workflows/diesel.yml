@@ -34,16 +34,15 @@ jobs:
   rustfmt:
     name: Rustfmt
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        example: [diesel_sqlite, diesel_postgres, diesel_mysql]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
           components: rustfmt
-      - run: cargo fmt --manifest-path examples/${{ matrix.example }}/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/diesel_sqlite/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/diesel_postgres/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/diesel_mysql/Cargo.toml --all -- --check
 
   diesel-build:
     name: Build `sea-query-diesel`
