@@ -23,6 +23,9 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+  RUSTFLAGS: "-C debuginfo=0"
 
 jobs:
   rustfmt:
@@ -55,6 +58,8 @@ jobs:
         with:
           toolchain: stable
           components: clippy
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo clippy --features=all-features --workspace -- -D warnings
       - run: cargo clippy --manifest-path sea-query-sqlx/Cargo.toml --workspace --features runtime-async-std-rustls --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector -- -D warnings
       - run: cargo clippy --manifest-path sea-query-rusqlite/Cargo.toml --all-features --workspace -- -D warnings
@@ -63,22 +68,28 @@ jobs:
   build:
     name: Build `sea-query`
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        feature: [
+          "with-chrono",
+          "with-json",
+          "with-rust_decimal",
+          "with-bigdecimal",
+          "with-uuid",
+          "with-time",
+          "with-ipnetwork",
+          "with-mac_address",
+          "postgres-array",
+          "postgres-vector"
+        ]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --workspace --no-default-features
       - run: cargo build --workspace --all-features
-      - run: cargo build --workspace --features=with-chrono
-      - run: cargo build --workspace --features=with-json
-      - run: cargo build --workspace --features=with-rust_decimal
-      - run: cargo build --workspace --features=with-bigdecimal
-      - run: cargo build --workspace --features=with-uuid
-      - run: cargo build --workspace --features=with-time
-      - run: cargo build --workspace --features=with-ipnetwork
-      - run: cargo build --workspace --features=with-mac_address
-      - run: cargo build --workspace --features=postgres-array
-      - run: cargo build --workspace --features=postgres-vector
-      - run: cargo build --workspace --features=thread-safe
+      - run: cargo build --workspace --features=${{ matrix.feature }}
 
   binder-build:
     name: Build `sea-query-sqlx`
@@ -91,6 +102,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-chrono
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-json
@@ -106,38 +119,52 @@ jobs:
   rusqlite-build:
     name: Build `sea-query-rusqlite`
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        feature: [
+          "with-chrono",
+          "with-json",
+          "with-rust_decimal",
+          "with-bigdecimal",
+          "with-uuid",
+          "with-time",
+          "with-ipnetwork",
+          "with-mac_address",
+          "postgres-array",
+          "postgres-vector"
+        ]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-chrono
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-json
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-rust_decimal
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-bigdecimal
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-uuid
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-time
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-ipnetwork
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-mac_address
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-array
-      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-vector
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace --features=${{ matrix.feature }}
 
   postgres-build:
     name: Build `sea-query-postgres`
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        feature: [
+          "with-chrono",
+          "with-json",
+          "with-rust_decimal",
+          "with-bigdecimal",
+          "with-uuid",
+          "with-time",
+          "with-ipnetwork",
+          "with-mac_address",
+          "postgres-array",
+          "postgres-vector"
+        ]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-json
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-rust_decimal
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-bigdecimal
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-uuid
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-time
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-ipnetwork
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-mac_address
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-array
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-vector
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace --features=${{ matrix.feature }}
 
   test:
     name: Unit Test
@@ -146,6 +173,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo test
       - run: cargo test --features=all-features
       - run: cargo test --test option-more-parentheses --features=tests-cfg,option-more-parentheses
@@ -157,6 +186,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --package sea-query-derive
       - run: cargo test --package sea-query-derive
 
@@ -170,6 +201,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
@@ -200,6 +233,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
@@ -230,6 +265,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
@@ -259,6 +296,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
@@ -269,4 +308,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/sqlx_any/Cargo.toml

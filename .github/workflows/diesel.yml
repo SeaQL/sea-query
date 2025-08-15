@@ -25,41 +25,53 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+  RUSTFLAGS: "-C debuginfo=0"
 
 jobs:
   rustfmt:
     name: Rustfmt
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: [diesel_sqlite, diesel_postgres, diesel_mysql]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
           components: rustfmt
-      - run: cargo fmt --manifest-path examples/diesel_sqlite/Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path examples/diesel_postgres/Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path examples/diesel_mysql/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/${{ matrix.example }}/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/${{ matrix.example }}/Cargo.toml --all -- --check
+      - run: cargo fmt --manifest-path examples/${{ matrix.example }}/Cargo.toml --all -- --check
 
   diesel-build:
     name: Build `sea-query-diesel`
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features:
+          - "postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector"
+          - "postgres,sqlite,mysql --features=with-chrono"
+          - "postgres,sqlite,mysql --features=with-json"
+          - "postgres,sqlite,mysql --features=with-rust_decimal"
+          - "postgres --features=with-rust_decimal-postgres"
+          - "mysql --features=with-rust_decimal-mysql"
+          - "postgres,sqlite,mysql --features=with-bigdecimal"
+          - "postgres,sqlite,mysql --features=postgres-vector"
+          - "postgres,sqlite,mysql --features=postgres-array"
+          - "postgres,sqlite,mysql --features=with-mac_address"
+          - "postgres,sqlite,mysql --features=with-ipnetwork"
+          - "postgres,sqlite,mysql --features=with-time"
+          - "postgres,sqlite,mysql --features=with-uuid"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo update --manifest-path sea-query-diesel/Cargo.toml -p ipnetwork@0.21.1 --precise=0.20.0
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-chrono
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-json
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-rust_decimal
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres --features=with-rust_decimal-postgres
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features mysql --features=with-rust_decimal-mysql
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-bigdecimal
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-uuid
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-time
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-ipnetwork
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=with-mac_address
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=postgres-array
-      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features postgres,sqlite,mysql --features=postgres-vector
+      - run: cargo build --manifest-path sea-query-diesel/Cargo.toml --workspace --features ${{ matrix.features }}
 
   sqlite:
     name: SQLite
@@ -71,6 +83,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
@@ -101,6 +115,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
@@ -131,6 +147,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
 
@@ -160,6 +178,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo update --manifest-path examples/${{ matrix.example }}/Cargo.toml -p ipnetwork@0.21.1 --precise=0.20.0
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
       - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
