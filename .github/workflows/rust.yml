@@ -69,20 +69,6 @@ jobs:
   build:
     name: Build `sea-query`
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        feature: [
-          "with-chrono",
-          "with-json",
-          "with-rust_decimal",
-          "with-bigdecimal",
-          "with-uuid",
-          "with-time",
-          "with-ipnetwork",
-          "with-mac_address",
-          "postgres-array",
-          "postgres-vector"
-        ]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -90,7 +76,17 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --workspace --no-default-features
       - run: cargo build --workspace --all-features
-      - run: cargo build --workspace --features=${{ matrix.feature }}
+      - run: cargo build --workspace --features=with-chrono
+      - run: cargo build --workspace --features=with-json
+      - run: cargo build --workspace --features=with-rust_decimal
+      - run: cargo build --workspace --features=with-bigdecimal
+      - run: cargo build --workspace --features=with-uuid
+      - run: cargo build --workspace --features=with-time
+      - run: cargo build --workspace --features=with-ipnetwork
+      - run: cargo build --workspace --features=with-mac_address
+      - run: cargo build --workspace --features=postgres-array
+      - run: cargo build --workspace --features=postgres-vector
+      - run: cargo build --workspace --features=thread-safe
 
   binder-build:
     name: Build `sea-query-sqlx`
@@ -120,52 +116,42 @@ jobs:
   rusqlite-build:
     name: Build `sea-query-rusqlite`
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        feature: [
-          "with-chrono",
-          "with-json",
-          "with-rust_decimal",
-          "with-bigdecimal",
-          "with-uuid",
-          "with-time",
-          "with-ipnetwork",
-          "with-mac_address",
-          "postgres-array",
-          "postgres-vector"
-        ]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace --features=${{ matrix.feature }}
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-chrono
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-json
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-rust_decimal
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-bigdecimal
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-uuid
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-time
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-ipnetwork
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-mac_address
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-array
+      - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=postgres-vector
 
   postgres-build:
     name: Build `sea-query-postgres`
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        feature: [
-          "with-chrono",
-          "with-json",
-          "with-rust_decimal",
-          "with-bigdecimal",
-          "with-uuid",
-          "with-time",
-          "with-ipnetwork",
-          "with-mac_address",
-          "postgres-array",
-          "postgres-vector"
-        ]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
-      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace --features=${{ matrix.feature }}
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-json
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-rust_decimal
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-bigdecimal
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-uuid
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-time
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-ipnetwork
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-mac_address
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-array
+      - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=postgres-vector
 
   test:
     name: Unit Test
