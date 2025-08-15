@@ -50,6 +50,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-diesel/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo update --manifest-path sea-query-diesel/Cargo.toml -p ipnetwork@0.21.1 --precise=0.20.0
@@ -77,6 +86,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          cargo_hash=$(shasum Cargo.toml examples/${{ matrix.example }}/Cargo.toml | shasum | cut -d' ' -f1)
+          echo "key=${{ runner.os }}-cargo-${cargo_hash}" >> $GITHUB_OUTPUT
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -109,6 +133,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          cargo_hash=$(shasum Cargo.toml examples/${{ matrix.example }}/Cargo.toml | shasum | cut -d' ' -f1)
+          echo "key=${{ runner.os }}-cargo-${cargo_hash}" >> $GITHUB_OUTPUT
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -141,6 +180,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          cargo_hash=$(shasum Cargo.toml examples/${{ matrix.example }}/Cargo.toml | shasum | cut -d' ' -f1)
+          echo "key=${{ runner.os }}-cargo-${cargo_hash}" >> $GITHUB_OUTPUT
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -172,6 +226,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          cargo_hash=$(shasum Cargo.toml examples/${{ matrix.example }}/Cargo.toml | shasum | cut -d' ' -f1)
+          echo "key=${{ runner.os }}-cargo-${cargo_hash}" >> $GITHUB_OUTPUT
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo update --manifest-path examples/${{ matrix.example }}/Cargo.toml -p ipnetwork@0.21.1 --precise=0.20.0
