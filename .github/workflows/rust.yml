@@ -66,10 +66,7 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-postgres/Cargo.toml', 'sea-query-rusqlite/Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo clippy --features=all-features --workspace -- -D warnings
@@ -91,9 +88,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-derive/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --workspace --no-default-features
@@ -129,9 +123,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-any,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
@@ -160,9 +151,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-rusqlite/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-rusqlite/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
@@ -191,9 +179,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-postgres/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path sea-query-postgres/Cargo.toml --workspace  --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
@@ -244,9 +229,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-derive/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --package sea-query-derive
@@ -270,9 +252,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-derive/Cargo.toml', 'sea-query-rusqlite/Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -313,9 +292,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -356,9 +332,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -398,9 +371,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-diesel/Cargo.toml', 'sea-query-postgres/Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -421,9 +391,6 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/sqlx_any/Cargo.toml
