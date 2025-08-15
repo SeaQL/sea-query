@@ -36,20 +36,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
           components: rustfmt
-      - run: cargo fmt --manifest-path examples/diesel_sqlite/Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path examples/diesel_postgres/Cargo.toml --all -- --check
-      - run: cargo fmt --manifest-path examples/diesel_mysql/Cargo.toml --all -- --check
+      - run: cargo +nightly fmt --manifest-path examples/diesel_sqlite/Cargo.toml --all -- --check
+      - run: cargo +nightly fmt --manifest-path examples/diesel_postgres/Cargo.toml --all -- --check
+      - run: cargo +nightly fmt --manifest-path examples/diesel_mysql/Cargo.toml --all -- --check
 
   diesel-build:
     name: Build `sea-query-diesel`
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.85
       - uses: actions/cache@v4
         with:
           path: |
@@ -83,7 +82,7 @@ jobs:
         example: [diesel_sqlite]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.85
       - name: Generate cache key
         id: cache-key
         run: |
@@ -128,7 +127,7 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.85
       - name: Generate cache key
         id: cache-key
         run: |
@@ -173,7 +172,7 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.85
       - name: Generate cache key
         id: cache-key
         run: |
@@ -217,7 +216,7 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.85
       - name: Generate cache key
         id: cache-key
         run: |

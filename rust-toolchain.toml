@@ -1,4 +1,5 @@
 [toolchain]
+# This will affect the CI, so you’ll need to update the workflows too.
 channel = "1.85"
 components = [
 	"rustfmt",
