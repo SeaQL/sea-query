@@ -59,6 +59,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-diesel/Cargo.toml') }}
           restore-keys: |
             ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
+            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo update --manifest-path sea-query-diesel/Cargo.toml -p ipnetwork@0.21.1 --precise=0.20.0
@@ -101,6 +102,7 @@ jobs:
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
+            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -148,6 +150,7 @@ jobs:
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
+            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -195,6 +198,7 @@ jobs:
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
+            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -241,6 +245,7 @@ jobs:
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-cargo--${{ hashFiles('Cargo.toml') }}
+            ${{ runner.os }}-cargo-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo update --manifest-path examples/${{ matrix.example }}/Cargo.toml -p ipnetwork@0.21.1 --precise=0.20.0
