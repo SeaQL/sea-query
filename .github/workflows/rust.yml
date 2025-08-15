@@ -26,6 +26,7 @@ env:
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
   RUSTFLAGS: "-C debuginfo=0"
+  CARGO_INCREMENTAL: 0
 
 jobs:
   rustfmt:
