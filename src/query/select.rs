@@ -1142,34 +1142,34 @@ impl SelectStatement {
     ///         .column(Char::Character)
     ///         .column((Font::Table, Font::Name))
     ///         .from(Char::Table)
-    ///         .cross_join(
-    ///             Font::Table,
-    ///             all![
-    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
-    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
-    ///             ]
-    ///         )
+    ///         .cross_join(Font::Table)
     ///         .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font""#
     /// );
     /// ```
-    pub fn cross_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
+    pub fn cross_join<R, C>(&mut self, tbl_ref: R) -> &mut Self
     where
         R: IntoTableRef,
         C: IntoCondition,
     {
-        self.join(JoinType::CrossJoin, tbl_ref, condition)
+        self.join.push(JoinExpr {
+            join: JoinType::CrossJoin,
+            table: Box::new(tbl_ref.into_table_ref()),
+            on: None,
+            lateral: false,
+        });
+        self
     }
 
     /// Left join.
