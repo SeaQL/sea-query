@@ -1137,10 +1137,9 @@ impl SelectStatement {
     ///     [Char::Table.into_iden(), Font::Table.into_iden()]
     /// );
     /// ```
-    pub fn cross_join<R, C>(&mut self, tbl_ref: R) -> &mut Self
+    pub fn cross_join<R>(&mut self, tbl_ref: R) -> &mut Self
     where
         R: IntoTableRef,
-        C: IntoCondition,
     {
         self.push_join(JoinType::CrossJoin, tbl_ref.into_table_ref(), None, false);
         self
