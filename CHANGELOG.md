@@ -48,6 +48,10 @@ pub struct TableName(pub Option<SchemaName>, pub DynIden);
 // so TableName can represent [database.][schema.]table
 ```
 
+### Bug Fixes
+
+* Removed invalid condition requirement on `SelectStatement::cross_join` https://github.com/SeaQL/sea-query/pull/956
+
 ### Enhancements
 
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
@@ -97,6 +101,8 @@ assert_eq!(
 ```
 
 ### Breaking Changes
+
+* `SelectStatement::cross_join` no longer accepts a condition https://github.com/SeaQL/sea-query/pull/956
 
 * Changed `Expr::TypeName(DynIden)` to `Expr::TypeName(TypeName)`, which can be
   [qualified](https://github.com/SeaQL/sea-query/issues/827).
