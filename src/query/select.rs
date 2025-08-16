@@ -1163,12 +1163,7 @@ impl SelectStatement {
         R: IntoTableRef,
         C: IntoCondition,
     {
-        self.join.push(JoinExpr {
-            join: JoinType::CrossJoin,
-            table: Box::new(tbl_ref.into_table_ref()),
-            on: None,
-            lateral: false,
-        });
+        self.push_join(JoinType::CrossJoin, tbl_ref.into_table_ref(), None, false);
         self
     }
 
@@ -1484,14 +1479,13 @@ impl SelectStatement {
         R: IntoTableRef,
         C: IntoCondition,
     {
-        self.join_join(
-            join,
-            tbl_ref.into_table_ref(),
-            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
-                condition.into_condition(),
+        let on = match join {
+            JoinType::CrossJoin => None,
+            _ => Some(JoinOn::Condition(Box::new(
+                ConditionHolder::new_with_condition(condition.into_condition()),
             ))),
-            false,
-        )
+        };
+        self.push_join(join, tbl_ref.into_table_ref(), on, false)
     }
 
     /// Join with other table by [`JoinType`], assigning an alias to the joined table.
@@ -1556,7 +1550,7 @@ impl SelectStatement {
         A: IntoIden,
         C: IntoCondition,
     {
-        self.join_join(
+        self.push_join(
             join,
             tbl_ref.into_table_ref().alias(alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
@@ -1633,7 +1627,7 @@ impl SelectStatement {
         T: IntoIden,
         C: IntoCondition,
     {
-        self.join_join(
+        self.push_join(
             join,
             TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
@@ -1702,7 +1696,7 @@ impl SelectStatement {
         T: IntoIden,
         C: IntoCondition,
     {
-        self.join_join(
+        self.push_join(
             join,
             TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
@@ -1712,17 +1706,17 @@ impl SelectStatement {
         )
     }
 
-    fn join_join(
+    fn push_join(
         &mut self,
         join: JoinType,
         table: TableRef,
-        on: JoinOn,
+        on: impl Into<Option<JoinOn>>,
         lateral: bool,
     ) -> &mut Self {
         self.join.push(JoinExpr {
             join,
             table: Box::new(table),
-            on: Some(on),
+            on: on.into(),
             lateral,
         });
         self
