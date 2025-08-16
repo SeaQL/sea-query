@@ -1117,33 +1117,8 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .cross_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+    ///     .cross_join(Font::Table)
     ///     .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font` ON `character`.`font_id` = `font`.`id`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
-    /// );
-    /// assert_eq!(
-    ///     query.audit().unwrap().selected_tables(),
-    ///     [Char::Table.into_iden(), Font::Table.into_iden()]
-    /// );
-    ///
-    /// // Constructing chained join conditions
-    /// let query = Query::select()
-    ///         .column(Char::Character)
-    ///         .column((Font::Table, Font::Name))
-    ///         .from(Char::Table)
-    ///         .cross_join(Font::Table)
-    ///         .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
@@ -1156,6 +1131,10 @@ impl SelectStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font""#
+    /// );
+    /// assert_eq!(
+    ///     query.audit().unwrap().selected_tables(),
+    ///     [Char::Table.into_iden(), Font::Table.into_iden()]
     /// );
     /// ```
     pub fn cross_join<R, C>(&mut self, tbl_ref: R) -> &mut Self
