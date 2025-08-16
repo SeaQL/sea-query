@@ -15,11 +15,18 @@ impl QueryBuilder for MysqlQueryBuilder {
         };
     }
 
-    fn prepare_index_hints(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
-        if !select.index_hints.is_empty() {
-            write!(sql, " ").unwrap();
-        }
-        for (i, hint) in select.index_hints.iter().enumerate() {
+    fn prepare_index_hints(
+        &self,
+        table_ref: &TableRef,
+        select: &SelectStatement,
+        sql: &mut dyn SqlWriter,
+    ) {
+        let Some(hints) = select.index_hints.get(&table_ref.into()) else {
+            return;
+        };
+        write!(sql, " ").unwrap();
+
+        for (i, hint) in hints.iter().enumerate() {
             if i != 0 {
                 write!(sql, " ").unwrap()
             }
