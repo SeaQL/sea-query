@@ -782,7 +782,7 @@
 //!     table.to_string(SqliteQueryBuilder),
 //!     [
 //!        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-//!            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+//!            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
 //!            r#""font_size" integer NOT NULL,"#,
 //!            r#""character" varchar NOT NULL,"#,
 //!            r#""size_w" integer NOT NULL,"#,

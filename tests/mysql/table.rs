@@ -109,7 +109,7 @@ fn create_3() {
             "`size_w` int UNSIGNED NOT NULL,",
             "`size_h` int UNSIGNED NOT NULL,",
             "`font_id` int DEFAULT NULL,",
-            "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,",
+            "`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
             "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE RESTRICT",
@@ -256,7 +256,7 @@ fn create_11() {
             .to_string(MysqlQueryBuilder),
         [
             r#"CREATE TEMPORARY TABLE `font` ("#,
-            r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
+            r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
             r#"`name` varchar(255) NOT NULL"#,
             r#")"#,
         ]
@@ -310,7 +310,7 @@ fn create_12() {
             "`size_w` int UNSIGNED NOT NULL,",
             "`size_h` int UNSIGNED NOT NULL,",
             "`font_id` int DEFAULT NULL,",
-            "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,",
+            "`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
             "KEY `idx-character-area` ((`size_h` * `size_w`))",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         ]

@@ -68,7 +68,7 @@ use crate::{
 ///     table.to_string(SqliteQueryBuilder),
 ///     [
 ///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+///            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
 ///            r#""font_size" integer NOT NULL,"#,
 ///            r#""character" varchar NOT NULL,"#,
 ///            r#""size_w" integer NOT NULL,"#,
@@ -325,8 +325,8 @@ impl TableCreateStatement {
     ///     table.to_string(PostgresQueryBuilder),
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
-    ///         r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
-    ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL,"#,
+    ///         r#""id" uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),"#,
+    ///         r#""created_at" timestamp with time zone NOT NULL DEFAULT NOW(),"#,
     ///         r#""user_data" jsonb NOT NULL"#,
     ///         r#") USING columnar"#,
     ///     ]
@@ -375,7 +375,7 @@ impl TableCreateStatement {
     ///     statement.to_string(MysqlQueryBuilder),
     ///     [
     ///         "CREATE TEMPORARY TABLE `font` (",
-    ///         "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
+    ///         "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
     ///         "`name` varchar(255) NOT NULL",
     ///         ")",
     ///     ]
@@ -395,7 +395,7 @@ impl TableCreateStatement {
     ///     statement.to_string(SqliteQueryBuilder),
     ///     [
     ///         r#"CREATE TEMPORARY TABLE "font" ("#,
-    ///         r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+    ///         r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
     ///         r#""name" varchar NOT NULL"#,
     ///         r#")"#,
     ///     ]

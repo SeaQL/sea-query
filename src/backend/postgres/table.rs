@@ -117,11 +117,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     let f = |column_def: &ColumnDef, sql: &mut dyn SqlWriter| {
                         if let Some(column_type) = &column_def.types {
                             write!(sql, " ").unwrap();
-                            if column_def
-                                .spec
-                                .iter()
-                                .any(|v| matches!(v, ColumnSpec::AutoIncrement))
-                            {
+                            if column_def.spec.auto_increment {
                                 self.prepare_column_auto_increment(column_type, sql);
                             } else {
                                 self.prepare_column_type(column_type, sql);
@@ -131,64 +127,86 @@ impl TableBuilder for PostgresQueryBuilder {
                     self.prepare_column_def_common(column, sql, f);
                 }
                 TableAlterOption::ModifyColumn(column_def) => {
+                    let mut is_first = true;
                     if let Some(column_type) = &column_def.types {
                         write!(sql, "ALTER COLUMN ").unwrap();
                         self.prepare_iden(&column_def.name, sql);
                         write!(sql, " TYPE ").unwrap();
                         self.prepare_column_type(column_type, sql);
+                        is_first = false;
                     }
-                    let first = column_def.types.is_none();
 
-                    column_def.spec.iter().fold(first, |first, column_spec| {
-                        if !first
-                            && !matches!(
-                                column_spec,
-                                ColumnSpec::AutoIncrement
-                                    | ColumnSpec::Generated { .. }
-                                    | ColumnSpec::Using(_)
-                            )
-                        {
+                    if column_def.spec.auto_increment {
+                        //
+                    }
+
+                    if let Some(nullable) = column_def.spec.nullable {
+                        if !is_first {
                             write!(sql, ", ").unwrap();
+                            is_first = false
                         }
-                        match column_spec {
-                            ColumnSpec::AutoIncrement => {}
-                            ColumnSpec::Null => {
-                                write!(sql, "ALTER COLUMN ").unwrap();
-                                self.prepare_iden(&column_def.name, sql);
-                                write!(sql, " DROP NOT NULL").unwrap();
-                            }
-                            ColumnSpec::NotNull => {
-                                write!(sql, "ALTER COLUMN ").unwrap();
-                                self.prepare_iden(&column_def.name, sql);
-                                write!(sql, " SET NOT NULL").unwrap()
-                            }
-                            ColumnSpec::Default(v) => {
-                                write!(sql, "ALTER COLUMN ").unwrap();
-                                self.prepare_iden(&column_def.name, sql);
-                                write!(sql, " SET DEFAULT ").unwrap();
-                                QueryBuilder::prepare_simple_expr(self, v, sql);
-                            }
-                            ColumnSpec::UniqueKey => {
-                                write!(sql, "ADD UNIQUE (").unwrap();
-                                self.prepare_iden(&column_def.name, sql);
-                                write!(sql, ")").unwrap();
-                            }
-                            ColumnSpec::PrimaryKey => {
-                                write!(sql, "ADD PRIMARY KEY (").unwrap();
-                                self.prepare_iden(&column_def.name, sql);
-                                write!(sql, ")").unwrap();
-                            }
-                            ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
-                            ColumnSpec::Generated { .. } => {}
-                            ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
-                            ColumnSpec::Comment(_) => {}
-                            ColumnSpec::Using(expr) => {
-                                write!(sql, " USING ").unwrap();
-                                QueryBuilder::prepare_simple_expr(self, expr, sql);
-                            }
+                        write!(sql, "ALTER COLUMN ").unwrap();
+                        self.prepare_iden(&column_def.name, sql);
+                        if nullable {
+                            write!(sql, " DROP NOT NULL").unwrap();
+                        } else {
+                            write!(sql, " SET NOT NULL").unwrap();
                         }
-                        false
-                    });
+                    }
+
+                    if let Some(default) = &column_def.spec.default {
+                        if !is_first {
+                            write!(sql, ", ").unwrap();
+                            is_first = false
+                        }
+                        write!(sql, "ALTER COLUMN ").unwrap();
+                        self.prepare_iden(&column_def.name, sql);
+                        write!(sql, " SET DEFAULT ").unwrap();
+                        QueryBuilder::prepare_simple_expr(self, default, sql);
+                    }
+                    if column_def.spec.unique {
+                        if !is_first {
+                            write!(sql, ", ").unwrap();
+                            is_first = false
+                        }
+                        write!(sql, "ADD UNIQUE (").unwrap();
+                        self.prepare_iden(&column_def.name, sql);
+                        write!(sql, ")").unwrap();
+                    }
+                    if column_def.spec.primary_key {
+                        if !is_first {
+                            write!(sql, ", ").unwrap();
+                            is_first = false
+                        }
+                        write!(sql, "ADD PRIMARY KEY (").unwrap();
+                        self.prepare_iden(&column_def.name, sql);
+                        write!(sql, ")").unwrap();
+                    }
+                    if let Some(check) = &column_def.spec.check {
+                        if !is_first {
+                            write!(sql, ", ").unwrap();
+                            is_first = false
+                        }
+
+                        write!(sql, " ").unwrap();
+                        self.prepare_check_constraint(check, sql);
+                    }
+
+                    if let Some(x) = &column_def.spec.generated {
+                        let _ = x;
+                    }
+
+                    if let Some(extra) = &column_def.spec.extra {
+                        write!(sql, "{extra}").unwrap()
+                    }
+                    if let Some(x) = &column_def.spec.comment {
+                        let _ = x;
+                    }
+                    if let Some(expr) = &column_def.spec.using {
+                        write!(sql, " USING ").unwrap();
+                        QueryBuilder::prepare_simple_expr(self, expr, sql);
+                    }
+                    let _ = is_first;
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
                     write!(sql, "RENAME COLUMN ").unwrap();
@@ -258,14 +276,11 @@ impl PostgresQueryBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(column_type) = &column_def.types {
-            let is_auto_increment = column_def
-                .spec
-                .iter()
-                .position(|s| matches!(s, ColumnSpec::AutoIncrement));
+            let is_auto_increment = column_def.spec.auto_increment;
 
             write!(sql, " ").unwrap();
 
-            if is_auto_increment.is_some() {
+            if is_auto_increment {
                 self.prepare_column_auto_increment(column_type, sql);
             } else {
                 self.prepare_column_type(column_type, sql);
@@ -281,15 +296,6 @@ impl PostgresQueryBuilder {
 
         f(column_def, sql);
 
-        for column_spec in column_def.spec.iter() {
-            if matches!(column_spec, ColumnSpec::AutoIncrement) {
-                continue;
-            }
-            if let ColumnSpec::Comment(_) = column_spec {
-                continue;
-            }
-            write!(sql, " ").unwrap();
-            self.prepare_column_spec(column_spec, sql);
-        }
+        self.prepare_column_spec(&column_def.spec, sql);
     }
 }

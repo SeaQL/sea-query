@@ -92,25 +92,58 @@ pub trait TableBuilder:
 
     /// Translate [`ColumnSpec`] into SQL statement.
     fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut dyn SqlWriter) {
-        match column_spec {
-            ColumnSpec::Null => write!(sql, "NULL").unwrap(),
-            ColumnSpec::NotNull => write!(sql, "NOT NULL").unwrap(),
-            ColumnSpec::Default(value) => {
-                write!(sql, "DEFAULT ").unwrap();
-                QueryBuilder::prepare_simple_expr(self, value, sql);
-            }
-            ColumnSpec::AutoIncrement => {
-                write!(sql, "{}", self.column_spec_auto_increment_keyword()).unwrap()
-            }
-            ColumnSpec::UniqueKey => write!(sql, "UNIQUE").unwrap(),
-            ColumnSpec::PrimaryKey => write!(sql, "PRIMARY KEY").unwrap(),
-            ColumnSpec::Check(check) => self.prepare_check_constraint(check, sql),
-            ColumnSpec::Generated { expr, stored } => {
-                self.prepare_generated_column(expr, *stored, sql)
-            }
-            ColumnSpec::Extra(string) => write!(sql, "{string}").unwrap(),
-            ColumnSpec::Comment(comment) => self.column_comment(comment, sql),
-            ColumnSpec::Using(_) => {}
+        let ColumnSpec {
+            nullable,
+            default,
+            auto_increment,
+            unique,
+            primary_key,
+            check,
+            generated,
+            extra,
+            comment,
+            using: _,
+        } = column_spec;
+
+        if let Some(nullable) = nullable {
+            sql.write_str(if *nullable { " NULL" } else { " NOT NULL" })
+                .unwrap();
+        }
+
+        if let Some(default) = default {
+            write!(sql, " DEFAULT ").unwrap();
+            QueryBuilder::prepare_simple_expr(self, default, sql);
+        }
+
+        if let Some(generated) = generated {
+            self.prepare_generated_column(&generated.expr, generated.stored, sql);
+        }
+
+        if *auto_increment {
+            sql.write_str(self.column_spec_auto_increment_keyword())
+                .unwrap();
+        }
+
+        if *primary_key {
+            sql.write_str(" PRIMARY KEY").unwrap();
+        }
+
+        if *unique {
+            sql.write_str(" UNIQUE").unwrap();
+        }
+
+        if let Some(check) = check {
+            sql.write_str(" ").unwrap();
+            self.prepare_check_constraint(check, sql);
+        }
+
+        if let Some(extra) = extra {
+            sql.write_str(" ").unwrap();
+            sql.write_str(extra).unwrap();
+        }
+
+        if let Some(comment) = comment {
+            self.column_comment(comment, sql);
         }
     }
 
