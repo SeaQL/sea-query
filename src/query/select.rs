@@ -1391,6 +1391,8 @@ impl SelectStatement {
 
     /// Join with other table by [`JoinType`].
     ///
+    /// If [`JoinType`] is [`CrossJoin`](JoinType::CrossJoin), the condition will be ignored.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1468,6 +1470,8 @@ impl SelectStatement {
 
     /// Join with other table by [`JoinType`], assigning an alias to the joined table.
     ///
+    /// If [`JoinType`] is [`CrossJoin`](JoinType::CrossJoin), the condition will be ignored.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1528,12 +1532,16 @@ impl SelectStatement {
         A: IntoIden,
         C: IntoCondition,
     {
+        let on = match join {
+            JoinType::CrossJoin => None,
+            _ => Some(JoinOn::Condition(Box::new(
+                ConditionHolder::new_with_condition(condition.into_condition()),
+            ))),
+        };
         self.push_join(
             join,
             tbl_ref.into_table_ref().alias(alias.into_iden()),
-            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
-                condition.into_condition(),
-            ))),
+            on,
             false,
         )
     }
