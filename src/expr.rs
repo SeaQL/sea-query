@@ -43,7 +43,7 @@ pub enum Expr {
     AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
     Constant(Value),
-    TypeName(DynIden),
+    TypeName(TypeName),
 }
 
 /// "Operator" methods for building expressions.
@@ -1543,10 +1543,6 @@ where
 }
 
 impl Expr {
-    pub fn new(expr: impl Into<Self>) -> Self {
-        expr.into()
-    }
-
     #[deprecated(since = "0.29.0", note = "Please use the [`Asterisk`]")]
     pub fn asterisk() -> Self {
         Self::col(Asterisk)

@@ -52,6 +52,8 @@ pub struct TableName(pub Option<SchemaName>, pub DynIden);
 
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
+* `cast_as_quoted` now allows you to [qualify the type
+  name](https://github.com/SeaQL/sea-query/issues/827).
 * Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
 ```rust
 assert_eq!(std::mem::size_of::<Value>(), 32);
@@ -96,6 +98,11 @@ assert_eq!(
 
 ### Breaking Changes
 
+* Changed `Expr::TypeName(DynIden)` to `Expr::TypeName(TypeName)`, which can be
+  [qualified](https://github.com/SeaQL/sea-query/issues/827).
+
+  If you manually construct this variant and it no longer compiles, just add
+  `.into()`.
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
@@ -243,6 +250,8 @@ from_tbl: "foo".into_table_ref(),
 ```
 
 ### Minor breaking changes
+
+* Implemented `IntoCondition` for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for Condition`.
 
 * Unboxed `Value` variants may cause compile error. Simply remove the `Box` in these cases https://github.com/SeaQL/sea-query/pull/925
 ```rust

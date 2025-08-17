@@ -19,14 +19,20 @@ pub trait TableRefBuilder: QuotedBuilder {
     /// Translate [`TableName`] into an SQL statement.
     fn prepare_table_name(&self, table_name: &TableName, sql: &mut dyn SqlWriter) {
         let TableName(schema_name, table) = table_name;
-        if let Some(SchemaName(database_name, schema)) = schema_name {
-            if let Some(DatabaseName(database)) = database_name {
-                self.prepare_iden(database, sql);
-                sql.write_str(".").unwrap();
-            }
-            self.prepare_iden(schema, sql);
+        if let Some(schema_name) = schema_name {
+            self.prepare_schema_name(schema_name, sql);
             sql.write_str(".").unwrap();
         }
         self.prepare_iden(table, sql);
+    }
+
+    /// Translate [`SchemaName`] into an SQL statement.
+    fn prepare_schema_name(&self, schema_name: &SchemaName, sql: &mut dyn SqlWriter) {
+        let SchemaName(database_name, schema) = schema_name;
+        if let Some(DatabaseName(database)) = database_name {
+            self.prepare_iden(database, sql);
+            write!(sql, ".").unwrap();
+        }
+        self.prepare_iden(schema, sql);
     }
 }
