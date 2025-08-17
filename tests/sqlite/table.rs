@@ -18,7 +18,7 @@ fn create_1() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "glyph" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""aspect" double NOT NULL,"#,
             r#""image" text"#,
             r#")"#,
@@ -45,7 +45,7 @@ fn create_2() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "font" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""name" varchar NOT NULL,"#,
             r#""variant" varchar NOT NULL,"#,
             r#""language" varchar NOT NULL"#,
@@ -87,7 +87,7 @@ fn create_3() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
             r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,
@@ -154,7 +154,7 @@ fn create_6() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "task" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""is_done" boolean NOT NULL"#,
             r#")"#,
         ]
@@ -177,7 +177,7 @@ fn create_7() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE "task" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT"#,
             r#")"#,
         ]
         .join(" ")
@@ -201,7 +201,7 @@ fn create_8() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TEMPORARY TABLE "font" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""name" varchar NOT NULL"#,
             r#")"#,
         ]
@@ -242,7 +242,7 @@ fn create_with_unique_index() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
             r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,
@@ -341,7 +341,7 @@ fn create_with_unique_index_constraint() {
             .to_string(SqliteQueryBuilder),
         [
             r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
             r#""font_size" integer NOT NULL,"#,
             r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,

@@ -36,7 +36,7 @@ use crate::{
 ///     table.to_string(MysqlQueryBuilder),
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
+///             r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
 ///             r#"`font_size` int NOT NULL COMMENT 'font\'s size',"#,
 ///             r#"`character` varchar(255) NOT NULL,"#,
 ///             r#"`size_w` int NOT NULL,"#,
@@ -68,7 +68,7 @@ use crate::{
 ///     table.to_string(SqliteQueryBuilder),
 ///     [
 ///        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-///            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+///            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
 ///            r#""font_size" integer NOT NULL,"#,
 ///            r#""character" varchar NOT NULL,"#,
 ///            r#""size_w" integer NOT NULL,"#,
@@ -375,7 +375,7 @@ impl TableCreateStatement {
     ///     statement.to_string(MysqlQueryBuilder),
     ///     [
     ///         "CREATE TEMPORARY TABLE `font` (",
-    ///         "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+    ///         "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
     ///         "`name` varchar(255) NOT NULL",
     ///         ")",
     ///     ]
@@ -395,7 +395,7 @@ impl TableCreateStatement {
     ///     statement.to_string(SqliteQueryBuilder),
     ///     [
     ///         r#"CREATE TEMPORARY TABLE "font" ("#,
-    ///         r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+    ///         r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
     ///         r#""name" varchar NOT NULL"#,
     ///         r#")"#,
     ///     ]

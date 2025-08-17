@@ -750,7 +750,7 @@
 //!     table.to_string(MysqlQueryBuilder),
 //!     [
 //!         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-//!             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
+//!             r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
 //!             r#"`font_size` int NOT NULL,"#,
 //!             r#"`character` varchar(255) NOT NULL,"#,
 //!             r#"`size_w` int NOT NULL,"#,
@@ -782,7 +782,7 @@
 //!     table.to_string(SqliteQueryBuilder),
 //!     [
 //!        r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-//!            r#""id" integer NOT NULL AUTOINCREMENT PRIMARY KEY,"#,
+//!            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
 //!            r#""font_size" integer NOT NULL,"#,
 //!            r#""character" varchar NOT NULL,"#,
 //!            r#""size_w" integer NOT NULL,"#,

@@ -119,13 +119,13 @@ pub trait TableBuilder:
             self.prepare_generated_column(&generated.expr, generated.stored, sql);
         }
 
+        if *primary_key {
+            sql.write_str(" PRIMARY KEY").unwrap();
+        }
+
         if *auto_increment {
             sql.write_str(self.column_spec_auto_increment_keyword())
                 .unwrap();
-        }
-
-        if *primary_key {
-            sql.write_str(" PRIMARY KEY").unwrap();
         }
 
         if *unique {

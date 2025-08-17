@@ -21,7 +21,7 @@ fn create_1() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `glyph` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`aspect` double NOT NULL,",
             "`image` text",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
@@ -51,7 +51,7 @@ fn create_2() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `font` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`name` varchar(255) NOT NULL,",
             "`variant` varchar(255) NOT NULL,",
             "`language` varchar(1024) NOT NULL",
@@ -103,7 +103,7 @@ fn create_3() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE IF NOT EXISTS `character` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`font_size` int NOT NULL,",
             "`character` varchar(255) NOT NULL,",
             "`size_w` int UNSIGNED NOT NULL,",
@@ -256,7 +256,7 @@ fn create_11() {
             .to_string(MysqlQueryBuilder),
         [
             r#"CREATE TEMPORARY TABLE `font` ("#,
-            r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
+            r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
             r#"`name` varchar(255) NOT NULL"#,
             r#")"#,
         ]
@@ -304,7 +304,7 @@ fn create_12() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE IF NOT EXISTS `character` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`font_size` int NOT NULL,",
             "`character` varchar(255) NOT NULL,",
             "`size_w` int UNSIGNED NOT NULL,",
