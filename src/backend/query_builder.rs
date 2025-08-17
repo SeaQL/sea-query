@@ -468,8 +468,8 @@ pub trait QueryBuilder:
                 while let Some(token) = tokenizer.next() {
                     match token {
                         Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
-                            Some(Token::Punctuation(mark)) if mark == placeholder => {
-                                sql.write_str(mark).unwrap();
+                            Some(Token::Punctuation(next_mark)) if next_mark == &placeholder => {
+                                sql.write_str(next_mark).unwrap();
                                 tokenizer.next();
                             }
                             Some(Token::Unquoted(tok)) if numbered => {
