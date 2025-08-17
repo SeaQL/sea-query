@@ -257,56 +257,19 @@ impl TableRef {
     }
 }
 
-pub trait IntoTableRef {
-    fn into_table_ref(self) -> TableRef;
-}
-
-impl<T> IntoTableRef for T
-where
-    T: Into<TableRef>,
-{
-    #[inline(always)]
+pub trait IntoTableRef: Into<TableRef> {
     fn into_table_ref(self) -> TableRef {
         self.into()
     }
 }
 
-/// Previously, we implemented [`IntoTableRef`] for T: Into<TableName>.
-/// To maintain compatibility, we need to specialize them manually.
-impl From<TableName> for TableRef {
-    fn from(value: TableName) -> Self {
-        TableRef::Table(value, None)
-    }
-}
+impl<T> IntoTableRef for T where T: Into<TableRef> {}
 
-/// Manual specialize T: [`MaybeQualifiedOnce`]
 impl<T> From<T> for TableRef
 where
-    T: IntoIden,
+    T: Into<TableName>,
 {
     fn from(value: T) -> Self {
-        TableRef::Table(value.into(), None)
-    }
-}
-
-impl<S, T> From<(S, T)> for TableRef
-where
-    S: IntoIden,
-    T: IntoIden,
-{
-    fn from(value: (S, T)) -> Self {
-        TableRef::Table(value.into(), None)
-    }
-}
-
-/// Manual specialize T: [`MaybeQualifiedTwice`]
-impl<S, T, U> From<(S, T, U)> for TableRef
-where
-    S: IntoIden,
-    T: IntoIden,
-    U: IntoIden,
-{
-    fn from(value: (S, T, U)) -> Self {
         TableRef::Table(value.into(), None)
     }
 }
