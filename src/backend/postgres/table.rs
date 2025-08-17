@@ -143,6 +143,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     if let Some(nullable) = column_def.spec.nullable {
                         if !is_first {
                             write!(sql, ", ").unwrap();
+                        } else {
                             is_first = false
                         }
                         write!(sql, "ALTER COLUMN ").unwrap();
@@ -157,6 +158,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     if let Some(default) = &column_def.spec.default {
                         if !is_first {
                             write!(sql, ", ").unwrap();
+                        } else {
                             is_first = false
                         }
                         write!(sql, "ALTER COLUMN ").unwrap();
@@ -167,6 +169,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     if column_def.spec.unique {
                         if !is_first {
                             write!(sql, ", ").unwrap();
+                        } else {
                             is_first = false
                         }
                         write!(sql, "ADD UNIQUE (").unwrap();
@@ -176,6 +179,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     if column_def.spec.primary_key {
                         if !is_first {
                             write!(sql, ", ").unwrap();
+                        } else {
                             is_first = false
                         }
                         write!(sql, "ADD PRIMARY KEY (").unwrap();
@@ -185,6 +189,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     if let Some(check) = &column_def.spec.check {
                         if !is_first {
                             write!(sql, ", ").unwrap();
+                        } else {
                             is_first = false
                         }
 
