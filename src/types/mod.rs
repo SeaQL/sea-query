@@ -290,8 +290,21 @@ impl TableRef {
     }
 }
 
-pub trait IntoTableRef {
-    fn into_table_ref(self) -> TableRef;
+pub trait IntoTableRef: Into<TableRef> {
+    fn into_table_ref(self) -> TableRef {
+        self.into()
+    }
+}
+
+impl<T> IntoTableRef for T where T: Into<TableRef> {}
+
+impl<T> From<T> for TableRef
+where
+    T: Into<TableName>,
+{
+    fn from(value: T) -> Self {
+        TableRef::Table(value.into(), None)
+    }
 }
 
 /// Unary operators.
@@ -588,21 +601,6 @@ where
 {
     fn from(iden: T) -> Self {
         DatabaseName(iden.into_iden())
-    }
-}
-
-impl IntoTableRef for TableRef {
-    fn into_table_ref(self) -> TableRef {
-        self
-    }
-}
-
-impl<T> IntoTableRef for T
-where
-    T: Into<TableName>,
-{
-    fn into_table_ref(self) -> TableRef {
-        TableRef::Table(self.into(), None)
     }
 }
 
