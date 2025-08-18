@@ -257,6 +257,8 @@ from_tbl: "foo".into_table_ref(),
 
 ### Minor breaking changes
 
+* Implement `IntoColumnRef` for `T: Into<ColumnRef>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for ColumnRef`.
+
 * Implement `IntoValueTuple` for `T: Into<ValueTuple>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for ValueTuple`.
 
 * Implemented `IntoCondition` for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for Condition`.
