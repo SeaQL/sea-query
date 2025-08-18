@@ -1117,59 +1117,32 @@ impl SelectStatement {
     ///     .column(Char::Character)
     ///     .column((Font::Table, Font::Name))
     ///     .from(Char::Table)
-    ///     .cross_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+    ///     .cross_join(Font::Table)
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id""#
+    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font""#
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().selected_tables(),
     ///     [Char::Table.into_iden(), Font::Table.into_iden()]
     /// );
-    ///
-    /// // Constructing chained join conditions
-    /// let query = Query::select()
-    ///         .column(Char::Character)
-    ///         .column((Font::Table, Font::Name))
-    ///         .from(Char::Table)
-    ///         .cross_join(
-    ///             Font::Table,
-    ///             all![
-    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
-    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
-    ///             ]
-    ///         )
-    ///         .to_owned();
-    ///
-    /// assert_eq!(
-    ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character`, `font`.`name` FROM `character` CROSS JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
-    /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character", "font"."name" FROM "character" CROSS JOIN "font" ON "character"."font_id" = "font"."id" AND "character"."font_id" = "font"."id""#
-    /// );
     /// ```
-    pub fn cross_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
+    pub fn cross_join<R>(&mut self, tbl_ref: R) -> &mut Self
     where
         R: IntoTableRef,
-        C: IntoCondition,
     {
-        self.join(JoinType::CrossJoin, tbl_ref, condition)
+        self.push_join(JoinType::CrossJoin, tbl_ref.into_table_ref(), None, false);
+        self
     }
 
     /// Left join.
@@ -1418,6 +1391,8 @@ impl SelectStatement {
 
     /// Join with other table by [`JoinType`].
     ///
+    /// If [`JoinType`] is [`CrossJoin`](JoinType::CrossJoin), the condition will be ignored.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1484,17 +1459,18 @@ impl SelectStatement {
         R: IntoTableRef,
         C: IntoCondition,
     {
-        self.join_join(
-            join,
-            tbl_ref.into_table_ref(),
-            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
-                condition.into_condition(),
+        let on = match join {
+            JoinType::CrossJoin => None,
+            _ => Some(JoinOn::Condition(Box::new(
+                ConditionHolder::new_with_condition(condition.into_condition()),
             ))),
-            false,
-        )
+        };
+        self.push_join(join, tbl_ref.into_table_ref(), on, false)
     }
 
     /// Join with other table by [`JoinType`], assigning an alias to the joined table.
+    ///
+    /// If [`JoinType`] is [`CrossJoin`](JoinType::CrossJoin), the condition will be ignored.
     ///
     /// # Examples
     ///
@@ -1556,12 +1532,16 @@ impl SelectStatement {
         A: IntoIden,
         C: IntoCondition,
     {
-        self.join_join(
+        let on = match join {
+            JoinType::CrossJoin => None,
+            _ => Some(JoinOn::Condition(Box::new(
+                ConditionHolder::new_with_condition(condition.into_condition()),
+            ))),
+        };
+        self.push_join(
             join,
             tbl_ref.into_table_ref().alias(alias.into_iden()),
-            JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
-                condition.into_condition(),
-            ))),
+            on,
             false,
         )
     }
@@ -1633,7 +1613,7 @@ impl SelectStatement {
         T: IntoIden,
         C: IntoCondition,
     {
-        self.join_join(
+        self.push_join(
             join,
             TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
@@ -1702,7 +1682,7 @@ impl SelectStatement {
         T: IntoIden,
         C: IntoCondition,
     {
-        self.join_join(
+        self.push_join(
             join,
             TableRef::SubQuery(query.into(), alias.into_iden()),
             JoinOn::Condition(Box::new(ConditionHolder::new_with_condition(
@@ -1712,17 +1692,17 @@ impl SelectStatement {
         )
     }
 
-    fn join_join(
+    fn push_join(
         &mut self,
         join: JoinType,
         table: TableRef,
-        on: JoinOn,
+        on: impl Into<Option<JoinOn>>,
         lateral: bool,
     ) -> &mut Self {
         self.join.push(JoinExpr {
             join,
             table: Box::new(table),
-            on: Some(on),
+            on: on.into(),
             lateral,
         });
         self
