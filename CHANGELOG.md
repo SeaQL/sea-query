@@ -257,6 +257,8 @@ from_tbl: "foo".into_table_ref(),
 
 ### Minor breaking changes
 
+* Implement `IntoValueTuple` for `T: Into<ValueTuple>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for ValueTuple`.
+
 * Implemented `IntoCondition` for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for Condition`.
 
 * Unboxed `Value` variants may cause compile error. Simply remove the `Box` in these cases https://github.com/SeaQL/sea-query/pull/925
