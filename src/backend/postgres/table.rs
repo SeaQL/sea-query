@@ -128,6 +128,17 @@ impl TableBuilder for PostgresQueryBuilder {
                 }
                 TableAlterOption::ModifyColumn(column_def) => {
                     let mut is_first = true;
+
+                    macro_rules! write_comma_if_not_first {
+                        () => {
+                            if !is_first {
+                                write!(sql, ", ").unwrap();
+                            } else {
+                                is_first = false
+                            }
+                        };
+                    }
+
                     if let Some(column_type) = &column_def.types {
                         write!(sql, "ALTER COLUMN ").unwrap();
                         self.prepare_iden(&column_def.name, sql);
@@ -141,11 +152,7 @@ impl TableBuilder for PostgresQueryBuilder {
                     }
 
                     if let Some(nullable) = column_def.spec.nullable {
-                        if !is_first {
-                            write!(sql, ", ").unwrap();
-                        } else {
-                            is_first = false
-                        }
+                        write_comma_if_not_first!();
                         write!(sql, "ALTER COLUMN ").unwrap();
                         self.prepare_iden(&column_def.name, sql);
                         if nullable {
@@ -156,44 +163,26 @@ impl TableBuilder for PostgresQueryBuilder {
                     }
 
                     if let Some(default) = &column_def.spec.default {
-                        if !is_first {
-                            write!(sql, ", ").unwrap();
-                        } else {
-                            is_first = false
-                        }
+                        write_comma_if_not_first!();
                         write!(sql, "ALTER COLUMN ").unwrap();
                         self.prepare_iden(&column_def.name, sql);
                         write!(sql, " SET DEFAULT ").unwrap();
                         QueryBuilder::prepare_simple_expr(self, default, sql);
                     }
                     if column_def.spec.unique {
-                        if !is_first {
-                            write!(sql, ", ").unwrap();
-                        } else {
-                            is_first = false
-                        }
+                        write_comma_if_not_first!();
                         write!(sql, "ADD UNIQUE (").unwrap();
                         self.prepare_iden(&column_def.name, sql);
                         write!(sql, ")").unwrap();
                     }
                     if column_def.spec.primary_key {
-                        if !is_first {
-                            write!(sql, ", ").unwrap();
-                        } else {
-                            is_first = false
-                        }
+                        write_comma_if_not_first!();
                         write!(sql, "ADD PRIMARY KEY (").unwrap();
                         self.prepare_iden(&column_def.name, sql);
                         write!(sql, ")").unwrap();
                     }
                     if let Some(check) = &column_def.spec.check {
-                        if !is_first {
-                            write!(sql, ", ").unwrap();
-                        } else {
-                            is_first = false
-                        }
-
-                        write!(sql, " ").unwrap();
+                        write_comma_if_not_first!();
                         self.prepare_check_constraint(check, sql);
                     }
 
@@ -201,16 +190,19 @@ impl TableBuilder for PostgresQueryBuilder {
                         let _ = x;
                     }
 
-                    if let Some(extra) = &column_def.spec.extra {
-                        write!(sql, "{extra}").unwrap()
-                    }
                     if let Some(x) = &column_def.spec.comment {
                         let _ = x;
                     }
+
                     if let Some(expr) = &column_def.spec.using {
                         write!(sql, " USING ").unwrap();
                         QueryBuilder::prepare_simple_expr(self, expr, sql);
                     }
+
+                    if let Some(extra) = &column_def.spec.extra {
+                        write!(sql, "{extra}").unwrap()
+                    }
+
                     let _ = is_first;
                 }
                 TableAlterOption::RenameColumn(from_name, to_name) => {
