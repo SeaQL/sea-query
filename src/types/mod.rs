@@ -217,8 +217,41 @@ impl ColumnRef {
     }
 }
 
-pub trait IntoColumnRef {
+pub trait IntoColumnRef: Into<ColumnRef> {
     fn into_column_ref(self) -> ColumnRef;
+}
+
+impl<T> IntoColumnRef for T
+where
+    T: Into<ColumnRef>,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        self.into()
+    }
+}
+
+impl<T> From<T> for ColumnRef
+where
+    T: Into<ColumnName>,
+{
+    fn from(value: T) -> Self {
+        ColumnRef::Column(value.into())
+    }
+}
+
+impl From<Asterisk> for ColumnRef {
+    fn from(_: Asterisk) -> Self {
+        ColumnRef::Asterisk(None)
+    }
+}
+
+impl<T> From<(T, Asterisk)> for ColumnRef
+where
+    T: IntoIden,
+{
+    fn from(value: (T, Asterisk)) -> Self {
+        ColumnRef::Asterisk(Some(value.0.into()))
+    }
 }
 
 /// Table references
@@ -562,42 +595,12 @@ where
     }
 }
 
-impl IntoColumnRef for ColumnRef {
-    fn into_column_ref(self) -> ColumnRef {
-        self
-    }
-}
-
 impl<T> From<T> for DatabaseName
 where
     T: IntoIden,
 {
     fn from(iden: T) -> Self {
         DatabaseName(iden.into_iden())
-    }
-}
-
-impl<T> IntoColumnRef for T
-where
-    T: Into<ColumnName>,
-{
-    fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::Column(self.into())
-    }
-}
-
-impl IntoColumnRef for Asterisk {
-    fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::Asterisk(None)
-    }
-}
-
-impl<T> IntoColumnRef for (T, Asterisk)
-where
-    T: IntoIden,
-{
-    fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::Asterisk(Some(self.0.into()))
     }
 }
 
