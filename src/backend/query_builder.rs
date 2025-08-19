@@ -936,6 +936,7 @@ pub trait QueryBuilder:
                 JoinType::LeftJoin => "LEFT JOIN",
                 JoinType::RightJoin => "RIGHT JOIN",
                 JoinType::FullOuterJoin => "FULL OUTER JOIN",
+                #[cfg(feature = "backend-mysql")]
                 JoinType::StraightJoin => "STRAIGHT_JOIN",
             }
         )
