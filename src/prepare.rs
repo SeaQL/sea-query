@@ -77,8 +77,7 @@ impl SqlWriter for SqlWriterValues {
     }
 }
 
-#[cfg(test)]
-fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
+pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
 where
     I: IntoIterator<Item = Value>,
 {
