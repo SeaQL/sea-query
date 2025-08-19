@@ -57,7 +57,7 @@ pub struct TableName(pub Option<SchemaName>, pub DynIden);
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
 * `cast_as_quoted` now allows you to [qualify the type
-  name](https://github.com/SeaQL/sea-query/issues/827).
+  name](https://github.com/SeaQL/sea-query/pull/922).
 * Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
 ```rust
 assert_eq!(std::mem::size_of::<Value>(), 32);
