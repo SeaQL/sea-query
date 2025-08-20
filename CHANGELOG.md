@@ -41,11 +41,30 @@ enum TableRef {
     Table(TableName, Option<DynIden>), // optional Alias
     ..
 }
-// because it's restructured to:
+
 pub struct DatabaseName(pub DynIden);
 pub struct SchemaName(pub Option<DatabaseName>, pub DynIden);
+/// A table name, potentially qualified as [database.][schema.]table
 pub struct TableName(pub Option<SchemaName>, pub DynIden);
-// so TableName can represent [database.][schema.]table
+```
+```rust
+// before
+enum ColumnRef {
+    Column(DynIden),
+    TableColumn(DynIden, DynIden),
+    SchemaTableColumn(DynIden, DynIden, DynIden),
+    Asterisk,
+    TableAsterisk(DynIden),
+}
+// now
+enum ColumnRef {
+    /// A column name, potentially qualified as [database.][schema.][table.]column
+    Column(ColumnName),
+    /// An `*` expression, potentially qualified as [database.][schema.][table.]*
+    Asterisk(Option<TableName>),
+}
+
+pub struct ColumnName(pub Option<TableName>, pub DynIden);
 ```
 
 ### Bug Fixes
