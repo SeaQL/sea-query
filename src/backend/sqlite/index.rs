@@ -6,31 +6,26 @@ impl IndexBuilder for SqliteQueryBuilder {
         create: &IndexCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE ").unwrap();
+        sql.write_str("CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
-        write!(sql, "INDEX ").unwrap();
+        sql.write_str("INDEX ").unwrap();
 
         if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap();
+            sql.write_str("IF NOT EXISTS ").unwrap();
         }
 
         if let Some(name) = &create.index.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
 
-        write!(sql, " ON ").unwrap();
+        sql.write_str(" ON ").unwrap();
         if let Some(table) = &create.table {
             self.prepare_table_ref_index_stmt(table, sql);
         }
 
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
         self.prepare_filter(&create.r#where, sql);
     }
@@ -46,29 +41,24 @@ impl IndexBuilder for SqliteQueryBuilder {
     }
 
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
-        write!(sql, "DROP INDEX ").unwrap();
+        sql.write_str("DROP INDEX ").unwrap();
 
         if drop.if_exists {
-            write!(sql, "IF EXISTS ").unwrap();
+            sql.write_str("IF EXISTS ").unwrap();
         }
 
         if let Some(name) = &drop.index.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
     }
 
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
         if create.primary {
-            write!(sql, "PRIMARY KEY ").unwrap();
+            sql.write_str("PRIMARY KEY ").unwrap();
         } else if create.unique {
-            write!(sql, "UNIQUE ").unwrap();
+            sql.write_str("UNIQUE ").unwrap();
         }
     }
 

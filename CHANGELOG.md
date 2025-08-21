@@ -41,11 +41,30 @@ enum TableRef {
     Table(TableName, Option<DynIden>), // optional Alias
     ..
 }
-// because it's restructured to:
+
 pub struct DatabaseName(pub DynIden);
 pub struct SchemaName(pub Option<DatabaseName>, pub DynIden);
+/// A table name, potentially qualified as [database.][schema.]table
 pub struct TableName(pub Option<SchemaName>, pub DynIden);
-// so TableName can represent [database.][schema.]table
+```
+```rust
+// before
+enum ColumnRef {
+    Column(DynIden),
+    TableColumn(DynIden, DynIden),
+    SchemaTableColumn(DynIden, DynIden, DynIden),
+    Asterisk,
+    TableAsterisk(DynIden),
+}
+// now
+enum ColumnRef {
+    /// A column name, potentially qualified as [database.][schema.][table.]column
+    Column(ColumnName),
+    /// An `*` expression, potentially qualified as [database.][schema.][table.]*
+    Asterisk(Option<TableName>),
+}
+
+pub struct ColumnName(pub Option<TableName>, pub DynIden);
 ```
 
 ### Bug Fixes
@@ -54,10 +73,12 @@ pub struct TableName(pub Option<SchemaName>, pub DynIden);
 
 ### Enhancements
 
+* Add `Keyword::Default` https://github.com/SeaQL/sea-query/pull/965
+
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
 * `cast_as_quoted` now allows you to [qualify the type
-  name](https://github.com/SeaQL/sea-query/issues/827).
+  name](https://github.com/SeaQL/sea-query/pull/922).
 * Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
 ```rust
 assert_eq!(std::mem::size_of::<Value>(), 32);
