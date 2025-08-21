@@ -2384,6 +2384,35 @@ impl Expr {
         Self::Keyword(Keyword::CurrentTimestamp)
     }
 
+    /// Keyword `DEFAULT`.
+    ///
+    /// SQLite does not support VALUES ​​(DEFAULT).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{
+    ///     Expr, MysqlQueryBuilder, PostgresQueryBuilder, Query, SqliteQueryBuilder, tests_cfg::*,
+    /// };
+    ///
+    /// let query = Query::insert()
+    ///     .columns([Char::Id])
+    ///     .values_panic([Expr::keyword_default()])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT (`id`) VALUES (DEFAULT)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT ("id") VALUES (DEFAULT)"#
+    /// );
+    /// ```
+    pub fn keyword_default() -> Self {
+        Self::Keyword(Keyword::Default)
+    }
+
     /// Custom keyword.
     ///
     /// # Examples
