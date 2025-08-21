@@ -561,11 +561,12 @@ impl Func {
     ///     r#"SELECT COALESCE((SELECT MAX("size_w") FROM "character"), "size_h", 12) FROM "character""#
     /// );
     /// ```
-    pub fn coalesce<I>(args: I) -> FunctionCall
+    pub fn coalesce<I, T>(args: I) -> FunctionCall
     where
-        I: IntoIterator<Item = Expr>,
+        I: IntoIterator<Item = T>,
+        T: Into<Expr>,
     {
-        FunctionCall::new(Func::Coalesce).args(args)
+        FunctionCall::new(Func::Coalesce).args(args.into_iter().map(Into::into))
     }
 
     /// Call `LOWER` function.
