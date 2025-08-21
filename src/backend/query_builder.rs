@@ -1035,6 +1035,7 @@ pub trait QueryBuilder:
             Keyword::CurrentDate => write!(sql, "CURRENT_DATE").unwrap(),
             Keyword::CurrentTime => write!(sql, "CURRENT_TIME").unwrap(),
             Keyword::CurrentTimestamp => write!(sql, "CURRENT_TIMESTAMP").unwrap(),
+            Keyword::Default => write!(sql, "DEFAULT").unwrap(),
             Keyword::Custom(iden) => write!(sql, "{iden}").unwrap(),
         }
     }

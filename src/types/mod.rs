@@ -480,6 +480,7 @@ pub enum Keyword {
     CurrentDate,
     CurrentTime,
     CurrentTimestamp,
+    Default,
     Custom(DynIden),
 }
 
