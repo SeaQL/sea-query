@@ -118,7 +118,7 @@ impl SeaRc {
 
 impl std::fmt::Display for DynIden {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        f.write_str(&self.0)
     }
 }
 
@@ -480,6 +480,7 @@ pub enum Keyword {
     CurrentDate,
     CurrentTime,
     CurrentTimestamp,
+    Default,
     Custom(DynIden),
 }
 

@@ -739,7 +739,7 @@ impl std::error::Error for ValueTypeErr {}
 
 impl std::fmt::Display for ValueTypeErr {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Value type mismatch")
+        f.write_str("Value type mismatch")
     }
 }
 
