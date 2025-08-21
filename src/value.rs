@@ -99,6 +99,7 @@ mod with_pgvector;
 
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ArrayType {
     Bool,
     TinyInt,
@@ -207,6 +208,7 @@ pub enum ArrayType {
 /// If the `hashable-value` feature is enabled, NaN == NaN, which contradicts Rust's built-in
 /// implementation of NaN != NaN.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
 pub enum Value {
     Bool(Option<bool>),
