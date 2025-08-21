@@ -49,25 +49,31 @@ impl SqlWriterValues {
 }
 
 impl Write for SqlWriterValues {
+    #[inline]
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        write!(self.string, "{s}")
+        self.string.write_str(s)
+    }
+
+    #[inline]
+    fn write_char(&mut self, c: char) -> std::fmt::Result {
+        self.string.write_char(c)
     }
 }
 
 impl std::fmt::Display for SqlWriterValues {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.string)
+        f.write_str(&self.string)
     }
 }
 
 impl SqlWriter for SqlWriterValues {
     fn push_param(&mut self, value: Value, _: &dyn QueryBuilder) {
         self.counter += 1;
+        self.string.write_str(&self.placeholder).unwrap();
         if self.numbered {
             let counter = self.counter;
-            write!(self.string, "{}{}", self.placeholder, counter).unwrap();
-        } else {
-            write!(self.string, "{}", self.placeholder).unwrap();
+
+            write!(self.string, "{counter}").unwrap();
         }
         self.values.push(value)
     }
@@ -113,7 +119,7 @@ where
                 }
                 output.push_str(mark.as_ref());
             }
-            _ => write!(output, "{token}").unwrap(),
+            _ => output.write_str(token.as_str()).unwrap(),
         }
     }
 

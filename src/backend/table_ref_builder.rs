@@ -11,7 +11,7 @@ pub trait TableRefBuilder: QuotedBuilder {
         };
         self.prepare_table_name(table_name, sql);
         if let Some(alias) = alias {
-            write!(sql, " AS ").unwrap();
+            sql.write_str(" AS ").unwrap();
             self.prepare_iden(alias, sql);
         }
     }
@@ -21,7 +21,7 @@ pub trait TableRefBuilder: QuotedBuilder {
         let TableName(schema_name, table) = table_name;
         if let Some(schema_name) = schema_name {
             self.prepare_schema_name(schema_name, sql);
-            write!(sql, ".").unwrap();
+            sql.write_str(".").unwrap();
         }
         self.prepare_iden(table, sql);
     }
