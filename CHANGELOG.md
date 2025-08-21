@@ -73,6 +73,8 @@ pub struct ColumnName(pub Option<TableName>, pub DynIden);
 
 ### Enhancements
 
+* Add `Keyword::Default` https://github.com/SeaQL/sea-query/pull/965
+
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
 * `cast_as_quoted` now allows you to [qualify the type
