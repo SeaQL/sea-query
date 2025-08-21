@@ -67,7 +67,7 @@ impl From<SubQueryStatement> for Expr {
     }
 }
 
-macro_rules! from_subquery_expr {
+macro_rules! from_into_subquery_expr {
     ($($ty:ty),+) => {
         $(
             impl From<$ty> for Expr {
@@ -79,7 +79,7 @@ macro_rules! from_subquery_expr {
     };
 }
 
-from_subquery_expr!(
+from_into_subquery_expr!(
     WithQuery,
     DeleteStatement,
     UpdateStatement,
