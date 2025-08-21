@@ -36,7 +36,7 @@ use crate::{
 ///     table.to_string(MysqlQueryBuilder),
 ///     [
 ///         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-///             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
+///             r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
 ///             r#"`font_size` int NOT NULL COMMENT 'font\'s size',"#,
 ///             r#"`character` varchar(255) NOT NULL,"#,
 ///             r#"`size_w` int NOT NULL,"#,
@@ -325,8 +325,8 @@ impl TableCreateStatement {
     ///     table.to_string(PostgresQueryBuilder),
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
-    ///         r#""id" uuid DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,"#,
-    ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL,"#,
+    ///         r#""id" uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),"#,
+    ///         r#""created_at" timestamp with time zone NOT NULL DEFAULT NOW(),"#,
     ///         r#""user_data" jsonb NOT NULL"#,
     ///         r#") USING columnar"#,
     ///     ]

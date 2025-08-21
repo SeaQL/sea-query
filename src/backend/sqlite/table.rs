@@ -9,41 +9,15 @@ impl TableBuilder for SqliteQueryBuilder {
             self.prepare_column_type(&column_def.spec, column_type, sql);
         }
 
-        let mut is_primary_key = false;
-        let mut is_auto_increment = false;
-
-        for column_spec in column_def.spec.iter() {
-            if matches!(column_spec, ColumnSpec::PrimaryKey) {
-                is_primary_key = true;
-                continue;
-            }
-            if matches!(column_spec, ColumnSpec::AutoIncrement) {
-                is_auto_increment = true;
-                continue;
-            }
-            if let ColumnSpec::Comment(_) = column_spec {
-                continue;
-            }
-            write!(sql, " ").unwrap();
-            self.prepare_column_spec(column_spec, sql);
-        }
-
-        if is_primary_key {
-            write!(sql, " ").unwrap();
-            self.prepare_column_spec(&ColumnSpec::PrimaryKey, sql);
-        }
-        if is_auto_increment {
-            write!(sql, " ").unwrap();
-            self.prepare_column_spec(&ColumnSpec::AutoIncrement, sql);
-        }
+        self.prepare_column_spec(&column_def.spec, sql);
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
-        self.prepare_column_type(&[], column_type, sql)
+        self.prepare_column_type(&ColumnSpec::default(), column_type, sql)
     }
 
     fn column_spec_auto_increment_keyword(&self) -> &str {
-        "AUTOINCREMENT"
+        " AUTOINCREMENT"
     }
 
     fn prepare_table_drop_opt(&self, _drop_opt: &TableDropOpt, _sql: &mut dyn SqlWriter) {
@@ -123,13 +97,11 @@ impl TableBuilder for SqliteQueryBuilder {
 impl SqliteQueryBuilder {
     fn prepare_column_type(
         &self,
-        column_specs: &[ColumnSpec],
+        column_specs: &ColumnSpec,
         column_type: &ColumnType,
         sql: &mut dyn SqlWriter,
     ) {
-        let is_auto_increment = column_specs
-            .iter()
-            .any(|s| matches!(s, ColumnSpec::AutoIncrement));
+        let is_auto_increment = column_specs.auto_increment;
         write!(
             sql,
             "{}",
