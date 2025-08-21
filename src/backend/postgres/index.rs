@@ -170,6 +170,9 @@ impl IndexBuilder for PostgresQueryBuilder {
                     }
                 }
             }
+            if let Some(operator_class) = col.operator_class() {
+                write!(sql, " {}", operator_class.to_string()).unwrap();
+            }
             false
         });
         write!(sql, ")").unwrap();
