@@ -46,6 +46,84 @@ pub enum Expr {
     TypeName(TypeName),
 }
 
+impl<T> From<T> for Expr
+where
+    T: Into<Value>,
+{
+    fn from(v: T) -> Self {
+        Self::Value(v.into())
+    }
+}
+
+impl From<Vec<Value>> for Expr {
+    fn from(v: Vec<Value>) -> Self {
+        Self::Values(v)
+    }
+}
+
+impl From<SubQueryStatement> for Expr {
+    fn from(v: SubQueryStatement) -> Self {
+        Self::SubQuery(None, Box::new(v))
+    }
+}
+
+macro_rules! from_subquery_expr {
+    ($($ty:ty),+) => {
+        $(
+            impl From<$ty> for Expr {
+                fn from(v: $ty) -> Self {
+                    Self::SubQuery(None, Box::new(v.into()))
+                }
+            }
+        )+
+    };
+}
+
+from_subquery_expr!(
+    WithQuery,
+    DeleteStatement,
+    UpdateStatement,
+    InsertStatement,
+    SelectStatement
+);
+
+impl From<FunctionCall> for Expr {
+    fn from(func: FunctionCall) -> Self {
+        Self::FunctionCall(func)
+    }
+}
+
+impl From<ColumnRef> for Expr {
+    fn from(col: ColumnRef) -> Self {
+        Self::Column(col)
+    }
+}
+
+impl From<Keyword> for Expr {
+    fn from(k: Keyword) -> Self {
+        Self::Keyword(k)
+    }
+}
+
+impl From<LikeExpr> for Expr {
+    fn from(like: LikeExpr) -> Self {
+        match like.escape {
+            Some(escape) => Self::Binary(
+                Box::new(like.pattern.into()),
+                BinOper::Escape,
+                Box::new(Expr::Constant(escape.into())),
+            ),
+            None => like.pattern.into(),
+        }
+    }
+}
+
+impl From<TypeName> for Expr {
+    fn from(type_name: TypeName) -> Self {
+        Self::TypeName(type_name)
+    }
+}
+
 /// "Operator" methods for building expressions.
 ///
 /// Before `sea_query` 0.32.0 (`sea_orm` 1.1.1),
@@ -2406,47 +2484,6 @@ impl Expr {
         Self::Keyword(Keyword::Custom(i.into_iden()))
     }
 }
-
-impl<T> From<T> for Expr
-where
-    T: Into<Value>,
-{
-    fn from(v: T) -> Self {
-        Self::Value(v.into())
-    }
-}
-
-impl From<FunctionCall> for Expr {
-    fn from(func: FunctionCall) -> Self {
-        Self::FunctionCall(func)
-    }
-}
-
-impl From<ColumnRef> for Expr {
-    fn from(col: ColumnRef) -> Self {
-        Self::Column(col)
-    }
-}
-
-impl From<Keyword> for Expr {
-    fn from(k: Keyword) -> Self {
-        Self::Keyword(k)
-    }
-}
-
-impl From<LikeExpr> for Expr {
-    fn from(like: LikeExpr) -> Self {
-        match like.escape {
-            Some(escape) => Self::Binary(
-                Box::new(like.pattern.into()),
-                BinOper::Escape,
-                Box::new(Expr::Constant(escape.into())),
-            ),
-            None => like.pattern.into(),
-        }
-    }
-}
-
 impl Expr {
     pub(crate) fn is_binary(&self) -> bool {
         matches!(self, Self::Binary(_, _, _))

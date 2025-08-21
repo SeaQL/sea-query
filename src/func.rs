@@ -537,24 +537,28 @@ impl Func {
     ///
     /// let query = Query::select()
     ///     .expr(Func::coalesce([
-    ///         Expr::col(Char::SizeW).into(),
-    ///         Expr::col(Char::SizeH).into(),
-    ///         Expr::val(12).into(),
+    ///         Query::select()
+    ///             .from(Char::Table)
+    ///             .expr(Func::max(Expr::col(Char::SizeW)))
+    ///             .take()
+    ///             .into(),
+    ///         Expr::col(Char::SizeH),
+    ///         Expr::val(12),
     ///     ]))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
+    ///     r#"SELECT COALESCE((SELECT MAX(`size_w`) FROM `character`), `size_h`, 12) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    ///     r#"SELECT COALESCE((SELECT MAX("size_w") FROM "character"), "size_h", 12) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    ///     r#"SELECT COALESCE((SELECT MAX("size_w") FROM "character"), "size_h", 12) FROM "character""#
     /// );
     /// ```
     pub fn coalesce<I>(args: I) -> FunctionCall
