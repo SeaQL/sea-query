@@ -78,7 +78,6 @@ jobs:
       - run: cargo build --workspace --features=with-mac_address
       - run: cargo build --workspace --features=postgres-array
       - run: cargo build --workspace --features=postgres-vector
-      - run: cargo build --workspace --features=thread-safe
 
   binder-build:
     name: Build `sea-query-sqlx`

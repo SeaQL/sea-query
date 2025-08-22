@@ -72,6 +72,7 @@ with-jiff = ["jiff"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
 sqlx-utils = ["derive"]
+sea-orm = ["sea-query-derive"]
 tests-cfg = []
 all-features = [
     "backend-mysql",
