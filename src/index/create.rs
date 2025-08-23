@@ -213,6 +213,7 @@ pub struct IndexCreateStatement {
     pub(crate) index: TableIndex,
     pub(crate) primary: bool,
     pub(crate) unique: bool,
+    pub(crate) concurrently: bool,
     pub(crate) nulls_not_distinct: bool,
     pub(crate) index_type: Option<IndexType>,
     pub(crate) if_not_exists: bool,
@@ -238,6 +239,7 @@ impl IndexCreateStatement {
             index: Default::default(),
             primary: false,
             unique: false,
+            concurrently: false,
             nulls_not_distinct: false,
             index_type: None,
             if_not_exists: false,
@@ -291,6 +293,12 @@ impl IndexCreateStatement {
         self
     }
 
+    /// Set index to be created concurrently. Only available on Postgres.
+    pub fn concurrently(&mut self) -> &mut Self {
+        self.concurrently = true;
+        self
+    }
+
     /// Set nulls to not be treated as distinct values. Only available on Postgres.
     pub fn nulls_not_distinct(&mut self) -> &mut Self {
         self.nulls_not_distinct = true;
@@ -340,6 +348,7 @@ impl IndexCreateStatement {
             index: self.index.take(),
             primary: self.primary,
             unique: self.unique,
+            concurrently: self.concurrently,
             nulls_not_distinct: self.nulls_not_distinct,
             index_type: self.index_type.take(),
             if_not_exists: self.if_not_exists,
