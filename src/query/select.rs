@@ -1389,6 +1389,53 @@ impl SelectStatement {
         self.join(JoinType::FullOuterJoin, tbl_ref, condition)
     }
 
+    /// Straight join.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .column(Char::Character)
+    ///     .column((Font::Table, Font::Name))
+    ///     .from(Char::Table)
+    ///     .straight_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` STRAIGHT_JOIN `font` ON `character`.`font_id` = `font`.`id`"#
+    /// );
+    ///
+    /// // Constructing chained join conditions
+    /// let query = Query::select()
+    ///         .column(Char::Character)
+    ///         .column((Font::Table, Font::Name))
+    ///         .from(Char::Table)
+    ///         .straight_join(
+    ///             Font::Table,
+    ///             all![
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///                 Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+    ///             ]
+    ///         )
+    ///         .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character`, `font`.`name` FROM `character` STRAIGHT_JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
+    /// );
+    /// ```
+    #[cfg(feature = "backend-mysql")]
+    pub fn straight_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
+    where
+        R: IntoTableRef,
+        C: IntoCondition,
+    {
+        self.join(JoinType::StraightJoin, tbl_ref, condition)
+    }
+
     /// Join with other table by [`JoinType`].
     ///
     /// If [`JoinType`] is [`CrossJoin`](JoinType::CrossJoin), the condition will be ignored.
