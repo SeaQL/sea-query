@@ -43,7 +43,7 @@ pub enum Expr {
     AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
     Constant(Value),
-    TypeName(TypeName),
+    TypeName(TypeRef),
 }
 
 /// "Operator" methods for building expressions.

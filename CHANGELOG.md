@@ -125,7 +125,9 @@ assert_eq!(
 
 * `SelectStatement::cross_join` no longer accepts a condition https://github.com/SeaQL/sea-query/pull/956
 
-* Changed `Expr::TypeName(DynIden)` to `Expr::TypeName(TypeName)`, which can be
+* Turned `TypeRef` from an enum into a struct that reuses `TableName`.
+
+* Changed `Expr::TypeName(DynIden)` to `Expr::TypeName(TypeRef)`, which can be
   [qualified](https://github.com/SeaQL/sea-query/issues/827).
 
   If you manually construct this variant and it no longer compiles, just add
@@ -278,13 +280,21 @@ from_tbl: "foo".into_table_ref(),
 
 ### Minor breaking changes
 
-* Implemented `IntoTableRef` for `T: Into<TableRef>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for TableRef`.
+* Changed `Into*` traits (like `IntoCondition`) to be defined as `trait
+  IntoCondition: Into<Condition>` and implemented for all `T: Into<Condition>`.
+  Now `IntoCondition` and `Into<Condition>` are completely interchangable. But
+  you can still use `.into_condition()` for readability.
 
-* Implemented `IntoColumnRef` for `T: Into<ColumnRef>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for ColumnRef`.
+  If you have manually implemented `Into*` traits, it may cause conflicts. You
+  should rewrite your impls as as `impl From<..> for TableRef`.
 
-* Implemented `IntoValueTuple` for `T: Into<ValueTuple>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for ValueTuple`.
+  Full list of changed traits:
 
-* Implemented `IntoCondition` for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for Condition`.
+    * `IntoColumnRef`
+    * `IntoCondition`
+    * `IntoTableRef`
+    * `IntoTypeRef`
+    * `IntoValueTuple`
 
 * Unboxed `Value` variants may cause compile error. Simply remove the `Box` in these cases https://github.com/SeaQL/sea-query/pull/925
 ```rust

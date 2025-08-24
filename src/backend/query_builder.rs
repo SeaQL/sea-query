@@ -500,7 +500,7 @@ pub trait QueryBuilder:
                 self.prepare_constant(val, sql);
             }
             Expr::TypeName(type_name) => {
-                self.prepare_type_name(type_name, sql);
+                self.prepare_type_ref(type_name, sql);
             }
         }
     }
@@ -949,9 +949,9 @@ pub trait QueryBuilder:
         self.prepare_function_name_common(function, sql)
     }
 
-    /// Translate [`TypeName`] into an SQL statement.
-    fn prepare_type_name(&self, type_name: &TypeName, sql: &mut dyn SqlWriter) {
-        let TypeName(schema_name, r#type) = type_name;
+    /// Translate [`TypeRef`] into an SQL statement.
+    fn prepare_type_ref(&self, type_name: &TypeRef, sql: &mut dyn SqlWriter) {
+        let TypeRef(schema_name, r#type) = type_name;
         if let Some(schema_name) = schema_name {
             self.prepare_schema_name(schema_name, sql);
             write!(sql, ".").unwrap();

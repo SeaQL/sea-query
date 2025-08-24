@@ -148,7 +148,20 @@ pub struct SchemaName(pub Option<DatabaseName>, pub DynIden);
 
 /// An SQL type name, potentially qualified as `(database.)(schema.)type`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct TypeName(pub Option<SchemaName>, pub DynIden);
+pub struct TypeRef(pub Option<SchemaName>, pub DynIden);
+
+pub trait IntoTypeRef: Into<TypeRef> {
+    fn into_type_ref(self) -> TypeRef;
+}
+
+impl<T> IntoTypeRef for T
+where
+    T: Into<TypeRef>,
+{
+    fn into_type_ref(self) -> TypeRef {
+        self.into()
+    }
+}
 
 /// A table name, potentially qualified as `(database.)(schema.)table`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
