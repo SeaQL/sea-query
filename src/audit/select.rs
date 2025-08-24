@@ -83,7 +83,7 @@ impl Walker {
             TableRef::Table(table_name, _) => {
                 self.access.push(QueryAccessRequest {
                     access_type: AccessType::Select,
-                    schema_table: table_name.clone(),
+                    table_name: table_name.clone(),
                 });
             }
             TableRef::ValuesList(_, _) => (),
@@ -237,11 +237,11 @@ impl Walker {
         Ok(())
     }
 
-    fn remove_item(&mut self, access_type: AccessType, target: &SchemaTable) {
+    fn remove_item(&mut self, access_type: AccessType, target: &TableName) {
         while let Some(pos) = self
             .access
             .iter()
-            .position(|item| item.access_type == access_type && &item.schema_table == target)
+            .position(|item| item.access_type == access_type && &item.table_name == target)
         {
             self.access.remove(pos);
         }
@@ -264,10 +264,10 @@ fn wrap_result(access: Vec<QueryAccessRequest>) -> QueryAccessAudit {
                     AccessType::Delete => &mut delete_set,
                     _ => todo!(),
                 };
-                if set.contains(&access.schema_table) {
+                if set.contains(&access.table_name) {
                     None
                 } else {
-                    set.insert(access.schema_table.clone());
+                    set.insert(access.table_name.clone());
                     Some(access)
                 }
             })

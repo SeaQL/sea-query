@@ -24,7 +24,7 @@ pub struct DynIden(pub(crate) Cow<'static, str>); // new
 pub struct SeaRc<I>(pub(crate) RcOrArc<I>);       // old
 pub struct SeaRc;                                 // new
 ```
-* Reworked `TableRef` and `ColumnRef` variants. `SchemaTable` is now a type alias of `TableName` https://github.com/SeaQL/sea-query/pull/927
+* Reworked `TableRef` and `ColumnRef` variants https://github.com/SeaQL/sea-query/pull/927
 ```rust
 // the following variants are collapsed into one:
 enum TableRef {
