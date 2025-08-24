@@ -97,6 +97,9 @@ pub mod with_array;
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
 mod with_pgvector;
 
+#[cfg(all(test, feature = "serde", feature = "with-json"))]
+mod serde_tests;
+
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

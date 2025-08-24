@@ -72,7 +72,7 @@ serde = [
     "rust_decimal?/serde",
     "ipnetwork?/serde",
     "mac_address?/serde",
-    "pgvector?/serde"
+    "pgvector?/serde",
 ]
 thread-safe = []
 with-chrono = ["chrono"]
@@ -88,16 +88,17 @@ sqlx-utils = ["derive"]
 sea-orm = ["sea-query-derive"]
 tests-cfg = []
 all-features = [
+    "all-types",
+    "attr",
+    "audit",
     "backend-mysql",
     "backend-postgres",
     "backend-sqlite",
     "derive",
-    "attr",
     "hashable-value",
-    "thread-safe",
-    "all-types",
-    "audit",
+    "serde",
     "sqlx-utils",
+    "thread-safe",
 ] # everything except option-*
 all-types = [
     "postgres-array",
