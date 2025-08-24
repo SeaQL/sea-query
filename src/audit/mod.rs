@@ -26,7 +26,7 @@ pub struct QueryAccessAudit {
 pub struct QueryAccessRequest {
     pub access_type: AccessType,
     /// The table name can be qualified as `(database.)(schema.)table`.
-    pub table_name: TableName,
+    pub schema_table: TableName,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -55,7 +55,7 @@ impl QueryAccessAudit {
             .iter()
             .filter_map(|item| {
                 if item.access_type == AccessType::Select {
-                    Some(item.table_name.clone())
+                    Some(item.schema_table.clone())
                 } else {
                     None
                 }
@@ -92,7 +92,7 @@ impl QueryAccessAudit {
             .iter()
             .filter_map(|item| {
                 if item.access_type == access_type {
-                    Some(item.table_name.1.clone())
+                    Some(item.schema_table.1.clone())
                 } else {
                     None
                 }

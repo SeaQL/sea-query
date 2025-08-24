@@ -7,18 +7,18 @@ impl AuditTrait for InsertStatement {
         let Some(table) = &self.table else {
             return Err(Error::UnableToParseQuery);
         };
-        let Some(table_name) = common::parse_audit_table(table) else {
+        let Some(schema_table) = common::parse_audit_table(table) else {
             return Err(Error::UnableToParseQuery);
         };
         if self.returning.is_some() {
             requests.push(QueryAccessRequest {
                 access_type: AccessType::Select,
-                table_name: table_name.clone(),
+                schema_table: schema_table.clone(),
             });
         }
         requests.push(QueryAccessRequest {
             access_type: AccessType::Insert,
-            table_name,
+            schema_table,
         });
 
         if let Some(InsertValueSource::Select(select)) = &self.source {
