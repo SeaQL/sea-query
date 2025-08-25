@@ -171,7 +171,7 @@ impl PgFunc {
     /// let query = Query::select()
     ///     .expr(
     ///         PgFunc::json_exists(
-    ///             Expr::val(r#"{"key1": [1,2,3]}"#),
+    ///            Expr::cust(r#"jsonb '{"key1": [1,2,3]}'"#),
     ///             "strict $.key1[*] ? (@ > $x)",
     ///         )
     ///         .passing(2, "x"),
@@ -180,7 +180,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT JSON_EXISTS(E'{\"key1\": [1,2,3]}' 'strict $.key1[*] ? (@ > $x)' PASSING 2 AS x)"#
+    ///     r#"SELECT JSON_EXISTS(jsonb '{"key1": [1,2,3]}' 'strict $.key1[*] ? (@ > $x)' PASSING 2 AS x)"#
     /// );
     /// ```
     ///
@@ -190,12 +190,15 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::json_exists(Expr::val(r#"{"a": [1,2,3]}"#), "lax $.a[5]").error_on_error())
+    ///     .expr(
+    ///         PgFunc::json_exists(Expr::cust(r#"jsonb '{"a": [1,2,3]}'"#), "lax $.a[5]")
+    ///             .error_on_error(),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT JSON_EXISTS(E'{\"a\": [1,2,3]}' 'lax $.a[5]' ERROR ON ERROR)"#
+    ///     r#"SELECT JSON_EXISTS(jsonb '{"a": [1,2,3]}' 'lax $.a[5]' ERROR ON ERROR)"#
     /// );
     /// ```
     ///
@@ -205,12 +208,15 @@ impl PgFunc {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::json_exists(Expr::val(r#"{"a": [1,2,3]}"#), "strict $.a[5]").error_on_error())
+    ///     .expr(
+    ///         PgFunc::json_exists(Expr::cust(r#"jsonb '{"a": [1,2,3]}'"#), "strict $.a[5]")
+    ///             .error_on_error(),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT JSON_EXISTS(E'{\"a\": [1,2,3]}' 'strict $.a[5]' ERROR ON ERROR)"#
+    ///     r#"SELECT JSON_EXISTS(jsonb '{"a": [1,2,3]}' 'strict $.a[5]' ERROR ON ERROR)"#
     /// );
     /// ```
     pub fn json_exists<C, P>(context_item: C, path_expression: P) -> Builder

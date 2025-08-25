@@ -214,15 +214,15 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(
-    ///         PgFunc::json_value(Expr::val(r#""123.45""#), "$")
-    ///             .returning("float".into())
+    ///         PgFunc::json_value(Expr::cust(r#"jsonb '"123.45"'"#), "$")
+    ///             .returning("float")
     ///             .build(),
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT JSON_VALUE(E'\"123.45\"' '$' RETURNING float)"#
+    ///     r#"SELECT JSON_VALUE(jsonb '"123.45"' '$' RETURNING "float")"#
     /// );
     /// ```
     ///
@@ -233,7 +233,7 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(
-    ///         PgFunc::json_value(Expr::val(r#"[1,2]"#), "strict $[$off]")
+    ///         PgFunc::json_value(Expr::cust(r#"jsonb '[1,2]'"#), "strict $[$off]")
     ///             .passing(1, "off")
     ///             .build(),
     ///     )
@@ -241,7 +241,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT JSON_VALUE('[1,2]' 'strict $[$off]' PASSING 1 AS off)"#
+    ///     r#"SELECT JSON_VALUE(jsonb '[1,2]' 'strict $[$off]' PASSING 1 AS off)"#
     /// );
     /// ```
     ///
@@ -253,7 +253,7 @@ impl PgFunc {
     /// let query = Query::select()
     ///     .expr(
     ///         PgFunc::json_value(Expr::val(r#"[1,2]"#), "strict $[*]")
-    ///             .on_error(json_value::OnError::Default(Expr::val(9))),
+    ///             .on_error(json_value::OnClause::Default(Expr::val(9))),
     ///     )
     ///     .to_owned();
     ///

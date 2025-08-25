@@ -200,22 +200,20 @@ impl PgFunc {
     ///
     /// Basic usage:
     /// ```
-    /// use sea_query::{tests_cfg::*, *};
     /// use sea_query::extension::postgres::*;
+    /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .expr(PgFunc::json_query(
-    ///         Expr::val(r#"[1,[2,3],null]"#),
-    ///         "lax $[*][$off]"
+    ///     .expr(
+    ///         PgFunc::json_query(Expr::cust(r#"jsonb '[1,[2,3],null]'"#), "lax $[*][$off]")
+    ///             .passing(1, "off")
+    ///             .wrapper(json_fn::WrapperKind::WithConditional),
     ///     )
-    ///     .passing(1, "off")
-    ///     .wrapper(json_query::WrapperKind::WithConditional)
-    ///   )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT JSON_QUERY('[1,[2,3],null]' 'lax $[*][$off]' PASSING 1 AS off WITH CONDITIONAL WRAPPER)"#
+    ///     r#"SELECT JSON_QUERY(jsonb '[1,[2,3],null]' 'lax $[*][$off]' PASSING 1 AS off WITH CONDITIONAL WRAPPER)"#
     /// );
     /// ```
     ///
@@ -226,14 +224,14 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(
-    ///         PgFunc::json_query(Expr::val(r#"{"a": "[1, 2]"}"#), "lax $.a")
-    ///             .quotes(json_query::QuotesKind::Omit),
+    ///         PgFunc::json_query(Expr::cust(r#"jsonb '{"a": "[1, 2]"}'"#), "lax $.a")
+    ///             .quotes(json_fn::QuotesKind::Omit),
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT JSON_QUERY(E'{\"a\": \"[1, 2]\"}' 'lax $.a' OMIT QUOTES)"#
+    ///     r#"SELECT JSON_QUERY(jsonb '{"a": "[1, 2]"}' 'lax $.a' OMIT QUOTES)"#
     /// );
     /// ```
     pub fn json_query<T, P>(context_item: T, path_expression: P) -> Builder

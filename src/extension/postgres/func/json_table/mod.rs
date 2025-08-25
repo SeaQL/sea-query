@@ -31,7 +31,8 @@ impl PgFunc {
     ///         )
     ///         .ordinality_column("row_number")
     ///         .column("name", "text").path("$.name").build_column()
-    ///         .column("age", "int").path("$.age").build_column(),
+    ///         .column("age", "int").path("$.age").build_column()
+    ///         .build(),
     ///         "people"
     ///     )
     ///     .column("*")
@@ -57,7 +58,8 @@ impl PgFunc {
     ///         .passing(0, "min_id")
     ///         .column("user_id", "int").path("$.id").null_on_error().build_column()
     ///         .column("user_name", "text").path("$.name").default_on_empty(Expr::val("Unknown")).build_column()
-    ///         .error_on_error(),
+    ///         .error_on_error()
+    ///         .build(),
     ///         "filtered_users"
     ///     )
     ///     .column("*")
@@ -83,7 +85,8 @@ impl PgFunc {
     ///         .column("user_name", "text").path("$.name").build_column()
     ///         .nested("$.phones[*]")
     ///             .column("phone", "text").path("$").build_column()
-    ///             .build_nested(),
+    ///             .build_nested()
+    ///         .build(),
     ///         "user_phones"
     ///     )
     ///     .column("*")
