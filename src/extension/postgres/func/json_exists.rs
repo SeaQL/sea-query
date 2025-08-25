@@ -1,6 +1,9 @@
 use std::{borrow::Cow, fmt::Write};
 
-use crate::{Expr, Func, FunctionCall, PgFunc, PostgresQueryBuilder, QueryBuilder, Value, join_io};
+use crate::{
+    Expr, Func, FunctionCall, PgFunc, PostgresQueryBuilder, QueryBuilder, Value,
+    extension::postgres::json_fn::{write_json_path_expr, write_passing},
+};
 
 #[derive(Debug, Clone)]
 pub struct Builder {
@@ -119,27 +122,10 @@ impl Builder {
         let mut buf = String::with_capacity(20);
 
         PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
-        buf.write_str(" '")?;
-        buf.write_str(&self.path_expression)?;
-        buf.write_str("'")?;
+        buf.write_str(" ")?;
+        write_json_path_expr(&mut buf, &self.path_expression)?;
 
-        let mut piter = self.passing.into_iter();
-
-        join_io!(
-            piter,
-            value_as,
-            first {
-                buf.write_str(" PASSING ")?;
-            },
-            join {
-                buf.write_str(", ")?;
-            },
-            do {
-                PostgresQueryBuilder.prepare_value(value_as.0, &mut buf);
-                buf.write_str(" AS ")?;
-                buf.write_str(&value_as.1)?;
-            }
-        );
+        write_passing(&mut buf, self.passing)?;
 
         if let Some(on_error) = self.on_error {
             buf.write_str(match on_error {

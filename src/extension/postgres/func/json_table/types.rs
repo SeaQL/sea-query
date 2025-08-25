@@ -51,7 +51,7 @@ pub enum OnClause {
 }
 
 impl OnClause {
-    pub(super) fn write_to(&self, buf: &mut String) -> fmt::Result {
+    pub(in super::super) fn write_to(&self, buf: &mut String) -> fmt::Result {
         match self {
             OnClause::Error => buf.write_str("ERROR")?,
             OnClause::Null => buf.write_str("NULL")?,

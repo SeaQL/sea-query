@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 
-use crate::*;
+use crate::{
+    extension::postgres::json_fn::{write_json_path_expr, write_passing},
+    *,
+};
 
 #[derive(Debug, Clone)]
 pub struct Builder {
@@ -127,36 +130,17 @@ impl Builder {
         let mut buf = String::with_capacity(50);
 
         PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
-        buf.write_str(" '")?;
-        buf.write_str(&self.path_expression)?;
-        buf.write_str("'")?;
+        buf.write_str(" ")?;
+        write_json_path_expr(&mut buf, &self.path_expression)?;
 
-        // PASSING clause
-        let mut piter = self.passing.into_iter();
-        join_io!(
-            piter,
-            value_as,
-            first {
-                buf.write_str(" PASSING ")?;
-            },
-            join {
-                buf.write_str(", ")?;
-            },
-            do {
-                PostgresQueryBuilder.prepare_value(value_as.0, &mut buf);
-                buf.write_str(" AS ")?;
-                buf.write_str(&value_as.1)?;
-            }
-        );
+        write_passing(&mut buf, self.passing)?;
 
-        // RETURNING clause
         if let Some(returning) = self.returning {
             buf.write_str(" RETURNING ")?;
 
             PostgresQueryBuilder.prepare_type_ref(&returning, &mut buf);
         }
 
-        // ON EMPTY clause
         if let Some(on_empty) = self.on_empty {
             match on_empty {
                 OnClause::Error => buf.write_str(" ERROR")?,
@@ -169,7 +153,6 @@ impl Builder {
             buf.write_str(" ON EMPTY")?;
         }
 
-        // ON ERROR clause
         if let Some(on_error) = self.on_error {
             match on_error {
                 OnClause::Error => buf.write_str(" ERROR")?,

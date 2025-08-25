@@ -1,7 +1,10 @@
 use std::borrow::Cow;
 
 use crate::{
-    extension::postgres::json_fn::{QuotesClause, WrapperClause, WrapperKind},
+    extension::postgres::{
+        json_fn::{QuotesClause, WrapperClause, write_json_path_expr, write_passing},
+        json_table::OnClause,
+    },
     *,
 };
 
@@ -28,15 +31,6 @@ impl From<Builder> for Expr {
     fn from(builder: Builder) -> Self {
         Expr::FunctionCall(builder.build())
     }
-}
-
-#[derive(Debug, Clone)]
-pub enum OnClause {
-    Error,
-    Null,
-    EmptyArray,
-    EmptyObject,
-    Default(Expr),
 }
 
 impl Builder {
@@ -109,27 +103,10 @@ impl Builder {
         let mut buf = String::with_capacity(50);
 
         PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
-        buf.write_str(" '")?;
-        buf.write_str(&self.path_expression)?;
-        buf.write_str("'")?;
+        buf.write_str(" ")?;
+        write_json_path_expr(&mut buf, &self.path_expression)?;
 
-        // PASSING clause
-        let mut piter = self.passing.into_iter();
-        join_io!(
-            piter,
-            value_as,
-            first {
-                buf.write_str(" PASSING ")?;
-            },
-            join {
-                buf.write_str(", ")?;
-            },
-            do {
-                PostgresQueryBuilder.prepare_value(value_as.0, &mut buf);
-                buf.write_str(" AS ")?;
-                buf.write_str(&value_as.1)?;
-            }
-        );
+        write_passing(&mut buf, self.passing)?;
 
         // RETURNING clause
         if let Some(returning) = self.returning {
@@ -137,56 +114,24 @@ impl Builder {
             PostgresQueryBuilder.prepare_type_ref(&returning, &mut buf);
         }
 
-        // WRAPPER clause
         if let Some(wrapper) = self.wrapper {
-            let cond = match wrapper.kind {
-                WrapperKind::Without => " WITHOUT",
-                WrapperKind::WithConditional => " WITH CONDITIONAL",
-                WrapperKind::WithUnconditional => " WITH UNCONDITIONAL",
-            };
-            buf.write_str(cond)?;
-
-            if wrapper.array {
-                buf.write_str(" ARRAY")?;
-            }
-
-            buf.write_str(" WRAPPER")?;
+            wrapper.write_to(&mut buf)?;
         }
 
-        // QUOTES clause
         if let Some(quotes) = self.quotes {
             quotes.write_to(&mut buf)?;
         }
 
-        // ON EMPTY clause
         if let Some(on_empty) = self.on_empty {
-            match on_empty {
-                OnClause::Error => buf.write_str(" ERROR")?,
-                OnClause::Null => buf.write_str(" NULL")?,
-                OnClause::EmptyArray => buf.write_str(" EMPTY ARRAY")?,
-                OnClause::EmptyObject => buf.write_str(" EMPTY OBJECT")?,
-                OnClause::Default(expr) => {
-                    buf.write_str(" DEFAULT ")?;
-                    PostgresQueryBuilder.prepare_simple_expr(&expr, &mut buf);
-                }
-            };
-
+            buf.write_str(" ")?;
+            on_empty.write_to(&mut buf)?;
             buf.write_str(" ON EMPTY")?;
         }
 
-        // ON ERROR clause
         if let Some(on_error) = self.on_error {
-            match on_error {
-                OnClause::Error => buf.write_str(" ERROR ON ERROR")?,
-                OnClause::Null => buf.write_str(" NULL ON ERROR")?,
-                OnClause::EmptyArray => buf.write_str(" EMPTY ARRAY ON ERROR")?,
-                OnClause::EmptyObject => buf.write_str(" EMPTY OBJECT ON ERROR")?,
-                OnClause::Default(expr) => {
-                    buf.write_str(" DEFAULT ")?;
-                    PostgresQueryBuilder.prepare_simple_expr(&expr, &mut buf);
-                    buf.write_str(" ON ERROR")?;
-                }
-            }
+            buf.write_str(" ")?;
+            on_error.write_to(&mut buf)?;
+            buf.write_str(" ON ERROR")?;
         }
 
         Ok(FunctionCall::new(Func::Custom("JSON_QUERY".into())).arg(Expr::Custom(buf)))

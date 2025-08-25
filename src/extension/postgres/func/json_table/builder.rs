@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use std::fmt::Write;
 
 use crate::extension::postgres::json_fn::{
-    WrapperKind, write_as_json_path_name, write_json_path, write_passing,
+    write_as_json_path_name, write_json_path_expr, write_passing,
 };
 use crate::extension::postgres::json_table::ExistsColumnBuilder;
 use crate::*;
@@ -154,7 +154,7 @@ impl Builder {
 
         PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
         buf.write_str(", ")?;
-        write_json_path(&mut buf, &self.path_expression)?;
+        write_json_path_expr(&mut buf, &self.path_expression)?;
 
         self.as_json_path_name
             .map(|x| write_as_json_path_name(&mut buf, &x));
@@ -279,7 +279,7 @@ impl Builder {
                     buf.write_str(" PATH")?;
                 }
                 buf.write_str(" ")?;
-                write_json_path(buf, path)?;
+                write_json_path_expr(buf, path)?;
 
                 if let Some(name) = json_path_name {
                     write_as_json_path_name(buf, name)?;

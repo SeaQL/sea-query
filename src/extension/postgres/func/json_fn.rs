@@ -1,7 +1,7 @@
 use core::fmt;
 use std::{borrow::Cow, fmt::Write};
 
-use crate::{Expr, PostgresQueryBuilder, QueryBuilder, Value, join_io};
+use crate::{PostgresQueryBuilder, QueryBuilder, Value, join_io};
 
 #[derive(Debug, Clone)]
 pub struct QuotesClause {
@@ -88,7 +88,7 @@ impl From<WrapperKind> for WrapperClause {
     }
 }
 
-pub(super) fn write_json_path(buf: &mut String, expr: &str) -> fmt::Result {
+pub(super) fn write_json_path_expr(buf: &mut String, expr: &str) -> fmt::Result {
     buf.write_str("'")?;
     buf.write_str(expr)?;
     buf.write_str("'")?;
