@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-use crate::extension::postgres::json_fn::{QuotesClause, WrapperClause};
 use crate::extension::postgres::json_table::{ColumnBuilder, ExistsColumnBuilder};
 use crate::*;
 
