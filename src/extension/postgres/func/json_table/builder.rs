@@ -2,7 +2,9 @@ use core::fmt;
 use std::borrow::Cow;
 use std::fmt::Write;
 
-use crate::extension::postgres::json_fn::WrapperKind;
+use crate::extension::postgres::json_fn::{
+    WrapperKind, write_as_json_path_name, write_json_path, write_passing,
+};
 use crate::extension::postgres::json_table::ExistsColumnBuilder;
 use crate::*;
 
@@ -151,54 +153,26 @@ impl Builder {
         let mut buf = String::with_capacity(200);
 
         PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
-        buf.write_str(", '")?;
-        buf.write_str(&self.path_expression)?;
-        buf.write_str("'")?;
+        buf.write_str(", ")?;
+        write_json_path(&mut buf, &self.path_expression)?;
 
-        // AS json_path_name clause
-        if let Some(ref json_path_name) = self.as_json_path_name {
-            buf.write_str(" AS ")?;
-            buf.write_str(json_path_name)?;
-        }
+        self.as_json_path_name
+            .map(|x| write_as_json_path_name(&mut buf, &x));
 
-        // PASSING clause
-        let mut piter = self.passing.into_iter();
-        join_io!(
-            piter,
-            value_as,
-            first {
-                buf.write_str(" PASSING ")?;
-            },
-            join {
-                buf.write_str(", ")?;
-            },
-            do {
-                PostgresQueryBuilder.prepare_value(value_as.0, &mut buf);
-                buf.write_str(" AS ")?;
-                buf.write_str(&value_as.1)?;
-            }
-        );
+        write_passing(&mut buf, self.passing)?;
 
-        // COLUMNS clause
-        buf.write_str(" COLUMNS (")?;
         Self::write_columns(&self.columns, &mut buf)?;
-        buf.write_str(")")?;
 
-        // ON ERROR clause
-        if let Some(on_error) = self.on_error {
-            buf.write_str(match on_error {
-                OnErrorClause::Error => " ERROR",
-                OnErrorClause::Empty => " EMPTY",
-                OnErrorClause::EmptyArray => " EMPTY ARRAY",
-            })?;
-
-            buf.write_str(" ON ERROR")?;
+        if let Some(on_error) = &self.on_error {
+            buf.write_str(" ")?;
+            on_error.write_to(&mut buf)?;
         }
 
         Ok(FunctionCall::new(Func::Custom("JSON_TABLE".into())).arg(Expr::Custom(buf)))
     }
 
     fn write_columns(columns: &[JsonTableColumn], buf: &mut String) -> fmt::Result {
+        buf.write_str(" COLUMNS (")?;
         let mut citer = columns.iter();
         join_io!(
             citer,
@@ -210,6 +184,7 @@ impl Builder {
                 Self::write_column_static(col, buf)?;
             }
         );
+        buf.write_str(")")?;
 
         Ok(())
     }
@@ -252,46 +227,22 @@ impl Builder {
                 }
 
                 if let Some(wrapper) = wrapper {
-                    match wrapper.kind {
-                        WrapperKind::Without => buf.write_str(" WITHOUT")?,
-                        WrapperKind::WithConditional => buf.write_str(" WITH CONDITIONAL")?,
-                        WrapperKind::WithUnconditional => buf.write_str(" WITH UNCONDITIONAL")?,
-                    }
-                    if wrapper.array {
-                        buf.write_str(" ARRAY")?;
-                    }
-                    buf.write_str(" WRAPPER")?;
+                    wrapper.write_to(buf)?;
                 }
 
                 if let Some(quotes) = quotes {
-                    quotes.prepare(buf)?;
+                    quotes.write_to(buf)?;
                 }
 
                 if let Some(on_empty) = on_empty {
-                    match on_empty {
-                        OnClause::Error => buf.write_str(" ERROR")?,
-                        OnClause::Null => buf.write_str(" NULL")?,
-                        OnClause::EmptyArray => buf.write_str(" EMPTY ARRAY")?,
-                        OnClause::EmptyObject => buf.write_str(" EMPTY OBJECT")?,
-                        OnClause::Default(expr) => {
-                            buf.write_str(" DEFAULT ")?;
-                            PostgresQueryBuilder.prepare_simple_expr(expr, buf);
-                        }
-                    }
+                    buf.write_str(" ")?;
+                    on_empty.write_to(buf)?;
                     buf.write_str(" ON EMPTY")?;
                 }
 
                 if let Some(on_error) = on_error {
-                    match on_error {
-                        OnClause::Error => buf.write_str(" ERROR")?,
-                        OnClause::Null => buf.write_str(" NULL")?,
-                        OnClause::EmptyArray => buf.write_str(" EMPTY ARRAY")?,
-                        OnClause::EmptyObject => buf.write_str(" EMPTY OBJECT")?,
-                        OnClause::Default(expr) => {
-                            buf.write_str(" DEFAULT ")?;
-                            PostgresQueryBuilder.prepare_simple_expr(expr, buf);
-                        }
-                    }
+                    buf.write_str(" ")?;
+                    on_error.write_to(buf)?;
                     buf.write_str(" ON ERROR")?;
                 }
             }
@@ -313,13 +264,8 @@ impl Builder {
                 }
 
                 if let Some(on_error) = on_error {
-                    match on_error {
-                        ExistsOnErrorClause::Error => buf.write_str(" ERROR")?,
-                        ExistsOnErrorClause::True => buf.write_str(" TRUE")?,
-                        ExistsOnErrorClause::False => buf.write_str(" FALSE")?,
-                        ExistsOnErrorClause::Unknown => buf.write_str(" UNKNOWN")?,
-                    }
-                    buf.write_str(" ON ERROR")?;
+                    buf.write_str(" ")?;
+                    on_error.write_to(buf)?;
                 }
             }
             JsonTableColumn::Nested {
@@ -332,18 +278,14 @@ impl Builder {
                 if *explicit_path {
                     buf.write_str(" PATH")?;
                 }
-                buf.write_str(" '")?;
-                buf.write_str(path)?;
-                buf.write_str("'")?;
+                buf.write_str(" ")?;
+                write_json_path(buf, path)?;
 
-                if let Some(json_path_name) = json_path_name {
-                    buf.write_str(" AS ")?;
-                    buf.write_str(json_path_name)?;
+                if let Some(name) = json_path_name {
+                    write_as_json_path_name(buf, name)?;
                 }
 
-                buf.write_str(" COLUMNS (")?;
                 Self::write_columns(columns, buf)?;
-                buf.write_str(")")?;
             }
         }
         Ok(())

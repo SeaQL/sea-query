@@ -1,3 +1,4 @@
+use core::fmt;
 use std::borrow::Cow;
 
 use crate::extension::postgres::json_fn::{QuotesClause, WrapperClause};
@@ -49,6 +50,22 @@ pub enum OnClause {
     Default(Expr),
 }
 
+impl OnClause {
+    pub(super) fn write_to(&self, buf: &mut String) -> fmt::Result {
+        match self {
+            OnClause::Error => buf.write_str("ERROR")?,
+            OnClause::Null => buf.write_str("NULL")?,
+            OnClause::EmptyArray => buf.write_str("EMPTY ARRAY")?,
+            OnClause::EmptyObject => buf.write_str("EMPTY OBJECT")?,
+            OnClause::Default(expr) => {
+                buf.write_str("DEFAULT ")?;
+                PostgresQueryBuilder.prepare_simple_expr(expr, buf);
+            }
+        };
+        Ok(())
+    }
+}
+
 /// ON ERROR clause for EXISTS columns
 #[derive(Debug, Clone)]
 pub enum ExistsOnErrorClause {
@@ -58,9 +75,33 @@ pub enum ExistsOnErrorClause {
     Unknown,
 }
 
+impl ExistsOnErrorClause {
+    pub(super) fn write_to(&self, buf: &mut String) -> fmt::Result {
+        match self {
+            ExistsOnErrorClause::Error => buf.write_str("ERROR")?,
+            ExistsOnErrorClause::True => buf.write_str("TRUE")?,
+            ExistsOnErrorClause::False => buf.write_str("FALSE")?,
+            ExistsOnErrorClause::Unknown => buf.write_str("UNKNOWN")?,
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum OnErrorClause {
     Error,
     Empty,
     EmptyArray,
+}
+
+impl OnErrorClause {
+    pub(super) fn write_to(&self, buf: &mut String) -> fmt::Result {
+        buf.write_str(match self {
+            OnErrorClause::Error => "ERROR",
+            OnErrorClause::Empty => "EMPTY",
+            OnErrorClause::EmptyArray => "EMPTY ARRAY",
+        })?;
+
+        buf.write_str(" ON ERROR")
+    }
 }

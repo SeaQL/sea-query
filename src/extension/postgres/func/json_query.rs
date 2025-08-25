@@ -155,7 +155,7 @@ impl Builder {
 
         // QUOTES clause
         if let Some(quotes) = self.quotes {
-            quotes.prepare(&mut buf)?;
+            quotes.write_to(&mut buf)?;
         }
 
         // ON EMPTY clause
