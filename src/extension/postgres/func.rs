@@ -2,6 +2,12 @@
 
 use crate::{PgDateTruncUnit, expr::*, func::*};
 
+pub mod json_exists;
+pub mod json_fn;
+pub mod json_query;
+pub mod json_table;
+pub mod json_value;
+
 /// Known Postgres-specific functions.
 ///
 /// For all supported functions (including the standard ones), see [`Function`].
