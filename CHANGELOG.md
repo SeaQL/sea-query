@@ -286,6 +286,7 @@ from_tbl: "foo".into_table_ref(),
 
   Full list of changed traits:
 
+    * `IntoColumnDef` https://github.com/SeaQL/sea-query/pull/975
     * `IntoColumnRef` https://github.com/SeaQL/sea-query/pull/959
     * `IntoCondition` https://github.com/SeaQL/sea-query/pull/939
     * `IntoIden` https://github.com/SeaQL/sea-query/pull/973
