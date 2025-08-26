@@ -122,14 +122,17 @@ impl std::fmt::Display for DynIden {
     }
 }
 
-impl From<&'static str> for DynIden {
-    fn from(s: &'static str) -> Self {
-        Self(Cow::Borrowed(s))
-    }
+pub trait IntoIden: Into<DynIden> {
+    fn into_iden(self) -> DynIden;
 }
 
-pub trait IntoIden {
-    fn into_iden(self) -> DynIden;
+impl<T> IntoIden for T
+where
+    T: Into<DynIden>,
+{
+    fn into_iden(self) -> DynIden {
+        self.into()
+    }
 }
 
 pub trait IdenList {
@@ -263,7 +266,7 @@ where
     T: IntoIden,
 {
     fn from(value: (T, Asterisk)) -> Self {
-        ColumnRef::Asterisk(Some(value.0.into()))
+        ColumnRef::Asterisk(Some(value.0.into_iden().into()))
     }
 }
 
@@ -558,18 +561,12 @@ impl From<(u8, u8)> for Quote {
     }
 }
 
-impl<T> IntoIden for T
+impl<T> From<T> for DynIden
 where
     T: Iden,
 {
-    fn into_iden(self) -> DynIden {
-        DynIden(self.quoted())
-    }
-}
-
-impl IntoIden for DynIden {
-    fn into_iden(self) -> DynIden {
-        self
+    fn from(iden: T) -> Self {
+        DynIden(iden.quoted())
     }
 }
 
@@ -652,9 +649,9 @@ impl Iden for Alias {
     }
 }
 
-impl IntoIden for String {
-    fn into_iden(self) -> DynIden {
-        DynIden(Cow::Owned(self))
+impl From<String> for DynIden {
+    fn from(value: String) -> Self {
+        DynIden(Cow::Owned(value))
     }
 }
 
