@@ -282,12 +282,13 @@ from_tbl: "foo".into_table_ref(),
   you can still use `.into_condition()` for readability.
 
   If you have manually implemented `Into*` traits, it may cause conflicts. You
-  should rewrite your impls as as `impl From<..> for TableRef`.
+  should rewrite your impls as as `impl From<..> for Condition`.
 
   Full list of changed traits:
 
     * `IntoColumnRef` https://github.com/SeaQL/sea-query/pull/959
     * `IntoCondition` https://github.com/SeaQL/sea-query/pull/939
+    * `IntoIden`
     * `IntoTableRef` https://github.com/SeaQL/sea-query/pull/958
     * `IntoTypeRef` https://github.com/SeaQL/sea-query/pull/969
     * `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/960
