@@ -329,10 +329,13 @@ pub enum Value {
 /// If the size exceeds the limit, you should box the variant.
 /// Previously, the size was 24. We bumped it to 32 such that `String`
 /// can be unboxed.
+///
+/// When the `with-json` feature is enabled, the size of `Value` may
+/// exceed 32 bytes to 72 bytes if serde_json feature `preserve_order`
+/// is enabled as different Map implementation can be used.
 pub const VALUE_SIZE: usize = check_value_size();
 const MAX_VALUE_SIZE: usize = 32;
 
-/// When the `with-json` feature is enabled, the size of `Value` may exceed 32 bytes to 72 bytes if serde_json feature `preserve_order` is enabled as different Map implementation can be used.
 #[cfg(feature = "with-json")]
 const EXPECTED_VALUE_SIZE: usize = {
     if size_of::<Option<Json>>() > MAX_VALUE_SIZE {
