@@ -330,10 +330,25 @@ pub enum Value {
 /// Previously, the size was 24. We bumped it to 32 such that `String`
 /// can be unboxed.
 pub const VALUE_SIZE: usize = check_value_size();
+const MAX_VALUE_SIZE: usize = 32;
+
+/// When the `with-json` feature is enabled, the size of `Value` may exceed 32 bytes to 72 bytes if serde_json feature `preserve_order` is enabled as different Map implementation can be used.
+#[cfg(feature = "with-json")]
+const EXPECTED_VALUE_SIZE: usize = {
+    if size_of::<Option<Json>>() > MAX_VALUE_SIZE {
+        size_of::<Option<Json>>()
+    } else {
+        MAX_VALUE_SIZE
+    }
+};
+#[cfg(not(feature = "with-json"))]
+const EXPECTED_VALUE_SIZE: usize = MAX_VALUE_SIZE;
 
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > 32 {
-        panic!("the size of Value shouldn't be greater than 32 bytes")
+    if std::mem::size_of::<Value>() > EXPECTED_VALUE_SIZE {
+        panic!(
+            "the size of Value shouldn't be greater than the expected MAX_VALUE_SIZE (32 bytes by default)"
+        )
     }
     std::mem::size_of::<Value>()
 }
