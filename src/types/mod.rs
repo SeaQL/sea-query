@@ -507,8 +507,17 @@ pub struct LikeExpr {
     pub(crate) escape: Option<char>,
 }
 
-pub trait IntoLikeExpr {
+pub trait IntoLikeExpr: Into<LikeExpr> {
     fn into_like_expr(self) -> LikeExpr;
+}
+
+impl<T> IntoLikeExpr for T
+where
+    T: Into<LikeExpr>,
+{
+    fn into_like_expr(self) -> LikeExpr {
+        self.into()
+    }
 }
 
 /// SubQuery operators
@@ -752,18 +761,12 @@ impl LikeExpr {
     }
 }
 
-impl IntoLikeExpr for LikeExpr {
-    fn into_like_expr(self) -> LikeExpr {
-        self
-    }
-}
-
-impl<T> IntoLikeExpr for T
+impl<T> From<T> for LikeExpr
 where
     T: Into<String>,
 {
-    fn into_like_expr(self) -> LikeExpr {
-        LikeExpr::new(self)
+    fn from(value: T) -> Self {
+        LikeExpr::new(value)
     }
 }
 

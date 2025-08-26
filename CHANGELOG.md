@@ -289,6 +289,7 @@ from_tbl: "foo".into_table_ref(),
     * `IntoColumnRef` https://github.com/SeaQL/sea-query/pull/959
     * `IntoCondition` https://github.com/SeaQL/sea-query/pull/939
     * `IntoIden` https://github.com/SeaQL/sea-query/pull/973
+    * `IntoLikeExpr` https://github.com/SeaQL/sea-query/pull/974
     * `IntoTableRef` https://github.com/SeaQL/sea-query/pull/958
     * `IntoTypeRef` https://github.com/SeaQL/sea-query/pull/969
     * `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/960
