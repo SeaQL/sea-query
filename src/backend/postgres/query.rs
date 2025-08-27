@@ -42,7 +42,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         let (ty, sfx) = if let Some(base) = type_name.strip_suffix("[]") {
             (base, "[]")
         } else {
-            (type_name.as_ref(), "")
+            (type_name, "")
         };
 
         if let Some(schema_name) = schema_name {
