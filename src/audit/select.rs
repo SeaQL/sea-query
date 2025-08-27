@@ -237,7 +237,7 @@ impl Walker {
         Ok(())
     }
 
-    fn remove_item(&mut self, access_type: AccessType, target: &SchemaTable) {
+    fn remove_item(&mut self, access_type: AccessType, target: &TableName) {
         while let Some(pos) = self
             .access
             .iter()

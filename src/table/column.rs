@@ -11,8 +11,23 @@ pub struct ColumnDef {
     pub(crate) spec: ColumnSpec,
 }
 
-pub trait IntoColumnDef {
+pub trait IntoColumnDef: Into<ColumnDef> {
     fn into_column_def(self) -> ColumnDef;
+}
+
+impl<T> IntoColumnDef for T
+where
+    T: Into<ColumnDef>,
+{
+    fn into_column_def(self) -> ColumnDef {
+        self.into()
+    }
+}
+
+impl From<&mut ColumnDef> for ColumnDef {
+    fn from(col: &mut ColumnDef) -> Self {
+        col.clone()
+    }
 }
 
 /// All column types
@@ -244,7 +259,7 @@ impl fmt::Display for PgDateTruncUnit {
             PgDateTruncUnit::Century => "century",
             PgDateTruncUnit::Millennium => "millennium",
         };
-        write!(f, "{text}")
+        f.write_str(text)
     }
 }
 
@@ -875,17 +890,5 @@ impl ColumnDef {
             types: self.types.take(),
             spec: std::mem::take(&mut self.spec),
         }
-    }
-}
-
-impl IntoColumnDef for &mut ColumnDef {
-    fn into_column_def(self) -> ColumnDef {
-        self.take()
-    }
-}
-
-impl IntoColumnDef for ColumnDef {
-    fn into_column_def(self) -> ColumnDef {
-        self
     }
 }

@@ -1044,5 +1044,8 @@ pub use value::*;
 #[cfg(feature = "derive")]
 pub use sea_query_derive::{Iden, IdenStatic, enum_def, raw_query, raw_sql};
 
+#[cfg(all(feature = "sea-orm", not(feature = "derive")))]
+pub use sea_query_derive::{raw_query, raw_sql};
+
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;

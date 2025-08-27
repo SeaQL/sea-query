@@ -4,53 +4,11 @@ use crate::{QueryBuilder, QuotedBuilder, prepare::*, types::*};
 #[derive(Debug)]
 pub struct Type;
 
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum TypeRef {
-    Type(DynIden),
-    SchemaType(DynIden, DynIden),
-    DatabaseSchemaType(DynIden, DynIden, DynIden),
-}
+// A similar type used to be defined here. Let's keep exporting it for compatibility.
+pub use crate::TypeRef;
 
-pub trait IntoTypeRef {
-    fn into_type_ref(self) -> TypeRef;
-}
-
-impl IntoTypeRef for TypeRef {
-    fn into_type_ref(self) -> TypeRef {
-        self
-    }
-}
-
-impl<I> IntoTypeRef for I
-where
-    I: IntoIden,
-{
-    fn into_type_ref(self) -> TypeRef {
-        TypeRef::Type(self.into_iden())
-    }
-}
-
-impl<A, B> IntoTypeRef for (A, B)
-where
-    A: IntoIden,
-    B: IntoIden,
-{
-    fn into_type_ref(self) -> TypeRef {
-        TypeRef::SchemaType(self.0.into_iden(), self.1.into_iden())
-    }
-}
-
-impl<A, B, C> IntoTypeRef for (A, B, C)
-where
-    A: IntoIden,
-    B: IntoIden,
-    C: IntoIden,
-{
-    fn into_type_ref(self) -> TypeRef {
-        TypeRef::DatabaseSchemaType(self.0.into_iden(), self.1.into_iden(), self.2.into_iden())
-    }
-}
+// This trait used to be defined here. Let's keep exporting it for compatibility.
+pub use crate::IntoTypeRef;
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeCreateStatement {
@@ -117,27 +75,6 @@ pub trait TypeBuilder: QuotedBuilder {
 
     /// Translate [`TypeAlterStatement`] into database specific SQL statement.
     fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut dyn SqlWriter);
-
-    /// Translate [`TypeRef`] into SQL statement.
-    fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut dyn SqlWriter) {
-        match type_ref {
-            TypeRef::Type(name) => {
-                self.prepare_iden(name, sql);
-            }
-            TypeRef::SchemaType(schema, name) => {
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(name, sql);
-            }
-            TypeRef::DatabaseSchemaType(database, schema, name) => {
-                self.prepare_iden(database, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(name, sql);
-            }
-        }
-    }
 }
 
 impl Type {

@@ -24,7 +24,7 @@ pub struct DynIden(pub(crate) Cow<'static, str>); // new
 pub struct SeaRc<I>(pub(crate) RcOrArc<I>);       // old
 pub struct SeaRc;                                 // new
 ```
-* Reworked `TableRef` and `ColumnRef` variants. `SchemaTable` is now a type alias of `TableName` https://github.com/SeaQL/sea-query/pull/927
+* Reworked `TableRef` and `ColumnRef` variants https://github.com/SeaQL/sea-query/pull/927
 ```rust
 // the following variants are collapsed into one:
 enum TableRef {
@@ -41,19 +41,49 @@ enum TableRef {
     Table(TableName, Option<DynIden>), // optional Alias
     ..
 }
-// because it's restructured to:
+
 pub struct DatabaseName(pub DynIden);
 pub struct SchemaName(pub Option<DatabaseName>, pub DynIden);
+/// A table name, potentially qualified as [database.][schema.]table
 pub struct TableName(pub Option<SchemaName>, pub DynIden);
-// so TableName can represent [database.][schema.]table
+```
+```rust
+// before
+enum ColumnRef {
+    Column(DynIden),
+    TableColumn(DynIden, DynIden),
+    SchemaTableColumn(DynIden, DynIden, DynIden),
+    Asterisk,
+    TableAsterisk(DynIden),
+}
+// now
+enum ColumnRef {
+    /// A column name, potentially qualified as [database.][schema.][table.]column
+    Column(ColumnName),
+    /// An `*` expression, potentially qualified as [database.][schema.][table.]*
+    Asterisk(Option<TableName>),
+}
+
+pub struct ColumnName(pub Option<TableName>, pub DynIden);
 ```
 
 ### Enhancements
 
+* Add `serde` feature. Currently, enabling it allows `Value` to be serializable https://github.com/SeaQL/sea-query/pull/966
+* Add `Keyword::Default` https://github.com/SeaQL/sea-query/pull/965
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
-* `cast_as_quoted` now allows you to [qualify the type
-  name](https://github.com/SeaQL/sea-query/issues/827).
+* `cast_as_quoted` now allows you to qualify the type name. https://github.com/SeaQL/sea-query/pull/922
+```rust
+let query = Query::select()
+    .expr(Func::cast_as_quoted("hello", ("MySchema", "MyType")))
+    .to_owned();
+
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"SELECT CAST('hello' AS "MySchema"."MyType")"#
+);
+```
 * Most `Value` variants are now unboxed (except `BigDecimal` and `Array`). Previously the size is 24 bytes. https://github.com/SeaQL/sea-query/pull/925
 ```rust
 assert_eq!(std::mem::size_of::<Value>(), 32);
@@ -98,11 +128,6 @@ assert_eq!(
 
 ### Breaking Changes
 
-* Changed `Expr::TypeName(DynIden)` to `Expr::TypeName(TypeName)`, which can be
-  [qualified](https://github.com/SeaQL/sea-query/issues/827).
-
-  If you manually construct this variant and it no longer compiles, just add
-  `.into()`.
 * Removed inherent `SimpleExpr` methods that duplicate `ExprTrait`. If you encounter the following error, please add `use sea_query::ExprTrait` in scope https://github.com/SeaQL/sea-query/pull/890
 ```rust
 error[E0599]: no method named `like` found for enum `sea_query::Expr` in the current scope
@@ -251,7 +276,25 @@ from_tbl: "foo".into_table_ref(),
 
 ### Minor breaking changes
 
-* Implemented `IntoCondition` for `T: Into<Cond>`. If you have manually implemented this trait, it may cause conflicts. You should rewrite it as `impl From<..> for Condition`.
+* Changed `Into*` traits (like `IntoCondition`) to be defined as `trait
+  IntoCondition: Into<Condition>` and implemented for all `T: Into<Condition>`.
+  Now `IntoCondition` and `Into<Condition>` are completely interchangable. But
+  you can still use `.into_condition()` for readability.
+
+  If you have manually implemented `Into*` traits, it may cause conflicts. You
+  should rewrite your impls as as `impl From<..> for Condition`.
+
+  Full list of changed traits:
+
+    * `IntoColumnDef` https://github.com/SeaQL/sea-query/pull/975
+    * `IntoColumnRef` https://github.com/SeaQL/sea-query/pull/959
+    * `IntoCondition` https://github.com/SeaQL/sea-query/pull/939
+    * `IntoIden` https://github.com/SeaQL/sea-query/pull/973
+    * `IntoIndexColumn` https://github.com/SeaQL/sea-query/pull/976
+    * `IntoLikeExpr` https://github.com/SeaQL/sea-query/pull/974
+    * `IntoTableRef` https://github.com/SeaQL/sea-query/pull/958
+    * `IntoTypeRef` https://github.com/SeaQL/sea-query/pull/969
+    * `IntoValueTuple` https://github.com/SeaQL/sea-query/pull/960
 
 * Unboxed `Value` variants may cause compile error. Simply remove the `Box` in these cases https://github.com/SeaQL/sea-query/pull/925
 ```rust
@@ -269,6 +312,17 @@ error[E0308]: mismatched types
   If you had custom implementations in your own code, some may no longer compile
   and may need to be deleted.
 * Replaced `ColumnSpec::Check(Expr)` with `ColumnSpec::Check(Check)` to support named check constraints https://github.com/SeaQL/sea-query/pull/920
+* `SelectStatement::cross_join` no longer accepts a condition https://github.com/SeaQL/sea-query/pull/956
+* Turned `TypeRef` from an enum into a struct that reuses `TableName`. https://github.com/SeaQL/sea-query/pull/969
+* Changed `Expr::TypeName(DynIden)` to `Expr::TypeName(TypeRef)`, which can be
+  [qualified](https://github.com/SeaQL/sea-query/issues/827).
+
+  If you manually construct this variant and it no longer compiles, just add
+  `.into()`.
+
+### Bug Fixes
+
+* Removed invalid condition requirement on `SelectStatement::cross_join` https://github.com/SeaQL/sea-query/pull/956
 
 ### Upgrades
 

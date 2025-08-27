@@ -118,18 +118,21 @@ impl SeaRc {
 
 impl std::fmt::Display for DynIden {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        f.write_str(&self.0)
     }
 }
 
-impl From<&'static str> for DynIden {
-    fn from(s: &'static str) -> Self {
-        Self(Cow::Borrowed(s))
-    }
-}
-
-pub trait IntoIden {
+pub trait IntoIden: Into<DynIden> {
     fn into_iden(self) -> DynIden;
+}
+
+impl<T> IntoIden for T
+where
+    T: Into<DynIden>,
+{
+    fn into_iden(self) -> DynIden {
+        self.into()
+    }
 }
 
 pub trait IdenList {
@@ -148,7 +151,20 @@ pub struct SchemaName(pub Option<DatabaseName>, pub DynIden);
 
 /// An SQL type name, potentially qualified as `(database.)(schema.)type`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct TypeName(pub Option<SchemaName>, pub DynIden);
+pub struct TypeRef(pub Option<SchemaName>, pub DynIden);
+
+pub trait IntoTypeRef: Into<TypeRef> {
+    fn into_type_ref(self) -> TypeRef;
+}
+
+impl<T> IntoTypeRef for T
+where
+    T: Into<TypeRef>,
+{
+    fn into_type_ref(self) -> TypeRef {
+        self.into()
+    }
+}
 
 /// A table name, potentially qualified as `(database.)(schema.)table`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -217,8 +233,41 @@ impl ColumnRef {
     }
 }
 
-pub trait IntoColumnRef {
+pub trait IntoColumnRef: Into<ColumnRef> {
     fn into_column_ref(self) -> ColumnRef;
+}
+
+impl<T> IntoColumnRef for T
+where
+    T: Into<ColumnRef>,
+{
+    fn into_column_ref(self) -> ColumnRef {
+        self.into()
+    }
+}
+
+impl<T> From<T> for ColumnRef
+where
+    T: Into<ColumnName>,
+{
+    fn from(value: T) -> Self {
+        ColumnRef::Column(value.into())
+    }
+}
+
+impl From<Asterisk> for ColumnRef {
+    fn from(_: Asterisk) -> Self {
+        ColumnRef::Asterisk(None)
+    }
+}
+
+impl<T> From<(T, Asterisk)> for ColumnRef
+where
+    T: IntoIden,
+{
+    fn from(value: (T, Asterisk)) -> Self {
+        ColumnRef::Asterisk(Some(value.0.into_iden().into()))
+    }
 }
 
 /// Table references
@@ -257,8 +306,21 @@ impl TableRef {
     }
 }
 
-pub trait IntoTableRef {
-    fn into_table_ref(self) -> TableRef;
+pub trait IntoTableRef: Into<TableRef> {
+    fn into_table_ref(self) -> TableRef {
+        self.into()
+    }
+}
+
+impl<T> IntoTableRef for T where T: Into<TableRef> {}
+
+impl<T> From<T> for TableRef
+where
+    T: Into<TableName>,
+{
+    fn from(value: T) -> Self {
+        TableRef::Table(value.into(), None)
+    }
 }
 
 /// Unary operators.
@@ -434,6 +496,7 @@ pub enum Keyword {
     CurrentDate,
     CurrentTime,
     CurrentTimestamp,
+    Default,
     Custom(DynIden),
 }
 
@@ -444,8 +507,17 @@ pub struct LikeExpr {
     pub(crate) escape: Option<char>,
 }
 
-pub trait IntoLikeExpr {
+pub trait IntoLikeExpr: Into<LikeExpr> {
     fn into_like_expr(self) -> LikeExpr;
+}
+
+impl<T> IntoLikeExpr for T
+where
+    T: Into<LikeExpr>,
+{
+    fn into_like_expr(self) -> LikeExpr {
+        self.into()
+    }
 }
 
 /// SubQuery operators
@@ -498,18 +570,12 @@ impl From<(u8, u8)> for Quote {
     }
 }
 
-impl<T> IntoIden for T
+impl<T> From<T> for DynIden
 where
     T: Iden,
 {
-    fn into_iden(self) -> DynIden {
-        DynIden(self.quoted())
-    }
-}
-
-impl IntoIden for DynIden {
-    fn into_iden(self) -> DynIden {
-        self
+    fn from(iden: T) -> Self {
+        DynIden(iden.quoted())
     }
 }
 
@@ -549,57 +615,12 @@ where
     }
 }
 
-impl IntoColumnRef for ColumnRef {
-    fn into_column_ref(self) -> ColumnRef {
-        self
-    }
-}
-
 impl<T> From<T> for DatabaseName
 where
     T: IntoIden,
 {
     fn from(iden: T) -> Self {
         DatabaseName(iden.into_iden())
-    }
-}
-
-impl<T> IntoColumnRef for T
-where
-    T: Into<ColumnName>,
-{
-    fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::Column(self.into())
-    }
-}
-
-impl IntoColumnRef for Asterisk {
-    fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::Asterisk(None)
-    }
-}
-
-impl<T> IntoColumnRef for (T, Asterisk)
-where
-    T: IntoIden,
-{
-    fn into_column_ref(self) -> ColumnRef {
-        ColumnRef::Asterisk(Some(self.0.into()))
-    }
-}
-
-impl IntoTableRef for TableRef {
-    fn into_table_ref(self) -> TableRef {
-        self
-    }
-}
-
-impl<T> IntoTableRef for T
-where
-    T: Into<TableName>,
-{
-    fn into_table_ref(self) -> TableRef {
-        TableRef::Table(self.into(), None)
     }
 }
 
@@ -637,9 +658,9 @@ impl Iden for Alias {
     }
 }
 
-impl IntoIden for String {
-    fn into_iden(self) -> DynIden {
-        DynIden(Cow::Owned(self))
+impl From<String> for DynIden {
+    fn from(value: String) -> Self {
+        DynIden(Cow::Owned(value))
     }
 }
 
@@ -740,18 +761,12 @@ impl LikeExpr {
     }
 }
 
-impl IntoLikeExpr for LikeExpr {
-    fn into_like_expr(self) -> LikeExpr {
-        self
-    }
-}
-
-impl<T> IntoLikeExpr for T
+impl<T> From<T> for LikeExpr
 where
     T: Into<String>,
 {
-    fn into_like_expr(self) -> LikeExpr {
-        LikeExpr::new(self)
+    fn from(value: T) -> Self {
+        LikeExpr::new(value)
     }
 }
 

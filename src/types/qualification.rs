@@ -87,8 +87,8 @@ where
     }
 }
 
-/// Construct a [`TypeName`] from 1-3 parts (`(database?).(schema?).type`)
-impl<T> From<T> for TypeName
+/// Construct a [`TypeRef`] from 1-3 parts (`(database?).(schema?).type`)
+impl<T> From<T> for TypeRef
 where
     T: MaybeQualifiedTwice,
 {
@@ -98,7 +98,7 @@ where
             (Some(db), schema) => SchemaName(Some(DatabaseName(db)), schema),
             (None, schema) => SchemaName(None, schema),
         });
-        TypeName(schema_name, r#type)
+        TypeRef(schema_name, r#type)
     }
 }
 

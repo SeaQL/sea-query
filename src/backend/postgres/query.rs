@@ -37,16 +37,21 @@ impl QueryBuilder for PostgresQueryBuilder {
     fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         match simple_expr {
             Expr::AsEnum(type_name, expr) => {
-                write!(sql, "CAST(").unwrap();
+                sql.write_str("CAST(").unwrap();
                 self.prepare_simple_expr_common(expr, sql);
                 let q = self.quote();
-                let type_name = type_name.to_string();
-                let (ty, sfx) = if type_name.ends_with("[]") {
-                    (&type_name[..type_name.len() - 2], "[]")
+                let type_name = &type_name.0;
+                let (ty, sfx) = if let Some(base) = type_name.strip_suffix("[]") {
+                    (base, "[]")
                 } else {
-                    (type_name.as_str(), "")
+                    (type_name.as_ref(), "")
                 };
-                write!(sql, " AS {}{}{}{})", q.left(), ty, q.right(), sfx).unwrap();
+                sql.write_str(" AS ").unwrap();
+                sql.write_char(q.left()).unwrap();
+                sql.write_str(ty).unwrap();
+                sql.write_char(q.right()).unwrap();
+                sql.write_str(sfx).unwrap();
+                sql.write_char(')').unwrap();
             }
             _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql),
         }
@@ -54,18 +59,24 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {
         match select_distinct {
-            SelectDistinct::All => write!(sql, "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::All => sql.write_str("ALL").unwrap(),
+            SelectDistinct::Distinct => sql.write_str("DISTINCT").unwrap(),
             SelectDistinct::DistinctOn(cols) => {
-                write!(sql, "DISTINCT ON (").unwrap();
-                cols.iter().fold(true, |first, column_ref| {
-                    if !first {
-                        write!(sql, ", ").unwrap();
+                sql.write_str("DISTINCT ON (").unwrap();
+
+                let mut cols = cols.iter();
+                join_io!(
+                    cols,
+                    col,
+                    join {
+                        sql.write_str(", ").unwrap();
+                    },
+                    do {
+                        self.prepare_column_ref(col, sql);
                     }
-                    self.prepare_column_ref(column_ref, sql);
-                    false
-                });
-                write!(sql, ")").unwrap();
+                );
+
+                sql.write_str(")").unwrap();
             }
             _ => {}
         };
@@ -73,10 +84,8 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
         match bin_oper {
-            BinOper::PgOperator(oper) => write!(
-                sql,
-                "{}",
-                match oper {
+            BinOper::PgOperator(oper) => sql
+                .write_str(match oper {
                     PgBinOper::ILike => "ILIKE",
                     PgBinOper::NotILike => "NOT ILIKE",
                     PgBinOper::Matches => "@@",
@@ -100,9 +109,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgBinOper::NegativeInnerProduct => "<#>",
                     #[cfg(feature = "postgres-vector")]
                     PgBinOper::CosineDistance => "<=>",
-                }
-            )
-            .unwrap(),
+                })
+                .unwrap(),
             _ => self.prepare_bin_oper_common(bin_oper, sql),
         }
     }
@@ -113,10 +121,8 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_function_name(&self, function: &Func, sql: &mut dyn SqlWriter) {
         match function {
-            Func::PgFunction(function) => write!(
-                sql,
-                "{}",
-                match function {
+            Func::PgFunction(function) => sql
+                .write_str(match function {
                     PgFunc::ToTsquery => "TO_TSQUERY",
                     PgFunc::ToTsvector => "TO_TSVECTOR",
                     PgFunc::PhrasetoTsquery => "PHRASETO_TSQUERY",
@@ -136,9 +142,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunc::Some => "SOME",
                     #[cfg(feature = "postgres-array")]
                     PgFunc::All => "ALL",
-                }
-            )
-            .unwrap(),
+                })
+                .unwrap(),
             _ => self.prepare_function_name_common(function, sql),
         }
     }
@@ -149,12 +154,16 @@ impl QueryBuilder for PostgresQueryBuilder {
         };
 
         match table_sample.method {
-            SampleMethod::BERNOULLI => write!(sql, " TABLESAMPLE BERNOULLI").unwrap(),
-            SampleMethod::SYSTEM => write!(sql, " TABLESAMPLE SYSTEM").unwrap(),
+            SampleMethod::BERNOULLI => sql.write_str(" TABLESAMPLE BERNOULLI").unwrap(),
+            SampleMethod::SYSTEM => sql.write_str(" TABLESAMPLE SYSTEM").unwrap(),
         }
-        write!(sql, " ({})", table_sample.percentage).unwrap();
+        sql.write_str(" (").unwrap();
+        write!(sql, "{}", table_sample.percentage).unwrap();
+        sql.write_char(')').unwrap();
         if let Some(repeatable) = table_sample.repeatable {
-            write!(sql, " REPEATABLE ({repeatable})").unwrap();
+            sql.write_str(" REPEATABLE (").unwrap();
+            write!(sql, "{repeatable}").unwrap();
+            sql.write_char(')').unwrap();
         }
     }
 
@@ -165,8 +174,8 @@ impl QueryBuilder for PostgresQueryBuilder {
         self.prepare_order(order_expr, sql);
         match order_expr.nulls {
             None => (),
-            Some(NullOrdering::Last) => write!(sql, " NULLS LAST").unwrap(),
-            Some(NullOrdering::First) => write!(sql, " NULLS FIRST").unwrap(),
+            Some(NullOrdering::Last) => sql.write_str(" NULLS LAST").unwrap(),
+            Some(NullOrdering::First) => sql.write_str(" NULLS FIRST").unwrap(),
         }
     }
 
@@ -185,11 +194,11 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 
     fn write_bytes(&self, bytes: &[u8], buffer: &mut dyn Write) {
-        write!(buffer, "'\\x").unwrap();
+        buffer.write_str("'\\x").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap();
         }
-        write!(buffer, "'").unwrap();
+        buffer.write_str("'").unwrap();
     }
 
     fn if_null_function(&self) -> &str {

@@ -1,7 +1,7 @@
 use super::*;
 use crate::TableRef;
 
-pub(super) fn parse_audit_table(table_ref: &TableRef) -> Option<SchemaTable> {
+pub(super) fn parse_audit_table(table_ref: &TableRef) -> Option<TableName> {
     match table_ref {
         TableRef::SubQuery(_, _) => None,
         TableRef::FunctionCall(_, _) => None,

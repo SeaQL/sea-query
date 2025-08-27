@@ -9,81 +9,109 @@ impl TableBuilder for PostgresQueryBuilder {
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match column_type {
-                ColumnType::Char(length) => match length {
-                    Some(length) => format!("char({length})"),
-                    None => "char".into(),
-                },
-                ColumnType::String(length) => match length {
-                    StringLen::N(length) => format!("varchar({length})"),
-                    _ => "varchar".into(),
-                },
-                ColumnType::Text => "text".into(),
-                ColumnType::TinyInteger | ColumnType::TinyUnsigned => "smallint".into(),
-                ColumnType::SmallInteger | ColumnType::SmallUnsigned => "smallint".into(),
-                ColumnType::Integer | ColumnType::Unsigned => "integer".into(),
-                ColumnType::BigInteger | ColumnType::BigUnsigned => "bigint".into(),
-                ColumnType::Float => "real".into(),
-                ColumnType::Double => "double precision".into(),
-                ColumnType::Decimal(precision) => match precision {
-                    Some((precision, scale)) => format!("decimal({precision}, {scale})"),
-                    None => "decimal".into(),
-                },
-                ColumnType::DateTime => "timestamp without time zone".into(),
-                ColumnType::Timestamp => "timestamp".into(),
-                ColumnType::TimestampWithTimeZone => "timestamp with time zone".into(),
-                ColumnType::Time => "time".into(),
-                ColumnType::Date => "date".into(),
-                ColumnType::Interval(fields, precision) => {
-                    let mut typ = "interval".to_string();
-                    if let Some(fields) = fields {
-                        write!(typ, " {fields}").unwrap();
-                    }
-                    if let Some(precision) = precision {
-                        write!(typ, "({precision})").unwrap();
-                    }
-                    typ
+        match column_type {
+            ColumnType::Char(length) => match length {
+                Some(length) => {
+                    sql.write_str("char(").unwrap();
+                    write!(sql, "{length}").unwrap();
+                    sql.write_char(')')
                 }
-                ColumnType::Binary(_) | ColumnType::VarBinary(_) | ColumnType::Blob =>
-                    "bytea".into(),
-                ColumnType::Bit(length) => {
-                    match length {
-                        Some(length) => format!("bit({length})"),
-                        None => "bit".into(),
-                    }
+                None => sql.write_str("char"),
+            },
+            ColumnType::String(length) => match length {
+                StringLen::N(length) => {
+                    sql.write_str("varchar(").unwrap();
+                    write!(sql, "{length}").unwrap();
+                    sql.write_char(')')
                 }
-                ColumnType::VarBit(length) => {
-                    format!("varbit({length})")
+                _ => sql.write_str("varchar"),
+            },
+            ColumnType::Text => sql.write_str("text"),
+            ColumnType::TinyInteger | ColumnType::TinyUnsigned => sql.write_str("smallint"),
+            ColumnType::SmallInteger | ColumnType::SmallUnsigned => sql.write_str("smallint"),
+            ColumnType::Integer | ColumnType::Unsigned => sql.write_str("integer"),
+            ColumnType::BigInteger | ColumnType::BigUnsigned => sql.write_str("bigint"),
+            ColumnType::Float => sql.write_str("real"),
+            ColumnType::Double => sql.write_str("double precision"),
+            ColumnType::Decimal(precision) => match precision {
+                Some((precision, scale)) => {
+                    sql.write_str("decimal(").unwrap();
+                    write!(sql, "{precision}").unwrap();
+                    sql.write_str(", ").unwrap();
+                    write!(sql, "{scale}").unwrap();
+                    sql.write_char(')')
                 }
-                ColumnType::Boolean => "bool".into(),
-                ColumnType::Money(precision) => match precision {
-                    Some((precision, scale)) => format!("money({precision}, {scale})"),
-                    None => "money".into(),
-                },
-                ColumnType::Json => "json".into(),
-                ColumnType::JsonBinary => "jsonb".into(),
-                ColumnType::Uuid => "uuid".into(),
-                ColumnType::Array(elem_type) => {
-                    let mut sql = String::new();
-                    self.prepare_column_type(elem_type, &mut sql);
-                    format!("{sql}[]")
+                None => sql.write_str("decimal"),
+            },
+            ColumnType::DateTime => sql.write_str("timestamp without time zone"),
+            ColumnType::Timestamp => sql.write_str("timestamp"),
+            ColumnType::TimestampWithTimeZone => sql.write_str("timestamp with time zone"),
+            ColumnType::Time => sql.write_str("time"),
+            ColumnType::Date => sql.write_str("date"),
+            ColumnType::Interval(fields, precision) => {
+                sql.write_str("interval").unwrap();
+
+                if let Some(fields) = fields {
+                    write!(sql, " {fields}").unwrap();
                 }
-                ColumnType::Vector(size) => match size {
-                    Some(size) => format!("vector({size})"),
-                    None => "vector".into(),
-                },
-                ColumnType::Custom(iden) => iden.to_string(),
-                ColumnType::Enum { name, .. } => name.to_string(),
-                ColumnType::Cidr => "cidr".into(),
-                ColumnType::Inet => "inet".into(),
-                ColumnType::MacAddr => "macaddr".into(),
-                ColumnType::Year => unimplemented!("Year is not available in Postgres."),
-                ColumnType::LTree => "ltree".into(),
+
+                if let Some(precision) = precision {
+                    sql.write_char('(').unwrap();
+                    write!(sql, "{precision}").unwrap();
+                    sql.write_char(')').unwrap();
+                }
+                Ok(())
             }
-        )
+            ColumnType::Binary(_) | ColumnType::VarBinary(_) | ColumnType::Blob => {
+                sql.write_str("bytea")
+            }
+            ColumnType::Bit(length) => match length {
+                Some(length) => {
+                    sql.write_str("bit(").unwrap();
+                    write!(sql, "{length}").unwrap();
+                    sql.write_char(')')
+                }
+                None => sql.write_str("bit"),
+            },
+            ColumnType::VarBit(length) => {
+                sql.write_str("varbit(").unwrap();
+                write!(sql, "{length}").unwrap();
+                sql.write_char(')')
+            }
+            ColumnType::Boolean => sql.write_str("bool"),
+            ColumnType::Money(precision) => match precision {
+                Some((precision, scale)) => {
+                    sql.write_str("money(").unwrap();
+                    write!(sql, "{precision}").unwrap();
+                    sql.write_str(", ").unwrap();
+                    write!(sql, "{scale}").unwrap();
+                    sql.write_char(')')
+                }
+                None => sql.write_str("money"),
+            },
+            ColumnType::Json => sql.write_str("json"),
+            ColumnType::JsonBinary => sql.write_str("jsonb"),
+            ColumnType::Uuid => sql.write_str("uuid"),
+            ColumnType::Array(elem_type) => {
+                self.prepare_column_type(elem_type, sql);
+                sql.write_str("[]")
+            }
+            ColumnType::Vector(size) => match size {
+                Some(size) => {
+                    sql.write_str("vector(").unwrap();
+                    write!(sql, "{size}").unwrap();
+                    sql.write_str(")")
+                }
+                None => sql.write_str("vector"),
+            },
+            ColumnType::Custom(iden) => sql.write_str(&iden.0),
+            ColumnType::Enum { name, .. } => sql.write_str(&name.0),
+            ColumnType::Cidr => sql.write_str("cidr"),
+            ColumnType::Inet => sql.write_str("inet"),
+            ColumnType::MacAddr => sql.write_str("macaddr"),
+            ColumnType::Year => unimplemented!("Year is not available in Postgres."),
+            ColumnType::LTree => sql.write_str("ltree"),
+        }
         .unwrap()
     }
 
@@ -91,152 +119,162 @@ impl TableBuilder for PostgresQueryBuilder {
         ""
     }
 
+    #[expect(clippy::cognitive_complexity, reason = "TODO")]
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
         };
-        write!(sql, "ALTER TABLE ").unwrap();
+        sql.write_str("ALTER TABLE ").unwrap();
         if let Some(table) = &alter.table {
             self.prepare_table_ref_table_stmt(table, sql);
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         }
 
-        alter.options.iter().fold(true, |first, option| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            };
-            match option {
-                TableAlterOption::AddColumn(AddColumnOption {
-                    column,
-                    if_not_exists,
-                }) => {
-                    write!(sql, "ADD COLUMN ").unwrap();
-                    if *if_not_exists {
-                        write!(sql, "IF NOT EXISTS ").unwrap();
-                    }
-                    let f = |column_def: &ColumnDef, sql: &mut dyn SqlWriter| {
-                        if let Some(column_type) = &column_def.types {
-                            write!(sql, " ").unwrap();
-                            if column_def.spec.auto_increment {
-                                self.prepare_column_auto_increment(column_type, sql);
-                            } else {
-                                self.prepare_column_type(column_type, sql);
-                            }
-                        }
-                    };
-                    self.prepare_column_def_common(column, sql, f);
-                }
-                TableAlterOption::ModifyColumn(column_def) => {
-                    let mut is_first = true;
+        let mut opts = alter.options.iter();
 
-                    macro_rules! write_comma_if_not_first {
-                        () => {
-                            if !is_first {
-                                write!(sql, ", ").unwrap();
-                            } else {
-                                is_first = false
+        join_io!(
+            opts,
+            opt,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                match opt {
+                    TableAlterOption::AddColumn(AddColumnOption {
+                        column,
+                        if_not_exists,
+                    }) => {
+                        sql.write_str("ADD COLUMN ").unwrap();
+                        if *if_not_exists {
+                            sql.write_str("IF NOT EXISTS ").unwrap();
+                        }
+                        let f = |column_def: &ColumnDef, sql: &mut dyn SqlWriter| {
+                            if let Some(column_type) = &column_def.types {
+                                write!(sql, " ").unwrap();
+                                if column_def.spec.auto_increment {
+                                    self.prepare_column_auto_increment(column_type, sql);
+                                } else {
+                                    self.prepare_column_type(column_type, sql);
+                                }
                             }
                         };
+                        self.prepare_column_def_common(column, sql, f);
                     }
+                    TableAlterOption::ModifyColumn(column_def) => {
+                        let mut is_first = true;
 
-                    if let Some(column_type) = &column_def.types {
-                        write!(sql, "ALTER COLUMN ").unwrap();
-                        self.prepare_iden(&column_def.name, sql);
-                        write!(sql, " TYPE ").unwrap();
-                        self.prepare_column_type(column_type, sql);
-                        is_first = false;
-                    }
-
-                    if column_def.spec.auto_increment {
-                        //
-                    }
-
-                    if let Some(nullable) = column_def.spec.nullable {
-                        write_comma_if_not_first!();
-                        write!(sql, "ALTER COLUMN ").unwrap();
-                        self.prepare_iden(&column_def.name, sql);
-                        if nullable {
-                            write!(sql, " DROP NOT NULL").unwrap();
-                        } else {
-                            write!(sql, " SET NOT NULL").unwrap();
+                        macro_rules! write_comma_if_not_first {
+                            () => {
+                                if !is_first {
+                                    write!(sql, ", ").unwrap();
+                                } else {
+                                    is_first = false
+                                }
+                            };
                         }
-                    }
 
-                    if let Some(default) = &column_def.spec.default {
-                        write_comma_if_not_first!();
-                        write!(sql, "ALTER COLUMN ").unwrap();
-                        self.prepare_iden(&column_def.name, sql);
-                        write!(sql, " SET DEFAULT ").unwrap();
-                        QueryBuilder::prepare_simple_expr(self, default, sql);
-                    }
-                    if column_def.spec.unique {
-                        write_comma_if_not_first!();
-                        write!(sql, "ADD UNIQUE (").unwrap();
-                        self.prepare_iden(&column_def.name, sql);
-                        write!(sql, ")").unwrap();
-                    }
-                    if column_def.spec.primary_key {
-                        write_comma_if_not_first!();
-                        write!(sql, "ADD PRIMARY KEY (").unwrap();
-                        self.prepare_iden(&column_def.name, sql);
-                        write!(sql, ")").unwrap();
-                    }
-                    if let Some(check) = &column_def.spec.check {
-                        write_comma_if_not_first!();
-                        self.prepare_check_constraint(check, sql);
-                    }
+                        if let Some(column_type) = &column_def.types {
+                            write!(sql, "ALTER COLUMN ").unwrap();
+                            self.prepare_iden(&column_def.name, sql);
+                            write!(sql, " TYPE ").unwrap();
+                            self.prepare_column_type(column_type, sql);
+                            is_first = false;
+                        }
 
-                    if let Some(x) = &column_def.spec.generated {
-                        let _ = x;
-                    }
+                        if column_def.spec.auto_increment {
+                            //
+                        }
 
-                    if let Some(x) = &column_def.spec.comment {
-                        let _ = x;
-                    }
+                        if let Some(nullable) = column_def.spec.nullable {
+                            write_comma_if_not_first!();
+                            write!(sql, "ALTER COLUMN ").unwrap();
+                            self.prepare_iden(&column_def.name, sql);
+                            if nullable {
+                                write!(sql, " DROP NOT NULL").unwrap();
+                            } else {
+                                write!(sql, " SET NOT NULL").unwrap();
+                            }
+                        }
 
-                    if let Some(expr) = &column_def.spec.using {
-                        write!(sql, " USING ").unwrap();
-                        QueryBuilder::prepare_simple_expr(self, expr, sql);
-                    }
+                        if let Some(default) = &column_def.spec.default {
+                            write_comma_if_not_first!();
+                            write!(sql, "ALTER COLUMN ").unwrap();
+                            self.prepare_iden(&column_def.name, sql);
+                            write!(sql, " SET DEFAULT ").unwrap();
+                            QueryBuilder::prepare_simple_expr(self, default, sql);
+                        }
+                        if column_def.spec.unique {
+                            write_comma_if_not_first!();
+                            write!(sql, "ADD UNIQUE (").unwrap();
+                            self.prepare_iden(&column_def.name, sql);
+                            write!(sql, ")").unwrap();
+                        }
+                        if column_def.spec.primary_key {
+                            write_comma_if_not_first!();
+                            write!(sql, "ADD PRIMARY KEY (").unwrap();
+                            self.prepare_iden(&column_def.name, sql);
+                            write!(sql, ")").unwrap();
+                        }
+                        if let Some(check) = &column_def.spec.check {
+                            write_comma_if_not_first!();
+                            self.prepare_check_constraint(check, sql);
+                        }
 
-                    if let Some(extra) = &column_def.spec.extra {
-                        write!(sql, "{extra}").unwrap()
-                    }
+                        if let Some(x) = &column_def.spec.generated {
+                            let _ = x;
+                        }
 
-                    let _ = is_first;
-                }
-                TableAlterOption::RenameColumn(from_name, to_name) => {
-                    write!(sql, "RENAME COLUMN ").unwrap();
-                    self.prepare_iden(from_name, sql);
-                    write!(sql, " TO ").unwrap();
-                    self.prepare_iden(to_name, sql);
-                }
-                TableAlterOption::DropColumn(column_name) => {
-                    write!(sql, "DROP COLUMN ").unwrap();
-                    self.prepare_iden(column_name, sql);
-                }
-                TableAlterOption::DropForeignKey(name) => {
-                    let mut foreign_key = TableForeignKey::new();
-                    foreign_key.name(name.to_string());
-                    let drop = ForeignKeyDropStatement {
-                        foreign_key,
-                        table: None,
-                    };
-                    self.prepare_foreign_key_drop_statement_internal(&drop, sql, Mode::TableAlter);
-                }
-                TableAlterOption::AddForeignKey(foreign_key) => {
-                    let create = ForeignKeyCreateStatement {
-                        foreign_key: foreign_key.to_owned(),
-                    };
-                    self.prepare_foreign_key_create_statement_internal(
-                        &create,
-                        sql,
-                        Mode::TableAlter,
-                    );
+                        if let Some(x) = &column_def.spec.comment {
+                            let _ = x;
+                        }
+
+                        if let Some(expr) = &column_def.spec.using {
+                            write!(sql, " USING ").unwrap();
+                            QueryBuilder::prepare_simple_expr(self, expr, sql);
+                        }
+
+                        if let Some(extra) = &column_def.spec.extra {
+                            write!(sql, "{extra}").unwrap()
+                        }
+
+                        let _ = is_first;
+                    }
+                    TableAlterOption::RenameColumn(from_name, to_name) => {
+                        sql.write_str("RENAME COLUMN ").unwrap();
+                        self.prepare_iden(from_name, sql);
+                        sql.write_str(" TO ").unwrap();
+                        self.prepare_iden(to_name, sql);
+                    }
+                    TableAlterOption::DropColumn(column_name) => {
+                        sql.write_str("DROP COLUMN ").unwrap();
+                        self.prepare_iden(column_name, sql);
+                    }
+                    TableAlterOption::DropForeignKey(name) => {
+                        let mut foreign_key = TableForeignKey::new();
+                        foreign_key.name(name.to_string());
+                        let drop = ForeignKeyDropStatement {
+                            foreign_key,
+                            table: None,
+                        };
+                        self.prepare_foreign_key_drop_statement_internal(
+                            &drop,
+                            sql,
+                            Mode::TableAlter,
+                        );
+                    }
+                    TableAlterOption::AddForeignKey(foreign_key) => {
+                        let create = ForeignKeyCreateStatement {
+                            foreign_key: foreign_key.to_owned(),
+                        };
+                        self.prepare_foreign_key_create_statement_internal(
+                            &create,
+                            sql,
+                            Mode::TableAlter,
+                        );
+                    }
                 }
             }
-            false
-        });
+        );
     }
 
     fn prepare_table_rename_statement(
@@ -244,11 +282,11 @@ impl TableBuilder for PostgresQueryBuilder {
         rename: &TableRenameStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "ALTER TABLE ").unwrap();
+        sql.write_str("ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
             self.prepare_table_ref_table_stmt(from_name, sql);
         }
-        write!(sql, " RENAME TO ").unwrap();
+        sql.write_str(" RENAME TO ").unwrap();
         if let Some(to_name) = &rename.to_name {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
@@ -258,13 +296,13 @@ impl TableBuilder for PostgresQueryBuilder {
 impl PostgresQueryBuilder {
     fn prepare_column_auto_increment(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
         let num_ty = match column_type {
-            ColumnType::SmallInteger => "smallint",
-            ColumnType::Integer => "integer",
-            ColumnType::BigInteger => "bigint",
+            ColumnType::SmallInteger => "smallint GENERATED BY DEFAULT AS IDENTITY",
+            ColumnType::Integer => "integer GENERATED BY DEFAULT AS IDENTITY",
+            ColumnType::BigInteger => "bigint GENERATED BY DEFAULT AS IDENTITY",
             _ => unimplemented!("{:?} doesn't support auto increment", column_type),
         };
 
-        write!(sql, "{num_ty} GENERATED BY DEFAULT AS IDENTITY").unwrap();
+        sql.write_str(num_ty).unwrap();
     }
 
     fn prepare_column_type_check_auto_increment(
@@ -275,7 +313,7 @@ impl PostgresQueryBuilder {
         if let Some(column_type) = &column_def.types {
             let is_auto_increment = column_def.spec.auto_increment;
 
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
 
             if is_auto_increment {
                 self.prepare_column_auto_increment(column_type, sql);
