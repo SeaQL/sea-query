@@ -386,6 +386,8 @@ pub enum JoinType {
     LeftJoin,
     RightJoin,
     FullOuterJoin,
+    #[cfg(feature = "backend-mysql")]
+    StraightJoin,
 }
 
 /// Nulls order
