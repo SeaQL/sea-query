@@ -1389,7 +1389,7 @@ impl SelectStatement {
         self.join(JoinType::FullOuterJoin, tbl_ref, condition)
     }
 
-    /// Straight join.
+    /// Straight join. MySQL only.
     ///
     /// # Examples
     ///
@@ -1427,7 +1427,6 @@ impl SelectStatement {
     ///     r#"SELECT `character`, `font`.`name` FROM `character` STRAIGHT_JOIN `font` ON `character`.`font_id` = `font`.`id` AND `character`.`font_id` = `font`.`id`"#
     /// );
     /// ```
-    #[cfg(feature = "backend-mysql")]
     pub fn straight_join<R, C>(&mut self, tbl_ref: R, condition: C) -> &mut Self
     where
         R: IntoTableRef,
