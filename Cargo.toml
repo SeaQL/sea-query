@@ -3,7 +3,7 @@ members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
-version = "1.0.0-rc.11"
+version = "1.0.0-rc.12"
 authors = [
     "Chris Tsang <chris.2y3@outlook.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
