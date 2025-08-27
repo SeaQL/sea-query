@@ -1,5 +1,6 @@
 //! Identifier types.
 
+// Intentionally not `pub`, so that we're free to experiment with the internal structure.
 mod compound;
 mod core;
 mod qualification;

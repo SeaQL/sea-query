@@ -8,6 +8,7 @@ use crate::extension::postgres::PgBinOper;
 #[cfg(feature = "backend-sqlite")]
 use crate::extension::sqlite::SqliteBinOper;
 
+// Intentionally not `pub`, so that we're free to experiment with the internal structure.
 mod iden;
 
 pub use iden::*;
