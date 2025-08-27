@@ -119,7 +119,6 @@ impl TableBuilder for PostgresQueryBuilder {
         ""
     }
 
-    #[expect(clippy::cognitive_complexity, reason = "TODO")]
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
         if alter.options.is_empty() {
             panic!("No alter option found")
@@ -161,83 +160,7 @@ impl TableBuilder for PostgresQueryBuilder {
                         self.prepare_column_def_common(column, sql, f);
                     }
                     TableAlterOption::ModifyColumn(column_def) => {
-                        let mut is_first = true;
-
-                        macro_rules! write_comma_if_not_first {
-                            () => {
-                                if !is_first {
-                                    write!(sql, ", ").unwrap();
-                                } else {
-                                    is_first = false
-                                }
-                            };
-                        }
-
-                        if let Some(column_type) = &column_def.types {
-                            write!(sql, "ALTER COLUMN ").unwrap();
-                            self.prepare_iden(&column_def.name, sql);
-                            write!(sql, " TYPE ").unwrap();
-                            self.prepare_column_type(column_type, sql);
-                            is_first = false;
-                        }
-
-                        if column_def.spec.auto_increment {
-                            //
-                        }
-
-                        if let Some(nullable) = column_def.spec.nullable {
-                            write_comma_if_not_first!();
-                            write!(sql, "ALTER COLUMN ").unwrap();
-                            self.prepare_iden(&column_def.name, sql);
-                            if nullable {
-                                write!(sql, " DROP NOT NULL").unwrap();
-                            } else {
-                                write!(sql, " SET NOT NULL").unwrap();
-                            }
-                        }
-
-                        if let Some(default) = &column_def.spec.default {
-                            write_comma_if_not_first!();
-                            write!(sql, "ALTER COLUMN ").unwrap();
-                            self.prepare_iden(&column_def.name, sql);
-                            write!(sql, " SET DEFAULT ").unwrap();
-                            QueryBuilder::prepare_simple_expr(self, default, sql);
-                        }
-                        if column_def.spec.unique {
-                            write_comma_if_not_first!();
-                            write!(sql, "ADD UNIQUE (").unwrap();
-                            self.prepare_iden(&column_def.name, sql);
-                            write!(sql, ")").unwrap();
-                        }
-                        if column_def.spec.primary_key {
-                            write_comma_if_not_first!();
-                            write!(sql, "ADD PRIMARY KEY (").unwrap();
-                            self.prepare_iden(&column_def.name, sql);
-                            write!(sql, ")").unwrap();
-                        }
-                        if let Some(check) = &column_def.spec.check {
-                            write_comma_if_not_first!();
-                            self.prepare_check_constraint(check, sql);
-                        }
-
-                        if let Some(x) = &column_def.spec.generated {
-                            let _ = x;
-                        }
-
-                        if let Some(x) = &column_def.spec.comment {
-                            let _ = x;
-                        }
-
-                        if let Some(expr) = &column_def.spec.using {
-                            write!(sql, " USING ").unwrap();
-                            QueryBuilder::prepare_simple_expr(self, expr, sql);
-                        }
-
-                        if let Some(extra) = &column_def.spec.extra {
-                            write!(sql, "{extra}").unwrap()
-                        }
-
-                        let _ = is_first;
+                        self.prepare_modify_column(sql, column_def);
                     }
                     TableAlterOption::RenameColumn(from_name, to_name) => {
                         sql.write_str("RENAME COLUMN ").unwrap();
@@ -332,5 +255,85 @@ impl PostgresQueryBuilder {
         f(column_def, sql);
 
         self.prepare_column_spec(&column_def.spec, sql);
+    }
+
+    fn prepare_modify_column(&self, sql: &mut dyn SqlWriter, column_def: &ColumnDef) {
+        let mut is_first = true;
+
+        macro_rules! write_comma_if_not_first {
+            () => {
+                if !is_first {
+                    write!(sql, ", ").unwrap();
+                } else {
+                    is_first = false
+                }
+            };
+        }
+
+        if let Some(column_type) = &column_def.types {
+            write!(sql, "ALTER COLUMN ").unwrap();
+            self.prepare_iden(&column_def.name, sql);
+            write!(sql, " TYPE ").unwrap();
+            self.prepare_column_type(column_type, sql);
+            is_first = false;
+        }
+
+        if column_def.spec.auto_increment {
+            //
+        }
+
+        if let Some(nullable) = column_def.spec.nullable {
+            write_comma_if_not_first!();
+            write!(sql, "ALTER COLUMN ").unwrap();
+            self.prepare_iden(&column_def.name, sql);
+            if nullable {
+                write!(sql, " DROP NOT NULL").unwrap();
+            } else {
+                write!(sql, " SET NOT NULL").unwrap();
+            }
+        }
+
+        if let Some(default) = &column_def.spec.default {
+            write_comma_if_not_first!();
+            write!(sql, "ALTER COLUMN ").unwrap();
+            self.prepare_iden(&column_def.name, sql);
+            write!(sql, " SET DEFAULT ").unwrap();
+            QueryBuilder::prepare_simple_expr(self, default, sql);
+        }
+        if column_def.spec.unique {
+            write_comma_if_not_first!();
+            write!(sql, "ADD UNIQUE (").unwrap();
+            self.prepare_iden(&column_def.name, sql);
+            write!(sql, ")").unwrap();
+        }
+        if column_def.spec.primary_key {
+            write_comma_if_not_first!();
+            write!(sql, "ADD PRIMARY KEY (").unwrap();
+            self.prepare_iden(&column_def.name, sql);
+            write!(sql, ")").unwrap();
+        }
+        if let Some(check) = &column_def.spec.check {
+            write_comma_if_not_first!();
+            self.prepare_check_constraint(check, sql);
+        }
+
+        if let Some(x) = &column_def.spec.generated {
+            let _ = x;
+        }
+
+        if let Some(x) = &column_def.spec.comment {
+            let _ = x;
+        }
+
+        if let Some(expr) = &column_def.spec.using {
+            write!(sql, " USING ").unwrap();
+            QueryBuilder::prepare_simple_expr(self, expr, sql);
+        }
+
+        if let Some(extra) = &column_def.spec.extra {
+            write!(sql, "{extra}").unwrap()
+        }
+
+        let _ = is_first;
     }
 }
