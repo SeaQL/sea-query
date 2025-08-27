@@ -238,7 +238,7 @@ impl TableBuilder for MysqlQueryBuilder {
 
     /// column comment
     fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
-        sql.write_str("COMMENT '").unwrap();
+        sql.write_str(" COMMENT '").unwrap();
         self.write_escaped(sql.as_writer(), comment);
         sql.write_str("'").unwrap();
     }
