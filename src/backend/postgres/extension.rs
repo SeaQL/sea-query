@@ -7,24 +7,26 @@ impl ExtensionBuilder for PostgresQueryBuilder {
         create: &ExtensionCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE EXTENSION ").unwrap();
+        sql.write_str("CREATE EXTENSION ").unwrap();
 
         if create.if_not_exists {
-            write!(sql, "IF NOT EXISTS ").unwrap()
+            sql.write_str("IF NOT EXISTS ").unwrap();
         }
 
-        write!(sql, "{}", create.name).unwrap();
+        sql.write_str(&create.name).unwrap();
 
         if let Some(schema) = create.schema.as_ref() {
-            write!(sql, " WITH SCHEMA {schema}").unwrap();
+            sql.write_str(" WITH SCHEMA ").unwrap();
+            sql.write_str(schema).unwrap()
         }
 
         if let Some(version) = create.version.as_ref() {
-            write!(sql, " VERSION {version}").unwrap();
+            sql.write_str(" VERSION ").unwrap();
+            sql.write_str(version).unwrap();
         }
 
         if create.cascade {
-            write!(sql, " CASCADE").unwrap();
+            sql.write_str(" CASCADE").unwrap();
         }
     }
 
@@ -33,20 +35,20 @@ impl ExtensionBuilder for PostgresQueryBuilder {
         drop: &ExtensionDropStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "DROP EXTENSION ").unwrap();
+        sql.write_str("DROP EXTENSION ").unwrap();
 
         if drop.if_exists {
-            write!(sql, "IF EXISTS ").unwrap();
+            sql.write_str("IF EXISTS ").unwrap();
         }
 
-        write!(sql, "{}", drop.name).unwrap();
+        sql.write_str(&drop.name).unwrap();
 
         if drop.cascade {
-            write!(sql, " CASCADE").unwrap();
+            sql.write_str(" CASCADE").unwrap();
         }
 
         if drop.restrict {
-            write!(sql, " RESTRICT").unwrap();
+            sql.write_str(" RESTRICT").unwrap();
         }
     }
 }

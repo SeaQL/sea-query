@@ -162,12 +162,12 @@ impl<'a> Tokenizer<'a> {
                 if !Self::is_string_escape_for(start, self.get()) {
                     break;
                 } else {
-                    string.write_char(c).unwrap();
+                    write!(string, "{c}").unwrap();
                     self.inc();
                 }
             } else if !first {
                 escape = !escape && Self::is_escape_char(c);
-                string.write_char(c).unwrap();
+                write!(string, "{c}").unwrap();
                 self.inc();
             } else {
                 break;
@@ -293,7 +293,16 @@ impl Token<'_> {
 
 impl std::fmt::Display for Token<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.as_str())
+        write!(
+            f,
+            "{}",
+            match self {
+                Token::Unquoted(string) => string,
+                Token::Space(string) => string,
+                Token::Quoted(string) => string,
+                Token::Punctuation(string) => string,
+            }
+        )
     }
 }
 

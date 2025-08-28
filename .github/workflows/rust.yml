@@ -110,7 +110,6 @@ jobs:
       - run: cargo test --package sea-query-derive --no-run
       - run: cargo test --package sea-query-derive
 
-
   binder-build:
     name: Build `sea-query-sqlx`
     runs-on: ubuntu-latest

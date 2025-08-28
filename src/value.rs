@@ -97,8 +97,12 @@ pub mod with_array;
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
 mod with_pgvector;
 
+#[cfg(all(test, feature = "serde", feature = "with-json"))]
+mod serde_tests;
+
 /// [`Value`] types variant for Postgres array
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ArrayType {
     Bool,
     TinyInt,
@@ -207,6 +211,7 @@ pub enum ArrayType {
 /// If the `hashable-value` feature is enabled, NaN == NaN, which contradicts Rust's built-in
 /// implementation of NaN != NaN.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
 pub enum Value {
     Bool(Option<bool>),
@@ -324,11 +329,29 @@ pub enum Value {
 /// If the size exceeds the limit, you should box the variant.
 /// Previously, the size was 24. We bumped it to 32 such that `String`
 /// can be unboxed.
+///
+/// When the `with-json` feature is enabled, the size of `Value` may
+/// exceed 32 bytes to 72 bytes if serde_json feature `preserve_order`
+/// is enabled as different Map implementation can be used.
 pub const VALUE_SIZE: usize = check_value_size();
+const MAX_VALUE_SIZE: usize = 32;
+
+#[cfg(feature = "with-json")]
+const EXPECTED_VALUE_SIZE: usize = {
+    if size_of::<Option<Json>>() > MAX_VALUE_SIZE {
+        size_of::<Option<Json>>()
+    } else {
+        MAX_VALUE_SIZE
+    }
+};
+#[cfg(not(feature = "with-json"))]
+const EXPECTED_VALUE_SIZE: usize = MAX_VALUE_SIZE;
 
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > 32 {
-        panic!("the size of Value shouldn't be greater than 32 bytes")
+    if std::mem::size_of::<Value>() > EXPECTED_VALUE_SIZE {
+        panic!(
+            "the size of Value shouldn't be greater than the expected MAX_VALUE_SIZE (32 bytes by default)"
+        )
     }
     std::mem::size_of::<Value>()
 }
@@ -737,7 +760,7 @@ impl std::error::Error for ValueTypeErr {}
 
 impl std::fmt::Display for ValueTypeErr {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Value type mismatch")
+        f.write_str("Value type mismatch")
     }
 }
 

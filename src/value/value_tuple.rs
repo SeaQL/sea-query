@@ -10,16 +10,6 @@ pub enum ValueTuple {
     Many(Vec<Value>),
 }
 
-pub trait IntoValueTuple {
-    fn into_value_tuple(self) -> ValueTuple;
-}
-
-pub trait FromValueTuple: Sized {
-    fn from_value_tuple<I>(i: I) -> Self
-    where
-        I: IntoValueTuple;
-}
-
 impl ValueTuple {
     pub fn arity(&self) -> usize {
         match self {
@@ -45,40 +35,73 @@ impl IntoIterator for ValueTuple {
     }
 }
 
-impl IntoValueTuple for ValueTuple {
+pub trait IntoValueTuple: Into<ValueTuple> {
     fn into_value_tuple(self) -> ValueTuple {
-        self
+        self.into()
     }
 }
 
-impl<V> IntoValueTuple for V
+impl<T> IntoValueTuple for T where T: Into<ValueTuple> {}
+
+impl<V> From<V> for ValueTuple
 where
     V: Into<Value>,
 {
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::One(self.into())
+    fn from(value: V) -> Self {
+        ValueTuple::One(value.into())
     }
 }
 
-impl<V, W> IntoValueTuple for (V, W)
+impl<V, W> From<(V, W)> for ValueTuple
 where
     V: Into<Value>,
     W: Into<Value>,
 {
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Two(self.0.into(), self.1.into())
+    fn from(value: (V, W)) -> Self {
+        ValueTuple::Two(value.0.into(), value.1.into())
     }
 }
 
-impl<U, V, W> IntoValueTuple for (U, V, W)
+impl<U, V, W> From<(U, V, W)> for ValueTuple
 where
     U: Into<Value>,
     V: Into<Value>,
     W: Into<Value>,
 {
-    fn into_value_tuple(self) -> ValueTuple {
-        ValueTuple::Three(self.0.into(), self.1.into(), self.2.into())
+    fn from(value: (U, V, W)) -> Self {
+        ValueTuple::Three(value.0.into(), value.1.into(), value.2.into())
     }
+}
+
+macro_rules! impl_into_value_tuple {
+    ( $($idx:tt : $T:ident),+ $(,)? ) => {
+        impl< $($T),+ > From<( $($T),+ )> for ValueTuple
+        where
+            $($T: Into<Value>),+
+        {
+            fn from(value: ( $($T),+ )) -> Self  {
+                ValueTuple::Many(vec![
+                    $(value.$idx.into()),+
+                ])
+            }
+        }
+    };
+}
+
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10);
+impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10, 11:T11);
+
+pub trait FromValueTuple: Sized {
+    fn from_value_tuple<I>(i: I) -> Self
+    where
+        I: IntoValueTuple;
 }
 
 impl<V> FromValueTuple for V
@@ -162,28 +185,3 @@ impl_from_value_tuple!(9, T0, T1, T2, T3, T4, T5, T6, T7, T8);
 impl_from_value_tuple!(10, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
 impl_from_value_tuple!(11, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
 impl_from_value_tuple!(12, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
-
-macro_rules! impl_into_value_tuple {
-    ( $($idx:tt : $T:ident),+ $(,)? ) => {
-        impl< $($T),+ > IntoValueTuple for ( $($T),+ )
-        where
-            $($T: Into<Value>),+
-        {
-            fn into_value_tuple(self) -> ValueTuple {
-                ValueTuple::Many(vec![
-                    $(self.$idx.into()),+
-                ])
-            }
-        }
-    };
-}
-
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10);
-impl_into_value_tuple!(0:T0, 1:T1, 2:T2, 3:T3, 4:T4, 5:T5, 6:T6, 7:T7, 8:T8, 9:T9, 10:T10, 11:T11);

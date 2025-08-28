@@ -522,7 +522,7 @@ impl Func {
     pub fn cast_as_quoted<V, I>(expr: V, r#type: I) -> FunctionCall
     where
         V: Into<Expr>,
-        I: Into<TypeName>,
+        I: Into<TypeRef>,
     {
         let expr: Expr = expr.into();
         FunctionCall::new(Func::Cast).arg(expr.binary(BinOper::As, Expr::TypeName(r#type.into())))
