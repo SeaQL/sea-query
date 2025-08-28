@@ -19,10 +19,7 @@ impl TableBuilder for MysqlQueryBuilder {
             self.prepare_column_type(column_type, sql);
         }
 
-        for column_spec in column_def.spec.iter() {
-            sql.write_str(" ").unwrap();
-            self.prepare_column_spec(column_spec, sql);
-        }
+        self.prepare_column_spec(&column_def.spec, sql);
     }
 
     fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
@@ -149,7 +146,7 @@ impl TableBuilder for MysqlQueryBuilder {
     }
 
     fn column_spec_auto_increment_keyword(&self) -> &str {
-        "AUTO_INCREMENT"
+        " AUTO_INCREMENT"
     }
 
     fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
@@ -241,7 +238,7 @@ impl TableBuilder for MysqlQueryBuilder {
 
     /// column comment
     fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
-        sql.write_str("COMMENT '").unwrap();
+        sql.write_str(" COMMENT '").unwrap();
         self.write_escaped(sql.as_writer(), comment);
         sql.write_str("'").unwrap();
     }
