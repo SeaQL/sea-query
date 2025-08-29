@@ -209,6 +209,15 @@ impl QueryBuilder for MysqlQueryBuilder {
         "RAND"
     }
 
+    fn lock_phrase(&self, lock_type: LockType) -> &'static str {
+        match lock_type {
+            LockType::Update => "FOR UPDATE",
+            LockType::NoKeyUpdate => "FOR NO KEY UPDATE",
+            LockType::Share => "LOCK IN SHARE MODE",
+            LockType::KeyShare => "FOR KEY SHARE",
+        }
+    }
+
     fn insert_default_keyword(&self) -> &str {
         "()"
     }
