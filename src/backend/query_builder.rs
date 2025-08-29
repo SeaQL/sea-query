@@ -543,8 +543,7 @@ pub trait QueryBuilder:
 
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut dyn SqlWriter) {
-        sql.write_str(self.lock_phrase(lock.r#type))
-        .unwrap();
+        sql.write_str(self.lock_phrase(lock.r#type)).unwrap();
         let mut tables = lock.tables.iter();
         join_io!(
             tables,
