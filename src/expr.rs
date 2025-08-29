@@ -40,10 +40,23 @@ pub enum Expr {
     Custom(String),
     CustomWithExpr(String, Vec<Expr>),
     Keyword(Keyword),
-    AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
     Constant(Value),
-    TypeName(TypeRef),
+}
+
+/// Whether an identifier should be quoted or not.
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub enum IdenQuoting {
+    /// Quote the identifier when building the SQL statement.
+    ///
+    /// This is the default behavior, and allows to use special characters and reserved keywords in identifiers.
+    ///
+    /// In some databases, this also makes the identifier case-sensitive, while unquoted identifiers are case-insensitive.
+    Quoted,
+    /// Don't quote the identifier when building the SQL statement.
+    ///
+    /// In some databases, unquoted identifiers are case-insensitive, while quoted identifiers are case-sensitive.
+    Unquoted,
 }
 
 impl<T> From<T> for Expr
@@ -229,6 +242,12 @@ pub trait ExprTrait: Sized {
 
     /// Express a `AS enum` expression.
     ///
+    /// Type can be qualified with a schema name.
+    ///
+    /// Unlike [`cast_as`][Expr::cast_as], this method puts the type name in quotes.
+    /// This is useful for type names that can be SQL keywords or contain special characters.
+    /// In some databases, quoted identifiers are case-sensitive, while unquoted identifiers are case-insensitive.
+    ///
     /// # Examples
     ///
     /// ```
@@ -262,11 +281,42 @@ pub trait ExprTrait: Sized {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT CAST("font_size" AS "FontSizeEnum"[]) FROM "character""#
     /// );
+    ///
+    /// // Also works with a schema-qualified type name:
+    ///
+    /// let query = Query::insert()
+    ///     .into_table(Char::Table)
+    ///     .columns([Char::FontSize])
+    ///     .values_panic(["large".as_enum(("MySchema", "FontSizeEnum"))])
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"INSERT INTO `character` (`font_size`) VALUES ('large')"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"INSERT INTO "character" ("font_size") VALUES (CAST('large' AS "MySchema"."FontSizeEnum"))"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"INSERT INTO "character" ("font_size") VALUES ('large')"#
+    /// );
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col(Char::FontSize).as_enum(("MySchema", "FontSizeEnum[]")))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST("font_size" AS "MySchema"."FontSizeEnum"[]) FROM "character""#
+    /// );
     /// ```
     #[allow(clippy::wrong_self_convention)]
     fn as_enum<N>(self, type_name: N) -> Expr
     where
-        N: IntoIden;
+        N: IntoTypeRef;
 
     /// Express a logical `AND` operation.
     ///
@@ -375,6 +425,11 @@ pub trait ExprTrait: Sized {
 
     /// Express a `CAST AS` expression.
     ///
+    /// Type can be qualified with a schema name.
+    ///
+    /// Unlike [`as_enum`][Expr::as_enum], this method doesn't put the type name in quotes.
+    /// This can be used to get case-insensitive behavior in databases where quoted identifiers are case-sensitive.
+    ///
     /// # Examples
     ///
     /// ```
@@ -394,10 +449,27 @@ pub trait ExprTrait: Sized {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT CAST('1' AS integer)"#
     /// );
+    ///
+    /// // Also works with a schema-qualified type name:
+    ///
+    /// let query = Query::select().expr("1".cast_as(("MySchema", "integer"))).to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('1' AS `MySchema`.integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('1' AS "MySchema".integer)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('1' AS "MySchema".integer)"#
+    /// );
     /// ```
     fn cast_as<N>(self, type_name: N) -> Expr
     where
-        N: IntoIden;
+        N: IntoTypeRef;
 
     /// Express an arithmetic division operation.
     ///
@@ -1595,9 +1667,9 @@ where
 {
     fn as_enum<N>(self, type_name: N) -> Expr
     where
-        N: IntoIden,
+        N: IntoTypeRef,
     {
-        Expr::AsEnum(type_name.into_iden(), Box::new(self.into()))
+        Expr::FunctionCall(Func::cast_as_quoted(self, type_name))
     }
 
     fn binary<O, R>(self, op: O, right: R) -> Expr
@@ -1610,7 +1682,7 @@ where
 
     fn cast_as<N>(self, type_name: N) -> Expr
     where
-        N: IntoIden,
+        N: Into<TypeRef>,
     {
         Expr::FunctionCall(Func::cast_as(self, type_name))
     }

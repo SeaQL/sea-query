@@ -490,17 +490,11 @@ pub trait QueryBuilder:
             Expr::Keyword(keyword) => {
                 self.prepare_keyword(keyword, sql);
             }
-            Expr::AsEnum(_, expr) => {
-                self.prepare_simple_expr(expr, sql);
-            }
             Expr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql);
             }
             Expr::Constant(val) => {
                 self.prepare_constant(val, sql);
-            }
-            Expr::TypeName(type_name) => {
-                self.prepare_type_ref(type_name, sql);
             }
         }
     }
@@ -791,21 +785,40 @@ pub trait QueryBuilder:
         let mut args = func.args.iter().zip(func.mods.iter());
 
         if let Some((arg, modifier)) = args.next() {
-            if modifier.distinct {
-                sql.write_str("DISTINCT ").unwrap();
-            }
-            self.prepare_simple_expr(arg, sql);
+            self.prepare_function_argument(arg, modifier, sql);
         }
 
         for (arg, modifier) in args {
             sql.write_str(", ").unwrap();
-            if modifier.distinct {
-                sql.write_str("DISTINCT ").unwrap();
-            }
-            self.prepare_simple_expr(arg, sql);
+            self.prepare_function_argument(arg, modifier, sql);
         }
 
         sql.write_str(")").unwrap();
+    }
+
+    fn prepare_function_argument(
+        &self,
+        arg: &Expr,
+        modifier: &FuncArgMod,
+        sql: &mut dyn SqlWriter,
+    ) {
+        // Intentionally destructure without `..` so that any new fields raise an error here
+        // and force us to implement the codegen for them.
+        let FuncArgMod { distinct, as_type } = modifier;
+
+        if *distinct {
+            sql.write_str("DISTINCT ").unwrap();
+        }
+
+        self.prepare_simple_expr(arg, sql);
+
+        if let Some((type_name, quoting)) = as_type {
+            sql.write_str(" AS ").unwrap();
+            match quoting {
+                IdenQuoting::Quoted => self.prepare_type_ref(type_name, sql),
+                IdenQuoting::Unquoted => self.prepare_unquoted_type_ref(type_name, sql),
+            }
+        }
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
@@ -950,6 +963,8 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`TypeRef`] into an SQL statement.
+    ///
+    /// The type name will be quoted. See also [`prepare_unquoted_type_ref`][QueryBuilder::prepare_unquoted_type_ref].
     fn prepare_type_ref(&self, type_name: &TypeRef, sql: &mut dyn SqlWriter) {
         let TypeRef(schema_name, r#type) = type_name;
         if let Some(schema_name) = schema_name {
@@ -957,6 +972,18 @@ pub trait QueryBuilder:
             write!(sql, ".").unwrap();
         }
         self.prepare_iden(r#type, sql);
+    }
+
+    /// Translate [`TypeRef`] into an SQL statement without quoting the type name.
+    ///
+    /// See also [`prepare_type_ref`][QueryBuilder::prepare_type_ref].
+    fn prepare_unquoted_type_ref(&self, type_name: &TypeRef, sql: &mut dyn SqlWriter) {
+        let TypeRef(schema_name, r#type) = type_name;
+        if let Some(schema_name) = schema_name {
+            self.prepare_schema_name(schema_name, sql);
+            write!(sql, ".").unwrap();
+        }
+        sql.write_str(&r#type.0).unwrap();
     }
 
     /// Translate [`JoinType`] into SQL statement.
@@ -1813,8 +1840,7 @@ pub(crate) fn common_inner_expr_well_known_greater_precedence(
         | Expr::Value(_)
         | Expr::Keyword(_)
         | Expr::Case(_)
-        | Expr::SubQuery(_, _)
-        | Expr::TypeName(_) => true,
+        | Expr::SubQuery(_, _) => true,
         Expr::Binary(_, inner_oper, _) => {
             #[cfg(feature = "option-more-parentheses")]
             {

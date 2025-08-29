@@ -110,7 +110,7 @@ impl Walker {
     fn recurse_audit_expr(&mut self, expr: &Expr) -> Result<(), Error> {
         match expr {
             Expr::Column(_) => (),
-            Expr::Unary(_, expr) | Expr::AsEnum(_, expr) => self.recurse_audit_expr(expr)?,
+            Expr::Unary(_, expr) => self.recurse_audit_expr(expr)?,
             Expr::FunctionCall(function) => self.recurse_audit_function(function)?,
             Expr::Binary(left, _, right) => {
                 self.recurse_audit_expr(left)?;
@@ -128,7 +128,6 @@ impl Walker {
             Expr::Keyword(_) => (),
             Expr::Case(case) => self.recurse_audit_case(case)?,
             Expr::Constant(_) => (),
-            Expr::TypeName(_) => (),
         }
         Ok(())
     }

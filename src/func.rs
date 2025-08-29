@@ -297,7 +297,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::Count).arg_with(expr, FuncArgMod { distinct: true })
+        FunctionCall::new(Func::Count).arg_with(expr, FuncArgMod::distinct())
     }
 
     /// Call `CHAR_LENGTH` function.
@@ -440,6 +440,11 @@ impl Func {
 
     /// Call `CAST` function with a custom type.
     ///
+    /// The type name will not be quoted.
+    /// In some databases, unquoted identifiers are case-insensitive, while quoted identifiers are case-sensitive.
+    ///
+    /// Type can be qualified with a schema name.
+    ///
     /// # Examples
     ///
     /// ```
@@ -461,20 +466,38 @@ impl Func {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT CAST('hello' AS MyType)"#
     /// );
+    ///
+    /// // Also works with a schema-qualified type name:
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::cast_as("hello", ("MySchema", "MyType")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS `MySchema`.MyType)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MySchema".MyType)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MySchema".MyType)"#
+    /// );
     /// ```
-    pub fn cast_as<V, I>(expr: V, iden: I) -> FunctionCall
+    pub fn cast_as<V, I>(expr: V, r#type: I) -> FunctionCall
     where
         V: Into<Expr>,
-        I: IntoIden,
+        I: IntoTypeRef,
     {
-        let expr: Expr = expr.into();
-        FunctionCall::new(Func::Cast).arg(expr.binary(
-            BinOper::As,
-            Expr::cust(iden.into_iden().to_string().as_str()),
-        ))
+        FunctionCall::new(Func::Cast)
+            .arg_with(expr, FuncArgMod::as_type(r#type, IdenQuoting::Unquoted))
     }
 
     /// Call `CAST` function with a case-sensitive custom type.
+    ///
+    /// The type name will be put in quotes.
     ///
     /// Type can be qualified with a schema name.
     ///
@@ -524,8 +547,8 @@ impl Func {
         V: Into<Expr>,
         I: Into<TypeRef>,
     {
-        let expr: Expr = expr.into();
-        FunctionCall::new(Func::Cast).arg(expr.binary(BinOper::As, Expr::TypeName(r#type.into())))
+        FunctionCall::new(Func::Cast)
+            .arg_with(expr, FuncArgMod::as_type(r#type, IdenQuoting::Quoted))
     }
 
     /// Call `COALESCE` function.
@@ -834,11 +857,6 @@ pub struct FunctionCall {
     pub(crate) mods: Vec<FuncArgMod>,
 }
 
-#[derive(Debug, Default, Copy, Clone, PartialEq)]
-pub struct FuncArgMod {
-    pub distinct: bool,
-}
-
 impl FunctionCall {
     pub(crate) fn new(func: Func) -> Self {
         Self {
@@ -885,5 +903,29 @@ impl FunctionCall {
 
     pub fn get_mods(&self) -> &[FuncArgMod] {
         &self.mods
+    }
+}
+
+#[derive(Debug, Default, Clone, PartialEq)]
+#[non_exhaustive]
+pub struct FuncArgMod {
+    pub distinct: bool,
+    /// Is used to implement `CAST(... AS ...)` "calls".
+    pub as_type: Option<(TypeRef, IdenQuoting)>,
+}
+
+impl FuncArgMod {
+    pub(crate) fn distinct() -> Self {
+        Self {
+            distinct: true,
+            ..Default::default()
+        }
+    }
+
+    pub(crate) fn as_type(type_: impl IntoTypeRef, quoting: IdenQuoting) -> Self {
+        Self {
+            as_type: Some((type_.into(), quoting)),
+            ..Default::default()
+        }
     }
 }

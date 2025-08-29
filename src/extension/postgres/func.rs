@@ -501,7 +501,6 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::ArrayAgg))
-            .arg_with(expr, FuncArgMod { distinct: true })
+        FunctionCall::new(Func::PgFunction(PgFunc::ArrayAgg)).arg_with(expr, FuncArgMod::distinct())
     }
 }

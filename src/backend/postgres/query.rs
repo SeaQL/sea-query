@@ -34,27 +34,25 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
-        match simple_expr {
-            Expr::AsEnum(type_name, expr) => {
-                sql.write_str("CAST(").unwrap();
-                self.prepare_simple_expr_common(expr, sql);
-                let q = self.quote();
-                let type_name = &type_name.0;
-                let (ty, sfx) = if let Some(base) = type_name.strip_suffix("[]") {
-                    (base, "[]")
-                } else {
-                    (type_name.as_ref(), "")
-                };
-                sql.write_str(" AS ").unwrap();
-                sql.write_char(q.left()).unwrap();
-                sql.write_str(ty).unwrap();
-                sql.write_char(q.right()).unwrap();
-                sql.write_str(sfx).unwrap();
-                sql.write_char(')').unwrap();
-            }
-            _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql),
+    /// Special handling of array type names in Postgres.
+    fn prepare_type_ref(&self, type_ref: &TypeRef, sql: &mut dyn SqlWriter) {
+        let q = self.quote();
+        let TypeRef(schema_name, type_name) = type_ref;
+        let type_name = type_name.0.as_ref();
+        let (ty, sfx) = if let Some(base) = type_name.strip_suffix("[]") {
+            (base, "[]")
+        } else {
+            (type_name, "")
+        };
+
+        if let Some(schema_name) = schema_name {
+            self.prepare_schema_name(schema_name, sql);
+            sql.write_str(".").unwrap();
         }
+        sql.write_char(q.left()).unwrap();
+        sql.write_str(ty).unwrap();
+        sql.write_char(q.right()).unwrap();
+        sql.write_str(sfx).unwrap();
     }
 
     fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {

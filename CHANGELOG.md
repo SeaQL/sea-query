@@ -73,7 +73,8 @@ pub struct ColumnName(pub Option<TableName>, pub DynIden);
 * Add `Keyword::Default` https://github.com/SeaQL/sea-query/pull/965
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
 * Removed unnecessary `'static` bounds from type signatures https://github.com/SeaQL/sea-query/pull/921
-* `cast_as_quoted` now allows you to qualify the type name. https://github.com/SeaQL/sea-query/pull/922
+* `CAST` methods now allow you to qualify the type name.
+  https://github.com/SeaQL/sea-query/pull/922 https://github.com/SeaQL/sea-query/pull/977
 ```rust
 let query = Query::select()
     .expr(Func::cast_as_quoted("hello", ("MySchema", "MyType")))
@@ -314,11 +315,12 @@ error[E0308]: mismatched types
 * Replaced `ColumnSpec::Check(Expr)` with `ColumnSpec::Check(Check)` to support named check constraints https://github.com/SeaQL/sea-query/pull/920
 * `SelectStatement::cross_join` no longer accepts a condition https://github.com/SeaQL/sea-query/pull/956
 * Turned `TypeRef` from an enum into a struct that reuses `TableName`. https://github.com/SeaQL/sea-query/pull/969
-* Changed `Expr::TypeName(DynIden)` to `Expr::TypeName(TypeRef)`, which can be
-  [qualified](https://github.com/SeaQL/sea-query/issues/827).
-
-  If you manually construct this variant and it no longer compiles, just add
-  `.into()`.
+* Removed `Expr::TypeName`, because type names are not valid expressions by
+  themselves. They don't compose into more complex expressions like `REAL + 1`.
+  They only appear in very specific places like `CAST` expressions.
+* Removed `Expr::AsEnum`. `CAST` expressions are now handled as `FunctionCall`s
+  instead.
+* `FuncArgMod` is now `#[non_exhaustive]` and doesn't implement `Copy`.
 
 ### Bug Fixes
 
