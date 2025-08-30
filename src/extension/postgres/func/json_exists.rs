@@ -7,10 +7,10 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Builder {
-    pub(crate) context_item: Expr,
-    pub(crate) path_expression: Cow<'static, str>,
-    pub(crate) passing: Vec<(Value, Cow<'static, str>)>,
-    pub(crate) on_error: Option<OnClause>,
+    context_item: Expr,
+    path_expression: Cow<'static, str>,
+    passing: Vec<(Value, Cow<'static, str>)>,
+    on_error: Option<OnClause>,
 }
 
 impl From<Builder> for FunctionCall {
@@ -26,7 +26,7 @@ impl From<Builder> for Expr {
 }
 
 #[derive(Debug, Clone)]
-pub enum OnClause {
+pub(super) enum OnClause {
     True,
     False,
     Unknown,
@@ -64,29 +64,6 @@ impl Builder {
         for (value, alias) in passing {
             self.passing.push((value.into(), alias.into()));
         }
-        self
-    }
-
-    /// Replace current PASSING parameters
-    pub fn set_passing<V, A, I>(mut self, passing: I) -> Self
-    where
-        V: Into<Value>,
-        A: Into<Cow<'static, str>>,
-        I: IntoIterator<Item = (V, A)>,
-    {
-        self.passing = passing
-            .into_iter()
-            .map(|(v, a)| (v.into(), a.into()))
-            .collect();
-        self
-    }
-
-    /// Set ON ERROR clause
-    pub fn on_error<E>(mut self, on_error: E) -> Self
-    where
-        E: Into<OnClause>,
-    {
-        self.on_error = Some(on_error.into());
         self
     }
 
@@ -143,9 +120,6 @@ impl Builder {
 
 impl PgFunc {
     /// Create a `JSON_EXISTS` function builder. Postgres only.
-    ///
-    /// The `JSON_EXISTS` function tests whether a JSON path expression returns any items for the specified JSON value.
-    /// It returns a boolean value: `true` if the path expression returns one or more items, `false` otherwise.
     ///
     /// # Examples
     ///

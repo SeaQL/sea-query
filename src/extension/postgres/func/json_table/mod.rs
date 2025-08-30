@@ -1,17 +1,16 @@
-pub use builder::Builder;
-pub use column::ColumnBuilder;
-pub use exists_column::ExistsColumnBuilder;
-pub use nested::NestedPathBuilder;
-pub use types::*;
-
 use crate::*;
 use std::borrow::Cow;
 
-pub mod builder;
-pub mod column;
-pub mod exists_column;
-pub mod nested;
-pub mod types;
+mod builder;
+pub use builder::Builder;
+mod column;
+pub use column::ColumnBuilder;
+mod exists_column;
+pub use exists_column::ExistsColumnBuilder;
+mod nested;
+pub use nested::NestedPathBuilder;
+pub(super) mod types;
+pub use types::*;
 
 impl PgFunc {
     /// Create a `JSON_TABLE` function builder. Postgres only.

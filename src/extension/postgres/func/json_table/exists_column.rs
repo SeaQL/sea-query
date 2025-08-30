@@ -6,13 +6,13 @@ use crate::{
 };
 
 /// Builder for EXISTS columns in JSON_TABLE
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExistsColumnBuilder<T> {
-    pub(crate) builder: T,
-    pub(crate) name: Cow<'static, str>,
-    pub(crate) column_type: TypeRef,
-    pub(crate) path: Option<Cow<'static, str>>,
-    pub(crate) on_error: Option<ExistsOnErrorClause>,
+    pub(super) builder: T,
+    pub(super) name: Cow<'static, str>,
+    pub(super) column_type: TypeRef,
+    pub(super) path: Option<Cow<'static, str>>,
+    pub(super) on_error: Option<ExistsOnErrorClause>,
 }
 
 impl<T> ExistsColumnBuilder<T> {
@@ -22,12 +22,6 @@ impl<T> ExistsColumnBuilder<T> {
         P: Into<Cow<'static, str>>,
     {
         self.path = Some(path.into());
-        self
-    }
-
-    /// Set ON ERROR clause
-    pub fn on_error(mut self, on_error: ExistsOnErrorClause) -> Self {
-        self.on_error = Some(on_error);
         self
     }
 

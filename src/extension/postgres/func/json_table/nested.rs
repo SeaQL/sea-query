@@ -7,13 +7,13 @@ use super::builder::Builder;
 use super::types::*;
 
 /// Builder for NESTED PATH columns in JSON_TABLE
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NestedPathBuilder {
-    pub(crate) builder: Builder,
-    pub(crate) explicit: bool,
-    pub(crate) path: Cow<'static, str>,
-    pub(crate) json_path_name: Option<Cow<'static, str>>,
-    pub(crate) columns: Vec<JsonTableColumn>,
+    pub(super) builder: Builder,
+    pub(super) explicit: bool,
+    pub(super) path: Cow<'static, str>,
+    pub(super) json_path_name: Option<Cow<'static, str>>,
+    pub(super) columns: Vec<JsonTableColumn>,
 }
 
 impl NestedPathBuilder {

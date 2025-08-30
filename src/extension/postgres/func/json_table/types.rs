@@ -9,7 +9,7 @@ pub use crate::extension::postgres::json_fn::QuotesKind;
 
 /// Represents a column definition in JSON_TABLE
 #[derive(Debug, Clone)]
-pub enum JsonTableColumn {
+pub(super) enum JsonTableColumn {
     /// FOR ORDINALITY column
     Ordinality { name: Cow<'static, str> },
     /// Regular column with type and optional clauses
@@ -42,7 +42,7 @@ pub enum JsonTableColumn {
 
 /// ON EMPTY/ON ERROR clause for regular columns
 #[derive(Debug, Clone)]
-pub enum OnClause {
+pub(in super::super) enum OnClause {
     Error,
     Null,
     EmptyArray,
@@ -68,7 +68,7 @@ impl OnClause {
 
 /// ON ERROR clause for EXISTS columns
 #[derive(Debug, Clone)]
-pub enum ExistsOnErrorClause {
+pub(super) enum ExistsOnErrorClause {
     Error,
     True,
     False,
@@ -88,7 +88,7 @@ impl ExistsOnErrorClause {
 }
 
 #[derive(Debug, Clone)]
-pub enum OnErrorClause {
+pub(super) enum OnErrorClause {
     Error,
     Empty,
     EmptyArray,
