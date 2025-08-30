@@ -215,7 +215,11 @@ impl QueryBuilder for MysqlQueryBuilder {
 }
 
 impl MysqlQueryBuilder {
-    fn prepare_index_hint_scope(&self, index_hint_scope: &IndexHintScope, sql: &mut impl SqlWriter) {
+    fn prepare_index_hint_scope(
+        &self,
+        index_hint_scope: &IndexHintScope,
+        sql: &mut impl SqlWriter,
+    ) {
         match index_hint_scope {
             IndexHintScope::Join => {
                 sql.write_str("FOR JOIN ").unwrap();
