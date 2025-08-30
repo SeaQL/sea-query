@@ -7,18 +7,18 @@ use super::builder::Builder;
 use super::types::*;
 
 /// Builder for regular columns in JSON_TABLE
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ColumnBuilder<T> {
-    pub(crate) builder: T,
-    pub(crate) name: Cow<'static, str>,
-    pub(crate) column_type: TypeRef,
-    pub(crate) format_json: bool,
-    pub(crate) encoding_utf8: bool,
-    pub(crate) path: Option<Cow<'static, str>>,
-    pub(crate) wrapper: Option<WrapperClause>,
-    pub(crate) quotes: Option<QuotesClause>,
-    pub(crate) on_empty: Option<OnClause>,
-    pub(crate) on_error: Option<OnClause>,
+    pub(super) builder: T,
+    pub(super) name: Cow<'static, str>,
+    pub(super) column_type: TypeRef,
+    pub(super) format_json: bool,
+    pub(super) encoding_utf8: bool,
+    pub(super) path: Option<Cow<'static, str>>,
+    pub(super) wrapper: Option<WrapperClause>,
+    pub(super) quotes: Option<QuotesClause>,
+    pub(super) on_empty: Option<OnClause>,
+    pub(super) on_error: Option<OnClause>,
 }
 
 impl<T> ColumnBuilder<T> {
@@ -58,18 +58,6 @@ impl<T> ColumnBuilder<T> {
         Q: Into<QuotesClause>,
     {
         self.quotes = Some(quotes.into());
-        self
-    }
-
-    /// Set ON EMPTY clause
-    pub fn on_empty(mut self, on_empty: OnClause) -> Self {
-        self.on_empty = Some(on_empty);
-        self
-    }
-
-    /// Set ON ERROR clause
-    pub fn on_error(mut self, on_error: OnClause) -> Self {
-        self.on_error = Some(on_error);
         self
     }
 

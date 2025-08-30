@@ -7,16 +7,16 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Builder {
-    pub(crate) context_item: Expr,
-    pub(crate) path_expression: Cow<'static, str>,
-    pub(crate) passing: Vec<(Value, Cow<'static, str>)>,
-    pub(crate) returning: Option<crate::TypeRef>,
-    pub(crate) on_empty: Option<OnClause>,
-    pub(crate) on_error: Option<OnClause>,
+    context_item: Expr,
+    path_expression: Cow<'static, str>,
+    passing: Vec<(Value, Cow<'static, str>)>,
+    returning: Option<crate::TypeRef>,
+    on_empty: Option<OnClause>,
+    on_error: Option<OnClause>,
 }
 
 #[derive(Debug, Clone)]
-pub enum OnClause {
+enum OnClause {
     Error,
     Null,
     Default(Expr),
@@ -45,32 +45,12 @@ impl Builder {
         self
     }
 
-    /// Replace current PASSING parameters
-    pub fn set_passing<V, A, I>(mut self, passing: I) -> Self
-    where
-        V: Into<Value>,
-        A: Into<Cow<'static, str>>,
-        I: IntoIterator<Item = (V, A)>,
-    {
-        self.passing = passing
-            .into_iter()
-            .map(|(a, b)| (a.into(), b.into()))
-            .collect();
-        self
-    }
-
     /// Set RETURNING clause
     pub fn returning<T>(mut self, returning: T) -> Self
     where
         T: Into<TypeRef>,
     {
         self.returning = Some(returning.into());
-        self
-    }
-
-    /// Set ON EMPTY clause
-    pub fn on_empty(mut self, on_empty: OnClause) -> Self {
-        self.on_empty = Some(on_empty);
         self
     }
 
@@ -92,12 +72,6 @@ impl Builder {
         T: Into<Expr>,
     {
         self.on_empty = Some(OnClause::Default(expr.into()));
-        self
-    }
-
-    /// Set ON ERROR clause
-    pub fn on_error(mut self, on_error: OnClause) -> Self {
-        self.on_error = Some(on_error);
         self
     }
 
@@ -184,10 +158,6 @@ impl From<Builder> for Expr {
 impl PgFunc {
     /// Create a `JSON_VALUE` function builder. Postgres only.
     ///
-    /// Returns the result of applying the SQL/JSON path_expression to the context_item.
-    /// Only use JSON_VALUE() if the extracted value is expected to be a single SQL/JSON scalar item.
-    /// Supports RETURNING, ON EMPTY, and ON ERROR clauses.
-    ///
     /// # Examples
     ///
     /// Basic usage with RETURNING:
@@ -236,7 +206,7 @@ impl PgFunc {
     /// let query = Query::select()
     ///     .expr(
     ///         PgFunc::json_value(Expr::val(r#"[1,2]"#), "strict $[*]")
-    ///             .on_error(json_value::OnClause::Default(Expr::val(9))),
+    ///             .default_on_error(Expr::val(9)),
     ///     )
     ///     .to_owned();
     ///
