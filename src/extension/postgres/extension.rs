@@ -183,14 +183,14 @@ pub trait ExtensionBuilder: QuotedBuilder {
     fn prepare_extension_create_statement(
         &self,
         create: &ExtensionCreateStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     );
 
     /// Translate [`ExtensionDropStatement`] into database specific SQL statement.
     fn prepare_extension_drop_statement(
         &self,
         drop: &ExtensionDropStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     );
 }
 
@@ -205,7 +205,7 @@ macro_rules! impl_extension_statement_builder {
             pub fn build_collect<T: ExtensionBuilder>(
                 &self,
                 extension_builder: T,
-                sql: &mut dyn SqlWriter,
+                sql: &mut (impl SqlWriter + ?Sized),
             ) -> String {
                 self.build_collect_ref(&extension_builder, sql)
             }
@@ -213,7 +213,7 @@ macro_rules! impl_extension_statement_builder {
             pub fn build_collect_ref<T: ExtensionBuilder>(
                 &self,
                 extension_builder: &T,
-                sql: &mut dyn SqlWriter,
+                sql: &mut (impl SqlWriter + ?Sized),
             ) -> String {
                 extension_builder.$func_name(self, sql);
                 sql.to_string()
