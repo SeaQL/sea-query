@@ -205,8 +205,7 @@ impl PgFunc {
     ///
     /// let query = Query::select()
     ///     .expr(
-    ///         PgFunc::json_value(Expr::val(r#"[1,2]"#), "strict $[*]")
-    ///             .default_on_error(Expr::val(9)),
+    ///         PgFunc::json_value(Expr::val(r#"[1,2]"#), "strict $[*]").default_on_error(Expr::val(9)),
     ///     )
     ///     .to_owned();
     ///
