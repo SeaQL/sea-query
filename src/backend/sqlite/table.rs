@@ -1,7 +1,7 @@
 use super::*;
 
 impl TableBuilder for SqliteQueryBuilder {
-    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut impl SqlWriter) {
+    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_iden(&column_def.name, sql);
 
         if let Some(column_type) = &column_def.types {
@@ -12,7 +12,7 @@ impl TableBuilder for SqliteQueryBuilder {
         self.prepare_column_spec(&column_def.spec, sql);
     }
 
-    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut impl SqlWriter) {
+    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_column_type(&ColumnSpec::default(), column_type, sql)
     }
 
@@ -20,19 +20,27 @@ impl TableBuilder for SqliteQueryBuilder {
         " AUTOINCREMENT"
     }
 
-    fn prepare_table_drop_opt(&self, _drop_opt: &TableDropOpt, _sql: &mut impl SqlWriter) {
+    fn prepare_table_drop_opt(
+        &self,
+        _drop_opt: &TableDropOpt,
+        _sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         // Sqlite does not support table drop options
     }
 
     fn prepare_table_truncate_statement(
         &self,
         _truncate: &TableTruncateStatement,
-        _sql: &mut impl SqlWriter,
+        _sql: &mut (impl SqlWriter + ?Sized),
     ) {
         panic!("Sqlite doesn't support TRUNCATE statement")
     }
 
-    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut impl SqlWriter) {
+    fn prepare_table_alter_statement(
+        &self,
+        alter: &TableAlterStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if alter.options.is_empty() {
             panic!("No alter option found")
         }
@@ -81,7 +89,7 @@ impl TableBuilder for SqliteQueryBuilder {
     fn prepare_table_rename_statement(
         &self,
         rename: &TableRenameStatement,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         sql.write_str("ALTER TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
@@ -99,7 +107,7 @@ impl SqliteQueryBuilder {
         &self,
         column_specs: &ColumnSpec,
         column_type: &ColumnType,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         let is_auto_increment = column_specs.auto_increment;
 

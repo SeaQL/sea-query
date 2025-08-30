@@ -4,7 +4,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
     fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
         mode: Mode,
     ) {
         if mode == Mode::Alter {
@@ -26,7 +26,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
     fn prepare_foreign_key_create_statement_internal(
         &self,
         create: &ForeignKeyCreateStatement,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
         mode: Mode,
     ) {
         if mode == Mode::Alter {
@@ -96,7 +96,7 @@ impl ForeignKeyBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut (impl SqlWriter + ?Sized)) {
         match table_ref {
             // Support only unaliased (but potentialy qualified) table names.
             TableRef::Table(.., None) => self.prepare_table_ref_iden(table_ref, sql),

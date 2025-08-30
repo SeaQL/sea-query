@@ -41,7 +41,7 @@ pub trait QuotedBuilder {
     fn quote(&self) -> Quote;
 
     /// To prepare iden and write to SQL.
-    fn prepare_iden(&self, iden: &DynIden, sql: &mut impl SqlWriter) {
+    fn prepare_iden(&self, iden: &DynIden, sql: &mut (impl SqlWriter + ?Sized)) {
         let q = self.quote();
         let qq = q.1 as char;
 
@@ -79,7 +79,7 @@ pub trait EscapeBuilder {
         escaped
     }
 
-    fn write_escaped(&self, buffer: &mut impl Write, string: &str) {
+    fn write_escaped(&self, buffer: &mut (impl Write + ?Sized), string: &str) {
         for c in string.chars() {
             match c {
                 '\\' => buffer.write_str("\\\\"),

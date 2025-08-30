@@ -16,7 +16,7 @@ pub trait SchemaStatementBuilder {
     fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String;
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn build_any(&self, schema_builder: &impl SchemaBuilder) -> String;
+    fn build_any(&self, schema_builder: &(impl SchemaBuilder + ?Sized)) -> String;
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
     fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {

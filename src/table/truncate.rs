@@ -56,7 +56,7 @@ impl SchemaStatementBuilder for TableTruncateStatement {
         sql
     }
 
-    pub fn build_any(&self, schema_builder: &impl SchemaBuilder) -> String {
+    pub fn build_any(&self, schema_builder: &(impl SchemaBuilder + ?Sized)) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_truncate_statement(self, &mut sql);
         sql

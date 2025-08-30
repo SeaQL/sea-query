@@ -82,7 +82,7 @@ impl TableStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build_any(&self, table_builder: &impl SchemaBuilder) -> String {
+    pub fn build_any(&self, table_builder: &(impl SchemaBuilder + ?Sized)) -> String {
         match self {
             Self::Create(stat) => stat.build_any(table_builder),
             Self::Alter(stat) => stat.build_any(table_builder),

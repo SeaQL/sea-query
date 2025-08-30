@@ -18,7 +18,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`InsertStatement`] into SQL statement.
-    fn prepare_insert_statement(&self, insert: &InsertStatement, sql: &mut impl SqlWriter) {
+    fn prepare_insert_statement(
+        &self,
+        insert: &InsertStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(with) = &insert.with {
             self.prepare_with_clause(with, sql);
         }
@@ -103,7 +107,7 @@ pub trait QueryBuilder:
         &self,
         union_type: UnionType,
         select_statement: &SelectStatement,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         match union_type {
             UnionType::Intersect => sql.write_str(" INTERSECT (").unwrap(),
@@ -116,7 +120,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`SelectStatement`] into SQL statement.
-    fn prepare_select_statement(&self, select: &SelectStatement, sql: &mut impl SqlWriter) {
+    fn prepare_select_statement(
+        &self,
+        select: &SelectStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(with) = &select.with {
             self.prepare_with_clause(with, sql);
         }
@@ -221,7 +229,11 @@ pub trait QueryBuilder:
     }
 
     // Translate the LIMIT and OFFSET expression in [`SelectStatement`]
-    fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut impl SqlWriter) {
+    fn prepare_select_limit_offset(
+        &self,
+        select: &SelectStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(limit) = &select.limit {
             sql.write_str(" LIMIT ").unwrap();
             self.prepare_value(limit.clone(), sql);
@@ -234,7 +246,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`UpdateStatement`] into SQL statement.
-    fn prepare_update_statement(&self, update: &UpdateStatement, sql: &mut impl SqlWriter) {
+    fn prepare_update_statement(
+        &self,
+        update: &UpdateStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(with) = &update.with {
             self.prepare_with_clause(with, sql);
         }
@@ -277,11 +293,16 @@ pub trait QueryBuilder:
         self.prepare_returning(&update.returning, sql);
     }
 
-    fn prepare_update_join(&self, _: &[TableRef], _: &ConditionHolder, _: &mut impl SqlWriter) {
+    fn prepare_update_join(
+        &self,
+        _: &[TableRef],
+        _: &ConditionHolder,
+        _: &mut (impl SqlWriter + ?Sized),
+    ) {
         // MySQL specific
     }
 
-    fn prepare_update_from(&self, from: &[TableRef], sql: &mut impl SqlWriter) {
+    fn prepare_update_from(&self, from: &[TableRef], sql: &mut (impl SqlWriter + ?Sized)) {
         let mut from_iter = from.iter();
         join_io!(
             from_iter,
@@ -303,7 +324,7 @@ pub trait QueryBuilder:
         _: &Option<Box<TableRef>>,
         _: &[TableRef],
         column: &DynIden,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         self.prepare_iden(column, sql);
     }
@@ -312,13 +333,17 @@ pub trait QueryBuilder:
         &self,
         _: &[TableRef],
         condition: &ConditionHolder,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         self.prepare_condition(condition, "WHERE", sql);
     }
 
     /// Translate ORDER BY expression in [`UpdateStatement`].
-    fn prepare_update_order_by(&self, update: &UpdateStatement, sql: &mut impl SqlWriter) {
+    fn prepare_update_order_by(
+        &self,
+        update: &UpdateStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         let mut orders = update.orders.iter();
         join_io!(
             orders,
@@ -336,7 +361,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate LIMIT expression in [`UpdateStatement`].
-    fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut impl SqlWriter) {
+    fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut (impl SqlWriter + ?Sized)) {
         if let Some(limit) = &update.limit {
             sql.write_str(" LIMIT ").unwrap();
             self.prepare_value(limit.clone(), sql);
@@ -344,7 +369,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`DeleteStatement`] into SQL statement.
-    fn prepare_delete_statement(&self, delete: &DeleteStatement, sql: &mut impl SqlWriter) {
+    fn prepare_delete_statement(
+        &self,
+        delete: &DeleteStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(with) = &delete.with {
             self.prepare_with_clause(with, sql);
         }
@@ -368,7 +397,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate ORDER BY expression in [`DeleteStatement`].
-    fn prepare_delete_order_by(&self, delete: &DeleteStatement, sql: &mut impl SqlWriter) {
+    fn prepare_delete_order_by(
+        &self,
+        delete: &DeleteStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         let mut orders = delete.orders.iter();
         join_io!(
             orders,
@@ -386,7 +419,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate LIMIT expression in [`DeleteStatement`].
-    fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut impl SqlWriter) {
+    fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut (impl SqlWriter + ?Sized)) {
         if let Some(limit) = &delete.limit {
             sql.write_str(" LIMIT ").unwrap();
             self.prepare_value(limit.clone(), sql);
@@ -394,11 +427,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Expr`] into SQL statement.
-    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut impl SqlWriter) {
+    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_simple_expr_common(simple_expr, sql);
     }
 
-    fn prepare_simple_expr_common(&self, simple_expr: &Expr, sql: &mut impl SqlWriter) {
+    fn prepare_simple_expr_common(&self, simple_expr: &Expr, sql: &mut (impl SqlWriter + ?Sized)) {
         match simple_expr {
             Expr::Column(column_ref) => {
                 self.prepare_column_ref(column_ref, sql);
@@ -506,7 +539,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`CaseStatement`] into SQL statement.
-    fn prepare_case_statement(&self, stmts: &CaseStatement, sql: &mut impl SqlWriter) {
+    fn prepare_case_statement(&self, stmts: &CaseStatement, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str("(CASE").unwrap();
 
         let CaseStatement { when, r#else } = stmts;
@@ -527,7 +560,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
-    fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut impl SqlWriter) {
+    fn prepare_select_distinct(
+        &self,
+        select_distinct: &SelectDistinct,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         match select_distinct {
             SelectDistinct::All => sql.write_str("ALL").unwrap(),
             SelectDistinct::Distinct => sql.write_str("DISTINCT").unwrap(),
@@ -536,13 +573,19 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`IndexHint`] into SQL statement.
-    fn prepare_index_hints(&self, _select: &SelectStatement, _sql: &mut impl SqlWriter) {}
+    fn prepare_index_hints(&self, _select: &SelectStatement, _sql: &mut (impl SqlWriter + ?Sized)) {
+    }
 
     /// Translate [`TableSample`] into SQL statement.
-    fn prepare_table_sample(&self, _select: &SelectStatement, _sql: &mut impl SqlWriter) {}
+    fn prepare_table_sample(
+        &self,
+        _select: &SelectStatement,
+        _sql: &mut (impl SqlWriter + ?Sized),
+    ) {
+    }
 
     /// Translate [`LockType`] into SQL statement.
-    fn prepare_select_lock(&self, lock: &LockClause, sql: &mut impl SqlWriter) {
+    fn prepare_select_lock(&self, lock: &LockClause, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str("FOR ").unwrap();
         sql.write_str(match lock.r#type {
             LockType::Update => "UPDATE",
@@ -575,7 +618,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`SelectExpr`] into SQL statement.
-    fn prepare_select_expr(&self, select_expr: &SelectExpr, sql: &mut impl SqlWriter) {
+    fn prepare_select_expr(&self, select_expr: &SelectExpr, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_simple_expr(&select_expr.expr, sql);
         match &select_expr.window {
             Some(WindowSelectType::Name(name)) => {
@@ -598,7 +641,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`JoinExpr`] into SQL statement.
-    fn prepare_join_expr(&self, join_expr: &JoinExpr, sql: &mut impl SqlWriter) {
+    fn prepare_join_expr(&self, join_expr: &JoinExpr, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_join_type(&join_expr.join, sql);
         sql.write_str(" ").unwrap();
         self.prepare_join_table_ref(join_expr, sql);
@@ -607,7 +650,7 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_join_table_ref(&self, join_expr: &JoinExpr, sql: &mut impl SqlWriter) {
+    fn prepare_join_table_ref(&self, join_expr: &JoinExpr, sql: &mut (impl SqlWriter + ?Sized)) {
         if join_expr.lateral {
             sql.write_str("LATERAL ").unwrap();
         }
@@ -615,7 +658,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
+    fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut (impl SqlWriter + ?Sized)) {
         match table_ref {
             TableRef::SubQuery(query, alias) => {
                 sql.write_str("(").unwrap();
@@ -641,7 +684,7 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut impl SqlWriter) {
+    fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut (impl SqlWriter + ?Sized)) {
         match column_ref {
             ColumnRef::Column(ColumnName(table_name, column)) => {
                 if let Some(table_name) = table_name {
@@ -661,14 +704,14 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`UnOper`] into SQL statement.
-    fn prepare_un_oper(&self, un_oper: &UnOper, sql: &mut impl SqlWriter) {
+    fn prepare_un_oper(&self, un_oper: &UnOper, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str(match un_oper {
             UnOper::Not => "NOT",
         })
         .unwrap();
     }
 
-    fn prepare_bin_oper_common(&self, bin_oper: &BinOper, sql: &mut impl SqlWriter) {
+    fn prepare_bin_oper_common(&self, bin_oper: &BinOper, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str(match bin_oper {
             BinOper::And => "AND",
             BinOper::Or => "OR",
@@ -705,12 +748,12 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`BinOper`] into SQL statement.
-    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut impl SqlWriter) {
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_bin_oper_common(bin_oper, sql);
     }
 
     /// Translate [`SubQueryOper`] into SQL statement.
-    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut impl SqlWriter) {
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str(match oper {
             SubQueryOper::Exists => "EXISTS",
             SubQueryOper::Any => "ANY",
@@ -726,7 +769,7 @@ pub trait QueryBuilder:
         log_chain_oper: &LogicalChainOper,
         i: usize,
         length: usize,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         let (simple_expr, oper) = match log_chain_oper {
             LogicalChainOper::And(simple_expr) => (simple_expr, "AND"),
@@ -754,7 +797,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Function`] into SQL statement.
-    fn prepare_function_name_common(&self, function: &Func, sql: &mut impl SqlWriter) {
+    fn prepare_function_name_common(&self, function: &Func, sql: &mut (impl SqlWriter + ?Sized)) {
         if let Func::Custom(iden) = function {
             sql.write_str(&iden.0)
         } else {
@@ -786,7 +829,7 @@ pub trait QueryBuilder:
         .unwrap();
     }
 
-    fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut impl SqlWriter) {
+    fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str("(").unwrap();
         let mut args = func.args.iter().zip(func.mods.iter());
 
@@ -809,14 +852,18 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
-    fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter);
+    fn prepare_query_statement(
+        &self,
+        query: &SubQueryStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    );
 
-    fn prepare_with_query(&self, query: &WithQuery, sql: &mut impl SqlWriter) {
+    fn prepare_with_query(&self, query: &WithQuery, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_with_clause(&query.with_clause, sql);
         self.prepare_query_statement(query.query.as_ref().unwrap().deref(), sql);
     }
 
-    fn prepare_with_clause(&self, with_clause: &WithClause, sql: &mut impl SqlWriter) {
+    fn prepare_with_clause(&self, with_clause: &WithClause, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_with_clause_start(with_clause, sql);
         self.prepare_with_clause_common_tables(with_clause, sql);
         if with_clause.recursive {
@@ -827,7 +874,7 @@ pub trait QueryBuilder:
     fn prepare_with_clause_recursive_options(
         &self,
         with_clause: &WithClause,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         if with_clause.recursive {
             if let Some(search) = &with_clause.search {
@@ -864,7 +911,7 @@ pub trait QueryBuilder:
     fn prepare_with_clause_common_tables(
         &self,
         with_clause: &WithClause,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         let mut cte_first = true;
         assert_ne!(
@@ -886,7 +933,7 @@ pub trait QueryBuilder:
     fn prepare_with_query_clause_common_table(
         &self,
         cte: &CommonTableExpression,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         self.prepare_iden(cte.table_name.as_ref().unwrap(), sql);
 
@@ -921,7 +968,7 @@ pub trait QueryBuilder:
     fn prepare_with_query_clause_materialization(
         &self,
         cte: &CommonTableExpression,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         if let Some(materialized) = cte.materialized {
             if !materialized {
@@ -933,7 +980,11 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_with_clause_start(&self, with_clause: &WithClause, sql: &mut impl SqlWriter) {
+    fn prepare_with_clause_start(
+        &self,
+        with_clause: &WithClause,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         sql.write_str("WITH ").unwrap();
 
         if with_clause.recursive {
@@ -941,7 +992,7 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_insert(&self, replace: bool, sql: &mut impl SqlWriter) {
+    fn prepare_insert(&self, replace: bool, sql: &mut (impl SqlWriter + ?Sized)) {
         if replace {
             sql.write_str("REPLACE").unwrap();
         } else {
@@ -949,12 +1000,12 @@ pub trait QueryBuilder:
         }
     }
 
-    fn prepare_function_name(&self, function: &Func, sql: &mut impl SqlWriter) {
+    fn prepare_function_name(&self, function: &Func, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_function_name_common(function, sql)
     }
 
     /// Translate [`TypeRef`] into an SQL statement.
-    fn prepare_type_ref(&self, type_name: &TypeRef, sql: &mut impl SqlWriter) {
+    fn prepare_type_ref(&self, type_name: &TypeRef, sql: &mut (impl SqlWriter + ?Sized)) {
         let TypeRef(schema_name, r#type) = type_name;
         if let Some(schema_name) = schema_name {
             self.prepare_schema_name(schema_name, sql);
@@ -964,11 +1015,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`JoinType`] into SQL statement.
-    fn prepare_join_type(&self, join_type: &JoinType, sql: &mut impl SqlWriter) {
+    fn prepare_join_type(&self, join_type: &JoinType, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_join_type_common(join_type, sql)
     }
 
-    fn prepare_join_type_common(&self, join_type: &JoinType, sql: &mut impl SqlWriter) {
+    fn prepare_join_type_common(&self, join_type: &JoinType, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str(match join_type {
             JoinType::Join => "JOIN",
             JoinType::CrossJoin => "CROSS JOIN",
@@ -982,7 +1033,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`OrderExpr`] into SQL statement.
-    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut impl SqlWriter) {
+    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut (impl SqlWriter + ?Sized)) {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql);
         }
@@ -990,7 +1041,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`JoinOn`] into SQL statement.
-    fn prepare_join_on(&self, join_on: &JoinOn, sql: &mut impl SqlWriter) {
+    fn prepare_join_on(&self, join_on: &JoinOn, sql: &mut (impl SqlWriter + ?Sized)) {
         match join_on {
             JoinOn::Condition(c) => self.prepare_condition(c, "ON", sql),
             JoinOn::Columns(_c) => unimplemented!(),
@@ -998,7 +1049,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Order`] into SQL statement.
-    fn prepare_order(&self, order_expr: &OrderExpr, sql: &mut impl SqlWriter) {
+    fn prepare_order(&self, order_expr: &OrderExpr, sql: &mut (impl SqlWriter + ?Sized)) {
         match &order_expr.order {
             Order::Asc => sql.write_str(" ASC").unwrap(),
             Order::Desc => sql.write_str(" DESC").unwrap(),
@@ -1011,7 +1062,7 @@ pub trait QueryBuilder:
         &self,
         order_expr: &OrderExpr,
         values: &Values,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         sql.write_str("CASE ").unwrap();
         let mut i = 0;
@@ -1032,15 +1083,19 @@ pub trait QueryBuilder:
     }
 
     /// Write [`Value`] into SQL statement as parameter.
-    fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter);
+    fn prepare_value(&self, value: Value, sql: &mut (impl SqlWriter + ?Sized));
 
     /// Write [`Value`] inline.
-    fn prepare_constant(&self, value: &Value, sql: &mut impl SqlWriter) {
+    fn prepare_constant(&self, value: &Value, sql: &mut (impl SqlWriter + ?Sized)) {
         self.write_value(sql, value).unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
-    fn prepare_values_list(&self, value_tuples: &[ValueTuple], sql: &mut impl SqlWriter) {
+    fn prepare_values_list(
+        &self,
+        value_tuples: &[ValueTuple],
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         sql.write_str("VALUES ").unwrap();
         let mut tuples = value_tuples.iter();
         join_io!(
@@ -1071,7 +1126,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Expr::Tuple`] into SQL statement.
-    fn prepare_tuple(&self, exprs: &[Expr], sql: &mut impl SqlWriter) {
+    fn prepare_tuple(&self, exprs: &[Expr], sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str("(").unwrap();
         for (i, expr) in exprs.iter().enumerate() {
             if i != 0 {
@@ -1083,7 +1138,7 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Keyword`] into SQL statement.
-    fn prepare_keyword(&self, keyword: &Keyword, sql: &mut impl SqlWriter) {
+    fn prepare_keyword(&self, keyword: &Keyword, sql: &mut (impl SqlWriter + ?Sized)) {
         match keyword {
             Keyword::Null => sql.write_str("NULL").unwrap(),
             Keyword::CurrentDate => sql.write_str("CURRENT_DATE").unwrap(),
@@ -1106,7 +1161,7 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
-    fn write_value(&self, buf: &mut impl Write, value: &Value) -> fmt::Result {
+    fn write_value(&self, buf: &mut (impl Write + ?Sized), value: &Value) -> fmt::Result {
         match value {
             Value::Bool(None)
             | Value::TinyInt(None)
@@ -1347,7 +1402,11 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Write ON CONFLICT expression
-    fn prepare_on_conflict(&self, on_conflict: &Option<OnConflict>, sql: &mut impl SqlWriter) {
+    fn prepare_on_conflict(
+        &self,
+        on_conflict: &Option<OnConflict>,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(on_conflict) = on_conflict {
             self.prepare_on_conflict_keywords(sql);
             self.prepare_on_conflict_target(&on_conflict.targets, sql);
@@ -1362,7 +1421,7 @@ pub trait QueryBuilder:
     fn prepare_on_conflict_target(
         &self,
         on_conflict_targets: &[OnConflictTarget],
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         let mut targets = on_conflict_targets.iter();
         join_io!(
@@ -1395,7 +1454,7 @@ pub trait QueryBuilder:
     fn prepare_on_conflict_action(
         &self,
         on_conflict_action: &Option<OnConflictAction>,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         self.prepare_on_conflict_action_common(on_conflict_action, sql);
     }
@@ -1403,7 +1462,7 @@ pub trait QueryBuilder:
     fn prepare_on_conflict_action_common(
         &self,
         on_conflict_action: &Option<OnConflictAction>,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         if let Some(action) = on_conflict_action {
             match action {
@@ -1441,19 +1500,23 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Write ON CONFLICT keywords
-    fn prepare_on_conflict_keywords(&self, sql: &mut impl SqlWriter) {
+    fn prepare_on_conflict_keywords(&self, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str(" ON CONFLICT ").unwrap();
     }
 
     #[doc(hidden)]
     /// Write ON CONFLICT keywords
-    fn prepare_on_conflict_do_update_keywords(&self, sql: &mut impl SqlWriter) {
+    fn prepare_on_conflict_do_update_keywords(&self, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str(" DO UPDATE SET ").unwrap();
     }
 
     #[doc(hidden)]
     /// Write ON CONFLICT update action by retrieving value from the excluded table
-    fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut impl SqlWriter) {
+    fn prepare_on_conflict_excluded_table(
+        &self,
+        col: &DynIden,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         sql.write_char(self.quote().left()).unwrap();
         sql.write_str("excluded").unwrap();
         sql.write_char(self.quote().right()).unwrap();
@@ -1466,18 +1529,27 @@ pub trait QueryBuilder:
     fn prepare_on_conflict_condition(
         &self,
         on_conflict_condition: &ConditionHolder,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         self.prepare_condition(on_conflict_condition, "WHERE", sql)
     }
 
     #[doc(hidden)]
     /// Hook to insert "OUTPUT" expressions.
-    fn prepare_output(&self, _returning: &Option<ReturningClause>, _sql: &mut impl SqlWriter) {}
+    fn prepare_output(
+        &self,
+        _returning: &Option<ReturningClause>,
+        _sql: &mut (impl SqlWriter + ?Sized),
+    ) {
+    }
 
     #[doc(hidden)]
     /// Hook to insert "RETURNING" statements.
-    fn prepare_returning(&self, returning: &Option<ReturningClause>, sql: &mut impl SqlWriter) {
+    fn prepare_returning(
+        &self,
+        returning: &Option<ReturningClause>,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(returning) = returning {
             sql.write_str(" RETURNING ").unwrap();
             match &returning {
@@ -1518,7 +1590,7 @@ pub trait QueryBuilder:
         &self,
         condition: &ConditionHolder,
         keyword: &str,
-        sql: &mut impl SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         match &condition.contents {
             ConditionHolderContents::Empty => (),
@@ -1541,14 +1613,14 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Translate part of a condition to part of a "WHERE" clause.
-    fn prepare_condition_where(&self, condition: &Condition, sql: &mut impl SqlWriter) {
+    fn prepare_condition_where(&self, condition: &Condition, sql: &mut (impl SqlWriter + ?Sized)) {
         let simple_expr = condition.clone().into();
         self.prepare_simple_expr(&simple_expr, sql);
     }
 
     #[doc(hidden)]
     /// Translate [`Frame`] into SQL statement.
-    fn prepare_frame(&self, frame: &Frame, sql: &mut impl SqlWriter) {
+    fn prepare_frame(&self, frame: &Frame, sql: &mut (impl SqlWriter + ?Sized)) {
         match *frame {
             Frame::UnboundedPreceding => sql.write_str("UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
@@ -1566,7 +1638,11 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Translate [`WindowStatement`] into SQL statement.
-    fn prepare_window_statement(&self, window: &WindowStatement, sql: &mut impl SqlWriter) {
+    fn prepare_window_statement(
+        &self,
+        window: &WindowStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         let mut partition_iter = window.partition_by.iter();
         join_io!(
             partition_iter,
@@ -1615,7 +1691,13 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Translate a binary expr to SQL.
-    fn binary_expr(&self, left: &Expr, op: &BinOper, right: &Expr, sql: &mut impl SqlWriter) {
+    fn binary_expr(
+        &self,
+        left: &Expr,
+        op: &BinOper,
+        right: &Expr,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         // If left has higher precedence than op, we can drop parentheses around left
         let drop_left_higher_precedence =
             self.inner_expr_well_known_greater_precedence(left, &(*op).into());
@@ -1669,7 +1751,7 @@ pub trait QueryBuilder:
         }
     }
 
-    fn write_string_quoted(&self, string: &str, buffer: &mut impl Write) {
+    fn write_string_quoted(&self, string: &str, buffer: &mut (impl Write + ?Sized)) {
         buffer.write_str("'").unwrap();
         self.write_escaped(buffer, string);
         buffer.write_str("'").unwrap();
@@ -1677,7 +1759,7 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Write bytes enclosed with engine specific byte syntax
-    fn write_bytes(&self, bytes: &[u8], buffer: &mut impl Write) {
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut (impl Write + ?Sized)) {
         buffer.write_str("x'").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap()
@@ -1722,7 +1804,7 @@ pub trait QueryBuilder:
     }
 
     /// Write insert default rows expression.
-    fn insert_default_values(&self, num_rows: u32, sql: &mut impl SqlWriter) {
+    fn insert_default_values(&self, num_rows: u32, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str("VALUES ").unwrap();
         if num_rows > 0 {
             sql.write_str(self.insert_default_keyword()).unwrap();
@@ -1735,12 +1817,12 @@ pub trait QueryBuilder:
     }
 
     /// Write TRUE constant
-    fn prepare_constant_true(&self, sql: &mut impl SqlWriter) {
+    fn prepare_constant_true(&self, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_constant(&true.into(), sql);
     }
 
     /// Write FALSE constant
-    fn prepare_constant_false(&self, sql: &mut impl SqlWriter) {
+    fn prepare_constant_false(&self, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_constant(&false.into(), sql);
     }
 }
@@ -1748,8 +1830,8 @@ pub trait QueryBuilder:
 impl SubQueryStatement {
     pub(crate) fn prepare_statement(
         &self,
-        query_builder: &impl QueryBuilder,
-        sql: &mut impl SqlWriter,
+        query_builder: &(impl QueryBuilder + ?Sized),
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         use SubQueryStatement::*;
         match self {
@@ -1777,11 +1859,15 @@ impl PrecedenceDecider for CommonSqlQueryBuilder {
 }
 
 impl QueryBuilder for CommonSqlQueryBuilder {
-    fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter) {
+    fn prepare_query_statement(
+        &self,
+        query: &SubQueryStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
+    fn prepare_value(&self, value: Value, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.push_param(value, self as _);
     }
 }

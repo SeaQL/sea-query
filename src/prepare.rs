@@ -83,7 +83,11 @@ impl SqlWriter for SqlWriterValues {
     }
 }
 
-pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &impl QueryBuilder) -> String
+pub fn inject_parameters<I>(
+    sql: &str,
+    params: I,
+    query_builder: &(impl QueryBuilder + ?Sized),
+) -> String
 where
     I: IntoIterator<Item = Value>,
 {

@@ -4,7 +4,7 @@ use crate::{SqlWriter, SqlWriterValues, SubQueryStatement, backend::QueryBuilder
 
 pub trait QueryStatementBuilder: Debug + Into<SubQueryStatement> {
     /// Build corresponding SQL statement for certain database backend and collect query parameters into a vector
-    fn build_any(&self, query_builder: &impl QueryBuilder) -> (String, Values) {
+    fn build_any(&self, query_builder: &(impl QueryBuilder + ?Sized)) -> (String, Values) {
         let (placeholder, numbered) = query_builder.placeholder();
         let mut sql = SqlWriterValues::new(placeholder, numbered);
         self.build_collect_any_into(query_builder, &mut sql);
@@ -14,15 +14,19 @@ pub trait QueryStatementBuilder: Debug + Into<SubQueryStatement> {
     /// Build corresponding SQL statement for certain database backend and collect query parameters
     fn build_collect_any(
         &self,
-        query_builder: &impl QueryBuilder,
-        sql: &mut impl SqlWriter,
+        query_builder: &(impl QueryBuilder + ?Sized),
+        sql: &mut (impl SqlWriter + ?Sized),
     ) -> String {
         self.build_collect_any_into(query_builder, sql);
         sql.to_string()
     }
 
     /// Build corresponding SQL statement into the SqlWriter for certain database backend and collect query parameters
-    fn build_collect_any_into(&self, query_builder: &impl QueryBuilder, sql: &mut impl SqlWriter);
+    fn build_collect_any_into(
+        &self,
+        query_builder: &(impl QueryBuilder + ?Sized),
+        sql: &mut (impl SqlWriter + ?Sized),
+    );
 
     fn into_sub_query_statement(self) -> SubQueryStatement {
         self.into()
@@ -121,10 +125,18 @@ pub trait QueryStatementWriter: QueryStatementBuilder {
     ///     Values(vec![Value::Int(Some(0)), Value::Int(Some(2))])
     /// );
     /// ```
-    fn build_collect<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) -> String {
+    fn build_collect<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) -> String {
         self.build_collect_into(query_builder, sql);
         sql.to_string()
     }
 
-    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter);
+    fn build_collect_into<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut (impl SqlWriter + ?Sized),
+    );
 }

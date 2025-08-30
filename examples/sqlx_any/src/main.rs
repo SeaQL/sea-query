@@ -18,33 +18,33 @@ async fn main() {
         );
         return;
     }
-    let (url, box_query_builder, box_schema_builder): (
-        &str,
-        Box<dyn QueryBuilder>,
-        Box<dyn SchemaBuilder>,
-    ) = if args[1] == "postgres" {
-        (
+    if args[1] == "postgres" {
+        exec(
             "postgres://sea:sea@127.0.0.1/query",
-            Box::new(PostgresQueryBuilder {}),
-            Box::new(PostgresQueryBuilder {}),
+            &PostgresQueryBuilder {},
+            &PostgresQueryBuilder {},
         )
+        .await
     } else if args[1] == "sqlite" {
-        (
+        exec(
             "sqlite::memory:",
-            Box::new(SqliteQueryBuilder {}),
-            Box::new(SqliteQueryBuilder {}),
+            &SqliteQueryBuilder {},
+            &SqliteQueryBuilder {},
         )
+        .await
     } else if args[1] == "mysql" {
-        (
+        exec(
             "mysql://sea:sea@127.0.0.1/query",
-            Box::new(MysqlQueryBuilder {}),
-            Box::new(MysqlQueryBuilder {}),
+            &MysqlQueryBuilder {},
+            &MysqlQueryBuilder {},
         )
+        .await
     } else {
         panic!()
     };
-    let query_builder = &*box_query_builder;
-    let schema_builder = &*box_schema_builder;
+}
+
+async fn exec(url: &str, query_builder: &impl QueryBuilder, schema_builder: &impl SchemaBuilder) {
     let connection = AnyPool::connect(url).await.unwrap();
     let mut pool = connection.try_acquire().unwrap();
 
