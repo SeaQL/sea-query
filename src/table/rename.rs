@@ -63,7 +63,7 @@ impl SchemaStatementBuilder for TableRenameStatement {
         sql
     }
 
-    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    pub fn build_any(&self, schema_builder: &impl SchemaBuilder) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_rename_statement(self, &mut sql);
         sql

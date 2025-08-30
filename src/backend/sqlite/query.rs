@@ -2,11 +2,11 @@ use super::*;
 use crate::extension::sqlite::SqliteBinOper;
 
 impl QueryBuilder for SqliteQueryBuilder {
-    fn prepare_select_lock(&self, _select_lock: &LockClause, _sql: &mut dyn SqlWriter) {
+    fn prepare_select_lock(&self, _select_lock: &LockClause, _sql: &mut impl SqlWriter) {
         // SQLite doesn't supports row locking
     }
 
-    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
+    fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut impl SqlWriter) {
         sql.write_str(match oper {
             SubQueryOper::Exists => "EXISTS",
             SubQueryOper::Any => panic!("Operator 'ANY' doesnot support"),
@@ -16,7 +16,7 @@ impl QueryBuilder for SqliteQueryBuilder {
         .unwrap();
     }
 
-    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut impl SqlWriter) {
         match bin_oper {
             BinOper::SqliteOperator(bin_oper) => sql
                 .write_str(match bin_oper {
@@ -34,7 +34,7 @@ impl QueryBuilder for SqliteQueryBuilder {
         &self,
         union_type: UnionType,
         select_statement: &SelectStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut impl SqlWriter,
     ) {
         match union_type {
             UnionType::Intersect => sql.write_str(" INTERSECT ").unwrap(),
@@ -45,15 +45,15 @@ impl QueryBuilder for SqliteQueryBuilder {
         self.prepare_select_statement(select_statement, sql);
     }
 
-    fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter) {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut dyn SqlWriter) {
+    fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut impl SqlWriter) {
         // Sqlite doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
     }
 
-    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
+    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut impl SqlWriter) {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_simple_expr(&order_expr.expr, sql);
         }
@@ -65,7 +65,7 @@ impl QueryBuilder for SqliteQueryBuilder {
         }
     }
 
-    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+    fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
         sql.push_param(value, self as _);
     }
 
@@ -81,7 +81,7 @@ impl QueryBuilder for SqliteQueryBuilder {
         "LENGTH"
     }
 
-    fn insert_default_values(&self, _: u32, sql: &mut dyn SqlWriter) {
+    fn insert_default_values(&self, _: u32, sql: &mut impl SqlWriter) {
         // SQLite doesn't support inserting multiple rows with default values
         sql.write_str("DEFAULT VALUES").unwrap()
     }

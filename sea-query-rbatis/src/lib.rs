@@ -5,7 +5,7 @@ use rbs::to_value;
 use sea_query::*;
 pub trait SqlxBinder {
     fn build_rbs<T: QueryBuilder>(&self, query_builder: T) -> (String, Vec<rbs::Value>);
-    fn build_any_rbs(&self, query_builder: &dyn QueryBuilder) -> (String, Vec<rbs::Value>);
+    fn build_any_rbs(&self, query_builder: &impl QueryBuilder) -> (String, Vec<rbs::Value>);
 }
 
 macro_rules! impl_rbs_binder {
@@ -16,7 +16,10 @@ macro_rules! impl_rbs_binder {
                 (query, to_rb_values(values))
             }
 
-            fn build_any_rbs(&self, query_builder: &dyn QueryBuilder) -> (String, Vec<rbs::Value>) {
+            fn build_any_rbs(
+                &self,
+                query_builder: &impl QueryBuilder,
+            ) -> (String, Vec<rbs::Value>) {
                 let (query, values) = self.build_any(query_builder);
                 (query, to_rb_values(values))
             }

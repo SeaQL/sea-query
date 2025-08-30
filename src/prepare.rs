@@ -4,14 +4,14 @@ use crate::*;
 pub use std::fmt::Write;
 
 pub trait SqlWriter: Write + ToString {
-    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder);
+    fn push_param<T: QueryBuilder>(&mut self, value: Value, query_builder: &T);
 
     /// Upcast this into parent trait. Still needed in 1.85
     fn as_writer(&mut self) -> &mut dyn Write;
 }
 
 impl SqlWriter for String {
-    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
+    fn push_param<T: QueryBuilder>(&mut self, value: Value, query_builder: &T) {
         query_builder.write_value(self, &value).unwrap();
     }
 
@@ -67,7 +67,7 @@ impl std::fmt::Display for SqlWriterValues {
 }
 
 impl SqlWriter for SqlWriterValues {
-    fn push_param(&mut self, value: Value, _: &dyn QueryBuilder) {
+    fn push_param<T: QueryBuilder>(&mut self, value: Value, _: &T) {
         self.counter += 1;
         self.string.write_str(&self.placeholder).unwrap();
         if self.numbered {
@@ -83,7 +83,7 @@ impl SqlWriter for SqlWriterValues {
     }
 }
 
-pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
+pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &impl QueryBuilder) -> String
 where
     I: IntoIterator<Item = Value>,
 {

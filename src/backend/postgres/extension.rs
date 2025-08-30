@@ -5,7 +5,7 @@ impl ExtensionBuilder for PostgresQueryBuilder {
     fn prepare_extension_create_statement(
         &self,
         create: &ExtensionCreateStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut impl SqlWriter,
     ) {
         sql.write_str("CREATE EXTENSION ").unwrap();
 
@@ -33,7 +33,7 @@ impl ExtensionBuilder for PostgresQueryBuilder {
     fn prepare_extension_drop_statement(
         &self,
         drop: &ExtensionDropStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut impl SqlWriter,
     ) {
         sql.write_str("DROP EXTENSION ").unwrap();
 

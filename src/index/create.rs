@@ -366,7 +366,7 @@ impl SchemaStatementBuilder for IndexCreateStatement {
         sql
     }
 
-    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
+    pub fn build_any(&self, schema_builder: &impl SchemaBuilder) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_index_create_statement(self, &mut sql);
         sql
