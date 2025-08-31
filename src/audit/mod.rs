@@ -25,8 +25,6 @@ pub struct QueryAccessAudit {
 #[non_exhaustive]
 pub struct QueryAccessRequest {
     pub access_type: AccessType,
-    /// Legacy naming, kept for compatibility. It should be `table_name`.
-    ///
     /// The table name can be qualified as `(database.)(schema.)table`.
     pub schema_table: TableName,
 }
@@ -50,15 +48,9 @@ pub enum SchemaOper {
     Truncate,
 }
 
-/// A table name, optionally qualified as `(database.)(schema.)table`.
-///
-/// This is a legacy type alias, to preserve some compatibility.
-/// It's going to be deprecated in the future.
-pub type SchemaTable = TableName;
-
 impl QueryAccessAudit {
     /// This filters the selects from access requests.
-    pub fn selects(&self) -> Vec<SchemaTable> {
+    pub fn selects(&self) -> Vec<TableName> {
         self.requests
             .iter()
             .filter_map(|item| {
@@ -71,25 +63,25 @@ impl QueryAccessAudit {
             .collect()
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of TableName.
     /// Intended for testing only.
     pub fn selected_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Select)
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of TableName.
     /// Intended for testing only.
     pub fn inserted_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Insert)
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of TableName.
     /// Intended for testing only.
     pub fn updated_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Update)
     }
 
-    /// Warning: this discards the schema part of SchemaTable.
+    /// Warning: this discards the schema part of TableName.
     /// Intended for testing only.
     pub fn deleted_tables(&self) -> Vec<DynIden> {
         self.filter_table_with_access_type(AccessType::Delete)
@@ -120,7 +112,7 @@ impl std::error::Error for Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Self::UnableToParseQuery => write!(f, "Unable to parse query"),
+            Self::UnableToParseQuery => f.write_str("Unable to parse query"),
         }
     }
 }

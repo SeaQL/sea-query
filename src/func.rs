@@ -522,7 +522,7 @@ impl Func {
     pub fn cast_as_quoted<V, I>(expr: V, r#type: I) -> FunctionCall
     where
         V: Into<Expr>,
-        I: Into<TypeName>,
+        I: Into<TypeRef>,
     {
         let expr: Expr = expr.into();
         FunctionCall::new(Func::Cast).arg(expr.binary(BinOper::As, Expr::TypeName(r#type.into())))
@@ -537,31 +537,36 @@ impl Func {
     ///
     /// let query = Query::select()
     ///     .expr(Func::coalesce([
-    ///         Expr::col(Char::SizeW).into(),
-    ///         Expr::col(Char::SizeH).into(),
-    ///         Expr::val(12).into(),
+    ///         Query::select()
+    ///             .from(Char::Table)
+    ///             .expr(Func::max(Expr::col(Char::SizeW)))
+    ///             .take()
+    ///             .into(),
+    ///         Expr::col(Char::SizeH),
+    ///         Expr::val(12),
     ///     ]))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
+    ///     r#"SELECT COALESCE((SELECT MAX(`size_w`) FROM `character`), `size_h`, 12) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    ///     r#"SELECT COALESCE((SELECT MAX("size_w") FROM "character"), "size_h", 12) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    ///     r#"SELECT COALESCE((SELECT MAX("size_w") FROM "character"), "size_h", 12) FROM "character""#
     /// );
     /// ```
-    pub fn coalesce<I>(args: I) -> FunctionCall
+    pub fn coalesce<I, T>(args: I) -> FunctionCall
     where
-        I: IntoIterator<Item = Expr>,
+        I: IntoIterator<Item = T>,
+        T: Into<Expr>,
     {
-        FunctionCall::new(Func::Coalesce).args(args)
+        FunctionCall::new(Func::Coalesce).args(args.into_iter().map(Into::into))
     }
 
     /// Call `LOWER` function.

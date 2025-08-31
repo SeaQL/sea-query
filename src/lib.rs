@@ -750,7 +750,7 @@
 //!     table.to_string(MysqlQueryBuilder),
 //!     [
 //!         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-//!             r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
+//!             r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
 //!             r#"`font_size` int NOT NULL,"#,
 //!             r#"`character` varchar(255) NOT NULL,"#,
 //!             r#"`size_w` int NOT NULL,"#,
@@ -1043,6 +1043,9 @@ pub use value::*;
 
 #[cfg(feature = "derive")]
 pub use sea_query_derive::{Iden, IdenStatic, enum_def, raw_query, raw_sql};
+
+#[cfg(all(feature = "sea-orm", not(feature = "derive")))]
+pub use sea_query_derive::{raw_query, raw_sql};
 
 #[cfg(all(feature = "attr", not(feature = "derive")))]
 pub use sea_query_derive::enum_def;

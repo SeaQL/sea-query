@@ -3,7 +3,7 @@ members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
-version = "1.0.0-rc.8"
+version = "1.0.0-rc.12"
 authors = [
     "Chris Tsang <chris.2y3@outlook.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
@@ -30,6 +30,7 @@ path = "src/lib.rs"
 [dependencies]
 inherent = "1.0"
 sea-query-derive = { version = "1.0.0-rc", path = "sea-query-derive", default-features = false, optional = true }
+serde = { version = "1", default-features = false, optional = true, features = ["std", "derive"] }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4.27", default-features = false, optional = true, features = ["clock"] }
 postgres-types = { version = "0", default-features = false, optional = true }
@@ -61,6 +62,18 @@ hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
 postgres-interval = []
+serde = [
+    "dep:serde",
+    "chrono?/serde",
+    "time?/serde",
+    "jiff?/serde",
+    "uuid?/serde",
+    "bigdecimal?/serde",
+    "rust_decimal?/serde",
+    "ipnetwork?/serde",
+    "mac_address?/serde",
+    "pgvector?/serde",
+]
 thread-safe = []
 with-chrono = ["chrono"]
 with-json = ["serde_json"]
@@ -72,18 +85,20 @@ with-jiff = ["jiff"]
 with-ipnetwork = ["ipnetwork"]
 with-mac_address = ["mac_address"]
 sqlx-utils = ["derive"]
+sea-orm = ["sea-query-derive"]
 tests-cfg = []
 all-features = [
+    "all-types",
+    "attr",
+    "audit",
     "backend-mysql",
     "backend-postgres",
     "backend-sqlite",
     "derive",
-    "attr",
     "hashable-value",
-    "thread-safe",
-    "all-types",
-    "audit",
+    "serde",
     "sqlx-utils",
+    "thread-safe",
 ] # everything except option-*
 all-types = [
     "postgres-array",

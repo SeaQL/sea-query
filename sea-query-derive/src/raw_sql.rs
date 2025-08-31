@@ -1,4 +1,3 @@
-#[path = "../../src/token.rs"]
 mod token;
 use token::*;
 
