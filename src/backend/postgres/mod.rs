@@ -23,6 +23,7 @@ impl QuotedBuilder for PostgresQueryBuilder {
     }
 }
 
+// https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-BACKSLASH-TABLE
 impl EscapeBuilder for PostgresQueryBuilder {
     fn needs_escape(&self, s: &str) -> bool {
         s.chars().any(|c| match c {
