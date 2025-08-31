@@ -152,9 +152,9 @@ pub trait QueryBuilder:
             },
             do {
                 self.prepare_table_ref(table_ref, sql);
+                self.prepare_index_hints(table_ref,select, sql);
             },
             last {
-                self.prepare_index_hints(table_ref,select, sql);
                 self.prepare_table_sample(select, sql);
             }
         );

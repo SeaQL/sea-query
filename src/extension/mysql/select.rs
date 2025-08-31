@@ -57,7 +57,7 @@ const PANIC_MSG: &str =
     "No table in from clause, you should specify the table before using index hint";
 
 impl MySqlSelectStatementExt for SelectStatement {
-    /// Use index hint for MySQL
+    /// USE INDEX hint on the last table in the from clause for MySQL
     ///
     /// Give the optimizer information about how to choose indexes during query processing.
     /// See [MySQL reference manual for Index Hints](https://dev.mysql.com/doc/refman/8.0/en/index-hints.html)
@@ -95,14 +95,16 @@ impl MySqlSelectStatementExt for SelectStatement {
         self
     }
 
+    /// USE INDEX hint on the specified in the from clause for MySQL
+    ///
     /// # Examples
     ///
     /// ```
     /// use sea_query::{extension::mysql::*, tests_cfg::*, *};
     ///
     /// let query = Query::select()
-    ///     .from(Char::Table)
     ///     .from(Font::Table)
+    ///     .from(Char::Table)
     ///     .use_index_on(Char::Table, IndexName::new("IDX_123456"), IndexHintScope::All)
     ///     .use_index_on(Font::Table, IndexName::new("IDX_654321"), IndexHintScope::All)
     ///     .column(Char::SizeW)
@@ -110,7 +112,7 @@ impl MySqlSelectStatementExt for SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `size_w` FROM `character` USE INDEX (`IDX_123456`), `font` USE INDEX (`IDX_654321`)"#
+    ///     r#"SELECT `size_w` FROM `font` USE INDEX (`IDX_654321`), `character` USE INDEX (`IDX_123456`)"#
     /// );
     /// ```
     fn use_index_on<T, I>(&mut self, table: T, index: I, scope: IndexHintScope) -> &mut Self
@@ -129,7 +131,7 @@ impl MySqlSelectStatementExt for SelectStatement {
         self
     }
 
-    /// Force index hint for MySQL
+    /// FORCE INDEX hint on the last table in from clause for MySQL
     ///
     /// Give the optimizer information about how to choose indexes during query processing.
     /// See [MySQL reference manual for Index Hints](https://dev.mysql.com/doc/refman/8.0/en/index-hints.html)
@@ -167,6 +169,26 @@ impl MySqlSelectStatementExt for SelectStatement {
         self
     }
 
+    /// FORCE INDEX hint on the specified in the from clause for MySQL
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{extension::mysql::*, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Font::Table)
+    ///     .from(Char::Table)
+    ///     .force_index_on(Char::Table, IndexName::new("IDX_123456"), IndexHintScope::All)
+    ///     .force_index_on(Font::Table, IndexName::new("IDX_654321"), IndexHintScope::All)
+    ///     .column(Char::SizeW)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `size_w` FROM `font` FORCE INDEX (`IDX_654321`), `character` FORCE INDEX (`IDX_123456`)"#
+    /// );
+    /// ```
     fn force_index_on<T, I>(&mut self, table: T, index: I, scope: IndexHintScope) -> &mut Self
     where
         T: IntoTableRef,
@@ -183,7 +205,7 @@ impl MySqlSelectStatementExt for SelectStatement {
         self
     }
 
-    /// Ignore index hint for MySQL
+    /// Ignore index hint on the last table in the from clause for MySQL
     ///
     /// Give the optimizer information about how to choose indexes during query processing.
     /// See [MySQL reference manual for Index Hints](https://dev.mysql.com/doc/refman/8.0/en/index-hints.html)
@@ -221,6 +243,26 @@ impl MySqlSelectStatementExt for SelectStatement {
         self
     }
 
+    /// IGNORE INDEX hint on the specified in the from clause for MySQL
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{extension::mysql::*, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Font::Table)
+    ///     .from(Char::Table)
+    ///     .ignore_index_on(Char::Table, IndexName::new("IDX_123456"), IndexHintScope::All)
+    ///     .ignore_index_on(Font::Table, IndexName::new("IDX_654321"), IndexHintScope::All)
+    ///     .column(Char::SizeW)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `size_w` FROM `font` IGNORE INDEX (`IDX_654321`), `character` IGNORE INDEX (`IDX_123456`)"#
+    /// );
+    /// ```
     fn ignore_index_on<T, I>(&mut self, table: T, index: I, scope: IndexHintScope) -> &mut Self
     where
         T: IntoTableRef,

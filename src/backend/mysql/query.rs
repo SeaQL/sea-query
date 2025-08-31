@@ -26,6 +26,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         };
         write!(sql, " ").unwrap();
 
+        let mut hints = hints.iter();
         join_io!(
             hints,
             hint,
