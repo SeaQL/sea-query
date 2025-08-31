@@ -24,7 +24,7 @@ impl QueryBuilder for MysqlQueryBuilder {
         let Some(hints) = select.index_hints.get(&table_ref.into()) else {
             return;
         };
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
 
         let mut hints = hints.iter();
         join_io!(
