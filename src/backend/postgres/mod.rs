@@ -75,6 +75,32 @@ impl EscapeBuilder for PostgresQueryBuilder {
                 '0' => result.push('\0'),
                 '\'' => result.push('\''),
                 '\\' => result.push('\\'),
+                'u' => {
+                    let mut hex = String::new();
+                    for _ in 0..4 {
+                        if let Some(h) = chars.next() {
+                            hex.push(h);
+                        }
+                    }
+                    if let Ok(code) = u32::from_str_radix(&hex, 16) {
+                        if let Some(ch) = std::char::from_u32(code) {
+                            result.push(ch);
+                        }
+                    }
+                }
+                'U' => {
+                    let mut hex = String::new();
+                    for _ in 0..8 {
+                        if let Some(h) = chars.next() {
+                            hex.push(h);
+                        }
+                    }
+                    if let Ok(code) = u32::from_str_radix(&hex, 16) {
+                        if let Some(ch) = std::char::from_u32(code) {
+                            result.push(ch);
+                        }
+                    }
+                }
                 c @ '0'..='7' => {
                     let mut oct = String::new();
                     oct.push(c);
@@ -134,7 +160,7 @@ mod tests {
     fn test_unescape_string() {
         let escaper = PostgresQueryBuilder;
 
-        let escaped = r"\b\f\n\r\t\0\'\\\101\102\103你😀";
+        let escaped = r"\b\f\n\r\t\0\'\\\101\102\103\u4F60\U1F600";
         let unescaped = escaper.unescape_string(escaped);
 
         let expected = "\x08\x0C\n\r\t\0'\\ABC你😀";
