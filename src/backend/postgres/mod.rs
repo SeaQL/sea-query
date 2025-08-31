@@ -160,7 +160,7 @@ mod tests {
     fn test_unescape_string() {
         let escaper = PostgresQueryBuilder;
 
-        let escaped = r"\b\f\n\r\t\0\'\\\101\102\103\u4F60\U1F600";
+        let escaped = r"\b\f\n\r\t\0\'\\\101\102\103\u4F60\U0001F600";
         let unescaped = escaper.unescape_string(escaped);
 
         let expected = "\x08\x0C\n\r\t\0'\\ABC你😀";
