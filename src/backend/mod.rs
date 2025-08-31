@@ -63,7 +63,7 @@ pub trait QuotedBuilder {
 
 pub trait EscapeBuilder {
     /// Return if string literal needs to be escaped
-    fn need_escape(&self, s: &str) -> bool {
+    fn needs_escape(&self, s: &str) -> bool {
         s.chars().any(|c| {
             matches!(
                 c,

@@ -24,7 +24,7 @@ impl QuotedBuilder for PostgresQueryBuilder {
 }
 
 impl EscapeBuilder for PostgresQueryBuilder {
-    fn need_escape(&self, s: &str) -> bool {
+    fn needs_escape(&self, s: &str) -> bool {
         s.chars().any(|c| match c {
             '\x08' | '\x0C' | '\n' | '\r' | '\t' | '\\' | '\'' | '\0' => true,
             c if c.is_ascii_control() => true,
