@@ -711,6 +711,32 @@ impl Expr {
         Self::SubQuery(Some(SubQueryOper::Exists), Box::new(sel.into()))
     }
 
+    /// Express a `NOT EXISTS` sub-query expression.
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr_as(Expr::not_exists(Query::select().column(Char::Id).from(Char::Table).take()), "character_exists")
+    ///     .expr_as(Expr::not_exists(Query::select().column(Glyph::Id).from(Glyph::Table).take()), "glyph_exists")
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT NOT EXISTS(SELECT `id` FROM `character`) AS `character_exists`, NOT EXISTS(SELECT `id` FROM `glyph`) AS `glyph_exists`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT NOT EXISTS(SELECT "id" FROM "character") AS "character_exists", NOT EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT NOT EXISTS(SELECT "id" FROM "character") AS "character_exists", NOT EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
+    /// );
+    /// ```
+    pub fn not_exists(sel: SelectStatement) -> Self {
+        Self::exists(sel).not()
+    }
+
     /// Express a `ANY` sub-query expression.
     ///
     /// # Examples
