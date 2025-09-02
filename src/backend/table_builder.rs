@@ -113,7 +113,7 @@ pub trait TableBuilder:
 
         if let Some(default) = default {
             write!(sql, " DEFAULT ").unwrap();
-            QueryBuilder::prepare_simple_expr(self, default, sql);
+            QueryBuilder::prepare_expr(self, default, sql);
         }
 
         if let Some(generated) = generated {
@@ -239,14 +239,14 @@ pub trait TableBuilder:
         }
 
         sql.write_str("CHECK (").unwrap();
-        QueryBuilder::prepare_simple_expr(self, &check.expr, sql);
+        QueryBuilder::prepare_expr(self, &check.expr, sql);
         sql.write_str(")").unwrap();
     }
 
     /// Translate the generated column into SQL statement
     fn prepare_generated_column(&self, r#gen: &Expr, stored: bool, sql: &mut dyn SqlWriter) {
         sql.write_str("GENERATED ALWAYS AS (").unwrap();
-        QueryBuilder::prepare_simple_expr(self, r#gen, sql);
+        QueryBuilder::prepare_expr(self, r#gen, sql);
         sql.write_str(")").unwrap();
         if stored {
             sql.write_str(" STORED").unwrap();

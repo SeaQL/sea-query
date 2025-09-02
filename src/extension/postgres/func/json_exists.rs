@@ -98,7 +98,7 @@ impl Builder {
     fn build_internal(self) -> Result<FunctionCall, core::fmt::Error> {
         let mut buf = String::with_capacity(20);
 
-        PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
+        PostgresQueryBuilder.prepare_expr(&self.context_item, &mut buf);
         buf.write_str(" ")?;
         write_json_path_expr(&mut buf, &self.path_expression)?;
 
