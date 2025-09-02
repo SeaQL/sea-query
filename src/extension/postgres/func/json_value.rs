@@ -103,7 +103,7 @@ impl Builder {
     fn build_internal(self) -> Result<FunctionCall, core::fmt::Error> {
         let mut buf = String::with_capacity(50);
 
-        PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
+        PostgresQueryBuilder.prepare_expr(&self.context_item, &mut buf);
         buf.write_str(" ")?;
         write_json_path_expr(&mut buf, &self.path_expression)?;
 
@@ -121,7 +121,7 @@ impl Builder {
                 OnClause::Null => buf.write_str(" NULL")?,
                 OnClause::Default(expr) => {
                     buf.write_str(" DEFAULT ")?;
-                    PostgresQueryBuilder.prepare_simple_expr(&expr, &mut buf);
+                    PostgresQueryBuilder.prepare_expr(&expr, &mut buf);
                 }
             }
             buf.write_str(" ON EMPTY")?;
@@ -133,7 +133,7 @@ impl Builder {
                 OnClause::Null => buf.write_str(" NULL")?,
                 OnClause::Default(expr) => {
                     buf.write_str(" DEFAULT ")?;
-                    PostgresQueryBuilder.prepare_simple_expr(&expr, &mut buf);
+                    PostgresQueryBuilder.prepare_expr(&expr, &mut buf);
                 }
             };
             buf.write_str(" ON ERROR")?;

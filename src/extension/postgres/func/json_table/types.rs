@@ -59,7 +59,7 @@ impl OnClause {
             OnClause::EmptyObject => buf.write_str("EMPTY OBJECT")?,
             OnClause::Default(expr) => {
                 buf.write_str("DEFAULT ")?;
-                PostgresQueryBuilder.prepare_simple_expr(expr, buf);
+                PostgresQueryBuilder.prepare_expr(expr, buf);
             }
         };
         Ok(())
