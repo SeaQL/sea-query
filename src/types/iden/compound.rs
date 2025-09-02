@@ -137,7 +137,7 @@ pub enum ColumnRef {
     Asterisk(Option<TableName>),
     /// NEW.*
     New(DynIden),
-    /// Old.*
+    /// OLD.*
     Old(DynIden),
     #[cfg(feature = "backend-postgres")]
     /// excluded.*
