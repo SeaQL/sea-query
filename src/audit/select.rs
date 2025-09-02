@@ -80,19 +80,10 @@ impl Walker {
         match table_ref {
             TableRef::SubQuery(select, _) => self.recurse_audit_select(select)?,
             TableRef::FunctionCall(function, _) => self.recurse_audit_function(function)?,
-            TableRef::Table(tbl) | TableRef::TableAlias(tbl, _) => {
+            TableRef::Table(table_name, _) => {
                 self.access.push(QueryAccessRequest {
                     access_type: AccessType::Select,
-                    schema_table: SchemaTable(None, tbl.clone()),
-                });
-            }
-            TableRef::SchemaTable(sch, tbl)
-            | TableRef::DatabaseSchemaTable(_, sch, tbl)
-            | TableRef::SchemaTableAlias(sch, tbl, _)
-            | TableRef::DatabaseSchemaTableAlias(_, sch, tbl, _) => {
-                self.access.push(QueryAccessRequest {
-                    access_type: AccessType::Select,
-                    schema_table: SchemaTable(Some(sch.clone()), tbl.clone()),
+                    schema_table: table_name.clone(),
                 });
             }
             TableRef::ValuesList(_, _) => (),
@@ -179,7 +170,7 @@ impl Walker {
         // remove cte alias
         for cte in &with_clause.cte_expressions {
             if let Some(table_name) = &cte.table_name {
-                self.remove_item(AccessType::Select, &SchemaTable(None, table_name.clone()));
+                self.remove_item(AccessType::Select, &TableName(None, table_name.clone()));
             }
         }
     }
@@ -246,7 +237,7 @@ impl Walker {
         Ok(())
     }
 
-    fn remove_item(&mut self, access_type: AccessType, target: &SchemaTable) {
+    fn remove_item(&mut self, access_type: AccessType, target: &TableName) {
         while let Some(pos) = self
             .access
             .iter()

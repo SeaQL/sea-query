@@ -14,11 +14,39 @@ pub struct Condition {
     pub(crate) conditions: Vec<ConditionExpression>,
 }
 
-pub trait IntoCondition {
-    fn into_condition(self) -> Condition;
+pub type Cond = Condition;
+
+impl From<Expr> for Condition {
+    fn from(expr: Expr) -> Self {
+        Condition {
+            negate: false,
+            condition_type: ConditionType::All,
+            conditions: vec![ConditionExpression::Expr(expr)],
+        }
+    }
 }
 
-pub type Cond = Condition;
+impl From<ConditionExpression> for Condition {
+    fn from(ce: ConditionExpression) -> Self {
+        Condition {
+            negate: false,
+            condition_type: ConditionType::All,
+            conditions: vec![ce],
+        }
+    }
+}
+
+/// A helper trait.
+///
+/// You shouldn't implement this manually.
+pub trait IntoCondition: Into<Condition> {
+    #[inline(always)]
+    fn into_condition(self) -> Condition {
+        self.into()
+    }
+}
+
+impl<T> IntoCondition for T where T: Into<Condition> {}
 
 /// An internal representation of conditions.
 /// May be refactored away in the future if we can get our head around it.
@@ -310,26 +338,6 @@ impl From<Expr> for ConditionExpression {
     }
 }
 
-impl From<Expr> for Condition {
-    fn from(condition: Expr) -> Self {
-        Condition {
-            negate: false,
-            condition_type: ConditionType::All,
-            conditions: vec![ConditionExpression::Expr(condition)],
-        }
-    }
-}
-
-impl From<ConditionExpression> for Condition {
-    fn from(ce: ConditionExpression) -> Self {
-        Condition {
-            negate: false,
-            condition_type: ConditionType::All,
-            conditions: vec![ce],
-        }
-    }
-}
-
 /// Macro to easily create an [`Condition::any`].
 ///
 /// # Examples
@@ -611,18 +619,6 @@ pub trait ConditionalStatement {
     fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
         C: IntoCondition;
-}
-
-impl IntoCondition for Expr {
-    fn into_condition(self) -> Condition {
-        Condition::all().add(self)
-    }
-}
-
-impl IntoCondition for Condition {
-    fn into_condition(self) -> Condition {
-        self
-    }
 }
 
 impl ConditionHolder {

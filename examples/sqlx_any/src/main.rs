@@ -6,7 +6,7 @@ use sea_query::{
 use sqlx::{AnyPool, Row};
 use std::env;
 
-use sea_query_binder::SqlxBinder;
+use sea_query_sqlx::SqlxBinder;
 
 #[async_std::main]
 async fn main() {

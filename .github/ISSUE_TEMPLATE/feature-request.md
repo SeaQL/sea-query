@@ -4,6 +4,7 @@ about: Suggest a new feature for this project
 title: ''
 labels: ''
 assignees: ''
+type: Feature
 
 ---
 

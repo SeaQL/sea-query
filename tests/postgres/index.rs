@@ -44,6 +44,20 @@ fn create_3() {
 fn create_4() {
     assert_eq!(
         Index::create()
+            .full_text()
+            .name("idx-glyph-image")
+            .concurrently()
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX CONCURRENTLY "idx-glyph-image" ON "glyph" USING GIN ("image")"#
+    );
+}
+
+#[test]
+fn create_5() {
+    assert_eq!(
+        Index::create()
             .if_not_exists()
             .full_text()
             .name("idx-glyph-image")
@@ -55,7 +69,7 @@ fn create_4() {
 }
 
 #[test]
-fn create_5() {
+fn create_6() {
     assert_eq!(
         Index::create()
             .unique()
@@ -69,7 +83,7 @@ fn create_5() {
 }
 
 #[test]
-fn create_6() {
+fn create_7() {
     assert_eq!(
         Index::create()
             .if_not_exists()
@@ -171,6 +185,17 @@ fn drop_2() {
     assert_eq!(
         Index::drop()
             .name("idx-glyph-aspect")
+            .concurrently()
+            .to_string(PostgresQueryBuilder),
+        r#"DROP INDEX CONCURRENTLY "idx-glyph-aspect""#
+    );
+}
+
+#[test]
+fn drop_3() {
+    assert_eq!(
+        Index::drop()
+            .name("idx-glyph-aspect")
             .table(("schema", Glyph::Table))
             .to_string(PostgresQueryBuilder),
         r#"DROP INDEX "schema"."idx-glyph-aspect""#
@@ -178,7 +203,7 @@ fn drop_2() {
 }
 
 #[test]
-fn drop_3() {
+fn drop_4() {
     assert_eq!(
         Index::drop()
             .name("idx-glyph-aspect")
@@ -190,7 +215,7 @@ fn drop_3() {
 
 #[test]
 #[should_panic(expected = "Not supported")]
-fn drop_4() {
+fn drop_5() {
     Index::drop()
         .name("idx-glyph-aspect")
         .table(("database", "schema", Glyph::Table))

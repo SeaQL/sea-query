@@ -43,7 +43,7 @@ pub(crate) enum InsertValueSource {
 /// );
 /// assert_eq!(
 ///     query.audit().unwrap().inserted_tables(),
-///     [SeaRc::new(Glyph::Table)]
+///     [Glyph::Table.into_iden()]
 /// );
 /// ```
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -168,11 +168,11 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().selected_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().inserted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     ///
@@ -216,11 +216,11 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().selected_tables(),
-    ///     [SeaRc::new(Font::Table)]
+    ///     [Font::Table.into_iden()]
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().inserted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn select_from<S>(&mut self, select: S) -> Result<&mut Self>
@@ -241,6 +241,7 @@ impl InsertStatement {
     }
 
     /// Specify a row of values to be inserted.
+    /// Return error when number of values not matching number of columns.
     ///
     /// # Examples
     ///
@@ -268,6 +269,14 @@ impl InsertStatement {
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, CAST('2020-02-02 00:00:00' AS DATE))"#
+    /// );
+    ///
+    /// assert!(
+    ///     Query::insert()
+    ///         .into_table(Glyph::Table)
+    ///         .columns([Glyph::Aspect, Glyph::Image])
+    ///         .values([1.into()])
+    ///         .is_err()
     /// );
     /// ```
     pub fn values<I>(&mut self, values: I) -> Result<&mut Self>
@@ -324,6 +333,53 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
     /// ```
+    ///
+    /// The same query can be constructed using the `raw_query!` macro.
+    ///
+    /// ```
+    /// use sea_query::Values;
+    ///
+    /// let values = vec![(2.1345, "24B"), (5.15, "12A")];
+    /// let query = sea_query::raw_query!(
+    ///     PostgresQueryBuilder,
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:1),}"#
+    /// );
+    ///
+    /// assert_eq!(
+    ///     query.sql,
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2), ($3, $4)"#
+    /// );
+    /// assert_eq!(
+    ///     query.values,
+    ///     Values(vec![2.1345.into(), "24B".into(), 5.15.into(), "12A".into()])
+    /// );
+    ///
+    /// // same as above but with named fields:
+    ///
+    /// struct Item<'a> {
+    ///     aspect: f64,
+    ///     image: &'a str,
+    /// };
+    ///
+    /// let values = vec![
+    ///     Item {
+    ///         aspect: 2.1345,
+    ///         image: "24B",
+    ///     },
+    ///     Item {
+    ///         aspect: 5.15,
+    ///         image: "12A",
+    ///     },
+    /// ];
+    ///
+    /// let new_query = sea_query::raw_query!(
+    ///     PostgresQueryBuilder,
+    ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.aspect, values.image),}"#
+    /// );
+    ///
+    /// assert_eq!(query.sql, new_query.sql);
+    /// assert_eq!(query.values, new_query.values);
+    /// ```
     pub fn values_panic<I>(&mut self, values: I) -> &mut Self
     where
         I: IntoIterator<Item = Expr>,
@@ -360,7 +416,7 @@ impl InsertStatement {
     /// );
     /// assert_eq!(
     ///     query.audit().unwrap().inserted_tables(),
-    ///     [SeaRc::new(Glyph::Table)]
+    ///     [Glyph::Table.into_iden()]
     /// );
     /// ```
     pub fn values_from_panic<I, J>(&mut self, values_iter: J) -> &mut Self

@@ -39,31 +39,31 @@ impl TransformValue for Sqlite {
             }
             Value::Float(v) => build!(Float, v),
             Value::Double(v) => build!(Double, v),
-            Value::String(v) => build!(Text, v.map(|v| *v)),
+            Value::String(v) => build!(Text, v),
             Value::Char(v) => build!(Text, v.map(|v| v.to_string())),
-            Value::Bytes(v) => build!(Blob, v.map(|v| *v)),
+            Value::Bytes(v) => build!(Blob, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(v) => build!(Date, v.map(|v| *v)),
+            Value::ChronoDate(v) => build!(Date, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(v) => build!(Time, v.map(|v| *v)),
+            Value::ChronoTime(v) => build!(Time, v),
             #[cfg(feature = "with-chrono")]
             // Prefer Timestamp because https://github.com/diesel-rs/diesel/issues/3693
-            Value::ChronoDateTime(v) => build!(Timestamp, v.map(|v| *v)),
+            Value::ChronoDateTime(v) => build!(Timestamp, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
+            Value::ChronoDateTimeUtc(v) => build!(TimestamptzSqlite, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
+            Value::ChronoDateTimeLocal(v) => build!(TimestamptzSqlite, v),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
+            Value::ChronoDateTimeWithTimeZone(v) => build!(TimestamptzSqlite, v),
             #[cfg(feature = "with-time")]
-            Value::TimeDate(v) => build!(Date, v.map(|v| *v)),
+            Value::TimeDate(v) => build!(Date, v),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(v) => build!(Time, v.map(|v| *v)),
+            Value::TimeTime(v) => build!(Time, v),
             #[cfg(feature = "with-time")]
             // Prefer Timestamp because https://github.com/diesel-rs/diesel/issues/3693
-            Value::TimeDateTime(v) => build!(Timestamp, v.map(|v| *v)),
+            Value::TimeDateTime(v) => build!(Timestamp, v),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(v) => build!(TimestamptzSqlite, v.map(|v| *v)),
+            Value::TimeDateTimeWithTimeZone(v) => build!(TimestamptzSqlite, v),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => build!(Blob, v.map(|v| v.as_bytes().to_vec())),
             #[cfg(feature = "with-rust_decimal")]

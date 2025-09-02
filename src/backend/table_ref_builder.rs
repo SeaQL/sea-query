@@ -3,48 +3,36 @@ use crate::*;
 pub trait TableRefBuilder: QuotedBuilder {
     /// Translate [`TableRef`] that without values into SQL statement.
     fn prepare_table_ref_iden(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
-        match table_ref {
-            TableRef::Table(iden) => {
-                self.prepare_iden(iden, sql);
-            }
-            TableRef::SchemaTable(schema, table) => {
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(table, sql);
-            }
-            TableRef::DatabaseSchemaTable(database, schema, table) => {
-                self.prepare_iden(database, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(table, sql);
-            }
-            TableRef::TableAlias(iden, alias) => {
-                self.prepare_iden(iden, sql);
-                write!(sql, " AS ").unwrap();
-                self.prepare_iden(alias, sql);
-            }
-            TableRef::SchemaTableAlias(schema, table, alias) => {
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(table, sql);
-                write!(sql, " AS ").unwrap();
-                self.prepare_iden(alias, sql);
-            }
-            TableRef::DatabaseSchemaTableAlias(database, schema, table, alias) => {
-                self.prepare_iden(database, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(table, sql);
-                write!(sql, " AS ").unwrap();
-                self.prepare_iden(alias, sql);
-            }
+        let (table_name, alias) = match table_ref {
+            TableRef::Table(table_name, alias) => (table_name, alias),
             TableRef::SubQuery(_, _)
             | TableRef::ValuesList(_, _)
-            | TableRef::FunctionCall(_, _) => {
-                panic!("TableRef with values is not support")
-            }
+            | TableRef::FunctionCall(_, _) => panic!("TableRef with values is not support"),
+        };
+        self.prepare_table_name(table_name, sql);
+        if let Some(alias) = alias {
+            sql.write_str(" AS ").unwrap();
+            self.prepare_iden(alias, sql);
         }
+    }
+
+    /// Translate [`TableName`] into an SQL statement.
+    fn prepare_table_name(&self, table_name: &TableName, sql: &mut dyn SqlWriter) {
+        let TableName(schema_name, table) = table_name;
+        if let Some(schema_name) = schema_name {
+            self.prepare_schema_name(schema_name, sql);
+            sql.write_str(".").unwrap();
+        }
+        self.prepare_iden(table, sql);
+    }
+
+    /// Translate [`SchemaName`] into an SQL statement.
+    fn prepare_schema_name(&self, schema_name: &SchemaName, sql: &mut dyn SqlWriter) {
+        let SchemaName(database_name, schema) = schema_name;
+        if let Some(DatabaseName(database)) = database_name {
+            self.prepare_iden(database, sql);
+            write!(sql, ".").unwrap();
+        }
+        self.prepare_iden(schema, sql);
     }
 }

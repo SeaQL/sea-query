@@ -66,23 +66,26 @@ pub enum IndexOrder {
     Desc,
 }
 
-pub trait IntoIndexColumn {
+pub trait IntoIndexColumn: Into<IndexColumn> {
     fn into_index_column(self) -> IndexColumn;
 }
 
-impl IntoIndexColumn for IndexColumn {
+impl<T> IntoIndexColumn for T
+where
+    T: Into<IndexColumn>,
+{
     fn into_index_column(self) -> IndexColumn {
-        self
+        self.into()
     }
 }
 
-impl<I> IntoIndexColumn for I
+impl<I> From<I> for IndexColumn
 where
     I: IntoIden,
 {
-    fn into_index_column(self) -> IndexColumn {
+    fn from(value: I) -> Self {
         IndexColumn::TableColumn(IndexColumnTableColumn {
-            name: self.into_iden(),
+            name: value.into_iden(),
             prefix: None,
             order: None,
             operator_class: None,
@@ -90,83 +93,83 @@ where
     }
 }
 
-impl<I> IntoIndexColumn for (I, u32)
+impl<I> From<(I, u32)> for IndexColumn
 where
     I: IntoIden,
 {
-    fn into_index_column(self) -> IndexColumn {
+    fn from(value: (I, u32)) -> Self {
         IndexColumn::TableColumn(IndexColumnTableColumn {
-            name: self.0.into_iden(),
-            prefix: Some(self.1),
+            name: value.0.into_iden(),
+            prefix: Some(value.1),
             order: None,
             operator_class: None,
         })
     }
 }
 
-impl<I> IntoIndexColumn for (I, IndexOrder)
+impl<I> From<(I, IndexOrder)> for IndexColumn
 where
     I: IntoIden,
 {
-    fn into_index_column(self) -> IndexColumn {
+    fn from(value: (I, IndexOrder)) -> Self {
         IndexColumn::TableColumn(IndexColumnTableColumn {
-            name: self.0.into_iden(),
+            name: value.0.into_iden(),
             prefix: None,
-            order: Some(self.1),
+            order: Some(value.1),
             operator_class: None,
         })
     }
 }
 
-impl<I> IntoIndexColumn for (I, u32, IndexOrder)
+impl<I> From<(I, u32, IndexOrder)> for IndexColumn
 where
     I: IntoIden,
 {
-    fn into_index_column(self) -> IndexColumn {
+    fn from(value: (I, u32, IndexOrder)) -> Self {
         IndexColumn::TableColumn(IndexColumnTableColumn {
-            name: self.0.into_iden(),
-            prefix: Some(self.1),
-            order: Some(self.2),
+            name: value.0.into_iden(),
+            prefix: Some(value.1),
+            order: Some(value.2),
             operator_class: None,
         })
     }
 }
 
-impl IntoIndexColumn for FunctionCall {
-    fn into_index_column(self) -> IndexColumn {
+impl From<FunctionCall> for IndexColumn {
+    fn from(value: FunctionCall) -> Self {
         IndexColumn::Expr(IndexColumnExpr {
-            expr: self.into(),
+            expr: value.into(),
             order: None,
             operator_class: None,
         })
     }
 }
 
-impl IntoIndexColumn for (FunctionCall, IndexOrder) {
-    fn into_index_column(self) -> IndexColumn {
+impl From<(FunctionCall, IndexOrder)> for IndexColumn {
+    fn from(value: (FunctionCall, IndexOrder)) -> Self {
         IndexColumn::Expr(IndexColumnExpr {
-            expr: self.0.into(),
-            order: Some(self.1),
+            expr: value.0.into(),
+            order: Some(value.1),
             operator_class: None,
         })
     }
 }
 
-impl IntoIndexColumn for Expr {
-    fn into_index_column(self) -> IndexColumn {
+impl From<Expr> for IndexColumn {
+    fn from(value: Expr) -> Self {
         IndexColumn::Expr(IndexColumnExpr {
-            expr: self,
+            expr: value,
             order: None,
             operator_class: None,
         })
     }
 }
 
-impl IntoIndexColumn for (Expr, IndexOrder) {
-    fn into_index_column(self) -> IndexColumn {
+impl From<(Expr, IndexOrder)> for IndexColumn {
+    fn from(value: (Expr, IndexOrder)) -> Self {
         IndexColumn::Expr(IndexColumnExpr {
-            expr: self.0,
-            order: Some(self.1),
+            expr: value.0,
+            order: Some(value.1),
             operator_class: None,
         })
     }

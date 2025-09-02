@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{expr::*, types::*};
+use crate::{expr::*, table::Check, types::*};
 
 /// Specification of a table column
 #[derive(Debug, Clone)]
@@ -8,11 +8,26 @@ pub struct ColumnDef {
     pub(crate) table: Option<TableRef>,
     pub(crate) name: DynIden,
     pub(crate) types: Option<ColumnType>,
-    pub(crate) spec: Vec<ColumnSpec>,
+    pub(crate) spec: ColumnSpec,
 }
 
-pub trait IntoColumnDef {
+pub trait IntoColumnDef: Into<ColumnDef> {
     fn into_column_def(self) -> ColumnDef;
+}
+
+impl<T> IntoColumnDef for T
+where
+    T: Into<ColumnDef>,
+{
+    fn into_column_def(self) -> ColumnDef {
+        self.into()
+    }
+}
+
+impl From<&mut ColumnDef> for ColumnDef {
+    fn from(col: &mut ColumnDef) -> Self {
+        col.clone()
+    }
 }
 
 /// All column types
@@ -169,21 +184,24 @@ impl ColumnType {
     }
 }
 
-/// All column specification keywords
+#[derive(Debug, Clone, Default)]
+pub struct ColumnSpec {
+    pub nullable: Option<bool>,
+    pub default: Option<Expr>,
+    pub auto_increment: bool,
+    pub unique: bool,
+    pub primary_key: bool,
+    pub check: Option<Check>,
+    pub generated: Option<Generated>,
+    pub extra: Option<String>,
+    pub comment: Option<String>,
+    pub using: Option<Expr>,
+}
+
 #[derive(Debug, Clone)]
-#[non_exhaustive]
-pub enum ColumnSpec {
-    Null,
-    NotNull,
-    Default(Expr),
-    AutoIncrement,
-    UniqueKey,
-    PrimaryKey,
-    Check(Expr),
-    Generated { expr: Expr, stored: bool },
-    Extra(String),
-    Comment(String),
-    Using(Expr),
+pub struct Generated {
+    pub expr: Expr,
+    pub stored: bool,
 }
 
 // All interval fields
@@ -241,7 +259,7 @@ impl fmt::Display for PgDateTruncUnit {
             PgDateTruncUnit::Century => "century",
             PgDateTruncUnit::Millennium => "millennium",
         };
-        write!(f, "{text}")
+        f.write_str(text)
     }
 }
 
@@ -255,7 +273,7 @@ impl ColumnDef {
             table: None,
             name: name.into_iden(),
             types: None,
-            spec: Vec::new(),
+            spec: ColumnSpec::default(),
         }
     }
 
@@ -268,19 +286,19 @@ impl ColumnDef {
             table: None,
             name: name.into_iden(),
             types: Some(types),
-            spec: Vec::new(),
+            spec: ColumnSpec::default(),
         }
     }
 
     /// Set column not null
     pub fn not_null(&mut self) -> &mut Self {
-        self.spec.push(ColumnSpec::NotNull);
+        self.spec.nullable = Some(false);
         self
     }
 
     /// Set column null
     pub fn null(&mut self) -> &mut Self {
-        self.spec.push(ColumnSpec::Null);
+        self.spec.nullable = Some(true);
         self
     }
 
@@ -305,7 +323,7 @@ impl ColumnDef {
     ///     [
     ///         "CREATE TABLE `character` (",
     ///         "`font_id` int DEFAULT 12,",
-    ///         "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL",
+    ///         "`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP",
     ///         ")",
     ///     ]
     ///     .join(" ")
@@ -316,7 +334,7 @@ impl ColumnDef {
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
     ///         r#""font_id" integer DEFAULT 12,"#,
-    ///         r#""created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL"#,
+    ///         r#""created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP"#,
     ///         r#")"#,
     ///     ]
     ///     .join(" ")
@@ -326,25 +344,25 @@ impl ColumnDef {
     where
         T: Into<Expr>,
     {
-        self.spec.push(ColumnSpec::Default(value.into()));
+        self.spec.default = Some(value.into());
         self
     }
 
     /// Set column auto increment
     pub fn auto_increment(&mut self) -> &mut Self {
-        self.spec.push(ColumnSpec::AutoIncrement);
+        self.spec.auto_increment = true;
         self
     }
 
     /// Set column unique constraint
     pub fn unique_key(&mut self) -> &mut Self {
-        self.spec.push(ColumnSpec::UniqueKey);
+        self.spec.unique = true;
         self
     }
 
     /// Set column as primary key
     pub fn primary_key(&mut self) -> &mut Self {
-        self.spec.push(ColumnSpec::PrimaryKey);
+        self.spec.primary_key = true;
         self
     }
 
@@ -602,6 +620,50 @@ impl ColumnDef {
     }
 
     /// Use a custom type on this column.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::create()
+    ///     .table(Char::Table)
+    ///     .col(
+    ///         ColumnDef::new(Char::Id)
+    ///             .custom("new_type")
+    ///             .not_null()
+    ///             .primary_key(),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE `character` ("#,
+    ///         r#"`id` new_type NOT NULL PRIMARY KEY"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""id" new_type NOT NULL PRIMARY KEY"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(SqliteQueryBuilder),
+    ///     [
+    ///         r#"CREATE TABLE "character" ("#,
+    ///         r#""id" new_type NOT NULL PRIMARY KEY"#,
+    ///         r#")"#,
+    ///     ]
+    ///     .join(" ")
+    /// );
+    /// ```
     pub fn custom<T>(&mut self, name: T) -> &mut Self
     where
         T: IntoIden,
@@ -671,7 +733,7 @@ impl ColumnDef {
     ///         .to_string(PostgresQueryBuilder),
     ///     [
     ///         r#"CREATE TABLE "glyph" ("#,
-    ///         r#""id" serial NOT NULL PRIMARY KEY,"#,
+    ///         r#""id" integer GENERATED BY DEFAULT AS IDENTITY NOT NULL PRIMARY KEY,"#,
     ///         r#""tokens" ltree"#,
     ///         r#")"#,
     ///     ]
@@ -687,6 +749,7 @@ impl ColumnDef {
     ///
     /// ```
     /// use sea_query::{tests_cfg::*, *};
+    ///
     /// assert_eq!(
     ///     Table::create()
     ///         .table(Glyph::Table)
@@ -699,12 +762,25 @@ impl ColumnDef {
     ///         .to_string(MysqlQueryBuilder),
     ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CHECK (`id` > 10) )"#,
     /// );
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(
+    ///             ColumnDef::new(Glyph::Id)
+    ///                 .integer()
+    ///                 .not_null()
+    ///                 .check(("positive_id", Expr::col(Glyph::Id).gt(10)))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"CREATE TABLE `glyph` ( `id` int NOT NULL CONSTRAINT `positive_id` CHECK (`id` > 10) )"#,
+    /// );
     /// ```
-    pub fn check<T>(&mut self, value: T) -> &mut Self
+    pub fn check<T>(&mut self, check: T) -> &mut Self
     where
-        T: Into<Expr>,
+        T: Into<Check>,
     {
-        self.spec.push(ColumnSpec::Check(value.into()));
+        self.spec.check = Some(check.into());
         self
     }
 
@@ -713,7 +789,7 @@ impl ColumnDef {
     where
         T: Into<Expr>,
     {
-        self.spec.push(ColumnSpec::Generated {
+        self.spec.generated = Some(Generated {
             expr: expr.into(),
             stored,
         });
@@ -743,8 +819,8 @@ impl ColumnDef {
     ///     table.to_string(PostgresQueryBuilder),
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
-    ///         r#""id" uuid DEFAULT gen_random_uuid() PRIMARY KEY NOT NULL,"#,
-    ///         r#""created_at" timestamp with time zone DEFAULT NOW() NOT NULL"#,
+    ///         r#""id" uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),"#,
+    ///         r#""created_at" timestamp with time zone NOT NULL DEFAULT NOW()"#,
     ///         r#")"#,
     ///     ]
     ///     .join(" ")
@@ -754,7 +830,7 @@ impl ColumnDef {
     where
         T: Into<String>,
     {
-        self.spec.push(ColumnSpec::Extra(string.into()));
+        self.spec.extra = Some(string.into());
         self
     }
 
@@ -782,7 +858,7 @@ impl ColumnDef {
     where
         T: Into<Expr>,
     {
-        self.spec.push(ColumnSpec::Using(value.into()));
+        self.spec.using = Some(value.into());
         self
     }
 
@@ -791,7 +867,7 @@ impl ColumnDef {
     where
         T: Into<String>,
     {
-        self.spec.push(ColumnSpec::Comment(string.into()));
+        self.spec.comment = Some(string.into());
         self
     }
 
@@ -803,28 +879,16 @@ impl ColumnDef {
         self.types.as_ref()
     }
 
-    pub fn get_column_spec(&self) -> &Vec<ColumnSpec> {
-        self.spec.as_ref()
+    pub fn get_column_spec(&self) -> &ColumnSpec {
+        &self.spec
     }
 
     pub fn take(&mut self) -> Self {
         Self {
             table: self.table.take(),
-            name: std::mem::replace(&mut self.name, SeaRc::new(NullAlias::new())),
+            name: std::mem::replace(&mut self.name, NullAlias::new().into_iden()),
             types: self.types.take(),
             spec: std::mem::take(&mut self.spec),
         }
-    }
-}
-
-impl IntoColumnDef for &mut ColumnDef {
-    fn into_column_def(self) -> ColumnDef {
-        self.take()
-    }
-}
-
-impl IntoColumnDef for ColumnDef {
-    fn into_column_def(self) -> ColumnDef {
-        self
     }
 }

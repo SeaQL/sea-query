@@ -21,7 +21,7 @@ fn create_1() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `glyph` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`aspect` double NOT NULL,",
             "`image` text",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
@@ -51,7 +51,7 @@ fn create_2() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE `font` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`name` varchar(255) NOT NULL,",
             "`variant` varchar(255) NOT NULL,",
             "`language` varchar(1024) NOT NULL",
@@ -103,13 +103,13 @@ fn create_3() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE IF NOT EXISTS `character` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`font_size` int NOT NULL,",
             "`character` varchar(255) NOT NULL,",
             "`size_w` int UNSIGNED NOT NULL,",
             "`size_h` int UNSIGNED NOT NULL,",
             "`font_id` int DEFAULT NULL,",
-            "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,",
+            "`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
             "CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`",
             "FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)",
             "ON DELETE CASCADE ON UPDATE RESTRICT",
@@ -304,13 +304,13 @@ fn create_12() {
             .to_string(MysqlQueryBuilder),
         [
             "CREATE TABLE IF NOT EXISTS `character` (",
-            "`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,",
+            "`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,",
             "`font_size` int NOT NULL,",
             "`character` varchar(255) NOT NULL,",
             "`size_w` int UNSIGNED NOT NULL,",
             "`size_h` int UNSIGNED NOT NULL,",
             "`font_id` int DEFAULT NULL,",
-            "`created_at` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,",
+            "`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
             "KEY `idx-character-area` ((`size_h` * `size_w`))",
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         ]
@@ -431,6 +431,24 @@ fn create_with_check_constraint() {
 }
 
 #[test]
+fn create_with_named_check_constraint() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(
+                ColumnDef::new(Glyph::Id)
+                    .integer()
+                    .not_null()
+                    .check(("positive_id", Expr::col(Glyph::Id).gt(10)))
+            )
+            .check(("id_range", Expr::col(Glyph::Id).lt(20)))
+            .check(Expr::col(Glyph::Id).ne(15))
+            .to_string(MysqlQueryBuilder),
+        r"CREATE TABLE `glyph` ( `id` int NOT NULL CONSTRAINT `positive_id` CHECK (`id` > 10), CONSTRAINT `id_range` CHECK (`id` < 20), CHECK (`id` <> 15) )",
+    );
+}
+
+#[test]
 fn alter_with_check_constraint() {
     assert_eq!(
         Table::alter()
@@ -444,5 +462,22 @@ fn alter_with_check_constraint() {
             )
             .to_string(MysqlQueryBuilder),
         r"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CHECK (`aspect` > 100)",
+    );
+}
+
+#[test]
+fn alter_with_named_check_constraint() {
+    assert_eq!(
+        Table::alter()
+            .table(Glyph::Table)
+            .add_column(
+                ColumnDef::new(Glyph::Aspect)
+                    .integer()
+                    .not_null()
+                    .default(101)
+                    .check(("positive_aspect", Expr::col(Glyph::Aspect).gt(100)))
+            )
+            .to_string(MysqlQueryBuilder),
+        r#"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CONSTRAINT `positive_aspect` CHECK (`aspect` > 100)"#,
     );
 }

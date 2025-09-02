@@ -7,22 +7,18 @@ impl IndexBuilder for MysqlQueryBuilder {
         sql: &mut dyn SqlWriter,
     ) {
         self.prepare_index_prefix(create, sql);
-        write!(sql, "KEY ").unwrap();
+        sql.write_str("KEY ").unwrap();
 
         if let Some(name) = &create.index.name {
-            write!(
-                sql,
-                "{}{}{} ",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         self.prepare_index_type(&create.index_type, sql);
         if matches!(create.index_type, Some(IndexType::FullText)) {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
@@ -33,26 +29,21 @@ impl IndexBuilder for MysqlQueryBuilder {
         create: &IndexCreateStatement,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CREATE ").unwrap();
+        sql.write_str("CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
-        write!(sql, "INDEX ").unwrap();
+        sql.write_str("INDEX ").unwrap();
 
         if let Some(name) = &create.index.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
 
-        write!(sql, " ON ").unwrap();
+        sql.write_str(" ON ").unwrap();
         if let Some(table) = &create.table {
             self.prepare_table_ref_index_stmt(table, sql);
         }
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
         self.prepare_index_columns(&create.index.columns, sql);
 
         self.prepare_index_type(&create.index_type, sql);
@@ -60,29 +51,27 @@ impl IndexBuilder for MysqlQueryBuilder {
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            // Support only "naked" table names with no schema or alias.
+            TableRef::Table(TableName(None, _), None) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
             _ => panic!("Not supported"),
         }
     }
     fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
-        write!(sql, "DROP INDEX ").unwrap();
+        sql.write_str("DROP INDEX ").unwrap();
 
         if drop.if_exists {
             panic!("Mysql does not support IF EXISTS for DROP INDEX")
         }
 
         if let Some(name) = &drop.index.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
 
-        write!(sql, " ON ").unwrap();
+        sql.write_str(" ON ").unwrap();
         if let Some(table) = &drop.table {
             self.prepare_table_ref_index_stmt(table, sql);
         }
@@ -91,16 +80,13 @@ impl IndexBuilder for MysqlQueryBuilder {
     fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut dyn SqlWriter) {
         if let Some(index_type) = col_index_type {
             if !matches!(index_type, IndexType::FullText) {
-                write!(
-                    sql,
-                    " USING {}",
-                    match index_type {
-                        IndexType::BTree => "BTREE".to_owned(),
-                        IndexType::FullText => unreachable!(),
-                        IndexType::Hash => "HASH".to_owned(),
-                        IndexType::Custom(custom) => custom.to_string(),
-                    }
-                )
+                sql.write_str(" USING ").unwrap();
+                sql.write_str(match index_type {
+                    IndexType::BTree => "BTREE",
+                    IndexType::FullText => unreachable!(),
+                    IndexType::Hash => "HASH",
+                    IndexType::Custom(custom) => &custom.0,
+                })
                 .unwrap();
             }
         }
@@ -108,40 +94,51 @@ impl IndexBuilder for MysqlQueryBuilder {
 
     fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
         if create.primary {
-            write!(sql, "PRIMARY ").unwrap();
+            sql.write_str("PRIMARY ").unwrap();
         }
         if create.unique {
-            write!(sql, "UNIQUE ").unwrap();
+            sql.write_str("UNIQUE ").unwrap();
         }
         if matches!(create.index_type, Some(IndexType::FullText)) {
-            write!(sql, "FULLTEXT ").unwrap();
+            sql.write_str("FULLTEXT ").unwrap();
         }
     }
 
     fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
-        columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            match col {
-                IndexColumn::TableColumn(column) => {
-                    self.prepare_index_column_with_table_column(column, sql);
-                }
-                IndexColumn::Expr(column) => {
-                    write!(sql, "(").unwrap();
-                    self.prepare_simple_expr(&column.expr, sql);
-                    write!(sql, ")").unwrap();
-                    if let Some(order) = &column.order {
-                        match order {
-                            IndexOrder::Asc => write!(sql, " ASC").unwrap(),
-                            IndexOrder::Desc => write!(sql, " DESC").unwrap(),
+        macro_rules! prepare {
+            ($i:ident) => {
+                match $i {
+                    IndexColumn::TableColumn(column) => {
+                        self.prepare_index_column_with_table_column(column, sql);
+                    }
+                    IndexColumn::Expr(column) => {
+                        sql.write_str("(").unwrap();
+                        self.prepare_simple_expr(&column.expr, sql);
+                        sql.write_str(")").unwrap();
+                        if let Some(order) = &column.order {
+                            match order {
+                                IndexOrder::Asc => sql.write_str(" ASC").unwrap(),
+                                IndexOrder::Desc => sql.write_str(" DESC").unwrap(),
+                            }
                         }
                     }
                 }
-            }
-            false
-        });
-        write!(sql, ")").unwrap();
+            };
+        }
+
+        sql.write_str("(").unwrap();
+
+        let mut cols = columns.iter();
+
+        if let Some(col) = cols.next() {
+            prepare!(col)
+        }
+
+        for col in cols {
+            sql.write_str(", ").unwrap();
+            prepare!(col)
+        }
+
+        sql.write_str(")").unwrap();
     }
 }

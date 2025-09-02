@@ -51,23 +51,23 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDate(d) => {
-                    let _ = args.add(d.as_deref());
+                    let _ = args.add(d);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeUtc(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeLocal(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-chrono")]
                 Value::ChronoDateTimeWithTimeZone(t) => {
@@ -76,27 +76,27 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDate(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTime(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
-                    let _ = args.add(t.as_deref());
+                    let _ = args.add(t);
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
-                    let _ = args.add(uuid.as_deref());
+                    let _ = args.add(uuid);
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(d) => {
-                    let _ = args.add(d.as_deref());
+                    let _ = args.add(d);
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(d) => {
@@ -104,7 +104,7 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
-                    let _ = args.add(j.as_deref());
+                    let _ = args.add(j);
                 }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(_, _) => {

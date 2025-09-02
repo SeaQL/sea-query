@@ -8,43 +8,50 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {
         match select_distinct {
-            SelectDistinct::All => write!(sql, "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
-            SelectDistinct::DistinctRow => write!(sql, "DISTINCTROW").unwrap(),
+            SelectDistinct::All => sql.write_str("ALL").unwrap(),
+            SelectDistinct::Distinct => sql.write_str("DISTINCT").unwrap(),
+            SelectDistinct::DistinctRow => sql.write_str("DISTINCTROW").unwrap(),
             _ => {}
         };
     }
 
     fn prepare_index_hints(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
         if !select.index_hints.is_empty() {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         }
-        for (i, hint) in select.index_hints.iter().enumerate() {
-            if i != 0 {
-                write!(sql, " ").unwrap()
+
+        let mut hints = select.index_hints.iter();
+
+        join_io!(
+            hints,
+            hint,
+            join {
+                sql.write_str(" ").unwrap();
+            },
+            do {
+                match hint.r#type {
+                    IndexHintType::Use => {
+                        sql.write_str("USE INDEX ").unwrap();
+                        self.prepare_index_hint_scope(&hint.scope, sql);
+                        sql.write_str("(").unwrap();
+                        self.prepare_iden(&hint.index, sql);
+                    }
+                    IndexHintType::Ignore => {
+                        sql.write_str("IGNORE INDEX ").unwrap();
+                        self.prepare_index_hint_scope(&hint.scope, sql);
+                        sql.write_str("(").unwrap();
+                        self.prepare_iden(&hint.index, sql);
+                    }
+                    IndexHintType::Force => {
+                        sql.write_str("FORCE INDEX ").unwrap();
+                        self.prepare_index_hint_scope(&hint.scope, sql);
+                        sql.write_str("(").unwrap();
+                        self.prepare_iden(&hint.index, sql);
+                    }
+                }
+                sql.write_str(")").unwrap();
             }
-            match hint.r#type {
-                IndexHintType::Use => {
-                    write!(sql, "USE INDEX ",).unwrap();
-                    self.prepare_index_hint_scope(&hint.scope, sql);
-                    write!(sql, "(").unwrap();
-                    self.prepare_iden(&hint.index, sql);
-                }
-                IndexHintType::Ignore => {
-                    write!(sql, "IGNORE INDEX ",).unwrap();
-                    self.prepare_index_hint_scope(&hint.scope, sql);
-                    write!(sql, "(").unwrap();
-                    self.prepare_iden(&hint.index, sql);
-                }
-                IndexHintType::Force => {
-                    write!(sql, "FORCE INDEX ",).unwrap();
-                    self.prepare_index_hint_scope(&hint.scope, sql);
-                    write!(sql, "(").unwrap();
-                    self.prepare_iden(&hint.index, sql);
-                }
-            }
-            write!(sql, ")").unwrap();
-        }
+        );
     }
 
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut dyn SqlWriter) {
@@ -73,7 +80,7 @@ impl QueryBuilder for MysqlQueryBuilder {
             return;
         }
 
-        write!(sql, " JOIN ").unwrap();
+        sql.write_str(" JOIN ").unwrap();
 
         // TODO what if we have multiple from?
         self.prepare_table_ref(&from[0], sql);
@@ -92,20 +99,17 @@ impl QueryBuilder for MysqlQueryBuilder {
     ) {
         use std::ops::Deref;
 
-        if from.is_empty() {
-            self.prepare_iden(column, sql);
-        } else {
+        if !from.is_empty() {
             if let Some(table) = table {
-                if let TableRef::Table(table) = table.deref() {
-                    self.prepare_column_ref(
-                        &ColumnRef::TableColumn(table.clone(), column.clone()),
-                        sql,
-                    );
+                // Support only "naked" table names with no schema or alias.
+                if let TableRef::Table(TableName(None, table), None) = table.deref() {
+                    let column_name = ColumnName::from((table.clone(), column.clone()));
+                    self.prepare_column_ref(&ColumnRef::Column(column_name), sql);
                     return;
                 }
             }
-            self.prepare_iden(column, sql);
         }
+        self.prepare_iden(column, sql)
     }
 
     fn prepare_update_condition(
@@ -132,11 +136,11 @@ impl QueryBuilder for MysqlQueryBuilder {
             None => (),
             Some(NullOrdering::Last) => {
                 self.prepare_simple_expr(&order_expr.expr, sql);
-                write!(sql, " IS NULL ASC, ").unwrap()
+                sql.write_str(" IS NULL ASC, ").unwrap()
             }
             Some(NullOrdering::First) => {
                 self.prepare_simple_expr(&order_expr.expr, sql);
-                write!(sql, " IS NULL DESC, ").unwrap()
+                sql.write_str(" IS NULL DESC, ").unwrap()
             }
         }
         if !matches!(order_expr.order, Order::Field(_)) {
@@ -145,8 +149,8 @@ impl QueryBuilder for MysqlQueryBuilder {
         self.prepare_order(order_expr, sql);
     }
 
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value, self as _);
     }
 
     fn prepare_on_conflict_target(&self, _: &[OnConflictTarget], _: &mut dyn SqlWriter) {
@@ -162,17 +166,21 @@ impl QueryBuilder for MysqlQueryBuilder {
             Some(OnConflictAction::DoNothing(pk_cols)) => {
                 if !pk_cols.is_empty() {
                     self.prepare_on_conflict_do_update_keywords(sql);
-                    pk_cols.iter().fold(true, |first, pk_col| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
+                    let mut pk_cols_iter = pk_cols.iter();
+                    join_io!(
+                        pk_cols_iter,
+                        pk_col,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            self.prepare_iden(pk_col, sql);
+                            sql.write_str(" = ").unwrap();
+                            self.prepare_iden(pk_col, sql);
                         }
-                        self.prepare_iden(pk_col, sql);
-                        write!(sql, " = ").unwrap();
-                        self.prepare_iden(pk_col, sql);
-                        false
-                    });
+                    );
                 } else {
-                    write!(sql, " IGNORE").unwrap();
+                    sql.write_str(" IGNORE").unwrap();
                 }
             }
             _ => self.prepare_on_conflict_action_common(on_conflict_action, sql),
@@ -180,17 +188,17 @@ impl QueryBuilder for MysqlQueryBuilder {
     }
 
     fn prepare_on_conflict_keywords(&self, sql: &mut dyn SqlWriter) {
-        write!(sql, " ON DUPLICATE KEY").unwrap();
+        sql.write_str(" ON DUPLICATE KEY").unwrap();
     }
 
     fn prepare_on_conflict_do_update_keywords(&self, sql: &mut dyn SqlWriter) {
-        write!(sql, " UPDATE ").unwrap();
+        sql.write_str(" UPDATE ").unwrap();
     }
 
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
-        write!(sql, "VALUES(").unwrap();
+        sql.write_str("VALUES(").unwrap();
         self.prepare_iden(col, sql);
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     fn prepare_on_conflict_condition(&self, _: &ConditionHolder, _: &mut dyn SqlWriter) {}
@@ -210,13 +218,13 @@ impl MysqlQueryBuilder {
     fn prepare_index_hint_scope(&self, index_hint_scope: &IndexHintScope, sql: &mut dyn SqlWriter) {
         match index_hint_scope {
             IndexHintScope::Join => {
-                write!(sql, "FOR JOIN ").unwrap();
+                sql.write_str("FOR JOIN ").unwrap();
             }
             IndexHintScope::OrderBy => {
-                write!(sql, "FOR ORDER BY ").unwrap();
+                sql.write_str("FOR ORDER BY ").unwrap();
             }
             IndexHintScope::GroupBy => {
-                write!(sql, "FOR GROUP BY ").unwrap();
+                sql.write_str("FOR GROUP BY ").unwrap();
             }
             IndexHintScope::All => {}
         }

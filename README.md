@@ -17,12 +17,14 @@
 SeaQuery is a query builder to help you construct dynamic SQL queries in Rust.
 You can construct expressions, queries and schema as abstract syntax trees using an ergonomic API.
 We support MySQL, Postgres and SQLite behind a common interface that aligns their behaviour where appropriate.
+MS SQL Server Support is available under [SeaORM X](https://www.sea-ql.org/SeaORM-X/).
 
+SeaQuery is written in 100% safe Rust. All workspace crates has `#![forbid(unsafe_code)]`.
+
+SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 We provide integration for [SQLx](https://crates.io/crates/sqlx),
 [postgres](https://crates.io/crates/postgres) and [rusqlite](https://crates.io/crates/rusqlite).
 See [examples](https://github.com/SeaQL/sea-query/blob/master/examples) for usage.
-
-SeaQuery is the foundation of [SeaORM](https://github.com/SeaQL/sea-orm), an async & dynamic ORM for Rust.
 
 [![GitHub stars](https://img.shields.io/github/stars/SeaQL/sea-query.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/sea-query/stargazers/)
 If you like what we do, consider starring, commenting, sharing and contributing!
@@ -84,54 +86,235 @@ Table of Content
     1. [Index Create](#index-create)
     1. [Index Drop](#index-drop)
 
-### Motivation
+## Motivation
 
 Why would you want to use a dynamic query builder?
 
-1. Parameter bindings
+### 1. Parameter bindings
 
-One of the headaches when using raw SQL is parameter binding. With SeaQuery you can:
+One of the headaches when using raw SQL is parameter binding. With SeaQuery you can inject parameters
+right alongside the expression, and the $N sequencing will be handled for you. No more "off by one" errors!
 
 ```rust
 assert_eq!(
     Query::select()
-        .column(Glyph::Image)
+        .expr(Expr::col(Char::SizeW).add(1).mul(2))
         .from(Glyph::Table)
         .and_where(Expr::col(Glyph::Image).like("A"))
-        .and_where(Expr::col(Glyph::Id).is_in([1, 2, 3]))
+        .and_where(Expr::col(Glyph::Id).is_in([3, 4, 5]))
         .build(PostgresQueryBuilder),
     (
-        r#"SELECT "image" FROM "glyph" WHERE "image" LIKE $1 AND "id" IN ($2, $3, $4)"#
+        r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
             .to_owned(),
         Values(vec![
-            Value::String(Some(Box::new("A".to_owned()))),
-            Value::Int(Some(1)),
-            Value::Int(Some(2)),
-            Value::Int(Some(3))
+            1.into(),
+            2.into(),
+            "A".to_owned().into(),
+            3.into(),
+            4.into(),
+            5.into(),
         ])
     )
 );
 ```
 
-2. Dynamic query
-
-You can construct the query at runtime based on user inputs:
+If you need an "escape hatch" to construct complex queries, you can use custom expressions,
+and still have the benefit of sequentially-binded parameters.
 
 ```rust
-Query::select()
-    .column(Char::Character)
-    .from(Char::Table)
-    .conditions(
-        // some runtime condition
-        true,
-        // if condition is true then add the following condition
-        |q| {
-            q.and_where(Expr::col(Char::Id).eq(1));
-        },
-        // otherwise leave it as is
-        |q| {},
-    );
+assert_eq!(
+    Query::select()
+        .columns([Char::SizeW, Char::SizeH])
+        .from(Char::Table)
+        .and_where(Expr::col(Char::Id).eq(1)) // this is $1
+        // custom expressions only need to define local parameter sequence.
+        // its global sequence will be re-written.
+        // here, we flip the order of $2 & $1 to make it look tricker!
+        .and_where(Expr::cust_with_values("\"size_w\" = $2 * $1", [3, 2]))
+        .and_where(Expr::col(Char::SizeH).gt(4)) // this is $N?
+        .build(PostgresQueryBuilder),
+    (
+        r#"SELECT "size_w", "size_h" FROM "character" WHERE "id" = $1 AND ("size_w" = $2 * $3) AND "size_h" > $4"#
+            .to_owned(),
+        Values(vec![1.into(), 2.into(), 3.into(), 4.into()])
+    )
+);
 ```
+
+### 2. Dynamic query
+
+You can construct the query at runtime based on user inputs with a fluent interface,
+so you don't have to append `WHERE` or `AND` conditionally.
+
+```rust
+fn query(a: Option<i32>, b: Option<char>) -> SelectStatement {
+    Query::select()
+        .column(Char::Id)
+        .from(Char::Table)
+        .apply_if(a, |q, v| {
+            q.and_where(Expr::col(Char::FontId).eq(v));
+        })
+        .apply_if(b, |q, v| {
+            q.and_where(Expr::col(Char::Ascii).like(v));
+        })
+        .take()
+}
+
+assert_eq!(
+    query(Some(5), Some('A')).to_string(MysqlQueryBuilder),
+    "SELECT `id` FROM `character` WHERE `font_id` = 5 AND `ascii` LIKE 'A'"
+);
+assert_eq!(
+    query(Some(5), None).to_string(MysqlQueryBuilder),
+    "SELECT `id` FROM `character` WHERE `font_id` = 5"
+);
+assert_eq!(
+    query(None, None).to_string(MysqlQueryBuilder),
+    "SELECT `id` FROM `character`"
+);
+```
+
+Conditions can be arbitrarily complex, thanks to SeaQuery's internal AST:
+
+```rust
+assert_eq!(
+    Query::select()
+        .column(Glyph::Id)
+        .from(Glyph::Table)
+        .cond_where(
+            Cond::any()
+                .add(
+                    Cond::all()
+                        .add(Expr::col(Glyph::Aspect).is_null())
+                        .add(Expr::col(Glyph::Image).is_null())
+                )
+                .add(
+                    Cond::all()
+                        .add(Expr::col(Glyph::Aspect).is_in([3, 4]))
+                        .add(Expr::col(Glyph::Image).like("A%"))
+                )
+        )
+        .to_string(PostgresQueryBuilder),
+    [
+        r#"SELECT "id" FROM "glyph""#,
+        r#"WHERE"#,
+        r#"("aspect" IS NULL AND "image" IS NULL)"#,
+        r#"OR"#,
+        r#"("aspect" IN (3, 4) AND "image" LIKE 'A%')"#,
+    ]
+    .join(" ")
+);
+```
+
+There is no superfluous parentheses `((((` cluttering the query, because SeaQuery respects
+operator precedence when injecting them.
+
+### 3. Cross database support
+
+With SeaQuery, you can target multiple database backends while maintaining a single source of query logic.
+
+```rust
+let query = Query::insert()
+    .into_table(Glyph::Table)
+    .columns([Glyph::Aspect, Glyph::Image])
+    .values_panic([
+        2.into(),
+        3.into(),
+    ])
+    .on_conflict(
+        OnConflict::column(Glyph::Id)
+            .update_columns([Glyph::Aspect, Glyph::Image])
+            .to_owned(),
+    )
+    .to_owned();
+
+assert_eq!(
+    query.to_string(MysqlQueryBuilder),
+    r#"INSERT INTO `glyph` (`aspect`, `image`) VALUES (2, 3) ON DUPLICATE KEY UPDATE `aspect` = VALUES(`aspect`), `image` = VALUES(`image`)"#
+);
+assert_eq!(
+    query.to_string(PostgresQueryBuilder),
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
+);
+assert_eq!(
+    query.to_string(SqliteQueryBuilder),
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2, 3) ON CONFLICT ("id") DO UPDATE SET "aspect" = "excluded"."aspect", "image" = "excluded"."image""#
+);
+```
+
+### 4. Improved raw SQL ergonomics
+
+SeaQuery 1.0 added a new `raw_query!` macro with named parameters, nested field access, array expansion and tuple expansion.
+It surely will make crafting complex query easier.
+
+```rust
+let (a, b, c) = (1, 2, "A");
+let d = vec![3, 4, 5];
+let query = sea_query::raw_query!(
+    PostgresQueryBuilder,
+    r#"SELECT ("size_w" + {a}) * {b} FROM "glyph" WHERE "image" LIKE {c} AND "id" IN ({..d})"#
+);
+
+assert_eq!(
+    query.sql,
+    r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
+);
+assert_eq!(
+    query.values,
+    Values(vec![
+        1.into(),
+        2.into(),
+        "A".into(),
+        3.into(),
+        4.into(),
+        5.into()
+    ])
+);
+```
+
+Insert with vector-of-tuple expansion.
+
+```rust
+let values = vec![(2.1345, "24B"), (5.15, "12A")];
+let query = sea_query::raw_query!(
+    PostgresQueryBuilder,
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES {..(values.0:1),}"#
+);
+
+assert_eq!(
+    query.sql,
+    r#"INSERT INTO "glyph" ("aspect", "image") VALUES ($1, $2), ($3, $4)"#
+);
+assert_eq!(
+    query.values,
+    Values(vec![2.1345.into(), "24B".into(), 5.15.into(), "12A".into()])
+);
+```
+
+Update with nested field access.
+
+```rust
+struct Character {
+    id: i32,
+    font_size: u16,
+}
+let c = Character {
+    id: 11,
+    font_size: 22,
+};
+let query = sea_query::raw_query!(
+    MysqlQueryBuilder,
+    "UPDATE `character` SET `font_size` = {c.font_size} WHERE `id` = {c.id}"
+);
+
+assert_eq!(
+    query.sql,
+    "UPDATE `character` SET `font_size` = ? WHERE `id` = ?"
+);
+assert_eq!(query.values, Values(vec![22u16.into(), 11i32.into()]));
+```
+
+## Basics
 
 ### Iden
 
@@ -320,6 +503,8 @@ through the binary protocol. This is the preferred way as it has less overhead a
 `to_string` builds a SQL statement as string with parameters injected. This is good for testing
 and debugging.
 
+## Query Statement
+
 ### Query Select
 
 ```rust
@@ -419,6 +604,8 @@ assert_eq!(
 );
 ```
 
+## Advanced
+
 ### Aggregate Functions
 
 `max`, `min`, `sum`, `avg`, `count` etc
@@ -492,6 +679,8 @@ assert_eq!(
 );
 ```
 
+## Schema Statement
+
 ### Table Create
 
 ```rust
@@ -503,10 +692,10 @@ let table = Table::create()
     .col(ColumnDef::new(Char::Character).string().not_null())
     .col(ColumnDef::new(Char::SizeW).integer().not_null())
     .col(ColumnDef::new(Char::SizeH).integer().not_null())
-    .col(ColumnDef::new(Char::FontId).integer().default(Value::Int(None)))
+    .col(ColumnDef::new(Char::FontId).integer().default(Expr::val(1)))
     .foreign_key(
         ForeignKey::create()
-            .name("FK_2e303c3a712662f1fc2a4d0aad6")
+            .name("character_fk")
             .from(Char::Table, Char::FontId)
             .to(Font::Table, Font::Id)
             .on_delete(ForeignKeyAction::Cascade)
@@ -523,8 +712,8 @@ assert_eq!(
             r#"`character` varchar(255) NOT NULL,"#,
             r#"`size_w` int NOT NULL,"#,
             r#"`size_h` int NOT NULL,"#,
-            r#"`font_id` int DEFAULT NULL,"#,
-            r#"CONSTRAINT `FK_2e303c3a712662f1fc2a4d0aad6`"#,
+            r#"`font_id` int DEFAULT 1,"#,
+            r#"CONSTRAINT `character_fk`"#,
                 r#"FOREIGN KEY (`font_id`) REFERENCES `font` (`id`)"#,
                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
         r#")"#,
@@ -534,13 +723,13 @@ assert_eq!(
     table.to_string(PostgresQueryBuilder),
     [
         r#"CREATE TABLE IF NOT EXISTS "character" ("#,
-            r#""id" serial NOT NULL PRIMARY KEY,"#,
+            r#""id" integer GENERATED BY DEFAULT AS IDENTITY NOT NULL PRIMARY KEY,"#,
             r#""font_size" integer NOT NULL,"#,
             r#""character" varchar NOT NULL,"#,
             r#""size_w" integer NOT NULL,"#,
             r#""size_h" integer NOT NULL,"#,
-            r#""font_id" integer DEFAULT NULL,"#,
-            r#"CONSTRAINT "FK_2e303c3a712662f1fc2a4d0aad6""#,
+            r#""font_id" integer DEFAULT 1,"#,
+            r#"CONSTRAINT "character_fk""#,
                 r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id")"#,
                 r#"ON DELETE CASCADE ON UPDATE CASCADE"#,
         r#")"#,
@@ -555,7 +744,7 @@ assert_eq!(
            r#""character" varchar NOT NULL,"#,
            r#""size_w" integer NOT NULL,"#,
            r#""size_h" integer NOT NULL,"#,
-           r#""font_id" integer DEFAULT NULL,"#,
+           r#""font_id" integer DEFAULT 1,"#,
            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
        r#")"#,
     ].join(" ")

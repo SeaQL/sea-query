@@ -3,14 +3,14 @@
 use crate::{expr::*, types::*};
 
 #[cfg(feature = "backend-postgres")]
-pub use crate::extension::postgres::{PgFunc, PgFunction};
+pub use crate::extension::postgres::PgFunc;
 
 /// Known SQL functions.
 ///
 /// If something is not supported here, you can use [`Function::Custom`].
 #[derive(Debug, Clone, PartialEq)]
 #[non_exhaustive]
-pub enum Function {
+pub enum Func {
     Max,
     Min,
     Sum,
@@ -32,74 +32,13 @@ pub enum Function {
     Round,
     Md5,
     #[cfg(feature = "backend-postgres")]
-    PgFunction(PgFunction),
+    PgFunction(PgFunc),
 }
 
-/// Function call.
-#[derive(Debug, Clone, PartialEq)]
-pub struct FunctionCall {
-    pub(crate) func: Function,
-    pub(crate) args: Vec<Expr>,
-    pub(crate) mods: Vec<FuncArgMod>,
-}
-
-#[derive(Debug, Default, Copy, Clone, PartialEq)]
-pub struct FuncArgMod {
-    pub distinct: bool,
-}
-
-impl FunctionCall {
-    pub(crate) fn new(func: Function) -> Self {
-        Self {
-            func,
-            args: Vec::new(),
-            mods: Vec::new(),
-        }
-    }
-
-    /// Append an argument to the function call
-    pub fn arg<T>(self, arg: T) -> Self
-    where
-        T: Into<Expr>,
-    {
-        self.arg_with(arg, Default::default())
-    }
-
-    pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
-    where
-        T: Into<Expr>,
-    {
-        self.args.push(arg.into());
-        self.mods.push(mod_);
-        self
-    }
-
-    /// Replace the arguments of the function call
-    pub fn args<I>(mut self, args: I) -> Self
-    where
-        I: IntoIterator<Item = Expr>,
-    {
-        self.args = args.into_iter().collect();
-        self.mods = vec![Default::default(); self.args.len()];
-        self
-    }
-
-    pub fn get_func(&self) -> &Function {
-        &self.func
-    }
-
-    pub fn get_args(&self) -> &[Expr] {
-        &self.args
-    }
-
-    pub fn get_mods(&self) -> &[FuncArgMod] {
-        &self.mods
-    }
-}
-
-/// Function call helper.
-#[derive(Debug, Clone)]
-pub struct Func;
+/// Type alias of [`Func`] for compatibility.
+/// Previously, [`Func`] is a namespace for building [`FunctionCall`].
+#[deprecated(since = "1.0.0", note = "use `Func` instead")]
+pub type Function = Func;
 
 impl Func {
     /// Call a custom function.
@@ -134,7 +73,7 @@ impl Func {
     where
         T: IntoIden,
     {
-        FunctionCall::new(Function::Custom(func.into_iden()))
+        FunctionCall::new(Func::Custom(func.into_iden()))
     }
 
     /// Call `MAX` function.
@@ -166,7 +105,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Max).arg(expr)
+        FunctionCall::new(Func::Max).arg(expr)
     }
 
     /// Call `MIN` function.
@@ -198,7 +137,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Min).arg(expr)
+        FunctionCall::new(Func::Min).arg(expr)
     }
 
     /// Call `SUM` function.
@@ -230,7 +169,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Sum).arg(expr)
+        FunctionCall::new(Func::Sum).arg(expr)
     }
 
     /// Call `AVG` function.
@@ -262,7 +201,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Avg).arg(expr)
+        FunctionCall::new(Func::Avg).arg(expr)
     }
 
     /// Call `ABS` function.
@@ -294,7 +233,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Abs).arg(expr)
+        FunctionCall::new(Func::Abs).arg(expr)
     }
 
     /// Call `COUNT` function.
@@ -326,7 +265,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Count).arg(expr)
+        FunctionCall::new(Func::Count).arg(expr)
     }
 
     /// Call `COUNT` function with the `DISTINCT` modifier.
@@ -358,7 +297,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Count).arg_with(expr, FuncArgMod { distinct: true })
+        FunctionCall::new(Func::Count).arg_with(expr, FuncArgMod { distinct: true })
     }
 
     /// Call `CHAR_LENGTH` function.
@@ -390,7 +329,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::CharLength).arg(expr)
+        FunctionCall::new(Func::CharLength).arg(expr)
     }
 
     /// Call `GREATEST` function.
@@ -425,7 +364,7 @@ impl Func {
     where
         I: IntoIterator<Item = Expr>,
     {
-        FunctionCall::new(Function::Greatest).args(args)
+        FunctionCall::new(Func::Greatest).args(args)
     }
 
     /// Call `LEAST` function.
@@ -460,7 +399,7 @@ impl Func {
     where
         I: IntoIterator<Item = Expr>,
     {
-        FunctionCall::new(Function::Least).args(args)
+        FunctionCall::new(Func::Least).args(args)
     }
 
     /// Call `IF NULL` function.
@@ -496,7 +435,7 @@ impl Func {
         A: Into<Expr>,
         B: Into<Expr>,
     {
-        FunctionCall::new(Function::IfNull).args([a.into(), b.into()])
+        FunctionCall::new(Func::IfNull).args([a.into(), b.into()])
     }
 
     /// Call `CAST` function with a custom type.
@@ -529,13 +468,15 @@ impl Func {
         I: IntoIden,
     {
         let expr: Expr = expr.into();
-        FunctionCall::new(Function::Cast).arg(expr.binary(
+        FunctionCall::new(Func::Cast).arg(expr.binary(
             BinOper::As,
             Expr::cust(iden.into_iden().to_string().as_str()),
         ))
     }
 
     /// Call `CAST` function with a case-sensitive custom type.
+    ///
+    /// Type can be qualified with a schema name.
     ///
     /// # Examples
     ///
@@ -558,15 +499,33 @@ impl Func {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"SELECT CAST('hello' AS "MyType")"#
     /// );
+    ///
+    /// // Also works with a schema-qualified type name:
+    ///
+    /// let query = Query::select()
+    ///     .expr(Func::cast_as_quoted("hello", ("MySchema", "MyType")))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS `MySchema`.`MyType`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MySchema"."MyType")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT CAST('hello' AS "MySchema"."MyType")"#
+    /// );
     /// ```
-    pub fn cast_as_quoted<V, I>(expr: V, iden: I) -> FunctionCall
+    pub fn cast_as_quoted<V, I>(expr: V, r#type: I) -> FunctionCall
     where
         V: Into<Expr>,
-        I: IntoIden,
+        I: Into<TypeRef>,
     {
         let expr: Expr = expr.into();
-        FunctionCall::new(Function::Cast)
-            .arg(expr.binary(BinOper::As, Expr::TypeName(iden.into_iden())))
+        FunctionCall::new(Func::Cast).arg(expr.binary(BinOper::As, Expr::TypeName(r#type.into())))
     }
 
     /// Call `COALESCE` function.
@@ -578,31 +537,36 @@ impl Func {
     ///
     /// let query = Query::select()
     ///     .expr(Func::coalesce([
-    ///         Expr::col(Char::SizeW).into(),
-    ///         Expr::col(Char::SizeH).into(),
-    ///         Expr::val(12).into(),
+    ///         Query::select()
+    ///             .from(Char::Table)
+    ///             .expr(Func::max(Expr::col(Char::SizeW)))
+    ///             .take()
+    ///             .into(),
+    ///         Expr::col(Char::SizeH),
+    ///         Expr::val(12),
     ///     ]))
     ///     .from(Char::Table)
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT COALESCE(`size_w`, `size_h`, 12) FROM `character`"#
+    ///     r#"SELECT COALESCE((SELECT MAX(`size_w`) FROM `character`), `size_h`, 12) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    ///     r#"SELECT COALESCE((SELECT MAX("size_w") FROM "character"), "size_h", 12) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT COALESCE("size_w", "size_h", 12) FROM "character""#
+    ///     r#"SELECT COALESCE((SELECT MAX("size_w") FROM "character"), "size_h", 12) FROM "character""#
     /// );
     /// ```
-    pub fn coalesce<I>(args: I) -> FunctionCall
+    pub fn coalesce<I, T>(args: I) -> FunctionCall
     where
-        I: IntoIterator<Item = Expr>,
+        I: IntoIterator<Item = T>,
+        T: Into<Expr>,
     {
-        FunctionCall::new(Function::Coalesce).args(args)
+        FunctionCall::new(Func::Coalesce).args(args.into_iter().map(Into::into))
     }
 
     /// Call `LOWER` function.
@@ -657,7 +621,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Lower).arg(expr)
+        FunctionCall::new(Func::Lower).arg(expr)
     }
 
     /// Call `UPPER` function.
@@ -689,7 +653,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Upper).arg(expr)
+        FunctionCall::new(Func::Upper).arg(expr)
     }
 
     /// Call `BIT_AND` function, this is not supported on SQLite.
@@ -717,7 +681,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::BitAnd).arg(expr)
+        FunctionCall::new(Func::BitAnd).arg(expr)
     }
 
     /// Call `BIT_OR` function, this is not supported on SQLite.
@@ -745,7 +709,7 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::BitOr).arg(expr)
+        FunctionCall::new(Func::BitOr).arg(expr)
     }
 
     /// Call `ROUND` function.
@@ -774,7 +738,7 @@ impl Func {
     where
         A: Into<Expr>,
     {
-        FunctionCall::new(Function::Round).arg(expr)
+        FunctionCall::new(Func::Round).arg(expr)
     }
 
     /// Call `ROUND` function with the precision.
@@ -809,7 +773,7 @@ impl Func {
         A: Into<Expr>,
         B: Into<Expr>,
     {
-        FunctionCall::new(Function::Round).args([a.into(), b.into()])
+        FunctionCall::new(Func::Round).args([a.into(), b.into()])
     }
 
     /// Call `RANDOM` function.
@@ -829,7 +793,7 @@ impl Func {
     /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT RANDOM()"#);
     /// ```
     pub fn random() -> FunctionCall {
-        FunctionCall::new(Function::Random)
+        FunctionCall::new(Func::Random)
     }
 
     /// Call `MD5` function, this is only available in Postgres and MySQL.
@@ -858,6 +822,68 @@ impl Func {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Function::Md5).arg(expr)
+        FunctionCall::new(Func::Md5).arg(expr)
+    }
+}
+
+/// Function call.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionCall {
+    pub(crate) func: Func,
+    pub(crate) args: Vec<Expr>,
+    pub(crate) mods: Vec<FuncArgMod>,
+}
+
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct FuncArgMod {
+    pub distinct: bool,
+}
+
+impl FunctionCall {
+    pub(crate) fn new(func: Func) -> Self {
+        Self {
+            func,
+            args: Vec::new(),
+            mods: Vec::new(),
+        }
+    }
+
+    /// Append an argument to the function call
+    pub fn arg<T>(self, arg: T) -> Self
+    where
+        T: Into<Expr>,
+    {
+        self.arg_with(arg, Default::default())
+    }
+
+    pub(crate) fn arg_with<T>(mut self, arg: T, mod_: FuncArgMod) -> Self
+    where
+        T: Into<Expr>,
+    {
+        self.args.push(arg.into());
+        self.mods.push(mod_);
+        self
+    }
+
+    /// Replace the arguments of the function call
+    pub fn args<I>(mut self, args: I) -> Self
+    where
+        I: IntoIterator<Item = Expr>,
+    {
+        self.args = args.into_iter().collect();
+        self.mods = vec![Default::default(); self.args.len()];
+        self
+    }
+
+    pub fn get_func(&self) -> &Func {
+        &self.func
+    }
+
+    pub fn get_args(&self) -> &[Expr] {
+        &self.args
+    }
+
+    pub fn get_mods(&self) -> &[FuncArgMod] {
+        &self.mods
     }
 }

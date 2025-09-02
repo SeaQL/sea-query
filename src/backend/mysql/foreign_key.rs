@@ -3,7 +3,10 @@ use super::*;
 impl ForeignKeyBuilder for MysqlQueryBuilder {
     fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
-            TableRef::Table(_) => self.prepare_table_ref_iden(table_ref, sql),
+            // Support only "naked" table names with no schema or alias.
+            TableRef::Table(TableName(None, _), None) => {
+                self.prepare_table_ref_iden(table_ref, sql)
+            }
             _ => panic!("Not supported"),
         }
     }
@@ -15,23 +18,18 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         mode: Mode,
     ) {
         if mode == Mode::Alter {
-            write!(sql, "ALTER TABLE ").unwrap();
+            sql.write_str("ALTER TABLE ").unwrap();
             if let Some(table) = &drop.table {
                 self.prepare_table_ref_fk_stmt(table, sql);
             }
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         }
 
-        write!(sql, "DROP FOREIGN KEY ").unwrap();
+        sql.write_str("DROP FOREIGN KEY ").unwrap();
         if let Some(name) = &drop.foreign_key.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
     }
 
@@ -42,67 +40,61 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
         mode: Mode,
     ) {
         if mode == Mode::Alter {
-            write!(sql, "ALTER TABLE ").unwrap();
+            sql.write_str("ALTER TABLE ").unwrap();
             if let Some(table) = &create.foreign_key.table {
                 self.prepare_table_ref_fk_stmt(table, sql);
             }
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         }
 
         if mode != Mode::Creation {
-            write!(sql, "ADD ").unwrap();
+            sql.write_str("ADD ").unwrap();
         }
 
-        write!(sql, "CONSTRAINT ").unwrap();
+        sql.write_str("CONSTRAINT ").unwrap();
         if let Some(name) = &create.foreign_key.name {
-            write!(
-                sql,
-                "{}{}{}",
-                self.quote().left(),
-                name,
-                self.quote().right()
-            )
-            .unwrap();
+            sql.write_char(self.quote().left()).unwrap();
+            sql.write_str(name).unwrap();
+            sql.write_char(self.quote().right()).unwrap();
         }
-        write!(sql, " FOREIGN KEY ").unwrap();
+        sql.write_str(" FOREIGN KEY (").unwrap();
 
-        write!(sql, "(").unwrap();
-        create.foreign_key.columns.iter().fold(true, |first, col| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
+        let mut fk_cols = create.foreign_key.columns.iter();
+
+        if let Some(col) = fk_cols.next() {
             self.prepare_iden(col, sql);
-            false
-        });
-        write!(sql, ")").unwrap();
+        }
 
-        write!(sql, " REFERENCES ").unwrap();
+        for col in fk_cols {
+            sql.write_str(", ").unwrap();
+            self.prepare_iden(col, sql);
+        }
+
+        sql.write_str(") REFERENCES ").unwrap();
         if let Some(ref_table) = &create.foreign_key.ref_table {
             self.prepare_table_ref_fk_stmt(ref_table, sql);
         }
-        write!(sql, " ").unwrap();
+        sql.write_str(" (").unwrap();
 
-        write!(sql, "(").unwrap();
-        create
-            .foreign_key
-            .ref_columns
-            .iter()
-            .fold(true, |first, col| {
-                if !first {
-                    write!(sql, ", ").unwrap();
-                }
-                self.prepare_iden(col, sql);
-                false
-            });
-        write!(sql, ")").unwrap();
+        let mut fk_ref_cols = create.foreign_key.ref_columns.iter();
+        if let Some(col) = fk_ref_cols.next() {
+            self.prepare_iden(col, sql);
+        }
+
+        for col in fk_ref_cols {
+            sql.write_str(", ").unwrap();
+            self.prepare_iden(col, sql);
+        }
+
+        sql.write_str(")").unwrap();
 
         if let Some(foreign_key_action) = &create.foreign_key.on_delete {
-            write!(sql, " ON DELETE ").unwrap();
+            sql.write_str(" ON DELETE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
         }
 
         if let Some(foreign_key_action) = &create.foreign_key.on_update {
-            write!(sql, " ON UPDATE ").unwrap();
+            sql.write_str(" ON UPDATE ").unwrap();
             self.prepare_foreign_key_action(foreign_key_action, sql);
         }
     }

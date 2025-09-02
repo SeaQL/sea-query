@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{fmt, ops::Deref};
 
 use crate::*;
 
@@ -8,7 +8,7 @@ pub trait QueryBuilder:
     QuotedBuilder + EscapeBuilder + TableRefBuilder + OperLeftAssocDecider + PrecedenceDecider
 {
     /// The type of placeholder the builder uses for values, and whether it is numbered.
-    fn placeholder(&self) -> (&str, bool) {
+    fn placeholder(&self) -> (&'static str, bool) {
         ("?", false)
     }
 
@@ -26,7 +26,8 @@ pub trait QueryBuilder:
         self.prepare_insert(insert.replace, sql);
 
         if let Some(table) = &insert.table {
-            write!(sql, " INTO ").unwrap();
+            sql.write_str(" INTO ").unwrap();
+
             self.prepare_table_ref(table, sql);
         }
 
@@ -35,43 +36,56 @@ pub trait QueryBuilder:
             && insert.source.is_none()
         {
             self.prepare_output(&insert.returning, sql);
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
             let num_rows = insert.default_values.unwrap();
             self.insert_default_values(num_rows, sql);
         } else {
-            write!(sql, " ").unwrap();
-            write!(sql, "(").unwrap();
-            insert.columns.iter().fold(true, |first, col| {
-                if !first {
-                    write!(sql, ", ").unwrap()
+            sql.write_str(" (").unwrap();
+            let mut cols = insert.columns.iter();
+            join_io!(
+                cols,
+                col,
+                join {
+                    sql.write_str(", ").unwrap();
+                },
+                do {
+                    self.prepare_iden(col, sql);
                 }
-                self.prepare_iden(col, sql);
-                false
-            });
-            write!(sql, ")").unwrap();
+            );
+
+            sql.write_str(")").unwrap();
 
             self.prepare_output(&insert.returning, sql);
 
             if let Some(source) = &insert.source {
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
                 match source {
                     InsertValueSource::Values(values) => {
-                        write!(sql, "VALUES ").unwrap();
-                        values.iter().fold(true, |first, row| {
-                            if !first {
-                                write!(sql, ", ").unwrap()
+                        sql.write_str("VALUES ").unwrap();
+                        let mut vals = values.iter();
+                        join_io!(
+                            vals,
+                            row,
+                            join {
+                                sql.write_str(", ").unwrap();
+                            },
+                            do {
+                                sql.write_str("(").unwrap();
+                                let mut cols = row.iter();
+                                join_io!(
+                                    cols,
+                                    col,
+                                    join {
+                                        sql.write_str(", ").unwrap();
+                                    },
+                                    do {
+                                        self.prepare_simple_expr(col, sql);
+                                    }
+                                );
+
+                                sql.write_str(")").unwrap();
                             }
-                            write!(sql, "(").unwrap();
-                            row.iter().fold(true, |first, col| {
-                                if !first {
-                                    write!(sql, ", ").unwrap()
-                                }
-                                self.prepare_simple_expr(col, sql);
-                                false
-                            });
-                            write!(sql, ")").unwrap();
-                            false
-                        });
+                        );
                     }
                     InsertValueSource::Select(select_query) => {
                         self.prepare_select_statement(select_query.deref(), sql);
@@ -92,13 +106,13 @@ pub trait QueryBuilder:
         sql: &mut dyn SqlWriter,
     ) {
         match union_type {
-            UnionType::Intersect => write!(sql, " INTERSECT (").unwrap(),
-            UnionType::Distinct => write!(sql, " UNION (").unwrap(),
-            UnionType::Except => write!(sql, " EXCEPT (").unwrap(),
-            UnionType::All => write!(sql, " UNION ALL (").unwrap(),
+            UnionType::Intersect => sql.write_str(" INTERSECT (").unwrap(),
+            UnionType::Distinct => sql.write_str(" UNION (").unwrap(),
+            UnionType::Except => sql.write_str(" EXCEPT (").unwrap(),
+            UnionType::All => sql.write_str(" UNION ALL (").unwrap(),
         }
         self.prepare_select_statement(select_statement, sql);
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     /// Translate [`SelectStatement`] into SQL statement.
@@ -107,53 +121,65 @@ pub trait QueryBuilder:
             self.prepare_with_clause(with, sql);
         }
 
-        write!(sql, "SELECT ").unwrap();
+        sql.write_str("SELECT ").unwrap();
 
         if let Some(distinct) = &select.distinct {
             self.prepare_select_distinct(distinct, sql);
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         }
 
-        select.selects.iter().fold(true, |first, expr| {
-            if !first {
-                write!(sql, ", ").unwrap()
+        let mut selects = select.selects.iter();
+        join_io!(
+            selects,
+            expr,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_select_expr(expr, sql);
             }
-            self.prepare_select_expr(expr, sql);
-            false
-        });
+        );
 
-        if !select.from.is_empty() {
-            write!(sql, " FROM ").unwrap();
-            select.from.iter().fold(true, |first, table_ref| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
+        let mut from_tables = select.from.iter();
+        join_io!(
+            from_tables,
+            table_ref,
+            first {
+                sql.write_str(" FROM ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_table_ref(table_ref, sql);
-                false
-            });
-            self.prepare_index_hints(select, sql);
-            self.prepare_table_sample(select, sql);
-        }
-
-        if !select.join.is_empty() {
-            for expr in select.join.iter() {
-                write!(sql, " ").unwrap();
-                self.prepare_join_expr(expr, sql);
+            },
+            last {
+                self.prepare_index_hints(select, sql);
+                self.prepare_table_sample(select, sql);
             }
+        );
+
+        for expr in select.join.iter() {
+            sql.write_str(" ").unwrap();
+            self.prepare_join_expr(expr, sql);
         }
 
         self.prepare_condition(&select.r#where, "WHERE", sql);
 
-        if !select.groups.is_empty() {
-            write!(sql, " GROUP BY ").unwrap();
-            select.groups.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
+        let mut groups = select.groups.iter();
+        join_io!(
+            groups,
+            expr,
+            first {
+                sql.write_str(" GROUP BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_simple_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
         self.prepare_condition(&select.having, "HAVING", sql);
 
@@ -163,42 +189,47 @@ pub trait QueryBuilder:
             });
         }
 
-        if !select.orders.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
-            select.orders.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
+        let mut orders = select.orders.iter();
+        join_io!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
         self.prepare_select_limit_offset(select, sql);
 
         if let Some(lock) = &select.lock {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
             self.prepare_select_lock(lock, sql);
         }
 
         if let Some((name, query)) = &select.window {
-            write!(sql, " WINDOW ").unwrap();
+            sql.write_str(" WINDOW ").unwrap();
             self.prepare_iden(name, sql);
-            write!(sql, " AS ").unwrap();
+            sql.write_str(" AS (").unwrap();
             self.prepare_window_statement(query, sql);
+            sql.write_str(")").unwrap();
         }
     }
 
     // Translate the LIMIT and OFFSET expression in [`SelectStatement`]
     fn prepare_select_limit_offset(&self, select: &SelectStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &select.limit {
-            write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            sql.write_str(" LIMIT ").unwrap();
+            self.prepare_value(limit.clone(), sql);
         }
 
         if let Some(offset) = &select.offset {
-            write!(sql, " OFFSET ").unwrap();
-            self.prepare_value(offset, sql);
+            sql.write_str(" OFFSET ").unwrap();
+            self.prepare_value(offset.clone(), sql);
         }
     }
 
@@ -208,7 +239,7 @@ pub trait QueryBuilder:
             self.prepare_with_clause(with, sql);
         }
 
-        write!(sql, "UPDATE ").unwrap();
+        sql.write_str("UPDATE ").unwrap();
 
         if let Some(table) = &update.table {
             self.prepare_table_ref(table, sql);
@@ -216,18 +247,22 @@ pub trait QueryBuilder:
 
         self.prepare_update_join(&update.from, &update.r#where, sql);
 
-        write!(sql, " SET ").unwrap();
+        sql.write_str(" SET ").unwrap();
 
-        update.values.iter().fold(true, |first, row| {
-            if !first {
-                write!(sql, ", ").unwrap()
+        let mut values = update.values.iter();
+        join_io!(
+            values,
+            row,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                let (col, v) = row;
+                self.prepare_update_column(&update.table, &update.from, col, sql);
+                sql.write_str(" = ").unwrap();
+                self.prepare_simple_expr(v, sql);
             }
-            let (col, v) = row;
-            self.prepare_update_column(&update.table, &update.from, col, sql);
-            write!(sql, " = ").unwrap();
-            self.prepare_simple_expr(v, sql);
-            false
-        });
+        );
 
         self.prepare_update_from(&update.from, sql);
 
@@ -247,21 +282,20 @@ pub trait QueryBuilder:
     }
 
     fn prepare_update_from(&self, from: &[TableRef], sql: &mut dyn SqlWriter) {
-        if from.is_empty() {
-            return;
-        }
-
-        write!(sql, " FROM ").unwrap();
-
-        from.iter().fold(true, |first, table_ref| {
-            if !first {
-                write!(sql, ", ").unwrap()
+        let mut from_iter = from.iter();
+        join_io!(
+            from_iter,
+            table_ref,
+            first {
+                sql.write_str(" FROM ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                self.prepare_table_ref(table_ref, sql);
             }
-
-            self.prepare_table_ref(table_ref, sql);
-
-            false
-        });
+        );
     }
 
     fn prepare_update_column(
@@ -285,23 +319,27 @@ pub trait QueryBuilder:
 
     /// Translate ORDER BY expression in [`UpdateStatement`].
     fn prepare_update_order_by(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
-        if !update.orders.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
-            update.orders.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap();
-                }
+        let mut orders = update.orders.iter();
+        join_io!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
     }
 
     /// Translate LIMIT expression in [`UpdateStatement`].
     fn prepare_update_limit(&self, update: &UpdateStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &update.limit {
-            write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            sql.write_str(" LIMIT ").unwrap();
+            self.prepare_value(limit.clone(), sql);
         }
     }
 
@@ -311,10 +349,10 @@ pub trait QueryBuilder:
             self.prepare_with_clause(with, sql);
         }
 
-        write!(sql, "DELETE ").unwrap();
+        sql.write_str("DELETE ").unwrap();
 
         if let Some(table) = &delete.table {
-            write!(sql, "FROM ").unwrap();
+            sql.write_str("FROM ").unwrap();
             self.prepare_table_ref(table, sql);
         }
 
@@ -331,23 +369,27 @@ pub trait QueryBuilder:
 
     /// Translate ORDER BY expression in [`DeleteStatement`].
     fn prepare_delete_order_by(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
-        if !delete.orders.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
-            delete.orders.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap();
-                }
+        let mut orders = delete.orders.iter();
+        join_io!(
+            orders,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
     }
 
     /// Translate LIMIT expression in [`DeleteStatement`].
     fn prepare_delete_limit(&self, delete: &DeleteStatement, sql: &mut dyn SqlWriter) {
         if let Some(limit) = &delete.limit {
-            write!(sql, " LIMIT ").unwrap();
-            self.prepare_value(limit, sql);
+            sql.write_str(" LIMIT ").unwrap();
+            self.prepare_value(limit.clone(), sql);
         }
     }
 
@@ -366,15 +408,15 @@ pub trait QueryBuilder:
             }
             Expr::Unary(op, expr) => {
                 self.prepare_un_oper(op, sql);
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
                 let drop_expr_paren =
                     self.inner_expr_well_known_greater_precedence(expr, &(*op).into());
                 if !drop_expr_paren {
-                    write!(sql, "(").unwrap();
+                    sql.write_str("(").unwrap();
                 }
                 self.prepare_simple_expr(expr, sql);
                 if !drop_expr_paren {
-                    write!(sql, ")").unwrap();
+                    sql.write_str(")").unwrap();
                 }
             }
             Expr::FunctionCall(func) => {
@@ -394,26 +436,30 @@ pub trait QueryBuilder:
                 if let Some(oper) = oper {
                     self.prepare_sub_query_oper(oper, sql);
                 }
-                write!(sql, "(").unwrap();
+                sql.write_str("(").unwrap();
                 self.prepare_query_statement(sel.deref(), sql);
-                write!(sql, ")").unwrap();
+                sql.write_str(")").unwrap();
             }
             Expr::Value(val) => {
-                self.prepare_value(val, sql);
+                self.prepare_value(val.clone(), sql);
             }
             Expr::Values(list) => {
-                write!(sql, "(").unwrap();
-                list.iter().fold(true, |first, val| {
-                    if !first {
-                        write!(sql, ", ").unwrap();
+                sql.write_str("(").unwrap();
+                let mut iter = list.iter();
+                join_io!(
+                    iter,
+                    val,
+                    join {
+                        sql.write_str(", ").unwrap();
+                    },
+                    do {
+                        self.prepare_value(val.clone(), sql);
                     }
-                    self.prepare_value(val, sql);
-                    false
-                });
-                write!(sql, ")").unwrap();
+                );
+                sql.write_str(")").unwrap();
             }
             Expr::Custom(s) => {
-                write!(sql, "{s}").unwrap();
+                sql.write_str(s).unwrap();
             }
             Expr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
@@ -422,8 +468,8 @@ pub trait QueryBuilder:
                 while let Some(token) = tokenizer.next() {
                     match token {
                         Token::Punctuation(mark) if mark == placeholder => match tokenizer.peek() {
-                            Some(Token::Punctuation(mark)) if mark == placeholder => {
-                                write!(sql, "{mark}").unwrap();
+                            Some(Token::Punctuation(next_mark)) if next_mark == &placeholder => {
+                                sql.write_str(next_mark).unwrap();
                                 tokenizer.next();
                             }
                             Some(Token::Unquoted(tok)) if numbered => {
@@ -437,7 +483,7 @@ pub trait QueryBuilder:
                                 count += 1;
                             }
                         },
-                        _ => write!(sql, "{token}").unwrap(),
+                        _ => sql.write_str(token.as_str()).unwrap(),
                     };
                 }
             }
@@ -453,38 +499,38 @@ pub trait QueryBuilder:
             Expr::Constant(val) => {
                 self.prepare_constant(val, sql);
             }
-            Expr::TypeName(iden) => {
-                self.prepare_iden(iden, sql);
+            Expr::TypeName(type_name) => {
+                self.prepare_type_ref(type_name, sql);
             }
         }
     }
 
     /// Translate [`CaseStatement`] into SQL statement.
     fn prepare_case_statement(&self, stmts: &CaseStatement, sql: &mut dyn SqlWriter) {
-        write!(sql, "(CASE").unwrap();
+        sql.write_str("(CASE").unwrap();
 
         let CaseStatement { when, r#else } = stmts;
 
         for case in when.iter() {
-            write!(sql, " WHEN (").unwrap();
+            sql.write_str(" WHEN (").unwrap();
             self.prepare_condition_where(&case.condition, sql);
-            write!(sql, ") THEN ").unwrap();
+            sql.write_str(") THEN ").unwrap();
 
             self.prepare_simple_expr(&case.result, sql);
         }
-        if let Some(r#else) = r#else.clone() {
-            write!(sql, " ELSE ").unwrap();
-            self.prepare_simple_expr(&r#else, sql);
+        if let Some(r#else) = r#else {
+            sql.write_str(" ELSE ").unwrap();
+            self.prepare_simple_expr(r#else, sql);
         }
 
-        write!(sql, " END)").unwrap();
+        sql.write_str(" END)").unwrap();
     }
 
     /// Translate [`SelectDistinct`] into SQL statement.
     fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut dyn SqlWriter) {
         match select_distinct {
-            SelectDistinct::All => write!(sql, "ALL").unwrap(),
-            SelectDistinct::Distinct => write!(sql, "DISTINCT").unwrap(),
+            SelectDistinct::All => sql.write_str("ALL").unwrap(),
+            SelectDistinct::Distinct => sql.write_str("DISTINCT").unwrap(),
             _ => {}
         }
     }
@@ -497,31 +543,33 @@ pub trait QueryBuilder:
 
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "FOR {}",
-            match lock.r#type {
-                LockType::Update => "UPDATE",
-                LockType::NoKeyUpdate => "NO KEY UPDATE",
-                LockType::Share => "SHARE",
-                LockType::KeyShare => "KEY SHARE",
-            }
-        )
+        sql.write_str("FOR ").unwrap();
+        sql.write_str(match lock.r#type {
+            LockType::Update => "UPDATE",
+            LockType::NoKeyUpdate => "NO KEY UPDATE",
+            LockType::Share => "SHARE",
+            LockType::KeyShare => "KEY SHARE",
+        })
         .unwrap();
-        if !lock.tables.is_empty() {
-            write!(sql, " OF ").unwrap();
-            lock.tables.iter().fold(true, |first, table_ref| {
-                if !first {
-                    write!(sql, ", ").unwrap();
-                }
+        let mut tables = lock.tables.iter();
+        join_io!(
+            tables,
+            table_ref,
+            first {
+                sql.write_str(" OF ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_table_ref(table_ref, sql);
-                false
-            });
-        }
+            }
+        );
+
         if let Some(behavior) = lock.behavior {
             match behavior {
-                LockBehavior::Nowait => write!(sql, " NOWAIT").unwrap(),
-                LockBehavior::SkipLocked => write!(sql, " SKIP LOCKED").unwrap(),
+                LockBehavior::Nowait => sql.write_str(" NOWAIT").unwrap(),
+                LockBehavior::SkipLocked => sql.write_str(" SKIP LOCKED").unwrap(),
             }
         }
     }
@@ -531,20 +579,20 @@ pub trait QueryBuilder:
         self.prepare_simple_expr(&select_expr.expr, sql);
         match &select_expr.window {
             Some(WindowSelectType::Name(name)) => {
-                write!(sql, " OVER ").unwrap();
+                sql.write_str(" OVER ").unwrap();
                 self.prepare_iden(name, sql);
             }
             Some(WindowSelectType::Query(window)) => {
-                write!(sql, " OVER ").unwrap();
-                write!(sql, "( ").unwrap();
+                sql.write_str(" OVER ").unwrap();
+                sql.write_str("( ").unwrap();
                 self.prepare_window_statement(window, sql);
-                write!(sql, " )").unwrap();
+                sql.write_str(" )").unwrap();
             }
             None => {}
         };
 
         if let Some(alias) = &select_expr.alias {
-            write!(sql, " AS ").unwrap();
+            sql.write_str(" AS ").unwrap();
             self.prepare_iden(alias, sql);
         };
     }
@@ -552,7 +600,7 @@ pub trait QueryBuilder:
     /// Translate [`JoinExpr`] into SQL statement.
     fn prepare_join_expr(&self, join_expr: &JoinExpr, sql: &mut dyn SqlWriter) {
         self.prepare_join_type(&join_expr.join, sql);
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
         self.prepare_join_table_ref(join_expr, sql);
         if let Some(on) = &join_expr.on {
             self.prepare_join_on(on, sql);
@@ -561,7 +609,7 @@ pub trait QueryBuilder:
 
     fn prepare_join_table_ref(&self, join_expr: &JoinExpr, sql: &mut dyn SqlWriter) {
         if join_expr.lateral {
-            write!(sql, "LATERAL ").unwrap();
+            sql.write_str("LATERAL ").unwrap();
         }
         self.prepare_table_ref(&join_expr.table, sql);
     }
@@ -570,23 +618,23 @@ pub trait QueryBuilder:
     fn prepare_table_ref(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
         match table_ref {
             TableRef::SubQuery(query, alias) => {
-                write!(sql, "(").unwrap();
+                sql.write_str("(").unwrap();
                 self.prepare_select_statement(query, sql);
-                write!(sql, ")").unwrap();
-                write!(sql, " AS ").unwrap();
+                sql.write_str(")").unwrap();
+                sql.write_str(" AS ").unwrap();
                 self.prepare_iden(alias, sql);
             }
             TableRef::ValuesList(values, alias) => {
-                write!(sql, "(").unwrap();
+                sql.write_str("(").unwrap();
                 self.prepare_values_list(values, sql);
-                write!(sql, ")").unwrap();
-                write!(sql, " AS ").unwrap();
+                sql.write_str(")").unwrap();
+                sql.write_str(" AS ").unwrap();
                 self.prepare_iden(alias, sql);
             }
             TableRef::FunctionCall(func, alias) => {
                 self.prepare_function_name(&func.func, sql);
                 self.prepare_function_arguments(func, sql);
-                write!(sql, " AS ").unwrap();
+                sql.write_str(" AS ").unwrap();
                 self.prepare_iden(alias, sql);
             }
             _ => self.prepare_table_ref_iden(table_ref, sql),
@@ -595,78 +643,64 @@ pub trait QueryBuilder:
 
     fn prepare_column_ref(&self, column_ref: &ColumnRef, sql: &mut dyn SqlWriter) {
         match column_ref {
-            ColumnRef::Column(column) => self.prepare_iden(column, sql),
-            ColumnRef::TableColumn(table, column) => {
-                self.prepare_iden(table, sql);
-                write!(sql, ".").unwrap();
+            ColumnRef::Column(ColumnName(table_name, column)) => {
+                if let Some(table_name) = table_name {
+                    self.prepare_table_name(table_name, sql);
+                    sql.write_str(".").unwrap();
+                }
                 self.prepare_iden(column, sql);
             }
-            ColumnRef::SchemaTableColumn(schema, table, column) => {
-                self.prepare_iden(schema, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(table, sql);
-                write!(sql, ".").unwrap();
-                self.prepare_iden(column, sql);
+            ColumnRef::Asterisk(table_name) => {
+                if let Some(table_name) = table_name {
+                    self.prepare_table_name(table_name, sql);
+                    sql.write_str(".").unwrap();
+                }
+                sql.write_str("*").unwrap();
             }
-            ColumnRef::Asterisk => {
-                write!(sql, "*").unwrap();
-            }
-            ColumnRef::TableAsterisk(table) => {
-                self.prepare_iden(table, sql);
-                write!(sql, ".*").unwrap();
-            }
-        };
+        }
     }
 
     /// Translate [`UnOper`] into SQL statement.
     fn prepare_un_oper(&self, un_oper: &UnOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match un_oper {
-                UnOper::Not => "NOT",
-            }
-        )
+        sql.write_str(match un_oper {
+            UnOper::Not => "NOT",
+        })
         .unwrap();
     }
 
     fn prepare_bin_oper_common(&self, bin_oper: &BinOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match bin_oper {
-                BinOper::And => "AND",
-                BinOper::Or => "OR",
-                BinOper::Like => "LIKE",
-                BinOper::NotLike => "NOT LIKE",
-                BinOper::Is => "IS",
-                BinOper::IsNot => "IS NOT",
-                BinOper::In => "IN",
-                BinOper::NotIn => "NOT IN",
-                BinOper::Between => "BETWEEN",
-                BinOper::NotBetween => "NOT BETWEEN",
-                BinOper::Equal => "=",
-                BinOper::NotEqual => "<>",
-                BinOper::SmallerThan => "<",
-                BinOper::GreaterThan => ">",
-                BinOper::SmallerThanOrEqual => "<=",
-                BinOper::GreaterThanOrEqual => ">=",
-                BinOper::Add => "+",
-                BinOper::Sub => "-",
-                BinOper::Mul => "*",
-                BinOper::Div => "/",
-                BinOper::Mod => "%",
-                BinOper::LShift => "<<",
-                BinOper::RShift => ">>",
-                BinOper::As => "AS",
-                BinOper::Escape => "ESCAPE",
-                BinOper::Custom(raw) => raw,
-                BinOper::BitAnd => "&",
-                BinOper::BitOr => "|",
-                #[allow(unreachable_patterns)]
-                _ => unimplemented!(),
-            }
-        )
+        sql.write_str(match bin_oper {
+            BinOper::And => "AND",
+            BinOper::Or => "OR",
+            BinOper::Like => "LIKE",
+            BinOper::NotLike => "NOT LIKE",
+            BinOper::Is => "IS",
+            BinOper::IsNot => "IS NOT",
+            BinOper::In => "IN",
+            BinOper::NotIn => "NOT IN",
+            BinOper::Between => "BETWEEN",
+            BinOper::NotBetween => "NOT BETWEEN",
+            BinOper::Equal => "=",
+            BinOper::NotEqual => "<>",
+            BinOper::SmallerThan => "<",
+            BinOper::GreaterThan => ">",
+            BinOper::SmallerThanOrEqual => "<=",
+            BinOper::GreaterThanOrEqual => ">=",
+            BinOper::Add => "+",
+            BinOper::Sub => "-",
+            BinOper::Mul => "*",
+            BinOper::Div => "/",
+            BinOper::Mod => "%",
+            BinOper::LShift => "<<",
+            BinOper::RShift => ">>",
+            BinOper::As => "AS",
+            BinOper::Escape => "ESCAPE",
+            BinOper::Custom(raw) => raw,
+            BinOper::BitAnd => "&",
+            BinOper::BitOr => "|",
+            #[allow(unreachable_patterns)]
+            _ => unimplemented!(),
+        })
         .unwrap();
     }
 
@@ -677,16 +711,12 @@ pub trait QueryBuilder:
 
     /// Translate [`SubQueryOper`] into SQL statement.
     fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match oper {
-                SubQueryOper::Exists => "EXISTS",
-                SubQueryOper::Any => "ANY",
-                SubQueryOper::Some => "SOME",
-                SubQueryOper::All => "ALL",
-            }
-        )
+        sql.write_str(match oper {
+            SubQueryOper::Exists => "EXISTS",
+            SubQueryOper::Any => "ANY",
+            SubQueryOper::Some => "SOME",
+            SubQueryOper::All => "ALL",
+        })
         .unwrap();
     }
 
@@ -703,7 +733,9 @@ pub trait QueryBuilder:
             LogicalChainOper::Or(simple_expr) => (simple_expr, "OR"),
         };
         if i > 0 {
-            write!(sql, " {oper} ").unwrap();
+            sql.write_str(" ").unwrap();
+            sql.write_str(oper).unwrap();
+            sql.write_str(" ").unwrap();
         }
         let both_binary = match simple_expr {
             Expr::Binary(_, _, right) => {
@@ -713,63 +745,67 @@ pub trait QueryBuilder:
         };
         let need_parentheses = length > 1 && both_binary;
         if need_parentheses {
-            write!(sql, "(").unwrap();
+            sql.write_str("(").unwrap();
         }
         self.prepare_simple_expr(simple_expr, sql);
         if need_parentheses {
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
         }
     }
 
     /// Translate [`Function`] into SQL statement.
-    fn prepare_function_name_common(&self, function: &Function, sql: &mut dyn SqlWriter) {
-        if let Function::Custom(iden) = function {
-            write!(sql, "{iden}").unwrap()
+    fn prepare_function_name_common(&self, function: &Func, sql: &mut dyn SqlWriter) {
+        if let Func::Custom(iden) = function {
+            sql.write_str(&iden.0)
         } else {
-            write!(
-                sql,
-                "{}",
-                match function {
-                    Function::Max => "MAX",
-                    Function::Min => "MIN",
-                    Function::Sum => "SUM",
-                    Function::Avg => "AVG",
-                    Function::Abs => "ABS",
-                    Function::Coalesce => "COALESCE",
-                    Function::Count => "COUNT",
-                    Function::IfNull => self.if_null_function(),
-                    Function::Greatest => self.greatest_function(),
-                    Function::Least => self.least_function(),
-                    Function::CharLength => self.char_length_function(),
-                    Function::Cast => "CAST",
-                    Function::Lower => "LOWER",
-                    Function::Upper => "UPPER",
-                    Function::BitAnd => "BIT_AND",
-                    Function::BitOr => "BIT_OR",
-                    Function::Custom(_) => "",
-                    Function::Random => self.random_function(),
-                    Function::Round => "ROUND",
-                    Function::Md5 => "MD5",
-                    #[cfg(feature = "backend-postgres")]
-                    Function::PgFunction(_) => unimplemented!(),
-                }
-            )
-            .unwrap();
+            sql.write_str(match function {
+                Func::Max => "MAX",
+                Func::Min => "MIN",
+                Func::Sum => "SUM",
+                Func::Avg => "AVG",
+                Func::Abs => "ABS",
+                Func::Coalesce => "COALESCE",
+                Func::Count => "COUNT",
+                Func::IfNull => self.if_null_function(),
+                Func::Greatest => self.greatest_function(),
+                Func::Least => self.least_function(),
+                Func::CharLength => self.char_length_function(),
+                Func::Cast => "CAST",
+                Func::Lower => "LOWER",
+                Func::Upper => "UPPER",
+                Func::BitAnd => "BIT_AND",
+                Func::BitOr => "BIT_OR",
+                Func::Custom(_) => "",
+                Func::Random => self.random_function(),
+                Func::Round => "ROUND",
+                Func::Md5 => "MD5",
+                #[cfg(feature = "backend-postgres")]
+                Func::PgFunction(_) => unimplemented!(),
+            })
         }
+        .unwrap();
     }
 
     fn prepare_function_arguments(&self, func: &FunctionCall, sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
-        for (i, expr) in func.args.iter().enumerate() {
-            if i != 0 {
-                write!(sql, ", ").unwrap();
+        sql.write_str("(").unwrap();
+        let mut args = func.args.iter().zip(func.mods.iter());
+
+        if let Some((arg, modifier)) = args.next() {
+            if modifier.distinct {
+                sql.write_str("DISTINCT ").unwrap();
             }
-            if func.mods[i].distinct {
-                write!(sql, "DISTINCT ").unwrap();
-            }
-            self.prepare_simple_expr(expr, sql);
+            self.prepare_simple_expr(arg, sql);
         }
-        write!(sql, ")").unwrap();
+
+        for (arg, modifier) in args {
+            sql.write_str(", ").unwrap();
+            if modifier.distinct {
+                sql.write_str("DISTINCT ").unwrap();
+            }
+            self.prepare_simple_expr(arg, sql);
+        }
+
+        sql.write_str(")").unwrap();
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
@@ -795,34 +831,32 @@ pub trait QueryBuilder:
     ) {
         if with_clause.recursive {
             if let Some(search) = &with_clause.search {
-                write!(
-                    sql,
-                    "SEARCH {} FIRST BY ",
-                    match &search.order.as_ref().unwrap() {
-                        SearchOrder::BREADTH => "BREADTH",
-                        SearchOrder::DEPTH => "DEPTH",
-                    }
-                )
+                sql.write_str("SEARCH ").unwrap();
+                sql.write_str(match &search.order.as_ref().unwrap() {
+                    SearchOrder::BREADTH => "BREADTH",
+                    SearchOrder::DEPTH => "DEPTH",
+                })
                 .unwrap();
+                sql.write_str(" FIRST BY ").unwrap();
 
                 self.prepare_simple_expr(&search.expr.as_ref().unwrap().expr, sql);
 
-                write!(sql, " SET ").unwrap();
+                sql.write_str(" SET ").unwrap();
 
                 self.prepare_iden(search.expr.as_ref().unwrap().alias.as_ref().unwrap(), sql);
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
             }
             if let Some(cycle) = &with_clause.cycle {
-                write!(sql, "CYCLE ").unwrap();
+                sql.write_str("CYCLE ").unwrap();
 
                 self.prepare_simple_expr(cycle.expr.as_ref().unwrap(), sql);
 
-                write!(sql, " SET ").unwrap();
+                sql.write_str(" SET ").unwrap();
 
                 self.prepare_iden(cycle.set_as.as_ref().unwrap(), sql);
-                write!(sql, " USING ").unwrap();
+                sql.write_str(" USING ").unwrap();
                 self.prepare_iden(cycle.using.as_ref().unwrap(), sql);
-                write!(sql, " ").unwrap();
+                sql.write_str(" ").unwrap();
             }
         }
     }
@@ -837,7 +871,7 @@ pub trait QueryBuilder:
 
         for cte in &with_clause.cte_expressions {
             if !cte_first {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             cte_first = false;
 
@@ -853,31 +887,31 @@ pub trait QueryBuilder:
         self.prepare_iden(cte.table_name.as_ref().unwrap(), sql);
 
         if cte.cols.is_empty() {
-            write!(sql, " ").unwrap();
+            sql.write_str(" ").unwrap();
         } else {
-            write!(sql, " (").unwrap();
+            sql.write_str(" (").unwrap();
 
             let mut col_first = true;
             for col in &cte.cols {
                 if !col_first {
-                    write!(sql, ", ").unwrap();
+                    sql.write_str(", ").unwrap();
                 }
                 col_first = false;
                 self.prepare_iden(col, sql);
             }
 
-            write!(sql, ") ").unwrap();
+            sql.write_str(") ").unwrap();
         }
 
-        write!(sql, "AS ").unwrap();
+        sql.write_str("AS ").unwrap();
 
         self.prepare_with_query_clause_materialization(cte, sql);
 
-        write!(sql, "(").unwrap();
+        sql.write_str("(").unwrap();
 
         self.prepare_query_statement(cte.query.as_ref().unwrap().deref(), sql);
 
-        write!(sql, ") ").unwrap();
+        sql.write_str(") ").unwrap();
     }
 
     fn prepare_with_query_clause_materialization(
@@ -886,33 +920,43 @@ pub trait QueryBuilder:
         sql: &mut dyn SqlWriter,
     ) {
         if let Some(materialized) = cte.materialized {
-            write!(
-                sql,
-                "{} MATERIALIZED ",
-                if materialized { "" } else { "NOT" }
-            )
+            if !materialized {
+                sql.write_str("NOT MATERIALIZED ")
+            } else {
+                sql.write_str(" MATERIALIZED ")
+            }
             .unwrap()
         }
     }
 
     fn prepare_with_clause_start(&self, with_clause: &WithClause, sql: &mut dyn SqlWriter) {
-        write!(sql, "WITH ").unwrap();
+        sql.write_str("WITH ").unwrap();
 
         if with_clause.recursive {
-            write!(sql, "RECURSIVE ").unwrap();
+            sql.write_str("RECURSIVE ").unwrap();
         }
     }
 
     fn prepare_insert(&self, replace: bool, sql: &mut dyn SqlWriter) {
         if replace {
-            write!(sql, "REPLACE").unwrap();
+            sql.write_str("REPLACE").unwrap();
         } else {
-            write!(sql, "INSERT").unwrap();
+            sql.write_str("INSERT").unwrap();
         }
     }
 
-    fn prepare_function_name(&self, function: &Function, sql: &mut dyn SqlWriter) {
+    fn prepare_function_name(&self, function: &Func, sql: &mut dyn SqlWriter) {
         self.prepare_function_name_common(function, sql)
+    }
+
+    /// Translate [`TypeRef`] into an SQL statement.
+    fn prepare_type_ref(&self, type_name: &TypeRef, sql: &mut dyn SqlWriter) {
+        let TypeRef(schema_name, r#type) = type_name;
+        if let Some(schema_name) = schema_name {
+            self.prepare_schema_name(schema_name, sql);
+            write!(sql, ".").unwrap();
+        }
+        self.prepare_iden(r#type, sql);
     }
 
     /// Translate [`JoinType`] into SQL statement.
@@ -921,18 +965,15 @@ pub trait QueryBuilder:
     }
 
     fn prepare_join_type_common(&self, join_type: &JoinType, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}",
-            match join_type {
-                JoinType::Join => "JOIN",
-                JoinType::CrossJoin => "CROSS JOIN",
-                JoinType::InnerJoin => "INNER JOIN",
-                JoinType::LeftJoin => "LEFT JOIN",
-                JoinType::RightJoin => "RIGHT JOIN",
-                JoinType::FullOuterJoin => "FULL OUTER JOIN",
-            }
-        )
+        sql.write_str(match join_type {
+            JoinType::Join => "JOIN",
+            JoinType::CrossJoin => "CROSS JOIN",
+            JoinType::InnerJoin => "INNER JOIN",
+            JoinType::LeftJoin => "LEFT JOIN",
+            JoinType::RightJoin => "RIGHT JOIN",
+            JoinType::FullOuterJoin => "FULL OUTER JOIN",
+            JoinType::StraightJoin => "STRAIGHT_JOIN",
+        })
         .unwrap()
     }
 
@@ -955,8 +996,8 @@ pub trait QueryBuilder:
     /// Translate [`Order`] into SQL statement.
     fn prepare_order(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         match &order_expr.order {
-            Order::Asc => write!(sql, " ASC").unwrap(),
-            Order::Desc => write!(sql, " DESC").unwrap(),
+            Order::Asc => sql.write_str(" ASC").unwrap(),
+            Order::Desc => sql.write_str(" DESC").unwrap(),
             Order::Field(values) => self.prepare_field_order(order_expr, values, sql),
         }
     }
@@ -968,71 +1009,84 @@ pub trait QueryBuilder:
         values: &Values,
         sql: &mut dyn SqlWriter,
     ) {
-        write!(sql, "CASE ").unwrap();
+        sql.write_str("CASE ").unwrap();
         let mut i = 0;
         for value in &values.0 {
-            write!(sql, "WHEN ").unwrap();
+            sql.write_str("WHEN ").unwrap();
             self.prepare_simple_expr(&order_expr.expr, sql);
-            write!(sql, "=").unwrap();
-            let value = self.value_to_string(value);
-            write!(sql, "{value}").unwrap();
-            write!(sql, " THEN {i} ").unwrap();
+            sql.write_str("=").unwrap();
+            self.write_value(sql.as_writer(), value).unwrap();
+            sql.write_str(" THEN ").unwrap();
+            write!(sql, "{i}").unwrap();
+            sql.write_str(" ").unwrap();
             i += 1;
         }
-        write!(sql, "ELSE {i} END").unwrap();
+
+        sql.write_str("ELSE ").unwrap();
+        write!(sql, "{i}").unwrap();
+        sql.write_str(" END").unwrap();
     }
 
     /// Write [`Value`] into SQL statement as parameter.
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter);
 
     /// Write [`Value`] inline.
     fn prepare_constant(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        let string = self.value_to_string(value);
-        write!(sql, "{string}").unwrap();
+        self.write_value(sql.as_writer(), value).unwrap();
     }
 
     /// Translate a `&[ValueTuple]` into a VALUES list.
     fn prepare_values_list(&self, value_tuples: &[ValueTuple], sql: &mut dyn SqlWriter) {
-        write!(sql, "VALUES ").unwrap();
-        value_tuples.iter().fold(true, |first, value_tuple| {
-            if !first {
-                write!(sql, ", ").unwrap();
-            }
-            write!(sql, "{}", self.values_list_tuple_prefix()).unwrap();
-            write!(sql, "(").unwrap();
-            value_tuple.clone().into_iter().fold(true, |first, value| {
-                if !first {
-                    write!(sql, ", ").unwrap();
-                }
-                self.prepare_value(&value, sql);
-                false
-            });
+        sql.write_str("VALUES ").unwrap();
+        let mut tuples = value_tuples.iter();
+        join_io!(
+            tuples,
+            value_tuple,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                sql.write_str(self.values_list_tuple_prefix()).unwrap();
+                sql.write_str("(").unwrap();
 
-            write!(sql, ")").unwrap();
-            false
-        });
+                let mut values = value_tuple.clone().into_iter();
+                join_io!(
+                    values,
+                    value,
+                    join {
+                        sql.write_str(", ").unwrap();
+                    },
+                    do {
+                        self.prepare_value(value, sql);
+                    }
+                );
+
+                sql.write_str(")").unwrap();
+            }
+        );
     }
 
     /// Translate [`Expr::Tuple`] into SQL statement.
     fn prepare_tuple(&self, exprs: &[Expr], sql: &mut dyn SqlWriter) {
-        write!(sql, "(").unwrap();
+        sql.write_str("(").unwrap();
         for (i, expr) in exprs.iter().enumerate() {
             if i != 0 {
-                write!(sql, ", ").unwrap();
+                sql.write_str(", ").unwrap();
             }
             self.prepare_simple_expr(expr, sql);
         }
-        write!(sql, ")").unwrap();
+        sql.write_str(")").unwrap();
     }
 
     /// Translate [`Keyword`] into SQL statement.
     fn prepare_keyword(&self, keyword: &Keyword, sql: &mut dyn SqlWriter) {
         match keyword {
-            Keyword::Null => write!(sql, "NULL").unwrap(),
-            Keyword::CurrentDate => write!(sql, "CURRENT_DATE").unwrap(),
-            Keyword::CurrentTime => write!(sql, "CURRENT_TIME").unwrap(),
-            Keyword::CurrentTimestamp => write!(sql, "CURRENT_TIMESTAMP").unwrap(),
-            Keyword::Custom(iden) => write!(sql, "{iden}").unwrap(),
+            Keyword::Null => sql.write_str("NULL").unwrap(),
+            Keyword::CurrentDate => sql.write_str("CURRENT_DATE").unwrap(),
+            Keyword::CurrentTime => sql.write_str("CURRENT_TIME").unwrap(),
+            Keyword::CurrentTimestamp => sql.write_str("CURRENT_TIMESTAMP").unwrap(),
+            Keyword::Default => sql.write_str("DEFAULT").unwrap(),
+            Keyword::Custom(iden) => sql.write_str(&iden.0).unwrap(),
         }
     }
 
@@ -1043,7 +1097,13 @@ pub trait QueryBuilder:
 
     fn value_to_string_common(&self, v: &Value) -> String {
         let mut s = String::new();
-        match v {
+        self.write_value(&mut s, v).unwrap();
+        s
+    }
+
+    #[doc(hidden)]
+    fn write_value(&self, buf: &mut dyn Write, value: &Value) -> fmt::Result {
+        match value {
             Value::Bool(None)
             | Value::TinyInt(None)
             | Value::SmallInt(None)
@@ -1057,139 +1117,228 @@ pub trait QueryBuilder:
             | Value::Double(None)
             | Value::String(None)
             | Value::Char(None)
-            | Value::Bytes(None) => write!(s, "NULL").unwrap(),
+            | Value::Bytes(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-json")]
-            Value::Json(None) => write!(s, "NULL").unwrap(),
+            Value::Json(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTime(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeUtc(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeUtc(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeLocal(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeLocal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            Value::ChronoDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDate(None) => write!(s, "NULL").unwrap(),
+            Value::TimeDate(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeTime(None) => write!(s, "NULL").unwrap(),
+            Value::TimeTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(None) => write!(s, "NULL").unwrap(),
+            Value::TimeDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(None) => write!(s, "NULL").unwrap(),
+            Value::TimeDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDate(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTime(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDateTime(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTimestamp(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-jiff")]
+            Value::JiffZoned(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(None) => write!(s, "NULL").unwrap(),
+            Value::Decimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(None) => write!(s, "NULL").unwrap(),
+            Value::BigDecimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(None) => write!(s, "NULL").unwrap(),
+            Value::Uuid(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(None) => write!(s, "NULL").unwrap(),
+            Value::IpNetwork(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(None) => write!(s, "NULL").unwrap(),
+            Value::MacAddress(None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, None) => write!(s, "NULL").unwrap(),
+            Value::Array(_, None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-vector")]
-            Value::Vector(None) => write!(s, "NULL").unwrap(),
-            Value::Bool(Some(b)) => write!(s, "{}", if *b { "TRUE" } else { "FALSE" }).unwrap(),
-            Value::TinyInt(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::SmallInt(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Int(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::BigInt(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::TinyUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::SmallUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Unsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::BigUnsigned(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Float(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::Double(Some(v)) => write!(s, "{v}").unwrap(),
-            Value::String(Some(v)) => self.write_string_quoted(v, &mut s),
+            Value::Vector(None) => buf.write_str("NULL")?,
+            Value::Bool(Some(b)) => buf.write_str(if *b { "TRUE" } else { "FALSE" })?,
+            Value::TinyInt(Some(v)) => write!(buf, "{v}")?,
+            Value::SmallInt(Some(v)) => write!(buf, "{v}")?,
+            Value::Int(Some(v)) => write!(buf, "{v}")?,
+            Value::BigInt(Some(v)) => write!(buf, "{v}")?,
+            Value::TinyUnsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::SmallUnsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::Unsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::BigUnsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::Float(Some(v)) => write!(buf, "{v}")?,
+            Value::Double(Some(v)) => write!(buf, "{v}")?,
+            Value::String(Some(v)) => self.write_string_quoted(v, buf),
             Value::Char(Some(v)) => {
-                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), &mut s)
+                self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
             }
-            Value::Bytes(Some(v)) => self.write_bytes(v, &mut s),
+            Value::Bytes(Some(v)) => self.write_bytes(v, buf),
             #[cfg(feature = "with-json")]
-            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), &mut s),
+            Value::Json(Some(v)) => self.write_string_quoted(&v.to_string(), buf),
             #[cfg(feature = "with-chrono")]
-            Value::ChronoDate(Some(v)) => write!(s, "'{}'", v.format("%Y-%m-%d")).unwrap(),
+            Value::ChronoDate(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{}", v.format("%Y-%m-%d"))?;
+                buf.write_str("'")?;
+            }
             #[cfg(feature = "with-chrono")]
-            Value::ChronoTime(Some(v)) => write!(s, "'{}'", v.format("%H:%M:%S")).unwrap(),
+            Value::ChronoTime(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{}", v.format("%H:%M:%S%.6f"))?;
+                buf.write_str("'")?;
+            }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S")).unwrap()
+                buf.write_str("'")?;
+                write!(buf, "{}", v.format("%Y-%m-%d %H:%M:%S%.6f"))?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                buf.write_str("'")?;
+                write!(buf, "{}", v.format("%Y-%m-%d %H:%M:%S%.6f %:z"))?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeLocal(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                buf.write_str("'")?;
+                write!(buf, "{}", v.format("%Y-%m-%d %H:%M:%S%.6f %:z"))?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(Some(v)) => {
-                write!(s, "'{}'", v.format("%Y-%m-%d %H:%M:%S %:z")).unwrap()
+                buf.write_str("'")?;
+                write!(buf, "{}", v.format("%Y-%m-%d %H:%M:%S%.6f %:z"))?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDate(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATE).unwrap()).unwrap()
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_DATE).unwrap())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_TIME).unwrap()).unwrap()
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_TIME).unwrap())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(Some(v)) => {
-                write!(s, "'{}'", v.format(time_format::FORMAT_DATETIME).unwrap()).unwrap()
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_DATETIME).unwrap())?;
+                buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDateTimeWithTimeZone(Some(v)) => write!(
-                s,
-                "'{}'",
-                v.format(time_format::FORMAT_DATETIME_TZ).unwrap()
-            )
-            .unwrap(),
+            Value::TimeDateTimeWithTimeZone(Some(v)) => {
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_DATETIME_TZ).unwrap())?;
+                buf.write_str("'")?;
+            }
+            // Jiff date and time dosen't need format string
+            // The default behavior is what we want
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDate(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTime(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
+            // Both JiffDateTime and JiffTimestamp map to timestamp
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDateTime(Some(v)) => {
+                use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
+                buf.write_str("'")?;
+                write!(buf, "{}", v.strftime(JIFF_DATE_TIME_FMT_STR))?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTimestamp(Some(v)) => {
+                use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
+                buf.write_str("'")?;
+                write!(buf, "{}", v.strftime(JIFF_TIMESTAMP_FMT_STR))?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-jiff")]
+            // Zoned map to timestamp with timezone
+            Value::JiffZoned(Some(v)) => {
+                use crate::with_jiff::JIFF_ZONE_FMT_STR;
+                buf.write_str("'")?;
+                write!(buf, "{}", v.strftime(JIFF_ZONE_FMT_STR))?;
+                buf.write_str("'")?;
+            }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::Decimal(Some(v)) => write!(buf, "{v}")?,
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(Some(v)) => write!(s, "{v}").unwrap(),
+            Value::BigDecimal(Some(v)) => write!(buf, "{v}")?,
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::Uuid(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
             #[cfg(feature = "postgres-array")]
             Value::Array(_, Some(v)) => {
                 if v.is_empty() {
-                    write!(s, "'{{}}'").unwrap()
+                    buf.write_str("'{}'")?;
                 } else {
-                    write!(
-                        s,
-                        "ARRAY [{}]",
-                        v.iter()
-                            .map(|element| self.value_to_string(element))
-                            .collect::<Vec<String>>()
-                            .join(",")
-                    )
-                    .unwrap()
+                    buf.write_str("ARRAY [")?;
+
+                    let mut viter = v.iter();
+
+                    if let Some(element) = viter.next() {
+                        self.write_value(buf, element)?;
+                    }
+
+                    for element in viter {
+                        buf.write_str(",")?;
+                        self.write_value(buf, element)?;
+                    }
+                    buf.write_str("]")?;
                 }
             }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => {
-                write!(s, "'[").unwrap();
-                for (i, &element) in v.as_slice().iter().enumerate() {
-                    if i != 0 {
-                        write!(s, ",").unwrap();
-                    }
-                    write!(s, "{element}").unwrap();
+                buf.write_str("'[")?;
+                let mut viter = v.as_slice().iter();
+
+                if let Some(element) = viter.next() {
+                    write!(buf, "{element}")?;
                 }
-                write!(s, "]'").unwrap();
+
+                for element in viter {
+                    buf.write_str(",")?;
+                    write!(buf, "{element}")?;
+                }
+                buf.write_str("]'")?;
             }
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::IpNetwork(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(Some(v)) => write!(s, "'{v}'").unwrap(),
+            Value::MacAddress(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
         };
-        s
+
+        Ok(())
     }
 
     #[doc(hidden)]
@@ -1211,27 +1360,30 @@ pub trait QueryBuilder:
         on_conflict_targets: &[OnConflictTarget],
         sql: &mut dyn SqlWriter,
     ) {
-        if on_conflict_targets.is_empty() {
-            return;
-        }
-
-        write!(sql, "(").unwrap();
-        on_conflict_targets.iter().fold(true, |first, target| {
-            if !first {
-                write!(sql, ", ").unwrap()
-            }
-            match target {
-                OnConflictTarget::ConflictColumn(col) => {
-                    self.prepare_iden(col, sql);
+        let mut targets = on_conflict_targets.iter();
+        join_io!(
+            targets,
+            target,
+            first {
+                sql.write_str("(").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                match target {
+                    OnConflictTarget::ConflictColumn(col) => {
+                        self.prepare_iden(col, sql);
+                    }
+                    OnConflictTarget::ConflictExpr(expr) => {
+                        self.prepare_simple_expr(expr, sql);
+                    }
                 }
-
-                OnConflictTarget::ConflictExpr(expr) => {
-                    self.prepare_simple_expr(expr, sql);
-                }
+            },
+            last {
+                sql.write_str(")").unwrap();
             }
-            false
-        });
-        write!(sql, ")").unwrap();
+        );
     }
 
     #[doc(hidden)]
@@ -1252,28 +1404,32 @@ pub trait QueryBuilder:
         if let Some(action) = on_conflict_action {
             match action {
                 OnConflictAction::DoNothing(_) => {
-                    write!(sql, " DO NOTHING").unwrap();
+                    sql.write_str(" DO NOTHING").unwrap();
                 }
                 OnConflictAction::Update(update_strats) => {
                     self.prepare_on_conflict_do_update_keywords(sql);
-                    update_strats.iter().fold(true, |first, update_strat| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
-                        }
-                        match update_strat {
-                            OnConflictUpdate::Column(col) => {
-                                self.prepare_iden(col, sql);
-                                write!(sql, " = ").unwrap();
-                                self.prepare_on_conflict_excluded_table(col, sql);
+                    let mut update_strats_iter = update_strats.iter();
+                    join_io!(
+                        update_strats_iter,
+                        update_strat,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            match update_strat {
+                                OnConflictUpdate::Column(col) => {
+                                    self.prepare_iden(col, sql);
+                                    sql.write_str(" = ").unwrap();
+                                    self.prepare_on_conflict_excluded_table(col, sql);
+                                }
+                                OnConflictUpdate::Expr(col, expr) => {
+                                    self.prepare_iden(col, sql);
+                                    sql.write_str(" = ").unwrap();
+                                    self.prepare_simple_expr(expr, sql);
+                                }
                             }
-                            OnConflictUpdate::Expr(col, expr) => {
-                                self.prepare_iden(col, sql);
-                                write!(sql, " = ").unwrap();
-                                self.prepare_simple_expr(expr, sql);
-                            }
                         }
-                        false
-                    });
+                    );
                 }
             }
         }
@@ -1282,26 +1438,22 @@ pub trait QueryBuilder:
     #[doc(hidden)]
     /// Write ON CONFLICT keywords
     fn prepare_on_conflict_keywords(&self, sql: &mut dyn SqlWriter) {
-        write!(sql, " ON CONFLICT ").unwrap();
+        sql.write_str(" ON CONFLICT ").unwrap();
     }
 
     #[doc(hidden)]
     /// Write ON CONFLICT keywords
     fn prepare_on_conflict_do_update_keywords(&self, sql: &mut dyn SqlWriter) {
-        write!(sql, " DO UPDATE SET ").unwrap();
+        sql.write_str(" DO UPDATE SET ").unwrap();
     }
 
     #[doc(hidden)]
     /// Write ON CONFLICT update action by retrieving value from the excluded table
     fn prepare_on_conflict_excluded_table(&self, col: &DynIden, sql: &mut dyn SqlWriter) {
-        write!(
-            sql,
-            "{}excluded{}",
-            self.quote().left(),
-            self.quote().right()
-        )
-        .unwrap();
-        write!(sql, ".").unwrap();
+        sql.write_char(self.quote().left()).unwrap();
+        sql.write_str("excluded").unwrap();
+        sql.write_char(self.quote().right()).unwrap();
+        sql.write_str(".").unwrap();
         self.prepare_iden(col, sql);
     }
 
@@ -1323,26 +1475,34 @@ pub trait QueryBuilder:
     /// Hook to insert "RETURNING" statements.
     fn prepare_returning(&self, returning: &Option<ReturningClause>, sql: &mut dyn SqlWriter) {
         if let Some(returning) = returning {
-            write!(sql, " RETURNING ").unwrap();
+            sql.write_str(" RETURNING ").unwrap();
             match &returning {
-                ReturningClause::All => write!(sql, "*").unwrap(),
+                ReturningClause::All => sql.write_str("*").unwrap(),
                 ReturningClause::Columns(cols) => {
-                    cols.iter().fold(true, |first, column_ref| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
+                    let mut cols_iter = cols.iter();
+                    join_io!(
+                        cols_iter,
+                        column_ref,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            self.prepare_column_ref(column_ref, sql);
                         }
-                        self.prepare_column_ref(column_ref, sql);
-                        false
-                    });
+                    );
                 }
                 ReturningClause::Exprs(exprs) => {
-                    exprs.iter().fold(true, |first, expr| {
-                        if !first {
-                            write!(sql, ", ").unwrap()
+                    let mut exprs_iter = exprs.iter();
+                    join_io!(
+                        exprs_iter,
+                        expr,
+                        join {
+                            sql.write_str(", ").unwrap();
+                        },
+                        do {
+                            self.prepare_simple_expr(expr, sql);
                         }
-                        self.prepare_simple_expr(expr, sql);
-                        false
-                    });
+                    );
                 }
             }
         }
@@ -1359,13 +1519,17 @@ pub trait QueryBuilder:
         match &condition.contents {
             ConditionHolderContents::Empty => (),
             ConditionHolderContents::Chain(conditions) => {
-                write!(sql, " {keyword} ").unwrap();
+                sql.write_str(" ").unwrap();
+                sql.write_str(keyword).unwrap();
+                sql.write_str(" ").unwrap();
                 for (i, log_chain_oper) in conditions.iter().enumerate() {
                     self.prepare_logical_chain_oper(log_chain_oper, i, conditions.len(), sql);
                 }
             }
             ConditionHolderContents::Condition(c) => {
-                write!(sql, " {keyword} ").unwrap();
+                sql.write_str(" ").unwrap();
+                sql.write_str(keyword).unwrap();
+                sql.write_str(" ").unwrap();
                 self.prepare_condition_where(c, sql);
             }
         }
@@ -1382,54 +1546,62 @@ pub trait QueryBuilder:
     /// Translate [`Frame`] into SQL statement.
     fn prepare_frame(&self, frame: &Frame, sql: &mut dyn SqlWriter) {
         match *frame {
-            Frame::UnboundedPreceding => write!(sql, "UNBOUNDED PRECEDING").unwrap(),
+            Frame::UnboundedPreceding => sql.write_str("UNBOUNDED PRECEDING").unwrap(),
             Frame::Preceding(v) => {
-                self.prepare_value(&v.into(), sql);
-                write!(sql, "PRECEDING").unwrap();
+                self.prepare_value(v.into(), sql);
+                sql.write_str("PRECEDING").unwrap();
             }
-            Frame::CurrentRow => write!(sql, "CURRENT ROW").unwrap(),
+            Frame::CurrentRow => sql.write_str("CURRENT ROW").unwrap(),
             Frame::Following(v) => {
-                self.prepare_value(&v.into(), sql);
-                write!(sql, "FOLLOWING").unwrap();
+                self.prepare_value(v.into(), sql);
+                sql.write_str("FOLLOWING").unwrap();
             }
-            Frame::UnboundedFollowing => write!(sql, "UNBOUNDED FOLLOWING").unwrap(),
+            Frame::UnboundedFollowing => sql.write_str("UNBOUNDED FOLLOWING").unwrap(),
         }
     }
 
     #[doc(hidden)]
     /// Translate [`WindowStatement`] into SQL statement.
     fn prepare_window_statement(&self, window: &WindowStatement, sql: &mut dyn SqlWriter) {
-        if !window.partition_by.is_empty() {
-            write!(sql, "PARTITION BY ").unwrap();
-            window.partition_by.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
+        let mut partition_iter = window.partition_by.iter();
+        join_io!(
+            partition_iter,
+            expr,
+            first {
+                sql.write_str("PARTITION BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_simple_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
-        if !window.order_by.is_empty() {
-            write!(sql, " ORDER BY ").unwrap();
-            window.order_by.iter().fold(true, |first, expr| {
-                if !first {
-                    write!(sql, ", ").unwrap()
-                }
+        let mut order_iter = window.order_by.iter();
+        join_io!(
+            order_iter,
+            expr,
+            first {
+                sql.write_str(" ORDER BY ").unwrap();
+            },
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
                 self.prepare_order_expr(expr, sql);
-                false
-            });
-        }
+            }
+        );
 
         if let Some(frame) = &window.frame {
             match frame.r#type {
-                FrameType::Range => write!(sql, " RANGE ").unwrap(),
-                FrameType::Rows => write!(sql, " ROWS ").unwrap(),
+                FrameType::Range => sql.write_str(" RANGE ").unwrap(),
+                FrameType::Rows => sql.write_str(" ROWS ").unwrap(),
             };
             if let Some(end) = &frame.end {
-                write!(sql, "BETWEEN ").unwrap();
+                sql.write_str("BETWEEN ").unwrap();
                 self.prepare_frame(&frame.start, sql);
-                write!(sql, " AND ").unwrap();
+                sql.write_str(" AND ").unwrap();
                 self.prepare_frame(end, sql);
             } else {
                 self.prepare_frame(&frame.start, sql);
@@ -1451,16 +1623,16 @@ pub trait QueryBuilder:
 
         let left_paren = !drop_left_higher_precedence && !drop_left_assoc;
         if left_paren {
-            write!(sql, "(").unwrap();
+            sql.write_str("(").unwrap();
         }
         self.prepare_simple_expr(left, sql);
         if left_paren {
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
         }
 
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
         self.prepare_bin_oper(op, sql);
-        write!(sql, " ").unwrap();
+        sql.write_str(" ").unwrap();
 
         // If right has higher precedence than op, we can drop parentheses around right
         let drop_right_higher_precedence =
@@ -1485,28 +1657,28 @@ pub trait QueryBuilder:
             && !drop_right_between_hack
             && !drop_right_as_hack;
         if right_paren {
-            write!(sql, "(").unwrap();
+            sql.write_str("(").unwrap();
         }
         self.prepare_simple_expr(right, sql);
         if right_paren {
-            write!(sql, ")").unwrap();
+            sql.write_str(")").unwrap();
         }
     }
 
-    #[doc(hidden)]
-    /// Write a string surrounded by escaped quotes.
-    fn write_string_quoted(&self, string: &str, buffer: &mut String) {
-        write!(buffer, "'{}'", self.escape_string(string)).unwrap()
+    fn write_string_quoted(&self, string: &str, buffer: &mut dyn Write) {
+        buffer.write_str("'").unwrap();
+        self.write_escaped(buffer, string);
+        buffer.write_str("'").unwrap();
     }
 
     #[doc(hidden)]
     /// Write bytes enclosed with engine specific byte syntax
-    fn write_bytes(&self, bytes: &[u8], buffer: &mut String) {
-        write!(buffer, "x'").unwrap();
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut dyn Write) {
+        buffer.write_str("x'").unwrap();
         for b in bytes {
-            write!(buffer, "{b:02X}").unwrap();
+            write!(buffer, "{b:02X}").unwrap()
         }
-        write!(buffer, "'").unwrap();
+        buffer.write_str("'").unwrap();
     }
 
     #[doc(hidden)]
@@ -1547,14 +1719,15 @@ pub trait QueryBuilder:
 
     /// Write insert default rows expression.
     fn insert_default_values(&self, num_rows: u32, sql: &mut dyn SqlWriter) {
-        write!(sql, "VALUES ").unwrap();
-        (0..num_rows).fold(true, |first, _| {
-            if !first {
-                write!(sql, ", ").unwrap()
+        sql.write_str("VALUES ").unwrap();
+        if num_rows > 0 {
+            sql.write_str(self.insert_default_keyword()).unwrap();
+
+            for _ in 1..num_rows {
+                sql.write_str(", ").unwrap();
+                sql.write_str(self.insert_default_keyword()).unwrap();
             }
-            write!(sql, "{}", self.insert_default_keyword()).unwrap();
-            false
-        });
+        }
     }
 
     /// Write TRUE constant
@@ -1604,8 +1777,8 @@ impl QueryBuilder for CommonSqlQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_value(&self, value: &Value, sql: &mut dyn SqlWriter) {
-        sql.push_param(value.clone(), self as _);
+    fn prepare_value(&self, value: Value, sql: &mut dyn SqlWriter) {
+        sql.push_param(value, self as _);
     }
 }
 
@@ -1673,4 +1846,89 @@ pub(crate) fn common_well_known_left_associative(op: &BinOper) -> bool {
         op,
         BinOper::And | BinOper::Or | BinOper::Add | BinOper::Sub | BinOper::Mul | BinOper::Mod
     )
+}
+
+macro_rules! join_io {
+    ($iter:ident, $item:ident $(, first $first:expr)?, join $join:expr, do $do:expr $(, last $last:expr)?) => {
+        if let Some($item) = $iter.next() {
+            $($first)?
+            $do
+
+            for $item in $iter {
+                $join
+                $do
+            }
+
+            $($last)?
+        }
+    };
+}
+
+pub(crate) use join_io;
+
+#[cfg(test)]
+mod tests {
+    #[cfg(feature = "with-chrono")]
+    use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+
+    #[cfg(feature = "with-chrono")]
+    use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
+
+    /// [Postgresql reference](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT-TIMES)
+    ///
+    /// [Mysql reference](https://dev.mysql.com/doc/refman/8.4/en/fractional-seconds.html)
+    ///
+    /// [Sqlite reference](https://sqlite.org/lang_datefunc.html)
+    #[test]
+    #[cfg(feature = "with-chrono")]
+    fn format_time_constant() {
+        use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
+
+        let time = NaiveTime::from_hms_micro_opt(1, 2, 3, 123456)
+            .unwrap()
+            .into();
+
+        let mut string = String::new();
+        macro_rules! compare {
+            ($a:ident, $b:literal) => {
+                PostgresQueryBuilder.prepare_constant(&$a, &mut string);
+                assert_eq!(string, $b);
+
+                string.clear();
+
+                MysqlQueryBuilder.prepare_constant(&$a, &mut string);
+                assert_eq!(string, $b);
+
+                string.clear();
+
+                SqliteQueryBuilder.prepare_constant(&$a, &mut string);
+                assert_eq!(string, $b);
+
+                string.clear();
+            };
+        }
+
+        compare!(time, "'01:02:03.123456'");
+
+        let d = NaiveDate::from_ymd_opt(2015, 6, 3).unwrap();
+        let t = NaiveTime::from_hms_micro_opt(12, 34, 56, 123456).unwrap();
+
+        let dt = NaiveDateTime::new(d, t);
+
+        let date_time = dt.into();
+
+        compare!(date_time, "'2015-06-03 12:34:56.123456'");
+
+        let date_time_utc = DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc).into();
+
+        compare!(date_time_utc, "'2015-06-03 12:34:56.123456 +00:00'");
+
+        let date_time_tz = DateTime::<FixedOffset>::from_naive_utc_and_offset(
+            dt,
+            FixedOffset::east_opt(8 * 3600).unwrap(),
+        )
+        .into();
+
+        compare!(date_time_tz, "'2015-06-03 20:34:56.123456 +08:00'");
+    }
 }
