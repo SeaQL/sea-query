@@ -135,12 +135,12 @@ pub enum ColumnRef {
     Column(ColumnName),
     /// An `*` expression, potentially qualified as `(database.)(schema.)(table.)*`.
     Asterisk(Option<TableName>),
-    /// NEW.*
+    /// NEW.<column_name>
     New(DynIden),
-    /// OLD.*
+    /// OLD.<column_name>
     Old(DynIden),
     #[cfg(feature = "backend-postgres")]
-    /// excluded.*
+    /// excluded.<column_name>
     Excluded(DynIden),
 }
 
