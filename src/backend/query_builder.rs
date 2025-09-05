@@ -152,14 +152,14 @@ pub trait QueryBuilder:
             },
             do {
                 self.prepare_table_ref(table_ref, sql);
+                self.prepare_index_hints(table_ref,select, sql);
             },
             last {
-                self.prepare_index_hints(select, sql);
                 self.prepare_table_sample(select, sql);
             }
         );
 
-        for expr in select.join.iter() {
+        for expr in &select.join {
             sql.write_str(" ").unwrap();
             self.prepare_join_expr(expr, sql);
         }
@@ -536,7 +536,13 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`IndexHint`] into SQL statement.
-    fn prepare_index_hints(&self, _select: &SelectStatement, _sql: &mut dyn SqlWriter) {}
+    fn prepare_index_hints(
+        &self,
+        _table_ref: &TableRef,
+        _select: &SelectStatement,
+        _sql: &mut dyn SqlWriter,
+    ) {
+    }
 
     /// Translate [`TableSample`] into SQL statement.
     fn prepare_table_sample(&self, _select: &SelectStatement, _sql: &mut dyn SqlWriter) {}
