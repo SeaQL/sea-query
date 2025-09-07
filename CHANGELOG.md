@@ -325,6 +325,7 @@ error[E0308]: mismatched types
 
   If you manually construct this variant and it no longer compiles, just add
   `.into()`.
+* Renamed `QueryBuilder::prepare_simple_expr` to `prepare_expr` https://github.com/SeaQL/sea-query/pull/988
 
 ### Bug Fixes
 
