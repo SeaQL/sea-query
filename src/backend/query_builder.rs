@@ -79,7 +79,7 @@ pub trait QueryBuilder:
                                         sql.write_str(", ").unwrap();
                                     },
                                     do {
-                                        self.prepare_simple_expr(col, sql);
+                                        self.prepare_expr(col, sql);
                                     }
                                 );
 
@@ -177,7 +177,7 @@ pub trait QueryBuilder:
                 sql.write_str(", ").unwrap();
             },
             do {
-                self.prepare_simple_expr(expr, sql);
+                self.prepare_expr(expr, sql);
             }
         );
 
@@ -260,7 +260,7 @@ pub trait QueryBuilder:
                 let (col, v) = row;
                 self.prepare_update_column(&update.table, &update.from, col, sql);
                 sql.write_str(" = ").unwrap();
-                self.prepare_simple_expr(v, sql);
+                self.prepare_expr(v, sql);
             }
         );
 
@@ -394,11 +394,11 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`Expr`] into SQL statement.
-    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
-        self.prepare_simple_expr_common(simple_expr, sql);
+    fn prepare_expr(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
+        self.prepare_expr_common(simple_expr, sql);
     }
 
-    fn prepare_simple_expr_common(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
+    fn prepare_expr_common(&self, simple_expr: &Expr, sql: &mut dyn SqlWriter) {
         match simple_expr {
             Expr::Column(column_ref) => {
                 self.prepare_column_ref(column_ref, sql);
@@ -414,7 +414,7 @@ pub trait QueryBuilder:
                 if !drop_expr_paren {
                     sql.write_str("(").unwrap();
                 }
-                self.prepare_simple_expr(expr, sql);
+                self.prepare_expr(expr, sql);
                 if !drop_expr_paren {
                     sql.write_str(")").unwrap();
                 }
@@ -474,12 +474,12 @@ pub trait QueryBuilder:
                             }
                             Some(Token::Unquoted(tok)) if numbered => {
                                 if let Ok(num) = tok.parse::<usize>() {
-                                    self.prepare_simple_expr(&values[num - 1], sql);
+                                    self.prepare_expr(&values[num - 1], sql);
                                 }
                                 tokenizer.next();
                             }
                             _ => {
-                                self.prepare_simple_expr(&values[count], sql);
+                                self.prepare_expr(&values[count], sql);
                                 count += 1;
                             }
                         },
@@ -491,7 +491,7 @@ pub trait QueryBuilder:
                 self.prepare_keyword(keyword, sql);
             }
             Expr::AsEnum(_, expr) => {
-                self.prepare_simple_expr(expr, sql);
+                self.prepare_expr(expr, sql);
             }
             Expr::Case(case_stmt) => {
                 self.prepare_case_statement(case_stmt, sql);
@@ -516,11 +516,11 @@ pub trait QueryBuilder:
             self.prepare_condition_where(&case.condition, sql);
             sql.write_str(") THEN ").unwrap();
 
-            self.prepare_simple_expr(&case.result, sql);
+            self.prepare_expr(&case.result, sql);
         }
         if let Some(r#else) = r#else {
             sql.write_str(" ELSE ").unwrap();
-            self.prepare_simple_expr(r#else, sql);
+            self.prepare_expr(r#else, sql);
         }
 
         sql.write_str(" END)").unwrap();
@@ -576,7 +576,7 @@ pub trait QueryBuilder:
 
     /// Translate [`SelectExpr`] into SQL statement.
     fn prepare_select_expr(&self, select_expr: &SelectExpr, sql: &mut dyn SqlWriter) {
-        self.prepare_simple_expr(&select_expr.expr, sql);
+        self.prepare_expr(&select_expr.expr, sql);
         match &select_expr.window {
             Some(WindowSelectType::Name(name)) => {
                 sql.write_str(" OVER ").unwrap();
@@ -747,7 +747,7 @@ pub trait QueryBuilder:
         if need_parentheses {
             sql.write_str("(").unwrap();
         }
-        self.prepare_simple_expr(simple_expr, sql);
+        self.prepare_expr(simple_expr, sql);
         if need_parentheses {
             sql.write_str(")").unwrap();
         }
@@ -794,7 +794,7 @@ pub trait QueryBuilder:
             if modifier.distinct {
                 sql.write_str("DISTINCT ").unwrap();
             }
-            self.prepare_simple_expr(arg, sql);
+            self.prepare_expr(arg, sql);
         }
 
         for (arg, modifier) in args {
@@ -802,7 +802,7 @@ pub trait QueryBuilder:
             if modifier.distinct {
                 sql.write_str("DISTINCT ").unwrap();
             }
-            self.prepare_simple_expr(arg, sql);
+            self.prepare_expr(arg, sql);
         }
 
         sql.write_str(")").unwrap();
@@ -839,7 +839,7 @@ pub trait QueryBuilder:
                 .unwrap();
                 sql.write_str(" FIRST BY ").unwrap();
 
-                self.prepare_simple_expr(&search.expr.as_ref().unwrap().expr, sql);
+                self.prepare_expr(&search.expr.as_ref().unwrap().expr, sql);
 
                 sql.write_str(" SET ").unwrap();
 
@@ -849,7 +849,7 @@ pub trait QueryBuilder:
             if let Some(cycle) = &with_clause.cycle {
                 sql.write_str("CYCLE ").unwrap();
 
-                self.prepare_simple_expr(cycle.expr.as_ref().unwrap(), sql);
+                self.prepare_expr(cycle.expr.as_ref().unwrap(), sql);
 
                 sql.write_str(" SET ").unwrap();
 
@@ -980,7 +980,7 @@ pub trait QueryBuilder:
     /// Translate [`OrderExpr`] into SQL statement.
     fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut dyn SqlWriter) {
         if !matches!(order_expr.order, Order::Field(_)) {
-            self.prepare_simple_expr(&order_expr.expr, sql);
+            self.prepare_expr(&order_expr.expr, sql);
         }
         self.prepare_order(order_expr, sql);
     }
@@ -1013,7 +1013,7 @@ pub trait QueryBuilder:
         let mut i = 0;
         for value in &values.0 {
             sql.write_str("WHEN ").unwrap();
-            self.prepare_simple_expr(&order_expr.expr, sql);
+            self.prepare_expr(&order_expr.expr, sql);
             sql.write_str("=").unwrap();
             self.write_value(sql.as_writer(), value).unwrap();
             sql.write_str(" THEN ").unwrap();
@@ -1073,7 +1073,7 @@ pub trait QueryBuilder:
             if i != 0 {
                 sql.write_str(", ").unwrap();
             }
-            self.prepare_simple_expr(expr, sql);
+            self.prepare_expr(expr, sql);
         }
         sql.write_str(")").unwrap();
     }
@@ -1376,7 +1376,7 @@ pub trait QueryBuilder:
                         self.prepare_iden(col, sql);
                     }
                     OnConflictTarget::ConflictExpr(expr) => {
-                        self.prepare_simple_expr(expr, sql);
+                        self.prepare_expr(expr, sql);
                     }
                 }
             },
@@ -1425,7 +1425,7 @@ pub trait QueryBuilder:
                                 OnConflictUpdate::Expr(col, expr) => {
                                     self.prepare_iden(col, sql);
                                     sql.write_str(" = ").unwrap();
-                                    self.prepare_simple_expr(expr, sql);
+                                    self.prepare_expr(expr, sql);
                                 }
                             }
                         }
@@ -1500,7 +1500,7 @@ pub trait QueryBuilder:
                             sql.write_str(", ").unwrap();
                         },
                         do {
-                            self.prepare_simple_expr(expr, sql);
+                            self.prepare_expr(expr, sql);
                         }
                     );
                 }
@@ -1539,7 +1539,7 @@ pub trait QueryBuilder:
     /// Translate part of a condition to part of a "WHERE" clause.
     fn prepare_condition_where(&self, condition: &Condition, sql: &mut dyn SqlWriter) {
         let simple_expr = condition.clone().into();
-        self.prepare_simple_expr(&simple_expr, sql);
+        self.prepare_expr(&simple_expr, sql);
     }
 
     #[doc(hidden)]
@@ -1574,7 +1574,7 @@ pub trait QueryBuilder:
                 sql.write_str(", ").unwrap();
             },
             do {
-                self.prepare_simple_expr(expr, sql);
+                self.prepare_expr(expr, sql);
             }
         );
 
@@ -1625,7 +1625,7 @@ pub trait QueryBuilder:
         if left_paren {
             sql.write_str("(").unwrap();
         }
-        self.prepare_simple_expr(left, sql);
+        self.prepare_expr(left, sql);
         if left_paren {
             sql.write_str(")").unwrap();
         }
@@ -1659,7 +1659,7 @@ pub trait QueryBuilder:
         if right_paren {
             sql.write_str("(").unwrap();
         }
-        self.prepare_simple_expr(right, sql);
+        self.prepare_expr(right, sql);
         if right_paren {
             sql.write_str(")").unwrap();
         }
