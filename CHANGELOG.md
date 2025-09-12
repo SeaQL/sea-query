@@ -89,6 +89,12 @@ assert_eq!(
 assert_eq!(std::mem::size_of::<Value>(), 32);
 ```
 * Merged `Func`/`Function` and `PgFunc`/`PgFunction`. Now the latter is just an alias of the former https://github.com/SeaQL/sea-query/pull/944
+```rust
+// old
+condition.add(Func::lower(Expr::col(column)).eq(SimpleExpr::FunctionCall(Func::lower(value))))
+// new
+condition.add(Func::lower(Expr::col(*column)).eq(Func::lower(value)));
+```
 * `impl From<Expr> for Condition`. Now you can use `Expr` instead of `ConditionExpression`, which has been removed from the public API https://github.com/SeaQL/sea-query/pull/915
 ```rust
 Cond::all().add(ConditionExpression::Expr(Expr::new(..))) // old
@@ -319,6 +325,7 @@ error[E0308]: mismatched types
 
   If you manually construct this variant and it no longer compiles, just add
   `.into()`.
+* Renamed `QueryBuilder::prepare_simple_expr` to `prepare_expr` https://github.com/SeaQL/sea-query/pull/988
 
 ### Bug Fixes
 

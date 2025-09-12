@@ -11,14 +11,14 @@ use crate::{
 /// Builder for JSON_QUERY function
 #[derive(Debug, Clone)]
 pub struct Builder {
-    pub(crate) context_item: Expr,
-    pub(crate) path_expression: Cow<'static, str>,
-    pub(crate) passing: Vec<(Value, Cow<'static, str>)>,
-    pub(crate) returning: Option<crate::TypeRef>,
-    pub(crate) wrapper: Option<WrapperClause>,
-    pub(crate) quotes: Option<QuotesClause>,
-    pub(crate) on_empty: Option<OnClause>,
-    pub(crate) on_error: Option<OnClause>,
+    context_item: Expr,
+    path_expression: Cow<'static, str>,
+    passing: Vec<(Value, Cow<'static, str>)>,
+    returning: Option<crate::TypeRef>,
+    wrapper: Option<WrapperClause>,
+    quotes: Option<QuotesClause>,
+    on_empty: Option<OnClause>,
+    on_error: Option<OnClause>,
 }
 
 impl From<Builder> for FunctionCall {
@@ -83,15 +83,59 @@ impl Builder {
         self
     }
 
-    /// Set ON EMPTY clause
-    pub fn on_empty(mut self, on_empty: OnClause) -> Self {
-        self.on_empty = Some(on_empty);
+    pub fn error_on_empty(mut self) -> Self {
+        self.on_empty = Some(OnClause::Error);
         self
     }
 
-    /// Set ON ERROR clause
-    pub fn on_error(mut self, on_error: OnClause) -> Self {
-        self.on_error = Some(on_error);
+    pub fn null_on_empty(mut self) -> Self {
+        self.on_empty = Some(OnClause::Null);
+        self
+    }
+
+    pub fn empty_array_on_empty(mut self) -> Self {
+        self.on_empty = Some(OnClause::EmptyArray);
+        self
+    }
+
+    pub fn empty_object_on_empty(mut self) -> Self {
+        self.on_empty = Some(OnClause::EmptyObject);
+        self
+    }
+
+    pub fn default_on_empty<T>(mut self, expr: T) -> Self
+    where
+        T: Into<Expr>,
+    {
+        self.on_empty = Some(OnClause::Default(expr.into()));
+        self
+    }
+
+    pub fn error_on_error(mut self) -> Self {
+        self.on_error = Some(OnClause::Error);
+        self
+    }
+
+    pub fn null_on_error(mut self) -> Self {
+        self.on_error = Some(OnClause::Null);
+        self
+    }
+
+    pub fn empty_array_on_error(mut self) -> Self {
+        self.on_error = Some(OnClause::EmptyArray);
+        self
+    }
+
+    pub fn empty_object_on_error(mut self) -> Self {
+        self.on_error = Some(OnClause::EmptyObject);
+        self
+    }
+
+    pub fn default_on_error<T>(mut self, expr: T) -> Self
+    where
+        T: Into<Expr>,
+    {
+        self.on_error = Some(OnClause::Default(expr.into()));
         self
     }
 
@@ -102,7 +146,7 @@ impl Builder {
     fn build_internal(self) -> Result<FunctionCall, core::fmt::Error> {
         let mut buf = String::with_capacity(50);
 
-        PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
+        PostgresQueryBuilder.prepare_expr(&self.context_item, &mut buf);
         buf.write_str(" ")?;
         write_json_path_expr(&mut buf, &self.path_expression)?;
 

@@ -312,7 +312,7 @@ impl PostgresQueryBuilder {
             write!(sql, "ALTER COLUMN ").unwrap();
             self.prepare_iden(&column_def.name, sql);
             write!(sql, " SET DEFAULT ").unwrap();
-            QueryBuilder::prepare_simple_expr(self, default, sql);
+            QueryBuilder::prepare_expr(self, default, sql);
         }
         if column_def.spec.unique {
             write_comma_if_not_first!();
@@ -341,7 +341,7 @@ impl PostgresQueryBuilder {
 
         if let Some(expr) = &column_def.spec.using {
             write!(sql, " USING ").unwrap();
-            QueryBuilder::prepare_simple_expr(self, expr, sql);
+            QueryBuilder::prepare_expr(self, expr, sql);
         }
 
         if let Some(extra) = &column_def.spec.extra {

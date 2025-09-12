@@ -129,7 +129,7 @@ impl IndexBuilder for MysqlQueryBuilder {
                     }
                     IndexColumn::Expr(column) => {
                         sql.write_str("(").unwrap();
-                        self.prepare_simple_expr(&column.expr, sql);
+                        self.prepare_expr(&column.expr, sql);
                         sql.write_str(")").unwrap();
                         if let Some(order) = &column.order {
                             match order {

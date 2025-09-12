@@ -5,12 +5,12 @@ use crate::{PostgresQueryBuilder, QueryBuilder, Value, join_io};
 
 #[derive(Debug, Clone)]
 pub struct QuotesClause {
-    pub(crate) kind: QuotesKind,
-    pub(crate) on_scalar_string: bool,
+    pub(super) kind: QuotesKind,
+    pub(super) on_scalar_string: bool,
 }
 
 impl QuotesClause {
-    pub(crate) fn write_to(&self, buf: &mut String) -> fmt::Result {
+    pub(super) fn write_to(&self, buf: &mut String) -> fmt::Result {
         match self.kind {
             QuotesKind::Keep => buf.write_str(" KEEP QUOTES")?,
             QuotesKind::Omit => buf.write_str(" OMIT QUOTES")?,
@@ -53,7 +53,7 @@ pub struct WrapperClause {
 }
 
 impl WrapperClause {
-    pub(crate) fn write_to(&self, buf: &mut String) -> fmt::Result {
+    pub(super) fn write_to(&self, buf: &mut String) -> fmt::Result {
         match self.kind {
             WrapperKind::Without => buf.write_str(" WITHOUT")?,
             WrapperKind::WithConditional => buf.write_str(" WITH CONDITIONAL")?,

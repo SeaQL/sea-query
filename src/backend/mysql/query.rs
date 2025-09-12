@@ -147,16 +147,16 @@ impl QueryBuilder for MysqlQueryBuilder {
         match order_expr.nulls {
             None => (),
             Some(NullOrdering::Last) => {
-                self.prepare_simple_expr(&order_expr.expr, sql);
+                self.prepare_expr(&order_expr.expr, sql);
                 sql.write_str(" IS NULL ASC, ").unwrap()
             }
             Some(NullOrdering::First) => {
-                self.prepare_simple_expr(&order_expr.expr, sql);
+                self.prepare_expr(&order_expr.expr, sql);
                 sql.write_str(" IS NULL DESC, ").unwrap()
             }
         }
         if !matches!(order_expr.order, Order::Field(_)) {
-            self.prepare_simple_expr(&order_expr.expr, sql);
+            self.prepare_expr(&order_expr.expr, sql);
         }
         self.prepare_order(order_expr, sql);
     }

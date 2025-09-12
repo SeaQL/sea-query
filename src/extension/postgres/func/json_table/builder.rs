@@ -15,12 +15,12 @@ use super::types::*;
 /// Builder for JSON_TABLE function
 #[derive(Debug, Clone)]
 pub struct Builder {
-    pub(crate) context_item: Expr,
-    pub(crate) path_expression: Cow<'static, str>,
-    pub(crate) as_json_path_name: Option<Cow<'static, str>>,
-    pub(crate) passing: Vec<(Value, Cow<'static, str>)>,
-    pub(crate) columns: Vec<JsonTableColumn>,
-    pub(crate) on_error: Option<OnErrorClause>,
+    pub(super) context_item: Expr,
+    pub(super) path_expression: Cow<'static, str>,
+    pub(super) as_json_path_name: Option<Cow<'static, str>>,
+    pub(super) passing: Vec<(Value, Cow<'static, str>)>,
+    pub(super) columns: Vec<JsonTableColumn>,
+    pub(super) on_error: Option<OnErrorClause>,
 }
 
 impl From<Builder> for FunctionCall {
@@ -127,15 +127,15 @@ impl Builder {
         }
     }
 
-    /// Set ON ERROR clause for the entire JSON_TABLE
-    pub fn on_error(mut self, on_error: OnErrorClause) -> Self {
-        self.on_error = Some(on_error);
-        self
-    }
-
     /// Convenience method for `ERROR ON ERROR`
     pub fn error_on_error(mut self) -> Self {
         self.on_error = Some(OnErrorClause::Error);
+        self
+    }
+
+    /// Convenience method for `EMPTY ON ERROR`
+    pub fn empty_on_error(mut self) -> Self {
+        self.on_error = Some(OnErrorClause::Empty);
         self
     }
 
@@ -152,7 +152,7 @@ impl Builder {
     fn build_internal(self) -> Result<FunctionCall, core::fmt::Error> {
         let mut buf = String::with_capacity(200);
 
-        PostgresQueryBuilder.prepare_simple_expr(&self.context_item, &mut buf);
+        PostgresQueryBuilder.prepare_expr(&self.context_item, &mut buf);
         buf.write_str(", ")?;
         write_json_path_expr(&mut buf, &self.path_expression)?;
 

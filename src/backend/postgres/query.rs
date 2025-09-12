@@ -34,11 +34,11 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn prepare_simple_expr(&self, simple_expr: &Expr, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_expr(&self, simple_expr: &Expr, sql: &mut (impl SqlWriter + ?Sized)) {
         match simple_expr {
             Expr::AsEnum(type_name, expr) => {
                 sql.write_str("CAST(").unwrap();
-                self.prepare_simple_expr_common(expr, sql);
+                self.prepare_expr_common(expr, sql);
                 let q = self.quote();
                 let type_name = &type_name.0;
                 let (ty, sfx) = if let Some(base) = type_name.strip_suffix("[]") {
@@ -53,7 +53,7 @@ impl QueryBuilder for PostgresQueryBuilder {
                 sql.write_str(sfx).unwrap();
                 sql.write_char(')').unwrap();
             }
-            _ => QueryBuilder::prepare_simple_expr_common(self, simple_expr, sql),
+            _ => QueryBuilder::prepare_expr_common(self, simple_expr, sql),
         }
     }
 
@@ -177,7 +177,7 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut (impl SqlWriter + ?Sized)) {
         if !matches!(order_expr.order, Order::Field(_)) {
-            self.prepare_simple_expr(&order_expr.expr, sql);
+            self.prepare_expr(&order_expr.expr, sql);
         }
         self.prepare_order(order_expr, sql);
         match order_expr.nulls {
