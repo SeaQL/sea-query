@@ -468,10 +468,7 @@ impl Func {
         I: IntoIden,
     {
         let expr: Expr = expr.into();
-        FunctionCall::new(Func::Cast).arg(expr.binary(
-            BinOper::As,
-            Expr::cust(iden.into_iden().to_string().as_str()),
-        ))
+        FunctionCall::new(Func::Cast).arg(expr.binary(BinOper::As, Expr::cust(iden.into_iden().0)))
     }
 
     /// Call `CAST` function with a case-sensitive custom type.
