@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{expr::*, query::*, types::*};
 use inherent::inherent;
 
@@ -17,11 +19,11 @@ pub trait OverStatement {
     /// Partition by custom string.
     fn partition_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = T>,
     {
         cols.into_iter().for_each(|c| {
-            self.add_partition_by(Expr::Custom(c.to_string()));
+            self.add_partition_by(Expr::Custom(c.into()));
         });
         self
     }
@@ -105,10 +107,10 @@ impl WindowStatement {
     /// Construct a new [`WindowStatement`] with PARTITION BY custom
     pub fn partition_by_custom<T>(col: T) -> Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
     {
         let mut window = Self::new();
-        window.add_partition_by(Expr::Custom(col.to_string()));
+        window.add_partition_by(Expr::cust(col));
         window
     }
 
@@ -213,7 +215,7 @@ impl OrderedStatement for WindowStatement {
     pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order)>;
     pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
     where
@@ -235,7 +237,7 @@ impl OrderedStatement for WindowStatement {
     ) -> &mut Self;
     pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order, NullOrdering)>;
     pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where

@@ -114,7 +114,7 @@ impl Builder {
             buf.write_str(" ON ERROR")?;
         }
 
-        Ok(FunctionCall::new(Func::Custom("JSON_EXISTS".into())).arg(Expr::Custom(buf)))
+        Ok(FunctionCall::new(Func::Custom("JSON_EXISTS".into())).arg(Expr::Custom(buf.into())))
     }
 }
 

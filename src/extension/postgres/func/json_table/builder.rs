@@ -168,7 +168,7 @@ impl Builder {
             on_error.write_to(&mut buf)?;
         }
 
-        Ok(FunctionCall::new(Func::Custom("JSON_TABLE".into())).arg(Expr::Custom(buf)))
+        Ok(FunctionCall::new(Func::Custom("JSON_TABLE".into())).arg(Expr::Custom(buf.into())))
     }
 
     fn write_columns(columns: &[JsonTableColumn], buf: &mut String) -> fmt::Result {
