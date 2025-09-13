@@ -39,7 +39,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "*" FROM JSON_TABLE(E'[{\"name\": \"John\", \"age\": 30}, {\"name\": \"Jane\", \"age\": 25}]', '$[*]' COLUMNS (row_number FOR ORDINALITY, name "text" PATH '$.name', age "int" PATH '$.age')) AS "people""#
+    ///     r#"SELECT "*" FROM JSON_TABLE('[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]', '$[*]' COLUMNS (row_number FOR ORDINALITY, name "text" PATH '$.name', age "int" PATH '$.age')) AS "people""#
     /// );
     /// ```
     ///
@@ -66,7 +66,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "*" FROM JSON_TABLE(E'{\"users\": [{\"id\": 1, \"name\": \"John\"}, {\"id\": 2, \"name\": \"Jane\"}]}', '$.users[*] ? (@.id > $min_id)' PASSING 0 AS min_id COLUMNS (user_id "int" PATH '$.id' NULL ON ERROR, user_name "text" PATH '$.name' DEFAULT 'Unknown' ON EMPTY) ERROR ON ERROR) AS "filtered_users""#
+    ///     r#"SELECT "*" FROM JSON_TABLE('{"users": [{"id": 1, "name": "John"}, {"id": 2, "name": "Jane"}]}', '$.users[*] ? (@.id > $min_id)' PASSING 0 AS min_id COLUMNS (user_id "int" PATH '$.id' NULL ON ERROR, user_name "text" PATH '$.name' DEFAULT 'Unknown' ON EMPTY) ERROR ON ERROR) AS "filtered_users""#
     /// );
     /// ```
     ///
@@ -93,7 +93,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "*" FROM JSON_TABLE(E'{\"users\": [{\"name\": \"John\", \"phones\": [\"123\", \"456\"]}, {\"name\": \"Jane\", \"phones\": [\"789\"]}]}', '$.users[*]' COLUMNS (user_name "text" PATH '$.name', NESTED '$.phones[*]' COLUMNS (phone "text" PATH '$'))) AS "user_phones""#
+    ///     r#"SELECT "*" FROM JSON_TABLE('{"users": [{"name": "John", "phones": ["123", "456"]}, {"name": "Jane", "phones": ["789"]}]}', '$.users[*]' COLUMNS (user_name "text" PATH '$.name', NESTED '$.phones[*]' COLUMNS (phone "text" PATH '$'))) AS "user_phones""#
     /// );
     /// ```
     pub fn json_table<T, P>(context_item: T, path_expression: P) -> Builder
