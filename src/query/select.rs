@@ -2263,7 +2263,7 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 FOR SHARE"#
+    ///     r#"SELECT `character` FROM `character` WHERE `font_id` = 5 LOCK IN SHARE MODE"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
