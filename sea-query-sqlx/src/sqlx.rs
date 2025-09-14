@@ -4,7 +4,7 @@ use sea_query::{QueryBuilder, query::*};
 pub trait SqlxBinder {
     fn build_sqlx<T>(&self, query_builder: T) -> (String, SqlxValues)
     where
-        T: QueryBuilder + ?Sized;
+        T: QueryBuilder;
 }
 
 macro_rules! impl_sqlx_binder {
@@ -12,7 +12,7 @@ macro_rules! impl_sqlx_binder {
         impl SqlxBinder for $l {
             fn build_sqlx<T>(&self, query_builder: T) -> (String, SqlxValues)
             where
-                T: QueryBuilder + ?Sized,
+                T: QueryBuilder,
             {
                 let (query, values) = self.build(query_builder);
                 (query, SqlxValues(values))
