@@ -372,5 +372,7 @@ impl SchemaStatementBuilder for TableAlterStatement {
         sql
     }
 
-    pub fn to_string<T>(&self, schema_builder: &T) -> String where T: SchemaBuilder + ?Sized;
+    pub fn to_string<T>(&self, schema_builder: &T) -> String
+    where
+        T: SchemaBuilder + ?Sized;
 }

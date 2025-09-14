@@ -623,7 +623,6 @@ pub trait QueryBuilder:
     }
 
     /// Translate [`SelectExpr`] into SQL statement.
-
     fn prepare_select_expr(&self, select_expr: &SelectExpr, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_expr(&select_expr.expr, sql);
         match &select_expr.window {
