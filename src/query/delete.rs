@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     Expr, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
     SubQueryStatement, WithClause, WithQuery,
@@ -379,7 +381,7 @@ impl OrderedStatement for DeleteStatement {
     pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order)>;
     pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
     where
@@ -401,7 +403,7 @@ impl OrderedStatement for DeleteStatement {
     ) -> &mut Self;
     pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order, NullOrdering)>;
     pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where

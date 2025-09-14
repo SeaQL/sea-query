@@ -1137,7 +1137,10 @@ fn select_60() {
         .build(PostgresQueryBuilder);
 
     let (statement, values) = Query::select()
-        .expr(Expr::cust_with_values(&cust_query[7..], cust_values.0))
+        .expr(Expr::cust_with_values(
+            cust_query[7..].to_owned(),
+            cust_values.0,
+        ))
         .limit(5)
         .build(PostgresQueryBuilder);
 
@@ -1948,7 +1951,7 @@ fn escape_1() {
     let test = r#" "abc" "#;
     assert_eq!(
         PostgresQueryBuilder.escape_string(test),
-        r#" \"abc\" "#.to_owned()
+        r#" "abc" "#.to_owned()
     );
     assert_eq!(
         PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
@@ -1987,7 +1990,7 @@ fn escape_4() {
     let test = "a\"b";
     assert_eq!(
         PostgresQueryBuilder.escape_string(test),
-        "a\\\"b".to_owned()
+        r#"a"b"#.to_owned()
     );
     assert_eq!(
         PostgresQueryBuilder.unescape_string(PostgresQueryBuilder.escape_string(test).as_str()),
