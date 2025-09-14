@@ -12,7 +12,7 @@ macro_rules! impl_sqlx_binder {
         impl SqlxBinder for $l {
             fn build_sqlx<T>(&self, query_builder: T) -> (String, SqlxValues)
             where
-                T: QueryBuilder + ?Size,
+                T: QueryBuilder + ?Sized,
             {
                 let (query, values) = self.build(query_builder);
                 (query, SqlxValues(values))
