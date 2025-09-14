@@ -179,17 +179,13 @@ impl ForeignKeyCreateStatement {
 
 #[inherent]
 impl SchemaStatementBuilder for ForeignKeyCreateStatement {
-    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    pub fn build<T: SchemaBuilder + ?Sized>(&self, schema_builder: &T) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
         sql
     }
 
-    pub fn build_any(&self, schema_builder: &(impl SchemaBuilder + ?Sized)) -> String {
-        let mut sql = String::with_capacity(256);
-        schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql
-    }
-
-    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
+    pub fn to_string<T>(&self, schema_builder: &T) -> String
+    where
+        T: SchemaBuilder + ?Sized;
 }

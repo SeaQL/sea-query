@@ -192,7 +192,7 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 
     fn write_string_quoted(&self, string: &str, buffer: &mut (impl Write + ?Sized)) {
-        if self.need_escape(string) {
+        if self.needs_escape(string) {
             buffer.write_str("E'").unwrap();
         } else {
             buffer.write_str("'").unwrap();
