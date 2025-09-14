@@ -13,14 +13,14 @@ pub enum SchemaStatement {
 
 pub trait SchemaStatementBuilder {
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn build<T>(&self, schema_builder: &T) -> String
+    fn build<T>(&self, schema_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized;
+        T: SchemaBuilder;
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    fn to_string<T>(&self, schema_builder: &T) -> String
+    fn to_string<T>(&self, schema_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized,
+        T: SchemaBuilder,
     {
         self.build(schema_builder)
     }

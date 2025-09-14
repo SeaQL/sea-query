@@ -360,18 +360,18 @@ impl IndexCreateStatement {
 
 #[inherent]
 impl SchemaStatementBuilder for IndexCreateStatement {
-    pub fn build<T>(&self, schema_builder: &T) -> String
+    pub fn build<T>(&self, schema_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized,
+        T: SchemaBuilder,
     {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_index_create_statement(self, &mut sql);
         sql
     }
 
-    pub fn to_string<T>(&self, schema_builder: &T) -> String
+    pub fn to_string<T>(&self, schema_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized;
+        T: SchemaBuilder;
 }
 
 impl ConditionalStatement for IndexCreateStatement {

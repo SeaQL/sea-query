@@ -426,16 +426,16 @@ impl TableCreateStatement {
 
 #[inherent]
 impl SchemaStatementBuilder for TableCreateStatement {
-    pub fn build<T>(&self, schema_builder: &T) -> String
+    pub fn build<T>(&self, schema_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized,
+        T: SchemaBuilder,
     {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_create_statement(self, &mut sql);
         sql
     }
 
-    pub fn to_string<T>(&self, schema_builder: &T) -> String
+    pub fn to_string<T>(&self, schema_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized;
+        T: SchemaBuilder;
 }

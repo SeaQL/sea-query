@@ -71,9 +71,9 @@ impl Table {
 
 impl TableStatement {
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn build<T>(&self, table_builder: &T) -> String
+    pub fn build<T>(&self, table_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized,
+        T: SchemaBuilder,
     {
         match self {
             Self::Create(stat) => stat.build(table_builder),
@@ -85,9 +85,9 @@ impl TableStatement {
     }
 
     /// Build corresponding SQL statement for certain database backend and return SQL string
-    pub fn to_string<T>(&self, table_builder: &T) -> String
+    pub fn to_string<T>(&self, table_builder: T) -> String
     where
-        T: SchemaBuilder + ?Sized,
+        T: SchemaBuilder,
     {
         match self {
             Self::Create(stat) => stat.to_string(table_builder),
