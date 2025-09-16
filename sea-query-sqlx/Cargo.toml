@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-sqlx"
-version = "0.8.0-rc.8"
+version = "0.8.0-rc.9"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2024"
 description = "Driver library for using SeaQuery with SQLx"
