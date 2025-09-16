@@ -327,8 +327,13 @@ error[E0308]: mismatched types
   If you manually construct this variant and it no longer compiles, just add
   `.into()`.
 * Renamed `QueryBuilder::prepare_simple_expr` to `prepare_expr` https://github.com/SeaQL/sea-query/pull/988
-* Changed signature of `Expr::custom` https://github.com/SeaQL/sea-query/pull/940
+* Changed signature of `Expr::Custom` https://github.com/SeaQL/sea-query/pull/940
 ```rust
+enum Expr {
+  - Custom(String),
+  + Custom(Cow<'static, str>),
+}
+
 fn cust<T>(s: T) -> Self
 where
   - T: Into<String>,
