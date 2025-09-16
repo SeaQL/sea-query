@@ -327,6 +327,28 @@ error[E0308]: mismatched types
   If you manually construct this variant and it no longer compiles, just add
   `.into()`.
 * Renamed `QueryBuilder::prepare_simple_expr` to `prepare_expr` https://github.com/SeaQL/sea-query/pull/988
+* Changed signature of `Expr::custom` https://github.com/SeaQL/sea-query/pull/940
+```rust
+fn cust<T>(s: T) -> Self
+where
+  - T: Into<String>,
+  + T: Into<Cow<'static, str>>,
+{
+    Self::Custom(s.into())
+}
+```
+You many encounter the following error:
+```rust
+    |         let sql = self.sql.trim();
+    |                   ^^^^^^^^ borrowed value does not live long enough
+...
+    |             Expr::cust_with_values(sql, values.0)
+    |             ------------------------------------- argument requires that `self.stmt.sql` is borrowed for `'static`
+```
+Simply convert the `&str` to `String`:
+```rust
+let sql = self.sql.trim().to_owned();
+```
 
 ### Bug Fixes
 
