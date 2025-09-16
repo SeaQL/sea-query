@@ -250,7 +250,7 @@ impl PostgresQueryBuilder {
     fn prepare_column_def_common<F, W>(&self, column_def: &ColumnDef, sql: &mut W, f: F)
     where
         F: Fn(&ColumnDef, &mut W),
-        W: SqlWriter + ?Sized,
+        W: SqlWriter,
     {
         self.prepare_iden(&column_def.name, sql);
 
