@@ -49,8 +49,8 @@ pub enum SchemaOper {
 }
 
 impl AccessType {
-    pub fn as_str(at: &AccessType) -> &'static str {
-        match at {
+    pub fn as_str(&self) -> &'static str {
+        match self {
             AccessType::Select => "select",
             AccessType::Insert => "insert",
             AccessType::Update => "update",
