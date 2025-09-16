@@ -4,7 +4,7 @@ impl IndexBuilder for MysqlQueryBuilder {
     fn prepare_table_index_expression(
         &self,
         create: &IndexCreateStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         self.prepare_index_prefix(create, sql);
         sql.write_str("KEY ").unwrap();
@@ -27,7 +27,7 @@ impl IndexBuilder for MysqlQueryBuilder {
     fn prepare_index_create_statement(
         &self,
         create: &IndexCreateStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         sql.write_str("CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
@@ -49,7 +49,11 @@ impl IndexBuilder for MysqlQueryBuilder {
         self.prepare_index_type(&create.index_type, sql);
     }
 
-    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
+    fn prepare_table_ref_index_stmt(
+        &self,
+        table_ref: &TableRef,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         match table_ref {
             // Support only "naked" table names with no schema or alias.
             TableRef::Table(TableName(None, _), None) => {
@@ -58,7 +62,11 @@ impl IndexBuilder for MysqlQueryBuilder {
             _ => panic!("Not supported"),
         }
     }
-    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_index_drop_statement(
+        &self,
+        drop: &IndexDropStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         sql.write_str("DROP INDEX ").unwrap();
 
         if drop.if_exists {
@@ -77,7 +85,11 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut dyn SqlWriter) {
+    fn prepare_index_type(
+        &self,
+        col_index_type: &Option<IndexType>,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if let Some(index_type) = col_index_type {
             if !matches!(index_type, IndexType::FullText) {
                 sql.write_str(" USING ").unwrap();
@@ -92,7 +104,11 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_index_prefix(
+        &self,
+        create: &IndexCreateStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if create.primary {
             sql.write_str("PRIMARY ").unwrap();
         }
@@ -104,7 +120,7 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
     }
 
-    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut dyn SqlWriter) {
+    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut (impl SqlWriter + ?Sized)) {
         macro_rules! prepare {
             ($i:ident) => {
                 match $i {

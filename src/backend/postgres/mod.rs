@@ -33,7 +33,7 @@ impl EscapeBuilder for PostgresQueryBuilder {
         })
     }
 
-    fn write_escaped(&self, buffer: &mut dyn Write, string: &str) {
+    fn write_escaped(&self, buffer: &mut (impl Write + ?Sized), string: &str) {
         for c in string.chars() {
             match c {
                 '\x08' => buffer.write_str(r#"\b"#),

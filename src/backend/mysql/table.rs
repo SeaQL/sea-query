@@ -1,17 +1,21 @@
 use super::*;
 
 impl TableBuilder for MysqlQueryBuilder {
-    fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_table_opt(
+        &self,
+        create: &TableCreateStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         // comment
         if let Some(comment) = &create.comment {
             sql.write_str(" COMMENT '").unwrap();
-            self.write_escaped(sql.as_writer(), comment);
+            self.write_escaped(sql, comment);
             sql.write_str("'").unwrap();
         }
         self.prepare_table_opt_def(create, sql)
     }
 
-    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut dyn SqlWriter) {
+    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut (impl SqlWriter + ?Sized)) {
         self.prepare_iden(&column_def.name, sql);
 
         if let Some(column_type) = &column_def.types {
@@ -22,7 +26,7 @@ impl TableBuilder for MysqlQueryBuilder {
         self.prepare_column_spec(&column_def.spec, sql);
     }
 
-    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut dyn SqlWriter) {
+    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut (impl SqlWriter + ?Sized)) {
         match column_type {
             ColumnType::Char(length) => match length {
                 Some(length) => {
@@ -149,7 +153,11 @@ impl TableBuilder for MysqlQueryBuilder {
         " AUTO_INCREMENT"
     }
 
-    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_table_alter_statement(
+        &self,
+        alter: &TableAlterStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         if alter.options.is_empty() {
             panic!("No alter option found")
         };
@@ -224,7 +232,7 @@ impl TableBuilder for MysqlQueryBuilder {
     fn prepare_table_rename_statement(
         &self,
         rename: &TableRenameStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) {
         sql.write_str("RENAME TABLE ").unwrap();
         if let Some(from_name) = &rename.from_name {
@@ -237,9 +245,9 @@ impl TableBuilder for MysqlQueryBuilder {
     }
 
     /// column comment
-    fn column_comment(&self, comment: &str, sql: &mut dyn SqlWriter) {
+    fn column_comment(&self, comment: &str, sql: &mut (impl SqlWriter + ?Sized)) {
         sql.write_str(" COMMENT '").unwrap();
-        self.write_escaped(sql.as_writer(), comment);
+        self.write_escaped(sql, comment);
         sql.write_str("'").unwrap();
     }
 }

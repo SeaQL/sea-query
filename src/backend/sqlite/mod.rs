@@ -22,7 +22,7 @@ impl QuotedBuilder for SqliteQueryBuilder {
 }
 
 impl EscapeBuilder for SqliteQueryBuilder {
-    fn write_escaped(&self, buffer: &mut dyn Write, string: &str) {
+    fn write_escaped(&self, buffer: &mut (impl Write + ?Sized), string: &str) {
         for char in string.chars() {
             match char {
                 '\'' => buffer.write_str("''"),

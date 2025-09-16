@@ -68,13 +68,25 @@ pub enum TypeAlterAddOpt {
 
 pub trait TypeBuilder: QuotedBuilder {
     /// Translate [`TypeCreateStatement`] into database specific SQL statement.
-    fn prepare_type_create_statement(&self, create: &TypeCreateStatement, sql: &mut dyn SqlWriter);
+    fn prepare_type_create_statement(
+        &self,
+        create: &TypeCreateStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    );
 
     /// Translate [`TypeDropStatement`] into database specific SQL statement.
-    fn prepare_type_drop_statement(&self, drop: &TypeDropStatement, sql: &mut dyn SqlWriter);
+    fn prepare_type_drop_statement(
+        &self,
+        drop: &TypeDropStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    );
 
     /// Translate [`TypeAlterStatement`] into database specific SQL statement.
-    fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut dyn SqlWriter);
+    fn prepare_type_alter_statement(
+        &self,
+        alter: &TypeAlterStatement,
+        sql: &mut (impl SqlWriter + ?Sized),
+    );
 }
 
 impl Type {
@@ -450,7 +462,7 @@ macro_rules! impl_type_statement_builder {
             pub fn build_collect<T: TypeBuilder>(
                 &self,
                 type_builder: T,
-                sql: &mut dyn SqlWriter,
+                sql: &mut (impl SqlWriter + ?Sized),
             ) -> String {
                 self.build_collect_ref(&type_builder, sql)
             }
@@ -458,7 +470,7 @@ macro_rules! impl_type_statement_builder {
             pub fn build_collect_ref<T: TypeBuilder>(
                 &self,
                 type_builder: &T,
-                sql: &mut dyn SqlWriter,
+                sql: &mut (impl SqlWriter + ?Sized),
             ) -> String {
                 type_builder.$func_name(self, sql);
                 sql.to_string()

@@ -1,7 +1,7 @@
 use super::*;
 
 impl ForeignKeyBuilder for MysqlQueryBuilder {
-    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut dyn SqlWriter) {
+    fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut (impl SqlWriter + ?Sized)) {
         match table_ref {
             // Support only "naked" table names with no schema or alias.
             TableRef::Table(TableName(None, _), None) => {
@@ -14,7 +14,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
     fn prepare_foreign_key_drop_statement_internal(
         &self,
         drop: &ForeignKeyDropStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
         mode: Mode,
     ) {
         if mode == Mode::Alter {
@@ -36,7 +36,7 @@ impl ForeignKeyBuilder for MysqlQueryBuilder {
     fn prepare_foreign_key_create_statement_internal(
         &self,
         create: &ForeignKeyCreateStatement,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
         mode: Mode,
     ) {
         if mode == Mode::Alter {

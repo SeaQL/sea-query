@@ -73,17 +73,16 @@ impl IndexDropStatement {
 
 #[inherent]
 impl SchemaStatementBuilder for IndexDropStatement {
-    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+    pub fn build<T>(&self, schema_builder: T) -> String
+    where
+        T: SchemaBuilder,
+    {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_index_drop_statement(self, &mut sql);
         sql
     }
 
-    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = String::with_capacity(256);
-        schema_builder.prepare_index_drop_statement(self, &mut sql);
-        sql
-    }
-
-    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
+    pub fn to_string<T>(&self, schema_builder: T) -> String
+    where
+        T: SchemaBuilder;
 }

@@ -574,7 +574,11 @@ impl WithQuery {
 }
 
 impl QueryStatementBuilder for WithQuery {
-    fn build_collect_any_into(&self, query_builder: &dyn QueryBuilder, sql: &mut dyn SqlWriter) {
+    fn build_collect_any_into(
+        &self,
+        query_builder: &(impl QueryBuilder + ?Sized),
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         query_builder.prepare_with_query(self, sql);
     }
 }
@@ -587,14 +591,18 @@ impl From<WithQuery> for SubQueryStatement {
 
 #[inherent]
 impl QueryStatementWriter for WithQuery {
-    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_into<T: QueryBuilder>(
+        &self,
+        query_builder: T,
+        sql: &mut (impl SqlWriter + ?Sized),
+    ) {
         query_builder.prepare_with_query(self, sql);
     }
 
     pub fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        sql: &mut dyn SqlWriter,
+        sql: &mut (impl SqlWriter + ?Sized),
     ) -> String;
     pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
     pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
