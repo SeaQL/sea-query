@@ -317,17 +317,17 @@ impl DeleteStatement {
 impl QueryStatementBuilder for DeleteStatement {
     pub fn build_collect_any_into(
         &self,
-        query_builder: &(impl QueryBuilder + ?Sized),
-        sql: &mut (impl SqlWriter + ?Sized),
+        query_builder: &impl QueryBuilder,
+        sql: &mut impl SqlWriter,
     ) {
         query_builder.prepare_delete_statement(self, sql);
     }
 
-    pub fn build_any(&self, query_builder: &(impl QueryBuilder + ?Sized)) -> (String, Values);
+    pub fn build_any(&self, query_builder: &impl QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
-        query_builder: &(impl QueryBuilder + ?Sized),
-        sql: &mut (impl SqlWriter + ?Sized),
+        query_builder: &impl QueryBuilder,
+        sql: &mut impl SqlWriter,
     ) -> String;
 }
 
@@ -345,18 +345,14 @@ impl From<DeleteStatement> for SubQueryStatement {
 
 #[inherent]
 impl QueryStatementWriter for DeleteStatement {
-    pub fn build_collect_into<T: QueryBuilder>(
-        &self,
-        query_builder: T,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
         query_builder.prepare_delete_statement(self, sql);
     }
 
     pub fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) -> String;
     pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
     pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;

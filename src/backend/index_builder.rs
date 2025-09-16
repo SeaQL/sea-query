@@ -7,7 +7,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     fn prepare_table_index_expression(
         &self,
         create: &IndexCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         if let Some(name) = &create.index.name {
             sql.write_str("CONSTRAINT ").unwrap();
@@ -28,47 +28,26 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     fn prepare_index_create_statement(
         &self,
         create: &IndexCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     );
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_table_ref_index_stmt(
-        &self,
-        table_ref: &TableRef,
-        sql: &mut (impl SqlWriter + ?Sized),
-    );
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut impl SqlWriter);
 
     /// Translate [`IndexDropStatement`] into SQL statement.
-    fn prepare_index_drop_statement(
-        &self,
-        drop: &IndexDropStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    );
+    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut impl SqlWriter);
 
     #[doc(hidden)]
     /// Write the index type (Btree, hash, ...).
-    fn prepare_index_type(
-        &self,
-        _col_index_type: &Option<IndexType>,
-        _sql: &mut (impl SqlWriter + ?Sized),
-    ) {
-    }
+    fn prepare_index_type(&self, _col_index_type: &Option<IndexType>, _sql: &mut impl SqlWriter) {}
 
     #[doc(hidden)]
     /// Write the index prefix (primary, unique, ...).
-    fn prepare_index_prefix(
-        &self,
-        create: &IndexCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    );
+    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut impl SqlWriter);
 
     #[doc(hidden)]
     /// Write the column index prefix.
-    fn write_column_index_prefix(
-        &self,
-        col_prefix: &Option<u32>,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn write_column_index_prefix(&self, col_prefix: &Option<u32>, sql: &mut impl SqlWriter) {
         if let Some(prefix) = col_prefix {
             sql.write_str(" (").unwrap();
             write!(sql, "{prefix}").unwrap();
@@ -81,7 +60,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     fn prepare_index_column_with_table_column(
         &self,
         column: &IndexColumnTableColumn,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         self.prepare_iden(&column.name, sql);
         self.write_column_index_prefix(&column.prefix, sql);
@@ -95,7 +74,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
 
     #[doc(hidden)]
     /// Write the column index prefix.
-    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut impl SqlWriter) {
         macro_rules! prepare {
             ($i:ident) => {
                 match $i {
@@ -125,5 +104,5 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
 
     #[doc(hidden)]
     // Write WHERE clause for partial index. This function is not available in MySQL.
-    fn prepare_filter(&self, _condition: &ConditionHolder, _sql: &mut (impl SqlWriter + ?Sized)) {}
+    fn prepare_filter(&self, _condition: &ConditionHolder, _sql: &mut impl SqlWriter) {}
 }

@@ -3,7 +3,7 @@
 use crate::*;
 pub use std::fmt::Write;
 
-pub trait SqlWriter: Write + ToString {
+pub trait SqlWriter: Write + Sized + ToString {
     fn push_param<T: QueryBuilder>(&mut self, value: Value, query_builder: &T);
 
     /// Upcast this into parent trait. Still needed in 1.85
@@ -83,11 +83,7 @@ impl SqlWriter for SqlWriterValues {
     }
 }
 
-pub fn inject_parameters<I>(
-    sql: &str,
-    params: I,
-    query_builder: &(impl QueryBuilder + ?Sized),
-) -> String
+pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &impl QueryBuilder) -> String
 where
     I: IntoIterator<Item = Value>,
 {

@@ -7,7 +7,7 @@ pub trait TableBuilder:
     fn prepare_table_create_statement(
         &self,
         create: &TableCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         sql.write_str("CREATE ").unwrap();
 
@@ -67,11 +67,7 @@ pub trait TableBuilder:
     }
 
     /// Translate [`TableRef`] into SQL statement.
-    fn prepare_table_ref_table_stmt(
-        &self,
-        table_ref: &TableRef,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_table_ref_table_stmt(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
         match table_ref {
             // Support only unaliased (but potentialy qualified) table names.
             TableRef::Table(.., None) => self.prepare_table_ref_iden(table_ref, sql),
@@ -80,23 +76,23 @@ pub trait TableBuilder:
     }
 
     /// Translate [`ColumnDef`] into SQL statement.
-    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut (impl SqlWriter + ?Sized));
+    fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut impl SqlWriter);
 
     /// Translate [`ColumnDef`] into SQL statement.
     fn prepare_column_def_internal(
         &self,
         _is_alter_column: bool,
         column_def: &ColumnDef,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         self.prepare_column_def(column_def, sql);
     }
 
     /// Translate [`ColumnType`] into SQL statement.
-    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut (impl SqlWriter + ?Sized));
+    fn prepare_column_type(&self, column_type: &ColumnType, sql: &mut impl SqlWriter);
 
     /// Translate [`ColumnSpec`] into SQL statement.
-    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_column_spec(&self, column_spec: &ColumnSpec, sql: &mut impl SqlWriter) {
         let ColumnSpec {
             nullable,
             default,
@@ -153,26 +149,18 @@ pub trait TableBuilder:
     }
 
     /// column comment
-    fn column_comment(&self, _comment: &str, _sql: &mut (impl SqlWriter + ?Sized)) {}
+    fn column_comment(&self, _comment: &str, _sql: &mut impl SqlWriter) {}
 
     /// The keyword for setting a column to be auto increment.
     fn column_spec_auto_increment_keyword(&self) -> &str;
 
     /// Translate [`TableOpt`] into SQL statement.
-    fn prepare_table_opt(
-        &self,
-        create: &TableCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut impl SqlWriter) {
         self.prepare_table_opt_def(create, sql)
     }
 
     /// Default function
-    fn prepare_table_opt_def(
-        &self,
-        create: &TableCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_table_opt_def(&self, create: &TableCreateStatement, sql: &mut impl SqlWriter) {
         for table_opt in create.options.iter() {
             sql.write_str(" ").unwrap();
             match table_opt {
@@ -196,16 +184,12 @@ pub trait TableBuilder:
     fn prepare_table_partition(
         &self,
         _table_partition: &TablePartition,
-        _sql: &mut (impl SqlWriter + ?Sized),
+        _sql: &mut impl SqlWriter,
     ) {
     }
 
     /// Translate [`TableDropStatement`] into SQL statement.
-    fn prepare_table_drop_statement(
-        &self,
-        drop: &TableDropStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut impl SqlWriter) {
         sql.write_str("DROP TABLE ").unwrap();
 
         if drop.if_exists {
@@ -230,7 +214,7 @@ pub trait TableBuilder:
     }
 
     /// Translate [`TableDropOpt`] into SQL statement.
-    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_table_drop_opt(&self, drop_opt: &TableDropOpt, sql: &mut impl SqlWriter) {
         match drop_opt {
             TableDropOpt::Restrict => sql.write_str(" RESTRICT").unwrap(),
             TableDropOpt::Cascade => sql.write_str(" CASCADE").unwrap(),
@@ -241,7 +225,7 @@ pub trait TableBuilder:
     fn prepare_table_truncate_statement(
         &self,
         truncate: &TableTruncateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         sql.write_str("TRUNCATE TABLE ").unwrap();
 
@@ -251,7 +235,7 @@ pub trait TableBuilder:
     }
 
     /// Translate the check constraint into SQL statement
-    fn prepare_check_constraint(&self, check: &Check, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_check_constraint(&self, check: &Check, sql: &mut impl SqlWriter) {
         if let Some(name) = &check.name {
             sql.write_str("CONSTRAINT ").unwrap();
             self.prepare_iden(name, sql);
@@ -264,12 +248,7 @@ pub trait TableBuilder:
     }
 
     /// Translate the generated column into SQL statement
-    fn prepare_generated_column(
-        &self,
-        r#gen: &Expr,
-        stored: bool,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_generated_column(&self, r#gen: &Expr, stored: bool, sql: &mut impl SqlWriter) {
         sql.write_str("GENERATED ALWAYS AS (").unwrap();
         QueryBuilder::prepare_expr(self, r#gen, sql);
         sql.write_str(")").unwrap();
@@ -284,7 +263,7 @@ pub trait TableBuilder:
     fn prepare_create_table_if_not_exists(
         &self,
         create: &TableCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         if create.if_not_exists {
             sql.write_str("IF NOT EXISTS ").unwrap();
@@ -295,7 +274,7 @@ pub trait TableBuilder:
     fn prepare_create_temporary_table(
         &self,
         create: &TableCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         if create.temporary {
             sql.write_str("TEMPORARY ").unwrap();
@@ -303,16 +282,12 @@ pub trait TableBuilder:
     }
 
     /// Translate [`TableAlterStatement`] into SQL statement.
-    fn prepare_table_alter_statement(
-        &self,
-        alter: &TableAlterStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    );
+    fn prepare_table_alter_statement(&self, alter: &TableAlterStatement, sql: &mut impl SqlWriter);
 
     /// Translate [`TableRenameStatement`] into SQL statement.
     fn prepare_table_rename_statement(
         &self,
         rename: &TableRenameStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     );
 }

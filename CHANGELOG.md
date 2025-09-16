@@ -280,6 +280,8 @@ use sea_orm::sea_query::IntoTableRef;
 
 from_tbl: "foo".into_table_ref(),
 ```
+* Replace `dyn <Trait>` with `impl <Trait>` https://github.com/SeaQL/sea-query/pull/982
+This gained us up to 10% performance, however it does mean `dyn QueryBuilder` is no longer possible.
 
 ### Minor breaking changes
 

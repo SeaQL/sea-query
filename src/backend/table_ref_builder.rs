@@ -2,7 +2,7 @@ use crate::*;
 
 pub trait TableRefBuilder: QuotedBuilder {
     /// Translate [`TableRef`] that without values into SQL statement.
-    fn prepare_table_ref_iden(&self, table_ref: &TableRef, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_table_ref_iden(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
         let (table_name, alias) = match table_ref {
             TableRef::Table(table_name, alias) => (table_name, alias),
             TableRef::SubQuery(_, _)
@@ -17,7 +17,7 @@ pub trait TableRefBuilder: QuotedBuilder {
     }
 
     /// Translate [`TableName`] into an SQL statement.
-    fn prepare_table_name(&self, table_name: &TableName, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_table_name(&self, table_name: &TableName, sql: &mut impl SqlWriter) {
         let TableName(schema_name, table) = table_name;
         if let Some(schema_name) = schema_name {
             self.prepare_schema_name(schema_name, sql);
@@ -27,7 +27,7 @@ pub trait TableRefBuilder: QuotedBuilder {
     }
 
     /// Translate [`SchemaName`] into an SQL statement.
-    fn prepare_schema_name(&self, schema_name: &SchemaName, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_schema_name(&self, schema_name: &SchemaName, sql: &mut impl SqlWriter) {
         let SchemaName(database_name, schema) = schema_name;
         if let Some(DatabaseName(database)) = database_name {
             self.prepare_iden(database, sql);

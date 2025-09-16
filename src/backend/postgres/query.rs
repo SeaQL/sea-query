@@ -34,7 +34,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         ("$", true)
     }
 
-    fn prepare_expr(&self, simple_expr: &Expr, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_expr(&self, simple_expr: &Expr, sql: &mut impl SqlWriter) {
         match simple_expr {
             Expr::AsEnum(type_name, expr) => {
                 sql.write_str("CAST(").unwrap();
@@ -57,11 +57,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_select_distinct(
-        &self,
-        select_distinct: &SelectDistinct,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_select_distinct(&self, select_distinct: &SelectDistinct, sql: &mut impl SqlWriter) {
         match select_distinct {
             SelectDistinct::All => sql.write_str("ALL").unwrap(),
             SelectDistinct::Distinct => sql.write_str("DISTINCT").unwrap(),
@@ -86,7 +82,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         };
     }
 
-    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut impl SqlWriter) {
         match bin_oper {
             BinOper::PgOperator(oper) => sql
                 .write_str(match oper {
@@ -119,15 +115,11 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_query_statement(
-        &self,
-        query: &SubQueryStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter) {
         query.prepare_statement(self, sql);
     }
 
-    fn prepare_function_name(&self, function: &Func, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_function_name(&self, function: &Func, sql: &mut impl SqlWriter) {
         match function {
             Func::PgFunction(function) => sql
                 .write_str(match function {
@@ -156,7 +148,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_table_sample(&self, select: &SelectStatement, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_table_sample(&self, select: &SelectStatement, sql: &mut impl SqlWriter) {
         let Some(table_sample) = select.table_sample else {
             return;
         };
@@ -175,7 +167,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_order_expr(&self, order_expr: &OrderExpr, sql: &mut impl SqlWriter) {
         if !matches!(order_expr.order, Order::Field(_)) {
             self.prepare_expr(&order_expr.expr, sql);
         }
@@ -187,7 +179,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_value(&self, value: Value, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
         sql.push_param(value, self as _);
     }
 

@@ -41,7 +41,7 @@ pub trait QuotedBuilder {
     fn quote(&self) -> Quote;
 
     /// To prepare iden and write to SQL.
-    fn prepare_iden(&self, iden: &DynIden, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_iden(&self, iden: &DynIden, sql: &mut impl SqlWriter) {
         let q = self.quote();
         let qq = q.1 as char;
 

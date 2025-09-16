@@ -6,7 +6,7 @@ impl IndexBuilder for PostgresQueryBuilder {
     fn prepare_table_index_expression(
         &self,
         create: &IndexCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         if let Some(name) = &create.index.name {
             sql.write_str("CONSTRAINT ").unwrap();
@@ -33,7 +33,7 @@ impl IndexBuilder for PostgresQueryBuilder {
     fn prepare_index_create_statement(
         &self,
         create: &IndexCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
+        sql: &mut impl SqlWriter,
     ) {
         sql.write_str("CREATE ").unwrap();
         self.prepare_index_prefix(create, sql);
@@ -73,11 +73,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         self.prepare_filter(&create.r#where, sql);
     }
 
-    fn prepare_table_ref_index_stmt(
-        &self,
-        table_ref: &TableRef,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
         // Support only `table` and `schema.table` forms.
         // No `database.schema.table` or aliases.
         let TableRef::Table(table_name, None) = table_ref else {
@@ -89,11 +85,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_drop_statement(
-        &self,
-        drop: &IndexDropStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_index_drop_statement(&self, drop: &IndexDropStatement, sql: &mut impl SqlWriter) {
         sql.write_str("DROP INDEX ").unwrap();
 
         if drop.concurrently {
@@ -126,11 +118,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_type(
-        &self,
-        col_index_type: &Option<IndexType>,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_index_type(&self, col_index_type: &Option<IndexType>, sql: &mut impl SqlWriter) {
         if let Some(index_type) = col_index_type {
             sql.write_str(" USING ").unwrap();
             match index_type {
@@ -143,11 +131,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_prefix(
-        &self,
-        create: &IndexCreateStatement,
-        sql: &mut (impl SqlWriter + ?Sized),
-    ) {
+    fn prepare_index_prefix(&self, create: &IndexCreateStatement, sql: &mut impl SqlWriter) {
         if create.primary {
             sql.write_str("PRIMARY KEY ").unwrap();
         }
@@ -156,7 +140,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_index_columns(&self, columns: &[IndexColumn], sql: &mut impl SqlWriter) {
         sql.write_str("(").unwrap();
 
         let mut cols = columns.iter();
@@ -189,13 +173,13 @@ impl IndexBuilder for PostgresQueryBuilder {
         sql.write_str(")").unwrap();
     }
 
-    fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut impl SqlWriter) {
         self.prepare_condition(condition, "WHERE", sql);
     }
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut (impl SqlWriter + ?Sized)) {
+    fn prepare_include_columns(&self, columns: &[DynIden], sql: &mut impl SqlWriter) {
         sql.write_str("INCLUDE (").unwrap();
 
         let mut cols = columns.iter();
