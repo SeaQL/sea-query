@@ -4,18 +4,13 @@ use rbs::Value as RbValue;
 use rbs::to_value;
 use sea_query::*;
 pub trait SqlxBinder {
-    fn build_rbs<T>(&self, query_builder: T) -> (String, Vec<rbs::Value>)
-    where
-        T: QueryBuilder + ?Sized;
+    fn build_rbs<T: QueryBuilder>(&self, query_builder: T) -> (String, Vec<rbs::Value>);
 }
 
 macro_rules! impl_rbs_binder {
     ($l:ident) => {
         impl SqlxBinder for $l {
-            fn build_rbs<T>(&self, query_builder: T) -> (String, Vec<rbs::Value>)
-            where
-                T: QueryBuilder + ?Sized;
-            {
+            fn build_rbs<T: QueryBuilder>(&self, query_builder: T) -> (String, Vec<rbs::Value>) {
                 let (query, values) = self.build(query_builder);
                 (query, to_rb_values(values))
             }

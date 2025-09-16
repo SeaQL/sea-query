@@ -365,6 +365,10 @@ let sql = self.sql.trim().to_owned();
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
 
+### Maintainence
+
+* `sea-query-binder` has been superseded with `sea-query-sqlx`
+
 ## 0.32.7 - 2025-08-06
 
 ### Enhancements
