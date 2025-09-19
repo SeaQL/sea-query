@@ -1027,13 +1027,13 @@ pub trait QueryBuilder:
             sql.write_str("=").unwrap();
             self.write_value(sql, value).unwrap();
             sql.write_str(" THEN ").unwrap();
-            write!(sql, "{i}").unwrap();
+            write_int(sql, i);
             sql.write_str(" ").unwrap();
             i += 1;
         }
 
         sql.write_str("ELSE ").unwrap();
-        write!(sql, "{i}").unwrap();
+        write_int(sql, i);
         sql.write_str(" END").unwrap();
     }
 
@@ -1175,14 +1175,30 @@ pub trait QueryBuilder:
             #[cfg(feature = "postgres-vector")]
             Value::Vector(None) => buf.write_str("NULL")?,
             Value::Bool(Some(b)) => buf.write_str(if *b { "TRUE" } else { "FALSE" })?,
-            Value::TinyInt(Some(v)) => write!(buf, "{v}")?,
-            Value::SmallInt(Some(v)) => write!(buf, "{v}")?,
-            Value::Int(Some(v)) => write!(buf, "{v}")?,
-            Value::BigInt(Some(v)) => write!(buf, "{v}")?,
-            Value::TinyUnsigned(Some(v)) => write!(buf, "{v}")?,
-            Value::SmallUnsigned(Some(v)) => write!(buf, "{v}")?,
-            Value::Unsigned(Some(v)) => write!(buf, "{v}")?,
-            Value::BigUnsigned(Some(v)) => write!(buf, "{v}")?,
+            Value::TinyInt(Some(v)) => {
+                write_int(buf, *v);
+            }
+            Value::SmallInt(Some(v)) => {
+                write_int(buf, *v);
+            }
+            Value::Int(Some(v)) => {
+                write_int(buf, *v);
+            }
+            Value::BigInt(Some(v)) => {
+                write_int(buf, *v);
+            }
+            Value::TinyUnsigned(Some(v)) => {
+                write_int(buf, *v);
+            }
+            Value::SmallUnsigned(Some(v)) => {
+                write_int(buf, *v);
+            }
+            Value::Unsigned(Some(v)) => {
+                write_int(buf, *v);
+            }
+            Value::BigUnsigned(Some(v)) => {
+                write_int(buf, *v);
+            }
             Value::Float(Some(v)) => write!(buf, "{v}")?,
             Value::Double(Some(v)) => write!(buf, "{v}")?,
             Value::String(Some(v)) => self.write_string_quoted(v, buf),
