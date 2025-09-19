@@ -50,7 +50,7 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     fn write_column_index_prefix(&self, col_prefix: &Option<u32>, sql: &mut impl SqlWriter) {
         if let Some(prefix) = col_prefix {
             sql.write_str(" (").unwrap();
-            write!(sql, "{prefix}").unwrap();
+            write_int(sql, *prefix);
             sql.write_str(")").unwrap();
         }
     }
