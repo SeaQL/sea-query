@@ -549,14 +549,7 @@ pub trait QueryBuilder:
 
     /// Translate [`LockType`] into SQL statement.
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut impl SqlWriter) {
-        sql.write_str("FOR ").unwrap();
-        sql.write_str(match lock.r#type {
-            LockType::Update => "UPDATE",
-            LockType::NoKeyUpdate => "NO KEY UPDATE",
-            LockType::Share => "SHARE",
-            LockType::KeyShare => "KEY SHARE",
-        })
-        .unwrap();
+        sql.write_str(self.lock_phrase(lock.r#type)).unwrap();
         let mut tables = lock.tables.iter();
         join_io!(
             tables,
@@ -1720,6 +1713,17 @@ pub trait QueryBuilder:
     fn random_function(&self) -> &str {
         // Returning it with parens as part of the name because the tuple preparer can't deal with empty lists
         "RANDOM"
+    }
+
+    #[doc(hidden)]
+    /// The name of the function that returns the lock phrase including the leading 'FOR'
+    fn lock_phrase(&self, lock_type: LockType) -> &'static str {
+        match lock_type {
+            LockType::Update => "FOR UPDATE",
+            LockType::NoKeyUpdate => "FOR NO KEY UPDATE",
+            LockType::Share => "FOR SHARE",
+            LockType::KeyShare => "FOR KEY SHARE",
+        }
     }
 
     /// The keywords for insert default row.
