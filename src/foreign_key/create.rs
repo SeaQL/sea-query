@@ -185,11 +185,7 @@ impl SchemaStatementBuilder for ForeignKeyCreateStatement {
         sql
     }
 
-    pub fn build_any(&self, schema_builder: &dyn SchemaBuilder) -> String {
-        let mut sql = String::with_capacity(256);
-        schema_builder.prepare_foreign_key_create_statement(self, &mut sql);
-        sql
-    }
-
-    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String;
+    pub fn to_string<T>(&self, schema_builder: T) -> String
+    where
+        T: SchemaBuilder;
 }

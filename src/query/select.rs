@@ -1,3 +1,7 @@
+use std::borrow::Cow;
+#[cfg(feature = "backend-mysql")]
+use std::collections::HashMap;
+
 use crate::{
     FunctionCall, QueryStatement, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement,
     WindowStatement, WithClause, WithQuery,
@@ -58,7 +62,59 @@ pub struct SelectStatement {
     #[cfg(feature = "backend-postgres")]
     pub(crate) table_sample: Option<crate::extension::postgres::TableSample>,
     #[cfg(feature = "backend-mysql")]
-    pub(crate) index_hints: Vec<crate::extension::mysql::IndexHint>,
+    pub(crate) index_hints:
+        HashMap<index_hint::IndexHintKey, Vec<crate::extension::mysql::IndexHint>>,
+}
+
+#[cfg(feature = "backend-mysql")]
+mod index_hint {
+    use crate::*;
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+    pub(crate) enum IndexHintKey {
+        Table(TableName, Option<DynIden>),
+        Alias(DynIden),
+    }
+
+    impl From<TableRef> for IndexHintKey {
+        fn from(value: TableRef) -> Self {
+            match value {
+                TableRef::Table(table_name, alias) => Self::Table(table_name, alias),
+                TableRef::SubQuery(_, alias)
+                | TableRef::ValuesList(_, alias)
+                | TableRef::FunctionCall(_, alias) => Self::Alias(alias),
+            }
+        }
+    }
+
+    impl From<&TableRef> for IndexHintKey {
+        fn from(value: &TableRef) -> Self {
+            match value {
+                TableRef::Table(table_name, alias) => {
+                    Self::Table(table_name.clone(), alias.clone())
+                }
+                TableRef::SubQuery(_, alias)
+                | TableRef::ValuesList(_, alias)
+                | TableRef::FunctionCall(_, alias) => Self::Alias(alias.clone()),
+            }
+        }
+    }
+
+    impl PartialEq<&TableRef> for IndexHintKey {
+        fn eq(&self, other: &&TableRef) -> bool {
+            match (self, other) {
+                (Self::Table(table_name, alias), TableRef::Table(table_name2, alias2)) => {
+                    table_name == table_name2 && alias == alias2
+                }
+                (
+                    Self::Alias(alias),
+                    TableRef::SubQuery(_, alias2)
+                    | TableRef::ValuesList(_, alias2)
+                    | TableRef::FunctionCall(_, alias2),
+                ) => alias == alias2,
+                _ => false,
+            }
+        }
+    }
 }
 
 /// List of distinct keywords that can be used in select statement
@@ -2522,17 +2578,17 @@ impl SelectStatement {
 impl QueryStatementBuilder for SelectStatement {
     pub fn build_collect_any_into(
         &self,
-        query_builder: &dyn QueryBuilder,
-        sql: &mut dyn SqlWriter,
+        query_builder: &impl QueryBuilder,
+        sql: &mut impl SqlWriter,
     ) {
         query_builder.prepare_select_statement(self, sql);
     }
 
-    pub fn build_any(&self, query_builder: &dyn QueryBuilder) -> (String, Values);
+    pub fn build_any(&self, query_builder: &impl QueryBuilder) -> (String, Values);
     pub fn build_collect_any(
         &self,
-        query_builder: &dyn QueryBuilder,
-        sql: &mut dyn SqlWriter,
+        query_builder: &impl QueryBuilder,
+        sql: &mut impl SqlWriter,
     ) -> String;
 }
 
@@ -2550,14 +2606,14 @@ impl From<SelectStatement> for SubQueryStatement {
 
 #[inherent]
 impl QueryStatementWriter for SelectStatement {
-    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut dyn SqlWriter) {
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
         query_builder.prepare_select_statement(self, sql);
     }
 
     pub fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
-        sql: &mut dyn SqlWriter,
+        sql: &mut impl SqlWriter,
     ) -> String;
     pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
     pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
@@ -2582,7 +2638,7 @@ impl OrderedStatement for SelectStatement {
     pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order)>;
     pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
     where
@@ -2604,7 +2660,7 @@ impl OrderedStatement for SelectStatement {
     ) -> &mut Self;
     pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
-        T: ToString,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = (T, Order, NullOrdering)>;
     pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where

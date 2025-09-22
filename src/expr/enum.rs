@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::*;
 
 /// An arbitrary, dynamically-typed SQL expression.
@@ -25,8 +27,8 @@ pub enum Expr {
     SubQuery(Option<SubQueryOper>, Box<SubQueryStatement>),
     Value(Value),
     Values(Vec<Value>),
-    Custom(String),
-    CustomWithExpr(String, Vec<Expr>),
+    Custom(Cow<'static, str>),
+    CustomWithExpr(Cow<'static, str>, Vec<Expr>),
     Keyword(Keyword),
     AsEnum(DynIden, Box<Expr>),
     Case(Box<CaseStatement>),
@@ -365,7 +367,7 @@ impl Expr {
     /// ```
     pub fn cust<T>(s: T) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
     {
         Self::Custom(s.into())
     }
@@ -442,7 +444,7 @@ impl Expr {
     /// ```
     pub fn cust_with_values<T, V, I>(s: T, v: I) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
         V: Into<Value>,
         I: IntoIterator<Item = V>,
     {
@@ -490,7 +492,7 @@ impl Expr {
     /// ```
     pub fn cust_with_expr<T, E>(s: T, expr: E) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
         E: Into<Self>,
     {
         Self::CustomWithExpr(s.into(), vec![expr.into()])
@@ -499,7 +501,7 @@ impl Expr {
     /// Express any custom expression with [`Expr`]. Use this if your expression needs other expressions.
     pub fn cust_with_exprs<T, I>(s: T, v: I) -> Self
     where
-        T: Into<String>,
+        T: Into<Cow<'static, str>>,
         I: IntoIterator<Item = Expr>,
     {
         Self::CustomWithExpr(s.into(), v.into_iter().collect())
@@ -709,6 +711,32 @@ impl Expr {
     /// ```
     pub fn exists(sel: SelectStatement) -> Self {
         Self::SubQuery(Some(SubQueryOper::Exists), Box::new(sel.into()))
+    }
+
+    /// Express a `NOT EXISTS` sub-query expression.
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// let query = Query::select()
+    ///     .expr_as(Expr::not_exists(Query::select().column(Char::Id).from(Char::Table).take()), "character_exists")
+    ///     .expr_as(Expr::not_exists(Query::select().column(Glyph::Id).from(Glyph::Table).take()), "glyph_exists")
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT NOT EXISTS(SELECT `id` FROM `character`) AS `character_exists`, NOT EXISTS(SELECT `id` FROM `glyph`) AS `glyph_exists`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT NOT EXISTS(SELECT "id" FROM "character") AS "character_exists", NOT EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT NOT EXISTS(SELECT "id" FROM "character") AS "character_exists", NOT EXISTS(SELECT "id" FROM "glyph") AS "glyph_exists""#
+    /// );
+    /// ```
+    pub fn not_exists(sel: SelectStatement) -> Self {
+        Self::exists(sel).not()
     }
 
     /// Express a `ANY` sub-query expression.

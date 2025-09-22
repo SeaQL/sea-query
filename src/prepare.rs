@@ -3,15 +3,15 @@
 use crate::*;
 pub use std::fmt::Write;
 
-pub trait SqlWriter: Write + ToString {
-    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder);
+pub trait SqlWriter: Write + Sized + ToString {
+    fn push_param<T: QueryBuilder>(&mut self, value: Value, query_builder: &T);
 
     /// Upcast this into parent trait. Still needed in 1.85
     fn as_writer(&mut self) -> &mut dyn Write;
 }
 
 impl SqlWriter for String {
-    fn push_param(&mut self, value: Value, query_builder: &dyn QueryBuilder) {
+    fn push_param<T: QueryBuilder>(&mut self, value: Value, query_builder: &T) {
         query_builder.write_value(self, &value).unwrap();
     }
 
@@ -67,7 +67,7 @@ impl std::fmt::Display for SqlWriterValues {
 }
 
 impl SqlWriter for SqlWriterValues {
-    fn push_param(&mut self, value: Value, _: &dyn QueryBuilder) {
+    fn push_param<T: QueryBuilder>(&mut self, value: Value, _: &T) {
         self.counter += 1;
         self.string.write_str(&self.placeholder).unwrap();
         if self.numbered {
@@ -83,11 +83,7 @@ impl SqlWriter for SqlWriterValues {
     }
 }
 
-pub fn inject_parameters<I>(sql: &str, params: I, query_builder: &dyn QueryBuilder) -> String
-where
-    I: IntoIterator<Item = Value>,
-{
-    let params: Vec<Value> = params.into_iter().collect();
+pub fn inject_parameters(sql: &str, params: &[Value], query_builder: &impl QueryBuilder) -> String {
     let mut counter = 0;
     let mut output = String::new();
 
@@ -135,7 +131,7 @@ mod tests_mysql {
     #[test]
     fn inject_parameters_1() {
         assert_eq!(
-            inject_parameters("WHERE A = ?", ["B".into()], &MysqlQueryBuilder),
+            inject_parameters("WHERE A = ?", &["B".into()], &MysqlQueryBuilder),
             "WHERE A = 'B'"
         );
     }
@@ -143,7 +139,7 @@ mod tests_mysql {
     #[test]
     fn inject_parameters_2() {
         assert_eq!(
-            inject_parameters("WHERE A = '?' AND B = ?", ["C".into()], &MysqlQueryBuilder),
+            inject_parameters("WHERE A = '?' AND B = ?", &["C".into()], &MysqlQueryBuilder),
             "WHERE A = '?' AND B = 'C'"
         );
     }
@@ -153,7 +149,7 @@ mod tests_mysql {
         assert_eq!(
             inject_parameters(
                 "WHERE A = ? AND C = ?",
-                ["B".into(), "D".into()],
+                &["B".into(), "D".into()],
                 &MysqlQueryBuilder
             ),
             "WHERE A = 'B' AND C = 'D'"
@@ -163,7 +159,7 @@ mod tests_mysql {
     #[test]
     fn inject_parameters_4() {
         assert_eq!(
-            inject_parameters("?", [vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
+            inject_parameters("?", &[vec![0xABu8, 0xCD, 0xEF].into()], &MysqlQueryBuilder),
             "x'ABCDEF'"
         );
     }
@@ -180,7 +176,7 @@ mod tests_postgres {
         assert_eq!(
             inject_parameters(
                 "WHERE A = $1 AND C = $2",
-                ["B".into(), "D".into()],
+                &["B".into(), "D".into()],
                 &PostgresQueryBuilder
             ),
             "WHERE A = 'B' AND C = 'D'"
@@ -192,7 +188,7 @@ mod tests_postgres {
         assert_eq!(
             inject_parameters(
                 "WHERE A = $2 AND C = $1",
-                ["B".into(), "D".into()],
+                &["B".into(), "D".into()],
                 &PostgresQueryBuilder
             ),
             "WHERE A = 'D' AND C = 'B'"
@@ -202,7 +198,7 @@ mod tests_postgres {
     #[test]
     fn inject_parameters_7() {
         assert_eq!(
-            inject_parameters("WHERE A = $1", [Value::from("B'C")], &PostgresQueryBuilder),
+            inject_parameters("WHERE A = $1", &[Value::from("B'C")], &PostgresQueryBuilder),
             "WHERE A = E'B\\'C'"
         );
     }

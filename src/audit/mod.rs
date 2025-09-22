@@ -48,6 +48,22 @@ pub enum SchemaOper {
     Truncate,
 }
 
+impl AccessType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            AccessType::Select => "select",
+            AccessType::Insert => "insert",
+            AccessType::Update => "update",
+            AccessType::Delete => "delete",
+            AccessType::Schema(SchemaOper::Create) => "schema_create",
+            AccessType::Schema(SchemaOper::Alter) => "schema_alter",
+            AccessType::Schema(SchemaOper::Drop) => "schema_drop",
+            AccessType::Schema(SchemaOper::Rename) => "schema_rename",
+            AccessType::Schema(SchemaOper::Truncate) => "schema_truncate",
+        }
+    }
+}
+
 impl QueryAccessAudit {
     /// This filters the selects from access requests.
     pub fn selects(&self) -> Vec<TableName> {
@@ -105,6 +121,8 @@ impl QueryAccessAudit {
 pub enum Error {
     /// Unable to parse query
     UnableToParseQuery,
+    /// Unsupported query
+    UnsupportedQuery,
 }
 
 impl std::error::Error for Error {}
@@ -113,6 +131,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::UnableToParseQuery => f.write_str("Unable to parse query"),
+            Self::UnsupportedQuery => f.write_str("Unsupported query"),
         }
     }
 }

@@ -2,7 +2,11 @@ use super::*;
 use crate::extension::postgres::*;
 
 impl TypeBuilder for PostgresQueryBuilder {
-    fn prepare_type_create_statement(&self, create: &TypeCreateStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_type_create_statement(
+        &self,
+        create: &TypeCreateStatement,
+        sql: &mut impl SqlWriter,
+    ) {
         sql.write_str("CREATE TYPE ").unwrap();
 
         if let Some(name) = &create.name {
@@ -33,7 +37,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_type_drop_statement(&self, drop: &TypeDropStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_type_drop_statement(&self, drop: &TypeDropStatement, sql: &mut impl SqlWriter) {
         sql.write_str("DROP TYPE ").unwrap();
 
         if drop.if_exists {
@@ -59,7 +63,7 @@ impl TypeBuilder for PostgresQueryBuilder {
         }
     }
 
-    fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut dyn SqlWriter) {
+    fn prepare_type_alter_statement(&self, alter: &TypeAlterStatement, sql: &mut impl SqlWriter) {
         sql.write_str("ALTER TYPE ").unwrap();
 
         if let Some(name) = &alter.name {
@@ -73,14 +77,14 @@ impl TypeBuilder for PostgresQueryBuilder {
 }
 
 impl PostgresQueryBuilder {
-    fn prepare_create_as_type(&self, as_type: &TypeAs, sql: &mut dyn SqlWriter) {
+    fn prepare_create_as_type(&self, as_type: &TypeAs, sql: &mut impl SqlWriter) {
         sql.write_str(match as_type {
             TypeAs::Enum => "ENUM",
         })
         .unwrap();
     }
 
-    fn prepare_drop_type_opt(&self, opt: &TypeDropOpt, sql: &mut dyn SqlWriter) {
+    fn prepare_drop_type_opt(&self, opt: &TypeDropOpt, sql: &mut impl SqlWriter) {
         sql.write_str(match opt {
             TypeDropOpt::Cascade => "CASCADE",
             TypeDropOpt::Restrict => "RESTRICT",
@@ -88,7 +92,7 @@ impl PostgresQueryBuilder {
         .unwrap();
     }
 
-    fn prepare_alter_type_opt(&self, opt: &TypeAlterOpt, sql: &mut dyn SqlWriter) {
+    fn prepare_alter_type_opt(&self, opt: &TypeAlterOpt, sql: &mut impl SqlWriter) {
         match opt {
             TypeAlterOpt::Add {
                 value,

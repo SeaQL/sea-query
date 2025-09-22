@@ -69,6 +69,7 @@ pub struct ColumnName(pub Option<TableName>, pub DynIden);
 
 ### Enhancements
 
+* Add `Expr::not_exists` https://github.com/SeaQL/sea-query/pull/983
 * Add `serde` feature. Currently, enabling it allows `Value` to be serializable https://github.com/SeaQL/sea-query/pull/966
 * Add `Keyword::Default` https://github.com/SeaQL/sea-query/pull/965
 * Enable `clippy::nursery` https://github.com/SeaQL/sea-query/pull/938
@@ -89,6 +90,12 @@ assert_eq!(
 assert_eq!(std::mem::size_of::<Value>(), 32);
 ```
 * Merged `Func`/`Function` and `PgFunc`/`PgFunction`. Now the latter is just an alias of the former https://github.com/SeaQL/sea-query/pull/944
+```rust
+// old
+condition.add(Func::lower(Expr::col(column)).eq(SimpleExpr::FunctionCall(Func::lower(value))))
+// new
+condition.add(Func::lower(Expr::col(*column)).eq(Func::lower(value)));
+```
 * `impl From<Expr> for Condition`. Now you can use `Expr` instead of `ConditionExpression`, which has been removed from the public API https://github.com/SeaQL/sea-query/pull/915
 ```rust
 Cond::all().add(ConditionExpression::Expr(Expr::new(..))) // old
@@ -273,6 +280,8 @@ use sea_orm::sea_query::IntoTableRef;
 
 from_tbl: "foo".into_table_ref(),
 ```
+* Replace `dyn <Trait>` with `impl <Trait>` https://github.com/SeaQL/sea-query/pull/982
+This gained us up to 10% performance, however it does mean `dyn QueryBuilder` is no longer possible.
 
 ### Minor breaking changes
 
@@ -319,6 +328,34 @@ error[E0308]: mismatched types
 
   If you manually construct this variant and it no longer compiles, just add
   `.into()`.
+* Renamed `QueryBuilder::prepare_simple_expr` to `prepare_expr` https://github.com/SeaQL/sea-query/pull/988
+* Changed signature of `Expr::Custom` https://github.com/SeaQL/sea-query/pull/940
+```rust
+enum Expr {
+  - Custom(String),
+  + Custom(Cow<'static, str>),
+}
+
+fn cust<T>(s: T) -> Self
+where
+  - T: Into<String>,
+  + T: Into<Cow<'static, str>>,
+{
+    Self::Custom(s.into())
+}
+```
+You many encounter the following error:
+```rust
+    |         let sql = self.sql.trim();
+    |                   ^^^^^^^^ borrowed value does not live long enough
+...
+    |             Expr::cust_with_values(sql, values.0)
+    |             ------------------------------------- argument requires that `self.stmt.sql` is borrowed for `'static`
+```
+Simply convert the `&str` to `String`:
+```rust
+let sql = self.sql.trim().to_owned();
+```
 
 ### Bug Fixes
 
@@ -327,6 +364,10 @@ error[E0308]: mismatched types
 ### Upgrades
 
 * Upgraded to Rust Edition 2024 https://github.com/SeaQL/sea-query/pull/885
+
+### Maintainence
+
+* `sea-query-binder` has been superseded with `sea-query-sqlx`
 
 ## 0.32.7 - 2025-08-06
 
