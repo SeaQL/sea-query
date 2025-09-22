@@ -1,4 +1,5 @@
 use super::*;
+use crate::write_int;
 
 impl TableBuilder for PostgresQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut impl SqlWriter) {
@@ -14,7 +15,7 @@ impl TableBuilder for PostgresQueryBuilder {
             ColumnType::Char(length) => match length {
                 Some(length) => {
                     sql.write_str("char(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 None => sql.write_str("char"),
@@ -22,7 +23,7 @@ impl TableBuilder for PostgresQueryBuilder {
             ColumnType::String(length) => match length {
                 StringLen::N(length) => {
                     sql.write_str("varchar(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 _ => sql.write_str("varchar"),
@@ -37,9 +38,9 @@ impl TableBuilder for PostgresQueryBuilder {
             ColumnType::Decimal(precision) => match precision {
                 Some((precision, scale)) => {
                     sql.write_str("decimal(").unwrap();
-                    write!(sql, "{precision}").unwrap();
+                    write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
-                    write!(sql, "{scale}").unwrap();
+                    write_int(sql, *scale);
                     sql.write_char(')')
                 }
                 None => sql.write_str("decimal"),
@@ -58,7 +59,7 @@ impl TableBuilder for PostgresQueryBuilder {
 
                 if let Some(precision) = precision {
                     sql.write_char('(').unwrap();
-                    write!(sql, "{precision}").unwrap();
+                    write_int(sql, *precision);
                     sql.write_char(')').unwrap();
                 }
                 Ok(())
@@ -69,23 +70,23 @@ impl TableBuilder for PostgresQueryBuilder {
             ColumnType::Bit(length) => match length {
                 Some(length) => {
                     sql.write_str("bit(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 None => sql.write_str("bit"),
             },
             ColumnType::VarBit(length) => {
                 sql.write_str("varbit(").unwrap();
-                write!(sql, "{length}").unwrap();
+                write_int(sql, *length);
                 sql.write_char(')')
             }
             ColumnType::Boolean => sql.write_str("bool"),
             ColumnType::Money(precision) => match precision {
                 Some((precision, scale)) => {
                     sql.write_str("money(").unwrap();
-                    write!(sql, "{precision}").unwrap();
+                    write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
-                    write!(sql, "{scale}").unwrap();
+                    write_int(sql, *scale);
                     sql.write_char(')')
                 }
                 None => sql.write_str("money"),
@@ -100,7 +101,7 @@ impl TableBuilder for PostgresQueryBuilder {
             ColumnType::Vector(size) => match size {
                 Some(size) => {
                     sql.write_str("vector(").unwrap();
-                    write!(sql, "{size}").unwrap();
+                    write_int(sql, *size);
                     sql.write_str(")")
                 }
                 None => sql.write_str("vector"),

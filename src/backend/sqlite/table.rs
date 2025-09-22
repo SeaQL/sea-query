@@ -1,4 +1,5 @@
 use super::*;
+use crate::write_int;
 
 impl TableBuilder for SqliteQueryBuilder {
     fn prepare_column_def(&self, column_def: &ColumnDef, sql: &mut impl SqlWriter) {
@@ -107,7 +108,7 @@ impl SqliteQueryBuilder {
             ColumnType::Char(length) => match length {
                 Some(length) => {
                     sql.write_str("char(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 None => sql.write_str("char"),
@@ -115,7 +116,7 @@ impl SqliteQueryBuilder {
             ColumnType::String(length) => match length {
                 StringLen::N(length) => {
                     sql.write_str("varchar(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 _ => sql.write_str("varchar"),
@@ -142,9 +143,9 @@ impl SqliteQueryBuilder {
                         panic!("precision cannot be larger than 16");
                     }
                     sql.write_str("real(").unwrap();
-                    write!(sql, "{precision}").unwrap();
+                    write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
-                    write!(sql, "{scale}").unwrap();
+                    write_int(sql, *scale);
                     sql.write_char(')')
                 }
                 None => sql.write_str("real"),
@@ -157,13 +158,13 @@ impl SqliteQueryBuilder {
             ColumnType::Interval(_, _) => unimplemented!("Interval is not available in Sqlite."),
             ColumnType::Binary(length) => {
                 sql.write_str("blob(").unwrap();
-                write!(sql, "{length}").unwrap();
+                write_int(sql, *length);
                 sql.write_char(')')
             }
             ColumnType::VarBinary(length) => match length {
                 StringLen::N(length) => {
                     sql.write_str("varbinary_blob(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 _ => sql.write_str("varbinary_blob"),
@@ -173,9 +174,9 @@ impl SqliteQueryBuilder {
             ColumnType::Money(precision) => match precision {
                 Some((precision, scale)) => {
                     sql.write_str("real_money(").unwrap();
-                    write!(sql, "{precision}").unwrap();
+                    write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
-                    write!(sql, "{scale}").unwrap();
+                    write_int(sql, *scale);
                     sql.write_char(')')
                 }
                 None => sql.write_str("real_money"),

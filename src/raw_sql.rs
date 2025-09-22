@@ -1,7 +1,6 @@
 pub mod seaql;
 
-use crate::QueryBuilder;
-use std::fmt::Write;
+use crate::{QueryBuilder, write_int};
 
 #[derive(Debug)]
 pub struct RawSqlQueryBuilder {
@@ -34,7 +33,7 @@ impl RawSqlQueryBuilder {
             }
             self.sql.push_str(self.placeholder);
             if self.numbered {
-                write!(&mut self.sql, "{}", self.parameter_index).unwrap();
+                write_int(&mut self.sql, self.parameter_index);
                 self.parameter_index += 1;
             }
         }
