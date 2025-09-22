@@ -548,7 +548,6 @@ pub trait QueryBuilder:
     fn prepare_table_sample(&self, _select: &SelectStatement, _sql: &mut impl SqlWriter) {}
 
     /// Translate [`LockType`] into SQL statement.
-
     fn prepare_select_lock(&self, lock: &LockClause, sql: &mut impl SqlWriter) {
         sql.write_str(self.lock_phrase(lock.r#type)).unwrap();
         let mut tables = lock.tables.iter();
