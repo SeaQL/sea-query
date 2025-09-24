@@ -954,6 +954,9 @@ impl SelectStatement {
     }
 
     /// Shorthand for selecting from a constant value list.
+    ///
+    /// # Panics
+    ///
     /// Panics on an empty values list.
     ///
     /// ```

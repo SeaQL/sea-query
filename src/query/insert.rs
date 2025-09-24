@@ -241,6 +241,7 @@ impl InsertStatement {
     }
 
     /// Specify a row of values to be inserted.
+    ///
     /// Return error when number of values not matching number of columns.
     ///
     /// # Examples
@@ -308,6 +309,10 @@ impl InsertStatement {
 
     /// Specify a row of values to be inserted, variation of [`InsertStatement::values`].
     ///
+    /// # Panics
+    ///
+    /// Panics when number of values not matching number of columns.
+    ///
     /// # Examples
     ///
     /// ```
@@ -332,6 +337,15 @@ impl InsertStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("aspect", "image") VALUES (2.1345, '24B'), (5.15, '12A')"#
     /// );
+    /// ```
+    ///
+    /// ```should_panic
+    /// # use sea_query::{tests_cfg::*, *};
+    /// let query = Query::insert()
+    ///     .into_table(Glyph::Table)
+    ///     .columns([Glyph::Aspect])
+    ///     .values_panic([2.1345.into(), "24B".into()])
+    ///     .take();
     /// ```
     ///
     /// The same query can be constructed using the `raw_query!` macro.
