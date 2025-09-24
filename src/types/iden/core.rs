@@ -51,6 +51,13 @@ impl Iden for &'static str {
     }
 }
 
+#[cfg(feature = "thread-safe")]
+/// Identifier statically known at compile-time.
+pub trait IdenStatic: Iden + Copy + Send + Sync + 'static {
+    fn as_str(&self) -> &'static str;
+}
+
+#[cfg(not(feature = "thread-safe"))]
 /// Identifier statically known at compile-time.
 pub trait IdenStatic: Iden + Copy + 'static {
     fn as_str(&self) -> &'static str;
