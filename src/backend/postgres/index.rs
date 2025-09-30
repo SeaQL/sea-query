@@ -167,10 +167,13 @@ impl IndexBuilder for PostgresQueryBuilder {
                         }
                     }
                 }
+              
+                if let Some(operator_class) = col.operator_class() {
+                    write!(sql, " {}", operator_class).unwrap();
+                }
             }
-        );
-
-        sql.write_str(")").unwrap();
+        });
+        write!(sql, ")").unwrap();
     }
 
     fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut impl SqlWriter) {
