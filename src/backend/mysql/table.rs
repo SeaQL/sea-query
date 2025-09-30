@@ -1,4 +1,5 @@
 use super::*;
+use crate::write_int;
 
 impl TableBuilder for MysqlQueryBuilder {
     fn prepare_table_opt(&self, create: &TableCreateStatement, sql: &mut impl SqlWriter) {
@@ -27,7 +28,7 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnType::Char(length) => match length {
                 Some(length) => {
                     sql.write_str("char(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_str(")")
                 }
                 None => sql.write_str("char"),
@@ -35,7 +36,7 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnType::String(length) => match length {
                 StringLen::N(length) => {
                     sql.write_str("varchar(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 StringLen::None => sql.write_str("varchar(255)"),
@@ -51,9 +52,9 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnType::Decimal(precision) => match precision {
                 Some((precision, scale)) => {
                     sql.write_str("decimal(").unwrap();
-                    write!(sql, "{precision}").unwrap();
+                    write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
-                    write!(sql, "{scale}").unwrap();
+                    write_int(sql, *scale);
                     sql.write_char(')')
                 }
                 None => sql.write_str("decimal"),
@@ -67,13 +68,13 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnType::Interval(_, _) => sql.write_str("unsupported"),
             ColumnType::Binary(length) => {
                 sql.write_str("binary(").unwrap();
-                write!(sql, "{length}").unwrap();
+                write_int(sql, *length);
                 sql.write_char(')')
             }
             ColumnType::VarBinary(length) => match length {
                 StringLen::N(length) => {
                     sql.write_str("varbinary(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 StringLen::None => sql.write_str("varbinary(255)"),
@@ -83,23 +84,23 @@ impl TableBuilder for MysqlQueryBuilder {
             ColumnType::Bit(length) => match length {
                 Some(length) => {
                     sql.write_str("bit(").unwrap();
-                    write!(sql, "{length}").unwrap();
+                    write_int(sql, *length);
                     sql.write_char(')')
                 }
                 None => sql.write_str("bit"),
             },
             ColumnType::VarBit(length) => {
                 sql.write_str("bit(").unwrap();
-                write!(sql, "{length}").unwrap();
+                write_int(sql, *length);
                 sql.write_char(')')
             }
             ColumnType::Boolean => sql.write_str("bool"),
             ColumnType::Money(precision) => match precision {
                 Some((precision, scale)) => {
                     sql.write_str("decimal(").unwrap();
-                    write!(sql, "{precision}").unwrap();
+                    write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
-                    write!(sql, "{scale}").unwrap();
+                    write_int(sql, *scale);
                     sql.write_char(')')
                 }
                 None => sql.write_str("decimal"),

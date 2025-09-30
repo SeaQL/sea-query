@@ -64,5 +64,16 @@ fn criterion_benchmark(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, criterion_benchmark);
+fn cfg() -> Criterion {
+    Criterion::default()
+        .configure_from_args()
+        .measurement_time(std::time::Duration::new(10, 0))
+        .sample_size(200)
+}
+
+criterion_group! {
+    name = benches;
+    config = cfg();
+    targets = criterion_benchmark
+}
 criterion_main!(benches);

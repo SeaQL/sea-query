@@ -68,12 +68,10 @@ impl std::fmt::Display for SqlWriterValues {
 
 impl SqlWriter for SqlWriterValues {
     fn push_param<T: QueryBuilder>(&mut self, value: Value, _: &T) {
-        self.counter += 1;
-        self.string.write_str(&self.placeholder).unwrap();
+        self.string.push_str(&self.placeholder);
         if self.numbered {
-            let counter = self.counter;
-
-            write!(self.string, "{counter}").unwrap();
+            self.counter += 1;
+            write_int(&mut self.string, self.counter);
         }
         self.values.push(value)
     }
@@ -81,6 +79,20 @@ impl SqlWriter for SqlWriterValues {
     fn as_writer(&mut self) -> &mut dyn Write {
         self as _
     }
+}
+
+#[cfg(feature = "itoa")]
+#[inline]
+pub(crate) fn write_int(w: &mut (impl Write + ?Sized), n: impl itoa::Integer) {
+    let mut buf = itoa::Buffer::new();
+    let s = buf.format(n);
+    w.write_str(s).unwrap();
+}
+
+#[cfg(not(feature = "itoa"))]
+#[inline(always)]
+pub(crate) fn write_int(w: &mut (impl Write + ?Sized), n: impl std::fmt::Display) {
+    write!(w, "{n}").unwrap();
 }
 
 pub fn inject_parameters(sql: &str, params: &[Value], query_builder: &impl QueryBuilder) -> String {
