@@ -31,6 +31,9 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
+#[cfg(feature = "with-postgres-point")]
+use sqlx::postgres::types::PgPoint;
+
 use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 
 /// [`Value`] types variant for Postgres array
@@ -213,6 +216,10 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<Box<MacAddress>>),
+
+    #[cfg(feature = "with-postgres-point")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+    Point(Option<Box<PgPoint>>),
 }
 
 impl std::fmt::Display for Value {
@@ -400,6 +407,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(None),
+
+            #[cfg(feature = "with-postgres-point")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+            Self::Point(_) => Self::Point(None),
         }
     }
 
@@ -504,6 +515,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(Some(Default::default())),
+
+            #[cfg(feature = "with-postgres-point")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+            Self::Point(_) => Self::Point(Some(Box::new(PgPoint { x: 0., y: 0. }))),
         }
     }
 }
@@ -1124,6 +1139,45 @@ pub mod with_vector {
     }
 }
 
+#[cfg(feature = "with-postgres-point")]
+#[cfg_attr(docsrs, doc(cfg(feature = "with-postgres-point")))]
+mod with_postgres_point {
+    use super::*;
+
+    impl From<PgPoint> for Value {
+        fn from(x: PgPoint) -> Value {
+            Value::Point(Some(Box::new(x)))
+        }
+    }
+
+    impl Nullable for PgPoint {
+        fn null() -> Value {
+            Value::Point(None)
+        }
+    }
+
+    impl ValueType for PgPoint {
+        fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+            match v {
+                Value::Point(Some(x)) => Ok(*x),
+                _ => Err(ValueTypeErr),
+            }
+        }
+
+        fn type_name() -> String {
+            stringify!(Point).to_owned()
+        }
+
+        fn array_type() -> ArrayType {
+            unimplemented!()
+        }
+
+        fn column_type() -> ColumnType {
+            ColumnType::Point
+        }
+    }
+}
+
 #[allow(unused_macros)]
 macro_rules! box_to_opt_ref {
     ( $v: expr ) => {
@@ -1629,6 +1683,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
+        #[cfg(feature = "with-postgres-point")]
+        Value::Point(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
@@ -1686,6 +1742,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-postgres-point")]
+        Value::Point(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }
 
@@ -2300,6 +2358,12 @@ mod hashable_value {
 
                 #[cfg(feature = "with-mac_address")]
                 Value::MacAddress(mac_address) => mac_address.hash(state),
+
+                #[cfg(feature = "with-postgres-point")]
+                Value::Point(point) => {
+                    hash_f64(&point.as_ref().map(|p| p.x), state);
+                    hash_f64(&point.as_ref().map(|p| p.y), state);
+                }
             }
         }
     }
