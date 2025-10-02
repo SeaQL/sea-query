@@ -137,6 +137,8 @@ impl ToSql for PostgresValue {
                     .map(|v| MacAddress::new(v.bytes()))
                     .to_sql(ty, out)
             }
+            #[cfg(feature = "with-postgres-point")]
+            Value::Point(v) => v.as_deref().to_sql(ty, out),
         }
     }
 
