@@ -183,7 +183,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         sql.push_param(value, self as _);
     }
 
-    fn write_string_quoted(&self, string: &str, buffer: &mut (impl Write + ?Sized)) {
+    fn write_string_quoted(&self, string: &str, buffer: &mut impl Write) {
         if self.needs_escape(string) {
             buffer.write_str("E'").unwrap();
         } else {
@@ -193,7 +193,7 @@ impl QueryBuilder for PostgresQueryBuilder {
         buffer.write_str("'").unwrap();
     }
 
-    fn write_bytes(&self, bytes: &[u8], buffer: &mut (impl Write + ?Sized)) {
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut impl Write) {
         buffer.write_str("'\\x").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap();

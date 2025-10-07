@@ -1105,7 +1105,12 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
-    fn write_value(&self, buf: &mut (impl Write + ?Sized), value: &Value) -> fmt::Result {
+    fn write_value(&self, buf: &mut impl Write, value: &Value) -> fmt::Result {
+        self.write_value_common(buf, value)
+    }
+
+    #[doc(hidden)]
+    fn write_value_common(&self, buf: &mut impl Write, value: &Value) -> fmt::Result {
         match value {
             Value::Bool(None)
             | Value::TinyInt(None)
@@ -1684,7 +1689,7 @@ pub trait QueryBuilder:
         }
     }
 
-    fn write_string_quoted(&self, string: &str, buffer: &mut (impl Write + ?Sized)) {
+    fn write_string_quoted(&self, string: &str, buffer: &mut impl Write) {
         buffer.write_str("'").unwrap();
         self.write_escaped(buffer, string);
         buffer.write_str("'").unwrap();
@@ -1692,7 +1697,7 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     /// Write bytes enclosed with engine specific byte syntax
-    fn write_bytes(&self, bytes: &[u8], buffer: &mut (impl Write + ?Sized)) {
+    fn write_bytes(&self, bytes: &[u8], buffer: &mut impl Write) {
         buffer.write_str("x'").unwrap();
         for b in bytes {
             write!(buffer, "{b:02X}").unwrap()

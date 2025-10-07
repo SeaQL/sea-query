@@ -79,7 +79,7 @@ pub trait EscapeBuilder {
         escaped
     }
 
-    fn write_escaped(&self, buffer: &mut (impl Write + ?Sized), string: &str) {
+    fn write_escaped(&self, buffer: &mut impl Write, string: &str) {
         for c in string.chars() {
             match c {
                 '\\' => buffer.write_str("\\\\"),
