@@ -167,9 +167,9 @@ impl PartialEq for ColumnType {
 impl ColumnType {
     pub fn custom<T>(ty: T) -> ColumnType
     where
-        T: Into<String>,
+        T: IntoIden,
     {
-        ColumnType::Custom(Alias::new(ty).into_iden())
+        ColumnType::Custom(ty.into_iden())
     }
 
     pub fn string(length: Option<u32>) -> ColumnType {
