@@ -4,8 +4,10 @@
 //!
 //! This library introduces various traits that add methods to the query types from `sea-query`.
 //! For instance, using the [`SqlxBinder`] trait adds a [`SqlxBinder::build_sqlx`] method that
-//! returns the query and a [`Values`] object, which can be directly passed to `sqlx`'s
-//! [`sqlx::query_with`] method.
+//! returns the query and a [`SqlxValues`] object, which can be directly passed to `sqlx`'s
+//! [`sqlx::query_with`][1] method.
+//!
+//! [1]: ../sqlx/fn.query_with.html
 
 #[cfg(feature = "sqlx-any")]
 mod sqlx_any;
