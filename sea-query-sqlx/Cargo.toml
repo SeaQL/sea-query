@@ -53,3 +53,7 @@ runtime-actix-rustls = ["sqlx?/runtime-tokio-rustls"]
 runtime-tokio = ["sqlx?/runtime-tokio"]
 runtime-tokio-native-tls = ["sqlx?/runtime-tokio-native-tls"]
 runtime-tokio-rustls = ["sqlx?/runtime-tokio-rustls"]
+
+
+[package.metadata.docs.rs]
+all-features = true
