@@ -7,9 +7,11 @@
 
 // Intentionally not `pub`. They only export a single item each.
 // It's a mechanical split to manage LoC.
+mod conv;
 mod r#enum;
 mod r#trait;
 
+pub use conv::IntoExpr;
 pub use r#enum::Expr;
 pub use r#trait::ExprTrait;
 
