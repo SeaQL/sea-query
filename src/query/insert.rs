@@ -1,7 +1,7 @@
 use crate::{
-    Expr, OnConflict, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
-    SelectStatement, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder,
-    error::*, prepare::*, types::*,
+    backend::QueryBuilder, error::*, prepare::*, types::*, Expr, OnConflict, QueryStatement,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement,
+    SubQueryStatement, Values, WithClause, WithQuery,
 };
 use inherent::inherent;
 
@@ -196,6 +196,8 @@ impl InsertStatement {
     ///     query.to_string(SqliteQueryBuilder),
     ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
     /// );
+    /// ```
+    ///
     /// ```
     /// use sea_query::{audit::*, tests_cfg::*, *};
     /// let query = Query::insert()

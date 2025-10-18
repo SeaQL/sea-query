@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    ColumnDef, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
-    index::*, table::constraint::Check, types::*,
+    backend::SchemaBuilder, foreign_key::*, index::*, table::constraint::Check, types::*,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder,
 };
 
 /// Create a table
@@ -348,10 +348,10 @@ impl TableCreateStatement {
     /// Create temporary table
     ///
     /// Ref:
-    /// - PostgreSQL: https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-TEMPORARY
-    /// - MySQL: https://dev.mysql.com/doc/refman/9.2/en/create-temporary-table.html
-    /// - MariaDB: https://mariadb.com/kb/en/create-table/#create-temporary-table
-    /// - SQLite: https://sqlite.org/lang_createtable.html
+    /// - PostgreSQL: <https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-TEMPORARY>
+    /// - MySQL: <https://dev.mysql.com/doc/refman/9.2/en/create-temporary-table.html>
+    /// - MariaDB: <https://mariadb.com/kb/en/create-table/#create-temporary-table>
+    /// - SQLite: <https://sqlite.org/lang_createtable.html>
     ///
     /// # Examples
     ///
