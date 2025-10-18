@@ -300,12 +300,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT MAX("character"."size_w") FROM "character""#
     /// );
     /// ```
-    fn max(self) -> Expr
-    where
-        Self: Into<Expr>,
-    {
-        Func::max(self).into()
-    }
+    fn max(self) -> Expr;
 
     /// Express a `MIN` function.
     ///
@@ -332,12 +327,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT MIN("character"."size_w") FROM "character""#
     /// );
     /// ```
-    fn min(self) -> Expr
-    where
-        Self: Into<Expr>,
-    {
-        Func::min(self).into()
-    }
+    fn min(self) -> Expr;
 
     /// Express a `SUM` function.
     ///
@@ -364,12 +354,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT SUM("character"."size_w") FROM "character""#
     /// );
     /// ```
-    fn sum(self) -> Expr
-    where
-        Self: Into<Expr>,
-    {
-        Func::sum(self).into()
-    }
+    fn sum(self) -> Expr;
 
     /// Express a `COUNT` function.
     ///
@@ -396,12 +381,7 @@ pub trait ExprTrait: Sized {
     ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
     /// );
     /// ```
-    fn count(self) -> Expr
-    where
-        Self: Into<Expr>,
-    {
-        Func::count(self).into()
-    }
+    fn count(self) -> Expr;
 
     /// Express a `IF NULL` function.
     ///
@@ -430,11 +410,7 @@ pub trait ExprTrait: Sized {
     /// ```
     fn if_null<V>(self, v: V) -> Expr
     where
-        Self: Into<Expr>,
-        V: Into<Expr>,
-    {
-        Func::if_null(self, v).into()
-    }
+        V: Into<Expr>;
 
     /// Express an arithmetic division operation.
     ///
@@ -1650,6 +1626,29 @@ where
         N: IntoIden,
     {
         Expr::FunctionCall(Func::cast_as(self, type_name))
+    }
+
+    fn max(self) -> Expr {
+        Func::max(self).into()
+    }
+
+    fn min(self) -> Expr {
+        Func::min(self).into()
+    }
+
+    fn sum(self) -> Expr {
+        Func::sum(self).into()
+    }
+
+    fn count(self) -> Expr {
+        Func::count(self).into()
+    }
+
+    fn if_null<V>(self, v: V) -> Expr
+    where
+        V: Into<Expr>,
+    {
+        Func::if_null(self, v).into()
     }
 
     fn unary(self, op: UnOper) -> Expr {
