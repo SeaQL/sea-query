@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    backend::SchemaBuilder, foreign_key::*, index::*, table::constraint::Check, types::*,
-    ColumnDef, IntoColumnDef, SchemaStatementBuilder,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
+    index::*, table::constraint::Check, types::*,
 };
 
 /// Create a table

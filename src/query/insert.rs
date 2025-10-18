@@ -1,7 +1,7 @@
 use crate::{
-    backend::QueryBuilder, error::*, prepare::*, types::*, Expr, OnConflict, QueryStatement,
-    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement,
-    SubQueryStatement, Values, WithClause, WithQuery,
+    Expr, OnConflict, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    SelectStatement, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder,
+    error::*, prepare::*, types::*,
 };
 use inherent::inherent;
 
@@ -203,12 +203,7 @@ impl InsertStatement {
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
-    ///     .select_from(
-    ///         Query::select()
-    ///             .expr(Font::Name)
-    ///             .from(Font::Table)
-    ///             .take(),
-    ///     )
+    ///     .select_from(Query::select().expr(Font::Name).from(Font::Table).take())
     ///     .unwrap()
     ///     .take();
     ///
