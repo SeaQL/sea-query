@@ -77,11 +77,21 @@ impl DynIden {
     pub fn inner(&self) -> Cow<'static, str> {
         self.0.clone()
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 impl std::fmt::Display for DynIden {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str(&self.0)
+    }
+}
+
+impl AsRef<str> for DynIden {
+    fn as_ref(&self) -> &str {
+        &self.0
     }
 }
 

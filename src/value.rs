@@ -1,6 +1,8 @@
 //! Container for all SQL value types.
 
 use std::borrow::Cow;
+#[cfg(feature = "backend-postgres")]
+use std::sync::Arc;
 
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
@@ -34,7 +36,7 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
-use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
+use crate::{ColumnType, CommonSqlQueryBuilder, DynIden, QueryBuilder, StringLen};
 
 #[cfg(test)]
 mod tests;
@@ -118,6 +120,8 @@ pub enum ArrayType {
     String,
     Char,
     Bytes,
+    #[cfg(feature = "backend-postgres")]
+    Enum(Arc<str>),
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -227,6 +231,10 @@ pub enum Value {
     Double(Option<f64>),
     String(Option<String>),
     Char(Option<char>),
+    /// In most cases, the values of enums are staticly known,
+    /// so we use Arc to save space
+    #[cfg(feature = "backend-postgres")]
+    Enum(Option<Arc<Enum>>),
 
     #[allow(clippy::box_collection)]
     Bytes(Option<Vec<u8>>),
@@ -324,6 +332,28 @@ pub enum Value {
     MacAddress(Option<MacAddress>),
 }
 
+#[cfg(feature = "backend-postgres")]
+#[derive(Debug, Clone, PartialEq)]
+pub struct Enum {
+    /// The type_name is only used for the Postgres backend
+    ///
+    /// In most cases, the enum type name is staticly known,
+    /// we wrap it in an [`Arc<str>`] to save space.
+    pub(crate) type_name: Option<Arc<str>>,
+    pub(crate) value: DynIden,
+}
+
+#[cfg(feature = "backend-postgres")]
+impl Enum {
+    /// Create a new [`EnumValue`]
+    pub fn new(type_name: impl Into<Option<Arc<str>>>, value: DynIden) -> Self {
+        Self {
+            type_name: type_name.into(),
+            value,
+        }
+    }
+}
+
 /// This test is to check if the size of [`Value`] exceeds the limit.
 ///
 /// If the size exceeds the limit, you should box the variant.
@@ -399,6 +429,7 @@ impl Value {
             Self::Double(_) => Self::Double(None),
             Self::String(_) => Self::String(None),
             Self::Char(_) => Self::Char(None),
+            Self::Enum(_) => Self::Enum(None),
             Self::Bytes(_) => Self::Bytes(None),
 
             #[cfg(feature = "with-json")]
@@ -519,6 +550,7 @@ impl Value {
             Self::Double(_) => Self::Double(Some(Default::default())),
             Self::String(_) => Self::String(Some(Default::default())),
             Self::Char(_) => Self::Char(Some(Default::default())),
+            Self::Enum(value) => Self::Enum(value.clone()),
             Self::Bytes(_) => Self::Bytes(Some(Default::default())),
 
             #[cfg(feature = "with-json")]

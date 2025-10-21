@@ -1111,6 +1111,16 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     fn write_value_common(&self, buf: &mut impl Write, value: &Value) -> fmt::Result {
+        #[cfg(feature = "backend-postgres")]
+        fn prepare_enum(this: &impl QueryBuilder, r#enum: &Enum, sql: &mut impl Write) {
+            this.write_string_quoted(r#enum.value.as_str(), sql);
+
+            if let Some(type_name) = &r#enum.type_name {
+                sql.write_str("::").unwrap();
+                sql.write_str(&type_name).unwrap();
+            }
+        }
+
         match value {
             Value::Bool(None)
             | Value::TinyInt(None)
@@ -1126,6 +1136,8 @@ pub trait QueryBuilder:
             | Value::String(None)
             | Value::Char(None)
             | Value::Bytes(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "backend-postgres")]
+            Value::Enum(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-json")]
             Value::Json(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-chrono")]
@@ -1202,6 +1214,10 @@ pub trait QueryBuilder:
             Value::String(Some(v)) => self.write_string_quoted(v, buf),
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
+            }
+            #[cfg(feature = "backend-postgres")]
+            Value::Enum(Some(enum_value)) => {
+                prepare_enum(self, enum_value, buf);
             }
             Value::Bytes(Some(v)) => self.write_bytes(v, buf),
             #[cfg(feature = "with-json")]
