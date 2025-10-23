@@ -197,13 +197,15 @@ impl InsertStatement {
     ///     r#"INSERT INTO "glyph" ("image") SELECT 'hello' WHERE NOT EXISTS(SELECT 'world')"#
     /// );
     /// ```
+    ///
+    /// ```
     /// use sea_query::{audit::*, tests_cfg::*, *};
     /// let query = Query::insert()
     ///     .into_table(Glyph::Table)
     ///     .columns([Glyph::Image])
     ///     .select_from(
     ///         Query::select()
-    ///             .expr(Font::Name)
+    ///             .expr(Expr::col(Font::Name))
     ///             .from(Font::Table)
     ///             .take(),
     ///     )
