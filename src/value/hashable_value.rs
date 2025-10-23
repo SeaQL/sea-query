@@ -158,15 +158,13 @@ impl Hash for Value {
             #[cfg(feature = "postgres-array")]
             Value::Array(array) => match array {
                 Some(array) => {
-                    if array.as_ref().is_null() {
+                    if array.is_empty() {
                         2u8.hash(state);
-                        array.as_ref().array_type().hash(state);
+                        array.array_type().hash(state);
                     } else {
                         1u8.hash(state);
-                        array.as_ref().array_type().hash(state);
-                        for value in array.as_ref().to_value_vec() {
-                            value.hash(state);
-                        }
+                        array.array_type().hash(state);
+                        array.hash(state);
                     }
                 }
                 None => 0u8.hash(state),

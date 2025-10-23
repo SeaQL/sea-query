@@ -1,4 +1,5 @@
 use super::*;
+use std::str::from_utf8;
 
 type_to_value!(Json, Json, Json);
 
@@ -34,6 +35,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
+        #[cfg(feature = "backend-postgres")]
+        Value::Enum(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
         #[cfg(feature = "with-bigdecimal")]
@@ -41,7 +44,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
         #[cfg(feature = "postgres-array")]
-        Value::Array(_, None) => Json::Null,
+        Value::Array(None) => Json::Null,
         #[cfg(feature = "postgres-vector")]
         Value::Vector(None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
@@ -105,6 +108,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
+        #[cfg(feature = "backend-postgres")]
+        Value::Enum(Some(v)) => Json::String(v.value.to_string()),
         #[cfg(feature = "postgres-array")]
         Value::Array(_, Some(v)) => Json::Array(v.iter().map(sea_value_to_json_value).collect()),
         #[cfg(feature = "postgres-vector")]

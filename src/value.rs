@@ -297,15 +297,15 @@ pub enum Value {
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffDateTime(Option<Box<jiff::civil::DateTime>>),
+    JiffDateTime(Option<jiff::civil::DateTime>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffTimestamp(Option<Box<Timestamp>>),
+    JiffTimestamp(Option<Timestamp>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffZoned(Option<Box<Zoned>>),
+    JiffZoned(Option<Zoned>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -317,11 +317,11 @@ pub enum Value {
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-    BigDecimal(Option<Box<BigDecimal>>),
+    BigDecimal(Option<BigDecimal>),
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(Option<Box<Array>>),
+    Array(Option<Array>),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -371,16 +371,35 @@ impl Enum {
 pub const VALUE_SIZE: usize = check_value_size();
 const MAX_VALUE_SIZE: usize = 32;
 
-#[cfg(feature = "with-json")]
 const EXPECTED_VALUE_SIZE: usize = {
-    if size_of::<Option<Json>>() > MAX_VALUE_SIZE {
-        size_of::<Option<Json>>()
-    } else {
-        MAX_VALUE_SIZE
+    let mut max = MAX_VALUE_SIZE;
+    // If some crate enabled indexmap feature, the size of Json will be 72 or larger.
+    #[cfg(feature = "with-json")]
+    {
+        if size_of::<Option<Json>>() > max {
+            max = size_of::<Option<Json>>();
+        }
     }
+
+    // If bigdecimal is enabled and its size is larger, we make the limit to be bigdecimal's size
+    #[cfg(feature = "with-bigdecimal")]
+    {
+        if size_of::<Option<BigDecimal>>() > MAX_VALUE_SIZE {
+            max = size_of::<Option<BigDecimal>>();
+        }
+    }
+
+    // Jiff has extra size in debug mode. Skip size check in that case.
+    #[cfg(feature = "with-jiff")]
+    {
+        let zoned_size = size_of::<Option<jiff::Zoned>>();
+        if zoned_size > max && cfg!(debug_assertions) {
+            max = zoned_size;
+        }
+    }
+
+    max
 };
-#[cfg(not(feature = "with-json"))]
-const EXPECTED_VALUE_SIZE: usize = MAX_VALUE_SIZE;
 
 const fn check_value_size() -> usize {
     if std::mem::size_of::<Value>() > EXPECTED_VALUE_SIZE {
@@ -516,7 +535,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(ty, _) => Self::Array(ty.clone(), None),
+            Self::Array(_) => Self::Array(None),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -648,7 +667,10 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(ty, _) => Self::Array(ty.clone(), Some(Default::default())),
+            Self::Array(Some(arr)) => Self::Array(Some(arr.dummy_value())),
+            #[cfg(feature = "postgres-array")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+            Self::Array(None) => Self::Array(None),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]

@@ -1121,6 +1121,9 @@ pub trait QueryBuilder:
             }
         }
 
+        #[cfg(feature = "postgres-array")]
+        fn prepare_array(this: &impl QueryBuilder, array: &Array, sql: &mut impl Write) {}
+
         match value {
             Value::Bool(None)
             | Value::TinyInt(None)
@@ -1181,7 +1184,7 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, None) => buf.write_str("NULL")?,
+            Value::Array(None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-vector")]
             Value::Vector(None) => buf.write_str("NULL")?,
             Value::Bool(Some(b)) => buf.write_str(if *b { "TRUE" } else { "FALSE" })?,
@@ -1330,22 +1333,14 @@ pub trait QueryBuilder:
                 buf.write_str("'")?;
             }
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, Some(v)) => {
+            Value::Array(Some(v)) => {
                 if v.is_empty() {
                     buf.write_str("'{}'")?;
                 } else {
                     buf.write_str("ARRAY [")?;
 
-                    let mut viter = v.iter();
+                    prepare_array(self, v, buf);
 
-                    if let Some(element) = viter.next() {
-                        self.write_value(buf, element)?;
-                    }
-
-                    for element in viter {
-                        buf.write_str(",")?;
-                        self.write_value(buf, element)?;
-                    }
                     buf.write_str("]")?;
                 }
             }
