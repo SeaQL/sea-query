@@ -832,6 +832,23 @@ impl Expr {
         CaseStatement::new().case(cond, then)
     }
 
+    /// Keyword `NULL`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::*;
+    ///
+    /// let query = Query::select().expr(Expr::null()).to_owned();
+    ///
+    /// assert_eq!(query.to_string(MysqlQueryBuilder), r#"SELECT NULL"#);
+    /// assert_eq!(query.to_string(PostgresQueryBuilder), r#"SELECT NULL"#);
+    /// assert_eq!(query.to_string(SqliteQueryBuilder), r#"SELECT NULL"#);
+    /// ```
+    pub fn null() -> Self {
+        Self::Keyword(Keyword::Null)
+    }
+
     /// Keyword `CURRENT_DATE`.
     ///
     /// # Examples
