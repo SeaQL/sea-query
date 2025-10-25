@@ -2,7 +2,6 @@ use super::*;
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "hashable-value", derive(Hash, Eq))]
-#[non_exhaustive]
 pub enum ValueTuple {
     One(Value),
     Two(Value, Value),
