@@ -29,7 +29,8 @@ pub struct IndexColumnExpr {
 }
 
 impl IndexColumn {
-    pub(crate) fn name(&self) -> Option<&DynIden> {
+    /// Get column name for this index component if it's a `TableColumn`, `None` otherwise.
+    pub fn get_col_name(&self) -> Option<&DynIden> {
         match self {
             IndexColumn::TableColumn(IndexColumnTableColumn { name, .. }) => Some(name),
             IndexColumn::Expr(_) => None,
@@ -166,10 +167,14 @@ impl TableIndex {
         self
     }
 
+    pub fn get_name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+
     pub fn get_column_names(&self) -> Vec<String> {
         self.columns
             .iter()
-            .filter_map(|col| col.name().map(|name| name.to_string()))
+            .filter_map(|col| col.get_col_name().map(|name| name.to_string()))
             .collect()
     }
 

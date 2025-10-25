@@ -100,6 +100,14 @@ impl TableForeignKey {
         self
     }
 
+    pub fn get_name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+
+    pub fn get_table(&self) -> Option<&TableRef> {
+        self.table.as_ref()
+    }
+
     pub fn get_ref_table(&self) -> Option<&TableRef> {
         self.ref_table.as_ref()
     }
