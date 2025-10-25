@@ -275,6 +275,143 @@ pub trait ExprTrait: Sized {
     where
         N: IntoIden;
 
+    /// Express a `MAX` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).max())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT MAX(`character`.`size_w`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT MAX("character"."size_w") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MAX("character"."size_w") FROM "character""#
+    /// );
+    /// ```
+    fn max(self) -> Expr;
+
+    /// Express a `MIN` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).min())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT MIN(`character`.`size_w`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT MIN("character"."size_w") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT MIN("character"."size_w") FROM "character""#
+    /// );
+    /// ```
+    fn min(self) -> Expr;
+
+    /// Express a `SUM` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).sum())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT SUM(`character`.`size_w`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT SUM("character"."size_w") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT SUM("character"."size_w") FROM "character""#
+    /// );
+    /// ```
+    fn sum(self) -> Expr;
+
+    /// Express a `COUNT` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).count())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT COUNT(`character`.`size_w`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT COUNT("character"."size_w") FROM "character""#
+    /// );
+    /// ```
+    fn count(self) -> Expr;
+
+    /// Express a `IF NULL` function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).if_null(0))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT IFNULL(`character`.`size_w`, 0) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COALESCE("character"."size_w", 0) FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT IFNULL("character"."size_w", 0) FROM "character""#
+    /// );
+    /// ```
+    fn if_null<V>(self, v: V) -> Expr
+    where
+        V: Into<Expr>;
+
     /// Express an arithmetic division operation.
     ///
     /// # Examples
@@ -1489,6 +1626,29 @@ where
         N: IntoIden,
     {
         Expr::FunctionCall(Func::cast_as(self, type_name))
+    }
+
+    fn max(self) -> Expr {
+        Func::max(self).into()
+    }
+
+    fn min(self) -> Expr {
+        Func::min(self).into()
+    }
+
+    fn sum(self) -> Expr {
+        Func::sum(self).into()
+    }
+
+    fn count(self) -> Expr {
+        Func::count(self).into()
+    }
+
+    fn if_null<V>(self, v: V) -> Expr
+    where
+        V: Into<Expr>,
+    {
+        Func::if_null(self, v).into()
     }
 
     fn unary(self, op: UnOper) -> Expr {
