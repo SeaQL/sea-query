@@ -166,8 +166,8 @@ impl Array {
             Array::String(v) => v.is_empty(),
             Array::Char(v) => v.is_empty(),
             Array::Bytes(v) => v.is_empty(),
-            Array::Enum(boxed) => boxed.as_ref().1.is_empty(),
-            Array::Array(v) => v.as_ref().1.is_empty(),
+            Array::Enum(b) => b.as_ref().1.is_empty(),
+            Array::Array(b) => b.as_ref().1.is_empty(),
             #[cfg(feature = "with-json")]
             Array::Json(v) => v.is_empty(),
             #[cfg(feature = "with-chrono")]
@@ -213,8 +213,265 @@ impl Array {
         }
     }
 
-    pub fn try_from_parts(ty: ArrayType, vals: Vec<Value>) -> Result<Self, ValueTypeErr> {
-        match ty {
+    // TODO: optimize performance to avoid intermediate Value allocations
+    pub fn to_json_values(&self) -> Vec<Json> {
+        match self {
+            Array::Bool(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Bool(x.clone())))
+                .collect(),
+            Array::TinyInt(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::TinyInt(x.clone())))
+                .collect(),
+            Array::SmallInt(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::SmallInt(x.clone())))
+                .collect(),
+            Array::Int(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Int(x.clone())))
+                .collect(),
+            Array::BigInt(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::BigInt(x.clone())))
+                .collect(),
+            Array::TinyUnsigned(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::TinyUnsigned(x.clone())))
+                .collect(),
+            Array::SmallUnsigned(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::SmallUnsigned(x.clone())))
+                .collect(),
+            Array::Unsigned(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Unsigned(x.clone())))
+                .collect(),
+            Array::BigUnsigned(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::BigUnsigned(x.clone())))
+                .collect(),
+            Array::Float(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Float(x.clone())))
+                .collect(),
+            Array::Double(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Double(x.clone())))
+                .collect(),
+            Array::String(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::String(x.clone())))
+                .collect(),
+            Array::Char(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Char(x.clone())))
+                .collect(),
+            Array::Bytes(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Bytes(x.clone())))
+                .collect(),
+            #[cfg(feature = "backend-postgres")]
+            Array::Enum(v) => {
+                let (_, arr) = v.as_ref();
+                arr.iter()
+                    .map(|x| super::sea_value_to_json_value(&Value::Enum(x.clone())))
+                    .collect()
+            }
+            Array::Array(v) => {
+                let (t, arrs) = v.as_ref();
+                // Represent nested arrays as arrays of json values from inner arrays
+                arrs.iter()
+                    .map(|opt_a| match opt_a {
+                        Some(a) => Json::Array(a.to_json_values()),
+                        None => Json::Null,
+                    })
+                    .collect()
+            }
+            #[cfg(feature = "with-json")]
+            Array::Json(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Json(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDate(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::ChronoDate(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoTime(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::ChronoTime(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTime(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::ChronoDateTime(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeUtc(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::ChronoDateTimeUtc(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeLocal(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::ChronoDateTimeLocal(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeWithTimeZone(v) => v
+                .iter()
+                .map(|x| {
+                    super::sea_value_to_json_value(&Value::ChronoDateTimeWithTimeZone(x.clone()))
+                })
+                .collect(),
+            #[cfg(feature = "with-time")]
+            Array::TimeDate(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::TimeDate(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-time")]
+            Array::TimeTime(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::TimeTime(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTime(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::TimeDateTime(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTimeWithTimeZone(v) => v
+                .iter()
+                .map(|x| {
+                    super::sea_value_to_json_value(&Value::TimeDateTimeWithTimeZone(x.clone()))
+                })
+                .collect(),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDate(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::JiffDate(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTime(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::JiffTime(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDateTime(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::JiffDateTime(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTimestamp(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::JiffTimestamp(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffZoned(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::JiffZoned(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-uuid")]
+            Array::Uuid(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Uuid(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-rust_decimal")]
+            Array::Decimal(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::Decimal(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-bigdecimal")]
+            Array::BigDecimal(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::BigDecimal(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-ipnetwork")]
+            Array::IpNetwork(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::IpNetwork(x.clone())))
+                .collect(),
+            #[cfg(feature = "with-mac_address")]
+            Array::MacAddress(v) => v
+                .iter()
+                .map(|x| super::sea_value_to_json_value(&Value::MacAddress(x.clone())))
+                .collect(),
+        }
+    }
+
+    pub fn dummy_value(&self) -> Self {
+        match self {
+            Array::Bool(_) => Array::Bool(Box::new([])),
+            Array::TinyInt(_) => Array::TinyInt(Box::new([])),
+            Array::SmallInt(_) => Array::SmallInt(Box::new([])),
+            Array::Int(_) => Array::Int(Box::new([])),
+            Array::BigInt(_) => Array::BigInt(Box::new([])),
+            Array::TinyUnsigned(_) => Array::TinyUnsigned(Box::new([])),
+            Array::SmallUnsigned(_) => Array::SmallUnsigned(Box::new([])),
+            Array::Unsigned(_) => Array::Unsigned(Box::new([])),
+            Array::BigUnsigned(_) => Array::BigUnsigned(Box::new([])),
+            Array::Float(_) => Array::Float(Box::new([])),
+            Array::Double(_) => Array::Double(Box::new([])),
+            Array::String(_) => Array::String(Box::new([])),
+            Array::Char(_) => Array::Char(Box::new([])),
+            Array::Bytes(_) => Array::Bytes(Box::new([])),
+            Array::Enum(val) => {
+                let val = val.as_ref();
+                Array::Enum(Box::new((val.0.clone(), Box::new([]))))
+            }
+            Array::Array(val) => {
+                let val = val.as_ref();
+                Array::Array(Box::new((val.0.clone(), Box::new([]))))
+            }
+            #[cfg(feature = "with-json")]
+            Array::Json(_) => Array::Json(Box::new([])),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDate(_) => Array::ChronoDate(Box::new([])),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoTime(_) => Array::ChronoTime(Box::new([])),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTime(_) => Array::ChronoDateTime(Box::new([])),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeUtc(_) => Array::ChronoDateTimeUtc(Box::new([])),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeLocal(_) => Array::ChronoDateTimeLocal(Box::new([])),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeWithTimeZone(_) => Array::ChronoDateTimeWithTimeZone(Box::new([])),
+            #[cfg(feature = "with-time")]
+            Array::TimeDate(_) => Array::TimeDate(Box::new([])),
+            #[cfg(feature = "with-time")]
+            Array::TimeTime(_) => Array::TimeTime(Box::new([])),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTime(_) => Array::TimeDateTime(Box::new([])),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTimeWithTimeZone(_) => Array::TimeDateTimeWithTimeZone(Box::new([])),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDate(_) => Array::JiffDate(Box::new([])),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTime(_) => Array::JiffTime(Box::new([])),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDateTime(_) => Array::JiffDateTime(Box::new([])),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTimestamp(_) => Array::JiffTimestamp(Box::new([])),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffZoned(_) => Array::JiffZoned(Box::new([])),
+            #[cfg(feature = "with-uuid")]
+            Array::Uuid(_) => Array::Uuid(Box::new([])),
+            #[cfg(feature = "with-rust_decimal")]
+            Array::Decimal(_) => Array::Decimal(Box::new([])),
+            #[cfg(feature = "with-bigdecimal")]
+            Array::BigDecimal(_) => Array::BigDecimal(Box::new([])),
+            #[cfg(feature = "with-ipnetwork")]
+            Array::IpNetwork(_) => Array::IpNetwork(Box::new([])),
+            #[cfg(feature = "with-mac_address")]
+            Array::MacAddress(_) => Array::MacAddress(Box::new([])),
+        }
+    }
+
+    pub fn try_from_parts(kind: ArrayType, elems: Vec<Value>) -> Result<Self, ValueTypeErr> {
+        match kind {
             ArrayType::Bool => {
                 let mut v = Vec::with_capacity(vals.len());
                 for e in vals {
@@ -599,121 +856,7 @@ impl Array {
             }
         }
     }
-
-    pub fn dummy_value(&self) -> Self {
-        match self {
-            Array::Bool(_) => Array::Bool(Box::new([])),
-            Array::TinyInt(_) => Array::TinyInt(Box::new([])),
-            Array::SmallInt(_) => Array::SmallInt(Box::new([])),
-            Array::Int(_) => Array::Int(Box::new([])),
-            Array::BigInt(_) => Array::BigInt(Box::new([])),
-            Array::TinyUnsigned(_) => Array::TinyUnsigned(Box::new([])),
-            Array::SmallUnsigned(_) => Array::SmallUnsigned(Box::new([])),
-            Array::Unsigned(_) => Array::Unsigned(Box::new([])),
-            Array::BigUnsigned(_) => Array::BigUnsigned(Box::new([])),
-            Array::Float(_) => Array::Float(Box::new([])),
-            Array::Double(_) => Array::Double(Box::new([])),
-            Array::String(_) => Array::String(Box::new([])),
-            Array::Char(_) => Array::Char(Box::new([])),
-            Array::Bytes(_) => Array::Bytes(Box::new([])),
-            Array::Enum(val) => {
-                let val = val.as_ref();
-                Array::Enum(Box::new((val.0.clone(), Box::new([]))))
-            }
-            Array::Array(val) => {
-                let val = val.as_ref();
-                Array::Array(Box::new((val.0.clone(), Box::new([]))))
-            }
-            #[cfg(feature = "with-json")]
-            Array::Json(_) => Array::Json(Box::new([])),
-            #[cfg(feature = "with-chrono")]
-            Array::ChronoDate(_) => Array::ChronoDate(Box::new([])),
-            #[cfg(feature = "with-chrono")]
-            Array::ChronoTime(_) => Array::ChronoTime(Box::new([])),
-            #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTime(_) => Array::ChronoDateTime(Box::new([])),
-            #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTimeUtc(_) => Array::ChronoDateTimeUtc(Box::new([])),
-            #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTimeLocal(_) => Array::ChronoDateTimeLocal(Box::new([])),
-            #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTimeWithTimeZone(_) => Array::ChronoDateTimeWithTimeZone(Box::new([])),
-            #[cfg(feature = "with-time")]
-            Array::TimeDate(_) => Array::TimeDate(Box::new([])),
-            #[cfg(feature = "with-time")]
-            Array::TimeTime(_) => Array::TimeTime(Box::new([])),
-            #[cfg(feature = "with-time")]
-            Array::TimeDateTime(_) => Array::TimeDateTime(Box::new([])),
-            #[cfg(feature = "with-time")]
-            Array::TimeDateTimeWithTimeZone(_) => Array::TimeDateTimeWithTimeZone(Box::new([])),
-            #[cfg(feature = "with-jiff")]
-            Array::JiffDate(_) => Array::JiffDate(Box::new([])),
-            #[cfg(feature = "with-jiff")]
-            Array::JiffTime(_) => Array::JiffTime(Box::new([])),
-            #[cfg(feature = "with-jiff")]
-            Array::JiffDateTime(_) => Array::JiffDateTime(Box::new([])),
-            #[cfg(feature = "with-jiff")]
-            Array::JiffTimestamp(_) => Array::JiffTimestamp(Box::new([])),
-            #[cfg(feature = "with-jiff")]
-            Array::JiffZoned(_) => Array::JiffZoned(Box::new([])),
-            #[cfg(feature = "with-uuid")]
-            Array::Uuid(_) => Array::Uuid(Box::new([])),
-            #[cfg(feature = "with-rust_decimal")]
-            Array::Decimal(_) => Array::Decimal(Box::new([])),
-            #[cfg(feature = "with-bigdecimal")]
-            Array::BigDecimal(_) => Array::BigDecimal(Box::new([])),
-            #[cfg(feature = "with-ipnetwork")]
-            Array::IpNetwork(_) => Array::IpNetwork(Box::new([])),
-            #[cfg(feature = "with-mac_address")]
-            Array::MacAddress(_) => Array::MacAddress(Box::new([])),
-        }
-    }
-
-    #[cfg(feature = "with-json")]
-    #[allow(unused)]
-    pub(crate) fn to_json_values(&self) -> Vec<serde_json::Value> {
-        match self {
-            Array::Bool(items) => todo!(),
-            Array::TinyInt(items) => todo!(),
-            Array::SmallInt(items) => todo!(),
-            Array::Int(items) => todo!(),
-            Array::BigInt(items) => todo!(),
-            Array::TinyUnsigned(items) => todo!(),
-            Array::SmallUnsigned(items) => todo!(),
-            Array::Unsigned(items) => todo!(),
-            Array::BigUnsigned(items) => todo!(),
-            Array::Float(items) => todo!(),
-            Array::Double(items) => todo!(),
-            Array::String(items) => todo!(),
-            Array::Char(items) => todo!(),
-            Array::Bytes(items) => todo!(),
-            Array::Enum(_) => todo!(),
-            Array::Array(items) => todo!(),
-            Array::Json(values) => todo!(),
-            Array::ChronoDate(naive_dates) => todo!(),
-            Array::ChronoTime(naive_times) => todo!(),
-            Array::ChronoDateTime(naive_date_times) => todo!(),
-            Array::ChronoDateTimeUtc(date_times) => todo!(),
-            Array::ChronoDateTimeLocal(date_times) => todo!(),
-            Array::ChronoDateTimeWithTimeZone(date_times) => todo!(),
-            Array::TimeDate(dates) => todo!(),
-            Array::TimeTime(times) => todo!(),
-            Array::TimeDateTime(primitive_date_times) => todo!(),
-            Array::TimeDateTimeWithTimeZone(offset_date_times) => todo!(),
-            Array::JiffDate(dates) => todo!(),
-            Array::JiffTime(times) => todo!(),
-            Array::JiffDateTime(date_times) => todo!(),
-            Array::JiffTimestamp(timestamps) => todo!(),
-            Array::JiffZoned(zoneds) => todo!(),
-            Array::Uuid(uuids) => todo!(),
-            Array::Decimal(decimals) => todo!(),
-            Array::BigDecimal(big_decimals) => todo!(),
-            Array::IpNetwork(ip_networks) => todo!(),
-            Array::MacAddress(items) => todo!(),
-        }
-    }
 }
-
 #[cfg(feature = "hashable-value")]
 mod hash {
     use ordered_float::{FloatCore, OrderedFloat};
@@ -791,6 +934,8 @@ mod hash {
 
     impl std::hash::Hash for Array {
         fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+            use ordered_float::OrderedFloat;
+
             std::mem::discriminant(self).hash(state);
             match self {
                 Array::Bool(items) => items.hash(state),
@@ -802,43 +947,62 @@ mod hash {
                 Array::SmallUnsigned(items) => items.hash(state),
                 Array::Unsigned(items) => items.hash(state),
                 Array::BigUnsigned(items) => items.hash(state),
-                Array::Float(items) => items
-                    .iter()
-                    .copied()
-                    .map(|x| x.map(OrderedFloat))
-                    .collect::<Vec<_>>()
-                    .hash(state),
-                Array::Double(items) => items
-                    .iter()
-                    .copied()
-                    .map(|x| x.map(OrderedFloat))
-                    .collect::<Vec<_>>()
-                    .hash(state),
+                Array::Float(items) => {
+                    for x in items.iter() {
+                        x.map(OrderedFloat).hash(state)
+                    }
+                }
+                Array::Double(items) => {
+                    for x in items.iter() {
+                        x.map(OrderedFloat).hash(state)
+                    }
+                }
                 Array::String(items) => items.hash(state),
                 Array::Char(items) => items.hash(state),
                 Array::Bytes(items) => items.hash(state),
                 Array::Enum(items) => items.hash(state),
                 Array::Array(items) => items.hash(state),
+                #[cfg(feature = "with-json")]
                 Array::Json(items) => items.hash(state),
+                #[cfg(feature = "with-chrono")]
                 Array::ChronoDate(items) => items.hash(state),
+                #[cfg(feature = "with-chrono")]
                 Array::ChronoTime(items) => items.hash(state),
+                #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTime(items) => items.hash(state),
+                #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTimeUtc(items) => items.hash(state),
+                #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTimeLocal(items) => items.hash(state),
+                #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTimeWithTimeZone(items) => items.hash(state),
+                #[cfg(feature = "with-time")]
                 Array::TimeDate(items) => items.hash(state),
+                #[cfg(feature = "with-time")]
                 Array::TimeTime(items) => items.hash(state),
+                #[cfg(feature = "with-time")]
                 Array::TimeDateTime(items) => items.hash(state),
+                #[cfg(feature = "with-time")]
                 Array::TimeDateTimeWithTimeZone(items) => items.hash(state),
+                #[cfg(feature = "with-jiff")]
                 Array::JiffDate(items) => items.hash(state),
+                #[cfg(feature = "with-jiff")]
                 Array::JiffTime(items) => items.hash(state),
+                #[cfg(feature = "with-jiff")]
                 Array::JiffDateTime(items) => items.hash(state),
+                #[cfg(feature = "with-jiff")]
                 Array::JiffTimestamp(items) => items.hash(state),
+                #[cfg(feature = "with-jiff")]
                 Array::JiffZoned(items) => items.hash(state),
+                #[cfg(feature = "with-uuid")]
                 Array::Uuid(items) => items.hash(state),
+                #[cfg(feature = "with-rust_decimal")]
                 Array::Decimal(items) => items.hash(state),
+                #[cfg(feature = "with-bigdecimal")]
                 Array::BigDecimal(items) => items.hash(state),
+                #[cfg(feature = "with-ipnetwork")]
                 Array::IpNetwork(items) => items.hash(state),
+                #[cfg(feature = "with-mac_address")]
                 Array::MacAddress(items) => items.hash(state),
             }
         }

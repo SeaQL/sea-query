@@ -111,7 +111,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "backend-postgres")]
         Value::Enum(Some(v)) => Json::String(v.value.to_string()),
         #[cfg(feature = "postgres-array")]
-        Value::Array(_, Some(v)) => Json::Array(v.iter().map(sea_value_to_json_value).collect()),
+        Value::Array(Some(v)) => Json::Array(v.to_json_values()),
         #[cfg(feature = "postgres-vector")]
         Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]

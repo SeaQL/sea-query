@@ -79,6 +79,24 @@ impl NotU8 for MacAddress {}
 macro_rules! impl_value_vec {
     ($($ty:ty => $vari:ident)*) => {
        $(
+            impl From<Vec<$ty>> for Array {
+                fn from(x: Vec<$ty>) -> Array {
+                    let values: Vec<Option<_>> = x
+                        .into_iter()
+                        .map(Some)
+                        .collect();
+
+                    Array::$vari(values.into_boxed_slice())
+                }
+            }
+
+
+            impl From<Vec<Option<$ty>>> for Array {
+                fn from(x: Vec<Option<$ty>>) -> Array {
+                    Array::$vari(x.into_boxed_slice())
+                }
+            }
+
             impl From<Vec<$ty>> for Value {
                 fn from(x: Vec<$ty>) -> Value {
                     let values: Vec<Option<_>> = x
@@ -142,6 +160,50 @@ impl_value_vec! {
     Vec<u8> => Bytes
 }
 
+// Impls for u8
+// because Vec<u8> is already defined as Bytes
+impl From<Vec<u8>> for Array {
+    fn from(x: Vec<u8>) -> Array {
+        let values: Vec<Option<_>> = x.into_iter().map(Some).collect();
+
+        Array::TinyUnsigned(values.into_boxed_slice())
+    }
+}
+
+impl From<Vec<Option<u8>>> for Array {
+    fn from(x: Vec<Option<u8>>) -> Array {
+        Array::TinyUnsigned(x.into_boxed_slice())
+    }
+}
+
+impl From<Vec<Option<u8>>> for Value {
+    fn from(x: Vec<Option<u8>>) -> Value {
+        Value::Array(Some(Array::TinyUnsigned(x.into_boxed_slice())))
+    }
+}
+
+impl ValueType for Vec<Option<u8>> {
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::Array(Some(Array::TinyUnsigned(inner))) => Ok(inner.into_vec()),
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        stringify!(Vec<u8>).to_owned()
+    }
+
+    fn array_type() -> ArrayType {
+        <u8>::array_type()
+    }
+
+    fn column_type() -> ColumnType {
+        use ColumnType::*;
+        Array(RcOrArc::new(<u8>::column_type()))
+    }
+}
+
 #[cfg(feature = "with-json")]
 impl_value_vec! {
     serde_json::Value => Json
@@ -152,6 +214,7 @@ impl From<(Arc<str>, Vec<Option<Arc<Enum>>>)> for Value {
     fn from(x: (Arc<str>, Vec<Option<Arc<Enum>>>)) -> Value {
         Value::Array(Some(Array::Enum(Box::new((x.0, x.1.into_boxed_slice())))))
     }
+}
 
 #[cfg(feature = "with-chrono")]
 impl_value_vec! {

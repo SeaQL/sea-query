@@ -29,6 +29,19 @@ impl PrecedenceDecider for PostgresQueryBuilder {
     }
 }
 
+impl ValueEncoder for PostgresQueryBuilder {
+    fn write_enum(&self, buf: &mut impl Write, value: &crate::value::Enum) {
+        // Write the enum value as a quoted string
+        self.write_str(buf, value.value.as_str());
+
+        // If a type name is provided, append type cast using ::Type
+        if let Some(type_name) = &value.type_name {
+            buf.write_str("::").unwrap();
+            buf.write_str(type_name).unwrap();
+        }
+    }
+}
+
 impl QueryBuilder for PostgresQueryBuilder {
     fn placeholder(&self) -> (&'static str, bool) {
         ("$", true)
