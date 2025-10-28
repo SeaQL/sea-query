@@ -239,17 +239,23 @@ pub trait ValueEncoder: EscapeBuilder {
 
     #[cfg(feature = "with-uuid")]
     fn write_uuid_to(&self, buf: &mut impl Write, value: uuid::Uuid) {
-        self.write_str_to(buf, &value.to_string());
+        buf.write_str("'").unwrap();
+        write!(buf, "{value}").unwrap();
+        buf.write_str("'").unwrap();
     }
 
     #[cfg(feature = "with-ipnetwork")]
     fn write_ipnetwork_to(&self, buf: &mut impl Write, value: ipnetwork::IpNetwork) {
-        self.write_str_to(buf, &value.to_string());
+        buf.write_str("'").unwrap();
+        write!(buf, "{value}").unwrap();
+        buf.write_str("'").unwrap();
     }
 
     #[cfg(feature = "with-mac_address")]
     fn write_mac_to(&self, buf: &mut impl Write, value: mac_address::MacAddress) {
-        self.write_str_to(buf, &value.to_string());
+        buf.write_str("'").unwrap();
+        write!(buf, "{value}").unwrap();
+        buf.write_str("'").unwrap();
     }
 
     #[cfg(feature = "backend-postgres")]
