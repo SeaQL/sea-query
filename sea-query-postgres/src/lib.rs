@@ -5,6 +5,8 @@ use std::error::Error;
 use bytes::BytesMut;
 use postgres_types::{IsNull, ToSql, Type, to_sql_checked};
 
+#[cfg(feature = "postgres-array")]
+use sea_query::Array;
 use sea_query::{QueryBuilder, Value, query::*};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -104,38 +106,107 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => {
                 use bigdecimal::ToPrimitive;
-                v.as_deref()
+                v.as_ref()
                     .map(|v| v.to_f64().expect("Fail to convert bigdecimal as f64"))
                     .to_sql(ty, out)
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, Some(v)) => v
-                .iter()
-                .map(|v| PostgresValue(v.clone()))
-                .collect::<Vec<PostgresValue>>()
-                .to_sql(ty, out),
+            Value::Array(Some(arr)) => match arr {
+                Array::Bool(inner) => inner.to_sql(ty, out),
+                Array::TinyInt(inner) => inner.to_sql(ty, out),
+                Array::SmallInt(inner) => inner.to_sql(ty, out),
+                Array::Int(inner) => inner.to_sql(ty, out),
+                Array::BigInt(inner) => inner.to_sql(ty, out),
+                Array::TinyUnsigned(inner) => inner
+                    .iter()
+                    .map(|v| v.map(|x| x as u32))
+                    .collect::<Vec<Option<_>>>()
+                    .to_sql(ty, out),
+                Array::SmallUnsigned(inner) => inner
+                    .iter()
+                    .map(|v| v.map(|x| x as u32))
+                    .collect::<Vec<Option<_>>>()
+                    .to_sql(ty, out),
+                Array::Unsigned(inner) => inner.to_sql(ty, out),
+                Array::BigUnsigned(inner) => inner
+                    .into_iter()
+                    .map(|v| v.map(|x| x as i64))
+                    .collect::<Vec<Option<_>>>()
+                    .to_sql(ty, out),
+                Array::Float(inner) => inner.to_sql(ty, out),
+                Array::Double(inner) => inner.to_sql(ty, out),
+                Array::String(inner) => inner.to_sql(ty, out),
+                Array::Char(inner) => inner
+                    .into_iter()
+                    .map(|v| v.map(|c| c.to_string()))
+                    .collect::<Vec<Option<String>>>()
+                    .to_sql(ty, out),
+                Array::Bytes(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-json")]
+                Array::Json(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-chrono")]
+                Array::ChronoDate(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-chrono")]
+                Array::ChronoTime(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-chrono")]
+                Array::ChronoDateTime(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-chrono")]
+                Array::ChronoDateTimeUtc(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-chrono")]
+                Array::ChronoDateTimeLocal(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-chrono")]
+                Array::ChronoDateTimeWithTimeZone(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-time")]
+                Array::TimeDate(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-time")]
+                Array::TimeTime(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-time")]
+                Array::TimeDateTime(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-time")]
+                Array::TimeDateTimeWithTimeZone(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-uuid")]
+                Array::Uuid(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-rust_decimal")]
+                Array::Decimal(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-bigdecimal")]
+                Array::BigDecimal(inner) => {
+                    use bigdecimal::ToPrimitive;
+                    inner
+                        .iter()
+                        .cloned()
+                        .map(|v| {
+                            v.map(|bd| bd.to_f64().expect("Fail to convert bigdecimal as f64"))
+                        })
+                        .collect::<Vec<Option<f64>>>()
+                        .to_sql(ty, out)
+                }
+                #[cfg(feature = "with-ipnetwork")]
+                Array::IpNetwork(inner) => inner
+                    .iter()
+                    .cloned()
+                    .map(|v| v.map(conv_ip_network))
+                    .collect::<Vec<_>>()
+                    .to_sql(ty, out),
+                #[cfg(feature = "with-mac_address")]
+                Array::MacAddress(inner) => inner
+                    .into_iter()
+                    .map(|v| v.map(conv_mac_address))
+                    .collect::<Vec<_>>()
+                    .to_sql(ty, out),
+                _ => unimplemented!("Unsupported array variant"),
+            },
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, None) => Ok(IsNull::Yes),
+            Value::Array(None) => Ok(IsNull::Yes),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => v.to_sql(ty, out),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(None) => Ok(IsNull::Yes),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(v) => {
-                use cidr::IpCidr;
-                v.map(|v| {
-                    IpCidr::new(v.network(), v.prefix())
-                        .expect("Fail to convert IpNetwork to IpCidr")
-                })
-                .to_sql(ty, out)
-            }
+            Value::IpNetwork(v) => v.map(conv_ip_network).to_sql(ty, out),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(v) => {
-                use eui48::MacAddress;
-                v.map(|v| MacAddress::new(v.bytes())).to_sql(ty, out)
-            }
+            Value::MacAddress(v) => v.map(conv_mac_address).to_sql(ty, out),
         }
     }
 
@@ -144,4 +215,16 @@ impl ToSql for PostgresValue {
     }
 
     to_sql_checked!();
+}
+
+#[cfg(feature = "with-mac_address")]
+fn conv_mac_address(input: mac_address::MacAddress) -> eui48::MacAddress {
+    use eui48::MacAddress;
+    MacAddress::new(input.bytes())
+}
+
+#[cfg(feature = "with-ipnetwork")]
+fn conv_ip_network(input: ipnetwork::IpNetwork) -> cidr::IpCidr {
+    use cidr::IpCidr;
+    IpCidr::new(input.network(), input.prefix()).expect("Fail to convert IpNetwork to IpCidr")
 }
