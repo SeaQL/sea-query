@@ -250,202 +250,275 @@ pub trait ValueEncoder: EscapeBuilder {
 
     #[cfg(feature = "backend-postgres")]
     fn write_enum(&self, buf: &mut impl Write, value: &crate::value::Enum) {
-        buf.write_str(value.value.as_str());
+        self.write_str(buf, value.value.as_str());
     }
 
     #[cfg(feature = "postgres-array")]
     fn write_array(&self, buf: &mut impl Write, array: &crate::value::Array) {
+        use std::fmt;
+
         use crate::value::Array;
 
-        fn write_items<QB, T, F, W>(encoder: &QB, buf: &mut W, items: &[Option<T>], mut f: F)
+        fn write_array_values<VE, T, F, W>(
+            encoder: &VE,
+            buf: &mut W,
+            items: &[Option<T>],
+            mut f: F,
+        ) -> fmt::Result
         where
-            QB: ValueEncoder + ?Sized,
+            VE: ValueEncoder + ?Sized,
             W: Write,
-            F: FnMut(&QB, &mut W, &T),
+            F: FnMut(&VE, &mut W, &T),
         {
-            let mut first = true;
-            for item in items {
-                if !first {
-                    buf.write_char(',').unwrap();
-                }
-                first = false;
-                match item {
-                    Some(value) => f(encoder, buf, value),
-                    None => buf.write_str("NULL").unwrap(),
-                }
-            }
+            use crate::utils::join_write;
+
+            join_write(
+                buf,
+                items,
+                |buf| buf.write_char(','),
+                |buf, item| {
+                    match item.as_ref() {
+                        Some(val) => f(encoder, buf, val),
+                        None => buf.write_str("NULL")?,
+                    }
+
+                    Ok(())
+                },
+            )
         }
 
-        fn write_array_recursive<QB, W>(encoder: &QB, buf: &mut W, array: &Array)
+        fn write_array_recursive<VE, W>(encoder: &VE, buf: &mut W, array: &Array) -> fmt::Result
         where
-            QB: ValueEncoder + ?Sized,
+            VE: ValueEncoder + ?Sized,
             W: Write,
         {
             if array.is_empty() {
-                buf.write_str("'{}'").unwrap();
-                return;
+                return buf.write_str("'{}'");
             }
 
-            buf.write_str("'ARRAY[").unwrap();
+            buf.write_str("'ARRAY[")?;
             match array {
                 Array::Bool(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_bool(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_bool(buf, *val)
+                    })
                 }
                 Array::TinyInt(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_i8(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_i8(buf, *val)
+                    })
                 }
                 Array::SmallInt(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_i16(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_i16(buf, *val)
+                    })
                 }
                 Array::Int(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_i32(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_i32(buf, *val)
+                    })
                 }
                 Array::BigInt(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_i64(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_i64(buf, *val)
+                    })
                 }
                 Array::TinyUnsigned(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_u8(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_u8(buf, *val)
+                    })
                 }
                 Array::SmallUnsigned(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_u16(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_u16(buf, *val)
+                    })
                 }
                 Array::Unsigned(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_u32(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_u32(buf, *val)
+                    })
                 }
                 Array::BigUnsigned(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_u64(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_u64(buf, *val)
+                    })
                 }
                 Array::Float(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_f32(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_f32(buf, *val)
+                    })
                 }
                 Array::Double(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_f64(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_f64(buf, *val)
+                    })
                 }
                 Array::String(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_str(buf, val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_str(buf, val)
+                    })
                 }
                 Array::Char(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_char(buf, *val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_char(buf, *val)
+                    })
                 }
                 Array::Bytes(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_bytes(buf, val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_bytes(buf, val)
+                    })
                 }
                 #[cfg(feature = "backend-postgres")]
                 Array::Enum(boxed) => {
-                    write_items(encoder, buf, &boxed.as_ref().1, |qb, buf, val| {
-                        qb.write_enum(buf, val.as_ref())
+                    write_array_values(encoder, buf, &boxed.as_ref().1, |encoder, buf, val| {
+                        encoder.write_enum(buf, val.as_ref())
                     })
                 }
                 Array::Array(boxed) => {
+                    use crate::utils::join_write;
+
                     let (_, inner) = boxed.as_ref();
-                    let mut first = true;
-                    for item in inner.iter() {
-                        if !first {
-                            buf.write_char(',').unwrap();
-                        }
-                        first = false;
-                        match item {
+                    join_write(
+                        buf,
+                        inner,
+                        |buf| buf.write_char(','),
+                        |buf, item| match item {
                             Some(array) => write_array_recursive(encoder, buf, array),
-                            None => buf.write_str("NULL").unwrap(),
-                        }
-                    }
+                            None => buf.write_str("NULL"),
+                        },
+                    )
                 }
                 #[cfg(feature = "with-json")]
                 Array::Json(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_json(buf, val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_json(buf, val)
+                    })
                 }
                 #[cfg(feature = "with-chrono")]
-                Array::ChronoDate(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_naive_date(buf, val)
-                }),
+                Array::ChronoDate(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_naive_date(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-chrono")]
-                Array::ChronoTime(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_naive_time(buf, val)
-                }),
+                Array::ChronoTime(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_naive_time(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-chrono")]
-                Array::ChronoDateTime(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_naive_datetime(buf, val)
-                }),
+                Array::ChronoDateTime(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_naive_datetime(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTimeUtc(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| {
-                        qb.write_datetime_utc(buf, val)
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_datetime_utc(buf, val)
                     })
                 }
                 #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTimeLocal(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| {
-                        qb.write_datetime_local(buf, val)
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_datetime_local(buf, val)
                     })
                 }
                 #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTimeWithTimeZone(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| {
-                        qb.write_datetime_fixed(buf, val)
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_datetime_fixed(buf, val)
                     })
                 }
                 #[cfg(feature = "with-time")]
-                Array::TimeDate(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_time_date(buf, val)
-                }),
+                Array::TimeDate(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_time_date(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-time")]
-                Array::TimeTime(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_time_time(buf, val)
-                }),
+                Array::TimeTime(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_time_time(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-time")]
-                Array::TimeDateTime(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_time_datetime(buf, val)
-                }),
+                Array::TimeDateTime(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_time_datetime(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-time")]
                 Array::TimeDateTimeWithTimeZone(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| {
-                        qb.write_time_datetime_tz(buf, val)
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_time_datetime_tz(buf, val)
                     })
                 }
                 #[cfg(feature = "with-jiff")]
-                Array::JiffDate(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_jiff_date(buf, val)
-                }),
+                Array::JiffDate(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_jiff_date(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-jiff")]
-                Array::JiffTime(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_jiff_time(buf, val)
-                }),
+                Array::JiffTime(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_jiff_time(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-jiff")]
-                Array::JiffDateTime(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_jiff_datetime(buf, val)
-                }),
+                Array::JiffDateTime(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_jiff_datetime(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-jiff")]
-                Array::JiffTimestamp(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_jiff_timestamp(buf, val)
-                }),
+                Array::JiffTimestamp(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_jiff_timestamp(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-jiff")]
-                Array::JiffZoned(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_jiff_zoned(buf, val)
-                }),
+                Array::JiffZoned(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_jiff_zoned(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-uuid")]
                 Array::Uuid(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_uuid(buf, val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_uuid(buf, val)
+                    })
                 }
                 #[cfg(feature = "with-rust_decimal")]
-                Array::Decimal(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_decimal(buf, val)
-                }),
+                Array::Decimal(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_decimal(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-bigdecimal")]
-                Array::BigDecimal(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_bigdecimal(buf, val)
-                }),
+                Array::BigDecimal(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_bigdecimal(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-ipnetwork")]
-                Array::IpNetwork(items) => write_items(encoder, buf, items, |qb, buf, val| {
-                    qb.write_ipnetwork(buf, val)
-                }),
+                Array::IpNetwork(items) => {
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_ipnetwork(buf, val)
+                    })
+                }
                 #[cfg(feature = "with-mac_address")]
                 Array::MacAddress(items) => {
-                    write_items(encoder, buf, items, |qb, buf, val| qb.write_mac(buf, val))
+                    write_array_values(encoder, buf, items, |encoder, buf, val| {
+                        encoder.write_mac(buf, val)
+                    })
                 }
             }
-            buf.write_str("]'").unwrap();
+            .unwrap();
+            buf.write_str("]'")
         }
 
-        write_array_recursive(self, buf, array);
+        write_array_recursive(self, buf, array).unwrap()
     }
 }

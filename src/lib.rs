@@ -1022,6 +1022,7 @@ pub mod sqlx;
 pub mod table;
 pub mod token;
 pub mod types;
+mod utils;
 pub mod value;
 
 #[doc(hidden)]

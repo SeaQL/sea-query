@@ -30,6 +30,16 @@ impl PrecedenceDecider for PostgresQueryBuilder {
 }
 
 impl ValueEncoder for PostgresQueryBuilder {
+    fn write_str(&self, buf: &mut impl Write, value: &str) {
+        if self.needs_escape(value) {
+            buf.write_str("E'").unwrap();
+        } else {
+            buf.write_str("'").unwrap();
+        }
+        self.write_escaped(buf, value);
+        buf.write_str("'").unwrap();
+    }
+
     fn write_enum(&self, buf: &mut impl Write, value: &crate::value::Enum) {
         // Write the enum value as a quoted string
         self.write_str(buf, value.value.as_str());
@@ -39,6 +49,14 @@ impl ValueEncoder for PostgresQueryBuilder {
             buf.write_str("::").unwrap();
             buf.write_str(type_name).unwrap();
         }
+    }
+
+    fn write_bytes(&self, buffer: &mut impl Write, bytes: &[u8]) {
+        buffer.write_str("'\\x").unwrap();
+        for b in bytes {
+            write!(buffer, "{b:02X}").unwrap();
+        }
+        buffer.write_str("'").unwrap();
     }
 }
 
@@ -203,14 +221,6 @@ impl QueryBuilder for PostgresQueryBuilder {
             buffer.write_str("'").unwrap();
         }
         self.write_escaped(buffer, string);
-        buffer.write_str("'").unwrap();
-    }
-
-    fn write_bytes(&self, bytes: &[u8], buffer: &mut impl Write) {
-        buffer.write_str("'\\x").unwrap();
-        for b in bytes {
-            write!(buffer, "{b:02X}").unwrap();
-        }
         buffer.write_str("'").unwrap();
     }
 

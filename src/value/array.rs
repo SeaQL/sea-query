@@ -473,8 +473,8 @@ impl Array {
     pub fn try_from_parts(kind: ArrayType, elems: Vec<Value>) -> Result<Self, ValueTypeErr> {
         match kind {
             ArrayType::Bool => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Bool(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -483,8 +483,8 @@ impl Array {
                 Ok(Array::Bool(v.into_boxed_slice()))
             }
             ArrayType::TinyInt => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::TinyInt(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -493,8 +493,8 @@ impl Array {
                 Ok(Array::TinyInt(v.into_boxed_slice()))
             }
             ArrayType::SmallInt => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::SmallInt(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -503,8 +503,8 @@ impl Array {
                 Ok(Array::SmallInt(v.into_boxed_slice()))
             }
             ArrayType::Int => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Int(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -513,8 +513,8 @@ impl Array {
                 Ok(Array::Int(v.into_boxed_slice()))
             }
             ArrayType::BigInt => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::BigInt(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -523,8 +523,8 @@ impl Array {
                 Ok(Array::BigInt(v.into_boxed_slice()))
             }
             ArrayType::TinyUnsigned => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::TinyUnsigned(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -533,8 +533,8 @@ impl Array {
                 Ok(Array::TinyUnsigned(v.into_boxed_slice()))
             }
             ArrayType::SmallUnsigned => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::SmallUnsigned(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -543,8 +543,8 @@ impl Array {
                 Ok(Array::SmallUnsigned(v.into_boxed_slice()))
             }
             ArrayType::Unsigned => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Unsigned(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -553,8 +553,8 @@ impl Array {
                 Ok(Array::Unsigned(v.into_boxed_slice()))
             }
             ArrayType::BigUnsigned => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::BigUnsigned(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -563,8 +563,8 @@ impl Array {
                 Ok(Array::BigUnsigned(v.into_boxed_slice()))
             }
             ArrayType::Float => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Float(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -573,8 +573,8 @@ impl Array {
                 Ok(Array::Float(v.into_boxed_slice()))
             }
             ArrayType::Double => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Double(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -583,8 +583,8 @@ impl Array {
                 Ok(Array::Double(v.into_boxed_slice()))
             }
             ArrayType::String => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::String(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -593,8 +593,8 @@ impl Array {
                 Ok(Array::String(v.into_boxed_slice()))
             }
             ArrayType::Char => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Char(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -603,8 +603,8 @@ impl Array {
                 Ok(Array::Char(v.into_boxed_slice()))
             }
             ArrayType::Bytes => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Bytes(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -614,8 +614,8 @@ impl Array {
             }
             #[cfg(feature = "backend-postgres")]
             ArrayType::Enum(name) => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Enum(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -625,8 +625,8 @@ impl Array {
             }
             #[cfg(feature = "with-json")]
             ArrayType::Json => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Json(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -636,8 +636,8 @@ impl Array {
             }
             #[cfg(feature = "with-chrono")]
             ArrayType::ChronoDate => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::ChronoDate(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -647,8 +647,8 @@ impl Array {
             }
             #[cfg(feature = "with-chrono")]
             ArrayType::ChronoTime => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::ChronoTime(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -658,8 +658,8 @@ impl Array {
             }
             #[cfg(feature = "with-chrono")]
             ArrayType::ChronoDateTime => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::ChronoDateTime(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -669,8 +669,8 @@ impl Array {
             }
             #[cfg(feature = "with-chrono")]
             ArrayType::ChronoDateTimeUtc => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::ChronoDateTimeUtc(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -680,8 +680,8 @@ impl Array {
             }
             #[cfg(feature = "with-chrono")]
             ArrayType::ChronoDateTimeLocal => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::ChronoDateTimeLocal(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -691,8 +691,8 @@ impl Array {
             }
             #[cfg(feature = "with-chrono")]
             ArrayType::ChronoDateTimeWithTimeZone => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::ChronoDateTimeWithTimeZone(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -702,8 +702,8 @@ impl Array {
             }
             #[cfg(feature = "with-time")]
             ArrayType::TimeDate => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::TimeDate(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -713,8 +713,8 @@ impl Array {
             }
             #[cfg(feature = "with-time")]
             ArrayType::TimeTime => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::TimeTime(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -724,8 +724,8 @@ impl Array {
             }
             #[cfg(feature = "with-time")]
             ArrayType::TimeDateTime => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::TimeDateTime(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -735,8 +735,8 @@ impl Array {
             }
             #[cfg(feature = "with-time")]
             ArrayType::TimeDateTimeWithTimeZone => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::TimeDateTimeWithTimeZone(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -746,8 +746,8 @@ impl Array {
             }
             #[cfg(feature = "with-jiff")]
             ArrayType::JiffDate => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::JiffDate(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -757,8 +757,8 @@ impl Array {
             }
             #[cfg(feature = "with-jiff")]
             ArrayType::JiffTime => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::JiffTime(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -768,8 +768,8 @@ impl Array {
             }
             #[cfg(feature = "with-jiff")]
             ArrayType::JiffDateTime => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::JiffDateTime(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -779,8 +779,8 @@ impl Array {
             }
             #[cfg(feature = "with-jiff")]
             ArrayType::JiffTimestamp => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::JiffTimestamp(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -790,8 +790,8 @@ impl Array {
             }
             #[cfg(feature = "with-jiff")]
             ArrayType::JiffZoned => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::JiffZoned(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -801,8 +801,8 @@ impl Array {
             }
             #[cfg(feature = "with-uuid")]
             ArrayType::Uuid => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Uuid(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -812,8 +812,8 @@ impl Array {
             }
             #[cfg(feature = "with-rust_decimal")]
             ArrayType::Decimal => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::Decimal(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -823,8 +823,8 @@ impl Array {
             }
             #[cfg(feature = "with-bigdecimal")]
             ArrayType::BigDecimal => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::BigDecimal(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -834,8 +834,8 @@ impl Array {
             }
             #[cfg(feature = "with-ipnetwork")]
             ArrayType::IpNetwork => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::IpNetwork(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
@@ -845,8 +845,8 @@ impl Array {
             }
             #[cfg(feature = "with-mac_address")]
             ArrayType::MacAddress => {
-                let mut v = Vec::with_capacity(vals.len());
-                for e in vals {
+                let mut v = Vec::with_capacity(elems.len());
+                for e in elems {
                     match e {
                         Value::MacAddress(x) => v.push(x),
                         _ => return Err(ValueTypeErr),
