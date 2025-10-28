@@ -1,5 +1,6 @@
 use std::fmt;
 
+// TODO: replace join_io with this function
 // Make write a sperater a bit faster
 pub(crate) fn join_write<T, B: fmt::Write>(
     buf: &mut B,

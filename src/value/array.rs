@@ -1,4 +1,5 @@
 use super::*;
+use crate::backend::ValueEncoder;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
@@ -213,191 +214,160 @@ impl Array {
         }
     }
 
-    // TODO: optimize performance to avoid intermediate Value allocations
-    pub fn to_json_values(&self) -> Vec<Json> {
+    #[cfg(feature = "with-json")]
+    pub(crate) fn to_json_value(&self) -> Json {
+        fn map_slice_of_opts<T, F>(slice: &[Option<T>], mut f: F) -> Json
+        where
+            F: FnMut(&T) -> Json,
+        {
+            slice
+                .iter()
+                .map(|o| match o.as_ref() {
+                    Some(v) => f(v),
+                    None => Json::Null,
+                })
+                .collect()
+        }
+
+        fn encode_to_string<F>(f: F) -> String
+        where
+            F: FnOnce(&CommonSqlQueryBuilder, &mut String),
+        {
+            let mut s = String::new();
+            let enc = CommonSqlQueryBuilder;
+            f(&enc, &mut s);
+            s
+        }
+
         match self {
-            Array::Bool(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Bool(x.clone())))
-                .collect(),
-            Array::TinyInt(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::TinyInt(x.clone())))
-                .collect(),
-            Array::SmallInt(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::SmallInt(x.clone())))
-                .collect(),
-            Array::Int(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Int(x.clone())))
-                .collect(),
-            Array::BigInt(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::BigInt(x.clone())))
-                .collect(),
-            Array::TinyUnsigned(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::TinyUnsigned(x.clone())))
-                .collect(),
-            Array::SmallUnsigned(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::SmallUnsigned(x.clone())))
-                .collect(),
-            Array::Unsigned(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Unsigned(x.clone())))
-                .collect(),
-            Array::BigUnsigned(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::BigUnsigned(x.clone())))
-                .collect(),
-            Array::Float(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Float(x.clone())))
-                .collect(),
-            Array::Double(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Double(x.clone())))
-                .collect(),
-            Array::String(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::String(x.clone())))
-                .collect(),
-            Array::Char(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Char(x.clone())))
-                .collect(),
-            Array::Bytes(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Bytes(x.clone())))
-                .collect(),
+            Array::Bool(v) => map_slice_of_opts(v, |&b| Json::Bool(b)),
+            Array::TinyInt(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::SmallInt(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::Int(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::BigInt(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::TinyUnsigned(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::SmallUnsigned(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::Unsigned(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::BigUnsigned(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::Float(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::Double(v) => map_slice_of_opts(v, |&x| x.into()),
+            Array::String(v) => map_slice_of_opts(v, |s| Json::String(s.clone())),
+            Array::Char(v) => map_slice_of_opts(v, |&c| Json::String(c.to_string())),
+            Array::Bytes(v) => map_slice_of_opts(v, |bytes| {
+                Json::String(std::str::from_utf8(bytes).unwrap().to_string())
+            }),
             #[cfg(feature = "backend-postgres")]
             Array::Enum(v) => {
                 let (_, arr) = v.as_ref();
-                arr.iter()
-                    .map(|x| super::sea_value_to_json_value(&Value::Enum(x.clone())))
-                    .collect()
+                map_slice_of_opts(arr, |e| Json::String(e.value.to_string()))
             }
             Array::Array(v) => {
-                let (t, arrs) = v.as_ref();
-                // Represent nested arrays as arrays of json values from inner arrays
+                let (_, arrs) = v.as_ref();
                 arrs.iter()
                     .map(|opt_a| match opt_a {
-                        Some(a) => Json::Array(a.to_json_values()),
+                        Some(a) => a.to_json_value(),
                         None => Json::Null,
                     })
                     .collect()
             }
             #[cfg(feature = "with-json")]
-            Array::Json(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Json(x.clone())))
-                .collect(),
+            Array::Json(v) => map_slice_of_opts(v, |j| j.clone()),
             #[cfg(feature = "with-chrono")]
-            Array::ChronoDate(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::ChronoDate(x.clone())))
-                .collect(),
+            Array::ChronoDate(v) => map_slice_of_opts(v, |&d| {
+                Json::String(encode_to_string(|enc, buf| enc.write_naive_date_to(buf, d)))
+            }),
             #[cfg(feature = "with-chrono")]
-            Array::ChronoTime(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::ChronoTime(x.clone())))
-                .collect(),
+            Array::ChronoTime(v) => map_slice_of_opts(v, |&t| {
+                Json::String(encode_to_string(|enc, buf| enc.write_naive_time_to(buf, t)))
+            }),
             #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTime(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::ChronoDateTime(x.clone())))
-                .collect(),
+            Array::ChronoDateTime(v) => map_slice_of_opts(v, |&dt| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_naive_datetime_to(buf, dt)
+                }))
+            }),
             #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTimeUtc(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::ChronoDateTimeUtc(x.clone())))
-                .collect(),
+            Array::ChronoDateTimeUtc(v) => map_slice_of_opts(v, |dt| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_datetime_utc_to(buf, dt)
+                }))
+            }),
             #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTimeLocal(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::ChronoDateTimeLocal(x.clone())))
-                .collect(),
+            Array::ChronoDateTimeLocal(v) => map_slice_of_opts(v, |dt| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_datetime_local_to(buf, dt)
+                }))
+            }),
             #[cfg(feature = "with-chrono")]
-            Array::ChronoDateTimeWithTimeZone(v) => v
-                .iter()
-                .map(|x| {
-                    super::sea_value_to_json_value(&Value::ChronoDateTimeWithTimeZone(x.clone()))
-                })
-                .collect(),
+            Array::ChronoDateTimeWithTimeZone(v) => map_slice_of_opts(v, |dt| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_datetime_fixed_to(buf, dt)
+                }))
+            }),
             #[cfg(feature = "with-time")]
-            Array::TimeDate(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::TimeDate(x.clone())))
-                .collect(),
+            Array::TimeDate(v) => map_slice_of_opts(v, |&d| {
+                Json::String(encode_to_string(|enc, buf| enc.write_time_date_to(buf, d)))
+            }),
             #[cfg(feature = "with-time")]
-            Array::TimeTime(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::TimeTime(x.clone())))
-                .collect(),
+            Array::TimeTime(v) => map_slice_of_opts(v, |&t| {
+                Json::String(encode_to_string(|enc, buf| enc.write_time_time_to(buf, t)))
+            }),
             #[cfg(feature = "with-time")]
-            Array::TimeDateTime(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::TimeDateTime(x.clone())))
-                .collect(),
+            Array::TimeDateTime(v) => map_slice_of_opts(v, |&dt| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_time_datetime_to(buf, dt)
+                }))
+            }),
             #[cfg(feature = "with-time")]
-            Array::TimeDateTimeWithTimeZone(v) => v
-                .iter()
-                .map(|x| {
-                    super::sea_value_to_json_value(&Value::TimeDateTimeWithTimeZone(x.clone()))
-                })
-                .collect(),
+            Array::TimeDateTimeWithTimeZone(v) => map_slice_of_opts(v, |&dt| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_time_datetime_tz_to(buf, dt)
+                }))
+            }),
             #[cfg(feature = "with-jiff")]
-            Array::JiffDate(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::JiffDate(x.clone())))
-                .collect(),
+            Array::JiffDate(v) => map_slice_of_opts(v, |&d| {
+                Json::String(encode_to_string(|enc, buf| enc.write_jiff_date_to(buf, d)))
+            }),
             #[cfg(feature = "with-jiff")]
-            Array::JiffTime(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::JiffTime(x.clone())))
-                .collect(),
+            Array::JiffTime(v) => map_slice_of_opts(v, |&t| {
+                Json::String(encode_to_string(|enc, buf| enc.write_jiff_time_to(buf, t)))
+            }),
             #[cfg(feature = "with-jiff")]
-            Array::JiffDateTime(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::JiffDateTime(x.clone())))
-                .collect(),
+            Array::JiffDateTime(v) => map_slice_of_opts(v, |&dt| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_jiff_datetime_to(buf, dt)
+                }))
+            }),
             #[cfg(feature = "with-jiff")]
-            Array::JiffTimestamp(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::JiffTimestamp(x.clone())))
-                .collect(),
+            Array::JiffTimestamp(v) => map_slice_of_opts(v, |&ts| {
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_jiff_timestamp_to(buf, ts)
+                }))
+            }),
             #[cfg(feature = "with-jiff")]
-            Array::JiffZoned(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::JiffZoned(x.clone())))
-                .collect(),
+            Array::JiffZoned(v) => map_slice_of_opts(v, |z| {
+                Json::String(encode_to_string(|enc, buf| enc.write_jiff_zoned_to(buf, z)))
+            }),
             #[cfg(feature = "with-uuid")]
-            Array::Uuid(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Uuid(x.clone())))
-                .collect(),
+            Array::Uuid(v) => map_slice_of_opts(v, |&u| Json::String(u.to_string())),
             #[cfg(feature = "with-rust_decimal")]
-            Array::Decimal(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::Decimal(x.clone())))
-                .collect(),
+            Array::Decimal(v) => map_slice_of_opts(v, |&d| {
+                use rust_decimal::prelude::ToPrimitive;
+                Json::Number(serde_json::Number::from_f64(d.to_f64().unwrap()).unwrap())
+            }),
             #[cfg(feature = "with-bigdecimal")]
-            Array::BigDecimal(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::BigDecimal(x.clone())))
-                .collect(),
+            Array::BigDecimal(v) => map_slice_of_opts(v, |bd| {
+                use bigdecimal::ToPrimitive;
+                Json::Number(serde_json::Number::from_f64(bd.to_f64().unwrap()).unwrap())
+            }),
             #[cfg(feature = "with-ipnetwork")]
-            Array::IpNetwork(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::IpNetwork(x.clone())))
-                .collect(),
+            Array::IpNetwork(v) => map_slice_of_opts(v, |&ip| {
+                Json::String(encode_to_string(|enc, buf| enc.write_ipnetwork_to(buf, ip)))
+            }),
             #[cfg(feature = "with-mac_address")]
-            Array::MacAddress(v) => v
-                .iter()
-                .map(|x| super::sea_value_to_json_value(&Value::MacAddress(x.clone())))
-                .collect(),
+            Array::MacAddress(v) => map_slice_of_opts(v, |&mac| {
+                Json::String(encode_to_string(|enc, buf| enc.write_mac_to(buf, mac)))
+            }),
         }
     }
 
