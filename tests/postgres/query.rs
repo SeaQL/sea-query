@@ -1443,7 +1443,7 @@ fn insert_10() {
                 .into()
             ])
             .to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, ARRAY ['Token1','Token2','Token3'])"#
+        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, ARRAY['Token1','Token2','Token3'])"#
     );
 }
 

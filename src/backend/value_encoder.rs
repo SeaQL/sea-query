@@ -306,7 +306,7 @@ pub trait ValueEncoder: EscapeBuilder {
                 return buf.write_str("'{}'");
             }
 
-            buf.write_str("'ARRAY[")?;
+            buf.write_str("ARRAY[")?;
             match array {
                 Array::Bool(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
@@ -526,7 +526,7 @@ pub trait ValueEncoder: EscapeBuilder {
                 }
             }
             .unwrap();
-            buf.write_str("]'")
+            buf.write_str("]")
         }
 
         write_array_recursive(self, buf, array).unwrap()

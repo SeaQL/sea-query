@@ -20,7 +20,7 @@ impl NotU8 for char {}
 impl NotU8 for String {}
 impl NotU8 for Vec<u8> {}
 
-// TODO impl<T: NotU8> NotU8 for Option<T> {}
+impl<T: NotU8> NotU8 for Option<T> {}
 
 #[cfg(feature = "with-json")]
 impl NotU8 for Json {}
