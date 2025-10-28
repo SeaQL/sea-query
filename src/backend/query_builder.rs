@@ -1144,15 +1144,15 @@ pub trait QueryBuilder:
             Value::Json(v) => write_opt!(v, val => self.write_json_to(buf, val)),
             #[cfg(feature = "with-chrono")]
             Value::ChronoDate(v) => {
-                write_opt!(v, val => self.write_naive_date_to(buf, val))
+                write_opt!(v, val => self.write_naive_date_to(buf, *val))
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoTime(v) => {
-                write_opt!(v, val => self.write_naive_time_to(buf, val))
+                write_opt!(v, val => self.write_naive_time_to(buf, *val))
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTime(v) => {
-                write_opt!(v, val => self.write_naive_datetime_to(buf, val))
+                write_opt!(v, val => self.write_naive_datetime_to(buf, *val))
             }
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeUtc(v) => {
@@ -1166,45 +1166,45 @@ pub trait QueryBuilder:
                 write_opt!(v, val => self.write_datetime_fixed_to(buf, val))
             }
             #[cfg(feature = "with-time")]
-            Value::TimeDate(v) => write_opt!(v, val => self.write_time_date_to(buf, val)),
+            Value::TimeDate(v) => write_opt!(v, val => self.write_time_date_to(buf, *val)),
             #[cfg(feature = "with-time")]
-            Value::TimeTime(v) => write_opt!(v, val => self.write_time_time_to(buf, val)),
+            Value::TimeTime(v) => write_opt!(v, val => self.write_time_time_to(buf, *val)),
             #[cfg(feature = "with-time")]
-            Value::TimeDateTime(v) => write_opt!(v, val => self.write_time_datetime_to(buf, val)),
+            Value::TimeDateTime(v) => write_opt!(v, val => self.write_time_datetime_to(buf, *val)),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => write_opt!(v, val => self
-                .write_time_datetime_tz_to(buf, val)),
+                .write_time_datetime_tz_to(buf, *val)),
             #[cfg(feature = "with-jiff")]
             Value::JiffDate(v) => {
-                write_opt!(v, val => self.write_jiff_date_to(buf, val))
+                write_opt!(v, val => self.write_jiff_date_to(buf, *val))
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTime(v) => {
-                write_opt!(v, val => self.write_jiff_time_to(buf, val))
+                write_opt!(v, val => self.write_jiff_time_to(buf, *val))
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(v) => write_opt!(v, val => self
-                .write_jiff_datetime_to(buf, val)),
+                .write_jiff_datetime_to(buf, *val)),
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(v) => {
-                write_opt!(v, val => self.write_jiff_timestamp_to(buf, val))
+                write_opt!(v, val => self.write_jiff_timestamp_to(buf, *val))
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffZoned(v) => write_opt!(v, val => self.write_jiff_zoned_to(buf, val)),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(v) => write_opt!(v, val => self.write_decimal_to(buf, val)),
+            Value::Decimal(v) => write_opt!(v, val => self.write_decimal_to(buf, *val)),
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => {
                 write_opt!(v, val => self.write_bigdecimal_to(buf, val))
             }
             #[cfg(feature = "with-uuid")]
-            Value::Uuid(v) => write_opt!(v, val => self.write_uuid_to(buf, val)),
+            Value::Uuid(v) => write_opt!(v, val => self.write_uuid_to(buf, *val)),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(v) => write_opt!(v, val => self.write_vector_to(buf, val)),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(v) => write_opt!(v, val => self.write_ipnetwork_to(buf, val)),
+            Value::IpNetwork(v) => write_opt!(v, val => self.write_ipnetwork_to(buf, *val)),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(v) => write_opt!(v, val => self.write_mac_to(buf, val)),
+            Value::MacAddress(v) => write_opt!(v, val => self.write_mac_to(buf, *val)),
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => write_opt!(v, val => self.write_array_to(buf, val)),
         }

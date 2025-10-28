@@ -87,7 +87,7 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-chrono")]
-    fn write_naive_datetime_to(&self, buf: &mut impl Write, value: &chrono::NaiveDateTime) {
+    fn write_naive_datetime_to(&self, buf: &mut impl Write, value: chrono::NaiveDateTime) {
         buf.write_str("'").unwrap();
         value.format("%Y-%m-%d %H:%M:%S%.6f").write_to(buf).unwrap();
         buf.write_str("'").unwrap();
@@ -136,7 +136,7 @@ pub trait ValueEncoder: EscapeBuilder {
     // So this solution must allocate a temporary String
     // Fix it when the issue is resolved
     #[cfg(feature = "with-time")]
-    fn write_time_date_to(&self, buf: &mut impl Write, value: &time::Date) {
+    fn write_time_date_to(&self, buf: &mut impl Write, value: time::Date) {
         buf.write_str("'").unwrap();
         let s = value
             .format(crate::value::time_format::FORMAT_DATE)
@@ -146,7 +146,7 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-time")]
-    fn write_time_time_to(&self, buf: &mut impl Write, value: &time::Time) {
+    fn write_time_time_to(&self, buf: &mut impl Write, value: time::Time) {
         buf.write_str("'").unwrap();
         let s = value
             .format(crate::value::time_format::FORMAT_TIME)
@@ -156,7 +156,7 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-time")]
-    fn write_time_datetime_to(&self, buf: &mut impl Write, value: &time::PrimitiveDateTime) {
+    fn write_time_datetime_to(&self, buf: &mut impl Write, value: time::PrimitiveDateTime) {
         buf.write_str("'").unwrap();
         let s = value
             .format(crate::value::time_format::FORMAT_DATETIME)
@@ -166,7 +166,7 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-time")]
-    fn write_time_datetime_tz_to(&self, buf: &mut impl Write, value: &time::OffsetDateTime) {
+    fn write_time_datetime_tz_to(&self, buf: &mut impl Write, value: time::OffsetDateTime) {
         buf.write_str("'").unwrap();
         let s = value
             .format(crate::value::time_format::FORMAT_DATETIME_TZ)
@@ -176,21 +176,21 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-jiff")]
-    fn write_jiff_date_to(&self, buf: &mut impl Write, value: &jiff::civil::Date) {
+    fn write_jiff_date_to(&self, buf: &mut impl Write, value: jiff::civil::Date) {
         buf.write_str("'").unwrap();
         write!(buf, "{value}").unwrap();
         buf.write_str("'").unwrap();
     }
 
     #[cfg(feature = "with-jiff")]
-    fn write_jiff_time_to(&self, buf: &mut impl Write, value: &jiff::civil::Time) {
+    fn write_jiff_time_to(&self, buf: &mut impl Write, value: jiff::civil::Time) {
         buf.write_str("'").unwrap();
         write!(buf, "{value}").unwrap();
         buf.write_str("'").unwrap();
     }
 
     #[cfg(feature = "with-jiff")]
-    fn write_jiff_datetime_to(&self, buf: &mut impl Write, value: &jiff::civil::DateTime) {
+    fn write_jiff_datetime_to(&self, buf: &mut impl Write, value: jiff::civil::DateTime) {
         use crate::value::with_jiff::JIFF_DATE_TIME_FMT_STR;
         buf.write_str("'").unwrap();
         write!(buf, "{}", value.strftime(JIFF_DATE_TIME_FMT_STR)).unwrap();
@@ -198,7 +198,7 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-jiff")]
-    fn write_jiff_timestamp_to(&self, buf: &mut impl Write, value: &jiff::Timestamp) {
+    fn write_jiff_timestamp_to(&self, buf: &mut impl Write, value: jiff::Timestamp) {
         use crate::value::with_jiff::JIFF_TIMESTAMP_FMT_STR;
         buf.write_str("'").unwrap();
         write!(buf, "{}", value.strftime(JIFF_TIMESTAMP_FMT_STR)).unwrap();
@@ -228,7 +228,7 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-rust_decimal")]
-    fn write_decimal_to(&self, buf: &mut impl Write, value: &rust_decimal::Decimal) {
+    fn write_decimal_to(&self, buf: &mut impl Write, value: rust_decimal::Decimal) {
         write!(buf, "{value}").unwrap();
     }
 
@@ -238,17 +238,17 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-uuid")]
-    fn write_uuid_to(&self, buf: &mut impl Write, value: &uuid::Uuid) {
+    fn write_uuid_to(&self, buf: &mut impl Write, value: uuid::Uuid) {
         self.write_str_to(buf, &value.to_string());
     }
 
     #[cfg(feature = "with-ipnetwork")]
-    fn write_ipnetwork_to(&self, buf: &mut impl Write, value: &ipnetwork::IpNetwork) {
+    fn write_ipnetwork_to(&self, buf: &mut impl Write, value: ipnetwork::IpNetwork) {
         self.write_str_to(buf, &value.to_string());
     }
 
     #[cfg(feature = "with-mac_address")]
-    fn write_mac_to(&self, buf: &mut impl Write, value: &mac_address::MacAddress) {
+    fn write_mac_to(&self, buf: &mut impl Write, value: mac_address::MacAddress) {
         self.write_str_to(buf, &value.to_string());
     }
 
@@ -401,19 +401,19 @@ pub trait ValueEncoder: EscapeBuilder {
                 #[cfg(feature = "with-chrono")]
                 Array::ChronoDate(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_naive_date_to(buf, val)
+                        encoder.write_naive_date_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-chrono")]
                 Array::ChronoTime(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_naive_time_to(buf, val)
+                        encoder.write_naive_time_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-chrono")]
                 Array::ChronoDateTime(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_naive_datetime_to(buf, val)
+                        encoder.write_naive_datetime_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-chrono")]
@@ -437,49 +437,49 @@ pub trait ValueEncoder: EscapeBuilder {
                 #[cfg(feature = "with-time")]
                 Array::TimeDate(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_time_date_to(buf, val)
+                        encoder.write_time_date_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-time")]
                 Array::TimeTime(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_time_time_to(buf, val)
+                        encoder.write_time_time_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-time")]
                 Array::TimeDateTime(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_time_datetime_to(buf, val)
+                        encoder.write_time_datetime_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-time")]
                 Array::TimeDateTimeWithTimeZone(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_time_datetime_tz_to(buf, val)
+                        encoder.write_time_datetime_tz_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-jiff")]
                 Array::JiffDate(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_jiff_date_to(buf, val)
+                        encoder.write_jiff_date_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-jiff")]
                 Array::JiffTime(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_jiff_time_to(buf, val)
+                        encoder.write_jiff_time_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-jiff")]
                 Array::JiffDateTime(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_jiff_datetime_to(buf, val)
+                        encoder.write_jiff_datetime_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-jiff")]
                 Array::JiffTimestamp(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_jiff_timestamp_to(buf, val)
+                        encoder.write_jiff_timestamp_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-jiff")]
@@ -491,13 +491,13 @@ pub trait ValueEncoder: EscapeBuilder {
                 #[cfg(feature = "with-uuid")]
                 Array::Uuid(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_uuid_to(buf, val)
+                        encoder.write_uuid_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Array::Decimal(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_decimal_to(buf, val)
+                        encoder.write_decimal_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-bigdecimal")]
@@ -509,13 +509,13 @@ pub trait ValueEncoder: EscapeBuilder {
                 #[cfg(feature = "with-ipnetwork")]
                 Array::IpNetwork(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_ipnetwork_to(buf, val)
+                        encoder.write_ipnetwork_to(buf, *val)
                     })
                 }
                 #[cfg(feature = "with-mac_address")]
                 Array::MacAddress(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_mac_to(buf, val)
+                        encoder.write_mac_to(buf, *val)
                     })
                 }
             }
