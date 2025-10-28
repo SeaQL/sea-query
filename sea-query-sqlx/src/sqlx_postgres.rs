@@ -115,7 +115,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(d) => {
-                    let _ = args.add(d.as_deref());
+                    let _ = args.add(d.as_ref());
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
