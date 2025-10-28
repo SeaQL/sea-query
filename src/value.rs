@@ -4,13 +4,10 @@ use std::borrow::Cow;
 #[cfg(feature = "backend-postgres")]
 use std::sync::Arc;
 
-#[cfg(feature = "with-json")]
-use serde_json::Value as Json;
-#[cfg(feature = "with-json")]
-use std::str::from_utf8;
-
 #[cfg(feature = "with-chrono")]
 use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+#[cfg(feature = "with-json")]
+use serde_json::Value as Json;
 
 #[cfg(feature = "with-time")]
 use time::{OffsetDateTime, PrimitiveDateTime};
@@ -36,7 +33,13 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
+#[cfg(feature = "postgres-array")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+mod array;
+
 use crate::{ColumnType, CommonSqlQueryBuilder, DynIden, QueryBuilder, StringLen};
+#[cfg(feature = "postgres-array")]
+pub use array::Array;
 
 #[cfg(test)]
 mod tests;
@@ -120,6 +123,7 @@ pub enum ArrayType {
     String,
     Char,
     Bytes,
+    /// The type name of the enum
     #[cfg(feature = "backend-postgres")]
     Enum(Arc<str>),
 
@@ -317,7 +321,7 @@ pub enum Value {
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(ArrayType, Option<Box<Vec<Value>>>),
+    Array(Option<Box<Array>>),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -333,9 +337,10 @@ pub enum Value {
 }
 
 #[cfg(feature = "backend-postgres")]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Enum {
-    /// The type_name is only used for the Postgres backend
+    /// The type_name is only used for the Postgres
     ///
     /// In most cases, the enum type name is staticly known,
     /// we wrap it in an [`Arc<str>`] to save space.
@@ -429,8 +434,9 @@ impl Value {
             Self::Double(_) => Self::Double(None),
             Self::String(_) => Self::String(None),
             Self::Char(_) => Self::Char(None),
-            Self::Enum(_) => Self::Enum(None),
             Self::Bytes(_) => Self::Bytes(None),
+            #[cfg(feature = "backend-postgres")]
+            Self::Enum(_) => Self::Enum(None),
 
             #[cfg(feature = "with-json")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -550,6 +556,7 @@ impl Value {
             Self::Double(_) => Self::Double(Some(Default::default())),
             Self::String(_) => Self::String(Some(Default::default())),
             Self::Char(_) => Self::Char(Some(Default::default())),
+            #[cfg(feature = "backend-postgres")]
             Self::Enum(value) => Self::Enum(value.clone()),
             Self::Bytes(_) => Self::Bytes(Some(Default::default())),
 
