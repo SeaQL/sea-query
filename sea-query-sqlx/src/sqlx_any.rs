@@ -117,7 +117,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     panic!("SQLx doesn't support MacAddress arguments for Any");
                 }
                 #[cfg(feature = "postgres-array")]
-                Value::Array(_, _) => {
+                Value::Array(_) => {
                     panic!("SQLx doesn't support array arguments for Any");
                 }
                 #[cfg(feature = "postgres-vector")]
