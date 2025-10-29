@@ -137,7 +137,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         Some(a) => match_some_array(a, &mut args),
                         None => {
                             // TODO: Add Array::Null?
-                            panic!("Sqlx does not support binding null arrays");
+                            panic!("Postgres does not support binding null to arrays");
                         }
                     };
                 }
