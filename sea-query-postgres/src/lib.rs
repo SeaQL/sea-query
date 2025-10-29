@@ -132,7 +132,7 @@ impl ToSql for PostgresValue {
                 Array::Unsigned(inner) => inner.to_sql(ty, out),
                 Array::BigUnsigned(inner) => inner
                     .into_iter()
-                    .map(|v| v.map(|x| x as i64))
+                    .map(|v| v.map(|x| i64::try_from(x).expect("Fail to convert u64 to i64")))
                     .collect::<Vec<Option<_>>>()
                     .to_sql(ty, out),
                 Array::Float(inner) => inner.to_sql(ty, out),
