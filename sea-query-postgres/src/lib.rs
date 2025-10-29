@@ -79,6 +79,10 @@ impl ToSql for PostgresValue {
             Value::String(v) => v.as_deref().to_sql(ty, out),
             Value::Char(v) => v.map(|v| v.to_string()).to_sql(ty, out),
             Value::Bytes(v) => v.as_deref().to_sql(ty, out),
+            Value::Enum(_) => Err(PostgresBindError::new(
+                "Binding Enum is not supported by sea-query-postgres binder",
+            )
+            .into()),
             #[cfg(feature = "with-json")]
             Value::Json(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
@@ -195,7 +199,18 @@ impl ToSql for PostgresValue {
                     .map(|v| v.map(conv_mac_address))
                     .collect::<Vec<_>>()
                     .to_sql(ty, out),
-                _ => unimplemented!("Unsupported array variant"),
+                Array::Array(_) => Err(PostgresBindError::new(
+                    "Nested arrays (Array::Array) are not supported by sea-query-postgres binder",
+                )
+                .into()),
+                Array::Enum(_) => Err(PostgresBindError::new(
+                    "Array of Enum is not supported by sea-query-postgres binder; consider casting in SQL",
+                )
+                .into()),
+                _ => Err(PostgresBindError::new(
+                    "Unsupported array variant for sea-query-postgres binder",
+                )
+                .into()),
             },
             #[cfg(feature = "postgres-array")]
             Value::Array(None) => Ok(IsNull::Yes),
@@ -216,6 +231,23 @@ impl ToSql for PostgresValue {
 
     to_sql_checked!();
 }
+
+#[derive(Debug, Clone)]
+struct PostgresBindError(&'static str);
+
+impl PostgresBindError {
+    fn new(msg: &'static str) -> Self {
+        Self(msg)
+    }
+}
+
+impl std::fmt::Display for PostgresBindError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+
+impl Error for PostgresBindError {}
 
 #[cfg(feature = "with-mac_address")]
 fn conv_mac_address(input: mac_address::MacAddress) -> eui48::MacAddress {
