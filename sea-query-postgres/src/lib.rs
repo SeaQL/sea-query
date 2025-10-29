@@ -110,9 +110,12 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => {
                 use bigdecimal::ToPrimitive;
-                v.as_ref()
-                    .map(|v| v.to_f64().expect("Fail to convert bigdecimal as f64"))
-                    .to_sql(ty, out)
+                v.as_ref().map(|x| x.to_f64().ok_or(
+                    PostgresBindError::new(
+                        "Fail to convert bigdecimal as f64 for sea-query-postgres binder",
+                    )
+                )).transpose()?.to_sql(ty, out)
+
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(ty, out),
@@ -136,8 +139,8 @@ impl ToSql for PostgresValue {
                 Array::Unsigned(inner) => inner.to_sql(ty, out),
                 Array::BigUnsigned(inner) => inner
                     .into_iter()
-                    .map(|v| v.map(|x| i64::try_from(x).expect("Fail to convert u64 to i64")))
-                    .collect::<Vec<Option<_>>>()
+                    .map(|v| v.map(|x| i64::try_from(x)).transpose())
+                    .collect::<Result<Vec<Option<_>>,_>>()?
                     .to_sql(ty, out),
                 Array::Float(inner) => inner.to_sql(ty, out),
                 Array::Double(inner) => inner.to_sql(ty, out),
