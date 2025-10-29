@@ -182,11 +182,16 @@ impl ToSql for PostgresValue {
                     use bigdecimal::ToPrimitive;
                     inner
                         .iter()
-                        .cloned()
                         .map(|v| {
-                            v.map(|bd| bd.to_f64().expect("Fail to convert bigdecimal as f64"))
+                            v.as_ref()
+                                .map(|bd| {
+                                    bd.to_f64().ok_or(PostgresBindError::new(
+                                    "Fail to convert bigdecimal as f64 for sea-query-postgres binder",
+                                    ))
+                                })
+                                .transpose()
                         })
-                        .collect::<Vec<Option<f64>>>()
+                        .collect::<Result<Vec<Option<f64>>, _>>()?
                         .to_sql(ty, out)
                 }
                 #[cfg(feature = "with-ipnetwork")]
