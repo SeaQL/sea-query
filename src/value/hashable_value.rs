@@ -337,32 +337,12 @@ mod tests {
 
         assert_eq!(
             Into::<Value>::into(vec![0i32, 1, 2]),
-            Value::Array(Some(
-                Array::try_from_parts(
-                    ArrayType::Int,
-                    vec![
-                        Value::Int(Some(0)),
-                        Value::Int(Some(1)),
-                        Value::Int(Some(2)),
-                    ],
-                )
-                .expect("array construction"),
-            ))
+            Value::Array(Some(Array::from(vec![Some(0), Some(1), Some(2)])))
         );
 
         assert_eq!(
             Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-            Value::Array(Some(
-                Array::try_from_parts(
-                    ArrayType::Float,
-                    vec![
-                        Value::Float(Some(0f32)),
-                        Value::Float(Some(1.0)),
-                        Value::Float(Some(2.0)),
-                    ],
-                )
-                .expect("array construction"),
-            ))
+            Value::Array(Some(Array::from(vec![Some(0f32), Some(1.0), Some(2.0)])))
         );
 
         let hash_set: std::collections::HashSet<Value> = [
