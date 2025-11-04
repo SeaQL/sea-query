@@ -4,6 +4,8 @@ use std::hash::{Hash, Hasher};
 
 use super::*;
 
+//type_to_value!(RangeType, Range, Range);
+
 impl Default for RangeType {
     fn default() -> Self {
         Self::Int4Range(RangeBoundary::Exclusive(0), RangeBoundary::Exclusive(0))
@@ -13,46 +15,24 @@ impl Default for RangeType {
 impl Display for RangeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            RangeType::Int4Range(a, b) => {
-                display_range(a, b, f);
-            }
-            RangeType::Int8Range(a, b) => {
-                display_range(a, b, f);
-            }
-            RangeType::NumRange(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::Int4Range(a, b) => display_range(a, b, f),
+            RangeType::Int8Range(a, b) => display_range(a, b, f),
+            RangeType::NumRange(a, b) => display_range(a, b, f),
             #[cfg(feature = "with-chrono")]
-            RangeType::ChronoDateTime(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::ChronoDateTime(a, b) => display_range(a, b, f),
             #[cfg(feature = "with-chrono")]
-            RangeType::ChronoDateTimeRange(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::ChronoDateTimeRange(a, b) => display_range(a, b, f),
             #[cfg(feature = "with-chrono")]
-            RangeType::ChronoDateTimeWithTimeZoneRange(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::ChronoDateTimeWithTimeZoneRange(a, b) => display_range(a, b, f),
             #[cfg(feature = "with-chrono")]
-            RangeType::ChronoDateRange(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::ChronoDateRange(a, b) => display_range(a, b, f),
             #[cfg(feature = "with-time")]
-            RangeType::TimeDateTimeRange(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::TimeDateTimeRange(a, b) => display_range(a, b, f),
             #[cfg(feature = "with-time")]
-            RangeType::TimeDateTimeWithTimeZoneRange(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::TimeDateTimeWithTimeZoneRange(a, b) => display_range(a, b, f),
             #[cfg(feature = "with-time")]
-            RangeType::TimeDateRange(a, b) => {
-                display_range(a, b, f);
-            }
+            RangeType::TimeDateRange(a, b) => display_range(a, b, f),
         }
-
-        Ok(())
     }
 }
 
@@ -60,26 +40,28 @@ fn display_range<T: Display>(
     a: &RangeBoundary<T>,
     b: &RangeBoundary<T>,
     f: &mut std::fmt::Formatter<'_>,
-) {
+) -> std::fmt::Result {
     match a {
         RangeBoundary::Exclusive(v) => {
-            f.write_fmt(format_args!("[{v}"));
+            f.write_fmt(format_args!("[{v}"))?;
         }
         RangeBoundary::Inclusive(v) => {
-            f.write_fmt(format_args!("({v}"));
+            f.write_fmt(format_args!("({v}"))?;
         }
     }
 
-    f.write_str(",");
+    f.write_str(",")?;
 
     match b {
         RangeBoundary::Exclusive(v) => {
-            f.write_fmt(format_args!("{v}]"));
+            f.write_fmt(format_args!("{v}]"))?;
         }
         RangeBoundary::Inclusive(v) => {
-            f.write_fmt(format_args!("{v})"));
+            f.write_fmt(format_args!("{v})"))?;
         }
     }
+
+    Ok(())
 }
 
 #[cfg(feature = "hashable-value")]
