@@ -167,6 +167,9 @@ impl Hash for Value {
 
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(mac_address) => mac_address.hash(state),
+
+            #[cfg(feature = "postgres-range")]
+            Value::Range(range) => range.hash(state),
         }
     }
 }

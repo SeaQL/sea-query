@@ -1,6 +1,6 @@
 //! Container for all SQL value types.
 
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Display};
 
 #[cfg(feature = "with-json")]
 use serde_json::Value as Json;
@@ -92,6 +92,10 @@ mod with_mac_address;
 #[cfg(feature = "postgres-array")]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 pub mod with_array;
+
+#[cfg(feature = "postgres-range")]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+pub mod with_range;
 
 #[cfg(feature = "postgres-vector")]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -202,6 +206,53 @@ pub enum ArrayType {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum RangeBoundary<T: Display> {
+    Exclusive(T),
+    Inclusive(T),
+}
+
+/// [`Value`] types variant for Postgres range
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum RangeType {
+    Int4Range(RangeBoundary<i32>, RangeBoundary<i32>),
+    Int8Range(RangeBoundary<i64>, RangeBoundary<i64>),
+    NumRange(RangeBoundary<f64>, RangeBoundary<f64>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTime(RangeBoundary<NaiveDateTime>, RangeBoundary<NaiveDateTime>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeRange(RangeBoundary<NaiveDateTime>, RangeBoundary<NaiveDateTime>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeWithTimeZoneRange(
+        RangeBoundary<DateTime<FixedOffset>>,
+        RangeBoundary<DateTime<FixedOffset>>,
+    ),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateRange(RangeBoundary<NaiveDate>, RangeBoundary<NaiveDate>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeRange(RangeBoundary<time::Time>, RangeBoundary<time::Time>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeWithTimeZoneRange(RangeBoundary<OffsetDateTime>, RangeBoundary<OffsetDateTime>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateRange(RangeBoundary<time::Date>, RangeBoundary<time::Date>),
 }
 
 /// Value variants
@@ -322,6 +373,10 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<MacAddress>),
+
+    #[cfg(feature = "postgres-range")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+    Range(Option<Box<RangeType>>),
 }
 
 /// This test is to check if the size of [`Value`] exceeds the limit.
@@ -492,6 +547,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(None),
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(_) => Self::Range(None),
         }
     }
 
@@ -622,6 +681,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(Some(Default::default())),
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(_) => Self::Range(Some(Default::default())),
         }
     }
 }

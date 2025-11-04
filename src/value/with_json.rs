@@ -113,5 +113,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "postgres-range")]
+        Value::Range(Some(_)) => CommonSqlQueryBuilder.value_to_string(value).into(),
     }
 }

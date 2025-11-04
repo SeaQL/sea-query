@@ -1172,6 +1172,8 @@ pub trait QueryBuilder:
             Value::Array(_, None) => buf.write_str("NULL")?,
             #[cfg(feature = "postgres-vector")]
             Value::Vector(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "postgres-range")]
+            Value::Range(None) => buf.write_str("NULL")?,
             Value::Bool(Some(b)) => buf.write_str(if *b { "TRUE" } else { "FALSE" })?,
             Value::TinyInt(Some(v)) => {
                 write_int(buf, *v);
@@ -1356,6 +1358,12 @@ pub trait QueryBuilder:
             }
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(Some(v)) => {
+                buf.write_str("'")?;
+                write!(buf, "{v}")?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "postgres-range")]
+            Value::Range(Some(v)) => {
                 buf.write_str("'")?;
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;
