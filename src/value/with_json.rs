@@ -48,7 +48,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::IpNetwork(None) => Json::Null,
         #[cfg(feature = "with-mac_address")]
         Value::MacAddress(None) => Json::Null,
-        Value::Range(None) => Json::Null,
         Value::Bool(Some(b)) => Json::Bool(*b),
         Value::TinyInt(Some(v)) => (*v).into(),
         Value::SmallInt(Some(v)) => (*v).into(),
