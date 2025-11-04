@@ -594,6 +594,35 @@ impl Expr {
         Func::sum(self).into()
     }
 
+    /// Express a `AVG` (average) function.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr(Expr::col((Char::Table, Char::SizeW)).avg())
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT AVG(`character`.`size_w`) FROM `character`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT AVG("character"."size_w") FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT AVG("character"."size_w") FROM "character""#
+    /// );
+    /// ```
+    pub fn avg(self) -> Self {
+        Func::avg(self).into()
+    }
+
     /// Express a `COUNT` function.
     ///
     /// # Examples

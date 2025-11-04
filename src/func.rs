@@ -172,7 +172,7 @@ impl Func {
         FunctionCall::new(Func::Sum).arg(expr)
     }
 
-    /// Call `AVG` function.
+    /// Call `AVG` function for average.
     ///
     /// # Examples
     ///
