@@ -2,7 +2,7 @@ use super::*;
 
 type_to_value!(Decimal, Decimal, Decimal(None));
 
-impl NumericValue for Decimal;
+impl NumericValue for Decimal {}
 
 impl Value {
     pub fn is_decimal(&self) -> bool {
