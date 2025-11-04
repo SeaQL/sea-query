@@ -63,6 +63,7 @@ hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
 postgres-interval = []
+postgres-range = []
 serde = [
     "dep:serde",
     "chrono?/serde",
