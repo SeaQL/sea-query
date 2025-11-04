@@ -42,6 +42,9 @@ mod tests;
 #[cfg(feature = "hashable-value")]
 mod hashable_value;
 
+mod value_class;
+pub use value_class::*;
+
 mod value_tuple;
 pub use value_tuple::*;
 

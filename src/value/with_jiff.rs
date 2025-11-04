@@ -7,6 +7,12 @@ type_to_box_value!(civil::DateTime, JiffDateTime, DateTime);
 type_to_box_value!(Timestamp, JiffTimestamp, Timestamp);
 type_to_box_value!(Zoned, JiffZoned, TimestampWithTimeZone);
 
+impl DateLikeValue for civil::Date {}
+impl TimeLikeValue for civil::Time {}
+impl DateTimeLikeValue for civil::DateTime {}
+impl DateTimeLikeValue for Timestamp {}
+impl DateTimeLikeValue for Zoned {}
+
 impl Value {
     #[inline]
     pub fn jiff_date<T: Into<Option<civil::Date>>>(v: T) -> Value {
