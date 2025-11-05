@@ -1,0 +1,49 @@
+[workspace]
+# A separate workspace
+
+[package]
+name = "sea-query-postgres-types"
+version = "0.8.0-rc.9"
+authors = ["Richard Jonas <richard.jonas.76@gmail.com>"]
+edition = "2024"
+description = "Postgres types for using SeaQuery with SQLx"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = ["database"]
+keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
+rust-version = "1.85.0"
+
+[lib]
+
+[dependencies]
+sea-query = { version = "1.0.0-rc.10", path = "..", default-features = false, features = [
+    "thread-safe",
+] }
+chrono = { version = "0.4", default-features = false, optional = true, features = [
+    "clock",
+] }
+ordered-float = { version = "4.6", default-features = false, optional = true }
+sqlx = { version = "0.8", default-features = false, optional = true }
+serde = { version = "1", default-features = false, optional = true }
+serde_json = { version = "1", default-features = false, optional = true, features = [
+    "std",
+] }
+time = { version = "0.3.36", default-features = false, optional = true, features = [
+    "macros",
+    "formatting",
+] }
+
+[features]
+all-features = [
+    "hashable-value",
+    "postgres-range",
+    "serde",
+    "with-chrono",
+    "with-time",
+]
+hashable-value = ["ordered-float"]
+postgres-range = []
+serde = ["dep:serde", "sea-query/serde"]
+with-chrono = ["sqlx?/chrono", "sea-query/with-chrono", "chrono"]
+with-time = ["sqlx?/time", "sea-query/with-time", "time"]

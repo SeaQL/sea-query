@@ -137,7 +137,8 @@ impl ToSql for PostgresValue {
                 v.map(|v| MacAddress::new(v.bytes())).to_sql(ty, out)
             }
             #[cfg(feature = "postgres-range")]
-            Value::Range(v) => todo!(),
+            Value::Range(None) => Ok(IsNull::Yes),
+            Value::Range(Some(v)) => v.to_sql(),
         }
     }
 

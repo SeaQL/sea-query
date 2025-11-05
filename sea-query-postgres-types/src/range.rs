@@ -2,9 +2,57 @@ use std::fmt::Display;
 #[cfg(feature = "hashable-value")]
 use std::hash::{Hash, Hasher};
 
-use super::*;
+#[cfg(feature = "with-chrono")]
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime};
+#[cfg(feature = "with-time")]
+use time::OffsetDateTime;
 
-//type_to_value!(RangeType, Range, Range);
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum RangeBoundary<T: Display> {
+    Exclusive(T),
+    Inclusive(T),
+}
+
+/// [`Value`] types variant for Postgres range
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum RangeType {
+    Int4Range(RangeBoundary<i32>, RangeBoundary<i32>),
+    Int8Range(RangeBoundary<i64>, RangeBoundary<i64>),
+    NumRange(RangeBoundary<f64>, RangeBoundary<f64>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTime(RangeBoundary<NaiveDateTime>, RangeBoundary<NaiveDateTime>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeRange(RangeBoundary<NaiveDateTime>, RangeBoundary<NaiveDateTime>),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateTimeWithTimeZoneRange(
+        RangeBoundary<DateTime<FixedOffset>>,
+        RangeBoundary<DateTime<FixedOffset>>,
+    ),
+
+    #[cfg(feature = "with-chrono")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+    ChronoDateRange(RangeBoundary<NaiveDate>, RangeBoundary<NaiveDate>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeRange(RangeBoundary<time::Time>, RangeBoundary<time::Time>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeWithTimeZoneRange(RangeBoundary<OffsetDateTime>, RangeBoundary<OffsetDateTime>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateRange(RangeBoundary<time::Date>, RangeBoundary<time::Date>),
+}
 
 impl Default for RangeType {
     fn default() -> Self {

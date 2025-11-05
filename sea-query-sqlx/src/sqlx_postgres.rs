@@ -318,8 +318,17 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::Vector(v) => {
                     let _ = args.add(v);
                 }
+                #[cfg(feature = "postgres-range")]
+                Value::Range(v) => {
+                    let value = v.map(|r| range_to_pg_arg(r));
+                    let _ = args.add(value);
+                }
             }
         }
         args
     }
+}
+
+fn range_to_pg_arg(r: &RangeType) -> u8 {
+    1
 }

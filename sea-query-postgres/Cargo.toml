@@ -18,6 +18,7 @@ rust-version = "1.85.0"
 
 [dependencies]
 sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false }
+sea-query-postgres-types = { version = "0.8.0-rc.9", path = "../sea-query-postgres-types", default-features = false }
 postgres-types = { version = "0.2", default-features = false }
 pgvector = { version = "~0.4", default-features = false, optional = true }
 bytes = { version = "1", default-features = false }
