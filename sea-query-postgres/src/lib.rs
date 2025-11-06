@@ -138,7 +138,7 @@ impl ToSql for PostgresValue {
             }
             #[cfg(feature = "postgres-range")]
             Value::Range(None) => Ok(IsNull::Yes),
-            Value::Range(Some(v)) => v.to_sql(),
+            Value::Range(Some(v)) => v.as_deref().to_sql(),
         }
     }
 

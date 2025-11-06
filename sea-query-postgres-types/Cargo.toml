@@ -1,6 +1,3 @@
-[workspace]
-# A separate workspace
-
 [package]
 name = "sea-query-postgres-types"
 version = "0.8.0-rc.9"
@@ -17,15 +14,18 @@ rust-version = "1.85.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "1.0.0-rc.10", path = "..", default-features = false, features = [
-    "thread-safe",
-] }
+bytes = { version = "1", default-features = false }
 chrono = { version = "0.4", default-features = false, optional = true, features = [
     "clock",
 ] }
 ordered-float = { version = "4.6", default-features = false, optional = true }
-sqlx = { version = "0.8", default-features = false, optional = true }
-serde = { version = "1", default-features = false, optional = true }
+postgres-protocol = { version = "0.6", default-features = false }
+postgres-types = { version = "0.2", default-features = false }
+sqlx = { version = "0.8", default-features = false }
+serde = { version = "1", default-features = false, optional = true, features = [
+    "std",
+    "derive",
+] }
 serde_json = { version = "1", default-features = false, optional = true, features = [
     "std",
 ] }
@@ -35,15 +35,15 @@ time = { version = "0.3.36", default-features = false, optional = true, features
 ] }
 
 [features]
-all-features = [
-    "hashable-value",
-    "postgres-range",
-    "serde",
-    "with-chrono",
-    "with-time",
-]
+#all-features = [
+#    "hashable-value",
+#    "postgres-range",
+#    "serde",
+#    "with-chrono",
+#    "with-time",
+#]
 hashable-value = ["ordered-float"]
-postgres-range = []
-serde = ["dep:serde", "sea-query/serde"]
-with-chrono = ["sqlx?/chrono", "sea-query/with-chrono", "chrono"]
-with-time = ["sqlx?/time", "sea-query/with-time", "time"]
+postgres-range = ["sqlx/postgres"]
+serde = ["chrono?/serde", "dep:serde", "time?/serde"]
+with-chrono = ["chrono"]
+with-time = ["time"]

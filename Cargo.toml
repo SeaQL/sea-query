@@ -30,6 +30,7 @@ path = "src/lib.rs"
 [dependencies]
 inherent = "1.0"
 sea-query-derive = { version = "1.0.0-rc", path = "sea-query-derive", optional = true }
+sea-query-postgres-types = { version = "0.8.0-rc.9", path = "sea-query-postgres-types", optional = true }
 serde = { version = "1", default-features = false, optional = true, features = [
     "std",
     "derive",
@@ -83,7 +84,7 @@ hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
 postgres-interval = []
-postgres-range = []
+postgres-range = ["sea-query-postgres-types"]
 serde = [
     "dep:serde",
     "chrono?/serde",
