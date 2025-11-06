@@ -1,9 +1,7 @@
-use std::{fmt::Display, fmt::Debug, ops::Bound};
+use std::{fmt::Display, fmt::Debug};
 
 use bytes::BytesMut;
-use postgres_types::{Kind, ToSql};
-use sqlx::Encode;
-use sqlx::postgres::types::PgRange;
+use postgres_types::{Kind, ToSql, to_sql_checked};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -44,23 +42,23 @@ impl<T: Clone + Default + Debug + Display> Display for RangeType<T> {
     }
 }
 
-impl<T: Clone + Default + Debug + Display> From<&RangeType<T>> for PgRange<T> {
-    fn from(value: &RangeType<T>) -> Self {
-        PgRange {
-            start: (&value.lower).into(),
-            end: (&value.upper).into(),
-        }
-    }
-}
-
-impl<T: Clone + Default + Debug + Display> From<&RangeBound<T>> for Bound<T> {
-    fn from(value: &RangeBound<T>) -> Self {
-        match value {
-            RangeBound::Exclusive(v) => Bound::Excluded(v.clone()),
-            RangeBound::Inclusive(v) => Bound::Included(v.clone()),
-        }
-    }
-}
+//impl<T: Clone + Default + Debug + Display> From<&RangeType<T>> for PgRange<T> {
+//    fn from(value: &RangeType<T>) -> Self {
+//        PgRange {
+//            start: (&value.lower).into(),
+//            end: (&value.upper).into(),
+//        }
+//    }
+//}
+//
+//impl<T: Clone + Default + Debug + Display> From<&RangeBound<T>> for Bound<T> {
+//    fn from(value: &RangeBound<T>) -> Self {
+//        match value {
+//            RangeBound::Exclusive(v) => Bound::Excluded(v.clone()),
+//            RangeBound::Inclusive(v) => Bound::Included(v.clone()),
+//        }
+//    }
+//}
 
 impl<T: Clone + Default + Debug + Display> ToSql for RangeType<T> {
     fn to_sql(
@@ -71,8 +69,19 @@ impl<T: Clone + Default + Debug + Display> ToSql for RangeType<T> {
     where
         Self: Sized,
     {
-        // TODO check if the ty needs to be checked here
-        Into::<PgRange<T>>::into(self).encode(out)
+        use postgres_protocol::IsNull;
+        use postgres_protocol::types::RangeBound;
+        use postgres_protocol::types::range_to_sql;
+
+        if Self::accepts(ty) {
+            range_to_sql(
+                |_| { Ok(RangeBound::Exclusive(IsNull::No)) }, 
+                |_| { Ok(RangeBound::Exclusive(IsNull::No)) },
+                out
+            )?;
+        }
+
+        Ok(postgres_types::IsNull::No)
     }
 
     fn accepts(ty: &postgres_types::Type) -> bool
@@ -82,11 +91,5 @@ impl<T: Clone + Default + Debug + Display> ToSql for RangeType<T> {
         matches!(ty.kind(), Kind::Range(_))
     }
 
-    fn to_sql_checked(
-        &self,
-        ty: &postgres_types::Type,
-        out: &mut BytesMut,
-    ) -> Result<postgres_types::IsNull, Box<dyn std::error::Error + Sync + Send>> {
-        Into::<PgRange<T>>::into(self).encode(out)
-    }
+    to_sql_checked!();
 }

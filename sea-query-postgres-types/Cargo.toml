@@ -21,7 +21,6 @@ chrono = { version = "0.4", default-features = false, optional = true, features 
 ordered-float = { version = "4.6", default-features = false, optional = true }
 postgres-protocol = { version = "0.6", default-features = false }
 postgres-types = { version = "0.2", default-features = false }
-sqlx = { version = "0.8", default-features = false }
 serde = { version = "1", default-features = false, optional = true, features = [
     "std",
     "derive",
@@ -43,7 +42,7 @@ time = { version = "0.3.36", default-features = false, optional = true, features
 #    "with-time",
 #]
 hashable-value = ["ordered-float"]
-postgres-range = ["sqlx/postgres"]
+postgres-range = []
 serde = ["chrono?/serde", "dep:serde", "time?/serde"]
 with-chrono = ["chrono"]
 with-time = ["time"]
