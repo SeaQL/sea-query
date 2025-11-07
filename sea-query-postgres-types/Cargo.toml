@@ -18,14 +18,14 @@ bytes = { version = "1", default-features = false }
 chrono = { version = "0.4", default-features = false, optional = true, features = [
     "clock",
 ] }
-ordered-float = { version = "4.6", default-features = false, optional = true }
+ordered-float = { version = "4.6", default-features = false, optional = false }
 postgres-protocol = { version = "0.6", default-features = false }
 postgres-types = { version = "0.2", default-features = false }
-serde = { version = "1", default-features = false, optional = true, features = [
+serde = { version = "1", default-features = false, optional = false, features = [
     "std",
     "derive",
 ] }
-serde_json = { version = "1", default-features = false, optional = true, features = [
+serde_json = { version = "1", default-features = false, optional = false, features = [
     "std",
 ] }
 time = { version = "0.3.36", default-features = false, optional = true, features = [
@@ -34,15 +34,8 @@ time = { version = "0.3.36", default-features = false, optional = true, features
 ] }
 
 [features]
-#all-features = [
-#    "hashable-value",
-#    "postgres-range",
-#    "serde",
-#    "with-chrono",
-#    "with-time",
-#]
-hashable-value = ["ordered-float"]
+hashable-value = []
 postgres-range = []
-serde = ["chrono?/serde", "dep:serde", "time?/serde"]
+serde = ["chrono?/serde", "time?/serde"]
 with-chrono = ["chrono"]
 with-time = ["time"]

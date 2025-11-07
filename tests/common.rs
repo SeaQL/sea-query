@@ -1,6 +1,3 @@
-#[cfg(feature = "with-json")]
-pub use serde_json::json;
-
 use sea_query::Iden;
 
 /// Representation of a database table named `BloB`.

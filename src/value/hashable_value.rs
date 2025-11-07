@@ -169,7 +169,7 @@ impl Hash for Value {
             Value::MacAddress(mac_address) => mac_address.hash(state),
 
             #[cfg(feature = "postgres-range")]
-            Value::Range(range) => range.hash(state),
+            Value::Range(range) => hash_range(range, state),
         }
     }
 }
@@ -220,6 +220,19 @@ fn cmp_json(l: &Option<Json>, r: &Option<Json>) -> bool {
             .eq(&serde_json::to_string(r).unwrap()),
         (None, None) => true,
         _ => false,
+    }
+}
+
+#[cfg(feature = "postgres-range")]
+fn hash_range<H: Hasher>(
+    v: &Option<Box<sea_query_postgres_types::range::RangeType>>,
+    state: &mut H,
+) {
+    match v {
+        Some(v) => {
+            v.hash(state);
+        }
+        None => "null".hash(state),
     }
 }
 
