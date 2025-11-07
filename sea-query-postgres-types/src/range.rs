@@ -11,7 +11,7 @@ use postgres_types::{IsNull, Kind, ToSql, Type, to_sql_checked};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize)]
 //#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum RangeBound<T: Display + ToSql> {
+pub enum RangeBound<T: Clone + Display + ToSql> {
     Exclusive(T),
     Inclusive(T),
     Unbounded,
@@ -52,7 +52,7 @@ impl Display for RangeType {
     }
 }
 
-fn display_range<T: Display + ToSql>(
+fn display_range<T: Clone + Display + ToSql>(
     a: &RangeBound<T>,
     b: &RangeBound<T>,
     f: &mut std::fmt::Formatter<'_>,
@@ -166,7 +166,7 @@ fn bound_to_sql<T>(
     buf: &mut BytesMut,
 ) -> Result<types::RangeBound<postgres_protocol::IsNull>, Box<dyn Error + Sync + Send>>
 where
-    T: Display + ToSql,
+    T: Clone + Display + ToSql,
 {
     match bound {
         RangeBound::Exclusive(v) => {
