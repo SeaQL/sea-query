@@ -98,12 +98,10 @@ impl TableBuilder for SqliteQueryBuilder {
 impl SqliteQueryBuilder {
     fn prepare_column_type(
         &self,
-        column_specs: &ColumnSpec,
+        _column_specs: &ColumnSpec,
         column_type: &ColumnType,
         sql: &mut impl SqlWriter,
     ) {
-        let is_auto_increment = column_specs.auto_increment;
-
         match column_type {
             ColumnType::Char(length) => match length {
                 Some(length) => {
@@ -127,14 +125,7 @@ impl SqliteQueryBuilder {
                 sql.write_str(integer("smallint"))
             }
             ColumnType::Integer | ColumnType::Unsigned => sql.write_str("integer"),
-            #[allow(clippy::if_same_then_else)]
-            ColumnType::BigInteger | ColumnType::BigUnsigned => {
-                if is_auto_increment {
-                    sql.write_str("integer")
-                } else {
-                    sql.write_str(integer("bigint"))
-                }
-            }
+            ColumnType::BigInteger | ColumnType::BigUnsigned => sql.write_str("integer"),
             ColumnType::Float => sql.write_str("float"),
             ColumnType::Double => sql.write_str("double"),
             ColumnType::Decimal(precision) => match precision {
