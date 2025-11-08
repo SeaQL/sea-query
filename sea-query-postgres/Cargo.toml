@@ -18,7 +18,7 @@ rust-version = "1.85.0"
 
 [dependencies]
 sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false }
-sea-query-postgres-types = { version = "0.8.0-rc.9", path = "../sea-query-postgres-types", default-features = false }
+sea-query-postgres-types = { version = "0.1.0", path = "../sea-query-postgres-types", optional = true }
 postgres-types = { version = "0.2", default-features = false }
 pgvector = { version = "~0.4", default-features = false, optional = true }
 bytes = { version = "1", default-features = false }
@@ -37,8 +37,8 @@ with-bigdecimal = ["sea-query/with-bigdecimal", "bigdecimal"]
 with-uuid = ["postgres-types/with-uuid-1", "sea-query/with-uuid"]
 with-time = ["postgres-types/with-time-0_3", "sea-query/with-time"]
 postgres-array = ["postgres-types/array-impls", "sea-query/postgres-array"]
-postgres-range = ["sea-query/postgres-range"]
 postgres-vector = ["sea-query/postgres-vector", "pgvector/postgres"]
+postgres-range = ["sea-query/postgres-range", "sea-query-postgres-types/range", "sea-query-postgres-types/postgres-driver"]
 with-ipnetwork = [
     "postgres-types/with-cidr-0_2",
     "sea-query/with-ipnetwork",
