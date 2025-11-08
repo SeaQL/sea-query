@@ -34,6 +34,9 @@ use std::net::IpAddr;
 #[cfg(feature = "with-mac_address")]
 use mac_address::MacAddress;
 
+#[cfg(feature = "postgres-range")]
+use sea_query_postgres_types::range::RangeType;
+
 use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 
 #[cfg(test)]
@@ -325,6 +328,10 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<MacAddress>),
+
+    #[cfg(feature = "postgres-range")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+    Range(Option<Box<RangeType>>),
 }
 
 /// This test is to check if the size of [`Value`] exceeds the limit.
@@ -495,6 +502,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(None),
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(_) => Self::Range(None),
         }
     }
 
@@ -625,6 +636,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(Some(Default::default())),
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(_) => Self::Range(Some(Default::default())),
         }
     }
 }

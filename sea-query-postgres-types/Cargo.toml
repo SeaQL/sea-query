@@ -1,0 +1,41 @@
+[package]
+name = "sea-query-postgres-types"
+version = "0.8.0-rc.9"
+authors = ["Richard Jonas <richard.jonas.76@gmail.com>"]
+edition = "2024"
+description = "Postgres types for using SeaQuery with SQLx"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/sea-query"
+repository = "https://github.com/SeaQL/sea-query"
+categories = ["database"]
+keywords = ["database", "sql", "mysql", "postgres", "sqlite"]
+rust-version = "1.85.0"
+
+[lib]
+
+[dependencies]
+bytes = { version = "1", default-features = false }
+chrono = { version = "0.4", default-features = false, optional = true, features = [
+    "clock",
+] }
+ordered-float = { version = "4.6", default-features = false, optional = false }
+postgres-protocol = { version = "0.6", default-features = false }
+postgres-types = { version = "0.2", default-features = false }
+serde = { version = "1", default-features = false, optional = false, features = [
+    "std",
+    "derive",
+] }
+serde_json = { version = "1", default-features = false, optional = false, features = [
+    "std",
+] }
+time = { version = "0.3.36", default-features = false, optional = true, features = [
+    "macros",
+    "formatting",
+] }
+
+[features]
+hashable-value = []
+postgres-range = []
+serde = ["chrono?/serde", "time?/serde"]
+with-chrono = ["chrono"]
+with-time = ["time"]

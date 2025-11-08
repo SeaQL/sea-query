@@ -81,7 +81,7 @@ mod test {
     #[test]
     fn test_raw_sql_1() {
         let a = 1;
-        let b = vec![2i32, 3];
+        let b = [2i32, 3];
         let c = [4i32, 5, 6];
 
         let mut builder = RawSqlQueryBuilder::new(PostgresQueryBuilder);
@@ -90,18 +90,18 @@ mod test {
             .push_fragment(" ")
             .push_parameters(1)
             .push_fragment(", ")
-            .push_parameters((&b).len())
+            .push_parameters(b.len())
             .push_fragment(", ")
-            .push_parameters((&c).len());
+            .push_parameters(c.len());
 
         assert_eq!(builder.finish(), "SELECT $1, $2, $3, $4, $5, $6");
 
         let mut values = Values::default();
         values.bind(a);
-        for v in (&b).iter() {
+        for v in b.iter() {
             values.bind(v);
         }
-        for v in (&c).iter() {
+        for v in c.iter() {
             values.bind(v);
         }
 

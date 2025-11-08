@@ -136,6 +136,10 @@ impl ToSql for PostgresValue {
                 use eui48::MacAddress;
                 v.map(|v| MacAddress::new(v.bytes())).to_sql(ty, out)
             }
+            #[cfg(feature = "postgres-range")]
+            Value::Range(None) => Ok(IsNull::Yes),
+            #[cfg(feature = "postgres-range")]
+            Value::Range(Some(v)) => v.to_sql(ty, out),
         }
     }
 
