@@ -1,6 +1,3 @@
-[workspace]
-# A separate workspace
-
 [package]
 name = "sea-query-postgres-types"
 version = "0.1.0"
