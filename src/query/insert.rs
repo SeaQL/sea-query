@@ -314,6 +314,7 @@ impl InsertStatement {
     /// # Panics
     ///
     /// Panics when number of values not matching number of columns.
+    /// The equivalent `insert_many` method in SeaORM does not panic, it can construct the column list from active models.
     ///
     /// # Examples
     ///
