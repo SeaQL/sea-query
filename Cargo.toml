@@ -3,7 +3,7 @@ members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
-version = "1.0.0-rc.17"
+version = "1.0.0-rc.18"
 authors = [
     "Chris Tsang <chris.2y3@outlook.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
@@ -59,7 +59,7 @@ backend-sqlite = []
 default = ["derive", "audit", "backend-mysql", "backend-postgres", "backend-sqlite", "itoa"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-derive"]
-hashable-value = ["ordered-float", "sea-query-postgres-types?/hashable-value"]
+hashable-value = ["ordered-float"]
 postgres-array = []
 postgres-vector = ["pgvector"]
 postgres-interval = []

@@ -21,6 +21,7 @@ ordered-float = { version = "4.6", default-features = false, optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["std", "derive"] }
 
 [features]
+default = ["hashable-value"]
 postgres-driver = ["postgres-protocol", "postgres-types", "bytes"]
 hashable-value = ["ordered-float"]
 range = []
