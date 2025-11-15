@@ -29,11 +29,8 @@ pub enum PgFunc {
     JsonAgg,
     ArrayAgg,
     DateTrunc,
-    #[cfg(feature = "postgres-array")]
     Any,
-    #[cfg(feature = "postgres-array")]
     Some,
-    #[cfg(feature = "postgres-array")]
     All,
 }
 
@@ -266,7 +263,6 @@ impl PgFunc {
     ///     r#"SELECT ANY(ARRAY [0,1])"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-array")]
     pub fn any<T>(expr: T) -> FunctionCall
     where
         T: Into<Expr>,
@@ -288,7 +284,6 @@ impl PgFunc {
     ///     r#"SELECT SOME(ARRAY [0,1])"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-array")]
     pub fn some<T>(expr: T) -> FunctionCall
     where
         T: Into<Expr>,
@@ -310,7 +305,6 @@ impl PgFunc {
     ///     r#"SELECT ALL(ARRAY [0,1])"#
     /// );
     /// ```
-    #[cfg(feature = "postgres-array")]
     pub fn all<T>(expr: T) -> FunctionCall
     where
         T: Into<Expr>,
