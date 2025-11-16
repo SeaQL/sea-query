@@ -253,7 +253,9 @@ impl PgFunc {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```
+    /// #[cfg(feature = "postgres-array")]
+    /// # {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select().expr(PgFunc::any(vec![0, 1])).to_owned();
@@ -262,6 +264,7 @@ impl PgFunc {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT ANY(ARRAY [0,1])"#
     /// );
+    /// # }
     /// ```
     /// ```
     /// use sea_query::{tests_cfg::*, *};
@@ -288,7 +291,9 @@ impl PgFunc {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```
+    /// #[cfg(feature = "postgres-array")]
+    /// # {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select().expr(PgFunc::some(vec![0, 1])).to_owned();
@@ -297,6 +302,7 @@ impl PgFunc {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT SOME(ARRAY [0,1])"#
     /// );
+    /// # }
     /// ```
     pub fn some<T>(expr: T) -> FunctionCall
     where
@@ -309,7 +315,9 @@ impl PgFunc {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```
+    /// #[cfg(feature = "postgres-array")]
+    /// # {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select().expr(PgFunc::all(vec![0, 1])).to_owned();
@@ -318,6 +326,7 @@ impl PgFunc {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT ALL(ARRAY [0,1])"#
     /// );
+    /// # }
     /// ```
     pub fn all<T>(expr: T) -> FunctionCall
     where
