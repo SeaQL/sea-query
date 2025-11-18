@@ -915,7 +915,7 @@ pub trait QueryBuilder:
         if let Some(ref cte_query) = cte.query {
             self.prepare_query_statement(cte_query.deref(), sql);
         } else if let Some(ref cte_values) = cte.values {
-            self.prepare_values_rows(&cte_values, sql);
+            self.prepare_values_rows(cte_values, sql);
         } else {
             panic!("Either cte query or values needs to be specified");
         }
