@@ -51,6 +51,7 @@ pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
     pub(crate) cols: Vec<DynIden>,
     pub(crate) query: Option<Box<SubQueryStatement>>,
+    pub(crate) values: Option<Vec<Values>>,
     pub(crate) materialized: Option<bool>,
 }
 
@@ -66,6 +67,18 @@ impl CommonTableExpression {
         T: IntoIden,
     {
         self.table_name = Some(table_name.into_iden());
+        self
+    }
+
+    /// Sets the CTE VALUES clause.
+    ///
+    /// It panics if there is already a query set for the CTE.
+    pub fn values(&mut self, values: Vec<Values>) -> &mut Self {
+        if self.query.is_some() {
+            panic!("CommonTableExpression has already a query");
+        }
+
+        self.values = Some(values);
         self
     }
 
@@ -100,10 +113,16 @@ impl CommonTableExpression {
 
     /// Set the query generating the CTE content. The query's result must match the defined
     /// columns.
+    ///
+    /// It panics if there is already a VALUES clause set for the CTE.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
         Q: Into<SubQueryStatement>,
     {
+        if self.values.is_some() {
+            panic!("CommonTableExpression has already VALUES defined");
+        }
+
         self.query = Some(Box::new(query.into()));
         self
     }

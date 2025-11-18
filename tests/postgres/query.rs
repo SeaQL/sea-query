@@ -1225,6 +1225,43 @@ fn select_63() {
 }
 
 #[test]
+fn select_64() {
+    let rows = vec![
+        Values(vec![
+            Value::Int(Some(1)),
+            Value::String(Some("glyph1.jpg".to_owned())),
+            Value::Char(Some('l')),
+        ]),
+        Values(vec![
+            Value::Int(Some(2)),
+            Value::String(Some("glyph2.jpg".to_owned())),
+            Value::Char(Some('p')),
+        ]),
+    ];
+
+    let cte = CommonTableExpression::new()
+        .values(rows)
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .table_name("cte")
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from("cte")
+        .to_owned();
+    let query = select.with(with_clause);
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        [
+            r#"WITH "cte" ("id", "image", "aspect") AS"#,
+            r#"(VALUES (1, 'glyph1.jpg', 'l'), (2, 'glyph2.jpg', 'p'))"#,
+            r#"SELECT "id", "image", "aspect" FROM "cte""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     let query = Query::insert()

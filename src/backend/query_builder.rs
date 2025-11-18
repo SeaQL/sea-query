@@ -912,7 +912,13 @@ pub trait QueryBuilder:
 
         sql.write_str("(").unwrap();
 
-        self.prepare_query_statement(cte.query.as_ref().unwrap().deref(), sql);
+        if let Some(ref cte_query) = cte.query {
+            self.prepare_query_statement(cte_query.deref(), sql);
+        } else if let Some(ref cte_values) = cte.values {
+            self.prepare_values_rows(&cte_values, sql);
+        } else {
+            panic!("Either cte query or values needs to be specified");
+        }
 
         sql.write_str(") ").unwrap();
     }
@@ -1061,6 +1067,35 @@ pub trait QueryBuilder:
                     },
                     do {
                         self.prepare_value(value, sql);
+                    }
+                );
+
+                sql.write_str(")").unwrap();
+            }
+        );
+    }
+
+    fn prepare_values_rows(&self, values: &[Values], sql: &mut impl SqlWriter) {
+        sql.write_str("VALUES ").unwrap();
+        let mut rows = values.iter();
+        join_io!(
+            rows,
+            row,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                sql.write_str("(").unwrap();
+
+                let mut vals = row.clone().into_iter();
+                join_io!(
+                    vals,
+                    val,
+                    join {
+                        sql.write_str(", ").unwrap();
+                    },
+                    do {
+                        self.prepare_value(val, sql);
                     }
                 );
 
