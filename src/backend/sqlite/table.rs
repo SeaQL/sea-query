@@ -130,16 +130,16 @@ impl SqliteQueryBuilder {
             ColumnType::Double => sql.write_str("double"),
             ColumnType::Decimal(precision) => match precision {
                 Some((precision, scale)) => {
-                    if precision > &16 {
-                        panic!("precision cannot be larger than 16");
-                    }
-                    sql.write_str("real(").unwrap();
+                    // if precision > &16 {
+                    //     panic!("precision cannot be larger than 16");
+                    // }
+                    sql.write_str("decimal(").unwrap();
                     write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
                     write_int(sql, *scale);
                     sql.write_char(')')
                 }
-                None => sql.write_str("real"),
+                None => sql.write_str("decimal"),
             },
             ColumnType::DateTime => sql.write_str("datetime_text"),
             ColumnType::Timestamp => sql.write_str("timestamp_text"),
@@ -164,13 +164,13 @@ impl SqliteQueryBuilder {
             ColumnType::Boolean => sql.write_str("boolean"),
             ColumnType::Money(precision) => match precision {
                 Some((precision, scale)) => {
-                    sql.write_str("real_money(").unwrap();
+                    sql.write_str("money(").unwrap();
                     write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
                     write_int(sql, *scale);
                     sql.write_char(')')
                 }
-                None => sql.write_str("real_money"),
+                None => sql.write_str("money"),
             },
             ColumnType::Json => sql.write_str("json_text"),
             ColumnType::JsonBinary => sql.write_str("jsonb_text"),
