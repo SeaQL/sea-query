@@ -47,7 +47,7 @@ impl From<&mut ColumnDef> for ColumnDef {
 /// | BigUnsigned           | bigint unsigned   | bigint                      | integer                      |
 /// | Float                 | float             | real                        | float                        |
 /// | Double                | double            | double precision            | double                       |
-/// | Decimal               | decimal           | decimal                     | decimal                      |
+/// | Decimal               | decimal           | decimal                     | real(A, B)                   |
 /// | DateTime              | datetime          | timestamp without time zone | datetime_text                |
 /// | Timestamp             | timestamp         | timestamp                   | timestamp_text               |
 /// | TimestampWithTimeZone | timestamp         | timestamp with time zone    | timestamp_with_timezone_text |
@@ -61,7 +61,7 @@ impl From<&mut ColumnDef> for ColumnDef {
 /// | Bit                   | bit               | bit                         | N/A                          |
 /// | VarBit                | bit               | varbit                      | N/A                          |
 /// | Boolean               | bool              | bool                        | boolean                      |
-/// | Money                 | decimal           | money                       | money                        |
+/// | Money                 | decimal           | money                       | real_money                   |
 /// | Json                  | json              | json                        | json_text                    |
 /// | JsonBinary            | json              | jsonb                       | jsonb_text                   |
 /// | Uuid                  | binary(16)        | uuid                        | uuid_text                    |
