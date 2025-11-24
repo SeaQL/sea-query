@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use inherent::inherent;
 
 use crate::{
-    QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
+    IntoCondition, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
     SubQueryStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,

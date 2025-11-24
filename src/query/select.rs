@@ -3,8 +3,8 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 
 use crate::{
-    FunctionCall, QueryStatement, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement,
-    WindowStatement, WithClause, WithQuery,
+    FunctionCall, IntoCondition, QueryStatement, QueryStatementBuilder, QueryStatementWriter,
+    SubQueryStatement, WindowStatement, WithClause, WithQuery,
     backend::QueryBuilder,
     expr::*,
     prepare::*,
