@@ -8,31 +8,31 @@ use serde_json::Value as Json;
 use std::str::from_utf8;
 
 #[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+pub use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-time")]
-use time::{OffsetDateTime, PrimitiveDateTime};
+pub use time::{OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "with-jiff")]
-use jiff::{Timestamp, Zoned};
+pub use jiff::{Timestamp, Zoned};
 
 #[cfg(feature = "with-rust_decimal")]
 use rust_decimal::Decimal;
 
 #[cfg(feature = "with-bigdecimal")]
-use bigdecimal::BigDecimal;
+pub use bigdecimal::BigDecimal;
 
 #[cfg(feature = "with-uuid")]
 use uuid::Uuid;
 
 #[cfg(feature = "with-ipnetwork")]
-use ipnetwork::IpNetwork;
+pub use ipnetwork::IpNetwork;
 
 #[cfg(feature = "with-ipnetwork")]
 use std::net::IpAddr;
 
 #[cfg(feature = "with-mac_address")]
-use mac_address::MacAddress;
+pub use mac_address::MacAddress;
 
 #[cfg(feature = "postgres-range")]
 use sea_query_postgres_types::range::RangeType;
