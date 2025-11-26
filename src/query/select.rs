@@ -1,18 +1,13 @@
+use inherent::inherent;
 use std::borrow::Cow;
-#[cfg(feature = "backend-mysql")]
-use std::collections::HashMap;
 
 use crate::{
-    FunctionCall, QueryStatement, QueryStatementBuilder, QueryStatementWriter, SubQueryStatement,
-    WindowStatement, WithClause, WithQuery,
-    backend::QueryBuilder,
-    expr::*,
-    prepare::*,
-    query::{OrderedStatement, condition::*},
-    types::*,
-    value::*,
+    ColumnRef, ConditionHolder, ConditionalStatement, DynIden, Expr, FunctionCall, IntoColumnRef,
+    IntoCondition, IntoIden, IntoTableRef, IntoValueTuple, JoinOn, JoinType, LogicalChainOper,
+    NullOrdering, Order, OrderExpr, OrderedStatement, QueryStatement, QueryStatementBuilder,
+    QueryStatementWriter, SqlWriter, SubQueryStatement, TableRef, Value, ValueTuple, Values,
+    WindowStatement, WithClause, WithQuery, backend::QueryBuilder,
 };
-use inherent::inherent;
 
 /// Select rows from an existing table
 ///
@@ -62,8 +57,10 @@ pub struct SelectStatement {
     #[cfg(feature = "backend-postgres")]
     pub(crate) table_sample: Option<crate::extension::postgres::TableSample>,
     #[cfg(feature = "backend-mysql")]
-    pub(crate) index_hints:
-        HashMap<index_hint::IndexHintKey, Vec<crate::extension::mysql::IndexHint>>,
+    pub(crate) index_hints: std::collections::HashMap<
+        index_hint::IndexHintKey,
+        Vec<crate::extension::mysql::IndexHint>,
+    >,
 }
 
 #[cfg(feature = "backend-mysql")]
