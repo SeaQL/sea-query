@@ -63,7 +63,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Double(Some(v)) => (*v).into(),
         Value::String(Some(s)) => Json::String(s.clone()),
         Value::Char(Some(v)) => Json::String(v.to_string()),
-        Value::Bytes(Some(s)) => Json::String(from_utf8(s).unwrap().to_string()),
+        Value::Bytes(Some(s)) => Json::String(std::str::from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.clone(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
