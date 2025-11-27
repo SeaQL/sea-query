@@ -7,7 +7,7 @@ use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 #[cfg(test)]
 mod tests;
 
-mod prelude;
+pub mod prelude;
 #[allow(unused_imports)]
 use prelude::*;
 
