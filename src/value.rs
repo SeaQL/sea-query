@@ -17,13 +17,13 @@ pub use time::{OffsetDateTime, PrimitiveDateTime};
 pub use jiff::{Timestamp, Zoned};
 
 #[cfg(feature = "with-rust_decimal")]
-use rust_decimal::Decimal;
+pub use rust_decimal::Decimal;
 
 #[cfg(feature = "with-bigdecimal")]
 pub use bigdecimal::BigDecimal;
 
 #[cfg(feature = "with-uuid")]
-use uuid::Uuid;
+pub use uuid::Uuid;
 
 #[cfg(feature = "with-ipnetwork")]
 pub use ipnetwork::IpNetwork;
