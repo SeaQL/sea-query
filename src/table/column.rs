@@ -308,10 +308,15 @@ impl ColumnDef {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let table = Table::create()
-    ///     .table(Char::Table)
-    ///     .col(ColumnDef::new(Char::FontId).integer().default(12i32))
+    ///     .table("character")
+    ///     .col(ColumnDef::new("font_id").integer().default(12i32))
     ///     .col(
-    ///         ColumnDef::new(Char::CreatedAt)
+    ///         ColumnDef::new("font_id_plus_1")
+    ///             .integer()
+    ///             .default(Expr::val(12).add(2)),
+    ///     )
+    ///     .col(
+    ///         ColumnDef::new("created_at")
     ///             .timestamp()
     ///             .default(Expr::current_timestamp())
     ///             .not_null(),
@@ -323,6 +328,7 @@ impl ColumnDef {
     ///     [
     ///         "CREATE TABLE `character` (",
     ///         "`font_id` int DEFAULT 12,",
+    ///         "`font_id_plus_1` int DEFAULT (12 + 2),",
     ///         "`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP",
     ///         ")",
     ///     ]
@@ -334,6 +340,7 @@ impl ColumnDef {
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
     ///         r#""font_id" integer DEFAULT 12,"#,
+    ///         r#""font_id_plus_1" integer DEFAULT (12 + 2),"#,
     ///         r#""created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP"#,
     ///         r#")"#,
     ///     ]
