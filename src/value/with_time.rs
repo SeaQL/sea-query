@@ -9,6 +9,11 @@ impl TimeLikeValue for time::Time {}
 impl DateTimeLikeValue for time::PrimitiveDateTime {}
 impl DateTimeLikeValue for time::OffsetDateTime {}
 
+impl DateLikeValueNullable for Option<time::Date> {}
+impl TimeLikeValueNullable for Option<time::Time> {}
+impl DateTimeLikeValueNullable for Option<time::PrimitiveDateTime> {}
+impl DateTimeLikeValueNullable for Option<time::OffsetDateTime> {}
+
 impl From<OffsetDateTime> for Value {
     fn from(v: OffsetDateTime) -> Value {
         Value::TimeDateTimeWithTimeZone(Some(v))

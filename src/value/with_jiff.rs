@@ -13,6 +13,12 @@ impl DateTimeLikeValue for civil::DateTime {}
 impl DateTimeLikeValue for Timestamp {}
 impl DateTimeLikeValue for Zoned {}
 
+impl DateLikeValueNullable for Option<civil::Date> {}
+impl TimeLikeValueNullable for Option<civil::Time> {}
+impl DateTimeLikeValueNullable for Option<civil::DateTime> {}
+impl DateTimeLikeValueNullable for Option<Timestamp> {}
+impl DateTimeLikeValueNullable for Option<Zoned> {}
+
 impl Value {
     #[inline]
     pub fn jiff_date<T: Into<Option<civil::Date>>>(v: T) -> Value {

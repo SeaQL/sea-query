@@ -3,6 +3,7 @@ use super::*;
 type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
 
 impl NumericValue for BigDecimal {}
+impl NumericValueNullable for Option<BigDecimal> {}
 
 impl Value {
     pub fn is_big_decimal(&self) -> bool {
