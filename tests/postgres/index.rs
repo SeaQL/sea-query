@@ -86,19 +86,6 @@ fn create_6() {
 fn create_7() {
     assert_eq!(
         Index::create()
-            .if_not_exists()
-            .name("idx-glyph-image")
-            .table(Glyph::Table)
-            .col(Glyph::Image.into_index_column().with_operator_class("text_pattern_ops"))
-            .to_string(PostgresQueryBuilder),
-        r#"CREATE INDEX IF NOT EXISTS "idx-glyph-image" ON "glyph" ("image" text_pattern_ops)"#
-    );
-}
-
-#[test]
-fn create_7() {
-    assert_eq!(
-        Index::create()
             .unique()
             .nulls_not_distinct()
             .name("idx-glyph-aspect-image")
@@ -168,6 +155,23 @@ fn create_11() {
             .to_string(PostgresQueryBuilder),
         r#"CREATE INDEX "idx-character-character-area-desc-created_at" ON "character" ((UPPER("character")), ("size_h" * "size_w") DESC, "created_at")"#
     )
+}
+
+#[test]
+fn create_12() {
+    assert_eq!(
+        Index::create()
+            .if_not_exists()
+            .name("idx-glyph-image")
+            .table(Glyph::Table)
+            .col(
+                Glyph::Image
+                    .into_index_column()
+                    .with_operator_class("text_pattern_ops")
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX IF NOT EXISTS "idx-glyph-image" ON "glyph" ("image" text_pattern_ops)"#
+    );
 }
 
 #[test]

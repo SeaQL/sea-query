@@ -41,7 +41,9 @@ impl IndexColumn {
 
     pub(crate) fn operator_class(&self) -> &Option<DynIden> {
         match self {
-            IndexColumn::TableColumn(IndexColumnTableColumn { operator_class, .. }) => operator_class,
+            IndexColumn::TableColumn(IndexColumnTableColumn { operator_class, .. }) => {
+                operator_class
+            }
             IndexColumn::Expr(IndexColumnExpr { operator_class, .. }) => operator_class,
         }
     }
@@ -51,10 +53,10 @@ impl IndexColumn {
         match self {
             IndexColumn::TableColumn(ref mut index_column_table_column) => {
                 index_column_table_column.operator_class = Some(operator_class.into_iden());
-            },
+            }
             IndexColumn::Expr(ref mut index_column_expr) => {
                 index_column_expr.operator_class = Some(operator_class.into_iden())
-            },
+            }
         };
         self
     }
