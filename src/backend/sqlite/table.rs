@@ -62,14 +62,8 @@ impl TableBuilder for SqliteQueryBuilder {
                 sql.write_str(" TO ").unwrap();
                 self.prepare_iden(to_name, sql);
             }
-            TableAlterOption::DropColumn(DropColumnOption {
-                column_name,
-                if_exists,
-            }) => {
+            TableAlterOption::DropColumn(DropColumnOption { column_name, .. }) => {
                 sql.write_str("DROP COLUMN ").unwrap();
-                if *if_exists {
-                    panic!("Sqlite does not support drop column if exists");
-                }
                 self.prepare_iden(column_name, sql);
             }
             TableAlterOption::DropForeignKey(_) => {
