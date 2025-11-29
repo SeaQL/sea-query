@@ -311,7 +311,7 @@ impl ColumnDef {
     ///     .table("character")
     ///     .col(ColumnDef::new("font_id").integer().default(12i32))
     ///     .col(
-    ///         ColumnDef::new("font_id_plus_1")
+    ///         ColumnDef::new("font_id_2")
     ///             .integer()
     ///             .default(Expr::val(12).add(2)),
     ///     )
@@ -328,7 +328,7 @@ impl ColumnDef {
     ///     [
     ///         "CREATE TABLE `character` (",
     ///         "`font_id` int DEFAULT 12,",
-    ///         "`font_id_plus_1` int DEFAULT (12 + 2),",
+    ///         "`font_id_2` int DEFAULT (12 + 2),",
     ///         "`created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP",
     ///         ")",
     ///     ]
@@ -340,7 +340,7 @@ impl ColumnDef {
     ///     [
     ///         r#"CREATE TABLE "character" ("#,
     ///         r#""font_id" integer DEFAULT 12,"#,
-    ///         r#""font_id_plus_1" integer DEFAULT (12 + 2),"#,
+    ///         r#""font_id_2" integer DEFAULT (12 + 2),"#,
     ///         r#""created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP"#,
     ///         r#")"#,
     ///     ]
