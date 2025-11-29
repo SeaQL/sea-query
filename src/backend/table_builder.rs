@@ -112,8 +112,25 @@ pub trait TableBuilder:
         }
 
         if let Some(default) = default {
-            write!(sql, " DEFAULT ").unwrap();
-            QueryBuilder::prepare_expr(self, default, sql);
+            sql.write_str(" DEFAULT ").unwrap();
+            // Wrap expressions in parentheses.
+            // Most of database backends support this syntax.
+            //
+            // In MySQL 5.7, the DEFAULT clause doesn't accept any expressions,
+            // so it will be invalid SQL in any case.
+            //
+            // References:
+            // https://sqlite.org/lang_createtable.html
+            match default {
+                Expr::Value(_) | Expr::Constant(_) | Expr::Keyword(_) => {
+                    self.prepare_expr(default, sql)
+                }
+                _ => {
+                    sql.write_str("(").unwrap();
+                    self.prepare_expr(default, sql);
+                    sql.write_str(")").unwrap()
+                }
+            }
         }
 
         if let Some(generated) = generated {
