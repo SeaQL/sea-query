@@ -656,6 +656,19 @@ pub trait QueryBuilder:
                 }
                 sql.write_str("*").unwrap();
             }
+            ColumnRef::New(column) => {
+                sql.write_str("NEW.").unwrap();
+                self.prepare_iden(column, sql);
+            }
+            ColumnRef::Old(column) => {
+                sql.write_str("OLD.").unwrap();
+                self.prepare_iden(column, sql);
+            }
+            #[cfg(feature = "backend-postgres")]
+            ColumnRef::Excluded(column) => {
+                sql.write_str("excluded.").unwrap();
+                self.prepare_iden(column, sql);
+            }
         }
     }
 
