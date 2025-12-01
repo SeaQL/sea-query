@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    CTEQuery, CaseStatement, CommonTableExpression, Condition, ConditionExpression,
-    ConditionHolder, ConditionHolderContents, Cycle, Expr, FunctionCall, LogicalChainOper, Search,
+    CaseStatement, CommonTableExpression, Condition, ConditionExpression, ConditionHolder,
+    ConditionHolderContents, CteQuery, Cycle, Expr, FunctionCall, LogicalChainOper, Search,
     SelectStatement, SubQueryStatement, TableRef, WithClause, WithQuery,
 };
 use std::collections::HashSet;
@@ -191,7 +191,7 @@ impl Walker {
 
     fn recurse_audit_cte_expr(&mut self, cte: &CommonTableExpression) -> Result<(), Error> {
         // for CTEQuery::Values no audit is needed
-        if let CTEQuery::Query(sub_query) = &cte.query {
+        if let CteQuery::SubQuery(sub_query) = &cte.query {
             self.recurse_audit_subquery(sub_query)?;
         }
         Ok(())

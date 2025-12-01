@@ -913,8 +913,8 @@ pub trait QueryBuilder:
         sql.write_str("(").unwrap();
 
         match &cte.query {
-            CTEQuery::Query(sub_query) => self.prepare_query_statement(sub_query, sql),
-            CTEQuery::Values(items) => self.prepare_values_rows(items, sql),
+            CteQuery::SubQuery(sub_query) => self.prepare_query_statement(sub_query, sql),
+            CteQuery::Values(items) => self.prepare_values_rows(items, sql),
         }
 
         sql.write_str(") ").unwrap();

@@ -6,12 +6,12 @@ use crate::{
 use inherent::inherent;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum CTEQuery {
-    Query(Box<SubQueryStatement>),
+pub(crate) enum CteQuery {
+    SubQuery(Box<SubQueryStatement>),
     Values(Vec<Values>),
 }
 
-impl Default for CTEQuery {
+impl Default for CteQuery {
     fn default() -> Self {
         Self::Values(vec![])
     }
@@ -62,7 +62,7 @@ impl Default for CTEQuery {
 pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
     pub(crate) cols: Vec<DynIden>,
-    pub(crate) query: CTEQuery,
+    pub(crate) query: CteQuery,
     pub(crate) materialized: Option<bool>,
 }
 
@@ -85,7 +85,7 @@ impl CommonTableExpression {
     ///
     /// It overwrites the query if it is already set for the CTE.
     pub fn values(&mut self, values: Vec<Values>) -> &mut Self {
-        self.query = CTEQuery::Values(values);
+        self.query = CteQuery::Values(values);
         self
     }
 
@@ -126,7 +126,7 @@ impl CommonTableExpression {
     where
         Q: Into<SubQueryStatement>,
     {
-        self.query = CTEQuery::Query(Box::new(query.into()));
+        self.query = CteQuery::SubQuery(Box::new(query.into()));
         self
     }
 
@@ -143,7 +143,7 @@ impl CommonTableExpression {
                 _ => {}
             }
         }
-        cte.query = CTEQuery::Query(Box::new(select.into()));
+        cte.query = CteQuery::SubQuery(Box::new(select.into()));
         cte
     }
 
