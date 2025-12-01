@@ -1259,6 +1259,7 @@ fn select_64() {
         ]
         .join(" ")
     );
+    assert_eq!(query.audit_unwrap().selected_tables(), []);
 }
 
 #[test]

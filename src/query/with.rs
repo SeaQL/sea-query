@@ -5,6 +5,18 @@ use crate::{
 };
 use inherent::inherent;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum CTEQuery {
+    Query(Box<SubQueryStatement>),
+    Values(Vec<Values>),
+}
+
+impl Default for CTEQuery {
+    fn default() -> Self {
+        Self::Values(vec![])
+    }
+}
+
 /// A table definition inside a WITH clause ([WithClause]).
 ///
 /// A WITH clause can contain one or multiple common table expressions ([CommonTableExpression]).
@@ -50,8 +62,7 @@ use inherent::inherent;
 pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
     pub(crate) cols: Vec<DynIden>,
-    pub(crate) query: Option<Box<SubQueryStatement>>,
-    pub(crate) values: Option<Vec<Values>>,
+    pub(crate) query: CTEQuery,
     pub(crate) materialized: Option<bool>,
 }
 
@@ -72,13 +83,9 @@ impl CommonTableExpression {
 
     /// Sets the CTE VALUES clause.
     ///
-    /// It panics if there is already a query set for the CTE.
+    /// It overwrites the query if it is already set for the CTE.
     pub fn values(&mut self, values: Vec<Values>) -> &mut Self {
-        if self.query.is_some() {
-            panic!("CommonTableExpression has already a query");
-        }
-
-        self.values = Some(values);
+        self.query = CTEQuery::Values(values);
         self
     }
 
@@ -114,16 +121,12 @@ impl CommonTableExpression {
     /// Set the query generating the CTE content. The query's result must match the defined
     /// columns.
     ///
-    /// It panics if there is already a VALUES clause set for the CTE.
+    /// It overwrites the values if it is already set for the CTE.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
         Q: Into<SubQueryStatement>,
     {
-        if self.values.is_some() {
-            panic!("CommonTableExpression has already VALUES defined");
-        }
-
-        self.query = Some(Box::new(query.into()));
+        self.query = CTEQuery::Query(Box::new(query.into()));
         self
     }
 
@@ -140,7 +143,7 @@ impl CommonTableExpression {
                 _ => {}
             }
         }
-        cte.query = Some(Box::new(select.into()));
+        cte.query = CTEQuery::Query(Box::new(select.into()));
         cte
     }
 

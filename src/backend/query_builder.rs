@@ -912,12 +912,9 @@ pub trait QueryBuilder:
 
         sql.write_str("(").unwrap();
 
-        if let Some(ref cte_query) = cte.query {
-            self.prepare_query_statement(cte_query.deref(), sql);
-        } else if let Some(ref cte_values) = cte.values {
-            self.prepare_values_rows(cte_values, sql);
-        } else {
-            panic!("Either cte query or values needs to be specified");
+        match &cte.query {
+            CTEQuery::Query(sub_query) => self.prepare_query_statement(sub_query, sql),
+            CTEQuery::Values(items) => self.prepare_values_rows(items, sql),
         }
 
         sql.write_str(") ").unwrap();
