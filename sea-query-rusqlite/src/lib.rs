@@ -142,6 +142,10 @@ impl ToSql for RusqliteValue {
             Value::Vector(_) => {
                 panic!("Rusqlite doesn't support Vector arguments");
             }
+            Value::Enum(v) => match v {
+                Some(v) => v.as_str().to_sql(),
+                None => Null.to_sql(),
+            },
         }
     }
 }
