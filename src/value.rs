@@ -1,7 +1,6 @@
 //! Container for all SQL value types.
 
 use std::borrow::Cow;
-#[cfg(feature = "backend-postgres")]
 use std::sync::Arc;
 
 #[cfg(feature = "with-chrono")]
@@ -37,9 +36,7 @@ use mac_address::MacAddress;
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 mod array;
 
-#[cfg(feature = "backend-postgres")]
-use crate::DynIden;
-use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
+use crate::{ColumnType, CommonSqlQueryBuilder, DynIden, QueryBuilder, StringLen};
 #[cfg(feature = "postgres-array")]
 pub use array::Array;
 
@@ -133,7 +130,6 @@ pub enum ArrayType {
     Char,
     Bytes,
     /// The type name of the enum
-    #[cfg(feature = "backend-postgres")]
     Enum(Arc<str>),
 
     #[cfg(feature = "with-json")]
@@ -246,7 +242,6 @@ pub enum Value {
     Char(Option<char>),
     /// In most cases, the values of enums are staticly known,
     /// so we use Arc to save space
-    #[cfg(feature = "backend-postgres")]
     Enum(Option<Arc<Enum>>),
 
     #[allow(clippy::box_collection)]
@@ -349,7 +344,6 @@ pub enum Value {
     Range(Option<Box<RangeType>>),
 }
 
-#[cfg(feature = "backend-postgres")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Enum {
@@ -361,7 +355,6 @@ pub struct Enum {
     pub(crate) value: DynIden,
 }
 
-#[cfg(feature = "backend-postgres")]
 impl Enum {
     /// Create a new [`EnumValue`]
     pub fn new(type_name: impl Into<Option<Arc<str>>>, value: DynIden) -> Self {
@@ -472,7 +465,6 @@ impl Value {
             Self::String(_) => Self::String(None),
             Self::Char(_) => Self::Char(None),
             Self::Bytes(_) => Self::Bytes(None),
-            #[cfg(feature = "backend-postgres")]
             Self::Enum(_) => Self::Enum(None),
 
             #[cfg(feature = "with-json")]
@@ -597,7 +589,6 @@ impl Value {
             Self::Double(_) => Self::Double(Some(Default::default())),
             Self::String(_) => Self::String(Some(Default::default())),
             Self::Char(_) => Self::Char(Some(Default::default())),
-            #[cfg(feature = "backend-postgres")]
             Self::Enum(value) => Self::Enum(value.clone()),
             Self::Bytes(_) => Self::Bytes(Some(Default::default())),
 

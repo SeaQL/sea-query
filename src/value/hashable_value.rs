@@ -22,7 +22,6 @@ impl PartialEq for Value {
             (Self::String(l), Self::String(r)) => l == r,
             (Self::Char(l), Self::Char(r)) => l == r,
             (Self::Bytes(l), Self::Bytes(r)) => l == r,
-            #[cfg(feature = "backend-postgres")]
             (Self::Enum(l), Self::Enum(r)) => l == r,
 
             #[cfg(feature = "with-json")]
@@ -107,7 +106,6 @@ impl Hash for Value {
             Value::String(v) => v.hash(state),
             Value::Char(v) => v.hash(state),
             Value::Bytes(v) => v.hash(state),
-            #[cfg(feature = "backend-postgres")]
             Value::Enum(v) => v.hash(state),
 
             #[cfg(feature = "with-json")]

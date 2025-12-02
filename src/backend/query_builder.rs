@@ -1168,7 +1168,6 @@ pub trait QueryBuilder:
             Value::Double(v) => write_opt!(v, val => self.write_f64_to(buf, *val)),
             Value::String(v) => write_opt!(v, val => self.write_str_to(buf, val)),
             Value::Char(v) => write_opt!(v, val => self.write_char_to(buf, *val)),
-            #[cfg(feature = "backend-postgres")]
             Value::Enum(v) => write_opt!(v, val => self.write_enum_to(buf, val.as_ref())),
             Value::Bytes(v) => {
                 write_opt!(v, val => ValueEncoder::write_bytes_to(self, buf, val))

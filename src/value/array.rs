@@ -1,10 +1,8 @@
 use super::*;
 #[cfg(feature = "with-json")]
 use crate::backend::ValueEncoder;
-#[cfg(feature = "backend-postgres")]
 use std::sync::Arc;
 
-#[cfg(feature = "backend-postgres")]
 type EnumArray = Box<(Arc<str>, Box<[Option<Arc<Enum>>]>)>;
 
 #[derive(Debug, Clone)]
@@ -26,7 +24,6 @@ pub enum Array {
     String(Box<[Option<String>]>),
     Char(Box<[Option<char>]>),
     Bytes(Box<[Option<Vec<u8>>]>),
-    #[cfg(feature = "backend-postgres")]
     Enum(EnumArray),
     Array(Box<(ArrayType, Box<[Option<Array>]>)>),
     #[cfg(feature = "with-json")]
@@ -111,7 +108,6 @@ impl Array {
             Array::String(_) => ArrayType::String,
             Array::Char(_) => ArrayType::Char,
             Array::Bytes(_) => ArrayType::Bytes,
-            #[cfg(feature = "backend-postgres")]
             Array::Enum(boxed) => ArrayType::Enum(boxed.as_ref().0.clone()),
             Array::Array(arr) => arr.as_ref().0.clone(),
             #[cfg(feature = "with-json")]
@@ -175,7 +171,6 @@ impl Array {
             Array::String(v) => v.is_empty(),
             Array::Char(v) => v.is_empty(),
             Array::Bytes(v) => v.is_empty(),
-            #[cfg(feature = "backend-postgres")]
             Array::Enum(b) => b.as_ref().1.is_empty(),
             Array::Array(b) => b.as_ref().1.is_empty(),
             #[cfg(feature = "with-json")]
@@ -265,7 +260,6 @@ impl Array {
             Array::Bytes(v) => map_slice_of_opts(v, |bytes| {
                 Json::String(std::str::from_utf8(bytes).unwrap().to_string())
             }),
-            #[cfg(feature = "backend-postgres")]
             Array::Enum(v) => {
                 let (_, arr) = v.as_ref();
                 map_slice_of_opts(arr, |e| Json::String(e.value.to_string()))
@@ -396,7 +390,6 @@ impl Array {
             Array::String(_) => Array::String(Box::new([])),
             Array::Char(_) => Array::Char(Box::new([])),
             Array::Bytes(_) => Array::Bytes(Box::new([])),
-            #[cfg(feature = "backend-postgres")]
             Array::Enum(val) => {
                 let val = val.as_ref();
                 Array::Enum(Box::new((val.0.clone(), Box::new([]))))
@@ -514,7 +507,6 @@ mod hash {
                 (Self::JiffZoned(l0), Self::JiffZoned(r0)) => l0 == r0,
                 (Self::Uuid(l0), Self::Uuid(r0)) => l0 == r0,
                 (Self::Decimal(l0), Self::Decimal(r0)) => l0 == r0,
-                #[cfg(feature = "backend-postgres")]
                 (Self::Enum(l0), Self::Enum(r0)) => l0 == r0,
                 (Self::BigDecimal(l0), Self::BigDecimal(r0)) => l0 == r0,
                 (Self::IpNetwork(l0), Self::IpNetwork(r0)) => l0 == r0,
@@ -554,7 +546,6 @@ mod hash {
                 Array::String(items) => items.hash(state),
                 Array::Char(items) => items.hash(state),
                 Array::Bytes(items) => items.hash(state),
-                #[cfg(feature = "backend-postgres")]
                 Array::Enum(items) => items.hash(state),
                 Array::Array(items) => items.hash(state),
                 #[cfg(feature = "with-json")]

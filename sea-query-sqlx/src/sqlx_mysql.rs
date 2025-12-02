@@ -110,7 +110,6 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::JiffZoned(_) => {
                     panic!("Mysql doesn't support Jiff arguments");
                 }
-                #[cfg(feature = "backend-postgres")]
                 Value::Enum(_) => {
                     panic!("Mysql doesn't support Postgres Enum arguments");
                 }

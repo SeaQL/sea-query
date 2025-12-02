@@ -3,7 +3,8 @@ use diesel::pg::sql_types::*;
 use diesel::query_builder::QueryFragment;
 use diesel::result::QueryResult;
 use diesel::sql_types::{
-    BigInt, Bool, Date, Double, Float, Integer, Nullable, SmallInt, Text, Time, Timestamp,
+    BigInt, Blob, Bool, Date, Double, Float, Integer, Json, Nullable, Numeric, SmallInt, Text,
+    Time, Timestamp,
 };
 
 #[allow(unused_imports)]

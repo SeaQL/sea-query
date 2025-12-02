@@ -258,7 +258,6 @@ pub trait ValueEncoder: EscapeBuilder {
         buf.write_str("'").unwrap();
     }
 
-    #[cfg(feature = "backend-postgres")]
     fn write_enum_to(&self, buf: &mut impl Write, value: &crate::value::Enum) {
         self.write_str_to(buf, value.value.as_str());
     }
@@ -378,7 +377,6 @@ pub trait ValueEncoder: EscapeBuilder {
                         encoder.write_bytes_to(buf, val)
                     })
                 }
-                #[cfg(feature = "backend-postgres")]
                 Array::Enum(boxed) => {
                     write_array_values(encoder, buf, &boxed.as_ref().1, |encoder, buf, val| {
                         encoder.write_enum_to(buf, val.as_ref())

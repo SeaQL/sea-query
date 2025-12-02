@@ -224,7 +224,6 @@ impl_value_vec! {
     serde_json::Value => Json
 }
 
-#[cfg(feature = "backend-postgres")]
 impl From<(Arc<str>, Vec<Option<Arc<Enum>>>)> for Value {
     fn from(x: (Arc<str>, Vec<Option<Arc<Enum>>>)) -> Value {
         Value::Array(Some(Array::Enum(Box::new((x.0, x.1.into_boxed_slice())))))

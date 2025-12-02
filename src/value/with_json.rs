@@ -33,9 +33,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::String(None)
         | Value::Char(None)
         | Value::Bytes(None)
+        | Value::Enum(None)
         | Value::Json(None) => Json::Null,
-        #[cfg(feature = "backend-postgres")]
-        Value::Enum(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
         #[cfg(feature = "with-bigdecimal")]
@@ -109,7 +108,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
-        #[cfg(feature = "backend-postgres")]
         Value::Enum(Some(v)) => Json::String(v.value.to_string()),
         #[cfg(feature = "postgres-array")]
         Value::Array(Some(v)) => v.to_json_value(),

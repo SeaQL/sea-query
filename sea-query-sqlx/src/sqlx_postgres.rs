@@ -137,7 +137,6 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::JiffZoned(z) => {
                     let _ = args.add(z.map(|z| jiff_sqlx::Timestamp::from(z.timestamp())));
                 }
-                #[cfg(feature = "backend-postgres")]
                 Value::Enum(e) => {
                     // Bind as TEXT; We will explicit cast it in SQL (e.g., $1::my_enum_type)
                     let _ = args.add(e.map(|e| e.as_str().to_owned()));
@@ -388,7 +387,6 @@ fn match_some_array(arr: Array, args: &mut sqlx::postgres::PgArguments) {
                 .collect();
             let _ = args.add(v);
         }
-        #[cfg(feature = "backend-postgres")]
         Array::Enum(inner) => {
             // Bind as TEXT[]; use explicit cast in SQL (e.g., $1::my_enum_type[])
             let (_, arr) = inner.as_ref();

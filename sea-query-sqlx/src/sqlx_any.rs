@@ -112,7 +112,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::JiffZoned(_) => {
                     panic!("SQLx doesn't support Jiff arguments for Any");
                 }
-                #[cfg(feature = "backend-postgres")]
                 Value::Enum(_) => {
                     panic!("SQLx doesn't support Postgres Enum arguments for Any");
                 }

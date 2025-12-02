@@ -110,7 +110,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::JiffZoned(z) => {
                     let _ = args.add(z.map(|z| jiff_sqlx::Timestamp::from(z.timestamp())));
                 }
-                #[cfg(feature = "backend-postgres")]
                 Value::Enum(e) => {
                     let _ = args.add(e.map(|e| e.as_str().to_owned()));
                 }
