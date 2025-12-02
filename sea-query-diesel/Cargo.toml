@@ -27,7 +27,7 @@ chrono = { version = "0.4", default-features = false, optional = true }
 time = { version = "0.3.36", default-features = false, optional = true }
 uuid = { version = "1", default-features = false, optional = true }
 serde_json = { version = "1", default-features = false, optional = true }
-ipnetwork = { version = "0.21", default-features = false, optional = true }
+ipnetwork = { version = "0.20", default-features = false, optional = true }
 mac_address = { version = "1.1", default-features = false, optional = true }
 pgvector = { version = "~0.4", default-features = false, optional = true }
 
