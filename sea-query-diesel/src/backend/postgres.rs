@@ -91,14 +91,15 @@ impl TransformValue for Pg {
                 use diesel::sql_types::Array as DieselArray;
                 use sea_query::Array as SeaArray;
                 match v {
-                    None => build!(DieselArray<Bool>, None::<Vec<Option<bool>>>),
+                    // Use dummy value to represent NULL array
+                    None => build!(DieselArray<Nullable<Bool>>, None::<Vec<Option<bool>>>),
                     Some(arr) => match arr {
                         SeaArray::Bool(slice) => {
-                            build!(DieselArray<Bool>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Bool>>, Some(slice.into_vec()))
                         }
                         SeaArray::TinyInt(slice) => {
                             build!(
-                                DieselArray<SmallInt>,
+                                DieselArray<Nullable<SmallInt>>,
                                 Some(
                                     slice
                                         .into_vec()
@@ -109,17 +110,17 @@ impl TransformValue for Pg {
                             )
                         }
                         SeaArray::SmallInt(slice) => {
-                            build!(DieselArray<SmallInt>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<SmallInt>>, Some(slice.into_vec()))
                         }
                         SeaArray::Int(slice) => {
-                            build!(DieselArray<Integer>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Integer>>, Some(slice.into_vec()))
                         }
                         SeaArray::BigInt(slice) => {
-                            build!(DieselArray<BigInt>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<BigInt>>, Some(slice.into_vec()))
                         }
                         SeaArray::TinyUnsigned(slice) => {
                             build!(
-                                DieselArray<SmallInt>,
+                                DieselArray<Nullable<SmallInt>>,
                                 Some(
                                     slice
                                         .into_vec()
@@ -131,7 +132,7 @@ impl TransformValue for Pg {
                         }
                         SeaArray::SmallUnsigned(slice) => {
                             build!(
-                                DieselArray<Integer>,
+                                DieselArray<Nullable<Integer>>,
                                 Some(
                                     slice
                                         .into_vec()
@@ -143,7 +144,7 @@ impl TransformValue for Pg {
                         }
                         SeaArray::Unsigned(slice) => {
                             build!(
-                                DieselArray<BigInt>,
+                                DieselArray<Nullable<BigInt>>,
                                 Some(
                                     slice
                                         .into_vec()
@@ -166,20 +167,20 @@ impl TransformValue for Pg {
                                     .transpose()
                                 })
                                 .collect::<Result<Vec<_>, _>>()?;
-                            build!(DieselArray<BigInt>, Some(converted))
+                            build!(DieselArray<Nullable<BigInt>>, Some(converted))
                         }
                         SeaArray::Float(slice) => {
-                            build!(DieselArray<Float>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Float>>, Some(slice.into_vec()))
                         }
                         SeaArray::Double(slice) => {
-                            build!(DieselArray<Double>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Double>>, Some(slice.into_vec()))
                         }
                         SeaArray::String(slice) => {
-                            build!(DieselArray<Text>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Text>>, Some(slice.into_vec()))
                         }
                         SeaArray::Char(slice) => {
                             build!(
-                                DieselArray<Text>,
+                                DieselArray<Nullable<Text>>,
                                 Some(
                                     slice
                                         .into_vec()
@@ -190,58 +191,58 @@ impl TransformValue for Pg {
                             )
                         }
                         SeaArray::Bytes(slice) => {
-                            build!(DieselArray<Blob>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Blob>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "postgres")]
-                        SeaArray::Enum(_) => bail!("Enum arrays are not supported"),
+                        SeaArray::Enum(slice) => build!(DieselArray<Nullable<Text>>, Some(slice.into_vec())) ,
                         SeaArray::Array(_) => bail!("Nested arrays are not supported"),
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoDate(slice) => {
-                            build!(DieselArray<Date>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Date>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoTime(slice) => {
-                            build!(DieselArray<Time>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Time>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoDateTime(slice) => {
-                            build!(DieselArray<Timestamp>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Timestamp>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoDateTimeUtc(slice) => {
-                            build!(DieselArray<Timestamptz>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Timestamptz>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoDateTimeLocal(slice) => {
-                            build!(DieselArray<Timestamptz>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Timestamptz>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoDateTimeWithTimeZone(slice) => {
-                            build!(DieselArray<Timestamptz>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Timestamptz>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-time")]
                         SeaArray::TimeDate(slice) => {
-                            build!(DieselArray<Date>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Date>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-time")]
                         SeaArray::TimeTime(slice) => {
-                            build!(DieselArray<Time>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Time>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-time")]
                         SeaArray::TimeDateTime(slice) => {
-                            build!(DieselArray<Timestamp>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Timestamp>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-time")]
                         SeaArray::TimeDateTimeWithTimeZone(slice) => {
-                            build!(DieselArray<Timestamptz>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Timestamptz>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-uuid")]
                         SeaArray::Uuid(slice) => {
-                            build!(DieselArray<Uuid>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Uuid>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-rust_decimal-postgres")]
                         SeaArray::Decimal(slice) => {
-                            build!(DieselArray<Numeric>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Numeric>>, Some(slice.into_vec()))
                         }
                         #[cfg(all(
                             feature = "with-rust_decimal",
@@ -250,20 +251,20 @@ impl TransformValue for Pg {
                         SeaArray::Decimal(_) => bail!("Enable feature with-rust_decimal-postgres"),
                         #[cfg(feature = "with-bigdecimal")]
                         SeaArray::BigDecimal(slice) => {
-                            build!(DieselArray<Numeric>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Numeric>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-json")]
                         SeaArray::Json(slice) => {
-                            build!(DieselArray<Json>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Json>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-ipnetwork")]
                         SeaArray::IpNetwork(slice) => {
-                            build!(DieselArray<Cidr>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Cidr>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-mac_address")]
                         SeaArray::MacAddress(slice) => {
                             build!(
-                                DieselArray<MacAddr>,
+                                DieselArray<Nullable<MacAddr>>,
                                 Some(
                                     slice
                                         .into_vec()

@@ -75,7 +75,7 @@ impl TransformValue for Mysql {
             Value::Array(_) => bail!("Mysql doesn't support array arguments"),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(_) => bail!("Mysql doesn't support vector arguments"),
-            #[cfg(feature = "postgres")]
+            #[cfg(feature = "backend-postgres")]
             Value::Enum(_) => bail!("Mysql doesn't support enum arguments"),
         };
         Ok(transformed)
