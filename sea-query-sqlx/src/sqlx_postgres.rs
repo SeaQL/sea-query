@@ -392,7 +392,10 @@ fn match_some_array(arr: Array, args: &mut sqlx::postgres::PgArguments) {
         Array::Enum(inner) => {
             // Bind as TEXT[]; use explicit cast in SQL (e.g., $1::my_enum_type[])
             let (_, arr) = inner.as_ref();
-            let v: Vec<Option<String>> = arr.iter().map(|e| e.as_ref().map(|e| e.as_str().to_owned())).collect();
+            let v: Vec<Option<String>> = arr
+                .iter()
+                .map(|e| e.as_ref().map(|e| e.as_str().to_owned()))
+                .collect();
             let _ = args.add(v);
         }
         Array::Array(_) => {
