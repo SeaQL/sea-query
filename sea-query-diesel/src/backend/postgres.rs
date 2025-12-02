@@ -196,7 +196,12 @@ impl TransformValue for Pg {
                         }
                         #[cfg(feature = "postgres")]
                         SeaArray::Enum(slice) => {
-                            build!(DieselArray<Nullable<Text>>, Some(slice.into_vec()))
+                            let (_, arr) = slice.as_ref();
+                            let converted: Vec<Option<String>> = arr
+                                .iter()
+                                .map(|v| v.as_ref().map(|e| e.as_str().to_string()))
+                                .collect();
+                            build!(DieselArray<Nullable<Text>>, Some(converted))
                         }
                         SeaArray::Array(_) => bail!("Nested arrays are not supported"),
                         #[cfg(feature = "with-chrono")]
