@@ -194,7 +194,9 @@ impl TransformValue for Pg {
                             build!(DieselArray<Nullable<Blob>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "postgres")]
-                        SeaArray::Enum(slice) => build!(DieselArray<Nullable<Text>>, Some(slice.into_vec())) ,
+                        SeaArray::Enum(slice) => {
+                            build!(DieselArray<Nullable<Text>>, Some(slice.into_vec()))
+                        }
                         SeaArray::Array(_) => bail!("Nested arrays are not supported"),
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoDate(slice) => {
@@ -275,7 +277,7 @@ impl TransformValue for Pg {
                             )
                         }
                         _ => bail!("Unsupported array type"),
-                    }
+                    },
                 }
             }
             #[cfg(feature = "postgres")]
