@@ -72,9 +72,11 @@ impl TransformValue for Mysql {
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(_) => bail!("Mysql doesn't support MacAddress arguments"),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, _) => bail!("Mysql doesn't support array arguments"),
+            Value::Array(_) => bail!("Mysql doesn't support array arguments"),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(_) => bail!("Mysql doesn't support vector arguments"),
+            #[cfg(feature = "postgres")]
+            Value::Enum(_) => bail!("Mysql doesn't support enum arguments"),
         };
         Ok(transformed)
     }
