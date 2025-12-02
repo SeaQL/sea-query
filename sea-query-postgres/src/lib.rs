@@ -105,6 +105,16 @@ impl ToSql for PostgresValue {
             Value::TimeDateTime(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => v.to_sql(ty, out),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDate(v) => v.to_sql(ty, out),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTime(v) => v.to_sql(ty, out),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDateTime(v) => v.to_sql(ty, out),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTimestamp(v) => v.to_sql(ty, out),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffZoned(v) => v.as_ref().map(|z| z.timestamp()).to_sql(ty, out),
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-bigdecimal")]
@@ -205,6 +215,20 @@ impl ToSql for PostgresValue {
                 Array::MacAddress(inner) => inner
                     .into_iter()
                     .map(|v| v.map(conv_mac_address))
+                    .collect::<Vec<_>>()
+                    .to_sql(ty, out),
+                #[cfg(feature = "with-jiff")]
+                Array::JiffDate(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-jiff")]
+                Array::JiffTime(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-jiff")]
+                Array::JiffDateTime(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-jiff")]
+                Array::JiffTimestamp(inner) => inner.to_sql(ty, out),
+                #[cfg(feature = "with-jiff")]
+                Array::JiffZoned(inner) => inner
+                    .iter()
+                    .map(|v| v.as_ref().map(|z| z.timestamp()))
                     .collect::<Vec<_>>()
                     .to_sql(ty, out),
                 Array::Array(_) => Err(PostgresBindError::new(

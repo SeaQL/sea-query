@@ -76,6 +76,21 @@ impl NotU8 for IpNetwork {}
 #[cfg(feature = "with-mac_address")]
 impl NotU8 for MacAddress {}
 
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::civil::Date {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::civil::Time {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::civil::DateTime {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::Timestamp {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::Zoned {}
+
 macro_rules! impl_value_vec {
     ($($ty:ty => $vari:ident)*) => {
        $(

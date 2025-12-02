@@ -51,3 +51,4 @@ with-mac_address = [
     "mac_address",
     "eui48",
 ]
+with-jiff = ["postgres-types/with-jiff-0_2", "sea-query/with-jiff"]

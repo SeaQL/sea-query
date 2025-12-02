@@ -1,18 +1,4 @@
-#[cfg(feature = "with-bigdecimal")]
-use bigdecimal::BigDecimal;
-#[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
-#[cfg(feature = "with-ipnetwork")]
-use ipnetwork::IpNetwork;
-#[cfg(feature = "with-mac_address")]
-use mac_address::MacAddress;
-#[cfg(feature = "with-rust_decimal")]
-use rust_decimal::Decimal;
-#[cfg(feature = "with-json")]
-use serde_json::Value as Json;
 use sqlx::Arguments;
-#[cfg(feature = "with-uuid")]
-use uuid::Uuid;
 
 #[cfg(feature = "postgres-array")]
 use sea_query::Array;
@@ -131,6 +117,31 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::MacAddress(mac) => {
                     let _ = args.add(mac);
                 }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDate(d) => {
+                    let _ = args.add(d.map(jiff_sqlx::Date::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTime(t) => {
+                    let _ = args.add(t.map(jiff_sqlx::Time::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDateTime(dt) => {
+                    let _ = args.add(dt.map(jiff_sqlx::DateTime::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTimestamp(ts) => {
+                    let _ = args.add(ts.map(jiff_sqlx::Timestamp::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffZoned(z) => {
+                    let _ = args.add(z.map(|z| jiff_sqlx::Timestamp::from(z.timestamp())));
+                }
+                #[cfg(feature = "backend-postgres")]
+                Value::Enum(e) => {
+                    // Bind as TEXT; We will explicit cast it in SQL (e.g., $1::my_enum_type)
+                    let _ = args.add(e.map(|e| e.as_str().to_owned()));
+                }
                 #[cfg(feature = "postgres-array")]
                 Value::Array(arr) => {
                     match arr {
@@ -146,8 +157,51 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     let _ = args.add(v);
                 }
                 #[cfg(feature = "postgres-range")]
-                Value::Range(v) => {
-                    let _ = args.add(v);
+                Value::Range(r) => {
+                    use sea_query::value::prelude::RangeType;
+                    use sqlx::postgres::types::PgRange;
+
+                    match r.as_deref() {
+                        Some(RangeType::Int4Range(lo, hi)) => {
+                            let _ = args.add(PgRange::from((lo.into(), hi.into())));
+                        }
+                        Some(RangeType::Int8Range(lo, hi)) => {
+                            let _ = args.add(PgRange::from((lo.into(), hi.into())));
+                        }
+                        // sqlx doesn't support PgRange<f64>, so we convert to Decimal/BigDecimal
+                        #[cfg(feature = "with-rust_decimal")]
+                        Some(RangeType::NumRange(lo, hi)) => {
+                            use rust_decimal::Decimal;
+                            use std::ops::Bound;
+                            let lo: Bound<Decimal> = lo.into();
+                            let hi: Bound<Decimal> = hi.into();
+                            let _ = args.add(PgRange::from((lo, hi)));
+                        }
+                        #[cfg(all(
+                            feature = "with-bigdecimal",
+                            not(feature = "with-rust_decimal")
+                        ))]
+                        Some(RangeType::NumRange(lo, hi)) => {
+                            use bigdecimal::BigDecimal;
+                            use std::ops::Bound;
+                            let lo: Bound<BigDecimal> = lo.into();
+                            let hi: Bound<BigDecimal> = hi.into();
+                            let _ = args.add(PgRange::from((lo, hi)));
+                        }
+                        #[cfg(not(any(
+                            feature = "with-rust_decimal",
+                            feature = "with-bigdecimal"
+                        )))]
+                        Some(RangeType::NumRange(_, _)) => {
+                            panic!(
+                                "NumRange requires with-rust_decimal or with-bigdecimal feature"
+                            );
+                        }
+                        None => {
+                            // use a dummy type to represent NULL range
+                            let _ = args.add(None::<PgRange<i32>>);
+                        }
+                    }
                 }
             }
         }
@@ -289,6 +343,63 @@ fn match_some_array(arr: Array, args: &mut sqlx::postgres::PgArguments) {
         Array::MacAddress(inner) => {
             let _ = args.add(inner.into_vec());
         }
-        _ => {}
+        #[cfg(feature = "with-jiff")]
+        Array::JiffDate(inner) => {
+            let v: Vec<Option<jiff_sqlx::Date>> = inner
+                .into_vec()
+                .into_iter()
+                .map(|x| x.map(Into::into))
+                .collect();
+            let _ = args.add(v);
+        }
+        #[cfg(feature = "with-jiff")]
+        Array::JiffTime(inner) => {
+            let v: Vec<Option<jiff_sqlx::Time>> = inner
+                .into_vec()
+                .into_iter()
+                .map(|x| x.map(Into::into))
+                .collect();
+            let _ = args.add(v);
+        }
+        #[cfg(feature = "with-jiff")]
+        Array::JiffDateTime(inner) => {
+            let v: Vec<Option<jiff_sqlx::DateTime>> = inner
+                .into_vec()
+                .into_iter()
+                .map(|x| x.map(Into::into))
+                .collect();
+            let _ = args.add(v);
+        }
+        #[cfg(feature = "with-jiff")]
+        Array::JiffTimestamp(inner) => {
+            let v: Vec<Option<jiff_sqlx::Timestamp>> = inner
+                .into_vec()
+                .into_iter()
+                .map(|x| x.map(Into::into))
+                .collect();
+            let _ = args.add(v);
+        }
+        #[cfg(feature = "with-jiff")]
+        Array::JiffZoned(inner) => {
+            let v: Vec<Option<jiff_sqlx::Timestamp>> = inner
+                .into_vec()
+                .into_iter()
+                .map(|x| x.map(|z| z.timestamp().into()))
+                .collect();
+            let _ = args.add(v);
+        }
+        #[cfg(feature = "backend-postgres")]
+        Array::Enum(inner) => {
+            // Bind as TEXT[]; use explicit cast in SQL (e.g., $1::my_enum_type[])
+            let (_, arr) = inner.as_ref();
+            let v: Vec<Option<String>> = arr.iter().map(|e| e.as_ref().map(|e| e.as_str().to_owned())).collect();
+            let _ = args.add(v);
+        }
+        Array::Array(_) => {
+            panic!("Nested arrays (Array::Array) are not supported by sea-query-sqlx");
+        }
+        _ => {
+            panic!("Unsupported array variant for sea-query-sqlx");
+        }
     }
 }

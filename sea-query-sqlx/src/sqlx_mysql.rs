@@ -90,6 +90,30 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDate(_) => {
+                    panic!("Mysql doesn't support Jiff arguments");
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTime(_) => {
+                    panic!("Mysql doesn't support Jiff arguments");
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDateTime(_) => {
+                    panic!("Mysql doesn't support Jiff arguments");
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTimestamp(_) => {
+                    panic!("Mysql doesn't support Jiff arguments");
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffZoned(_) => {
+                    panic!("Mysql doesn't support Jiff arguments");
+                }
+                #[cfg(feature = "backend-postgres")]
+                Value::Enum(_) => {
+                    panic!("Mysql doesn't support Postgres Enum arguments");
+                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);

@@ -19,6 +19,8 @@ postgres-protocol = { version = "0.6", default-features = false, optional = true
 postgres-types = { version = "0.2", default-features = false, optional = true }
 ordered-float = { version = "4.6", default-features = false, optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["std", "derive"] }
+rust_decimal = { version = "1", default-features = false, optional = true }
+bigdecimal = { version = "0.4", default-features = false, optional = true }
 
 [features]
 default = ["hashable-value"]
@@ -26,3 +28,5 @@ postgres-driver = ["postgres-protocol", "postgres-types", "bytes"]
 hashable-value = ["ordered-float"]
 range = []
 serde = ["dep:serde"]
+with-rust_decimal = ["rust_decimal"]
+with-bigdecimal = ["bigdecimal"]

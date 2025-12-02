@@ -1,4 +1,5 @@
 use super::*;
+#[cfg(feature = "with-json")]
 use crate::backend::ValueEncoder;
 #[cfg(feature = "backend-postgres")]
 use std::sync::Arc;

@@ -37,7 +37,9 @@ use mac_address::MacAddress;
 #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
 mod array;
 
-use crate::{ColumnType, CommonSqlQueryBuilder, DynIden, QueryBuilder, StringLen};
+#[cfg(feature = "backend-postgres")]
+use crate::DynIden;
+use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 #[cfg(feature = "postgres-array")]
 pub use array::Array;
 
@@ -367,6 +369,11 @@ impl Enum {
             type_name: type_name.into(),
             value,
         }
+    }
+
+    /// Get the string value of the enum
+    pub fn as_str(&self) -> &str {
+        self.value.as_ref()
     }
 }
 
