@@ -158,6 +158,23 @@ fn create_11() {
 }
 
 #[test]
+fn create_12() {
+    assert_eq!(
+        Index::create()
+            .if_not_exists()
+            .name("idx-glyph-image")
+            .table(Glyph::Table)
+            .col(
+                Glyph::Image
+                    .into_index_column()
+                    .with_operator_class("text_pattern_ops")
+            )
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE INDEX IF NOT EXISTS "idx-glyph-image" ON "glyph" ("image" text_pattern_ops)"#
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

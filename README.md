@@ -98,10 +98,10 @@ right alongside the expression, and the $N sequencing will be handled for you. N
 ```rust
 assert_eq!(
     Query::select()
-        .expr(Expr::col(Char::SizeW).add(1).mul(2))
-        .from(Glyph::Table)
-        .and_where(Expr::col(Glyph::Image).like("A"))
-        .and_where(Expr::col(Glyph::Id).is_in([3, 4, 5]))
+        .expr(Expr::col("size_w").add(1).mul(2))
+        .from("glyph")
+        .and_where(Expr::col("image").like("A"))
+        .and_where(Expr::col("id").is_in([3, 4, 5]))
         .build(PostgresQueryBuilder),
     (
         r#"SELECT ("size_w" + $1) * $2 FROM "glyph" WHERE "image" LIKE $3 AND "id" IN ($4, $5, $6)"#
@@ -124,14 +124,14 @@ and still have the benefit of sequentially-binded parameters.
 ```rust
 assert_eq!(
     Query::select()
-        .columns([Char::SizeW, Char::SizeH])
-        .from(Char::Table)
-        .and_where(Expr::col(Char::Id).eq(1)) // this is $1
+        .columns(["size_w", "size_h"])
+        .from("character")
+        .and_where(Expr::col("id").eq(1)) // this is $1
         // custom expressions only need to define local parameter sequence.
         // its global sequence will be re-written.
         // here, we flip the order of $2 & $1 to make it look tricker!
-        .and_where(Expr::cust_with_values("\"size_w\" = $2 * $1", [3, 2]))
-        .and_where(Expr::col(Char::SizeH).gt(4)) // this is $N?
+        .and_where(Expr::cust_with_values(r#""size_w" = $2 * $1"#, [3, 2]))
+        .and_where(Expr::col("size_h").gt(4)) // this is $N?
         .build(PostgresQueryBuilder),
     (
         r#"SELECT "size_w", "size_h" FROM "character" WHERE "id" = $1 AND ("size_w" = $2 * $3) AND "size_h" > $4"#
@@ -149,13 +149,13 @@ so you don't have to append `WHERE` or `AND` conditionally.
 ```rust
 fn query(a: Option<i32>, b: Option<char>) -> SelectStatement {
     Query::select()
-        .column(Char::Id)
-        .from(Char::Table)
+        .column("id")
+        .from("character")
         .apply_if(a, |q, v| {
-            q.and_where(Expr::col(Char::FontId).eq(v));
+            q.and_where(Expr::col("font_id").eq(v));
         })
         .apply_if(b, |q, v| {
-            q.and_where(Expr::col(Char::Ascii).like(v));
+            q.and_where(Expr::col("ascii").like(v));
         })
         .take()
 }
@@ -179,19 +179,19 @@ Conditions can be arbitrarily complex, thanks to SeaQuery's internal AST:
 ```rust
 assert_eq!(
     Query::select()
-        .column(Glyph::Id)
-        .from(Glyph::Table)
+        .column("id")
+        .from("glyph")
         .cond_where(
             Cond::any()
                 .add(
                     Cond::all()
-                        .add(Expr::col(Glyph::Aspect).is_null())
-                        .add(Expr::col(Glyph::Image).is_null())
+                        .add(Expr::col("aspect").is_null())
+                        .add(Expr::col("image").is_null())
                 )
                 .add(
                     Cond::all()
-                        .add(Expr::col(Glyph::Aspect).is_in([3, 4]))
-                        .add(Expr::col(Glyph::Image).like("A%"))
+                        .add(Expr::col("aspect").is_in([3, 4]))
+                        .add(Expr::col("image").like("A%"))
                 )
         )
         .to_string(PostgresQueryBuilder),
@@ -215,15 +215,15 @@ With SeaQuery, you can target multiple database backends while maintaining a sin
 
 ```rust
 let query = Query::insert()
-    .into_table(Glyph::Table)
-    .columns([Glyph::Aspect, Glyph::Image])
+    .into_table("glyph")
+    .columns(["aspect", "image"])
     .values_panic([
         2.into(),
         3.into(),
     ])
     .on_conflict(
-        OnConflict::column(Glyph::Id)
-            .update_columns([Glyph::Aspect, Glyph::Image])
+        OnConflict::column("id")
+            .update_columns(["aspect", "image"])
             .to_owned(),
     )
     .to_owned();
@@ -323,57 +323,28 @@ assert_eq!(query.values, Values(vec![22u16.into(), 11i32.into()]));
 Commonly implemented by Enum where each Enum represents a table found in a database,
 and its variants include table name and column name.
 
-[`Iden::unquoted()`] must be implemented to provide a mapping between Enum variants and its
-corresponding string value.
+You can use the `Iden` derive macro to implement it.
 
 ```rust
-use sea_query::*;
-
-// For example Character table with column id, character, font_size...
-pub enum Character {
+#[derive(Iden)]
+enum Character {
     Table,
     Id,
     FontId,
     FontSize,
 }
 
-// Mapping between Enum variant and its corresponding string value
-impl Iden for Character {
-    fn unquoted(&self) -> &str {
-        match self {
-            Self::Table => "character",
-            Self::Id => "id",
-            Self::FontId => "font_id",
-            Self::FontSize => "font_size",
-        }
-    }
-}
-```
-
-If you're okay with running another procedural macro, you can activate
-the `derive` feature on the crate to save you some boilerplate.
-For more usage information, look at
-[the derive examples](https://github.com/SeaQL/sea-query/tree/master/sea-query-derive/tests/pass).
-
-```rust
-#[cfg(feature = "derive")]
-use sea_query::Iden;
-
-// This will implement Iden exactly as shown above
-#[derive(Iden)]
-enum Character {
-    Table,
-}
 assert_eq!(Character::Table.to_string(), "character");
+assert_eq!(Character::Id.to_string(), "id");
+assert_eq!(Character::FontId.to_string(), "font_id");
+assert_eq!(Character::FontSize.to_string(), "font_size");
 
-// You can also derive a unit struct
 #[derive(Iden)]
 struct Glyph;
 assert_eq!(Glyph.to_string(), "glyph");
 ```
 
 ```rust
-#[cfg(feature = "derive")]
 use sea_query::{Iden, enum_def};
 
 #[enum_def]
@@ -391,7 +362,6 @@ assert_eq!(CharacterIden::Table.to_string(), "character");
 assert_eq!(CharacterIden::Foo.to_string(), "foo");
 ```
 
-
 ### Expression
 
 Use [`Expr`] constructors and [`ExprTrait`] methods
@@ -400,32 +370,32 @@ to construct `SELECT`, `JOIN`, `WHERE` and `HAVING` expression in query.
 ```rust
 assert_eq!(
     Query::select()
-        .column(Char::Character)
-        .from(Char::Table)
+        .column("char_code")
+        .from("character")
         .and_where(
-            Expr::col(Char::SizeW)
+            Expr::col("size_w")
                 .add(1)
                 .mul(2)
-                .eq(Expr::col(Char::SizeH).div(2).sub(1))
+                .eq(Expr::col("size_h").div(2).sub(1))
         )
         .and_where(
-            Expr::col(Char::SizeW).in_subquery(
+            Expr::col("size_w").in_subquery(
                 Query::select()
                     .expr(Expr::cust_with_values("ln($1 ^ $2)", [2.4, 1.2]))
                     .take()
             )
         )
         .and_where(
-            Expr::col(Char::Character)
+            Expr::col("char_code")
                 .like("D")
-                .and(Expr::col(Char::Character).like("E"))
+                .and(Expr::col("char_code").like("E"))
         )
         .to_string(PostgresQueryBuilder),
     [
-        r#"SELECT "character" FROM "character""#,
+        r#"SELECT "char_code" FROM "character""#,
         r#"WHERE ("size_w" + 1) * 2 = ("size_h" / 2) - 1"#,
         r#"AND "size_w" IN (SELECT ln(2.4 ^ 1.2))"#,
-        r#"AND ("character" LIKE 'D' AND "character" LIKE 'E')"#,
+        r#"AND ("char_code" LIKE 'D' AND "char_code" LIKE 'E')"#,
     ]
     .join(" ")
 );
@@ -439,19 +409,19 @@ usable for [`ConditionalStatement::cond_where`] and [`SelectStatement::cond_havi
 ```rust
 assert_eq!(
     Query::select()
-        .column(Glyph::Id)
-        .from(Glyph::Table)
+        .column("id")
+        .from("glyph")
         .cond_where(
             Cond::any()
                 .add(
                     Cond::all()
-                        .add(Expr::col(Glyph::Aspect).is_null())
-                        .add(Expr::col(Glyph::Image).is_null())
+                        .add(Expr::col("aspect").is_null())
+                        .add(Expr::col("image").is_null())
                 )
                 .add(
                     Cond::all()
-                        .add(Expr::col(Glyph::Aspect).is_in([3, 4]))
-                        .add(Expr::col(Glyph::Image).like("A%"))
+                        .add(Expr::col("aspect").is_in([3, 4]))
+                        .add(Expr::col("image").like("A%"))
                 )
         )
         .to_string(PostgresQueryBuilder),
@@ -509,25 +479,25 @@ and debugging.
 
 ```rust
 let query = Query::select()
-    .column(Char::Character)
-    .column((Font::Table, Font::Name))
-    .from(Char::Table)
-    .left_join(Font::Table, Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)))
-    .and_where(Expr::col(Char::SizeW).is_in([3, 4]))
-    .and_where(Expr::col(Char::Character).like("A%"))
+    .column("char_code")
+    .column(("font", "name"))
+    .from("character")
+    .left_join("font", Expr::col(("character", "font_id")).equals(("font", "id")))
+    .and_where(Expr::col("size_w").is_in([3, 4]))
+    .and_where(Expr::col("char_code").like("A%"))
     .to_owned();
 
 assert_eq!(
     query.to_string(MysqlQueryBuilder),
-    r#"SELECT `character`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `character` LIKE 'A%'"#
+    r#"SELECT `char_code`, `font`.`name` FROM `character` LEFT JOIN `font` ON `character`.`font_id` = `font`.`id` WHERE `size_w` IN (3, 4) AND `char_code` LIKE 'A%'"#
 );
 assert_eq!(
     query.to_string(PostgresQueryBuilder),
-    r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
+    r#"SELECT "char_code", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "char_code" LIKE 'A%'"#
 );
 assert_eq!(
     query.to_string(SqliteQueryBuilder),
-    r#"SELECT "character", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "character" LIKE 'A%'"#
+    r#"SELECT "char_code", "font"."name" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id" WHERE "size_w" IN (3, 4) AND "char_code" LIKE 'A%'"#
 );
 ```
 
@@ -685,19 +655,19 @@ assert_eq!(
 
 ```rust
 let table = Table::create()
-    .table(Char::Table)
+    .table("character")
     .if_not_exists()
-    .col(ColumnDef::new(Char::Id).integer().not_null().auto_increment().primary_key())
-    .col(ColumnDef::new(Char::FontSize).integer().not_null())
-    .col(ColumnDef::new(Char::Character).string().not_null())
-    .col(ColumnDef::new(Char::SizeW).integer().not_null())
-    .col(ColumnDef::new(Char::SizeH).integer().not_null())
-    .col(ColumnDef::new(Char::FontId).integer().default(Expr::val(1)))
+    .col(ColumnDef::new("id").integer().not_null().auto_increment().primary_key())
+    .col(ColumnDef::new("font_size").integer().not_null())
+    .col(ColumnDef::new("character").string().not_null())
+    .col(ColumnDef::new("size_w").integer().not_null())
+    .col(ColumnDef::new("size_h").integer().not_null())
+    .col(ColumnDef::new("font_id").integer().default(Expr::val(1)))
     .foreign_key(
         ForeignKey::create()
             .name("character_fk")
-            .from(Char::Table, Char::FontId)
-            .to(Font::Table, Font::Id)
+            .from("character", "font_id")
+            .to("font", "id")
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Cascade)
     )
@@ -707,7 +677,7 @@ assert_eq!(
     table.to_string(MysqlQueryBuilder),
     [
         r#"CREATE TABLE IF NOT EXISTS `character` ("#,
-            r#"`id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,"#,
+            r#"`id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,"#,
             r#"`font_size` int NOT NULL,"#,
             r#"`character` varchar(255) NOT NULL,"#,
             r#"`size_w` int NOT NULL,"#,

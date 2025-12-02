@@ -139,7 +139,7 @@ impl ToSql for PostgresValue {
                 Array::Unsigned(inner) => inner.to_sql(ty, out),
                 Array::BigUnsigned(inner) => inner
                     .into_iter()
-                    .map(|v| v.map(|x| i64::try_from(x)).transpose())
+                    .map(|v| v.map(i64::try_from).transpose())
                     .collect::<Result<Vec<Option<_>>,_>>()?
                     .to_sql(ty, out),
                 Array::Float(inner) => inner.to_sql(ty, out),
@@ -230,6 +230,10 @@ impl ToSql for PostgresValue {
             Value::IpNetwork(v) => v.map(conv_ip_network).to_sql(ty, out),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(v) => v.map(conv_mac_address).to_sql(ty, out),
+            #[cfg(feature = "postgres-range")]
+            Value::Range(None) => Ok(IsNull::Yes),
+            #[cfg(feature = "postgres-range")]
+            Value::Range(Some(v)) => v.to_sql(ty, out),
         }
     }
 

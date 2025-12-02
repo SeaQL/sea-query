@@ -170,8 +170,14 @@ impl TableBuilder for PostgresQueryBuilder {
                         sql.write_str(" TO ").unwrap();
                         self.prepare_iden(to_name, sql);
                     }
-                    TableAlterOption::DropColumn(column_name) => {
+                    TableAlterOption::DropColumn(DropColumnOption{
+                        column_name,
+                        if_exists
+                    }) => {
                         sql.write_str("DROP COLUMN ").unwrap();
+                         if *if_exists {
+                            sql.write_str("IF EXISTS ").unwrap();
+                        }
                         self.prepare_iden(column_name, sql);
                     }
                     TableAlterOption::DropForeignKey(name) => {

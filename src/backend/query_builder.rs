@@ -918,7 +918,10 @@ pub trait QueryBuilder:
 
         sql.write_str("(").unwrap();
 
-        self.prepare_query_statement(cte.query.as_ref().unwrap().deref(), sql);
+        match &cte.query {
+            CteQuery::SubQuery(sub_query) => self.prepare_query_statement(sub_query, sql),
+            CteQuery::Values(items) => self.prepare_values_rows(items, sql),
+        }
 
         sql.write_str(") ").unwrap();
     }
@@ -1075,6 +1078,35 @@ pub trait QueryBuilder:
         );
     }
 
+    fn prepare_values_rows(&self, values: &[Values], sql: &mut impl SqlWriter) {
+        sql.write_str("VALUES ").unwrap();
+        let mut rows = values.iter();
+        join_io!(
+            rows,
+            row,
+            join {
+                sql.write_str(", ").unwrap();
+            },
+            do {
+                sql.write_str("(").unwrap();
+
+                let mut vals = row.clone().into_iter();
+                join_io!(
+                    vals,
+                    val,
+                    join {
+                        sql.write_str(", ").unwrap();
+                    },
+                    do {
+                        self.prepare_value(val, sql);
+                    }
+                );
+
+                sql.write_str(")").unwrap();
+            }
+        );
+    }
+
     /// Translate [`Expr::Tuple`] into SQL statement.
     fn prepare_tuple(&self, exprs: &[Expr], sql: &mut impl SqlWriter) {
         sql.write_str("(").unwrap();
@@ -1111,6 +1143,7 @@ pub trait QueryBuilder:
     }
 
     #[doc(hidden)]
+    #[allow(clippy::cognitive_complexity)]
     fn write_value(&self, buf: &mut impl Write, value: &Value) -> fmt::Result {
         macro_rules! write_opt {
             ($opt:expr, $val:ident => $body:expr) => {
@@ -1207,6 +1240,12 @@ pub trait QueryBuilder:
             Value::MacAddress(v) => write_opt!(v, val => self.write_mac_to(buf, *val)),
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => write_opt!(v, val => self.write_array_to(buf, val)),
+            #[cfg(feature = "postgres-range")]
+            Value::Range(v) => write_opt!(v, val => {
+                buf.write_str("'")?;
+                write!(buf, "{val}")?;
+                buf.write_str("'")?;
+            }),
         }
 
         Ok(())
@@ -1746,7 +1785,7 @@ mod tests {
     use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
     #[cfg(feature = "with-chrono")]
-    use crate::{MysqlQueryBuilder, PostgresQueryBuilder, QueryBuilder, SqliteQueryBuilder};
+    use crate::QueryBuilder;
 
     /// [Postgresql reference](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT-TIMES)
     ///

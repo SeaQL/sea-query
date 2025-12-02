@@ -167,11 +167,8 @@ impl QueryBuilder for PostgresQueryBuilder {
                     PgFunc::JsonAgg => "JSON_AGG",
                     PgFunc::ArrayAgg => "ARRAY_AGG",
                     PgFunc::DateTrunc => "DATE_TRUNC",
-                    #[cfg(feature = "postgres-array")]
                     PgFunc::Any => "ANY",
-                    #[cfg(feature = "postgres-array")]
                     PgFunc::Some => "SOME",
-                    #[cfg(feature = "postgres-array")]
                     PgFunc::All => "ALL",
                 })
                 .unwrap(),

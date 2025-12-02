@@ -44,8 +44,15 @@ pub use array::Array;
 #[cfg(test)]
 mod tests;
 
+pub mod prelude;
+#[allow(unused_imports)]
+use prelude::*;
+
 #[cfg(feature = "hashable-value")]
 mod hashable_value;
+
+mod value_class;
+pub use value_class::*;
 
 mod value_tuple;
 pub use value_tuple::*;
@@ -334,6 +341,10 @@ pub enum Value {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Option<MacAddress>),
+
+    #[cfg(feature = "postgres-range")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+    Range(Option<Box<RangeType>>),
 }
 
 #[cfg(feature = "backend-postgres")]
@@ -548,6 +559,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(None),
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(_) => Self::Range(None),
         }
     }
 
@@ -638,19 +653,17 @@ impl Value {
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffDateTime(_) => {
-                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0).into()))
+                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0)))
             }
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH.into())),
+            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH)),
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffZoned(_) => Self::JiffZoned(Some(
-                Timestamp::UNIX_EPOCH
-                    .to_zoned(jiff::tz::TimeZone::UTC)
-                    .into(),
+                Timestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC),
             )),
 
             #[cfg(feature = "with-uuid")]
@@ -683,6 +696,10 @@ impl Value {
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
             Self::MacAddress(_) => Self::MacAddress(Some(Default::default())),
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(_) => Self::Range(Some(Default::default())),
         }
     }
 }
@@ -899,6 +916,7 @@ type_to_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
 type_to_value!(String, String, String(StringLen::None));
 
 #[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
+#[allow(unused_macros)]
 macro_rules! type_to_box_value {
     ( $type: ty, $name: ident, $col_type: expr ) => {
         impl From<$type> for Value {
@@ -938,4 +956,5 @@ macro_rules! type_to_box_value {
 }
 
 #[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
+#[allow(unused_imports)]
 use type_to_box_value;

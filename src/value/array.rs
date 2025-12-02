@@ -3,6 +3,9 @@ use crate::backend::ValueEncoder;
 #[cfg(feature = "backend-postgres")]
 use std::sync::Arc;
 
+#[cfg(feature = "backend-postgres")]
+type EnumArray = Box<(Arc<str>, Box<[Option<Arc<Enum>>]>)>;
+
 #[derive(Debug, Clone)]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -23,7 +26,7 @@ pub enum Array {
     Char(Box<[Option<char>]>),
     Bytes(Box<[Option<Vec<u8>>]>),
     #[cfg(feature = "backend-postgres")]
-    Enum(Box<(Arc<str>, Box<[Option<Arc<Enum>>]>)>),
+    Enum(EnumArray),
     Array(Box<(ArrayType, Box<[Option<Array>]>)>),
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]

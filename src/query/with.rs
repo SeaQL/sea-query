@@ -5,6 +5,18 @@ use crate::{
 };
 use inherent::inherent;
 
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) enum CteQuery {
+    SubQuery(Box<SubQueryStatement>),
+    Values(Vec<Values>),
+}
+
+impl Default for CteQuery {
+    fn default() -> Self {
+        Self::Values(vec![])
+    }
+}
+
 /// A table definition inside a WITH clause ([WithClause]).
 ///
 /// A WITH clause can contain one or multiple common table expressions ([CommonTableExpression]).
@@ -50,7 +62,7 @@ use inherent::inherent;
 pub struct CommonTableExpression {
     pub(crate) table_name: Option<DynIden>,
     pub(crate) cols: Vec<DynIden>,
-    pub(crate) query: Option<Box<SubQueryStatement>>,
+    pub(crate) query: CteQuery,
     pub(crate) materialized: Option<bool>,
 }
 
@@ -66,6 +78,14 @@ impl CommonTableExpression {
         T: IntoIden,
     {
         self.table_name = Some(table_name.into_iden());
+        self
+    }
+
+    /// Sets the CTE VALUES clause.
+    ///
+    /// It overwrites the query if it is already set for the CTE.
+    pub fn values(&mut self, values: Vec<Values>) -> &mut Self {
+        self.query = CteQuery::Values(values);
         self
     }
 
@@ -100,11 +120,13 @@ impl CommonTableExpression {
 
     /// Set the query generating the CTE content. The query's result must match the defined
     /// columns.
+    ///
+    /// It overwrites the values if it is already set for the CTE.
     pub fn query<Q>(&mut self, query: Q) -> &mut Self
     where
         Q: Into<SubQueryStatement>,
     {
-        self.query = Some(Box::new(query.into()));
+        self.query = CteQuery::SubQuery(Box::new(query.into()));
         self
     }
 
@@ -121,7 +143,7 @@ impl CommonTableExpression {
                 _ => {}
             }
         }
-        cte.query = Some(Box::new(select.into()));
+        cte.query = CteQuery::SubQuery(Box::new(select.into()));
         cte
     }
 

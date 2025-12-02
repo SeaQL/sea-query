@@ -9,6 +9,18 @@ pub enum ValueTuple {
     Many(Vec<Value>),
 }
 
+#[derive(Debug)]
+pub struct ValueTupleIter<'a> {
+    value: &'a ValueTuple,
+    index: usize,
+}
+
+pub trait IntoValueTuple: Into<ValueTuple> {
+    fn into_value_tuple(self) -> ValueTuple {
+        self.into()
+    }
+}
+
 impl ValueTuple {
     pub fn arity(&self) -> usize {
         match self {
@@ -17,6 +29,10 @@ impl ValueTuple {
             Self::Three(_, _, _) => 3,
             Self::Many(vec) => vec.len(),
         }
+    }
+
+    pub fn iter(&self) -> ValueTupleIter<'_> {
+        ValueTupleIter::new(self)
     }
 }
 
@@ -34,9 +50,39 @@ impl IntoIterator for ValueTuple {
     }
 }
 
-pub trait IntoValueTuple: Into<ValueTuple> {
-    fn into_value_tuple(self) -> ValueTuple {
-        self.into()
+impl<'a> ValueTupleIter<'a> {
+    fn new(value: &'a ValueTuple) -> Self {
+        Self { value, index: 0 }
+    }
+}
+
+impl<'a> Iterator for ValueTupleIter<'a> {
+    type Item = &'a Value;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = match self.value {
+            ValueTuple::One(a) => {
+                if self.index == 0 {
+                    Some(a)
+                } else {
+                    None
+                }
+            }
+            ValueTuple::Two(a, b) => match self.index {
+                0 => Some(a),
+                1 => Some(b),
+                _ => None,
+            },
+            ValueTuple::Three(a, b, c) => match self.index {
+                0 => Some(a),
+                1 => Some(b),
+                2 => Some(c),
+                _ => None,
+            },
+            ValueTuple::Many(vec) => vec.get(self.index),
+        };
+        self.index += 1;
+        result
     }
 }
 

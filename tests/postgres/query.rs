@@ -822,7 +822,7 @@ fn select_48() {
         .from(Glyph::Table)
         .cond_where(
             Cond::all().add_option(Some(
-                Expr::tuple([Expr::col(Glyph::Aspect).into(), Expr::value(100)])
+                Expr::tuple([Expr::col(Glyph::Aspect), Expr::value(100)])
                     .lt(Expr::tuple([Expr::value(8), Expr::value(100)])),
             )),
         )
@@ -841,11 +841,8 @@ fn select_48a() {
         .from(Glyph::Table)
         .cond_where(
             Cond::all().add_option(Some(
-                Expr::tuple([
-                    Expr::col(Glyph::Aspect).into(),
-                    Expr::value(String::from("100")),
-                ])
-                .in_tuples([(8, String::from("100"))]),
+                Expr::tuple([Expr::col(Glyph::Aspect), Expr::value(String::from("100"))])
+                    .in_tuples([(8, String::from("100"))]),
             )),
         )
         .to_string(PostgresQueryBuilder);
@@ -1225,6 +1222,44 @@ fn select_63() {
         query.audit_unwrap().selected_tables(),
         [Glyph::Table.into_iden()]
     );
+}
+
+#[test]
+fn select_64() {
+    let rows = vec![
+        Values(vec![
+            Value::Int(Some(1)),
+            Value::String(Some("glyph1.jpg".to_owned())),
+            Value::Char(Some('l')),
+        ]),
+        Values(vec![
+            Value::Int(Some(2)),
+            Value::String(Some("glyph2.jpg".to_owned())),
+            Value::Char(Some('p')),
+        ]),
+    ];
+
+    let cte = CommonTableExpression::new()
+        .values(rows)
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .table_name("cte")
+        .to_owned();
+    let with_clause = WithClause::new().cte(cte).to_owned();
+    let select = SelectStatement::new()
+        .columns([Glyph::Id, Glyph::Image, Glyph::Aspect])
+        .from("cte")
+        .to_owned();
+    let query = select.with(with_clause);
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        [
+            r#"WITH "cte" ("id", "image", "aspect") AS"#,
+            r#"(VALUES (1, 'glyph1.jpg', 'l'), (2, 'glyph2.jpg', 'p'))"#,
+            r#"SELECT "id", "image", "aspect" FROM "cte""#,
+        ]
+        .join(" ")
+    );
+    assert_eq!(query.audit_unwrap().selected_tables(), []);
 }
 
 #[test]

@@ -7,6 +7,18 @@ type_to_value!(civil::DateTime, JiffDateTime, DateTime);
 type_to_value!(Timestamp, JiffTimestamp, Timestamp);
 type_to_value!(Zoned, JiffZoned, TimestampWithTimeZone);
 
+impl DateLikeValue for civil::Date {}
+impl TimeLikeValue for civil::Time {}
+impl DateTimeLikeValue for civil::DateTime {}
+impl DateTimeLikeValue for Timestamp {}
+impl DateTimeLikeValue for Zoned {}
+
+impl DateLikeValueNullable for Option<civil::Date> {}
+impl TimeLikeValueNullable for Option<civil::Time> {}
+impl DateTimeLikeValueNullable for Option<civil::DateTime> {}
+impl DateTimeLikeValueNullable for Option<Timestamp> {}
+impl DateTimeLikeValueNullable for Option<Zoned> {}
+
 impl Value {
     #[inline]
     pub fn jiff_date<T: Into<Option<civil::Date>>>(v: T) -> Value {
@@ -20,17 +32,17 @@ impl Value {
 
     #[inline]
     pub fn jiff_date_time<T: Into<Option<civil::DateTime>>>(v: T) -> Value {
-        Value::JiffDateTime(v.into().map(Into::into))
+        Value::JiffDateTime(v.into())
     }
 
     #[inline]
     pub fn jiff_timestamp<T: Into<Option<Timestamp>>>(v: T) -> Value {
-        Value::JiffTimestamp(v.into().map(Into::into))
+        Value::JiffTimestamp(v.into())
     }
 
     #[inline]
     pub fn jiff_zoned<T: Into<Option<Zoned>>>(v: T) -> Value {
-        Value::JiffZoned(v.into().map(Into::into))
+        Value::JiffZoned(v.into())
     }
 }
 

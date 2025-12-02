@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{expr::*, types::*};
+use crate::{Expr, IntoColumnRef, NullOrdering, Order, OrderExpr};
 
 pub trait OrderedStatement {
     #[doc(hidden)]

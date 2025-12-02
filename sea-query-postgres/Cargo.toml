@@ -4,20 +4,21 @@
 [package]
 name = "sea-query-postgres"
 version = "0.6.0-rc.1"
-authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
+authors = ["Ivan Krivosheev <py.krivosheev@gmail.com>"]
 edition = "2024"
 description = "Binder traits for connecting sea-query with postgres driver"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/sea-query"
 repository = "https://github.com/SeaQL/sea-query"
-categories = [ "database" ]
-keywords = [ "database", "sql", "postgres" ]
+categories = ["database"]
+keywords = ["database", "sql", "postgres"]
 rust-version = "1.85.0"
 
 [lib]
 
 [dependencies]
 sea-query = { version = "1.0.0-rc.1", path = "..", default-features = false, features = ["backend-postgres"] }
+sea-query-postgres-types = { version = "0.1.0", path = "../sea-query-postgres-types", optional = true }
 postgres-types = { version = "0.2", default-features = false }
 pgvector = { version = "~0.4", default-features = false, optional = true }
 bytes = { version = "1", default-features = false }
@@ -37,5 +38,16 @@ with-uuid = ["postgres-types/with-uuid-1", "sea-query/with-uuid"]
 with-time = ["postgres-types/with-time-0_3", "sea-query/with-time"]
 postgres-array = ["postgres-types/array-impls", "sea-query/postgres-array"]
 postgres-vector = ["sea-query/postgres-vector", "pgvector/postgres"]
-with-ipnetwork = ["postgres-types/with-cidr-0_2", "sea-query/with-ipnetwork", "ipnetwork", "cidr"]
-with-mac_address = ["postgres-types/with-eui48-1", "sea-query/with-mac_address", "mac_address", "eui48"]
+postgres-range = ["sea-query/postgres-range", "sea-query-postgres-types/range", "sea-query-postgres-types/postgres-driver"]
+with-ipnetwork = [
+    "postgres-types/with-cidr-0_2",
+    "sea-query/with-ipnetwork",
+    "ipnetwork",
+    "cidr",
+]
+with-mac_address = [
+    "postgres-types/with-eui48-1",
+    "sea-query/with-mac_address",
+    "mac_address",
+    "eui48",
+]

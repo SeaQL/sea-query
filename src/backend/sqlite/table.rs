@@ -62,9 +62,9 @@ impl TableBuilder for SqliteQueryBuilder {
                 sql.write_str(" TO ").unwrap();
                 self.prepare_iden(to_name, sql);
             }
-            TableAlterOption::DropColumn(col_name) => {
+            TableAlterOption::DropColumn(DropColumnOption { column_name, .. }) => {
                 sql.write_str("DROP COLUMN ").unwrap();
-                self.prepare_iden(col_name, sql);
+                self.prepare_iden(column_name, sql);
             }
             TableAlterOption::DropForeignKey(_) => {
                 panic!(
@@ -98,12 +98,10 @@ impl TableBuilder for SqliteQueryBuilder {
 impl SqliteQueryBuilder {
     fn prepare_column_type(
         &self,
-        column_specs: &ColumnSpec,
+        _column_specs: &ColumnSpec,
         column_type: &ColumnType,
         sql: &mut impl SqlWriter,
     ) {
-        let is_auto_increment = column_specs.auto_increment;
-
         match column_type {
             ColumnType::Char(length) => match length {
                 Some(length) => {
@@ -127,28 +125,21 @@ impl SqliteQueryBuilder {
                 sql.write_str(integer("smallint"))
             }
             ColumnType::Integer | ColumnType::Unsigned => sql.write_str("integer"),
-            #[allow(clippy::if_same_then_else)]
-            ColumnType::BigInteger | ColumnType::BigUnsigned => {
-                if is_auto_increment {
-                    sql.write_str("integer")
-                } else {
-                    sql.write_str(integer("bigint"))
-                }
-            }
+            ColumnType::BigInteger | ColumnType::BigUnsigned => sql.write_str("integer"),
             ColumnType::Float => sql.write_str("float"),
             ColumnType::Double => sql.write_str("double"),
             ColumnType::Decimal(precision) => match precision {
                 Some((precision, scale)) => {
-                    if precision > &16 {
-                        panic!("precision cannot be larger than 16");
-                    }
+                    // if precision > &16 {
+                    //     panic!("precision cannot be larger than 16");
+                    // }
                     sql.write_str("real(").unwrap();
                     write_int(sql, *precision);
                     sql.write_str(", ").unwrap();
                     write_int(sql, *scale);
                     sql.write_char(')')
                 }
-                None => sql.write_str("real"),
+                None => sql.write_str("real_decimal"),
             },
             ColumnType::DateTime => sql.write_str("datetime_text"),
             ColumnType::Timestamp => sql.write_str("timestamp_text"),

@@ -40,7 +40,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         sql.write_str("INDEX ").unwrap();
 
         if create.concurrently {
-            write!(sql, "CONCURRENTLY ").unwrap();
+            sql.write_str("CONCURRENTLY ").unwrap();
         }
 
         if create.if_not_exists {
@@ -89,7 +89,7 @@ impl IndexBuilder for PostgresQueryBuilder {
         sql.write_str("DROP INDEX ").unwrap();
 
         if drop.concurrently {
-            write!(sql, "CONCURRENTLY ").unwrap();
+            sql.write_str("CONCURRENTLY ").unwrap();
         }
 
         if drop.if_exists {
@@ -166,6 +166,11 @@ impl IndexBuilder for PostgresQueryBuilder {
                             }
                         }
                     }
+                }
+
+                if let Some(operator_class) = col.operator_class() {
+                    sql.write_str(" ").unwrap();
+                    sql.write_str(&operator_class.0).unwrap();
                 }
             }
         );

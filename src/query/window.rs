@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{expr::*, query::*, types::*};
+use crate::{Expr, IntoColumnRef, NullOrdering, Order, OrderExpr, OrderedStatement};
 use inherent::inherent;
 
 pub trait OverStatement {

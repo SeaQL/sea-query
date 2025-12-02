@@ -68,7 +68,7 @@ fn create_3() {
                     .auto_increment()
                     .primary_key()
             )
-            .col(ColumnDef::new(Char::FontSize).integer().not_null())
+            .col(ColumnDef::new(Char::FontSize).big_integer().not_null())
             .col(ColumnDef::new(Char::Character).string().not_null())
             .col(ColumnDef::new(Char::SizeW).unsigned().not_null())
             .col(ColumnDef::new(Char::SizeH).unsigned().not_null())

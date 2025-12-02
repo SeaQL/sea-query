@@ -1,9 +1,11 @@
-use crate::{
-    Expr, OnConflict, QueryStatement, QueryStatementBuilder, QueryStatementWriter, ReturningClause,
-    SelectStatement, SubQueryStatement, Values, WithClause, WithQuery, backend::QueryBuilder,
-    error::*, prepare::*, types::*,
-};
 use inherent::inherent;
+
+use crate::{
+    DynIden, Expr, IntoColumnRef, IntoIden, IntoTableRef, OnConflict, QueryBuilder, QueryStatement,
+    QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement, SqlWriter,
+    SubQueryStatement, TableRef, Values, WithClause, WithQuery,
+    error::{Error, Result},
+};
 
 /// Represents a value source that can be used in an insert query.
 ///
@@ -314,6 +316,7 @@ impl InsertStatement {
     /// # Panics
     ///
     /// Panics when number of values not matching number of columns.
+    /// The equivalent `insert_many` method in SeaORM does not panic, it can construct the column list from active models.
     ///
     /// # Examples
     ///

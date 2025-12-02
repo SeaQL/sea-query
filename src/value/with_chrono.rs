@@ -5,6 +5,20 @@ type_to_value!(NaiveDate, ChronoDate, Date);
 type_to_value!(NaiveTime, ChronoTime, Time);
 type_to_value!(NaiveDateTime, ChronoDateTime, DateTime);
 
+impl DateLikeValue for NaiveDate {}
+impl TimeLikeValue for NaiveTime {}
+impl DateTimeLikeValue for NaiveDateTime {}
+impl DateTimeLikeValue for DateTime<Utc> {}
+impl DateTimeLikeValue for DateTime<Local> {}
+impl DateTimeLikeValue for DateTime<FixedOffset> {}
+
+impl DateLikeValueNullable for Option<NaiveDate> {}
+impl TimeLikeValueNullable for Option<NaiveTime> {}
+impl DateTimeLikeValueNullable for Option<NaiveDateTime> {}
+impl DateTimeLikeValueNullable for Option<DateTime<Utc>> {}
+impl DateTimeLikeValueNullable for Option<DateTime<Local>> {}
+impl DateTimeLikeValueNullable for Option<DateTime<FixedOffset>> {}
+
 impl From<DateTime<Utc>> for Value {
     fn from(v: DateTime<Utc>) -> Value {
         Value::ChronoDateTimeUtc(Some(v))

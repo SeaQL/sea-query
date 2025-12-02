@@ -29,11 +29,8 @@ pub enum PgFunc {
     JsonAgg,
     ArrayAgg,
     DateTrunc,
-    #[cfg(feature = "postgres-array")]
     Any,
-    #[cfg(feature = "postgres-array")]
     Some,
-    #[cfg(feature = "postgres-array")]
     All,
 }
 
@@ -257,6 +254,8 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
+    /// #[cfg(feature = "postgres-array")]
+    /// # {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select().expr(PgFunc::any(vec![0, 1])).to_owned();
@@ -265,8 +264,22 @@ impl PgFunc {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT ANY(ARRAY[0,1])"#
     /// );
+    /// # }
     /// ```
-    #[cfg(feature = "postgres-array")]
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .column("id")
+    ///     .from("post")
+    ///     .and_where(Expr::col("tag").eq(PgFunc::any(Expr::cust("string_to_array('a,b,c', ',')"))))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "post" WHERE "tag" = ANY(string_to_array('a,b,c', ','))"#
+    /// );
+    /// ```
     pub fn any<T>(expr: T) -> FunctionCall
     where
         T: Into<Expr>,
@@ -279,6 +292,8 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
+    /// #[cfg(feature = "postgres-array")]
+    /// # {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select().expr(PgFunc::some(vec![0, 1])).to_owned();
@@ -287,8 +302,8 @@ impl PgFunc {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT SOME(ARRAY[0,1])"#
     /// );
+    /// # }
     /// ```
-    #[cfg(feature = "postgres-array")]
     pub fn some<T>(expr: T) -> FunctionCall
     where
         T: Into<Expr>,
@@ -301,6 +316,8 @@ impl PgFunc {
     /// # Examples
     ///
     /// ```
+    /// #[cfg(feature = "postgres-array")]
+    /// # {
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// let query = Query::select().expr(PgFunc::all(vec![0, 1])).to_owned();
@@ -309,8 +326,8 @@ impl PgFunc {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT ALL(ARRAY[0,1])"#
     /// );
+    /// # }
     /// ```
-    #[cfg(feature = "postgres-array")]
     pub fn all<T>(expr: T) -> FunctionCall
     where
         T: Into<Expr>,
