@@ -78,13 +78,11 @@ impl TransformValue for Pg {
             ))]
             Value::Decimal(_) => bail!("Enable feature with-rust_decimal-postgres"),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(v) => {
-                build!(Numeric, v.map(|v| bigdecimal::BigDecimal::clone(&v)))
-            }
+            Value::BigDecimal(v) => build!(Numeric, v),
             #[cfg(feature = "with-json")]
             Value::Json(v) => build!(Json, v),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(v) => build!(Cidr, v),
+            Value::IpNetwork(v) => build!(Inet, v),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(v) => build!(MacAddr, v.map(|v| v.bytes())),
             #[cfg(feature = "postgres-array")]
@@ -266,7 +264,7 @@ impl TransformValue for Pg {
                         }
                         #[cfg(feature = "with-ipnetwork")]
                         SeaArray::IpNetwork(slice) => {
-                            build!(DieselArray<Nullable<Cidr>>, Some(slice.into_vec()))
+                            build!(DieselArray<Nullable<Inet>>, Some(slice.into_vec()))
                         }
                         #[cfg(feature = "with-mac_address")]
                         SeaArray::MacAddress(slice) => {
