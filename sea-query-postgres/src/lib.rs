@@ -79,10 +79,7 @@ impl ToSql for PostgresValue {
             Value::String(v) => v.as_deref().to_sql(ty, out),
             Value::Char(v) => v.map(|v| v.to_string()).to_sql(ty, out),
             Value::Bytes(v) => v.as_deref().to_sql(ty, out),
-            Value::Enum(_) => Err(PostgresBindError::new(
-                "Binding Enum is not supported by sea-query-postgres binder",
-            )
-            .into()),
+            Value::Enum(v) => v.map(|v| v.as_str().to_sql(ty, out)),
             #[cfg(feature = "with-json")]
             Value::Json(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
@@ -120,12 +117,14 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => {
                 use bigdecimal::ToPrimitive;
-                v.as_ref().map(|x| x.to_f64().ok_or(
-                    PostgresBindError::new(
-                        "Fail to convert bigdecimal as f64 for sea-query-postgres binder",
-                    )
-                )).transpose()?.to_sql(ty, out)
-
+                v.as_ref()
+                    .map(|x| {
+                        x.to_f64().ok_or(PostgresBindError::new(
+                            "Fail to convert bigdecimal as f64 for sea-query-postgres binder",
+                        ))
+                    })
+                    .transpose()?
+                    .to_sql(ty, out)
             }
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(ty, out),
@@ -150,7 +149,7 @@ impl ToSql for PostgresValue {
                 Array::BigUnsigned(inner) => inner
                     .into_iter()
                     .map(|v| v.map(i64::try_from).transpose())
-                    .collect::<Result<Vec<Option<_>>,_>>()?
+                    .collect::<Result<Vec<Option<_>>, _>>()?
                     .to_sql(ty, out),
                 Array::Float(inner) => inner.to_sql(ty, out),
                 Array::Double(inner) => inner.to_sql(ty, out),
@@ -235,10 +234,13 @@ impl ToSql for PostgresValue {
                     "Nested arrays (Array::Array) are not supported by sea-query-postgres binder",
                 )
                 .into()),
-                Array::Enum(_) => Err(PostgresBindError::new(
-                    "Array of Enum is not supported by sea-query-postgres binder; consider casting in SQL",
-                )
-                .into()),
+                Array::Enum(v) => v
+                    .as_ref()
+                    .1
+                    .iter()
+                    .map(|v| v.as_ref())
+                    .collect::<Vec<_>>()
+                    .to_sql(ty, out),
                 _ => Err(PostgresBindError::new(
                     "Unsupported array variant for sea-query-postgres binder",
                 )
