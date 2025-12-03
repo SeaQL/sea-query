@@ -79,7 +79,7 @@ impl ToSql for PostgresValue {
             Value::String(v) => v.as_deref().to_sql(ty, out),
             Value::Char(v) => v.map(|v| v.to_string()).to_sql(ty, out),
             Value::Bytes(v) => v.as_deref().to_sql(ty, out),
-            Value::Enum(v) => v.map(|v| v.as_str().to_sql(ty, out)),
+            Value::Enum(v) => v.as_ref().map(|v| v.as_str()).to_sql(ty, out),
             #[cfg(feature = "with-json")]
             Value::Json(v) => v.to_sql(ty, out),
             #[cfg(feature = "with-chrono")]
@@ -234,13 +234,15 @@ impl ToSql for PostgresValue {
                     "Nested arrays (Array::Array) are not supported by sea-query-postgres binder",
                 )
                 .into()),
-                Array::Enum(v) => v
-                    .as_ref()
-                    .1
-                    .iter()
-                    .map(|v| v.as_ref())
-                    .collect::<Vec<_>>()
-                    .to_sql(ty, out),
+                Array::Enum(v) => {
+                    // Convert array of enum to array of text
+                    v.as_ref()
+                        .1
+                        .iter()
+                        .map(|opt| opt.as_ref().map(|r#enum| r#enum.as_str()))
+                        .collect::<Vec<_>>()
+                        .to_sql(ty, out)
+                }
                 _ => Err(PostgresBindError::new(
                     "Unsupported array variant for sea-query-postgres binder",
                 )
