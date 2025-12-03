@@ -329,7 +329,7 @@ struct CharacterStructChrono {
     created: NaiveDateTime,
     inet: IpNetwork,
     mac_address: MacAddress,
-    array_bool: Vec<Option<bool>>,
+    array_bool: Vec<bool>,
 }
 
 #[derive(QueryableByName, Debug)]
@@ -346,7 +346,7 @@ struct CharacterStructTime {
     created: PrimitiveDateTime,
     inet: IpNetwork,
     mac_address: MacAddress,
-    array_bool: Vec<Option<bool>>,
+    array_bool: Vec<bool>,
 }
 
 #[derive(QueryableByName, Debug)]
