@@ -157,50 +157,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(feature = "postgres-range")]
                 Value::Range(r) => {
-                    use sea_query::value::prelude::RangeType;
-                    use sqlx::postgres::types::PgRange;
-
-                    match r.as_deref() {
-                        Some(RangeType::Int4Range(lo, hi)) => {
-                            let _ = args.add(PgRange::from((lo.into(), hi.into())));
-                        }
-                        Some(RangeType::Int8Range(lo, hi)) => {
-                            let _ = args.add(PgRange::from((lo.into(), hi.into())));
-                        }
-                        // sqlx doesn't support PgRange<f64>, so we convert to Decimal/BigDecimal
-                        #[cfg(feature = "with-rust_decimal")]
-                        Some(RangeType::NumRange(lo, hi)) => {
-                            use rust_decimal::Decimal;
-                            use std::ops::Bound;
-                            let lo: Bound<Decimal> = lo.into();
-                            let hi: Bound<Decimal> = hi.into();
-                            let _ = args.add(PgRange::from((lo, hi)));
-                        }
-                        #[cfg(all(
-                            feature = "with-bigdecimal",
-                            not(feature = "with-rust_decimal")
-                        ))]
-                        Some(RangeType::NumRange(lo, hi)) => {
-                            use bigdecimal::BigDecimal;
-                            use std::ops::Bound;
-                            let lo: Bound<BigDecimal> = lo.into();
-                            let hi: Bound<BigDecimal> = hi.into();
-                            let _ = args.add(PgRange::from((lo, hi)));
-                        }
-                        #[cfg(not(any(
-                            feature = "with-rust_decimal",
-                            feature = "with-bigdecimal"
-                        )))]
-                        Some(RangeType::NumRange(_, _)) => {
-                            panic!(
-                                "NumRange requires with-rust_decimal or with-bigdecimal feature"
-                            );
-                        }
-                        None => {
-                            // use a dummy type to represent NULL range
-                            let _ = args.add(None::<PgRange<i32>>);
-                        }
-                    }
+                    let _ = args.add(r);
                 }
             }
         }
