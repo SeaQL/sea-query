@@ -100,8 +100,7 @@ impl TransformValue for Sqlite {
             Value::Array(_) => bail!("Sqlite doesn't support array arguments"),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(_) => bail!("Sqlite doesn't support vector arguments"),
-            #[cfg(feature = "postgres")]
-            Value::Enum(_) => bail!("Sqlite doesn't support enum arguments"),
+            Value::Enum(v) => build!(Text, v.map(|v| v.as_str().to_owned())),
         };
         Ok(transformed)
     }
