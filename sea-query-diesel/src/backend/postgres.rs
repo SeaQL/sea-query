@@ -203,7 +203,6 @@ impl TransformValue for Pg {
                                 .collect();
                             build!(DieselArray<Nullable<Text>>, Some(converted))
                         }
-                        SeaArray::Array(_) => bail!("Nested arrays are not supported"),
                         #[cfg(feature = "with-chrono")]
                         SeaArray::ChronoDate(slice) => {
                             build!(DieselArray<Nullable<Date>>, Some(slice.into_vec()))

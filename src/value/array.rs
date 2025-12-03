@@ -25,7 +25,6 @@ pub enum Array {
     Char(Box<[Option<char>]>),
     Bytes(Box<[Option<Vec<u8>>]>),
     Enum(EnumArray),
-    Array(Box<(ArrayType, Box<[Option<Array>]>)>),
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     Json(Box<[Option<Json>]>),
@@ -109,7 +108,6 @@ impl Array {
             Array::Char(_) => ArrayType::Char,
             Array::Bytes(_) => ArrayType::Bytes,
             Array::Enum(boxed) => ArrayType::Enum(boxed.as_ref().0.clone()),
-            Array::Array(arr) => arr.as_ref().0.clone(),
             #[cfg(feature = "with-json")]
             Array::Json(_) => ArrayType::Json,
             #[cfg(feature = "with-chrono")]
@@ -172,7 +170,6 @@ impl Array {
             Array::Char(v) => v.is_empty(),
             Array::Bytes(v) => v.is_empty(),
             Array::Enum(b) => b.as_ref().1.is_empty(),
-            Array::Array(b) => b.as_ref().1.is_empty(),
             #[cfg(feature = "with-json")]
             Array::Json(v) => v.is_empty(),
             #[cfg(feature = "with-chrono")]
@@ -263,15 +260,6 @@ impl Array {
             Array::Enum(v) => {
                 let (_, arr) = v.as_ref();
                 map_slice_of_opts(arr, |e| Json::String(e.value.to_string()))
-            }
-            Array::Array(v) => {
-                let (_, arrs) = v.as_ref();
-                arrs.iter()
-                    .map(|opt_a| match opt_a {
-                        Some(a) => a.to_json_value(),
-                        None => Json::Null,
-                    })
-                    .collect()
             }
             #[cfg(feature = "with-json")]
             Array::Json(v) => map_slice_of_opts(v, |j| j.clone()),
@@ -394,10 +382,6 @@ impl Array {
                 let val = val.as_ref();
                 Array::Enum(Box::new((val.0.clone(), Box::new([]))))
             }
-            Array::Array(val) => {
-                let val = val.as_ref();
-                Array::Array(Box::new((val.0.clone(), Box::new([]))))
-            }
             #[cfg(feature = "with-json")]
             Array::Json(_) => Array::Json(Box::new([])),
             #[cfg(feature = "with-chrono")]
@@ -484,7 +468,6 @@ mod hash {
                 (Self::String(l0), Self::String(r0)) => l0 == r0,
                 (Self::Char(l0), Self::Char(r0)) => l0 == r0,
                 (Self::Bytes(l0), Self::Bytes(r0)) => l0 == r0,
-                (Self::Array(l0), Self::Array(r0)) => l0 == r0,
                 (Self::Json(l0), Self::Json(r0)) => l0 == r0,
                 (Self::ChronoDate(l0), Self::ChronoDate(r0)) => l0 == r0,
                 (Self::ChronoTime(l0), Self::ChronoTime(r0)) => l0 == r0,
@@ -547,7 +530,6 @@ mod hash {
                 Array::Char(items) => items.hash(state),
                 Array::Bytes(items) => items.hash(state),
                 Array::Enum(items) => items.hash(state),
-                Array::Array(items) => items.hash(state),
                 #[cfg(feature = "with-json")]
                 Array::Json(items) => items.hash(state),
                 #[cfg(feature = "with-chrono")]

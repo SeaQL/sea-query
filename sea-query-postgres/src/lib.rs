@@ -230,10 +230,6 @@ impl ToSql for PostgresValue {
                     .map(|v| v.as_ref().map(|z| z.timestamp()))
                     .collect::<Vec<_>>()
                     .to_sql(ty, out),
-                Array::Array(_) => Err(PostgresBindError::new(
-                    "Nested arrays (Array::Array) are not supported by sea-query-postgres binder",
-                )
-                .into()),
                 Array::Enum(v) => {
                     // Convert array of enum to array of text
                     v.as_ref()

@@ -382,20 +382,6 @@ pub trait ValueEncoder: EscapeBuilder {
                         encoder.write_enum_to(buf, val.as_ref())
                     })
                 }
-                Array::Array(boxed) => {
-                    use crate::utils::join_write;
-
-                    let (_, inner) = boxed.as_ref();
-                    join_write(
-                        buf,
-                        inner,
-                        |buf| buf.write_char(','),
-                        |buf, item| match item {
-                            Some(array) => write_array_recursive(encoder, buf, array),
-                            None => buf.write_str("NULL"),
-                        },
-                    )
-                }
                 #[cfg(feature = "with-json")]
                 Array::Json(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {

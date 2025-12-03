@@ -396,9 +396,6 @@ fn match_some_array(arr: Array, args: &mut sqlx::postgres::PgArguments) {
                 .collect();
             let _ = args.add(v);
         }
-        Array::Array(_) => {
-            panic!("Nested arrays (Array::Array) are not supported by sea-query-sqlx");
-        }
         _ => {
             panic!("Unsupported array variant for sea-query-sqlx");
         }
