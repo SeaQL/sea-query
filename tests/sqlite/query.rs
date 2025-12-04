@@ -1455,7 +1455,7 @@ fn insert_on_conflict_9() {
             ])
             .on_conflict(
                 OnConflict::column(Glyph::Id)
-                    .expr(Func::lower(Expr::col(Glyph::Tokens)))
+                    .add_expr(Func::lower(Expr::col(Glyph::Tokens)))
                     .update_column(Glyph::Aspect)
                     .to_owned()
             )

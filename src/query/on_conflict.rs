@@ -9,6 +9,9 @@ pub struct OnConflict {
 }
 
 /// Represents ON CONFLICT (upsert) targets
+///
+/// Targets can be a list of columns or expressions, even mixed, or just a
+/// single constraint name.
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictTarget {
     /// List of column names or expressions
@@ -55,6 +58,44 @@ impl OnConflict {
     /// a special method designed for MySQL
     pub fn new() -> Self {
         Default::default()
+    }
+
+    /// Append a column to the ON CONFLICT column or expression list.
+    pub fn add_column<C>(mut self, column: C) -> Self
+    where
+        C: IntoIden,
+    {
+        if let OnConflictTarget::OnConflictIdentifiers(mut ids) = self.targets {
+            ids.push(OnConflictIdentifier::ConflictColumn(column.into_iden()));
+
+            self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
+            return self;
+        }
+
+        self.targets =
+            OnConflictTarget::OnConflictIdentifiers(vec![OnConflictIdentifier::ConflictColumn(
+                column.into_iden(),
+            )]);
+        self
+    }
+
+    /// Append an expression to the ON CONFLICT column or expression list.
+    pub fn add_expr<T>(mut self, expr: T) -> Self
+    where
+        T: Into<Expr>,
+    {
+        if let OnConflictTarget::OnConflictIdentifiers(mut ids) = self.targets {
+            ids.push(OnConflictIdentifier::ConflictExpr(expr.into()));
+
+            self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
+            return self;
+        }
+
+        self.targets =
+            OnConflictTarget::OnConflictIdentifiers(vec![OnConflictIdentifier::ConflictExpr(
+                expr.into(),
+            )]);
+        self
     }
 
     /// Set ON CONFLICT target column
