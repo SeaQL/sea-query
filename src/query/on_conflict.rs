@@ -60,7 +60,7 @@ impl OnConflict {
         Default::default()
     }
 
-    /// Append a column to the ON CONFLICT column or expression list.
+    /// Append a column to the ON CONFLICT column or expression list
     pub fn add_column<C>(mut self, column: C) -> Self
     where
         C: IntoIden,
@@ -79,7 +79,20 @@ impl OnConflict {
         self
     }
 
-    /// Append an expression to the ON CONFLICT column or expression list.
+    /// Append multiple columns to the ON CONFLICT column or expression list
+    pub fn add_columns<C, I>(mut self, columns: I) -> Self
+    where
+        C: IntoIden,
+        I: IntoIterator<Item = C>,
+    {
+        for column in columns {
+            self = self.add_column(column)
+        }
+
+        self
+    }
+
+    /// Append an expression to the ON CONFLICT column or expression list
     pub fn add_expr<T>(mut self, expr: T) -> Self
     where
         T: Into<Expr>,
@@ -95,6 +108,20 @@ impl OnConflict {
             OnConflictTarget::OnConflictIdentifiers(vec![OnConflictIdentifier::ConflictExpr(
                 expr.into(),
             )]);
+        self
+    }
+
+    /// Append multiple expressions to the ON CONFLICT column or expression
+    /// list
+    pub fn add_exprs<T, I>(mut self, exprs: I) -> Self
+    where
+        T: Into<Expr>,
+        I: IntoIterator<Item = T>,
+    {
+        for expr in exprs {
+            self = self.add_expr(expr);
+        }
+
         self
     }
 
