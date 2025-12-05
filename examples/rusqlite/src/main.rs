@@ -4,7 +4,7 @@ use sea_query::{ColumnDef, Expr, ExprTrait, Func, Iden, Order, Query, SqliteQuer
 use sea_query_rusqlite::{RusqliteBinder, rusqlite};
 use serde_json::{Value as Json, json};
 use time::{
-    PrimitiveDateTime, format_description,
+    PrimitiveDateTime,
     macros::{date, time},
 };
 use uuid::Uuid;
@@ -254,17 +254,13 @@ impl From<&Row<'_>> for CharacterStructChrono {
 
 impl From<&Row<'_>> for CharacterStructTime {
     fn from(row: &Row) -> Self {
-        let created: String = row.get_unwrap("created");
-        let format =
-            format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]").unwrap();
-        let created = PrimitiveDateTime::parse(&created, &format).ok();
         Self {
             id: row.get_unwrap("id"),
             uuid: row.get_unwrap("uuid"),
             character: row.get_unwrap("character"),
             font_size: row.get_unwrap("font_size"),
             meta: row.get_unwrap("meta"),
-            created,
+            created: row.get_unwrap("created"),
         }
     }
 }
