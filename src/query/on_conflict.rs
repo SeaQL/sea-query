@@ -15,18 +15,18 @@ pub struct OnConflict {
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictTarget {
     /// List of column names or expressions
-    OnConflictIdentifiers(Vec<OnConflictIdentifier>),
+    Identifiers(Vec<OnConflictIdentifier>),
     /// A constraint name
-    ConflictConstraint(String),
+    Constraint(String),
 }
 
 /// Represents either a column or an expression in the conflict targets
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictIdentifier {
     /// A column
-    ConflictColumn(DynIden),
+    Column(DynIden),
     /// An expression `(LOWER(column), ...)`
-    ConflictExpr(Expr),
+    Expr(Expr),
 }
 
 /// Represents ON CONFLICT (upsert) actions
@@ -49,7 +49,7 @@ pub enum OnConflictUpdate {
 
 impl Default for OnConflictTarget {
     fn default() -> Self {
-        OnConflictTarget::OnConflictIdentifiers(vec![])
+        OnConflictTarget::Identifiers(vec![])
     }
 }
 
@@ -76,16 +76,15 @@ impl OnConflict {
     {
         let cols = columns
             .into_iter()
-            .map(|c| OnConflictIdentifier::ConflictColumn(c.into_iden()))
-            .collect();
+            .map(|c| OnConflictIdentifier::Column(c.into_iden()));
 
         match self.targets {
-            OnConflictTarget::OnConflictIdentifiers(mut ids) => {
+            OnConflictTarget::Identifiers(mut ids) => {
                 ids.extend(cols);
-                self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
+                self.targets = OnConflictTarget::Identifiers(ids);
             }
-            OnConflictTarget::ConflictConstraint(_) => {
-                self.targets = OnConflictTarget::OnConflictIdentifiers(cols)
+            OnConflictTarget::Constraint(_) => {
+                self.targets = OnConflictTarget::Identifiers(cols.collect())
             }
         }
 
@@ -109,16 +108,15 @@ impl OnConflict {
     {
         let es = exprs
             .into_iter()
-            .map(|e| OnConflictIdentifier::ConflictExpr(e.into()))
-            .collect();
+            .map(|e| OnConflictIdentifier::Expr(e.into()));
 
         match self.targets {
-            OnConflictTarget::OnConflictIdentifiers(mut ids) => {
+            OnConflictTarget::Identifiers(mut ids) => {
                 ids.extend(es);
-                self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
+                self.targets = OnConflictTarget::Identifiers(ids);
             }
-            OnConflictTarget::ConflictConstraint(_) => {
-                self.targets = OnConflictTarget::OnConflictIdentifiers(es)
+            OnConflictTarget::Constraint(_) => {
+                self.targets = OnConflictTarget::Identifiers(es.collect())
             }
         }
 
@@ -140,10 +138,10 @@ impl OnConflict {
         I: IntoIterator<Item = C>,
     {
         Self {
-            targets: OnConflictTarget::OnConflictIdentifiers(
+            targets: OnConflictTarget::Identifiers(
                 columns
                     .into_iter()
-                    .map(|c| OnConflictIdentifier::ConflictColumn(c.into_iden()))
+                    .map(|c| OnConflictIdentifier::Column(c.into_iden()))
                     .collect(),
             ),
             target_where: ConditionHolder::new(),
@@ -155,7 +153,7 @@ impl OnConflict {
     /// Set ON CONSTRAINT target constraint name
     pub fn constraint(constraint: &str) -> Self {
         Self {
-            targets: OnConflictTarget::ConflictConstraint(constraint.to_owned()),
+            targets: OnConflictTarget::Constraint(constraint.to_owned()),
             target_where: ConditionHolder::new(),
             action: None,
             action_where: ConditionHolder::new(),
@@ -223,10 +221,10 @@ impl OnConflict {
         T: Into<Expr>,
         I: IntoIterator<Item = T>,
     {
-        self.targets = OnConflictTarget::OnConflictIdentifiers(
+        self.targets = OnConflictTarget::Identifiers(
             exprs
                 .into_iter()
-                .map(|e: T| OnConflictIdentifier::ConflictExpr(e.into()))
+                .map(|e: T| OnConflictIdentifier::Expr(e.into()))
                 .collect(),
         );
         self

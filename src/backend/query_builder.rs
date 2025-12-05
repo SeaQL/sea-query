@@ -1425,10 +1425,10 @@ pub trait QueryBuilder:
         sql: &mut impl SqlWriter,
     ) {
         match on_conflict_targets {
-            OnConflictTarget::OnConflictIdentifiers(identifiers) => {
+            OnConflictTarget::Identifiers(identifiers) => {
                 self.prepare_on_conflict_target_identifiers(identifiers, sql)
             }
-            OnConflictTarget::ConflictConstraint(constraint) => {
+            OnConflictTarget::Constraint(constraint) => {
                 self.prepare_on_conflict_target_constraint(constraint, sql)
             }
         }
@@ -1453,10 +1453,10 @@ pub trait QueryBuilder:
             },
             do {
                 match target {
-                    OnConflictIdentifier::ConflictColumn(col) => {
+                    OnConflictIdentifier::Column(col) => {
                         self.prepare_iden(col, sql);
                     }
-                    OnConflictIdentifier::ConflictExpr(expr) => {
+                    OnConflictIdentifier::Expr(expr) => {
                         self.prepare_expr(expr, sql);
                     }
                 }
