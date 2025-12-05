@@ -61,22 +61,11 @@ impl OnConflict {
     }
 
     /// Append a column to the ON CONFLICT column or expression list
-    pub fn add_column<C>(mut self, column: C) -> Self
+    pub fn add_column<C>(self, column: C) -> Self
     where
         C: IntoIden,
     {
-        if let OnConflictTarget::OnConflictIdentifiers(mut ids) = self.targets {
-            ids.push(OnConflictIdentifier::ConflictColumn(column.into_iden()));
-
-            self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
-            return self;
-        }
-
-        self.targets =
-            OnConflictTarget::OnConflictIdentifiers(vec![OnConflictIdentifier::ConflictColumn(
-                column.into_iden(),
-            )]);
-        self
+        self.add_columns([column])
     }
 
     /// Append multiple columns to the ON CONFLICT column or expression list
@@ -85,30 +74,30 @@ impl OnConflict {
         C: IntoIden,
         I: IntoIterator<Item = C>,
     {
-        for column in columns {
-            self = self.add_column(column)
+        let cols = columns
+            .into_iter()
+            .map(|c| OnConflictIdentifier::ConflictColumn(c.into_iden()))
+            .collect();
+
+        match self.targets {
+            OnConflictTarget::OnConflictIdentifiers(mut ids) => {
+                ids.extend(cols);
+                self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
+            }
+            OnConflictTarget::ConflictConstraint(_) => {
+                self.targets = OnConflictTarget::OnConflictIdentifiers(cols)
+            }
         }
 
         self
     }
 
     /// Append an expression to the ON CONFLICT column or expression list
-    pub fn add_expr<T>(mut self, expr: T) -> Self
+    pub fn add_expr<T>(self, expr: T) -> Self
     where
         T: Into<Expr>,
     {
-        if let OnConflictTarget::OnConflictIdentifiers(mut ids) = self.targets {
-            ids.push(OnConflictIdentifier::ConflictExpr(expr.into()));
-
-            self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
-            return self;
-        }
-
-        self.targets =
-            OnConflictTarget::OnConflictIdentifiers(vec![OnConflictIdentifier::ConflictExpr(
-                expr.into(),
-            )]);
-        self
+        self.add_exprs([expr])
     }
 
     /// Append multiple expressions to the ON CONFLICT column or expression
@@ -118,8 +107,19 @@ impl OnConflict {
         T: Into<Expr>,
         I: IntoIterator<Item = T>,
     {
-        for expr in exprs {
-            self = self.add_expr(expr);
+        let es = exprs
+            .into_iter()
+            .map(|e| OnConflictIdentifier::ConflictExpr(e.into()))
+            .collect();
+
+        match self.targets {
+            OnConflictTarget::OnConflictIdentifiers(mut ids) => {
+                ids.extend(es);
+                self.targets = OnConflictTarget::OnConflictIdentifiers(ids);
+            }
+            OnConflictTarget::ConflictConstraint(_) => {
+                self.targets = OnConflictTarget::OnConflictIdentifiers(es)
+            }
         }
 
         self
