@@ -90,6 +90,29 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDate(d) => {
+                    let _ = args.add(d.map(jiff_sqlx::Date::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTime(t) => {
+                    let _ = args.add(t.map(jiff_sqlx::Time::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDateTime(dt) => {
+                    let _ = args.add(dt.map(jiff_sqlx::DateTime::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTimestamp(ts) => {
+                    let _ = args.add(ts.map(jiff_sqlx::Timestamp::from));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffZoned(z) => {
+                    let _ = args.add(z.map(|z| jiff_sqlx::Timestamp::from(z.timestamp())));
+                }
+                Value::Enum(e) => {
+                    let _ = args.add(e.map(|e| e.as_str().to_owned()));
+                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);
@@ -117,7 +140,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     panic!("Sqlite doesn't support MacAddress arguments");
                 }
                 #[cfg(feature = "postgres-array")]
-                Value::Array(_, _) => {
+                Value::Array(_) => {
                     panic!("Sqlite doesn't support array arguments");
                 }
                 #[cfg(feature = "postgres-vector")]

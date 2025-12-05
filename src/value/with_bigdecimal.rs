@@ -1,6 +1,6 @@
 use super::*;
 
-type_to_box_value!(BigDecimal, BigDecimal, Decimal(None));
+type_to_value!(BigDecimal, BigDecimal, Decimal(None));
 
 impl NumericValue for BigDecimal {}
 impl NumericValueNullable for Option<BigDecimal> {}
@@ -12,7 +12,7 @@ impl Value {
 
     pub fn as_ref_big_decimal(&self) -> Option<&BigDecimal> {
         match self {
-            Self::BigDecimal(v) => v.as_ref().map(|x| x.as_ref()),
+            Self::BigDecimal(v) => v.as_ref(),
             _ => panic!("not Value::BigDecimal"),
         }
     }
