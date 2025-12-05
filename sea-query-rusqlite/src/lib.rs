@@ -119,13 +119,13 @@ impl ToSql for RusqliteValue {
             #[cfg(feature = "with-json")]
             Value::Json(j) => box_to_sql!(j),
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
+            Value::Decimal(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
+            Value::BigDecimal(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
+            Value::IpNetwork(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
+            Value::MacAddress(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "postgres-array")]
             Value::Array(_, _) => {
                 panic!("Rusqlite doesn't support Array arguments");
