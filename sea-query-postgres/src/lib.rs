@@ -5,7 +5,7 @@ use std::error::Error;
 use bytes::BytesMut;
 use postgres_types::{IsNull, ToSql, Type, to_sql_checked};
 
-use sea_query::{QueryBuilder, Value, query::*};
+use sea_query::{ArrayType, QueryBuilder, Value, query::*};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PostgresValue(pub Value);
@@ -20,6 +20,14 @@ impl PostgresValues {
                 let y: &(dyn ToSql + Sync) = x;
                 y
             })
+            .collect()
+    }
+
+    pub fn as_types(&self) -> Vec<Type> {
+        self.0
+            .iter()
+            .map(|x| &x.0)
+            .map(value_to_postgres_type)
             .collect()
     }
 }
@@ -148,4 +156,110 @@ impl ToSql for PostgresValue {
     }
 
     to_sql_checked!();
+}
+
+fn value_to_postgres_type(value: &Value) -> Type {
+    match value {
+        Value::Bool(_) => Type::BOOL,
+        Value::TinyInt(_) => Type::INT2,
+        Value::TinyUnsigned(_) => Type::INT2,
+        Value::SmallInt(_) => Type::INT2,
+        Value::SmallUnsigned(_) => Type::INT4,
+        Value::Int(_) => Type::INT4,
+        Value::BigInt(_) => Type::INT8,
+        Value::Unsigned(_) => Type::INT8,
+        Value::BigUnsigned(_) => Type::NUMERIC,
+        Value::Float(_) => Type::FLOAT4,
+        Value::Double(_) => Type::FLOAT8,
+        Value::String(_) => Type::TEXT,
+        Value::Char(_) => Type::CHAR,
+        Value::Bytes(_) => Type::BYTEA,
+        #[cfg(feature = "with-json")]
+        Value::Json(_) => Type::JSON,
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoDate(_) => Type::DATE,
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoTime(_) => Type::TIME,
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoDateTime(_) => Type::TIMESTAMP,
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoDateTimeUtc(_) => Type::TIMESTAMP,
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoDateTimeLocal(_) => Type::TIMESTAMP,
+        #[cfg(feature = "with-chrono")]
+        Value::ChronoDateTimeWithTimeZone(_) => Type::TIMESTAMPTZ,
+        #[cfg(feature = "with-time")]
+        Value::TimeDate(_) => Type::DATE,
+        #[cfg(feature = "with-time")]
+        Value::TimeTime(_) => Type::TIME,
+        #[cfg(feature = "with-time")]
+        Value::TimeDateTime(_) => Type::TIMESTAMP,
+        #[cfg(feature = "with-time")]
+        Value::TimeDateTimeWithTimeZone(_) => Type::TIMESTAMPTZ,
+        #[cfg(feature = "with-uuid")]
+        Value::Uuid(_) => Type::UUID,
+        #[cfg(feature = "with-rust_decimal")]
+        Value::Decimal(_) => Type::NUMERIC,
+        #[cfg(feature = "with-bigdecimal")]
+        Value::BigDecimal(_) => Type::NUMERIC,
+        #[cfg(feature = "postgres-array")]
+        Value::Array(ty, _) => array_type_to_pg_type(ty),
+        #[cfg(feature = "postgres-vector")]
+        Value::Vector(_) => todo!(),
+        #[cfg(feature = "with-ipnetwork")]
+        Value::IpNetwork(_) => Type::INET,
+        #[cfg(feature = "with-mac_address")]
+        Value::MacAddress(_) => Type::MACADDR,
+    }
+}
+
+fn array_type_to_pg_type(ty: &ArrayType) -> Type {
+    match ty {
+        ArrayType::Bool => Type::BOOL_ARRAY,
+        ArrayType::TinyInt => Type::INT2_ARRAY,
+        ArrayType::TinyUnsigned => Type::INT2_ARRAY,
+        ArrayType::SmallInt => Type::INT2_ARRAY,
+        ArrayType::SmallUnsigned => Type::INT4_ARRAY,
+        ArrayType::Int => Type::INT4_ARRAY,
+        ArrayType::Unsigned => Type::INT8_ARRAY,
+        ArrayType::BigInt => Type::INT8_ARRAY,
+        ArrayType::BigUnsigned => Type::NUMERIC_ARRAY,
+        ArrayType::Float => Type::FLOAT4_ARRAY,
+        ArrayType::Double => Type::FLOAT8_ARRAY,
+        ArrayType::String => Type::TEXT_ARRAY,
+        ArrayType::Char => Type::CHAR_ARRAY,
+        ArrayType::Bytes => Type::BYTEA_ARRAY,
+        #[cfg(feature = "with-json")]
+        ArrayType::Json => Type::JSON_ARRAY,
+        #[cfg(feature = "with-chrono")]
+        ArrayType::ChronoDate => Type::DATE_ARRAY,
+        #[cfg(feature = "with-chrono")]
+        ArrayType::ChronoTime => Type::TIME_ARRAY,
+        #[cfg(feature = "with-chrono")]
+        ArrayType::ChronoDateTime => Type::TIMESTAMP_ARRAY,
+        #[cfg(feature = "with-chrono")]
+        ArrayType::ChronoDateTimeUtc => Type::TIMESTAMP_ARRAY,
+        #[cfg(feature = "with-chrono")]
+        ArrayType::ChronoDateTimeLocal => Type::TIMESTAMP_ARRAY,
+        #[cfg(feature = "with-chrono")]
+        ArrayType::ChronoDateTimeWithTimeZone => Type::TIMESTAMPTZ_ARRAY,
+        #[cfg(feature = "with-time")]
+        ArrayType::TimeDate => Type::DATE_ARRAY,
+        #[cfg(feature = "with-time")]
+        ArrayType::TimeTime => Type::TIME_ARRAY,
+        #[cfg(feature = "with-time")]
+        ArrayType::TimeDateTime => Type::TIMESTAMP_ARRAY,
+        #[cfg(feature = "with-time")]
+        ArrayType::TimeDateTimeWithTimeZone => Type::TIMESTAMPTZ_ARRAY,
+        #[cfg(feature = "with-uuid")]
+        ArrayType::Uuid => Type::UUID_ARRAY,
+        #[cfg(feature = "with-rust_decimal")]
+        ArrayType::Decimal => Type::NUMERIC_ARRAY,
+        #[cfg(feature = "with-bigdecimal")]
+        ArrayType::BigDecimal => Type::NUMERIC_ARRAY,
+        #[cfg(feature = "with-ipnetwork")]
+        ArrayType::IpNetwork => Type::INET_ARRAY,
+        #[cfg(feature = "with-mac_address")]
+        ArrayType::MacAddress => Type::MACADDR_ARRAY,
+    }
 }
