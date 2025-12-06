@@ -2,19 +2,31 @@ use crate::{ConditionHolder, DynIden, Expr, IntoCondition, IntoIden};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct OnConflict {
-    pub(crate) targets: Vec<OnConflictTarget>,
+    pub(crate) targets: OnConflictTarget,
     pub(crate) target_where: ConditionHolder,
     pub(crate) action: Option<OnConflictAction>,
     pub(crate) action_where: ConditionHolder,
 }
 
 /// Represents ON CONFLICT (upsert) targets
+///
+/// Targets can be a list of columns or expressions, even mixed, or just a
+/// single constraint name.
 #[derive(Debug, Clone, PartialEq)]
 pub enum OnConflictTarget {
+    /// List of column names or expressions
+    Identifiers(Vec<OnConflictIdentifier>),
+    /// A constraint name
+    Constraint(String),
+}
+
+/// Represents either a column or an expression in the conflict targets
+#[derive(Debug, Clone, PartialEq)]
+pub enum OnConflictIdentifier {
     /// A column
-    ConflictColumn(DynIden),
+    Column(DynIden),
     /// An expression `(LOWER(column), ...)`
-    ConflictExpr(Expr),
+    Expr(Expr),
 }
 
 /// Represents ON CONFLICT (upsert) actions
@@ -35,11 +47,80 @@ pub enum OnConflictUpdate {
     Expr(DynIden, Expr),
 }
 
+impl Default for OnConflictTarget {
+    fn default() -> Self {
+        OnConflictTarget::Identifiers(vec![])
+    }
+}
+
 impl OnConflict {
     /// Create a ON CONFLICT expression without target column,
     /// a special method designed for MySQL
     pub fn new() -> Self {
         Default::default()
+    }
+
+    /// Append a column to the ON CONFLICT column or expression list
+    pub fn add_column<C>(self, column: C) -> Self
+    where
+        C: IntoIden,
+    {
+        self.add_columns([column])
+    }
+
+    /// Append multiple columns to the ON CONFLICT column or expression list
+    pub fn add_columns<C, I>(mut self, columns: I) -> Self
+    where
+        C: IntoIden,
+        I: IntoIterator<Item = C>,
+    {
+        let cols = columns
+            .into_iter()
+            .map(|c| OnConflictIdentifier::Column(c.into_iden()));
+
+        match self.targets {
+            OnConflictTarget::Identifiers(mut ids) => {
+                ids.extend(cols);
+                self.targets = OnConflictTarget::Identifiers(ids);
+            }
+            OnConflictTarget::Constraint(_) => {
+                self.targets = OnConflictTarget::Identifiers(cols.collect())
+            }
+        }
+
+        self
+    }
+
+    /// Append an expression to the ON CONFLICT column or expression list
+    pub fn add_expr<T>(self, expr: T) -> Self
+    where
+        T: Into<Expr>,
+    {
+        self.add_exprs([expr])
+    }
+
+    /// Append multiple expressions to the ON CONFLICT column or expression
+    /// list
+    pub fn add_exprs<T, I>(mut self, exprs: I) -> Self
+    where
+        T: Into<Expr>,
+        I: IntoIterator<Item = T>,
+    {
+        let es = exprs
+            .into_iter()
+            .map(|e| OnConflictIdentifier::Expr(e.into()));
+
+        match self.targets {
+            OnConflictTarget::Identifiers(mut ids) => {
+                ids.extend(es);
+                self.targets = OnConflictTarget::Identifiers(ids);
+            }
+            OnConflictTarget::Constraint(_) => {
+                self.targets = OnConflictTarget::Identifiers(es.collect())
+            }
+        }
+
+        self
     }
 
     /// Set ON CONFLICT target column
@@ -57,10 +138,22 @@ impl OnConflict {
         I: IntoIterator<Item = C>,
     {
         Self {
-            targets: columns
-                .into_iter()
-                .map(|c| OnConflictTarget::ConflictColumn(c.into_iden()))
-                .collect(),
+            targets: OnConflictTarget::Identifiers(
+                columns
+                    .into_iter()
+                    .map(|c| OnConflictIdentifier::Column(c.into_iden()))
+                    .collect(),
+            ),
+            target_where: ConditionHolder::new(),
+            action: None,
+            action_where: ConditionHolder::new(),
+        }
+    }
+
+    /// Set ON CONSTRAINT target constraint name
+    pub fn constraint(constraint: &str) -> Self {
+        Self {
+            targets: OnConflictTarget::Constraint(constraint.to_owned()),
             target_where: ConditionHolder::new(),
             action: None,
             action_where: ConditionHolder::new(),
@@ -128,10 +221,10 @@ impl OnConflict {
         T: Into<Expr>,
         I: IntoIterator<Item = T>,
     {
-        self.targets.append(
-            &mut exprs
+        self.targets = OnConflictTarget::Identifiers(
+            exprs
                 .into_iter()
-                .map(|e: T| OnConflictTarget::ConflictExpr(e.into()))
+                .map(|e: T| OnConflictIdentifier::Expr(e.into()))
                 .collect(),
         );
         self

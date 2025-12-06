@@ -1761,6 +1761,10 @@ fn insert_on_conflict_8() {
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_9() {
+    println!(
+        "{:?}",
+        OnConflict::column(Glyph::Id).add_expr(Func::lower(Expr::col(Glyph::Tokens)))
+    );
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
@@ -1771,7 +1775,7 @@ fn insert_on_conflict_9() {
             ])
             .on_conflict(
                 OnConflict::column(Glyph::Id)
-                    .expr(Func::lower(Expr::col(Glyph::Tokens)))
+                    .add_expr(Func::lower(Expr::col(Glyph::Tokens)))
                     .update_column(Glyph::Aspect)
                     .to_owned()
             )
@@ -1780,6 +1784,51 @@ fn insert_on_conflict_9() {
             r#"INSERT INTO "glyph" ("aspect", "image")"#,
             r#"VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#,
             r#"ON CONFLICT ("id", LOWER("tokens")) DO UPDATE SET "aspect" = "excluded"."aspect""#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn insert_on_conflict_10() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Font::Table)
+            .columns([Font::Id, Font::Name])
+            .values_panic([15.into(), "CyberFont Sans Serif".into()])
+            .on_conflict(
+                OnConflict::constraint("name_unique")
+                    .do_nothing()
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "font" ("id", "name")"#,
+            r#"VALUES (15, 'CyberFont Sans Serif')"#,
+            r#"ON CONFLICT ON CONSTRAINT "name_unique" DO NOTHING"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn insert_on_conflict_11() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Font::Table)
+            .columns([Font::Id, Font::Name])
+            .values_panic([20.into(), "Monospaced terminal".into()])
+            .on_conflict(
+                OnConflict::column(Font::Name)
+                    .add_expr(Expr::is_null(Expr::col(Font::Variant)))
+                    .do_nothing()
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "font" ("id", "name")"#,
+            r#"VALUES (20, 'Monospaced terminal')"#,
+            r#"ON CONFLICT ("name", "variant" IS NULL) DO NOTHING"#,
         ]
         .join(" ")
     );
