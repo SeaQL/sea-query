@@ -1761,10 +1761,6 @@ fn insert_on_conflict_8() {
 #[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_9() {
-    println!(
-        "{:?}",
-        OnConflict::column(Glyph::Id).add_expr(Func::lower(Expr::col(Glyph::Tokens)))
-    );
     assert_eq!(
         Query::insert()
             .into_table(Glyph::Table)
@@ -1775,7 +1771,7 @@ fn insert_on_conflict_9() {
             ])
             .on_conflict(
                 OnConflict::column(Glyph::Id)
-                    .add_expr(Func::lower(Expr::col(Glyph::Tokens)))
+                    .expr(Func::lower(Expr::col(Glyph::Tokens)))
                     .update_column(Glyph::Aspect)
                     .to_owned()
             )
@@ -1820,7 +1816,7 @@ fn insert_on_conflict_11() {
             .values_panic([20.into(), "Monospaced terminal".into()])
             .on_conflict(
                 OnConflict::column(Font::Name)
-                    .add_expr(Expr::is_null(Expr::col(Font::Variant)))
+                    .expr(Expr::is_null(Expr::col(Font::Variant)))
                     .do_nothing()
                     .to_owned()
             )

@@ -60,69 +60,6 @@ impl OnConflict {
         Default::default()
     }
 
-    /// Append a column to the ON CONFLICT column or expression list
-    pub fn add_column<C>(self, column: C) -> Self
-    where
-        C: IntoIden,
-    {
-        self.add_columns([column])
-    }
-
-    /// Append multiple columns to the ON CONFLICT column or expression list
-    pub fn add_columns<C, I>(mut self, columns: I) -> Self
-    where
-        C: IntoIden,
-        I: IntoIterator<Item = C>,
-    {
-        let cols = columns
-            .into_iter()
-            .map(|c| OnConflictIdentifier::Column(c.into_iden()));
-
-        match self.targets {
-            OnConflictTarget::Identifiers(mut ids) => {
-                ids.extend(cols);
-                self.targets = OnConflictTarget::Identifiers(ids);
-            }
-            OnConflictTarget::Constraint(_) => {
-                self.targets = OnConflictTarget::Identifiers(cols.collect())
-            }
-        }
-
-        self
-    }
-
-    /// Append an expression to the ON CONFLICT column or expression list
-    pub fn add_expr<T>(self, expr: T) -> Self
-    where
-        T: Into<Expr>,
-    {
-        self.add_exprs([expr])
-    }
-
-    /// Append multiple expressions to the ON CONFLICT column or expression
-    /// list
-    pub fn add_exprs<T, I>(mut self, exprs: I) -> Self
-    where
-        T: Into<Expr>,
-        I: IntoIterator<Item = T>,
-    {
-        let es = exprs
-            .into_iter()
-            .map(|e| OnConflictIdentifier::Expr(e.into()));
-
-        match self.targets {
-            OnConflictTarget::Identifiers(mut ids) => {
-                ids.extend(es);
-                self.targets = OnConflictTarget::Identifiers(ids);
-            }
-            OnConflictTarget::Constraint(_) => {
-                self.targets = OnConflictTarget::Identifiers(es.collect())
-            }
-        }
-
-        self
-    }
-
     /// Set ON CONFLICT target column
     pub fn column<C>(column: C) -> Self
     where
@@ -221,12 +158,19 @@ impl OnConflict {
         T: Into<Expr>,
         I: IntoIterator<Item = T>,
     {
-        self.targets = OnConflictTarget::Identifiers(
-            exprs
-                .into_iter()
-                .map(|e: T| OnConflictIdentifier::Expr(e.into()))
-                .collect(),
-        );
+        let es = exprs
+            .into_iter()
+            .map(|e| OnConflictIdentifier::Expr(e.into()));
+
+        match self.targets {
+            OnConflictTarget::Identifiers(ref mut ids) => {
+                ids.extend(es);
+            }
+            OnConflictTarget::Constraint(_) => {
+                self.targets = OnConflictTarget::Identifiers(es.collect())
+            }
+        }
+
         self
     }
 
