@@ -3,7 +3,7 @@ use crate::{Expr, func::*, query::*, types::*, value::*};
 /// "Operator" methods for building expressions.
 ///
 /// Before `sea_query` 0.32.0 (`sea_orm` 1.1.1),
-/// these methods were awailable only on [`Expr`]/[`SimpleExpr`]
+/// these methods were awailable only on [`Expr`]/[`SimpleExpr`][crate::SimpleExpr]
 /// and you needed to manually construct these types first.
 ///
 /// Now, you can call them directly on any expression type:

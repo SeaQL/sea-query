@@ -2469,7 +2469,8 @@ impl SelectStatement {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [CommonTableExpression][crate::CommonTableExpression]
+    /// or [WithClause] to execute this query with.
     ///
     /// # Examples
     ///
