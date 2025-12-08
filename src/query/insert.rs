@@ -454,8 +454,6 @@ impl InsertStatement {
     /// # Examples
     ///
     /// - [`OnConflict::update_columns`]: Update column value of existing row with inserting value
-    /// - [`OnConflict::update_values`]: Update column value of existing row with value
-    /// - [`OnConflict::update_exprs`]: Update column value of existing row with expression
     pub fn on_conflict(&mut self, on_conflict: OnConflict) -> &mut Self {
         self.on_conflict = Some(on_conflict);
         self
@@ -606,7 +604,8 @@ impl InsertStatement {
         clause.query(self)
     }
 
-    /// Create a Common Table Expression by specifying a [CommonTableExpression] or [WithClause] to execute this query with.
+    /// Create a Common Table Expression by specifying a [CommonTableExpression][crate::CommonTableExpression]
+    /// or [WithClause] to execute this query with.
     ///
     /// # Examples
     ///

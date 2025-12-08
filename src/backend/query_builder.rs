@@ -535,7 +535,7 @@ pub trait QueryBuilder:
         }
     }
 
-    /// Translate [`IndexHint`] into SQL statement.
+    /// Translate [`IndexHint`][crate::extension::mysql::IndexHint] into SQL statement.
     fn prepare_index_hints(
         &self,
         _table_ref: &TableRef,
@@ -544,7 +544,7 @@ pub trait QueryBuilder:
     ) {
     }
 
-    /// Translate [`TableSample`] into SQL statement.
+    /// Translate [`TableSample`][crate::extension::postgres::TableSample] into SQL statement.
     fn prepare_table_sample(&self, _select: &SelectStatement, _sql: &mut impl SqlWriter) {}
 
     /// Translate [`LockType`] into SQL statement.

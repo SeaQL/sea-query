@@ -19,7 +19,7 @@ impl Query {
         self
     }
 
-    /// Matches the signature of [`SqlWriterValues::into_parts`]
+    /// Matches the signature of [`SqlWriterValues::into_parts`][crate::SqlWriterValues::into_parts]
     pub fn into_parts(self) -> (String, Values) {
         (self.sql, self.values)
     }
