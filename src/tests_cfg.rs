@@ -3,7 +3,7 @@
 #[cfg(feature = "with-json")]
 pub use serde_json::json;
 
-use crate::Iden;
+use crate::IdenStatic;
 
 /// Representation of a database table named `Character`.
 ///
@@ -27,8 +27,8 @@ pub enum Character {
 /// A shorthand for [`Character`]
 pub type Char = Character;
 
-impl Iden for Character {
-    fn unquoted(&self) -> &str {
+impl IdenStatic for Character {
+    fn as_str(&self) -> &'static str {
         match self {
             Self::Table => "character",
             Self::Id => "id",
@@ -58,8 +58,8 @@ pub enum Font {
     Language,
 }
 
-impl Iden for Font {
-    fn unquoted(&self) -> &str {
+impl IdenStatic for Font {
+    fn as_str(&self) -> &'static str {
         match self {
             Self::Table => "font",
             Self::Id => "id",
@@ -84,8 +84,8 @@ pub enum Glyph {
     Tokens,
 }
 
-impl Iden for Glyph {
-    fn unquoted(&self) -> &str {
+impl IdenStatic for Glyph {
+    fn as_str(&self) -> &'static str {
         match self {
             Self::Table => "glyph",
             Self::Id => "id",
@@ -108,8 +108,8 @@ pub enum Task {
     IsDone,
 }
 
-impl Iden for Task {
-    fn unquoted(&self) -> &str {
+impl IdenStatic for Task {
+    fn as_str(&self) -> &'static str {
         match self {
             Self::Table => "task",
             Self::Id => "id",

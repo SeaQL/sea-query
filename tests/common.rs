@@ -1,4 +1,4 @@
-use sea_query::Iden;
+use sea_query::IdenStatic;
 
 /// Representation of a database table named `BloB`.
 ///
@@ -18,8 +18,8 @@ pub enum BinaryType {
     LongBlob,
 }
 
-impl Iden for BinaryType {
-    fn unquoted(&self) -> &str {
+impl IdenStatic for BinaryType {
+    fn as_str(&self) -> &'static str {
         match self {
             Self::Table => "binary_type",
             Self::BinaryLen => "binlen",

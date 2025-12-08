@@ -40,8 +40,8 @@ fn create_3() {
         BreakfastTea,
     }
 
-    impl sea_query::Iden for Tea {
-        fn unquoted(&self) -> &str {
+    impl sea_query::IdenStatic for Tea {
+        fn as_str(&self) -> &'static str {
             match self {
                 Self::Enum => "tea",
                 Self::EverydayTea => "EverydayTea",

@@ -154,8 +154,8 @@ impl TypeDropStatement {
     ///
     /// struct FontFamily;
     ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self) -> &str {
+    /// impl IdenStatic for FontFamily {
+    ///     fn as_str(&self) -> &'static str {
     ///         "font_family"
     ///     }
     /// }
@@ -254,8 +254,8 @@ impl TypeAlterStatement {
     ///     Monospace,
     /// }
     ///
-    /// impl Iden for FontFamily {
-    ///     fn unquoted(&self) -> &str {
+    /// impl IdenStatic for FontFamily {
+    ///     fn as_str(&self) -> &'static str {
     ///         match self {
     ///             Self::Type => "font_family",
     ///             Self::Serif => "serif",

@@ -6,9 +6,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt, quote};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
-use super::{
-    DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, find_attr, is_static_iden,
-};
+use super::{DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, find_attr};
 
 pub(crate) trait WriteArm {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream;
@@ -179,19 +177,6 @@ where
             });
 
         T::variant(variant, name)
-    }
-
-    pub(crate) fn is_static_iden(&self) -> bool {
-        let name: String = match &self.attr {
-            Some(a) => match a {
-                IdenAttr::Rename(name) => name.to_owned(),
-                IdenAttr::Method(_) => return false,
-                IdenAttr::Flatten => return false,
-            },
-            None => self.table_or_snake_case(),
-        };
-
-        is_static_iden(&name)
     }
 }
 

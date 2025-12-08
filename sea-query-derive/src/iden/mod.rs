@@ -57,25 +57,10 @@ fn impl_iden_for_unit_struct(
     table_name: &str,
 ) -> proc_macro2::TokenStream {
     let sea_query_path = sea_query_path();
-
-    if is_static_iden(table_name) {
-        quote! {
-            impl #sea_query_path::Iden for #ident {
-                fn quoted(&self) -> std::borrow::Cow<'static, str> {
-                    std::borrow::Cow::Borrowed(#table_name)
-                }
-
-                fn unquoted(&self) -> &str {
-                    #table_name
-                }
-            }
-        }
-    } else {
-        quote! {
-            impl #sea_query_path::Iden for #ident {
-                fn unquoted(&self) -> &str {
-                    #table_name
-                }
+    quote! {
+        impl #sea_query_path::IdenStatic for #ident {
+            fn as_str(&self) -> &'static str {
+                #table_name
             }
         }
     }
@@ -91,43 +76,19 @@ where
 {
     let sea_query_path = sea_query_path();
 
-    let mut is_all_static_iden = true;
-
     let match_arms = match variants
-        .map(|v| {
-            let v = IdenVariant::<DeriveIden>::try_from((table_name, v))?;
-            is_all_static_iden &= v.is_static_iden();
-            Ok(v)
-        })
+        .map(|v| IdenVariant::<DeriveIden>::try_from((table_name, v)))
         .collect::<syn::Result<Vec<_>>>()
     {
         Ok(v) => v,
         Err(e) => return e.to_compile_error(),
     };
 
-    if is_all_static_iden {
-        quote! {
-            impl #sea_query_path::Iden for #ident {
-                fn quoted(&self) -> std::borrow::Cow<'static, str> {
-                    std::borrow::Cow::Borrowed(match self {
-                        #(#match_arms),*
-                    })
-                }
-
-                fn unquoted(&self) -> &str {
-                    match self {
-                        #(#match_arms),*
-                    }
-                }
-            }
-        }
-    } else {
-        quote! {
-            impl #sea_query_path::Iden for #ident {
-                fn unquoted(&self) -> &str {
-                    match self {
-                        #(#match_arms),*
-                    }
+    quote! {
+        impl #sea_query_path::IdenStatic for #ident {
+            fn as_str(&self) -> &'static str {
+                match self {
+                    #(#match_arms),*
                 }
             }
         }
@@ -189,12 +150,4 @@ fn find_attr(attrs: &[Attribute]) -> Option<&Attribute> {
     attrs.iter().find(|attr| {
         attr.path().is_ident(&IdenPath::Iden) || attr.path().is_ident(&IdenPath::Method)
     })
-}
-
-pub fn is_static_iden(name: &str) -> bool {
-    // can only begin with [a-z_]
-    name.chars()
-        .take(1)
-        .all(|c| c == '_' || c.is_ascii_alphabetic())
-        && name.chars().all(|c| c == '_' || c.is_ascii_alphanumeric())
 }

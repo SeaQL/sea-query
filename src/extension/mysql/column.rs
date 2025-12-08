@@ -1,4 +1,4 @@
-use crate::Iden;
+use crate::IdenStatic;
 
 #[derive(Debug, Copy, Clone)]
 #[non_exhaustive]
@@ -8,8 +8,8 @@ pub enum MySqlType {
     LongBlob,
 }
 
-impl Iden for MySqlType {
-    fn unquoted(&self) -> &str {
+impl IdenStatic for MySqlType {
+    fn as_str(&self) -> &'static str {
         match self {
             Self::TinyBlob => "tinyblob",
             Self::MediumBlob => "mediumblob",
