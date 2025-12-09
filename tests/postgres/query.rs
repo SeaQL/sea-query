@@ -1267,7 +1267,7 @@ fn select_65() {
     let query = Query::select()
         .from(Font::Table)
         .columns([Font::Id, Font::Name])
-        .into_target(SelectInto::table("font_copy").modifier(SelectIntoTableModifier::Temporary))
+        .into_table(SelectInto::table("font_copy").modifier(SelectIntoTableModifier::Temporary))
         .to_owned();
     assert_eq!(
         query.to_string(PostgresQueryBuilder),

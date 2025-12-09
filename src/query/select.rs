@@ -901,7 +901,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column(Char::Character)
-    ///     .into_target(
+    ///     .into_table(
     ///         SelectInto::table("character_copy").modifier(SelectIntoTableModifier::Unlogged),
     ///     )
     ///     .to_owned();
@@ -911,7 +911,7 @@ impl SelectStatement {
     ///     r#"SELECT "character" INTO UNLOGGED TABLE "character_copy" FROM "character""#
     /// );
     /// ```
-    pub fn into_target(&mut self, into_table: SelectInto) -> &mut Self {
+    pub fn into_table(&mut self, into_table: SelectInto) -> &mut Self {
         self.into = Some(into_table);
         self
     }
