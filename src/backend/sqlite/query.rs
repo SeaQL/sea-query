@@ -6,6 +6,10 @@ impl QueryBuilder for SqliteQueryBuilder {
         // SQLite doesn't supports row locking
     }
 
+    fn prepare_select_into(&self, _: &SelectInto, _: &mut impl SqlWriter) {
+        // SQLite doesn't support SELECT INOT table clause
+    }
+
     fn prepare_sub_query_oper(&self, oper: &SubQueryOper, sql: &mut impl SqlWriter) {
         sql.write_str(match oper {
             SubQueryOper::Exists => "EXISTS",

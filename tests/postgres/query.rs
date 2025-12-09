@@ -1263,6 +1263,19 @@ fn select_64() {
 }
 
 #[test]
+fn select_65() {
+    let query = Query::select()
+        .from(Font::Table)
+        .columns([Font::Id, Font::Name])
+        .into_target(SelectInto::table("font_copy").modifier(SelectIntoTableModifier::Temporary))
+        .to_owned();
+    assert_eq!(
+        query.to_string(PostgresQueryBuilder),
+        r#"SELECT "id", "name" INTO TEMPORARY TABLE "font_copy" FROM "font""#
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_2() {
     let query = Query::insert()
