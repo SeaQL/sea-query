@@ -20,11 +20,7 @@ pub fn expand(input: DeriveInput) -> TokenStream {
                 fields: Fields::Unit,
                 ..
             }) => {
-                let impl_iden = impl_iden_for_unit_struct(&ident, &table_name);
-
                 return quote! {
-                    #impl_iden
-
                     impl #sea_query_path::IdenStatic for #ident {
                         fn as_str(&self) -> &'static str {
                             #table_name
@@ -49,8 +45,6 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         return TokenStream::new();
     }
 
-    let impl_iden = impl_iden_for_enum(&ident, &table_name, variants.iter());
-
     let match_arms = match variants
         .iter()
         .map(|v| (table_name.as_str(), v))
@@ -62,8 +56,6 @@ pub fn expand(input: DeriveInput) -> TokenStream {
     };
 
     let output = quote! {
-        #impl_iden
-
         impl #sea_query_path::IdenStatic for #ident {
             fn as_str(&self) -> &'static str {
                 match self {
