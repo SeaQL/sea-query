@@ -468,31 +468,52 @@ mod hash {
                 (Self::String(l0), Self::String(r0)) => l0 == r0,
                 (Self::Char(l0), Self::Char(r0)) => l0 == r0,
                 (Self::Bytes(l0), Self::Bytes(r0)) => l0 == r0,
+                (Self::Enum(l0), Self::Enum(r0)) => l0 == r0,
+                #[cfg(feature = "with-json")]
                 (Self::Json(l0), Self::Json(r0)) => l0 == r0,
+                #[cfg(feature = "with-chrono")]
                 (Self::ChronoDate(l0), Self::ChronoDate(r0)) => l0 == r0,
+                #[cfg(feature = "with-chrono")]
                 (Self::ChronoTime(l0), Self::ChronoTime(r0)) => l0 == r0,
+                #[cfg(feature = "with-chrono")]
                 (Self::ChronoDateTime(l0), Self::ChronoDateTime(r0)) => l0 == r0,
+                #[cfg(feature = "with-chrono")]
                 (Self::ChronoDateTimeUtc(l0), Self::ChronoDateTimeUtc(r0)) => l0 == r0,
+                #[cfg(feature = "with-chrono")]
                 (Self::ChronoDateTimeLocal(l0), Self::ChronoDateTimeLocal(r0)) => l0 == r0,
+                #[cfg(feature = "with-chrono")]
                 (Self::ChronoDateTimeWithTimeZone(l0), Self::ChronoDateTimeWithTimeZone(r0)) => {
                     l0 == r0
                 }
+                #[cfg(feature = "with-time")]
                 (Self::TimeDate(l0), Self::TimeDate(r0)) => l0 == r0,
+                #[cfg(feature = "with-time")]
                 (Self::TimeTime(l0), Self::TimeTime(r0)) => l0 == r0,
+                #[cfg(feature = "with-time")]
                 (Self::TimeDateTime(l0), Self::TimeDateTime(r0)) => l0 == r0,
+                #[cfg(feature = "with-time")]
                 (Self::TimeDateTimeWithTimeZone(l0), Self::TimeDateTimeWithTimeZone(r0)) => {
                     l0 == r0
                 }
+                #[cfg(feature = "with-jiff")]
                 (Self::JiffDate(l0), Self::JiffDate(r0)) => l0 == r0,
+                #[cfg(feature = "with-jiff")]
                 (Self::JiffTime(l0), Self::JiffTime(r0)) => l0 == r0,
+                #[cfg(feature = "with-jiff")]
                 (Self::JiffDateTime(l0), Self::JiffDateTime(r0)) => l0 == r0,
+                #[cfg(feature = "with-jiff")]
                 (Self::JiffTimestamp(l0), Self::JiffTimestamp(r0)) => l0 == r0,
+                #[cfg(feature = "with-jiff")]
                 (Self::JiffZoned(l0), Self::JiffZoned(r0)) => l0 == r0,
+                #[cfg(feature = "with-uuid")]
                 (Self::Uuid(l0), Self::Uuid(r0)) => l0 == r0,
+                #[cfg(feature = "with-rust_decimal")]
                 (Self::Decimal(l0), Self::Decimal(r0)) => l0 == r0,
-                (Self::Enum(l0), Self::Enum(r0)) => l0 == r0,
+                #[cfg(feature = "with-bigdecimal")]
                 (Self::BigDecimal(l0), Self::BigDecimal(r0)) => l0 == r0,
+                #[cfg(feature = "with-ipnetwork")]
                 (Self::IpNetwork(l0), Self::IpNetwork(r0)) => l0 == r0,
+                #[cfg(feature = "with-mac_address")]
                 (Self::MacAddress(l0), Self::MacAddress(r0)) => l0 == r0,
                 _ => false,
             }
