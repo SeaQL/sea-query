@@ -1,4 +1,4 @@
-use crate::Iden;
+use crate::{Iden, IdenStatic};
 
 /// PostgreSQL `ltree` extension type.
 ///
@@ -50,8 +50,8 @@ use crate::Iden;
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PgLTree;
 
-impl Iden for PgLTree {
-    fn unquoted(&self) -> &str {
+impl IdenStatic for PgLTree {
+    fn as_str(&self) -> &'static str {
         "ltree"
     }
 }

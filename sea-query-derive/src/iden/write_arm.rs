@@ -6,18 +6,26 @@ use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt, quote};
 use syn::{Error, Fields, FieldsNamed, Ident, Variant};
 
-use super::{
-    DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, find_attr, is_static_iden,
-};
+use super::{DeriveIden, DeriveIdenStatic, attr::IdenAttr, error::ErrorMsg, find_attr};
 
 pub(crate) trait WriteArm {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream;
+    fn renamed_variant(variant: TokenStream, name: &str) -> TokenStream;
+    fn method_variant(variant: TokenStream, method: &syn::Ident) -> TokenStream;
     fn flattened(variant: TokenStream, name: &Ident) -> TokenStream;
 }
 
 impl WriteArm for DeriveIden {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
-        quote! { Self::#variant => #name }
+        quote! { Self::#variant => std::borrow::Cow::Borrowed(#name) }
+    }
+
+    fn renamed_variant(variant: TokenStream, name: &str) -> TokenStream {
+        quote! { Self::#variant => std::borrow::Cow::Owned(#name.to_owned()) }
+    }
+
+    fn method_variant(variant: TokenStream, method: &syn::Ident) -> TokenStream {
+        quote! { Self::#variant => std::borrow::Cow::Owned(self.#method().to_owned()) }
     }
 
     fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
@@ -28,6 +36,14 @@ impl WriteArm for DeriveIden {
 impl WriteArm for DeriveIdenStatic {
     fn variant(variant: TokenStream, name: TokenStream) -> TokenStream {
         quote! { Self::#variant => #name }
+    }
+
+    fn renamed_variant(variant: TokenStream, name: &str) -> TokenStream {
+        quote! { Self::#variant => #name }
+    }
+
+    fn method_variant(variant: TokenStream, method: &syn::Ident) -> TokenStream {
+        quote! { Self::#variant => self.#method() }
     }
 
     fn flattened(variant: TokenStream, name: &Ident) -> TokenStream {
@@ -165,33 +181,31 @@ where
     }
 
     fn write_variant_name(&self, variant: TokenStream) -> TokenStream {
-        let name = self
-            .attr
-            .as_ref()
-            .map(|a| match a {
-                IdenAttr::Rename(name) => quote! { #name },
-                IdenAttr::Method(method) => quote! { self.#method() },
-                IdenAttr::Flatten => unreachable!(),
-            })
-            .unwrap_or_else(|| {
+        match &self.attr {
+            Some(IdenAttr::Rename(name)) => T::renamed_variant(variant, name),
+            Some(IdenAttr::Method(method)) => T::method_variant(variant, method),
+            Some(IdenAttr::Flatten) => unreachable!(),
+            None => {
                 let name = self.table_or_snake_case();
-                quote! { #name }
-            });
-
-        T::variant(variant, name)
+                T::variant(variant, quote! { #name })
+            }
+        }
     }
 
-    pub(crate) fn is_static_iden(&self) -> bool {
-        let name: String = match &self.attr {
-            Some(a) => match a {
-                IdenAttr::Rename(name) => name.to_owned(),
-                IdenAttr::Method(_) => return false,
-                IdenAttr::Flatten => return false,
-            },
-            None => self.table_or_snake_case(),
-        };
-
-        is_static_iden(&name)
+    pub(crate) fn can_be_static(&self) -> bool {
+        match (&self.fields, &self.attr) {
+            // Unit variants are always static
+            (Fields::Unit, None) => true,
+            (Fields::Unit, Some(IdenAttr::Rename(_))) => true,
+            // Method variants cannot be static (return &str, not &'static str)
+            (_, Some(IdenAttr::Method(_))) => false,
+            // Flattened variants could be static if the inner type is IdenStatic,
+            // but we can't easily determine that at compile time, so assume they cannot be
+            (_, Some(IdenAttr::Flatten)) => false,
+            // Non-unit variants cannot be static
+            (Fields::Named(_), _) => false,
+            (Fields::Unnamed(_), _) => false,
+        }
     }
 }
 

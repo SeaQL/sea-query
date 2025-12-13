@@ -1,6 +1,6 @@
 use sea_query::Iden;
-use strum::{EnumIter, IntoEnumIterator};
 use std::borrow::Cow;
+use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Copy, Clone, Iden, EnumIter)]
 enum Asset {
@@ -36,6 +36,6 @@ fn main() {
         .zip(expected)
         .for_each(|(var, exp)| {
             assert_eq!(var.to_string(), exp);
-            assert_eq!(var.quoted(), Cow::Borrowed(exp));
+            assert_eq!(var.unquoted(), Cow::Borrowed(exp));
         })
 }

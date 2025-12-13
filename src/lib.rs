@@ -664,8 +664,8 @@
 //! # use sea_query::{*, tests_cfg::*};
 //! struct MyFunction;
 //!
-//! impl Iden for MyFunction {
-//!     fn unquoted(&self) -> &str {
+//! impl IdenStatic for MyFunction {
+//!     fn as_str(&self) -> &'static str {
 //!         "MY_FUNCTION"
 //!     }
 //! }

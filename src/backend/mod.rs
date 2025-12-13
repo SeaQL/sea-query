@@ -1,7 +1,6 @@
 //! Translating the SQL AST into engine-specific SQL statements.
 
 use crate::*;
-use std::borrow::Cow;
 
 #[cfg(feature = "backend-mysql")]
 #[cfg_attr(docsrs, doc(cfg(feature = "backend-mysql")))]
@@ -46,17 +45,12 @@ pub trait QuotedBuilder {
         let qq = q.1 as char;
 
         sql.write_char(q.left()).unwrap();
-        match &iden.0 {
-            Cow::Borrowed(s) => sql.write_str(s).unwrap(),
-            Cow::Owned(s) => {
-                for char in s.chars() {
-                    if char == qq {
-                        sql.write_char(char).unwrap()
-                    }
-                    sql.write_char(char).unwrap()
-                }
+        for char in iden.0.chars() {
+            if char == qq {
+                sql.write_char(char).unwrap()
             }
-        };
+            sql.write_char(char).unwrap()
+        }
         sql.write_char(q.right()).unwrap();
     }
 }

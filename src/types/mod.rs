@@ -39,17 +39,17 @@ pub struct SeaRc;
 impl SeaRc {
     /// A legacy method, kept for compatibility.
     ///
-    /// Nowadays, instead of wrapping an `Iden` object,
+    /// Nowadays, instead of wrapping an [`Iden`] object,
     /// it eagerly "renders" it into a string and then drops the object.
     ///
-    /// Note that most `Iden`s are statically known
+    /// Note that most [`Iden`]s are [statically known][IdenStatic],
     /// and their representations aren't actually "rendered" and allocated at runtime.
     #[allow(clippy::new_ret_no_self)]
     pub fn new<I>(i: I) -> DynIden
     where
         I: Iden,
     {
-        DynIden(i.quoted())
+        DynIden(i.unquoted())
     }
 
     pub fn clone(iden: &DynIden) -> DynIden {

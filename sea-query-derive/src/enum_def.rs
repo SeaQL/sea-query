@@ -89,12 +89,6 @@ pub fn expand(args: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
 
-        impl #import_name::Iden for #enum_name {
-            fn unquoted(&self) -> &str {
-                <Self as #import_name::IdenStatic>::as_str(&self)
-            }
-        }
-
         impl ::std::convert::AsRef<str> for #enum_name {
             fn as_ref(&self) -> &str {
                 <Self as #import_name::IdenStatic>::as_str(&self)
