@@ -47,7 +47,19 @@ pub fn expand(input: DeriveInput) -> TokenStream {
         return TokenStream::new();
     }
 
-    let output = impl_iden_for_enum(&ident, &table_name, variants.iter());
+    let can_be_static = variants.iter().all(|v| {
+        let variant = IdenVariant::<DeriveIden>::try_from((table_name.as_str(), v));
+        match variant {
+            Ok(v) => v.can_be_static(),
+            Err(_) => false,
+        }
+    });
+
+    let output = if can_be_static {
+        impl_iden_static_for_enum(&ident, &table_name, variants.iter())
+    } else {
+        impl_iden_for_enum(&ident, &table_name, variants.iter())
+    };
 
     output.into()
 }
@@ -78,6 +90,35 @@ where
 
     let match_arms = match variants
         .map(|v| IdenVariant::<DeriveIden>::try_from((table_name, v)))
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(v) => v,
+        Err(e) => return e.to_compile_error(),
+    };
+
+    quote! {
+        impl #sea_query_path::Iden for #ident {
+            fn unquoted(&self) -> std::borrow::Cow<'static, str> {
+                match self {
+                    #(#match_arms),*
+                }
+            }
+        }
+    }
+}
+
+fn impl_iden_static_for_enum<'a, T>(
+    ident: &proc_macro2::Ident,
+    table_name: &str,
+    variants: T,
+) -> proc_macro2::TokenStream
+where
+    T: Iterator<Item = &'a Variant>,
+{
+    let sea_query_path = sea_query_path();
+
+    let match_arms = match variants
+        .map(|v| IdenVariant::<DeriveIdenStatic>::try_from((table_name, v)))
         .collect::<syn::Result<Vec<_>>>()
     {
         Ok(v) => v,
