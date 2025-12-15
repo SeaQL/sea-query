@@ -566,16 +566,6 @@ where
     }
 }
 
-impl<T, const N: usize> From<[T; N]> for Array
-where
-    T: ArrayElement,
-{
-    fn from(value: [T; N]) -> Self {
-        let vec: Vec<_> = value.into_iter().collect();
-        vec.into()
-    }
-}
-
 #[cfg(feature = "hashable-value")]
 mod hash {
     use ordered_float::{FloatCore, OrderedFloat};
