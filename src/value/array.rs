@@ -427,6 +427,19 @@ impl Array {
         }
     }
 }
+
+impl From<Array> for Value {
+    fn from(value: Array) -> Self {
+        Value::Array(Some(value))
+    }
+}
+
+impl From<Option<Array>> for Value {
+    fn from(value: Option<Array>) -> Self {
+        Value::Array(value)
+    }
+}
+
 #[cfg(feature = "hashable-value")]
 mod hash {
     use ordered_float::{FloatCore, OrderedFloat};
