@@ -34,7 +34,7 @@ macro_rules! impl_value_vec {
 
             impl<const N: usize> From<[$ty; N]> for Array {
                 fn from(x: [$ty; N]) -> Array {
-                    let vec = x.to_vec();
+                    let vec: Vec<_> = x.into_iter().collect();
                     vec.into()
                 }
             }
