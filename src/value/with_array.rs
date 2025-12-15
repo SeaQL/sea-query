@@ -7,13 +7,94 @@ use crate::RcOrArc;
 // TODO When negative trait becomes a stable feature, following code can be much shorter.
 pub trait NotU8 {}
 
+impl NotU8 for bool {}
+impl NotU8 for i8 {}
+impl NotU8 for i16 {}
+impl NotU8 for i32 {}
+impl NotU8 for i64 {}
+impl NotU8 for u16 {}
+impl NotU8 for u32 {}
+impl NotU8 for u64 {}
+impl NotU8 for f32 {}
+impl NotU8 for f64 {}
+impl NotU8 for char {}
+impl NotU8 for String {}
+impl NotU8 for Vec<u8> {}
+
 impl<T: NotU8> NotU8 for Option<T> {}
+
+#[cfg(feature = "with-json")]
+impl NotU8 for Json {}
+
+#[cfg(feature = "with-chrono")]
+impl NotU8 for NaiveDate {}
+
+#[cfg(feature = "with-chrono")]
+impl NotU8 for NaiveTime {}
+
+#[cfg(feature = "with-chrono")]
+impl NotU8 for NaiveDateTime {}
+
+#[cfg(feature = "with-chrono")]
+impl<Tz> NotU8 for chrono::DateTime<Tz> where Tz: chrono::TimeZone {}
+
+#[cfg(feature = "with-time")]
+impl NotU8 for time::Date {}
+
+#[cfg(feature = "with-time")]
+impl NotU8 for time::Time {}
+
+#[cfg(feature = "with-time")]
+impl NotU8 for PrimitiveDateTime {}
+
+#[cfg(feature = "with-time")]
+impl NotU8 for OffsetDateTime {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::civil::Date {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::civil::Time {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::civil::DateTime {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::Timestamp {}
+
+#[cfg(feature = "with-jiff")]
+impl NotU8 for jiff::Zoned {}
+
+#[cfg(feature = "with-rust_decimal")]
+impl NotU8 for rust_decimal::Decimal {}
+
+#[cfg(feature = "with-bigdecimal")]
+impl NotU8 for bigdecimal::BigDecimal {}
+
+#[cfg(feature = "with-uuid")]
+impl NotU8 for Uuid {}
+
+#[cfg(feature = "with-uuid")]
+impl NotU8 for uuid::fmt::Braced {}
+
+#[cfg(feature = "with-uuid")]
+impl NotU8 for uuid::fmt::Hyphenated {}
+
+#[cfg(feature = "with-uuid")]
+impl NotU8 for uuid::fmt::Simple {}
+
+#[cfg(feature = "with-uuid")]
+impl NotU8 for uuid::fmt::Urn {}
+
+#[cfg(feature = "with-ipnetwork")]
+impl NotU8 for IpNetwork {}
+
+#[cfg(feature = "with-mac_address")]
+impl NotU8 for MacAddress {}
 
 macro_rules! impl_value_vec {
     ($($ty:ty => $vari:ident)*) => {
         $(
-            impl NotU8 for $ty {}
-
             impl From<Vec<$ty>> for Array {
                 fn from(x: Vec<$ty>) -> Array {
                     let values: Vec<Option<_>> = x
