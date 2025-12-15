@@ -901,9 +901,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column(Char::Character)
-    ///     .into_table(
-    ///         SelectInto::table("character_copy").modifier(SelectIntoTableModifier::Unlogged),
-    ///     )
+    ///     .into_table(SelectInto::table("character_copy").modifier(SelectIntoTableModifier::Unlogged))
     ///     .to_owned();
     ///
     /// assert_eq!(
