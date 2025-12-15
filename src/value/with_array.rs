@@ -1,3 +1,4 @@
+use super::ArrayElement;
 use super::*;
 use crate::RcOrArc;
 
@@ -304,7 +305,7 @@ impl_value_vec! {
 macro_rules! impl_uuid_fmt_pg_array_element {
     ($ty:ty, $method:ident) => {
         #[cfg(feature = "with-uuid")]
-        impl PgArrayElement for $ty {
+        impl ArrayElement for $ty {
             type ArrayValueType = Uuid;
 
             fn into_array_value(self) -> Self::ArrayValueType {
@@ -360,132 +361,5 @@ impl Value {
             Self::Array(v) => v.as_ref(),
             _ => panic!("not Value::Array"),
         }
-    }
-}
-
-/// Trait for custom types that can be used as PostgreSQL array elements.
-///
-/// When implemented, SeaQuery will provide:
-/// - `ValueType` for `Vec<T>` and `Vec<Option<T>>`
-/// - `From<Vec<T>> for Value` / `From<Vec<Option<T>>> for Value`
-/// - `From<Vec<T>> for Array` / `From<Vec<Option<T>>> for Array`
-pub trait PgArrayElement: Sized // where
-//     Vec<Self::ArrayValueType>: Into<Array>,
-{
-    /// The underlying element type stored in the array.
-    ///
-    /// Usually this is a built-in type like `String`, `i32`, `Uuid`, ...
-    type ArrayValueType: PgArrayValue;
-
-    /// Convert self into the underlying array element type.
-    fn into_array_value(self) -> Self::ArrayValueType;
-
-    /// Convert from a Value to Vec<Option<Self>>
-    fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr>;
-}
-
-/// Helper trait for types that can be stored inside a Postgres array [`Array`].
-///
-/// This is used by [`PgArrayElement`] to build `Array` without causing deep trait resolution.
-pub trait PgArrayValue: Sized {
-    #[doc(hidden)]
-    fn vec_opt_into_array(vec: Vec<Option<Self>>) -> Array;
-    #[doc(hidden)]
-    fn vec_into_array(vec: Vec<Self>) -> Array;
-}
-
-impl<T> PgArrayValue for T
-where
-    Vec<Option<T>>: Into<Array>,
-{
-    fn vec_opt_into_array(vec: Vec<Option<Self>>) -> Array {
-        vec.into()
-    }
-
-    fn vec_into_array(vec: Vec<Self>) -> Array {
-        let vec: Vec<_> = vec.into_iter().map(Some).collect();
-        vec.into()
-    }
-}
-
-impl<T: PgArrayElement + ValueType> ValueType for Vec<Option<T>> {
-    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-        T::try_from_value(v)
-    }
-
-    fn type_name() -> String {
-        format!("Vec<Option<{}>>", T::type_name())
-    }
-
-    fn array_type() -> ArrayType {
-        unimplemented!()
-    }
-
-    fn column_type() -> ColumnType {
-        ColumnType::Array(RcOrArc::new(T::column_type()))
-    }
-}
-
-impl<T: PgArrayElement + ValueType> ValueType for Vec<T> {
-    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-        let vec_opt = T::try_from_value(v)?;
-        vec_opt
-            .into_iter()
-            .map(|opt| opt.ok_or(ValueTypeErr))
-            .collect()
-    }
-
-    fn type_name() -> String {
-        format!("Vec<{}>", T::type_name())
-    }
-
-    fn array_type() -> ArrayType {
-        unimplemented!()
-    }
-
-    fn column_type() -> ColumnType {
-        ColumnType::Array(RcOrArc::new(T::column_type()))
-    }
-}
-
-impl<T> From<Vec<T>> for Value
-where
-    T: PgArrayElement,
-{
-    fn from(vec: Vec<T>) -> Value {
-        Array::from(vec).into()
-    }
-}
-
-impl<T> From<Vec<Option<T>>> for Value
-where
-    T: PgArrayElement,
-{
-    fn from(vec: Vec<Option<T>>) -> Value {
-        Array::from(vec).into()
-    }
-}
-
-impl<T> From<Vec<T>> for Array
-where
-    T: PgArrayElement,
-{
-    fn from(vec: Vec<T>) -> Array {
-        let converted: Vec<_> = vec.into_iter().map(|x| x.into_array_value()).collect();
-
-        PgArrayValue::vec_into_array(converted)
-    }
-}
-
-impl<T> From<Vec<Option<T>>> for Array
-where
-    T: PgArrayElement,
-{
-    fn from(vec: Vec<Option<T>>) -> Array {
-        let converted: Vec<Option<T::ArrayValueType>> = vec
-            .into_iter()
-            .map(|opt| opt.map(|e| e.into_array_value()))
-            .collect();
-        PgArrayValue::vec_opt_into_array(converted)
     }
 }

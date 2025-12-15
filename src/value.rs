@@ -38,7 +38,7 @@ mod array;
 
 use crate::{ColumnType, CommonSqlQueryBuilder, DynIden, QueryBuilder, StringLen};
 #[cfg(feature = "postgres-array")]
-pub use array::Array;
+pub use array::{Array, ArrayElement, ArrayValue};
 
 #[cfg(test)]
 mod tests;
