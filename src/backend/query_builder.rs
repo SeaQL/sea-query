@@ -541,7 +541,7 @@ pub trait QueryBuilder:
         }
     }
 
-    /// Translate [`IndexHint`] into SQL statement.
+    /// Translate [`IndexHint`][crate::extension::mysql::IndexHint] into SQL statement.
     fn prepare_index_hints(
         &self,
         _table_ref: &TableRef,
@@ -550,7 +550,7 @@ pub trait QueryBuilder:
     ) {
     }
 
-    /// Translate [`TableSample`] into SQL statement.
+    /// Translate [`TableSample`][crate::extension::postgres::TableSample] into SQL statement.
     fn prepare_table_sample(&self, _select: &SelectStatement, _sql: &mut impl SqlWriter) {}
 
     /// Translate [`LockType`] into SQL statement.
@@ -1266,10 +1266,27 @@ pub trait QueryBuilder:
     /// Write ON CONFLICT target
     fn prepare_on_conflict_target(
         &self,
-        on_conflict_targets: &[OnConflictTarget],
+        on_conflict_targets: &OnConflictTarget,
         sql: &mut impl SqlWriter,
     ) {
-        let mut targets = on_conflict_targets.iter();
+        match on_conflict_targets {
+            OnConflictTarget::Identifiers(identifiers) => {
+                self.prepare_on_conflict_target_identifiers(identifiers, sql)
+            }
+            OnConflictTarget::Constraint(constraint) => {
+                self.prepare_on_conflict_target_constraint(constraint, sql)
+            }
+        }
+    }
+
+    #[doc(hidden)]
+    /// Write ON CONFLICT target
+    fn prepare_on_conflict_target_identifiers(
+        &self,
+        identifiers: &[OnConflictIdentifier],
+        sql: &mut impl SqlWriter,
+    ) {
+        let mut targets = identifiers.iter();
         join_io!(
             targets,
             target,
@@ -1281,10 +1298,10 @@ pub trait QueryBuilder:
             },
             do {
                 match target {
-                    OnConflictTarget::ConflictColumn(col) => {
+                    OnConflictIdentifier::Column(col) => {
                         self.prepare_iden(col, sql);
                     }
-                    OnConflictTarget::ConflictExpr(expr) => {
+                    OnConflictIdentifier::Expr(expr) => {
                         self.prepare_expr(expr, sql);
                     }
                 }
@@ -1293,6 +1310,12 @@ pub trait QueryBuilder:
                 sql.write_str(")").unwrap();
             }
         );
+    }
+
+    #[doc(hidden)]
+    fn prepare_on_conflict_target_constraint(&self, constraint: &str, sql: &mut impl SqlWriter) {
+        sql.write_fmt(format_args!("ON CONSTRAINT \"{}\"", constraint))
+            .unwrap();
     }
 
     #[doc(hidden)]

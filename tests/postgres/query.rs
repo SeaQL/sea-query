@@ -1786,6 +1786,51 @@ fn insert_on_conflict_9() {
 }
 
 #[test]
+fn insert_on_conflict_10() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Font::Table)
+            .columns([Font::Id, Font::Name])
+            .values_panic([15.into(), "CyberFont Sans Serif".into()])
+            .on_conflict(
+                OnConflict::constraint("name_unique")
+                    .do_nothing()
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "font" ("id", "name")"#,
+            r#"VALUES (15, 'CyberFont Sans Serif')"#,
+            r#"ON CONFLICT ON CONSTRAINT "name_unique" DO NOTHING"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
+fn insert_on_conflict_11() {
+    assert_eq!(
+        Query::insert()
+            .into_table(Font::Table)
+            .columns([Font::Id, Font::Name])
+            .values_panic([20.into(), "Monospaced terminal".into()])
+            .on_conflict(
+                OnConflict::column(Font::Name)
+                    .expr(Expr::is_null(Expr::col(Font::Variant)))
+                    .do_nothing()
+                    .to_owned()
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"INSERT INTO "font" ("id", "name")"#,
+            r#"VALUES (20, 'Monospaced terminal')"#,
+            r#"ON CONFLICT ("name", "variant" IS NULL) DO NOTHING"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 #[allow(clippy::approx_constant)]
 fn insert_on_conflict_do_nothing() {
     assert_eq!(

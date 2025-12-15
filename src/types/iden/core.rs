@@ -51,6 +51,16 @@ impl Iden for &'static str {
     }
 }
 
+impl Iden for String {
+    fn quoted(&self) -> Cow<'static, str> {
+        Cow::Owned(self.clone())
+    }
+
+    fn unquoted(&self) -> &str {
+        self
+    }
+}
+
 #[cfg(feature = "thread-safe")]
 /// Identifier statically known at compile-time.
 pub trait IdenStatic: Iden + Copy + Send + Sync + 'static {
@@ -106,12 +116,6 @@ where
 {
     fn into_iden(self) -> DynIden {
         self.into()
-    }
-}
-
-impl From<String> for DynIden {
-    fn from(value: String) -> Self {
-        DynIden(Cow::Owned(value))
     }
 }
 

@@ -1,5 +1,7 @@
 #![forbid(unsafe_code)]
 
+pub use rusqlite;
+
 use rusqlite::{
     Result, ToSql,
     types::{Null, ToSqlOutput},
@@ -53,15 +55,6 @@ impl_rusqlite_binder!(WithQuery);
 
 impl ToSql for RusqliteValue {
     fn to_sql(&self) -> Result<ToSqlOutput<'_>> {
-        macro_rules! box_to_sql {
-            ( $v: expr ) => {
-                match $v {
-                    Some(v) => v.to_sql(),
-                    None => Null.to_sql(),
-                }
-            };
-        }
-
         macro_rules! opt_string_to_sql {
             ( $v: expr ) => {
                 match $v {
@@ -105,35 +98,35 @@ impl ToSql for RusqliteValue {
             #[cfg(feature = "with-chrono")]
             Value::ChronoDateTimeWithTimeZone(v) => v.to_sql(),
             #[cfg(feature = "with-time")]
-            v @ Value::TimeDate(_) => opt_string_to_sql!(v.time_as_naive_utc_in_string()),
+            Value::TimeDate(v) => v.to_sql(),
             #[cfg(feature = "with-time")]
-            v @ Value::TimeTime(_) => opt_string_to_sql!(v.time_as_naive_utc_in_string()),
+            Value::TimeTime(v) => v.to_sql(),
             #[cfg(feature = "with-time")]
-            v @ Value::TimeDateTime(_) => opt_string_to_sql!(v.time_as_naive_utc_in_string()),
+            Value::TimeDateTime(v) => v.to_sql(),
             #[cfg(feature = "with-time")]
-            v @ Value::TimeDateTimeWithTimeZone(_) => {
-                opt_string_to_sql!(v.time_as_naive_utc_in_string())
-            }
+            Value::TimeDateTimeWithTimeZone(v) => v.to_sql(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(),
             #[cfg(feature = "with-json")]
-            Value::Json(j) => box_to_sql!(j),
+            Value::Json(j) => {
+                if cfg!(feature = "sea-orm") && j.is_some() && j.as_ref().unwrap().is_null() {
+                    // rusqlite binds Json::Null as SQL NULL
+                    // which is different from sqlx
+                    return "null".to_sql();
+                }
+                match j {
+                    Some(v) => v.to_sql(),
+                    None => Null.to_sql(),
+                }
+            }
             #[cfg(feature = "with-rust_decimal")]
-            Value::Decimal(_) => {
-                panic!("Rusqlite doesn't support rust_decimal arguments");
-            }
+            Value::Decimal(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(_) => {
-                panic!("Rusqlite doesn't support bigdecimal arguments");
-            }
+            Value::BigDecimal(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "with-ipnetwork")]
-            Value::IpNetwork(_) => {
-                panic!("Rusqlite doesn't support IpNetwork arguments");
-            }
+            Value::IpNetwork(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(_) => {
-                panic!("Rusqlite doesn't support MacAddress arguments");
-            }
+            Value::MacAddress(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "postgres-array")]
             Value::Array(_) => {
                 panic!("Rusqlite doesn't support Array arguments");

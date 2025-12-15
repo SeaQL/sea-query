@@ -1,11 +1,10 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rusqlite::{Connection, Result, Row};
 use sea_query::{ColumnDef, Expr, ExprTrait, Func, Iden, Order, Query, SqliteQueryBuilder, Table};
-
-use sea_query_rusqlite::RusqliteBinder;
+use sea_query_rusqlite::{RusqliteBinder, rusqlite};
 use serde_json::{Value as Json, json};
 use time::{
-    PrimitiveDateTime, format_description,
+    PrimitiveDateTime,
     macros::{date, time},
 };
 use uuid::Uuid;
@@ -102,7 +101,8 @@ fn main() -> Result<()> {
         ])
         .build_rusqlite(SqliteQueryBuilder);
 
-    let result = conn.execute(sql.as_str(), &*values.as_params());
+    let mut stmt = conn.prepare_cached(sql.as_str())?;
+    let result = stmt.execute(&*values.as_params());
     println!("Insert into character: {result:?}\n");
     let id = conn.last_insert_rowid();
 
@@ -123,7 +123,7 @@ fn main() -> Result<()> {
         .build_rusqlite(SqliteQueryBuilder);
 
     println!("Select one from character:");
-    let mut stmt = conn.prepare(sql.as_str())?;
+    let mut stmt = conn.prepare_cached(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
     while let Some(row) = rows.next()? {
         let item = CharacterStructChrono::from(row);
@@ -142,7 +142,8 @@ fn main() -> Result<()> {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_rusqlite(SqliteQueryBuilder);
 
-    let result = conn.execute(sql.as_str(), &*values.as_params());
+    let mut stmt = conn.prepare_cached(sql.as_str())?;
+    let result = stmt.execute(&*values.as_params());
     println!("Update character: {result:?}\n");
 
     // Read
@@ -162,7 +163,7 @@ fn main() -> Result<()> {
         .build_rusqlite(SqliteQueryBuilder);
 
     println!("Select one from character:");
-    let mut stmt = conn.prepare(sql.as_str())?;
+    let mut stmt = conn.prepare_cached(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
     while let Some(row) = rows.next()? {
         let item = CharacterStructChrono::from(row);
@@ -181,7 +182,7 @@ fn main() -> Result<()> {
         .build_rusqlite(SqliteQueryBuilder);
 
     print!("Count character: ");
-    let mut stmt = conn.prepare(sql.as_str())?;
+    let mut stmt = conn.prepare_cached(sql.as_str())?;
     let mut rows = stmt.query(&*values.as_params())?;
     let count: i64 = if let Some(row) = rows.next()? {
         row.get_unwrap(0)
@@ -198,7 +199,8 @@ fn main() -> Result<()> {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_rusqlite(SqliteQueryBuilder);
 
-    let result = conn.execute(sql.as_str(), &*values.as_params());
+    let mut stmt = conn.prepare_cached(sql.as_str())?;
+    let result = stmt.execute(&*values.as_params());
     println!("Delete character: {result:?}");
 
     Ok(())
@@ -252,17 +254,13 @@ impl From<&Row<'_>> for CharacterStructChrono {
 
 impl From<&Row<'_>> for CharacterStructTime {
     fn from(row: &Row) -> Self {
-        let created: String = row.get_unwrap("created");
-        let format =
-            format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]").unwrap();
-        let created = PrimitiveDateTime::parse(&created, &format).ok();
         Self {
             id: row.get_unwrap("id"),
             uuid: row.get_unwrap("uuid"),
             character: row.get_unwrap("character"),
             font_size: row.get_unwrap("font_size"),
             meta: row.get_unwrap("meta"),
-            created,
+            created: row.get_unwrap("created"),
         }
     }
 }
