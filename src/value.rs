@@ -325,7 +325,7 @@ pub enum Value {
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(Option<Array>),
+    Array(Array),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -545,7 +545,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(_) => Self::Array(None),
+            Self::Array(arr) => Self::Array(Array::Null(arr.array_type())),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -678,10 +678,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(Some(arr)) => Self::Array(Some(arr.dummy_value())),
-            #[cfg(feature = "postgres-array")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(None) => Self::Array(None),
+            Self::Array(arr) => Self::Array(arr.dummy_value()),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]

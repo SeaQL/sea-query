@@ -56,7 +56,7 @@ fn to_rb_values(values: Values) -> Vec<rbs::Value> {
             Value::Double(v) => args.push(v.to()),
             Value::String(v) => {
                 let d = match v {
-                    Some(v) => v.to_string().into(),
+                    Some(v) => ToString::to_string(&v).into(),
                     None => RbValue::Null,
                 };
                 args.push(d)
@@ -142,7 +142,7 @@ fn to_rb_values(values: Values) -> Vec<rbs::Value> {
                 args.push(to_value!(j));
             }
             #[cfg(feature = "postgres-array")]
-            Value::Array(_, _) => {
+            Value::Array(_) => {
                 panic!("Mysql doesn't support array arguments");
             }
             #[cfg(feature = "with-ipnetwork")]
@@ -152,6 +152,29 @@ fn to_rb_values(values: Values) -> Vec<rbs::Value> {
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(_) => {
                 panic!("Mysql doesn't support MacAddress arguments");
+            }
+            Value::Enum(v) => {
+                let d = match v {
+                    Some(v) => v.as_str().to_string().into(),
+                    None => RbValue::Null,
+                };
+                args.push(d)
+            }
+            #[cfg(feature = "postgres-vector")]
+            Value::Vector(_) => {
+                panic!("rbatis doesn't support Vector arguments");
+            }
+            #[cfg(feature = "postgres-range")]
+            Value::Range(_) => {
+                panic!("rbatis doesn't support Range arguments");
+            }
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDate(_)
+            | Value::JiffTime(_)
+            | Value::JiffDateTime(_)
+            | Value::JiffTimestamp(_)
+            | Value::JiffZoned(_) => {
+                panic!("rbatis doesn't support Jiff arguments");
             }
         }
     }

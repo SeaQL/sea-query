@@ -301,6 +301,10 @@ pub trait ValueEncoder: EscapeBuilder {
             VE: ValueEncoder + ?Sized,
             W: Write,
         {
+            if array.is_null() {
+                return buf.write_str("NULL");
+            }
+
             if array.is_empty() {
                 return buf.write_str("'{}'");
             }
@@ -508,6 +512,7 @@ pub trait ValueEncoder: EscapeBuilder {
                         encoder.write_mac_to(buf, *val)
                     })
                 }
+                Array::Null(_) => unreachable!("Null arrays are handled by is_null check"),
             }
             .unwrap();
             buf.write_str("]")

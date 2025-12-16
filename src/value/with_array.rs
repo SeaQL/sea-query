@@ -128,14 +128,14 @@ macro_rules! impl_value_vec {
                         .collect();
 
                     Value::Array(
-                        Some(Array::$vari(values.into_boxed_slice()))
+                        Array::$vari(values.into_boxed_slice())
                     )
                 }
             }
 
             impl From<Vec<Option<$ty>>> for Value {
                 fn from(x: Vec<Option<$ty>>) -> Value {
-                    Value::Array(Some(Array::$vari(x.into())))
+                    Value::Array(Array::$vari(x.into()))
                 }
             }
 
@@ -143,7 +143,7 @@ macro_rules! impl_value_vec {
             {
                 fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
                     match v {
-                        Value::Array(Some(Array::$vari(inner))) => {
+                        Value::Array(Array::$vari(inner)) => {
                             Ok(inner.into_vec())
                         }
                         _ => Err(ValueTypeErr),
@@ -168,7 +168,7 @@ macro_rules! impl_value_vec {
             impl ValueType for Vec<$ty> {
                 fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
                     match v {
-                        Value::Array(Some(Array::$vari(inner))) => {
+                        Value::Array(Array::$vari(inner)) => {
                             inner.into_vec()
                                 .into_iter()
                                 // idk why the type inference failed, but this works
@@ -229,14 +229,14 @@ impl From<Vec<Option<u8>>> for Array {
 
 impl From<Vec<Option<u8>>> for Value {
     fn from(x: Vec<Option<u8>>) -> Value {
-        Value::Array(Some(Array::TinyUnsigned(x.into_boxed_slice())))
+        Value::Array(Array::TinyUnsigned(x.into_boxed_slice()))
     }
 }
 
 impl ValueType for Vec<Option<u8>> {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
-            Value::Array(Some(Array::TinyUnsigned(inner))) => Ok(inner.into_vec()),
+            Value::Array(Array::TinyUnsigned(inner)) => Ok(inner.into_vec()),
             _ => Err(ValueTypeErr),
         }
     }
@@ -262,7 +262,7 @@ impl_value_vec! {
 
 impl From<(Arc<str>, Vec<Option<Arc<Enum>>>)> for Value {
     fn from(x: (Arc<str>, Vec<Option<Arc<Enum>>>)) -> Value {
-        Value::Array(Some(Array::Enum(Box::new((x.0, x.1.into_boxed_slice())))))
+        Value::Array(Array::Enum(Box::new((x.0, x.1.into_boxed_slice()))))
     }
 }
 
@@ -321,12 +321,12 @@ macro_rules! impl_uuid_fmt_pg_array_element {
 
             fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr> {
                 match v {
-                    Value::Array(Some(Array::Uuid(inner))) => Ok(inner
+                    Value::Array(Array::Uuid(inner)) => Ok(inner
                         .into_vec()
                         .into_iter()
                         .map(|opt| opt.map(Self::from))
                         .collect()),
-                    Value::Array(None) => Ok(vec![]),
+                    Value::Array(Array::Null(_)) => Ok(vec![]),
                     _ => Err(ValueTypeErr),
                 }
             }
@@ -354,7 +354,7 @@ where
     T: Into<Value> + NotU8 + ValueType,
 {
     fn null() -> Value {
-        Value::Array(None)
+        Value::Array(Array::Null(T::array_type()))
     }
 }
 
@@ -365,7 +365,8 @@ impl Value {
 
     pub fn as_ref_array(&self) -> Option<&Array> {
         match self {
-            Self::Array(v) => v.as_ref(),
+            Self::Array(v) if !v.is_null() => Some(v),
+            Self::Array(_) => None,
             _ => panic!("not Value::Array"),
         }
     }

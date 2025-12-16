@@ -1238,7 +1238,7 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(v) => write_opt!(v, val => self.write_mac_to(buf, *val)),
             #[cfg(feature = "postgres-array")]
-            Value::Array(v) => write_opt!(v, val => self.write_array_to(buf, val)),
+            Value::Array(v) => self.write_array_to(buf, v),
             #[cfg(feature = "postgres-range")]
             Value::Range(v) => write_opt!(v, val => {
                 buf.write_str("'")?;

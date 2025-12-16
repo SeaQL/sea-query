@@ -154,19 +154,7 @@ impl Hash for Value {
             Value::BigDecimal(big_decimal) => big_decimal.hash(state),
 
             #[cfg(feature = "postgres-array")]
-            Value::Array(array) => match array {
-                Some(array) => {
-                    if array.is_empty() {
-                        2u8.hash(state);
-                        array.array_type().hash(state);
-                    } else {
-                        1u8.hash(state);
-                        array.array_type().hash(state);
-                        array.hash(state);
-                    }
-                }
-                None => 0u8.hash(state),
-            },
+            Value::Array(array) => array.hash(state),
 
             #[cfg(feature = "postgres-vector")]
             Value::Vector(vector) => hash_vector(vector, state),

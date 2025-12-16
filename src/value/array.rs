@@ -89,6 +89,7 @@ pub enum Array {
     #[cfg(feature = "with-mac_address")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Box<[Option<MacAddress>]>),
+    Null(ArrayType),
 }
 
 impl Array {
@@ -151,7 +152,12 @@ impl Array {
             Array::IpNetwork(_) => ArrayType::IpNetwork,
             #[cfg(feature = "with-mac_address")]
             Array::MacAddress(_) => ArrayType::MacAddress,
+            Array::Null(ty) => ty.clone(),
         }
+    }
+
+    pub fn is_null(&self) -> bool {
+        matches!(self, Array::Null(_))
     }
 
     pub fn is_empty(&self) -> bool {
@@ -213,6 +219,7 @@ impl Array {
             Array::IpNetwork(v) => v.is_empty(),
             #[cfg(feature = "with-mac_address")]
             Array::MacAddress(v) => v.is_empty(),
+            Array::Null(_) => true,
         }
     }
 
@@ -360,6 +367,7 @@ impl Array {
             Array::MacAddress(v) => map_slice_of_opts(v, |&mac| {
                 Json::String(encode_to_string(|enc, buf| enc.write_mac_to(buf, mac)))
             }),
+            Array::Null(_) => Json::Null,
         }
     }
 
@@ -425,18 +433,13 @@ impl Array {
             Array::IpNetwork(_) => Array::IpNetwork(Box::new([])),
             #[cfg(feature = "with-mac_address")]
             Array::MacAddress(_) => Array::MacAddress(Box::new([])),
+            Array::Null(ty) => Array::Null(ty.clone()),
         }
     }
 }
 
 impl From<Array> for Value {
     fn from(value: Array) -> Self {
-        Value::Array(Some(value))
-    }
-}
-
-impl From<Option<Array>> for Value {
-    fn from(value: Option<Array>) -> Self {
         Value::Array(value)
     }
 }
@@ -654,6 +657,7 @@ mod hash {
                 (Self::IpNetwork(l0), Self::IpNetwork(r0)) => l0 == r0,
                 #[cfg(feature = "with-mac_address")]
                 (Self::MacAddress(l0), Self::MacAddress(r0)) => l0 == r0,
+                (Self::Null(l0), Self::Null(r0)) => l0 == r0,
                 _ => false,
             }
         }
@@ -732,6 +736,7 @@ mod hash {
                 Array::IpNetwork(items) => items.hash(state),
                 #[cfg(feature = "with-mac_address")]
                 Array::MacAddress(items) => items.hash(state),
+                Array::Null(ty) => ty.hash(state),
             }
         }
     }

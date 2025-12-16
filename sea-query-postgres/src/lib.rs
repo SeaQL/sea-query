@@ -129,7 +129,8 @@ impl ToSql for PostgresValue {
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(ty, out),
             #[cfg(feature = "postgres-array")]
-            Value::Array(Some(arr)) => match arr {
+            Value::Array(arr) => match arr {
+                Array::Null(_) => Ok(IsNull::Yes),
                 Array::Bool(inner) => inner.to_sql(ty, out),
                 Array::TinyInt(inner) => inner.to_sql(ty, out),
                 Array::SmallInt(inner) => inner.to_sql(ty, out),
@@ -244,8 +245,6 @@ impl ToSql for PostgresValue {
                 )
                 .into()),
             },
-            #[cfg(feature = "postgres-array")]
-            Value::Array(None) => Ok(IsNull::Yes),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => v.to_sql(ty, out),
             #[cfg(feature = "postgres-vector")]
