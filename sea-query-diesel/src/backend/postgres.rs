@@ -94,10 +94,9 @@ fn handle_null_array(
             feature = "with-rust_decimal",
             not(feature = "with-rust_decimal-postgres")
         ))]
-        ArrayType::Decimal => build!(
-            DieselArray<Nullable<Numeric>>,
-            None::<Vec<Option<rust_decimal::Decimal>>>
-        ),
+        ArrayType::Decimal => {
+            bail!("Deciaml support requires enabling the `with-rust_decimal-postgres` feature")
+        }
         #[cfg(feature = "with-rust_decimal-postgres")]
         ArrayType::Decimal => build!(
             DieselArray<Nullable<Numeric>>,
@@ -189,7 +188,9 @@ impl TransformValue for Pg {
                 feature = "with-rust_decimal",
                 not(feature = "with-rust_decimal-postgres")
             ))]
-            Value::Decimal(_) => bail!("Enable feature with-rust_decimal-postgres"),
+            Value::Decimal(_) => {
+                bail!("Deciaml support requires enabling the `with-rust_decimal-postgres` feature")
+            }
             #[cfg(feature = "with-bigdecimal")]
             Value::BigDecimal(v) => build!(Numeric, v),
             #[cfg(feature = "with-json")]
