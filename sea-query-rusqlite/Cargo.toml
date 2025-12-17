@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-rusqlite"
-version = "0.8.0-rc.10"
+version = "0.8.0-rc.12"
 authors = [ "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2024"
 description = "Binder traits for connecting sea-query with Rusqlite"
