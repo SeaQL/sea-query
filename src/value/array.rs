@@ -9,7 +9,6 @@ type EnumArray = Box<(Arc<str>, Box<[Option<Arc<Enum>>]>)>;
 #[derive(Debug, Clone)]
 #[cfg_attr(not(feature = "hashable-value"), derive(PartialEq))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[non_exhaustive]
 pub enum Array {
     Bool(Box<[Option<bool>]>),
     TinyInt(Box<[Option<i8>]>),

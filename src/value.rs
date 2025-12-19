@@ -383,7 +383,9 @@ pub const VALUE_SIZE: usize = check_value_size();
 const MAX_VALUE_SIZE: usize = 32;
 
 const EXPECTED_VALUE_SIZE: usize = {
+    #[allow(unused_mut)]
     let mut max = MAX_VALUE_SIZE;
+
     // If some crate enabled indexmap feature, the size of Json will be 72 or larger.
     #[cfg(feature = "with-json")]
     {
