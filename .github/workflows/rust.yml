@@ -31,14 +31,16 @@ env:
 
 jobs:
   rustdoc:
-    Name: Rustdoc
+    name: Rustdoc
     runs-on: ubuntu-latest
+    env:
+      RUSTC_WRAPPER: ""
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@nightly
+    - uses: dtolnay/rust-toolchain@1.85.1
       with:
-        components: rustdoc
-    - run: cargo +nightly doc --workspace --no-deps --all-features --document-private-items
+        components: rust-docs
+    - run: cargo doc --workspace --no-deps --all-features --document-private-items
 
   rustfmt:
     name: Rustfmt
