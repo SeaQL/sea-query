@@ -262,7 +262,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT ANY(ARRAY [0,1])"#
+    ///     r#"SELECT ANY(ARRAY[0,1])"#
     /// );
     /// # }
     /// ```
@@ -300,7 +300,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT SOME(ARRAY [0,1])"#
+    ///     r#"SELECT SOME(ARRAY[0,1])"#
     /// );
     /// # }
     /// ```
@@ -324,7 +324,7 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT ALL(ARRAY [0,1])"#
+    ///     r#"SELECT ALL(ARRAY[0,1])"#
     /// );
     /// # }
     /// ```

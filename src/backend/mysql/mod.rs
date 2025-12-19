@@ -15,6 +15,8 @@ pub type MySqlQueryBuilder = MysqlQueryBuilder;
 
 impl GenericBuilder for MysqlQueryBuilder {}
 
+impl ValueEncoder for MysqlQueryBuilder {}
+
 impl SchemaBuilder for MysqlQueryBuilder {}
 
 impl QuotedBuilder for MysqlQueryBuilder {

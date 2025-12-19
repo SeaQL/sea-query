@@ -2,6 +2,7 @@
 
 use crate::*;
 use std::borrow::Cow;
+use std::fmt::Write as _;
 
 #[cfg(feature = "backend-mysql")]
 #[cfg_attr(docsrs, doc(cfg(feature = "backend-mysql")))]
@@ -25,12 +26,14 @@ mod index_builder;
 mod query_builder;
 mod table_builder;
 mod table_ref_builder;
+mod value_encoder;
 
 pub use self::foreign_key_builder::*;
 pub use self::index_builder::*;
 pub use self::query_builder::*;
 pub use self::table_builder::*;
 pub use self::table_ref_builder::*;
+pub use self::value_encoder::*;
 
 pub trait GenericBuilder: QueryBuilder + SchemaBuilder {}
 

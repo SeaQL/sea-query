@@ -33,6 +33,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::String(None)
         | Value::Char(None)
         | Value::Bytes(None)
+        | Value::Enum(None)
         | Value::Json(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
@@ -40,8 +41,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
-        #[cfg(feature = "postgres-array")]
-        Value::Array(_, None) => Json::Null,
         #[cfg(feature = "postgres-vector")]
         Value::Vector(None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
@@ -107,8 +106,9 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
+        Value::Enum(Some(v)) => Json::String(v.value.to_string()),
         #[cfg(feature = "postgres-array")]
-        Value::Array(_, Some(v)) => Json::Array(v.iter().map(sea_value_to_json_value).collect()),
+        Value::Array(v) => v.to_json_value(),
         #[cfg(feature = "postgres-vector")]
         Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]
