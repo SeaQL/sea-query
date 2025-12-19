@@ -33,11 +33,13 @@ jobs:
   rustdoc:
     name: Rustdoc
     runs-on: ubuntu-latest
+    env:
+      RUSTC_WRAPPER: ""
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
+    - uses: dtolnay/rust-toolchain@1.85.1
       with:
-        components: rustdoc
+        components: rust-docs
     - run: cargo doc --workspace --no-deps --all-features --document-private-items
 
   rustfmt:
