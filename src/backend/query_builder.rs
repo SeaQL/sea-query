@@ -1820,7 +1820,6 @@ mod tests {
     #[cfg(feature = "with-chrono")]
     use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
-    #[cfg(feature = "with-chrono")]
     use crate::QueryBuilder;
 
     /// [Postgresql reference](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT-TIMES)
@@ -1879,5 +1878,25 @@ mod tests {
         .into();
 
         compare!(date_time_tz, "'2015-06-03 20:34:56.123456 +08:00'");
+    }
+
+    #[test]
+    fn prepare_type_ref_escape_array() {
+        use crate::{PostgresQueryBuilder, TypeRef};
+
+        let mut buf = String::new();
+        let test_cases = [
+            ("text", r#""text""#),
+            ("text[]", r#""text"[]"#),
+            ("text[][]", r#""text"[][]"#),
+            ("text[][][]", r#""text"[][][]"#),
+            ("text[][][][]", r#""text"[][][][]"#),
+            ("text[][][][][]", r#""text"[][][][][]"#),
+        ];
+        for (ty, expect) in test_cases {
+            PostgresQueryBuilder.prepare_type_ref(&TypeRef::from(ty), &mut buf);
+            assert_eq!(buf, expect);
+            buf.clear();
+        }
     }
 }
