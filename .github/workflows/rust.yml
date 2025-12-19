@@ -35,10 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@nightly
+    - uses: dtolnay/rust-toolchain@stable
       with:
         components: rustdoc
-    - run: cargo +nightly doc --workspace --no-deps --all-features --document-private-items
+    - run: cargo doc --workspace --no-deps --all-features --document-private-items
 
   rustfmt:
     name: Rustfmt
