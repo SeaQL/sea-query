@@ -460,7 +460,7 @@ pub trait ArrayElement: Sized {
     /// Convert self into the underlying array element type.
     fn into_array_value(self) -> Self::ArrayValueType;
 
-    /// Convert from a Value to Vec<Option<Self>>
+    /// Convert from a Value to `Vec<Option<Self>>`
     fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr>;
 }
 

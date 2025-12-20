@@ -356,7 +356,7 @@ pub struct Enum {
 }
 
 impl Enum {
-    /// Create a new [`EnumValue`]
+    /// Create a new [`Enum`]
     pub fn new(type_name: impl Into<Option<Arc<str>>>, value: DynIden) -> Self {
         Self {
             type_name: type_name.into(),
