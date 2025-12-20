@@ -1,6 +1,6 @@
 [package]
 name = "sea-query-postgres-types"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Richard Jonas <richard.jonas.76@gmail.com>"]
 edition = "2024"
 description = "Postgres types for using SeaQuery with SQLx"

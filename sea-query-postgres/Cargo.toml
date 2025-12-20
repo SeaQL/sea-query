@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-postgres"
-version = "0.6.0-rc.1"
+version = "0.6.0-rc.2"
 authors = ["Ivan Krivosheev <py.krivosheev@gmail.com>"]
 edition = "2024"
 description = "Binder traits for connecting sea-query with postgres driver"
