@@ -1236,7 +1236,7 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(v) => write_opt!(v, val => self.write_ipnetwork_to(buf, *val)),
             #[cfg(feature = "with-mac_address")]
-            Value::MacAddress(v) => write_opt!(v, val => self.write_mac_to(buf, *val)),
+            Value::MacAddress(v) => write_opt!(v, val => self.write_mac_address_to(buf, *val)),
             #[cfg(feature = "postgres-array")]
             Value::Array(v) => self.write_array_to(buf, v),
             #[cfg(feature = "postgres-range")]

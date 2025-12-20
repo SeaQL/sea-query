@@ -420,7 +420,7 @@ fn test_array_value() {
 #[test]
 #[cfg(feature = "postgres-array")]
 fn test_option_array_value() {
-    let v: Value = Value::Array(None);
+    let v: Value = Value::Array(Array::Null(ArrayType::Int));
     let out: Option<Vec<Option<i32>>> = v.unwrap();
     assert_eq!(out, None);
 }

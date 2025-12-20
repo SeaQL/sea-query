@@ -364,7 +364,9 @@ impl Array {
             }),
             #[cfg(feature = "with-mac_address")]
             Array::MacAddress(v) => map_slice_of_opts(v, |&mac| {
-                Json::String(encode_to_string(|enc, buf| enc.write_mac_to(buf, mac)))
+                Json::String(encode_to_string(|enc, buf| {
+                    enc.write_mac_address_to(buf, mac)
+                }))
             }),
             Array::Null(_) => Json::Null,
         }
@@ -458,7 +460,7 @@ pub trait ArrayElement: Sized {
     /// Convert self into the underlying array element type.
     fn into_array_value(self) -> Self::ArrayValueType;
 
-    /// Convert from a Value to Vec<Option<Self>>
+    /// Convert from a Value to `Vec<Option<Self>>`
     fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr>;
 }
 

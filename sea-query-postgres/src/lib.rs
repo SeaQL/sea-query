@@ -240,10 +240,6 @@ impl ToSql for PostgresValue {
                         .collect::<Vec<_>>()
                         .to_sql(ty, out)
                 }
-                _ => Err(PostgresBindError::new(
-                    "Unsupported array variant for sea-query-postgres binder",
-                )
-                .into()),
             },
             #[cfg(feature = "postgres-vector")]
             Value::Vector(Some(v)) => v.to_sql(ty, out),

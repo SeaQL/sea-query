@@ -1,10 +1,10 @@
 use sqlx::Arguments;
 
 use sea_query::Value;
-#[cfg(feature = "postgres-array")]
-use sea_query::{Array, ArrayType};
 #[cfg(all(feature = "with-json", feature = "postgres-array"))]
 use sea_query::prelude::Json;
+#[cfg(feature = "postgres-array")]
+use sea_query::{Array, ArrayType};
 
 use crate::SqlxValues;
 
