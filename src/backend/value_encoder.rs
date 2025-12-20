@@ -252,7 +252,7 @@ pub trait ValueEncoder: EscapeBuilder {
     }
 
     #[cfg(feature = "with-mac_address")]
-    fn write_mac_to(&self, buf: &mut impl Write, value: mac_address::MacAddress) {
+    fn write_mac_address_to(&self, buf: &mut impl Write, value: mac_address::MacAddress) {
         buf.write_str("'").unwrap();
         write!(buf, "{value}").unwrap();
         buf.write_str("'").unwrap();
@@ -509,7 +509,7 @@ pub trait ValueEncoder: EscapeBuilder {
                 #[cfg(feature = "with-mac_address")]
                 Array::MacAddress(items) => {
                     write_array_values(encoder, buf, items, |encoder, buf, val| {
-                        encoder.write_mac_to(buf, *val)
+                        encoder.write_mac_address_to(buf, *val)
                     })
                 }
                 Array::Null(_) => unreachable!("Null arrays are handled by is_null check"),

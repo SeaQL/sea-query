@@ -364,7 +364,7 @@ impl Array {
             }),
             #[cfg(feature = "with-mac_address")]
             Array::MacAddress(v) => map_slice_of_opts(v, |&mac| {
-                Json::String(encode_to_string(|enc, buf| enc.write_mac_to(buf, mac)))
+                Json::String(encode_to_string(|enc, buf| enc.write_mac_address_to(buf, mac)))
             }),
             Array::Null(_) => Json::Null,
         }
