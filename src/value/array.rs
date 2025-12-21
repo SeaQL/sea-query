@@ -451,6 +451,9 @@ impl From<Array> for Value {
 /// - `ValueType` for `Vec<T>` and `Vec<Option<T>>`
 /// - `From<Vec<T>> for Value` / `From<Vec<Option<T>>> for Value`
 /// - `From<Vec<T>> for Array` / `From<Vec<Option<T>>> for Array`
+/// - `From<Box<[T]>> for Array` / `From<Box<[Option<T>]>> for Array`
+/// - `From<[T; N]> for Array` / `From<[Option<T>; N]> for Array`
+/// - `FromIterator<T> for Array` / `FromIterator<Option<T>> for Array`
 pub trait ArrayElement: Sized {
     /// The underlying element type stored in the array.
     ///
@@ -466,7 +469,7 @@ pub trait ArrayElement: Sized {
 
 /// Helper trait for types that can be stored inside a Postgres array [`Array`].
 ///
-/// This is used by [`ArrayElement`] to build `Array` without causing deep trait resolution.
+/// This is used by [`ArrayElement`] to build `Array` without specialization.
 pub trait ArrayValue: Sized {
     #[doc(hidden)]
     fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array;
