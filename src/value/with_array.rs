@@ -289,7 +289,16 @@ impl_value_vec! {
 
 impl<T> Nullable for Vec<T>
 where
-    T: Into<Value> + NotU8 + ValueType,
+    T: ArrayElement + ValueType,
+{
+    fn null() -> Value {
+        Value::Array(Array::Null(T::array_type()))
+    }
+}
+
+impl<T> Nullable for Vec<Option<T>>
+where
+    T: ArrayElement + ValueType,
 {
     fn null() -> Value {
         Value::Array(Array::Null(T::array_type()))
