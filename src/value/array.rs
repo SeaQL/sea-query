@@ -470,7 +470,16 @@ pub trait ArrayElement: Sized {
 /// Helper trait for types that can be stored inside a Postgres array [`Array`].
 ///
 /// This is used by [`ArrayElement`] to build `Array` without specialization.
-pub trait ArrayValue: Sized {
+pub(super) mod sealed {
+    pub trait Sealed {}
+}
+
+/// Internal helper trait used by [`ArrayElement`] to build [`Array`] without specialization.
+///
+/// This trait is sealed and not intended to be implemented by downstream crates. To support a
+/// custom array element type, implement [`ArrayElement`] and set `ArrayValueType` to one of the
+/// built-in array value types supported by SeaQuery.
+pub trait ArrayValue: sealed::Sealed + Sized {
     #[doc(hidden)]
     fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array;
 }
@@ -538,12 +547,7 @@ where
     T: ArrayElement,
 {
     fn from(vec: Vec<T>) -> Array {
-        let converted: Box<[_]> = vec
-            .into_iter()
-            .map(|x| x.into_array_value())
-            .map(Some)
-            .collect();
-
+        let converted = vec.into_iter().map(|x| x.into_array_value()).map(Some);
         ArrayValue::into_array(converted)
     }
 }
@@ -585,8 +589,8 @@ where
     T: ArrayElement,
 {
     fn from(x: [T; N]) -> Array {
-        let boxed: Box<[T]> = x.into_iter().collect();
-        boxed.into()
+        let iter = x.into_iter().map(|item| item.into_array_value()).map(Some);
+        ArrayValue::into_array(iter)
     }
 }
 
@@ -595,8 +599,10 @@ where
     T: ArrayElement,
 {
     fn from(x: [Option<T>; N]) -> Array {
-        let boxed: Box<[_]> = x.into_iter().collect();
-        boxed.into()
+        let iter = x
+            .into_iter()
+            .map(|opt| opt.map(|item| item.into_array_value()));
+        ArrayValue::into_array(iter)
     }
 }
 

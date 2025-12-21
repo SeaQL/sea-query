@@ -4,6 +4,8 @@ use crate::RcOrArc;
 macro_rules! impl_value_vec {
     ($($ty:ty => $vari:ident)*) => {
         $(
+            impl super::array::sealed::Sealed for $ty {}
+
             impl ArrayValue for $ty {
                 fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array {
                     let boxed = Box::from_iter(iter);
@@ -48,15 +50,17 @@ impl_value_vec! {
 
 // Impls for u8
 // because Vec<u8> is already defined as Bytes
-impl From<Vec<u8>> for Array {
-    fn from(x: Vec<u8>) -> Array {
-        let values: Box<[Option<_>]> = x.into_iter().map(Some).collect();
+impl super::array::sealed::Sealed for u8 {}
 
-        Array::TinyUnsigned(values)
+impl ArrayValue for u8 {
+    fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array {
+        let boxed = Box::from_iter(iter);
+        Array::TinyUnsigned(boxed)
     }
 }
-impl From<Box<[u8]>> for Array {
-    fn from(x: Box<[u8]>) -> Array {
+
+impl From<Vec<u8>> for Array {
+    fn from(x: Vec<u8>) -> Array {
         let values: Box<[Option<_>]> = x.into_iter().map(Some).collect();
 
         Array::TinyUnsigned(values)
@@ -68,6 +72,15 @@ impl From<Vec<Option<u8>>> for Array {
         Array::TinyUnsigned(x.into_boxed_slice())
     }
 }
+
+impl From<Box<[u8]>> for Array {
+    fn from(x: Box<[u8]>) -> Array {
+        let values: Box<[Option<_>]> = x.into_iter().map(Some).collect();
+
+        Array::TinyUnsigned(values)
+    }
+}
+
 impl From<Box<[Option<u8>]>> for Array {
     fn from(x: Box<[Option<u8>]>) -> Array {
         Array::TinyUnsigned(x)
