@@ -469,23 +469,7 @@ pub trait ArrayElement: Sized {
 /// This is used by [`ArrayElement`] to build `Array` without causing deep trait resolution.
 pub trait ArrayValue: Sized {
     #[doc(hidden)]
-    fn vec_opt_into_array(vec: Vec<Option<Self>>) -> Array;
-    #[doc(hidden)]
-    fn vec_into_array(vec: Vec<Self>) -> Array;
-}
-
-impl<T> ArrayValue for T
-where
-    Vec<Option<T>>: Into<Array>,
-{
-    fn vec_opt_into_array(vec: Vec<Option<Self>>) -> Array {
-        vec.into()
-    }
-
-    fn vec_into_array(vec: Vec<Self>) -> Array {
-        let vec: Vec<_> = vec.into_iter().map(Some).collect();
-        vec.into()
-    }
+    fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array;
 }
 
 impl<T: ArrayElement + ValueType> ValueType for Vec<Option<T>> {
@@ -551,9 +535,13 @@ where
     T: ArrayElement,
 {
     fn from(vec: Vec<T>) -> Array {
-        let converted: Vec<_> = vec.into_iter().map(|x| x.into_array_value()).collect();
+        let converted: Box<[_]> = vec
+            .into_iter()
+            .map(|x| x.into_array_value())
+            .map(Some)
+            .collect();
 
-        ArrayValue::vec_into_array(converted)
+        ArrayValue::into_array(converted)
     }
 }
 
@@ -562,11 +550,75 @@ where
     T: ArrayElement,
 {
     fn from(vec: Vec<Option<T>>) -> Array {
-        let converted: Vec<Option<T::ArrayValueType>> = vec
+        let converted = vec.into_iter().map(|opt| opt.map(|e| e.into_array_value()));
+        ArrayValue::into_array(converted)
+    }
+}
+
+impl<T> From<Box<[T]>> for Array
+where
+    T: ArrayElement,
+{
+    fn from(slice: Box<[T]>) -> Array {
+        ArrayValue::into_array(slice.into_iter().map(|x| x.into_array_value()).map(Some))
+    }
+}
+
+impl<T> From<Box<[Option<T>]>> for Array
+where
+    T: ArrayElement,
+{
+    fn from(slice: Box<[Option<T>]>) -> Array {
+        let converted = slice
             .into_iter()
-            .map(|opt| opt.map(|e| e.into_array_value()))
-            .collect();
-        ArrayValue::vec_opt_into_array(converted)
+            .map(|opt| opt.map(|e| e.into_array_value()));
+
+        ArrayValue::into_array(converted)
+    }
+}
+
+impl<T, const N: usize> From<[T; N]> for Array
+where
+    T: ArrayElement,
+{
+    fn from(x: [T; N]) -> Array {
+        let boxed: Box<[T]> = x.into_iter().collect();
+        boxed.into()
+    }
+}
+
+impl<T, const N: usize> From<[Option<T>; N]> for Array
+where
+    T: ArrayElement,
+{
+    fn from(x: [Option<T>; N]) -> Array {
+        let boxed: Box<[_]> = x.into_iter().collect();
+        boxed.into()
+    }
+}
+
+impl<T> std::iter::FromIterator<T> for Array
+where
+    T: ArrayElement,
+{
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let iter = iter
+            .into_iter()
+            .map(|item| item.into_array_value())
+            .map(Some);
+        ArrayValue::into_array(iter)
+    }
+}
+
+impl<T> std::iter::FromIterator<Option<T>> for Array
+where
+    T: ArrayElement,
+{
+    fn from_iter<I: IntoIterator<Item = Option<T>>>(iter: I) -> Self {
+        let iter = iter
+            .into_iter()
+            .map(|opt| opt.map(|item| item.into_array_value()));
+        ArrayValue::into_array(iter)
     }
 }
 

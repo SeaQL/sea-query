@@ -95,100 +95,26 @@ impl NotU8 for MacAddress {}
 macro_rules! impl_value_vec {
     ($($ty:ty => $vari:ident)*) => {
         $(
-            impl From<Vec<$ty>> for Array {
-                fn from(x: Vec<$ty>) -> Array {
-                    let values: Vec<Option<_>> = x
-                        .into_iter()
-                        .map(Some)
-                        .collect();
-
-                    Array::$vari(values.into_boxed_slice())
+            impl ArrayValue for $ty {
+                fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array {
+                    let boxed = Box::from_iter(iter);
+                    Array::$vari(boxed)
                 }
             }
 
-
-            impl From<Vec<Option<$ty>>> for Array {
-                fn from(x: Vec<Option<$ty>>) -> Array {
-                    Array::$vari(x.into_boxed_slice())
-                }
-            }
-
-            impl<const N: usize> From<[$ty; N]> for Array {
-                fn from(x: [$ty; N]) -> Array {
-                    let vec: Vec<_> = x.into_iter().collect();
-                    vec.into()
-                }
-            }
-
-            impl From<Vec<$ty>> for Value {
-                fn from(x: Vec<$ty>) -> Value {
-                    let values: Vec<Option<_>> = x
-                        .into_iter()
-                        .map(Some)
-                        .collect();
-
-                    Value::Array(
-                        Array::$vari(values.into_boxed_slice())
-                    )
-                }
-            }
-
-            impl From<Vec<Option<$ty>>> for Value {
-                fn from(x: Vec<Option<$ty>>) -> Value {
-                    Value::Array(Array::$vari(x.into()))
-                }
-            }
-
-            impl ValueType for Vec<Option<$ty>>
+            impl ArrayElement for $ty
             {
-                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                type ArrayValueType = $ty;
+
+                fn into_array_value(self) -> Self::ArrayValueType {
+                    self
+                }
+
+                fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr> {
                     match v {
-                        Value::Array(Array::$vari(inner)) => {
-                            Ok(inner.into_vec())
-                        }
-                        _ => Err(ValueTypeErr),
+                        Value::Array(Array::$vari(inner)) => Ok(inner.into_vec()),
+                        _ => Err(ValueTypeErr)
                     }
-                }
-
-                fn type_name() -> String {
-                    stringify!(Vec<$ty>).to_owned()
-                }
-
-                fn array_type() -> ArrayType {
-                    <$ty>::array_type()
-                }
-
-                fn column_type() -> ColumnType {
-                    use ColumnType::*;
-                    Array(RcOrArc::new(<$ty>::column_type()))
-                }
-            }
-
-
-            impl ValueType for Vec<$ty> {
-                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-                    match v {
-                        Value::Array(Array::$vari(inner)) => {
-                            inner.into_vec()
-                                .into_iter()
-                                // idk why the type inference failed, but this works
-                                .map(|opt| Option::ok_or(opt,ValueTypeErr))
-                                .collect()
-                        }
-                        _ => Err(ValueTypeErr),
-                    }
-                }
-
-                fn type_name() -> String {
-                    format!("Vec<{}>", stringify!($ty))
-                }
-
-                fn array_type() -> ArrayType {
-                    <$ty>::array_type()
-                }
-
-                fn column_type() -> ColumnType {
-                    ColumnType::Array(RcOrArc::new(<$ty>::column_type()))
                 }
             }
        )*
@@ -215,15 +141,27 @@ impl_value_vec! {
 // because Vec<u8> is already defined as Bytes
 impl From<Vec<u8>> for Array {
     fn from(x: Vec<u8>) -> Array {
-        let values: Vec<Option<_>> = x.into_iter().map(Some).collect();
+        let values: Box<[Option<_>]> = x.into_iter().map(Some).collect();
 
-        Array::TinyUnsigned(values.into_boxed_slice())
+        Array::TinyUnsigned(values)
+    }
+}
+impl From<Box<[u8]>> for Array {
+    fn from(x: Box<[u8]>) -> Array {
+        let values: Box<[Option<_>]> = x.into_iter().map(Some).collect();
+
+        Array::TinyUnsigned(values)
     }
 }
 
 impl From<Vec<Option<u8>>> for Array {
     fn from(x: Vec<Option<u8>>) -> Array {
         Array::TinyUnsigned(x.into_boxed_slice())
+    }
+}
+impl From<Box<[Option<u8>]>> for Array {
+    fn from(x: Box<[Option<u8>]>) -> Array {
+        Array::TinyUnsigned(x)
     }
 }
 
