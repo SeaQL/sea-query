@@ -480,6 +480,7 @@ pub(super) mod sealed {
 /// custom array element type, implement [`ArrayElement`] and set `ArrayValueType` to one of the
 /// built-in array value types supported by SeaQuery.
 pub trait ArrayValue: sealed::Sealed + Sized {
+    fn array_type() -> ArrayType;
     #[doc(hidden)]
     fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array;
 }
@@ -494,7 +495,7 @@ impl<T: ArrayElement + ValueType> ValueType for Vec<Option<T>> {
     }
 
     fn array_type() -> ArrayType {
-        unimplemented!()
+        T::ArrayValueType::array_type()
     }
 
     fn column_type() -> ColumnType {
@@ -516,7 +517,7 @@ impl<T: ArrayElement + ValueType> ValueType for Vec<T> {
     }
 
     fn array_type() -> ArrayType {
-        unimplemented!()
+        T::ArrayValueType::array_type()
     }
 
     fn column_type() -> ColumnType {

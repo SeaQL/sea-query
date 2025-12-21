@@ -7,6 +7,10 @@ macro_rules! impl_value_vec {
             impl super::array::sealed::Sealed for $ty {}
 
             impl ArrayValue for $ty {
+                fn array_type() -> ArrayType {
+                    ArrayType::$vari
+                }
+
                 fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array {
                     let boxed = Box::from_iter(iter);
                     Array::$vari(boxed)
@@ -53,6 +57,10 @@ impl_value_vec! {
 impl super::array::sealed::Sealed for u8 {}
 
 impl ArrayValue for u8 {
+    fn array_type() -> ArrayType {
+        ArrayType::TinyUnsigned
+    }
+
     fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array {
         let boxed = Box::from_iter(iter);
         Array::TinyUnsigned(boxed)
@@ -106,7 +114,7 @@ impl ValueType for Vec<Option<u8>> {
     }
 
     fn array_type() -> ArrayType {
-        <u8>::array_type()
+        <u8 as ArrayValue>::array_type()
     }
 
     fn column_type() -> ColumnType {
@@ -211,19 +219,19 @@ impl_value_vec! {
 
 impl<T> Nullable for Vec<T>
 where
-    T: ArrayElement + ValueType,
+    T: ArrayElement,
 {
     fn null() -> Value {
-        Value::Array(Array::Null(T::array_type()))
+        Value::Array(Array::Null(T::ArrayValueType::array_type()))
     }
 }
 
 impl<T> Nullable for Vec<Option<T>>
 where
-    T: ArrayElement + ValueType,
+    T: ArrayElement,
 {
     fn null() -> Value {
-        Value::Array(Array::Null(T::array_type()))
+        Value::Array(Array::Null(T::ArrayValueType::array_type()))
     }
 }
 
