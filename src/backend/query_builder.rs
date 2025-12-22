@@ -146,6 +146,10 @@ pub trait QueryBuilder:
             }
         );
 
+        if let Some(into_table) = &select.into {
+            self.prepare_select_into(into_table, sql);
+        }
+
         let mut from_tables = select.from.iter();
         join_io!(
             from_tables,
@@ -815,6 +819,8 @@ pub trait QueryBuilder:
 
     /// Translate [`QueryStatement`] into SQL statement.
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter);
+
+    fn prepare_select_into(&self, into_table: &SelectInto, sql: &mut impl SqlWriter);
 
     fn prepare_with_query(&self, query: &WithQuery, sql: &mut impl SqlWriter) {
         self.prepare_with_clause(&query.with_clause, sql);
@@ -1711,6 +1717,8 @@ impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter) {
         query.prepare_statement(self, sql);
     }
+
+    fn prepare_select_into(&self, _: &SelectInto, _: &mut impl SqlWriter) {}
 
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
         sql.push_param(value, self as _);
