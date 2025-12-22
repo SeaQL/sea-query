@@ -2,63 +2,61 @@ use std::borrow::Cow;
 
 use crate::{
     TypeRef,
-    extension::postgres::json_table::{ExistsOnErrorClause, JsonTableColumn},
+    extension::postgres::json_table::ExistsOnErrorClause,
 };
 
-/// Builder for EXISTS columns in JSON_TABLE
+use super::types::JsonTableColumn;
+
+/// EXISTS column definition in a `JSON_TABLE` `COLUMNS` clause.
 #[derive(Debug, Clone)]
-pub struct ExistsColumnBuilder<T> {
-    pub(super) builder: T,
-    pub(super) name: Cow<'static, str>,
-    pub(super) column_type: TypeRef,
-    pub(super) path: Option<Cow<'static, str>>,
-    pub(super) on_error: Option<ExistsOnErrorClause>,
+pub struct ExistsColumn {
+    name: Cow<'static, str>,
+    column_type: TypeRef,
+    path: Option<Cow<'static, str>>,
+    on_error: Option<ExistsOnErrorClause>,
 }
 
-impl<T> ExistsColumnBuilder<T> {
-    /// Set PATH clause
-    pub fn path<P>(mut self, path: P) -> Self
-    where
-        P: Into<Cow<'static, str>>,
-    {
+impl ExistsColumn {
+    pub fn new(name: impl Into<Cow<'static, str>>, column_type: impl Into<TypeRef>) -> Self {
+        Self {
+            name: name.into(),
+            column_type: column_type.into(),
+            path: None,
+            on_error: None,
+        }
+    }
+
+    pub fn path(mut self, path: impl Into<Cow<'static, str>>) -> Self {
         self.path = Some(path.into());
         self
     }
 
-    /// Convenience method for `ERROR ON ERROR`
     pub fn error_on_error(mut self) -> Self {
         self.on_error = Some(ExistsOnErrorClause::Error);
         self
     }
 
-    /// Convenience method for `TRUE ON ERROR`
     pub fn true_on_error(mut self) -> Self {
         self.on_error = Some(ExistsOnErrorClause::True);
         self
     }
 
-    /// Convenience method for `FALSE ON ERROR`
     pub fn false_on_error(mut self) -> Self {
         self.on_error = Some(ExistsOnErrorClause::False);
         self
     }
 
-    /// Convenience method for `UNKNOWN ON ERROR`
     pub fn unknown_on_error(mut self) -> Self {
         self.on_error = Some(ExistsOnErrorClause::Unknown);
         self
     }
-}
 
-impl ExistsColumnBuilder<super::Builder> {
-    /// Finish building this column and return to the main builder
-    pub fn build_column(mut self) -> super::Builder {
-        self.builder.columns.push(JsonTableColumn::Exists {
+    pub(super) fn into_column(self) -> JsonTableColumn {
+        JsonTableColumn::Exists {
             name: self.name,
             column_type: self.column_type,
             path: self.path,
             on_error: self.on_error,
-        });
-        self.builder
+        }
     }
 }
