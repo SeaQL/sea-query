@@ -470,19 +470,12 @@ pub trait ArrayElement: Sized {
     fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr>;
 }
 
-/// Helper trait for types that can be stored inside a Postgres array [`Array`].
-///
-/// This is used by [`ArrayElement`] to build `Array` without specialization.
-pub(super) mod sealed {
-    pub trait Sealed {}
-}
-
 /// Internal helper trait used by [`ArrayElement`] to build [`Array`] without specialization.
 ///
 /// This trait is sealed and not intended to be implemented by downstream crates. To support a
 /// custom array element type, implement [`ArrayElement`] and set `ArrayValueType` to one of the
 /// built-in array value types supported by SeaQuery.
-pub trait ArrayValue: sealed::Sealed + Sized {
+pub trait ArrayValue: crate::sealed::Sealed + Sized {
     fn array_type() -> ArrayType;
     #[doc(hidden)]
     fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array;

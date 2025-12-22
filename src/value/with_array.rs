@@ -4,7 +4,8 @@ use crate::RcOrArc;
 macro_rules! impl_value_vec {
     ($($ty:ty => $vari:ident)*) => {
         $(
-            impl super::array::sealed::Sealed for $ty {}
+            impl crate::sealed::Sealed for $ty {}
+
 
             impl ArrayValue for $ty {
                 fn array_type() -> ArrayType {
@@ -54,7 +55,7 @@ impl_value_vec! {
 
 // Impls for u8
 // because Vec<u8> is already defined as Bytes
-impl super::array::sealed::Sealed for u8 {}
+impl crate::sealed::Sealed for u8 {}
 
 impl ArrayValue for u8 {
     fn array_type() -> ArrayType {
