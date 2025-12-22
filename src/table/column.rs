@@ -42,9 +42,9 @@ impl From<&mut ColumnDef> for ColumnDef {
 /// | Integer               | int               | integer                     | integer                      |
 /// | BigInteger            | bigint            | bigint                      | integer                      |
 /// | TinyUnsigned          | tinyint unsigned  | smallint                    | tinyint                      |
-/// | SmallUnsigned         | smallint unsigned | smallint                    | smallint                     |
-/// | Unsigned              | int unsigned      | integer                     | integer                      |
-/// | BigUnsigned           | bigint unsigned   | bigint                      | integer                      |
+/// | SmallUnsigned         | smallint unsigned | integer                     | smallint                     |
+/// | Unsigned              | int unsigned      | bigint                      | integer                      |
+/// | BigUnsigned           | bigint unsigned   | numeric                     | integer                      |
 /// | Float                 | float             | real                        | float                        |
 /// | Double                | double            | double precision            | double                       |
 /// | Decimal               | decimal           | decimal                     | real(A, B)                   |
