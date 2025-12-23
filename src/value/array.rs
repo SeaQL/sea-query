@@ -452,11 +452,8 @@ impl From<Array> for Value {
 ///
 /// When implemented, SeaQuery will provide:
 /// - `ValueType` for `Vec<T>` and `Vec<Option<T>>`
-/// - `From<Vec<T>> for Value` / `From<Vec<Option<T>>> for Value`
-/// - `From<Vec<T>> for Array` / `From<Vec<Option<T>>> for Array`
-/// - `From<Box<[T]>> for Array` / `From<Box<[Option<T>]>> for Array`
-/// - `From<[T; N]> for Array` / `From<[Option<T>; N]> for Array`
-/// - `FromIterator<T> for Array` / `FromIterator<Option<T>> for Array`
+/// - `From` implementations for `Vec<T>`, `Vec<Option<T>>`, `Box<[T]>`, `Box<[Option<T>]>`, `[T; N]`, and
+///   `[Option<T>; N]` into `Value` and `Array`
 pub trait ArrayElement: Sized {
     /// The underlying element type stored in the array.
     ///
@@ -539,6 +536,46 @@ where
     }
 }
 
+impl<T> From<Box<[T]>> for Value
+where
+    T: ArrayElement,
+{
+    fn from(vec: Box<[T]>) -> Value {
+        Array::from(vec).into()
+    }
+}
+
+impl<T> From<Box<[Option<T>]>> for Value
+where
+    T: ArrayElement,
+{
+    fn from(vec: Box<[Option<T>]>) -> Value {
+        Array::from(vec).into()
+    }
+}
+
+impl<T, const N: usize> From<[T; N]> for Value
+where
+    T: ArrayElement,
+{
+    fn from(x: [T; N]) -> Value {
+        let iter = x.into_iter().map(|item| item.into_array_value()).map(Some);
+        ArrayValue::into_array(iter).into()
+    }
+}
+
+impl<T, const N: usize> From<[Option<T>; N]> for Value
+where
+    T: ArrayElement,
+{
+    fn from(x: [Option<T>; N]) -> Value {
+        let iter = x
+            .into_iter()
+            .map(|opt| opt.map(|item| item.into_array_value()));
+        ArrayValue::into_array(iter).into()
+    }
+}
+
 impl<T> From<Vec<T>> for Array
 where
     T: ArrayElement,
@@ -597,31 +634,6 @@ where
 {
     fn from(x: [Option<T>; N]) -> Array {
         let iter = x
-            .into_iter()
-            .map(|opt| opt.map(|item| item.into_array_value()));
-        ArrayValue::into_array(iter)
-    }
-}
-
-impl<T> std::iter::FromIterator<T> for Array
-where
-    T: ArrayElement,
-{
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let iter = iter
-            .into_iter()
-            .map(|item| item.into_array_value())
-            .map(Some);
-        ArrayValue::into_array(iter)
-    }
-}
-
-impl<T> std::iter::FromIterator<Option<T>> for Array
-where
-    T: ArrayElement,
-{
-    fn from_iter<I: IntoIterator<Item = Option<T>>>(iter: I) -> Self {
-        let iter = iter
             .into_iter()
             .map(|opt| opt.map(|item| item.into_array_value()));
         ArrayValue::into_array(iter)
