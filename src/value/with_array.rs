@@ -1,194 +1,36 @@
-use super::ArrayElement;
 use super::*;
 use crate::RcOrArc;
-
-// We only implement conversion from Vec<T> to Array when T is not u8.
-// This is because for u8's case, there is already conversion to Byte defined above.
-// TODO When negative trait becomes a stable feature, following code can be much shorter.
-pub trait NotU8 {}
-
-impl NotU8 for bool {}
-impl NotU8 for i8 {}
-impl NotU8 for i16 {}
-impl NotU8 for i32 {}
-impl NotU8 for i64 {}
-impl NotU8 for u16 {}
-impl NotU8 for u32 {}
-impl NotU8 for u64 {}
-impl NotU8 for f32 {}
-impl NotU8 for f64 {}
-impl NotU8 for char {}
-impl NotU8 for String {}
-impl NotU8 for Vec<u8> {}
-
-impl<T: NotU8> NotU8 for Option<T> {}
-
-#[cfg(feature = "with-json")]
-impl NotU8 for Json {}
-
-#[cfg(feature = "with-chrono")]
-impl NotU8 for NaiveDate {}
-
-#[cfg(feature = "with-chrono")]
-impl NotU8 for NaiveTime {}
-
-#[cfg(feature = "with-chrono")]
-impl NotU8 for NaiveDateTime {}
-
-#[cfg(feature = "with-chrono")]
-impl<Tz> NotU8 for chrono::DateTime<Tz> where Tz: chrono::TimeZone {}
-
-#[cfg(feature = "with-time")]
-impl NotU8 for time::Date {}
-
-#[cfg(feature = "with-time")]
-impl NotU8 for time::Time {}
-
-#[cfg(feature = "with-time")]
-impl NotU8 for PrimitiveDateTime {}
-
-#[cfg(feature = "with-time")]
-impl NotU8 for OffsetDateTime {}
-
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::civil::Date {}
-
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::civil::Time {}
-
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::civil::DateTime {}
-
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::Timestamp {}
-
-#[cfg(feature = "with-jiff")]
-impl NotU8 for jiff::Zoned {}
-
-#[cfg(feature = "with-rust_decimal")]
-impl NotU8 for rust_decimal::Decimal {}
-
-#[cfg(feature = "with-bigdecimal")]
-impl NotU8 for bigdecimal::BigDecimal {}
-
-#[cfg(feature = "with-uuid")]
-impl NotU8 for Uuid {}
-
-#[cfg(feature = "with-uuid")]
-impl NotU8 for uuid::fmt::Braced {}
-
-#[cfg(feature = "with-uuid")]
-impl NotU8 for uuid::fmt::Hyphenated {}
-
-#[cfg(feature = "with-uuid")]
-impl NotU8 for uuid::fmt::Simple {}
-
-#[cfg(feature = "with-uuid")]
-impl NotU8 for uuid::fmt::Urn {}
-
-#[cfg(feature = "with-ipnetwork")]
-impl NotU8 for IpNetwork {}
-
-#[cfg(feature = "with-mac_address")]
-impl NotU8 for MacAddress {}
 
 macro_rules! impl_value_vec {
     ($($ty:ty => $vari:ident)*) => {
         $(
-            impl From<Vec<$ty>> for Array {
-                fn from(x: Vec<$ty>) -> Array {
-                    let values: Vec<Option<_>> = x
-                        .into_iter()
-                        .map(Some)
-                        .collect();
+            impl crate::sealed::Sealed for $ty {}
 
-                    Array::$vari(values.into_boxed_slice())
+
+            impl ArrayValue for $ty {
+                fn array_type() -> ArrayType {
+                    ArrayType::$vari
+                }
+
+                fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array {
+                    let boxed = Box::from_iter(iter);
+                    Array::$vari(boxed)
                 }
             }
 
-
-            impl From<Vec<Option<$ty>>> for Array {
-                fn from(x: Vec<Option<$ty>>) -> Array {
-                    Array::$vari(x.into_boxed_slice())
-                }
-            }
-
-            impl<const N: usize> From<[$ty; N]> for Array {
-                fn from(x: [$ty; N]) -> Array {
-                    let vec: Vec<_> = x.into_iter().collect();
-                    vec.into()
-                }
-            }
-
-            impl From<Vec<$ty>> for Value {
-                fn from(x: Vec<$ty>) -> Value {
-                    let values: Vec<Option<_>> = x
-                        .into_iter()
-                        .map(Some)
-                        .collect();
-
-                    Value::Array(
-                        Array::$vari(values.into_boxed_slice())
-                    )
-                }
-            }
-
-            impl From<Vec<Option<$ty>>> for Value {
-                fn from(x: Vec<Option<$ty>>) -> Value {
-                    Value::Array(Array::$vari(x.into()))
-                }
-            }
-
-            impl ValueType for Vec<Option<$ty>>
+            impl ArrayElement for $ty
             {
-                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+                type ArrayValueType = $ty;
+
+                fn into_array_value(self) -> Self::ArrayValueType {
+                    self
+                }
+
+                fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr> {
                     match v {
-                        Value::Array(Array::$vari(inner)) => {
-                            Ok(inner.into_vec())
-                        }
-                        _ => Err(ValueTypeErr),
+                        Value::Array(Array::$vari(inner)) => Ok(inner.into_vec()),
+                        _ => Err(ValueTypeErr)
                     }
-                }
-
-                fn type_name() -> String {
-                    stringify!(Vec<$ty>).to_owned()
-                }
-
-                fn array_type() -> ArrayType {
-                    <$ty>::array_type()
-                }
-
-                fn column_type() -> ColumnType {
-                    use ColumnType::*;
-                    Array(RcOrArc::new(<$ty>::column_type()))
-                }
-            }
-
-
-            impl ValueType for Vec<$ty> {
-                fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
-                    match v {
-                        Value::Array(Array::$vari(inner)) => {
-                            inner.into_vec()
-                                .into_iter()
-                                // idk why the type inference failed, but this works
-                                .map(|opt| Option::ok_or(opt,ValueTypeErr))
-                                .collect()
-                        }
-                        _ => Err(ValueTypeErr),
-                    }
-                }
-
-                fn type_name() -> String {
-                    format!("Vec<{}>", stringify!($ty))
-                }
-
-                fn array_type() -> ArrayType {
-                    <$ty>::array_type()
-                }
-
-                fn column_type() -> ColumnType {
-                    ColumnType::Array(RcOrArc::new(<$ty>::column_type()))
                 }
             }
        )*
@@ -213,17 +55,44 @@ impl_value_vec! {
 
 // Impls for u8
 // because Vec<u8> is already defined as Bytes
+impl crate::sealed::Sealed for u8 {}
+
+impl ArrayValue for u8 {
+    fn array_type() -> ArrayType {
+        ArrayType::TinyUnsigned
+    }
+
+    fn into_array(iter: impl IntoIterator<Item = Option<Self>>) -> Array {
+        let boxed = Box::from_iter(iter);
+        Array::TinyUnsigned(boxed)
+    }
+}
+
 impl From<Vec<u8>> for Array {
     fn from(x: Vec<u8>) -> Array {
-        let values: Vec<Option<_>> = x.into_iter().map(Some).collect();
+        let values: Box<[Option<_>]> = x.into_iter().map(Some).collect();
 
-        Array::TinyUnsigned(values.into_boxed_slice())
+        Array::TinyUnsigned(values)
     }
 }
 
 impl From<Vec<Option<u8>>> for Array {
     fn from(x: Vec<Option<u8>>) -> Array {
         Array::TinyUnsigned(x.into_boxed_slice())
+    }
+}
+
+impl From<Box<[u8]>> for Array {
+    fn from(x: Box<[u8]>) -> Array {
+        let values: Box<[Option<_>]> = x.into_iter().map(Some).collect();
+
+        Array::TinyUnsigned(values)
+    }
+}
+
+impl From<Box<[Option<u8>]>> for Array {
+    fn from(x: Box<[Option<u8>]>) -> Array {
+        Array::TinyUnsigned(x)
     }
 }
 
@@ -246,7 +115,7 @@ impl ValueType for Vec<Option<u8>> {
     }
 
     fn array_type() -> ArrayType {
-        <u8>::array_type()
+        <u8 as ArrayValue>::array_type()
     }
 
     fn column_type() -> ColumnType {
@@ -351,10 +220,19 @@ impl_value_vec! {
 
 impl<T> Nullable for Vec<T>
 where
-    T: Into<Value> + NotU8 + ValueType,
+    T: ArrayElement,
 {
     fn null() -> Value {
-        Value::Array(Array::Null(T::array_type()))
+        Value::Array(Array::Null(T::ArrayValueType::array_type()))
+    }
+}
+
+impl<T> Nullable for Vec<Option<T>>
+where
+    T: ArrayElement,
+{
+    fn null() -> Value {
+        Value::Array(Array::Null(T::ArrayValueType::array_type()))
     }
 }
 
