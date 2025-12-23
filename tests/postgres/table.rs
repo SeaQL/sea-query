@@ -762,3 +762,19 @@ fn create_20() {
         .join(" "),
     );
 }
+
+#[test]
+fn unsigned_types() {
+    let query_builder = PostgresQueryBuilder {};
+
+    let column_to_string = |column_type| {
+        let mut out = String::new();
+        query_builder.prepare_column_type(column_type, &mut out);
+        out
+    };
+
+    assert_eq!(column_to_string(&ColumnType::TinyUnsigned), "smallint");
+    assert_eq!(column_to_string(&ColumnType::SmallUnsigned), "integer");
+    assert_eq!(column_to_string(&ColumnType::Unsigned), "bigint");
+    assert_eq!(column_to_string(&ColumnType::BigUnsigned), "numeric");
+}
