@@ -244,7 +244,6 @@ pub enum Value {
     /// so we use Arc to save space
     Enum(Option<Arc<Enum>>),
 
-    #[allow(clippy::box_collection)]
     Bytes(Option<Vec<u8>>),
 
     #[cfg(feature = "with-json")]
@@ -382,34 +381,35 @@ impl Enum {
 pub const VALUE_SIZE: usize = check_value_size();
 const MAX_VALUE_SIZE: usize = 32;
 
+#[allow(unused)]
 const EXPECTED_VALUE_SIZE: usize = {
     #[allow(unused_mut)]
     let mut max = MAX_VALUE_SIZE;
 
+    macro_rules! max_mut {
+        ($expr:expr) => {
+            let tmp = $expr;
+            if max < tmp {
+                max = tmp;
+            }
+        };
+    }
+
+    #[cfg(all(feature = "with-json", feature = "postgres-array"))]
+    // size of vec + discriminant (8)
+    max_mut!(40);
+
     // If some crate enabled indexmap feature, the size of Json will be 72 or larger.
     #[cfg(feature = "with-json")]
-    {
-        if size_of::<Option<Json>>() > max {
-            max = size_of::<Option<Json>>();
-        }
-    }
+    max_mut!(size_of::<Option<Json>>());
 
     // If bigdecimal is enabled and its size is larger, we make the limit to be bigdecimal's size
     #[cfg(feature = "with-bigdecimal")]
-    {
-        if size_of::<Option<BigDecimal>>() > MAX_VALUE_SIZE {
-            max = size_of::<Option<BigDecimal>>();
-        }
-    }
+    max_mut!(size_of::<Option<BigDecimal>>());
 
     // Jiff has extra size in debug mode. Skip size check in that case.
     #[cfg(feature = "with-jiff")]
-    {
-        let zoned_size = size_of::<Option<jiff::Zoned>>();
-        if zoned_size > max && cfg!(debug_assertions) {
-            max = zoned_size;
-        }
-    }
+    max_mut!(size_of::<Option<jiff::Zoned>>());
 
     max
 };
