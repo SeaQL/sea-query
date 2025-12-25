@@ -1,9 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{
-    TypeRef,
-    extension::postgres::json_table::ExistsOnErrorClause,
-};
+use crate::{TypeRef, extension::postgres::json_table::ExistsOnErrorClause};
 
 use super::types::JsonTableColumn;
 
