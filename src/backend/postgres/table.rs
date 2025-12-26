@@ -30,9 +30,10 @@ impl TableBuilder for PostgresQueryBuilder {
             },
             ColumnType::Text => sql.write_str("text"),
             ColumnType::TinyInteger | ColumnType::TinyUnsigned => sql.write_str("smallint"),
-            ColumnType::SmallInteger | ColumnType::SmallUnsigned => sql.write_str("smallint"),
-            ColumnType::Integer | ColumnType::Unsigned => sql.write_str("integer"),
-            ColumnType::BigInteger | ColumnType::BigUnsigned => sql.write_str("bigint"),
+            ColumnType::SmallInteger => sql.write_str("smallint"),
+            ColumnType::Integer | ColumnType::SmallUnsigned => sql.write_str("integer"),
+            ColumnType::BigInteger | ColumnType::Unsigned => sql.write_str("bigint"),
+            ColumnType::BigUnsigned => sql.write_str("numeric"),
             ColumnType::Float => sql.write_str("real"),
             ColumnType::Double => sql.write_str("double precision"),
             ColumnType::Decimal(precision) => match precision {
