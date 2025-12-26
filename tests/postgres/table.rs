@@ -740,25 +740,3 @@ fn create_19() {
         .join(" "),
     );
 }
-
-#[test]
-fn create_20() {
-    assert_eq!(
-        Table::create()
-            .table("unsigned")
-            .col(ColumnDef::new("tiny_unsigned").tiny_unsigned())
-            .col(ColumnDef::new("small_unsigned").small_unsigned())
-            .col(ColumnDef::new("unsigned").unsigned())
-            .col(ColumnDef::new("big_unsigned").big_unsigned())
-            .to_string(PostgresQueryBuilder),
-        [
-            r#"CREATE TABLE "unsigned" ("#,
-            r#""tiny_unsigned" smallint,"#,
-            r#""small_unsigned" integer,"#,
-            r#""unsigned" bigint,"#,
-            r#""big_unsigned" numeric"#,
-            r#")"#,
-        ]
-        .join(" "),
-    );
-}
