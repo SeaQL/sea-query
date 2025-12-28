@@ -223,7 +223,7 @@ impl Array {
             Array::IpNetwork(v) => v.is_empty(),
             #[cfg(feature = "with-mac_address")]
             Array::MacAddress(v) => v.is_empty(),
-            Array::Null(_) => true,
+            Array::Null(_) => false,
         }
     }
 
