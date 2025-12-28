@@ -243,11 +243,15 @@ impl Value {
         matches!(self, Self::Array(_))
     }
 
-    pub fn as_ref_array(&self) -> Option<&Array> {
+    pub fn as_array(&self) -> Option<&Array> {
         match self {
-            Self::Array(v) if !v.is_null() => Some(v),
-            Self::Array(_) => None,
-            _ => panic!("not Value::Array"),
+            Self::Array(v) => Some(v),
+            _ => None,
         }
+    }
+
+    #[deprecated(since = "1.0.0", note = "Use Value::as_array instead.")]
+    pub fn as_ref_array(&self) -> Option<&Array> {
+        self.as_array()
     }
 }
