@@ -7,6 +7,7 @@ use std::sync::Arc;
 #[cfg(feature = "hashable-value")]
 mod hash;
 
+/// (type_name, values)
 type EnumArray = Box<(Arc<str>, Box<[Option<Arc<Enum>>]>)>;
 
 #[derive(Debug, Clone)]
@@ -29,69 +30,109 @@ pub enum Array {
     Bytes(Box<[Option<Vec<u8>>]>),
     Enum(EnumArray),
     #[cfg(feature = "with-json")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
     Json(Box<[Option<Json>]>),
     #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDate(Box<[Option<NaiveDate>]>),
     #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoTime(Box<[Option<NaiveTime>]>),
     #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTime(Box<[Option<NaiveDateTime>]>),
     #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeUtc(Box<[Option<DateTime<Utc>>]>),
     #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeLocal(Box<[Option<DateTime<Local>>]>),
     #[cfg(feature = "with-chrono")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
     ChronoDateTimeWithTimeZone(Box<[Option<DateTime<FixedOffset>>]>),
     #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDate(Box<[Option<time::Date>]>),
     #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeTime(Box<[Option<time::Time>]>),
     #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTime(Box<[Option<PrimitiveDateTime>]>),
     #[cfg(feature = "with-time")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone(Box<[Option<OffsetDateTime>]>),
     #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
     JiffDate(Box<[Option<jiff::civil::Date>]>),
     #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
     JiffTime(Box<[Option<jiff::civil::Time>]>),
     #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
     JiffDateTime(Box<[Option<jiff::civil::DateTime>]>),
     #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
     JiffTimestamp(Box<[Option<Timestamp>]>),
     #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
     JiffZoned(Box<[Option<Zoned>]>),
     #[cfg(feature = "with-uuid")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
     Uuid(Box<[Option<Uuid>]>),
     #[cfg(feature = "with-rust_decimal")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
     Decimal(Box<[Option<Decimal>]>),
     #[cfg(feature = "with-bigdecimal")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
     BigDecimal(Box<[Option<BigDecimal>]>),
     #[cfg(feature = "with-ipnetwork")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
     IpNetwork(Box<[Option<IpNetwork>]>),
     #[cfg(feature = "with-mac_address")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
     MacAddress(Box<[Option<MacAddress>]>),
     Null(ArrayType),
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum ArrayValueVec {
+    Bool(Vec<Option<bool>>),
+    TinyInt(Vec<Option<i8>>),
+    SmallInt(Vec<Option<i16>>),
+    Int(Vec<Option<i32>>),
+    BigInt(Vec<Option<i64>>),
+    TinyUnsigned(Vec<Option<u8>>),
+    SmallUnsigned(Vec<Option<u16>>),
+    Unsigned(Vec<Option<u32>>),
+    BigUnsigned(Vec<Option<u64>>),
+    Float(Vec<Option<f32>>),
+    Double(Vec<Option<f64>>),
+    String(Vec<Option<String>>),
+    Char(Vec<Option<char>>),
+    Bytes(Vec<Option<Vec<u8>>>),
+    Enum(Vec<Option<Arc<Enum>>>),
+    #[cfg(feature = "with-json")]
+    Json(Vec<Option<Json>>),
+    #[cfg(feature = "with-chrono")]
+    ChronoDate(Vec<Option<NaiveDate>>),
+    #[cfg(feature = "with-chrono")]
+    ChronoTime(Vec<Option<NaiveTime>>),
+    #[cfg(feature = "with-chrono")]
+    ChronoDateTime(Vec<Option<NaiveDateTime>>),
+    #[cfg(feature = "with-chrono")]
+    ChronoDateTimeUtc(Vec<Option<DateTime<Utc>>>),
+    #[cfg(feature = "with-chrono")]
+    ChronoDateTimeLocal(Vec<Option<DateTime<Local>>>),
+    #[cfg(feature = "with-chrono")]
+    ChronoDateTimeWithTimeZone(Vec<Option<DateTime<FixedOffset>>>),
+    #[cfg(feature = "with-time")]
+    TimeDate(Vec<Option<time::Date>>),
+    #[cfg(feature = "with-time")]
+    TimeTime(Vec<Option<time::Time>>),
+    #[cfg(feature = "with-time")]
+    TimeDateTime(Vec<Option<PrimitiveDateTime>>),
+    #[cfg(feature = "with-time")]
+    TimeDateTimeWithTimeZone(Vec<Option<OffsetDateTime>>),
+    #[cfg(feature = "with-jiff")]
+    JiffDate(Vec<Option<jiff::civil::Date>>),
+    #[cfg(feature = "with-jiff")]
+    JiffTime(Vec<Option<jiff::civil::Time>>),
+    #[cfg(feature = "with-jiff")]
+    JiffDateTime(Vec<Option<jiff::civil::DateTime>>),
+    #[cfg(feature = "with-jiff")]
+    JiffTimestamp(Vec<Option<Timestamp>>),
+    #[cfg(feature = "with-jiff")]
+    JiffZoned(Vec<Option<Zoned>>),
+    #[cfg(feature = "with-uuid")]
+    Uuid(Vec<Option<Uuid>>),
+    #[cfg(feature = "with-rust_decimal")]
+    Decimal(Vec<Option<Decimal>>),
+    #[cfg(feature = "with-bigdecimal")]
+    BigDecimal(Vec<Option<BigDecimal>>),
+    #[cfg(feature = "with-ipnetwork")]
+    IpNetwork(Vec<Option<IpNetwork>>),
+    #[cfg(feature = "with-mac_address")]
+    MacAddress(Vec<Option<MacAddress>>),
 }
 
 pub struct ArrayIterValue<'a>(Box<dyn Iterator<Item = Option<Value>> + 'a>);
@@ -299,6 +340,73 @@ impl Array {
             Array::MacAddress(v) => Box::new(v.iter().map(map_value)),
             Array::Null(_) => Box::new(std::iter::empty()),
         })
+    }
+
+    fn into_array_value_vec(self) -> ArrayValueVec {
+        match self {
+            Array::Bool(v) => ArrayValueVec::Bool(Vec::from(v)),
+            Array::TinyInt(v) => ArrayValueVec::TinyInt(Vec::from(v)),
+            Array::SmallInt(v) => ArrayValueVec::SmallInt(Vec::from(v)),
+            Array::Int(v) => ArrayValueVec::Int(Vec::from(v)),
+            Array::BigInt(v) => ArrayValueVec::BigInt(Vec::from(v)),
+            Array::TinyUnsigned(v) => ArrayValueVec::TinyUnsigned(Vec::from(v)),
+            Array::SmallUnsigned(v) => ArrayValueVec::SmallUnsigned(Vec::from(v)),
+            Array::Unsigned(v) => ArrayValueVec::Unsigned(Vec::from(v)),
+            Array::BigUnsigned(v) => ArrayValueVec::BigUnsigned(Vec::from(v)),
+            Array::Float(v) => ArrayValueVec::Float(Vec::from(v)),
+            Array::Double(v) => ArrayValueVec::Double(Vec::from(v)),
+            Array::String(v) => ArrayValueVec::String(Vec::from(v)),
+            Array::Char(v) => ArrayValueVec::Char(Vec::from(v)),
+            Array::Bytes(v) => ArrayValueVec::Bytes(Vec::from(v)),
+            Array::Enum(boxed) => ArrayValueVec::Enum(Vec::from(boxed.1)),
+            #[cfg(feature = "with-json")]
+            Array::Json(v) => ArrayValueVec::Json(Vec::from(v)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDate(v) => ArrayValueVec::ChronoDate(Vec::from(v)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoTime(v) => ArrayValueVec::ChronoTime(Vec::from(v)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTime(v) => ArrayValueVec::ChronoDateTime(Vec::from(v)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeUtc(v) => ArrayValueVec::ChronoDateTimeUtc(Vec::from(v)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeLocal(v) => ArrayValueVec::ChronoDateTimeLocal(Vec::from(v)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeWithTimeZone(v) => {
+                ArrayValueVec::ChronoDateTimeWithTimeZone(Vec::from(v))
+            }
+            #[cfg(feature = "with-time")]
+            Array::TimeDate(v) => ArrayValueVec::TimeDate(Vec::from(v)),
+            #[cfg(feature = "with-time")]
+            Array::TimeTime(v) => ArrayValueVec::TimeTime(Vec::from(v)),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTime(v) => ArrayValueVec::TimeDateTime(Vec::from(v)),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTimeWithTimeZone(v) => {
+                ArrayValueVec::TimeDateTimeWithTimeZone(Vec::from(v))
+            }
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDate(v) => ArrayValueVec::JiffDate(Vec::from(v)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTime(v) => ArrayValueVec::JiffTime(Vec::from(v)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDateTime(v) => ArrayValueVec::JiffDateTime(Vec::from(v)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTimestamp(v) => ArrayValueVec::JiffTimestamp(Vec::from(v)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffZoned(v) => ArrayValueVec::JiffZoned(Vec::from(v)),
+            #[cfg(feature = "with-uuid")]
+            Array::Uuid(v) => ArrayValueVec::Uuid(Vec::from(v)),
+            #[cfg(feature = "with-rust_decimal")]
+            Array::Decimal(v) => ArrayValueVec::Decimal(Vec::from(v)),
+            #[cfg(feature = "with-bigdecimal")]
+            Array::BigDecimal(v) => ArrayValueVec::BigDecimal(Vec::from(v)),
+            #[cfg(feature = "with-ipnetwork")]
+            Array::IpNetwork(v) => ArrayValueVec::IpNetwork(Vec::from(v)),
+            #[cfg(feature = "with-mac_address")]
+            Array::MacAddress(v) => ArrayValueVec::MacAddress(Vec::from(v)),
+            Array::Null(_) => panic!("Array cannot be Null"),
+        }
     }
 
     #[cfg(feature = "with-json")]
@@ -518,6 +626,245 @@ impl Array {
     }
 }
 
+impl Value {
+    fn into_array_value_vec(self) -> ArrayValueVec {
+        fn to_vec<T>(v: Option<T>) -> Vec<Option<T>> {
+            vec![v]
+        }
+
+        match self {
+            Self::Bool(v) => ArrayValueVec::Bool(to_vec(v)),
+            Self::TinyInt(v) => ArrayValueVec::TinyInt(to_vec(v)),
+            Self::SmallInt(v) => ArrayValueVec::SmallInt(to_vec(v)),
+            Self::Int(v) => ArrayValueVec::Int(to_vec(v)),
+            Self::BigInt(v) => ArrayValueVec::BigInt(to_vec(v)),
+            Self::TinyUnsigned(v) => ArrayValueVec::TinyUnsigned(to_vec(v)),
+            Self::SmallUnsigned(v) => ArrayValueVec::SmallUnsigned(to_vec(v)),
+            Self::Unsigned(v) => ArrayValueVec::Unsigned(to_vec(v)),
+            Self::BigUnsigned(v) => ArrayValueVec::BigUnsigned(to_vec(v)),
+            Self::Float(v) => ArrayValueVec::Float(to_vec(v)),
+            Self::Double(v) => ArrayValueVec::Double(to_vec(v)),
+            Self::String(v) => ArrayValueVec::String(to_vec(v)),
+            Self::Char(v) => ArrayValueVec::Char(to_vec(v)),
+            Self::Enum(v) => ArrayValueVec::Enum(to_vec(v)),
+            Self::Bytes(v) => ArrayValueVec::Bytes(to_vec(v)),
+
+            #[cfg(feature = "with-json")]
+            Self::Json(v) => ArrayValueVec::Json(to_vec(v)),
+
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDate(v) => ArrayValueVec::ChronoDate(to_vec(v)),
+
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoTime(v) => ArrayValueVec::ChronoTime(to_vec(v)),
+
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTime(v) => ArrayValueVec::ChronoDateTime(to_vec(v)),
+
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeUtc(v) => ArrayValueVec::ChronoDateTimeUtc(to_vec(v)),
+
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeLocal(v) => ArrayValueVec::ChronoDateTimeLocal(to_vec(v)),
+
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeWithTimeZone(v) => {
+                ArrayValueVec::ChronoDateTimeWithTimeZone(to_vec(v))
+            }
+
+            #[cfg(feature = "with-time")]
+            Self::TimeDate(v) => ArrayValueVec::TimeDate(to_vec(v)),
+
+            #[cfg(feature = "with-time")]
+            Self::TimeTime(v) => ArrayValueVec::TimeTime(to_vec(v)),
+
+            #[cfg(feature = "with-time")]
+            Self::TimeDateTime(v) => ArrayValueVec::TimeDateTime(to_vec(v)),
+
+            #[cfg(feature = "with-time")]
+            Self::TimeDateTimeWithTimeZone(v) => ArrayValueVec::TimeDateTimeWithTimeZone(to_vec(v)),
+
+            #[cfg(feature = "with-jiff")]
+            Self::JiffDate(v) => ArrayValueVec::JiffDate(to_vec(v)),
+
+            #[cfg(feature = "with-jiff")]
+            Self::JiffTime(v) => ArrayValueVec::JiffTime(to_vec(v)),
+
+            #[cfg(feature = "with-jiff")]
+            Self::JiffDateTime(v) => ArrayValueVec::JiffDateTime(to_vec(v)),
+
+            #[cfg(feature = "with-jiff")]
+            Self::JiffTimestamp(v) => ArrayValueVec::JiffTimestamp(to_vec(v)),
+
+            #[cfg(feature = "with-jiff")]
+            Self::JiffZoned(v) => ArrayValueVec::JiffZoned(to_vec(v)),
+
+            #[cfg(feature = "with-uuid")]
+            Self::Uuid(v) => ArrayValueVec::Uuid(to_vec(v)),
+
+            #[cfg(feature = "with-rust_decimal")]
+            Self::Decimal(v) => ArrayValueVec::Decimal(to_vec(v)),
+
+            #[cfg(feature = "with-bigdecimal")]
+            Self::BigDecimal(v) => ArrayValueVec::BigDecimal(to_vec(v)),
+
+            #[cfg(feature = "postgres-array")]
+            Self::Array(v) => v.into_array_value_vec(),
+
+            #[cfg(feature = "postgres-vector")]
+            Self::Vector(_) => panic!("Array of Vector is not supported"),
+
+            #[cfg(feature = "with-ipnetwork")]
+            Self::IpNetwork(v) => ArrayValueVec::IpNetwork(to_vec(v)),
+
+            #[cfg(feature = "with-mac_address")]
+            Self::MacAddress(v) => ArrayValueVec::MacAddress(to_vec(v)),
+
+            #[cfg(feature = "postgres-range")]
+            Self::Range(_) => panic!("Array of Vector is not supported"),
+        }
+    }
+}
+
+impl ArrayValueVec {
+    pub fn push(&mut self, v: Value) {
+        match self {
+            Self::Bool(a) => a.push(v.unwrap()),
+            Self::TinyInt(a) => a.push(v.unwrap()),
+            Self::SmallInt(a) => a.push(v.unwrap()),
+            Self::Int(a) => a.push(v.unwrap()),
+            Self::BigInt(a) => a.push(v.unwrap()),
+            Self::TinyUnsigned(a) => a.push(v.unwrap()),
+            Self::SmallUnsigned(a) => a.push(v.unwrap()),
+            Self::Unsigned(a) => a.push(v.unwrap()),
+            Self::BigUnsigned(a) => a.push(v.unwrap()),
+            Self::Float(a) => a.push(v.unwrap()),
+            Self::Double(a) => a.push(v.unwrap()),
+            Self::String(a) => a.push(v.unwrap()),
+            Self::Char(a) => a.push(v.unwrap()),
+            Self::Bytes(a) => a.push(v.unwrap()),
+            Self::Enum(a) => a.push(match v {
+                Value::Enum(v) => v,
+                _ => panic!("Not Enum"),
+            }),
+            #[cfg(feature = "with-json")]
+            Self::Json(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDate(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoTime(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTime(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeUtc(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeLocal(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeWithTimeZone(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-time")]
+            Self::TimeDate(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-time")]
+            Self::TimeTime(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-time")]
+            Self::TimeDateTime(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-time")]
+            Self::TimeDateTimeWithTimeZone(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffDate(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffTime(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffDateTime(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffTimestamp(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffZoned(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-uuid")]
+            Self::Uuid(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-rust_decimal")]
+            Self::Decimal(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-bigdecimal")]
+            Self::BigDecimal(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-ipnetwork")]
+            Self::IpNetwork(a) => a.push(v.unwrap()),
+            #[cfg(feature = "with-mac_address")]
+            Self::MacAddress(a) => a.push(v.unwrap()),
+        }
+    }
+
+    pub fn into_array(self) -> Array {
+        match self {
+            Self::Bool(a) => Array::Bool(a.into()),
+            Self::TinyInt(a) => Array::TinyInt(a.into()),
+            Self::SmallInt(a) => Array::SmallInt(a.into()),
+            Self::Int(a) => Array::Int(a.into()),
+            Self::BigInt(a) => Array::BigInt(a.into()),
+            Self::TinyUnsigned(a) => Array::TinyUnsigned(a.into()),
+            Self::SmallUnsigned(a) => Array::SmallUnsigned(a.into()),
+            Self::Unsigned(a) => Array::Unsigned(a.into()),
+            Self::BigUnsigned(a) => Array::BigUnsigned(a.into()),
+            Self::Float(a) => Array::Float(a.into()),
+            Self::Double(a) => Array::Double(a.into()),
+            Self::String(a) => Array::String(a.into()),
+            Self::Char(a) => Array::Char(a.into()),
+            Self::Bytes(a) => Array::Bytes(a.into()),
+            Self::Enum(a) => Array::Enum(Box::new((
+                a.first()
+                    .expect("Array empty")
+                    .as_ref()
+                    .unwrap()
+                    .type_name
+                    .as_ref()
+                    .expect("No type_name?")
+                    .clone(),
+                a.into(),
+            ))),
+            #[cfg(feature = "with-json")]
+            Self::Json(a) => Array::Json(a.into()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDate(a) => Array::ChronoDate(a.into()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoTime(a) => Array::ChronoTime(a.into()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTime(a) => Array::ChronoDateTime(a.into()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeUtc(a) => Array::ChronoDateTimeUtc(a.into()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeLocal(a) => Array::ChronoDateTimeLocal(a.into()),
+            #[cfg(feature = "with-chrono")]
+            Self::ChronoDateTimeWithTimeZone(a) => Array::ChronoDateTimeWithTimeZone(a.into()),
+            #[cfg(feature = "with-time")]
+            Self::TimeDate(a) => Array::TimeDate(a.into()),
+            #[cfg(feature = "with-time")]
+            Self::TimeTime(a) => Array::TimeTime(a.into()),
+            #[cfg(feature = "with-time")]
+            Self::TimeDateTime(a) => Array::TimeDateTime(a.into()),
+            #[cfg(feature = "with-time")]
+            Self::TimeDateTimeWithTimeZone(a) => Array::TimeDateTimeWithTimeZone(a.into()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffDate(a) => Array::JiffDate(a.into()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffTime(a) => Array::JiffTime(a.into()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffDateTime(a) => Array::JiffDateTime(a.into()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffTimestamp(a) => Array::JiffTimestamp(a.into()),
+            #[cfg(feature = "with-jiff")]
+            Self::JiffZoned(a) => Array::JiffZoned(a.into()),
+            #[cfg(feature = "with-uuid")]
+            Self::Uuid(a) => Array::Uuid(a.into()),
+            #[cfg(feature = "with-rust_decimal")]
+            Self::Decimal(a) => Array::Decimal(a.into()),
+            #[cfg(feature = "with-bigdecimal")]
+            Self::BigDecimal(a) => Array::BigDecimal(a.into()),
+            #[cfg(feature = "with-ipnetwork")]
+            Self::IpNetwork(a) => Array::IpNetwork(a.into()),
+            #[cfg(feature = "with-mac_address")]
+            Self::MacAddress(a) => Array::MacAddress(a.into()),
+        }
+    }
+}
+
 impl From<Array> for Value {
     fn from(value: Array) -> Self {
         Value::Array(value)
@@ -530,7 +877,7 @@ impl std::fmt::Debug for ArrayIterValue<'_> {
     }
 }
 
-impl<'a> Iterator for ArrayIterValue<'a> {
+impl Iterator for ArrayIterValue<'_> {
     type Item = Option<Value>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -752,5 +1099,40 @@ where
             .into_iter()
             .map(|opt| opt.map(|item| item.into_array_value()));
         ArrayValue::into_array(iter)
+    }
+}
+
+impl From<Vec<Value>> for Array {
+    fn from(values: Vec<Value>) -> Self {
+        let mut values = values.into_iter();
+        let mut arr = match values.next() {
+            Some(value) => value.into_array_value_vec(),
+            None => return Array::Null(ArrayType::Int), // FIXME
+        };
+
+        for value in values {
+            arr.push(value);
+        }
+
+        arr.into_array()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_array_value() {
+        let mut values: Vec<Value> = Vec::new();
+        values.push(1i32.into());
+        values.push(2i32.into());
+        values.push(3i32.into());
+        let array = Value::Array(values.into());
+        assert_eq!(
+            format!("{array:?}"),
+            "Array(Int([Some(1), Some(2), Some(3)]))"
+        );
+        assert_eq!(array, Value::from(vec![1i32, 2, 3]));
     }
 }

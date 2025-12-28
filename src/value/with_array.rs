@@ -6,7 +6,6 @@ macro_rules! impl_value_vec {
         $(
             impl crate::sealed::Sealed for $ty {}
 
-
             impl ArrayValue for $ty {
                 fn array_type() -> ArrayType {
                     ArrayType::$vari
