@@ -94,6 +94,8 @@ pub enum Array {
     Null(ArrayType),
 }
 
+pub struct ArrayIterValue<'a>(Box<dyn Iterator<Item = Option<Value>> + 'a>);
+
 impl Array {
     pub fn array_type(&self) -> ArrayType {
         match self {
@@ -223,6 +225,80 @@ impl Array {
             Array::MacAddress(v) => v.is_empty(),
             Array::Null(_) => true,
         }
+    }
+
+    pub fn iter_value(&self) -> ArrayIterValue<'_> {
+        fn map_value<T>(t: &Option<T>) -> Option<Value>
+        where
+            T: Clone,
+            Value: From<T>,
+        {
+            t.to_owned().map(Value::from)
+        }
+
+        ArrayIterValue(match self {
+            Array::Bool(v) => Box::new(v.iter().map(map_value)),
+            Array::TinyInt(v) => Box::new(v.iter().map(map_value)),
+            Array::SmallInt(v) => Box::new(v.iter().map(map_value)),
+            Array::Int(v) => Box::new(v.iter().map(map_value)),
+            Array::BigInt(v) => Box::new(v.iter().map(map_value)),
+            Array::TinyUnsigned(v) => Box::new(v.iter().map(map_value)),
+            Array::SmallUnsigned(v) => Box::new(v.iter().map(map_value)),
+            Array::Unsigned(v) => Box::new(v.iter().map(map_value)),
+            Array::BigUnsigned(v) => Box::new(v.iter().map(map_value)),
+            Array::Float(v) => Box::new(v.iter().map(map_value)),
+            Array::Double(v) => Box::new(v.iter().map(map_value)),
+            Array::String(v) => Box::new(v.iter().map(map_value)),
+            Array::Char(v) => Box::new(v.iter().map(map_value)),
+            Array::Bytes(v) => Box::new(v.iter().map(map_value)),
+            Array::Enum(v) => {
+                let (_, arr) = v.as_ref();
+                Box::new(arr.iter().map(|v| Some(Value::Enum(v.clone()))))
+            }
+            #[cfg(feature = "with-json")]
+            Array::Json(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDate(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoTime(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTime(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeUtc(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeLocal(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-chrono")]
+            Array::ChronoDateTimeWithTimeZone(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-time")]
+            Array::TimeDate(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-time")]
+            Array::TimeTime(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTime(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-time")]
+            Array::TimeDateTimeWithTimeZone(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDate(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTime(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffDateTime(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffTimestamp(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-jiff")]
+            Array::JiffZoned(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-uuid")]
+            Array::Uuid(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-rust_decimal")]
+            Array::Decimal(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-bigdecimal")]
+            Array::BigDecimal(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-ipnetwork")]
+            Array::IpNetwork(v) => Box::new(v.iter().map(map_value)),
+            #[cfg(feature = "with-mac_address")]
+            Array::MacAddress(v) => Box::new(v.iter().map(map_value)),
+            Array::Null(_) => Box::new(std::iter::empty()),
+        })
     }
 
     #[cfg(feature = "with-json")]
@@ -448,6 +524,20 @@ impl From<Array> for Value {
     }
 }
 
+impl std::fmt::Debug for ArrayIterValue<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ArrayIterValue")
+    }
+}
+
+impl<'a> Iterator for ArrayIterValue<'a> {
+    type Item = Option<Value>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+
 /// Trait for custom types that can be used as PostgreSQL array elements.
 ///
 /// When implemented, SeaQuery will provide:
@@ -634,6 +724,31 @@ where
 {
     fn from(x: [Option<T>; N]) -> Array {
         let iter = x
+            .into_iter()
+            .map(|opt| opt.map(|item| item.into_array_value()));
+        ArrayValue::into_array(iter)
+    }
+}
+
+impl<T> std::iter::FromIterator<T> for Array
+where
+    T: ArrayElement,
+{
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let iter = iter
+            .into_iter()
+            .map(|item| item.into_array_value())
+            .map(Some);
+        ArrayValue::into_array(iter)
+    }
+}
+
+impl<T> std::iter::FromIterator<Option<T>> for Array
+where
+    T: ArrayElement,
+{
+    fn from_iter<I: IntoIterator<Item = Option<T>>>(iter: I) -> Self {
+        let iter = iter
             .into_iter()
             .map(|opt| opt.map(|item| item.into_array_value()));
         ArrayValue::into_array(iter)
