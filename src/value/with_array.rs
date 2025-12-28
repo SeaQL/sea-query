@@ -29,6 +29,7 @@ macro_rules! impl_value_vec {
                 fn try_from_value(v: Value) -> Result<Vec<Option<Self>>, ValueTypeErr> {
                     match v {
                         Value::Array(Array::$vari(inner)) => Ok(inner.into_vec()),
+                        Value::Array(Array::Null(ArrayType::$vari)) => Ok(vec![]),
                         _ => Err(ValueTypeErr)
                     }
                 }
@@ -106,6 +107,7 @@ impl ValueType for Vec<Option<u8>> {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
             Value::Array(Array::TinyUnsigned(inner)) => Ok(inner.into_vec()),
+            Value::Array(Array::Null(ArrayType::TinyUnsigned)) => Ok(vec![]),
             _ => Err(ValueTypeErr),
         }
     }
@@ -195,7 +197,7 @@ macro_rules! impl_uuid_fmt_pg_array_element {
                         .into_iter()
                         .map(|opt| opt.map(Self::from))
                         .collect()),
-                    Value::Array(Array::Null(_)) => Ok(vec![]),
+                    Value::Array(Array::Null(ArrayType::Uuid)) => Ok(vec![]),
                     _ => Err(ValueTypeErr),
                 }
             }
