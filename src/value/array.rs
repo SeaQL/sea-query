@@ -530,7 +530,7 @@ impl std::fmt::Debug for ArrayIterValue<'_> {
     }
 }
 
-impl<'a> Iterator for ArrayIterValue<'a> {
+impl Iterator for ArrayIterValue<'_> {
     type Item = Option<Value>;
 
     fn next(&mut self) -> Option<Self::Item> {
