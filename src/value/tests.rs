@@ -424,3 +424,208 @@ fn test_option_array_value() {
     let out: Option<Vec<Option<i32>>> = v.unwrap();
     assert_eq!(out, None);
 }
+
+#[test]
+#[cfg(feature = "postgres-array")]
+fn test_try_from_value_array() {
+    fn assert_try_from_value_array<T>(v1: T, v2: T)
+    where
+        T: ArrayElement + Clone + PartialEq + std::fmt::Debug,
+    {
+        let expected = vec![Some(v1.clone()), None, Some(v2.clone())];
+        let value: Value = expected.clone().into();
+        let out = T::try_from_value(value).unwrap();
+        assert_eq!(out, expected);
+
+        let value = Value::Array(Array::Null(T::ArrayValueType::array_type()));
+        let out = T::try_from_value(value).unwrap();
+        assert_eq!(out, Vec::<Option<T>>::new());
+    }
+
+    assert_try_from_value_array(true, false);
+    assert_try_from_value_array(-1i8, 2);
+    assert_try_from_value_array(-2i16, 3);
+    assert_try_from_value_array(-3i32, 4);
+    assert_try_from_value_array(-4i64, 5);
+    assert_try_from_value_array(6u16, 7);
+    assert_try_from_value_array(8u32, 9);
+    assert_try_from_value_array(10u64, 11);
+    assert_try_from_value_array(1.5f32, 2.5);
+    assert_try_from_value_array(3.25f64, 4.75);
+    assert_try_from_value_array(String::from("a"), String::from("b"));
+    assert_try_from_value_array('a', 'b');
+    assert_try_from_value_array(vec![1, 2, 3], vec![4, 5, 6]);
+
+    #[cfg(feature = "with-json")]
+    {
+        assert_try_from_value_array(serde_json::json!({"a": 1}), serde_json::json!({"b": 2}));
+    }
+
+    #[cfg(feature = "with-chrono")]
+    {
+        assert_try_from_value_array(
+            NaiveDate::from_ymd_opt(2020, 1, 1).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 2, 2).unwrap(),
+        );
+        assert_try_from_value_array(
+            NaiveTime::from_hms_opt(1, 2, 3).unwrap(),
+            NaiveTime::from_hms_opt(4, 5, 6).unwrap(),
+        );
+        assert_try_from_value_array(
+            NaiveDate::from_ymd_opt(2020, 1, 1)
+                .unwrap()
+                .and_hms_opt(1, 2, 3)
+                .unwrap(),
+            NaiveDate::from_ymd_opt(2021, 2, 2)
+                .unwrap()
+                .and_hms_opt(4, 5, 6)
+                .unwrap(),
+        );
+        assert_try_from_value_array(
+            DateTime::<Utc>::from_utc(
+                NaiveDate::from_ymd_opt(2020, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(1, 2, 3)
+                    .unwrap(),
+                Utc,
+            ),
+            DateTime::<Utc>::from_utc(
+                NaiveDate::from_ymd_opt(2021, 2, 2)
+                    .unwrap()
+                    .and_hms_opt(4, 5, 6)
+                    .unwrap(),
+                Utc,
+            ),
+        );
+        assert_try_from_value_array(
+            chrono::TimeZone::from_utc_datetime(
+                &Local,
+                &NaiveDate::from_ymd_opt(2020, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(1, 2, 3)
+                    .unwrap(),
+            ),
+            chrono::TimeZone::from_utc_datetime(
+                &Local,
+                &NaiveDate::from_ymd_opt(2021, 2, 2)
+                    .unwrap()
+                    .and_hms_opt(4, 5, 6)
+                    .unwrap(),
+            ),
+        );
+        assert_try_from_value_array(
+            DateTime::<FixedOffset>::from_utc(
+                NaiveDate::from_ymd_opt(2020, 1, 1)
+                    .unwrap()
+                    .and_hms_opt(1, 2, 3)
+                    .unwrap(),
+                FixedOffset::east_opt(0).unwrap(),
+            ),
+            DateTime::<FixedOffset>::from_utc(
+                NaiveDate::from_ymd_opt(2021, 2, 2)
+                    .unwrap()
+                    .and_hms_opt(4, 5, 6)
+                    .unwrap(),
+                FixedOffset::east_opt(0).unwrap(),
+            ),
+        );
+    }
+
+    #[cfg(feature = "with-time")]
+    {
+        assert_try_from_value_array(
+            time::Date::from_calendar_date(2020, time::Month::January, 1).unwrap(),
+            time::Date::from_calendar_date(2021, time::Month::February, 2).unwrap(),
+        );
+        assert_try_from_value_array(
+            time::Time::from_hms(1, 2, 3).unwrap(),
+            time::Time::from_hms(4, 5, 6).unwrap(),
+        );
+        assert_try_from_value_array(
+            PrimitiveDateTime::new(
+                time::Date::from_calendar_date(2020, time::Month::January, 1).unwrap(),
+                time::Time::from_hms(1, 2, 3).unwrap(),
+            ),
+            PrimitiveDateTime::new(
+                time::Date::from_calendar_date(2021, time::Month::February, 2).unwrap(),
+                time::Time::from_hms(4, 5, 6).unwrap(),
+            ),
+        );
+        assert_try_from_value_array(
+            OffsetDateTime::from_unix_timestamp(0).unwrap(),
+            OffsetDateTime::from_unix_timestamp(60).unwrap(),
+        );
+    }
+
+    #[cfg(feature = "with-jiff")]
+    {
+        assert_try_from_value_array(jiff::civil::date(2020, 1, 1), jiff::civil::date(2021, 2, 2));
+        assert_try_from_value_array(
+            jiff::civil::time(1, 2, 3, 123456 * 1000),
+            jiff::civil::time(4, 5, 6, 234567 * 1000),
+        );
+        assert_try_from_value_array(
+            jiff::civil::date(2020, 1, 1).at(1, 2, 3, 123456 * 1000),
+            jiff::civil::date(2021, 2, 2).at(4, 5, 6, 234567 * 1000),
+        );
+        assert_try_from_value_array(
+            jiff::Timestamp::constant(0, 123456 * 1000),
+            jiff::Timestamp::constant(1, 234567 * 1000),
+        );
+        assert_try_from_value_array(
+            jiff::fmt::strtime::parse(
+                "%Y-%m-%d %H:%M:%S%.6f %:z",
+                "1970-01-01 00:00:00.123456 +00:00",
+            )
+            .unwrap()
+            .to_zoned()
+            .unwrap(),
+            jiff::fmt::strtime::parse(
+                "%Y-%m-%d %H:%M:%S%.6f %:z",
+                "1970-01-01 00:00:00.234567 +00:00",
+            )
+            .unwrap()
+            .to_zoned()
+            .unwrap(),
+        );
+    }
+
+    #[cfg(feature = "with-uuid")]
+    {
+        assert_try_from_value_array(Uuid::from_bytes([1; 16]), Uuid::from_bytes([2; 16]));
+    }
+
+    #[cfg(feature = "with-rust_decimal")]
+    {
+        assert_try_from_value_array(Decimal::new(123, 2), Decimal::new(456, 2));
+    }
+
+    #[cfg(feature = "with-bigdecimal")]
+    {
+        assert_try_from_value_array(BigDecimal::from(123), BigDecimal::from(456));
+    }
+
+    #[cfg(feature = "with-ipnetwork")]
+    {
+        assert_try_from_value_array(
+            IpNetwork::new(
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(192, 168, 0, 1)),
+                24,
+            )
+            .unwrap(),
+            IpNetwork::new(
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, 1)),
+                16,
+            )
+            .unwrap(),
+        );
+    }
+
+    #[cfg(feature = "with-mac_address")]
+    {
+        assert_try_from_value_array(
+            MacAddress::new([0, 1, 2, 3, 4, 5]),
+            MacAddress::new([6, 7, 8, 9, 10, 11]),
+        );
+    }
+}
