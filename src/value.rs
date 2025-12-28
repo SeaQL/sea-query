@@ -769,7 +769,6 @@ pub trait ValueType: Sized {
 
     fn type_name() -> String;
 
-    #[deprecated(since = "1.0.0", note = "use [`ArrayValue::ArrayType`] instead")]
     fn array_type() -> ArrayType;
 
     fn column_type() -> ColumnType;
@@ -799,7 +798,6 @@ where
         format!("Option<{}>", T::type_name())
     }
 
-    #[expect(deprecated)]
     fn array_type() -> ArrayType {
         T::array_type()
     }
