@@ -2096,4 +2096,18 @@ mod tests {
             buf.clear();
         }
     }
+
+    #[test]
+    #[cfg(feature = "postgres-array")]
+    fn prepare_array_null_and_empty() {
+        use crate::{ArrayType, PostgresQueryBuilder, QueryBuilder, Value};
+
+        let mut string = String::new();
+        PostgresQueryBuilder.prepare_value(Value::Array(ArrayType::String, None), &mut string);
+        assert_eq!(string, "NULL");
+
+        string.clear();
+        PostgresQueryBuilder.prepare_value(Vec::<String>::new().into(), &mut string);
+        assert_eq!(string, "'{}'");
+    }
 }

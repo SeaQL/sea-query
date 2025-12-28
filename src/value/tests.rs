@@ -424,3 +424,18 @@ fn test_option_array_value() {
     let out: Option<Vec<i32>> = v.unwrap();
     assert_eq!(out, None);
 }
+
+#[test]
+#[cfg(feature = "postgres-array")]
+fn test_null_array_is_not_empty() {
+    // A null array (None) should not be treated as an empty array
+    let null_array = Value::Array(ArrayType::Int, None);
+    assert!(null_array.is_array());
+    // A null array cannot be converted to Vec<i32>
+    assert!(<Vec<i32> as ValueType>::try_from(null_array).is_err());
+
+    // An empty array (Some([])) should convert to an empty Vec
+    let empty_array = Value::Array(ArrayType::Int, Some(Box::new(vec![])));
+    let out = <Vec<i32> as ValueType>::try_from(empty_array).unwrap();
+    assert!(out.is_empty());
+}
