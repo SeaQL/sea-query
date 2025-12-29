@@ -96,7 +96,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(decimal) => {
-                    use rust_decimal::prelude::ToPrimitive;
                     let _ = args.add(decimal.map(|d| d.to_string()));
                 }
                 #[cfg(feature = "with-bigdecimal")]
@@ -124,10 +123,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Vector(_) => {
                     panic!("Sqlite doesn't support vector arguments");
                 }
-                #[cfg(feature = "postgres-range")]
+                /* #[cfg(feature = "postgres-range")]
                 Value::Range(_) => {
                     panic!("Sqlite doesn't support PgRange arguments");
-                }
+                } */
             }
         }
         args
