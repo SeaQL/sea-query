@@ -120,6 +120,7 @@ all-types = [
 ]
 option-more-parentheses = []
 option-sqlite-exact-column-type = []
+option-postgres-use-serial = []
 itoa = ["dep:itoa"]
 
 [[test]]
