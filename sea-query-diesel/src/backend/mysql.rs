@@ -64,18 +64,17 @@ impl TransformValue for Mysql {
             ))]
             Value::Decimal(_) => bail!("Enable feature with-rust_decimal-mysql"),
             #[cfg(feature = "with-bigdecimal")]
-            Value::BigDecimal(v) => build!(Numeric, v),
+            Value::BigDecimal(v) => build!(Numeric, v.map(|v| *v)),
             #[cfg(feature = "with-json")]
-            Value::Json(v) => build!(Json, v),
+            Value::Json(v) => build!(Json, v.map(|v| *v)),
             #[cfg(feature = "with-ipnetwork")]
             Value::IpNetwork(_) => bail!("Mysql doesn't support IpNetwork arguments"),
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(_) => bail!("Mysql doesn't support MacAddress arguments"),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_) => bail!("Mysql doesn't support array arguments"),
+            Value::Array(_, _) => bail!("Mysql doesn't support array arguments"),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(_) => bail!("Mysql doesn't support vector arguments"),
-            Value::Enum(_) => bail!("Mysql doesn't support enum arguments"),
         };
         Ok(transformed)
     }

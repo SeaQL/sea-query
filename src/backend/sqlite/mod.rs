@@ -11,8 +11,6 @@ pub struct SqliteQueryBuilder;
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
-impl ValueEncoder for SqliteQueryBuilder {}
-
 impl GenericBuilder for SqliteQueryBuilder {}
 
 impl SchemaBuilder for SqliteQueryBuilder {}

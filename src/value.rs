@@ -1,44 +1,8 @@
 //! Container for all SQL value types.
 
 use std::borrow::Cow;
-use std::sync::Arc;
 
-#[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
-#[cfg(feature = "with-json")]
-use serde_json::Value as Json;
-
-#[cfg(feature = "with-time")]
-use time::{OffsetDateTime, PrimitiveDateTime};
-
-#[cfg(feature = "with-jiff")]
-use jiff::{Timestamp, Zoned};
-
-#[cfg(feature = "with-rust_decimal")]
-use rust_decimal::Decimal;
-
-#[cfg(feature = "with-bigdecimal")]
-use bigdecimal::BigDecimal;
-
-#[cfg(feature = "with-uuid")]
-use uuid::Uuid;
-
-#[cfg(feature = "with-ipnetwork")]
-use ipnetwork::IpNetwork;
-
-#[cfg(feature = "with-ipnetwork")]
-use std::net::IpAddr;
-
-#[cfg(feature = "with-mac_address")]
-use mac_address::MacAddress;
-
-#[cfg(feature = "postgres-array")]
-#[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-mod array;
-
-use crate::{ColumnType, CommonSqlQueryBuilder, DynIden, QueryBuilder, StringLen};
-#[cfg(feature = "postgres-array")]
-pub use array::{Array, ArrayElement, ArrayValue};
+use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
 
 #[cfg(test)]
 mod tests;
@@ -129,8 +93,6 @@ pub enum ArrayType {
     String,
     Char,
     Bytes,
-    /// The type name of the enum
-    Enum(Arc<str>),
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -240,15 +202,13 @@ pub enum Value {
     Double(Option<f64>),
     String(Option<String>),
     Char(Option<char>),
-    /// In most cases, the values of enums are staticly known,
-    /// so we use Arc to save space
-    Enum(Option<Arc<Enum>>),
 
+    #[allow(clippy::box_collection)]
     Bytes(Option<Vec<u8>>),
 
     #[cfg(feature = "with-json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-    Json(Option<Json>),
+    Json(Option<Box<Json>>),
 
     #[cfg(feature = "with-chrono")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
@@ -300,15 +260,15 @@ pub enum Value {
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffDateTime(Option<jiff::civil::DateTime>),
+    JiffDateTime(Option<Box<jiff::civil::DateTime>>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffTimestamp(Option<Timestamp>),
+    JiffTimestamp(Option<Box<Timestamp>>),
 
     #[cfg(feature = "with-jiff")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-    JiffZoned(Option<Zoned>),
+    JiffZoned(Option<Box<Zoned>>),
 
     #[cfg(feature = "with-uuid")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
@@ -320,11 +280,11 @@ pub enum Value {
 
     #[cfg(feature = "with-bigdecimal")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-    BigDecimal(Option<BigDecimal>),
+    BigDecimal(Option<Box<BigDecimal>>),
 
     #[cfg(feature = "postgres-array")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-    Array(Array),
+    Array(ArrayType, Option<Box<Vec<Value>>>),
 
     #[cfg(feature = "postgres-vector")]
     #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -343,32 +303,6 @@ pub enum Value {
     Range(Option<Box<RangeType>>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Enum {
-    /// The type_name is only used for the Postgres
-    ///
-    /// In most cases, the enum type name is staticly known,
-    /// we wrap it in an [`Arc<str>`] to save space.
-    pub(crate) type_name: Option<Arc<str>>,
-    pub(crate) value: DynIden,
-}
-
-impl Enum {
-    /// Create a new [`Enum`]
-    pub fn new(type_name: impl Into<Option<Arc<str>>>, value: DynIden) -> Self {
-        Self {
-            type_name: type_name.into(),
-            value,
-        }
-    }
-
-    /// Get the string value of the enum
-    pub fn as_str(&self) -> &str {
-        self.value.as_ref()
-    }
-}
-
 /// This test is to check if the size of [`Value`] exceeds the limit.
 ///
 /// If the size exceeds the limit, you should box the variant.
@@ -381,41 +315,8 @@ impl Enum {
 pub const VALUE_SIZE: usize = check_value_size();
 const MAX_VALUE_SIZE: usize = 32;
 
-#[allow(unused)]
-const EXPECTED_VALUE_SIZE: usize = {
-    #[allow(unused_mut)]
-    let mut max = MAX_VALUE_SIZE;
-
-    macro_rules! max_mut {
-        ($expr:expr) => {
-            let tmp = $expr;
-            if max < tmp {
-                max = tmp;
-            }
-        };
-    }
-
-    #[cfg(all(feature = "with-json", feature = "postgres-array"))]
-    // size of vec + discriminant (8)
-    max_mut!(40);
-
-    // If some crate enabled indexmap feature, the size of Json will be 72 or larger.
-    #[cfg(feature = "with-json")]
-    max_mut!(size_of::<Option<Json>>());
-
-    // If bigdecimal is enabled and its size is larger, we make the limit to be bigdecimal's size
-    #[cfg(feature = "with-bigdecimal")]
-    max_mut!(size_of::<Option<BigDecimal>>());
-
-    // Jiff has extra size in debug mode. Skip size check in that case.
-    #[cfg(feature = "with-jiff")]
-    max_mut!(size_of::<Option<jiff::Zoned>>());
-
-    max
-};
-
 const fn check_value_size() -> usize {
-    if std::mem::size_of::<Value>() > EXPECTED_VALUE_SIZE {
+    if std::mem::size_of::<Value>() > MAX_VALUE_SIZE {
         panic!(
             "the size of Value shouldn't be greater than the expected MAX_VALUE_SIZE (32 bytes by default)"
         )
@@ -467,7 +368,6 @@ impl Value {
             Self::String(_) => Self::String(None),
             Self::Char(_) => Self::Char(None),
             Self::Bytes(_) => Self::Bytes(None),
-            Self::Enum(_) => Self::Enum(None),
 
             #[cfg(feature = "with-json")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
@@ -547,7 +447,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(arr) => Self::Array(Array::Null(arr.array_type())),
+            Self::Array(ty, _) => Self::Array(ty.clone(), None),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -591,7 +491,6 @@ impl Value {
             Self::Double(_) => Self::Double(Some(Default::default())),
             Self::String(_) => Self::String(Some(Default::default())),
             Self::Char(_) => Self::Char(Some(Default::default())),
-            Self::Enum(value) => Self::Enum(value.clone()),
             Self::Bytes(_) => Self::Bytes(Some(Default::default())),
 
             #[cfg(feature = "with-json")]
@@ -653,17 +552,19 @@ impl Value {
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffDateTime(_) => {
-                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0)))
+                Self::JiffDateTime(Some(jiff::civil::date(1970, 1, 1).at(0, 0, 0, 0).into()))
             }
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH)),
+            Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH.into())),
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffZoned(_) => Self::JiffZoned(Some(
-                Timestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC),
+                Timestamp::UNIX_EPOCH
+                    .to_zoned(jiff::tz::TimeZone::UTC)
+                    .into(),
             )),
 
             #[cfg(feature = "with-uuid")]
@@ -680,7 +581,7 @@ impl Value {
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(arr) => Self::Array(arr.dummy_value()),
+            Self::Array(ty, _) => Self::Array(ty.clone(), Some(Default::default())),
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
@@ -912,7 +813,6 @@ type_to_value!(char, Char, Char(None));
 type_to_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
 type_to_value!(String, String, String(StringLen::None));
 
-#[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
 #[allow(unused_macros)]
 macro_rules! type_to_box_value {
     ( $type: ty, $name: ident, $col_type: expr ) => {
@@ -952,6 +852,5 @@ macro_rules! type_to_box_value {
     };
 }
 
-#[cfg(any(feature = "with-bigdecimal", feature = "with-jiff"))]
 #[allow(unused_imports)]
 use type_to_box_value;

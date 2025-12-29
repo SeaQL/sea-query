@@ -22,7 +22,6 @@ impl PartialEq for Value {
             (Self::String(l), Self::String(r)) => l == r,
             (Self::Char(l), Self::Char(r)) => l == r,
             (Self::Bytes(l), Self::Bytes(r)) => l == r,
-            (Self::Enum(l), Self::Enum(r)) => l == r,
 
             #[cfg(feature = "with-json")]
             (Self::Json(l), Self::Json(r)) => cmp_json(l, r),
@@ -70,7 +69,9 @@ impl PartialEq for Value {
             (Self::BigDecimal(l), Self::BigDecimal(r)) => l == r,
 
             #[cfg(feature = "postgres-array")]
-            (Self::Array(l), Self::Array(r)) => l == r,
+            (Self::Array(ty_l, values_l), Self::Array(ty_r, values_r)) => {
+                ty_l == ty_r && values_l == values_r
+            }
 
             #[cfg(feature = "postgres-vector")]
             (Self::Vector(l), Self::Vector(r)) => cmp_vector(l, r),
@@ -106,7 +107,6 @@ impl Hash for Value {
             Value::String(v) => v.hash(state),
             Value::Char(v) => v.hash(state),
             Value::Bytes(v) => v.hash(state),
-            Value::Enum(v) => v.hash(state),
 
             #[cfg(feature = "with-json")]
             Value::Json(value) => hash_json(value, state),
@@ -154,7 +154,10 @@ impl Hash for Value {
             Value::BigDecimal(big_decimal) => big_decimal.hash(state),
 
             #[cfg(feature = "postgres-array")]
-            Value::Array(array) => array.hash(state),
+            Value::Array(array_type, vec) => {
+                array_type.hash(state);
+                vec.hash(state);
+            }
 
             #[cfg(feature = "postgres-vector")]
             Value::Vector(vector) => hash_vector(vector, state),
@@ -202,7 +205,7 @@ fn cmp_f64(l: &Option<f64>, r: &Option<f64>) -> bool {
 }
 
 #[cfg(feature = "with-json")]
-fn hash_json<H: Hasher>(v: &Option<Json>, state: &mut H) {
+fn hash_json<H: Hasher>(v: &Option<Box<Json>>, state: &mut H) {
     match v {
         Some(v) => serde_json::to_string(v).unwrap().hash(state),
         None => "null".hash(state),
@@ -210,7 +213,7 @@ fn hash_json<H: Hasher>(v: &Option<Json>, state: &mut H) {
 }
 
 #[cfg(feature = "with-json")]
-fn cmp_json(l: &Option<Json>, r: &Option<Json>) -> bool {
+fn cmp_json(l: &Option<Box<Json>>, r: &Option<Box<Json>>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => serde_json::to_string(l)
             .unwrap()
@@ -322,16 +325,30 @@ mod tests {
     #[cfg(feature = "postgres-array")]
     #[test]
     fn test_hash_value_array() {
-        use crate::value::Array;
+        use crate::ArrayType;
 
         assert_eq!(
             Into::<Value>::into(vec![0i32, 1, 2]),
-            Value::Array(Array::from(vec![Some(0), Some(1), Some(2)]))
+            Value::Array(
+                ArrayType::Int,
+                Some(Box::new(vec![
+                    Value::Int(Some(0)),
+                    Value::Int(Some(1)),
+                    Value::Int(Some(2))
+                ]))
+            )
         );
 
         assert_eq!(
             Into::<Value>::into(vec![0f32, 1.0, 2.0]),
-            Value::Array(Array::from(vec![Some(0f32), Some(1.0), Some(2.0)]))
+            Value::Array(
+                ArrayType::Float,
+                Some(Box::new(vec![
+                    Value::Float(Some(0f32)),
+                    Value::Float(Some(1.0)),
+                    Value::Float(Some(2.0))
+                ]))
+            )
         );
 
         let hash_set: std::collections::HashSet<Value> = [

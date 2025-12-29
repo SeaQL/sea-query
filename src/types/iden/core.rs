@@ -71,28 +71,17 @@ pub trait IdenStatic: Iden + Copy + 'static {
 /// Nowadays, it's an eagerly-rendered string.
 /// Most identifiers are static strings that aren't "rendered" at runtime anyway.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DynIden(pub(crate) Cow<'static, str>);
 
 impl DynIden {
     pub fn inner(&self) -> Cow<'static, str> {
         self.0.clone()
     }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
 }
 
 impl std::fmt::Display for DynIden {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str(&self.0)
-    }
-}
-
-impl AsRef<str> for DynIden {
-    fn as_ref(&self) -> &str {
-        &self.0
     }
 }
 

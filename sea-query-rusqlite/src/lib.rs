@@ -115,7 +115,7 @@ impl ToSql for RusqliteValue {
                     return "null".to_sql();
                 }
                 match j {
-                    Some(v) => v.to_sql(),
+                    Some(v) => v.as_ref().to_sql(),
                     None => Null.to_sql(),
                 }
             }
@@ -128,17 +128,13 @@ impl ToSql for RusqliteValue {
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(v) => opt_string_to_sql!(v.as_ref().map(|v| v.to_string())),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_) => {
+            Value::Array(_, _) => {
                 panic!("Rusqlite doesn't support Array arguments");
             }
             #[cfg(feature = "postgres-vector")]
             Value::Vector(_) => {
                 panic!("Rusqlite doesn't support Vector arguments");
             }
-            Value::Enum(v) => match v {
-                Some(v) => v.as_str().to_sql(),
-                None => Null.to_sql(),
-            },
         }
     }
 }

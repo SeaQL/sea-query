@@ -25,7 +25,7 @@ pub trait PgExpr: ExprTrait {
     ///
     ///     assert_eq!(
     ///         query.to_string(PostgresQueryBuilder),
-    ///         r#"SELECT ARRAY['a'] || ARRAY['b']"#
+    ///         r#"SELECT ARRAY ['a'] || ARRAY ['b']"#
     ///     );
     /// }
     /// ```
