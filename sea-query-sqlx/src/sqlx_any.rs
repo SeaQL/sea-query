@@ -123,11 +123,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 #[cfg(feature = "postgres-vector")]
                 Value::Vector(_) => {
                     panic!("SQLx doesn't support vector arguments for Any");
-                }
-                /* #[cfg(feature = "postgres-range")]
-                Value::Range(_) => {
-                    panic!("SQLx doesn't support PgRange arguments for Any");
-                } */
+                } /* #[cfg(feature = "postgres-range")]
+                  Value::Range(_) => {
+                      panic!("SQLx doesn't support PgRange arguments for Any");
+                  } */
             }
         }
         args
