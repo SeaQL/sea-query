@@ -1866,4 +1866,19 @@ mod tests {
 
         compare!(date_time_tz, "'2015-06-03 20:34:56.123456 +08:00'");
     }
+
+    #[test]
+    #[cfg(feature = "postgres-array")]
+    fn prepare_array_null_and_empty() {
+        use crate::{Array, ArrayType, PostgresQueryBuilder, QueryBuilder, Value};
+
+        let mut string = String::new();
+        PostgresQueryBuilder
+            .prepare_value(Value::Array(Array::Null(ArrayType::String)), &mut string);
+        assert_eq!(string, "NULL");
+
+        string.clear();
+        PostgresQueryBuilder.prepare_value(Vec::<String>::new().into(), &mut string);
+        assert_eq!(string, "'{}'");
+    }
 }
