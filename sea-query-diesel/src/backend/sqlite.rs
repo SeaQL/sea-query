@@ -97,10 +97,9 @@ impl TransformValue for Sqlite {
             #[cfg(feature = "with-mac_address")]
             Value::MacAddress(_) => bail!("Sqlite doesn't support MacAddress arguments"),
             #[cfg(feature = "postgres-array")]
-            Value::Array(_) => bail!("Sqlite doesn't support array arguments"),
+            Value::Array(_, _) => bail!("Sqlite doesn't support array arguments"),
             #[cfg(feature = "postgres-vector")]
             Value::Vector(_) => bail!("Sqlite doesn't support vector arguments"),
-            Value::Enum(v) => build!(Text, v.map(|v| v.as_str().to_owned())),
         };
         Ok(transformed)
     }

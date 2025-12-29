@@ -26,4 +26,3 @@ postgres-driver = ["postgres-protocol", "postgres-types", "bytes"]
 hashable-value = ["ordered-float"]
 range = []
 serde = ["dep:serde"]
-

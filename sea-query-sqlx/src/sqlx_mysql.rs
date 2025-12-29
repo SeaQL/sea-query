@@ -90,29 +90,6 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffDate(_) => {
-                    panic!("Mysql doesn't support Jiff arguments");
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffTime(_) => {
-                    panic!("Mysql doesn't support Jiff arguments");
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffDateTime(_) => {
-                    panic!("Mysql doesn't support Jiff arguments");
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffTimestamp(_) => {
-                    panic!("Mysql doesn't support Jiff arguments");
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffZoned(_) => {
-                    panic!("Mysql doesn't support Jiff arguments");
-                }
-                Value::Enum(_) => {
-                    panic!("Mysql doesn't support Postgres Enum arguments");
-                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);
@@ -123,14 +100,14 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(d) => {
-                    let _ = args.add(d.as_ref());
+                    let _ = args.add(d.as_deref());
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
-                    let _ = args.add(j);
+                    let _ = args.add(j.as_deref());
                 }
                 #[cfg(feature = "postgres-array")]
-                Value::Array(_) => {
+                Value::Array(_, _) => {
                     panic!("Mysql doesn't support array arguments");
                 }
                 #[cfg(feature = "postgres-vector")]
@@ -145,10 +122,10 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::MacAddress(_) => {
                     panic!("Mysql doesn't support MacAddress arguments");
                 }
-                #[cfg(feature = "postgres-range")]
+                /* #[cfg(feature = "postgres-range")]
                 Value::Range(_) => {
                     panic!("Mysql doesn't support PgRange arguments");
-                }
+                } */
             }
         }
         args

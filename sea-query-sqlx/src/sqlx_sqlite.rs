@@ -90,36 +90,12 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffDate(d) => {
-                    let _ = args.add(d.map(jiff_sqlx::Date::from));
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffTime(t) => {
-                    let _ = args.add(t.map(jiff_sqlx::Time::from));
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffDateTime(dt) => {
-                    let _ = args.add(dt.map(jiff_sqlx::DateTime::from));
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffTimestamp(ts) => {
-                    let _ = args.add(ts.map(jiff_sqlx::Timestamp::from));
-                }
-                #[cfg(feature = "with-jiff")]
-                Value::JiffZoned(z) => {
-                    let _ = args.add(z.map(|z| jiff_sqlx::Timestamp::from(z.timestamp())));
-                }
-                Value::Enum(e) => {
-                    let _ = args.add(e.map(|e| e.as_str().to_owned()));
-                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);
                 }
                 #[cfg(feature = "with-rust_decimal")]
                 Value::Decimal(decimal) => {
-                    use rust_decimal::prelude::ToPrimitive;
                     let _ = args.add(decimal.map(|d| d.to_string()));
                 }
                 #[cfg(feature = "with-bigdecimal")]
@@ -129,7 +105,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-json")]
                 Value::Json(j) => {
-                    let _ = args.add(j);
+                    let _ = args.add(j.map(|j| *j));
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(_) => {
@@ -140,17 +116,17 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     panic!("Sqlite doesn't support MacAddress arguments");
                 }
                 #[cfg(feature = "postgres-array")]
-                Value::Array(_) => {
+                Value::Array(_, _) => {
                     panic!("Sqlite doesn't support array arguments");
                 }
                 #[cfg(feature = "postgres-vector")]
                 Value::Vector(_) => {
                     panic!("Sqlite doesn't support vector arguments");
                 }
-                #[cfg(feature = "postgres-range")]
+                /* #[cfg(feature = "postgres-range")]
                 Value::Range(_) => {
                     panic!("Sqlite doesn't support PgRange arguments");
-                }
+                } */
             }
         }
         args

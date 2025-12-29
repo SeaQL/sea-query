@@ -413,14 +413,14 @@ fn test_decimal_value() {
 fn test_array_value() {
     let array = vec![1, 2, 3, 4, 5];
     let v: Value = array.into();
-    let out: Vec<Option<i32>> = v.unwrap();
-    assert_eq!(out, vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
+    let out: Vec<i32> = v.unwrap();
+    assert_eq!(out, vec![1, 2, 3, 4, 5]);
 }
 
 #[test]
 #[cfg(feature = "postgres-array")]
 fn test_option_array_value() {
-    let v: Value = Value::Array(Array::Null(ArrayType::Int));
-    let out: Option<Vec<Option<i32>>> = v.unwrap();
+    let v: Value = Value::Array(ArrayType::Int, None);
+    let out: Option<Vec<i32>> = v.unwrap();
     assert_eq!(out, None);
 }
