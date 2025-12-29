@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-diesel"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 authors = ["Emile Fugulin <emile@caido.io>"]
 edition = "2024"
 description = "Binder traits for connecting sea-query with diesel"
