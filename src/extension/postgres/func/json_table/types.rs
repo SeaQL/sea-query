@@ -33,7 +33,7 @@ pub(super) enum JsonTableColumn {
     },
     /// NESTED PATH column
     Nested {
-        explicit_path: bool,
+        // explicit_path: bool,
         path: Cow<'static, str>,
         as_json_path_name: Option<Cow<'static, str>>,
         columns: Vec<JsonTableColumn>,
