@@ -2,8 +2,7 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use sea_query::{
-    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query,
-    Table,
+    ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table,
 };
 use sea_query_sqlx::SqlxBinder;
 use sqlx::{MySqlPool, Row, types::chrono::NaiveDateTime};
@@ -245,7 +244,7 @@ async fn main() {
 
     let (sql, values) = Query::select()
         .from(Character::Table)
-        .expr_as(Func::count(Expr::col(Character::Id)), Alias::new("count"))
+        .expr_as(Func::count(Expr::col(Character::Id)), "count")
         .build_sqlx(MysqlQueryBuilder);
 
     let row = sqlx::query_with(&sql, values)

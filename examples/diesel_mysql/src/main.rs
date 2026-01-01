@@ -7,7 +7,7 @@ use diesel::{
     sql_types::{BigInt, Blob},
 };
 use sea_query::{
-    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, Order, Query, Table,
+    ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, Order, Query, Table,
 };
 use sea_query_diesel::DieselBinder;
 use serde_json::{Value as Json, json};
