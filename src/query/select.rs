@@ -1,5 +1,5 @@
 use inherent::inherent;
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Display};
 
 use crate::{
     ColumnRef, ConditionHolder, ConditionalStatement, DynIden, Expr, FunctionCall, IntoColumnRef,
@@ -42,6 +42,7 @@ use crate::{
 pub struct SelectStatement {
     pub(crate) distinct: Option<SelectDistinct>,
     pub(crate) selects: Vec<SelectExpr>,
+    pub(crate) into: Option<SelectInto>,
     pub(crate) from: Vec<TableRef>,
     pub(crate) join: Vec<JoinExpr>,
     pub(crate) r#where: ConditionHolder,
@@ -142,6 +143,20 @@ pub struct SelectExpr {
     pub window: Option<WindowSelectType>,
 }
 
+/// The table type of target table of SELECT INTO clause
+#[derive(Debug, Clone, PartialEq)]
+pub enum SelectIntoTableModifier {
+    Temporary,
+    Unlogged,
+}
+
+/// The INTO clause in SELECT statement
+#[derive(Debug, Clone, PartialEq)]
+pub struct SelectInto {
+    pub target_table: DynIden,
+    pub target_table_modifier: Option<SelectIntoTableModifier>,
+}
+
 /// Join expression used in select statement
 #[derive(Debug, Clone, PartialEq)]
 pub struct JoinExpr {
@@ -201,6 +216,34 @@ where
     }
 }
 
+impl Display for SelectIntoTableModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SelectIntoTableModifier::Temporary => f.write_str("TEMPORARY"),
+            SelectIntoTableModifier::Unlogged => f.write_str("UNLOGGED"),
+        }
+    }
+}
+
+impl SelectInto {
+    /// Set the target table of SELECT INTO clause
+    pub fn table<T>(t: T) -> Self
+    where
+        T: IntoIden,
+    {
+        Self {
+            target_table: t.into_iden(),
+            target_table_modifier: None,
+        }
+    }
+
+    /// Set a modifier for the target table like Temporary or unlogged
+    pub fn modifier(mut self, modifier: SelectIntoTableModifier) -> Self {
+        self.target_table_modifier = Some(modifier);
+        self
+    }
+}
+
 impl SelectStatement {
     /// Construct a new [`SelectStatement`]
     pub fn new() -> Self {
@@ -212,6 +255,7 @@ impl SelectStatement {
         Self {
             distinct: self.distinct.take(),
             selects: std::mem::take(&mut self.selects),
+            into: std::mem::take(&mut self.into),
             from: std::mem::take(&mut self.from),
             join: std::mem::take(&mut self.join),
             r#where: std::mem::replace(&mut self.r#where, ConditionHolder::new()),
@@ -844,6 +888,29 @@ impl SelectStatement {
             alias: Some(alias.into_iden()),
             window: Some(WindowSelectType::Name(window.into_iden())),
         });
+        self
+    }
+
+    /// Target table for SELECT INTO clause
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .column(Char::Character)
+    ///     .into_table(SelectInto::table("character_copy").modifier(SelectIntoTableModifier::Unlogged))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" INTO UNLOGGED TABLE "character_copy" FROM "character""#
+    /// );
+    /// ```
+    pub fn into_table(&mut self, into_table: SelectInto) -> &mut Self {
+        self.into = Some(into_table);
         self
     }
 
