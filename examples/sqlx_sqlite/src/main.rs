@@ -1,6 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use sea_query::{
-    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
+    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder,
+    Table,
 };
 use sea_query_sqlx::SqlxBinder;
 use serde_json::{Value as Json, json};

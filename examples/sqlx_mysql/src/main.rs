@@ -2,7 +2,8 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use sea_query::{
-    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query, Table,
+    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, OnConflict, Order, Query,
+    Table,
 };
 use sea_query_sqlx::SqlxBinder;
 use sqlx::{MySqlPool, Row, types::chrono::NaiveDateTime};
