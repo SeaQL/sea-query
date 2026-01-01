@@ -1,6 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use sea_query::{
-    ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
+    Alias, ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, Query, SqliteQueryBuilder, Table,
 };
 use sea_query_sqlx::SqlxBinder;
 use serde_json::{Value as Json, json};
@@ -161,7 +161,7 @@ async fn query_builder_crud(pool: &SqlitePool) {
     // Count
     let (sql, values) = Query::select()
         .from(Character::Table)
-        .expr(Func::count(Expr::col(Character::Id)))
+        .expr_as(Func::count(Expr::col(Character::Id)), Alias::new("count"))
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
