@@ -170,7 +170,7 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .await
         .unwrap();
 
-    let count: i64 = row.try_get(0).unwrap();
+    let count: i64 = row.get("count"); // or row.try_get(0).unwrap()
     println!("Count character: {count}\n");
 
     // Upsert

@@ -114,7 +114,7 @@ async fn main() {
         .fetch_one(&mut *pool)
         .await
         .unwrap();
-    let id: i32 = row.try_get(0).unwrap();
+    let id: i32 = row.get("id"); // or row.try_get(0).unwrap()
     println!("Insert into character: last_insert_id = {id}\n");
 
     // Read
@@ -220,7 +220,7 @@ async fn main() {
         .await
         .unwrap();
     print!("Count character: ");
-    let count: i64 = row.try_get(0).unwrap();
+    let count: i64 = row.get("count"); // or row.try_get(0).unwrap()
     println!("{count}");
     println!();
 

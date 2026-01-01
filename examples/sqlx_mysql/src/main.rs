@@ -252,7 +252,7 @@ async fn main() {
         .await
         .unwrap();
     print!("Count character: ");
-    let count: i64 = row.try_get(0).unwrap();
+    let count: i64 = row.get("count"); // or row.try_get(0).unwrap()
     println!("{count}");
     println!();
 
