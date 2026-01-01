@@ -6,9 +6,7 @@ use diesel::{
     deserialize::{self, FromSql},
     sql_types::{BigInt, Blob},
 };
-use sea_query::{
-    ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, Order, Query, Table,
-};
+use sea_query::{ColumnDef, Expr, ExprTrait, Func, Iden, MysqlQueryBuilder, Order, Query, Table};
 use sea_query_diesel::DieselBinder;
 use serde_json::{Value as Json, json};
 use time::{
