@@ -309,9 +309,9 @@ pub enum Value {
 /// Previously, the size was 24. We bumped it to 32 such that `String`
 /// can be unboxed.
 ///
-/// When the `with-json` feature is enabled, the size of `Value` may
-/// exceed 32 bytes to 72 bytes if serde_json feature `preserve_order`
-/// is enabled as different Map implementation can be used.
+/// This value should *never* be raised as this is critical to stability
+/// in production, which can cause OOM or stack overflow for certain
+/// high throughput workloads.
 pub const VALUE_SIZE: usize = check_value_size();
 const MAX_VALUE_SIZE: usize = 32;
 
