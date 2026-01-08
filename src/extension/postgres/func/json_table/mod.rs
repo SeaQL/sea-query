@@ -4,11 +4,11 @@ use std::borrow::Cow;
 mod builder;
 pub use builder::Builder;
 mod column;
-pub use column::ColumnBuilder;
+pub use column::Column;
 mod exists_column;
-pub use exists_column::ExistsColumnBuilder;
+pub use exists_column::ExistsColumn;
 mod nested;
-pub use nested::NestedPathBuilder;
+pub use nested::NestedPath;
 pub(super) mod types;
 pub use types::*;
 
@@ -28,9 +28,9 @@ impl PgFunc {
     ///             Expr::val(r#"[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]"#),
     ///             "$[*]"
     ///         )
-    ///         .ordinality_column("row_number")
-    ///         .column("name", "text").path("$.name").build_column()
-    ///         .column("age", "int").path("$.age").build_column()
+    ///         .for_ordinality("row_number")
+    ///         .column(json_table::Column::new("name", "text").path("$.name"))
+    ///         .column(json_table::Column::new("age", "int").path("$.age"))
     ///         .build(),
     ///         "people"
     ///     )
@@ -55,8 +55,8 @@ impl PgFunc {
     ///             "$.users[*] ? (@.id > $min_id)"
     ///         )
     ///         .passing(0, "min_id")
-    ///         .column("user_id", "int").path("$.id").null_on_error().build_column()
-    ///         .column("user_name", "text").path("$.name").default_on_empty(Expr::val("Unknown")).build_column()
+    ///         .column(json_table::Column::new("user_id", "int").path("$.id").null_on_error())
+    ///         .column(json_table::Column::new("user_name", "text").path("$.name").default_on_empty(Expr::val("Unknown")))
     ///         .error_on_error()
     ///         .build(),
     ///         "filtered_users"
@@ -81,10 +81,11 @@ impl PgFunc {
     ///             Expr::val(r#"{"users": [{"name": "John", "phones": ["123", "456"]}, {"name": "Jane", "phones": ["789"]}]}"#),
     ///             "$.users[*]"
     ///         )
-    ///         .column("user_name", "text").path("$.name").build_column()
-    ///         .nested("$.phones[*]")
-    ///             .column("phone", "text").path("$").build_column()
-    ///             .build_nested()
+    ///         .column(json_table::Column::new("user_name", "text").path("$.name"))
+    ///         .nested(
+    ///             json_table::NestedPath::new("$.phones[*]")
+    ///                 .column(json_table::Column::new("phone", "text").path("$")),
+    ///         )
     ///         .build(),
     ///         "user_phones"
     ///     )
@@ -93,14 +94,13 @@ impl PgFunc {
     ///
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "*" FROM JSON_TABLE('{"users": [{"name": "John", "phones": ["123", "456"]}, {"name": "Jane", "phones": ["789"]}]}', '$.users[*]' COLUMNS (user_name "text" PATH '$.name', NESTED '$.phones[*]' COLUMNS (phone "text" PATH '$'))) AS "user_phones""#
+    ///     r#"SELECT "*" FROM JSON_TABLE('{"users": [{"name": "John", "phones": ["123", "456"]}, {"name": "Jane", "phones": ["789"]}]}', '$.users[*]' COLUMNS (user_name "text" PATH '$.name', NESTED PATH '$.phones[*]' COLUMNS (phone "text" PATH '$'))) AS "user_phones""#
     /// );
     /// ```
-    pub fn json_table<T, P>(context_item: T, path_expression: P) -> Builder
-    where
-        T: Into<Expr>,
-        P: Into<Cow<'static, str>>,
-    {
+    pub fn json_table(
+        context_item: impl Into<Expr>,
+        path_expression: impl Into<Cow<'static, str>>,
+    ) -> Builder {
         Builder {
             context_item: context_item.into(),
             path_expression: path_expression.into(),
