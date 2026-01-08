@@ -788,11 +788,22 @@
 //!
 //! ```rust
 //! # use sea_query::{*, tests_cfg::*};
+//! let table = Table::drop().table(Glyph::Table).to_owned();
+//!
+//! assert_eq!(table.to_string(MysqlQueryBuilder), r#"DROP TABLE `glyph`"#);
+//! assert_eq!(
+//!     table.to_string(PostgresQueryBuilder),
+//!     r#"DROP TABLE "glyph""#
+//! );
+//! assert_eq!(table.to_string(SqliteQueryBuilder), r#"DROP TABLE "glyph""#);
+//!
+//! // MySQL/Postgres support dropping multiple tables, but SQLite does not.
+//! # #[cfg(not(feature = "backend-sqlite"))]
+//! # {
 //! let table = Table::drop()
 //!     .table(Glyph::Table)
 //!     .table(Char::Table)
 //!     .to_owned();
-//!
 //! assert_eq!(
 //!     table.to_string(MysqlQueryBuilder),
 //!     r#"DROP TABLE `glyph`, `character`"#
@@ -801,10 +812,7 @@
 //!     table.to_string(PostgresQueryBuilder),
 //!     r#"DROP TABLE "glyph", "character""#
 //! );
-//! assert_eq!(
-//!     table.to_string(SqliteQueryBuilder),
-//!     r#"DROP TABLE "glyph", "character""#
-//! );
+//! # }
 //! ```
 //!
 //! ### Table Rename
