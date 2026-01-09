@@ -209,11 +209,11 @@ pub trait TableBuilder:
     fn prepare_table_drop_statement(&self, drop: &TableDropStatement, sql: &mut impl SqlWriter) {
         sql.write_str("DROP TABLE ").unwrap();
 
-        if drop.if_exists {
+        if drop.is_if_exists() {
             sql.write_str("IF EXISTS ").unwrap();
         }
 
-        let mut tables = drop.tables.iter();
+        let mut tables = drop.get_tables().iter();
         join_io!(
             tables,
             table,
@@ -225,7 +225,7 @@ pub trait TableBuilder:
             }
         );
 
-        for drop_opt in drop.options.iter() {
+        for drop_opt in drop.get_options().iter() {
             self.prepare_table_drop_opt(drop_opt, sql);
         }
     }
