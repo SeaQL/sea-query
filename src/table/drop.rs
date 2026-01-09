@@ -147,6 +147,22 @@ impl TableDropStatement<TableDropPending> {
 }
 
 #[cfg(feature = "backend-sqlite")]
+impl TableDropStatement<TableDropDefined> {
+    #[deprecated(
+        since = "1.0.0",
+        note = "SQLite strictly forbids dropping multiple tables in a single statement. Please split this into multiple Table::drop() calls."
+    )]
+    pub fn table<T>(self, _table: T) -> Self
+    where
+        T: IntoTableRef,
+    {
+        panic!(
+            "Attempted to drop multiple tables in SQLite mode. This is not supported. See compiler warnings."
+        );
+    }
+}
+
+#[cfg(feature = "backend-sqlite")]
 impl<S> TableDropStatement<S> {
     pub(crate) fn is_if_exists(&self) -> bool {
         self.inner.is_if_exists()

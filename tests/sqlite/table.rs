@@ -368,6 +368,14 @@ fn drop_1() {
 }
 
 #[test]
+#[should_panic(
+    expected = "Attempted to drop multiple tables in SQLite mode. This is not supported. See compiler warnings."
+)]
+fn drop_multiple_tables_panics() {
+    let _ = Table::drop().table(Glyph::Table).table(Char::Table);
+}
+
+#[test]
 #[should_panic(expected = "Sqlite doesn't support TRUNCATE statement")]
 fn truncate_1() {
     assert_eq!(
