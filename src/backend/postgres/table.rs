@@ -222,6 +222,77 @@ impl TableBuilder for PostgresQueryBuilder {
             self.prepare_table_ref_table_stmt(to_name, sql);
         }
     }
+
+    fn prepare_partition_by(&self, partition_by: &PartitionBy, sql: &mut impl SqlWriter) {
+        match partition_by {
+            PartitionBy::Range(cols) => {
+                sql.write_str("RANGE (").unwrap();
+                self.prepare_partition_cols(cols, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionBy::List(cols) => {
+                sql.write_str("LIST (").unwrap();
+                self.prepare_partition_cols(cols, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionBy::Hash(cols) => {
+                sql.write_str("HASH (").unwrap();
+                self.prepare_partition_cols(cols, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionBy::Key(_) => panic!("Postgres does not support PARTITION BY KEY"),
+        }
+    }
+
+    fn prepare_partition_values(
+        &self,
+        partition_values: &PartitionValues,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("FOR VALUES ").unwrap();
+        match partition_values {
+            PartitionValues::In(values) => {
+                sql.write_str("IN (").unwrap();
+                self.prepare_partition_exprs(values, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionValues::FromTo(from, to) => {
+                sql.write_str("FROM (").unwrap();
+                self.prepare_partition_exprs(from, sql);
+                sql.write_str(") TO (").unwrap();
+                self.prepare_partition_exprs(to, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionValues::LessThan(_) => panic!("Postgres does not support VALUES LESS THAN"),
+            PartitionValues::With(modulus, remainder) => {
+                write!(sql, "WITH (MODULUS {modulus}, REMAINDER {remainder})").unwrap();
+            }
+        }
+    }
+}
+
+impl PostgresQueryBuilder {
+    fn prepare_partition_cols(&self, cols: &[DynIden], sql: &mut impl SqlWriter) {
+        let mut first = true;
+        for col in cols {
+            if !first {
+                sql.write_str(", ").unwrap();
+            }
+            self.prepare_iden(col, sql);
+            first = false;
+        }
+    }
+
+    fn prepare_partition_exprs(&self, exprs: &[SimpleExpr], sql: &mut impl SqlWriter) {
+        let mut first = true;
+        for expr in exprs {
+            if !first {
+                sql.write_str(", ").unwrap();
+            }
+            self.prepare_expr(expr, sql);
+            first = false;
+        }
+    }
 }
 
 impl PostgresQueryBuilder {
