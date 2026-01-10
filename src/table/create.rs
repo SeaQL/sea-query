@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    ColumnDef, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
-    index::*, table::constraint::Check, types::*,
+    ColumnDef, IntoColumnDef, SchemaStatementBuilder, SimpleExpr, backend::SchemaBuilder,
+    foreign_key::*, index::*, table::constraint::Check, types::*,
 };
 
 /// Create a table
@@ -84,7 +84,10 @@ pub struct TableCreateStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) columns: Vec<ColumnDef>,
     pub(crate) options: Vec<TableOpt>,
-    pub(crate) partitions: Vec<TablePartition>,
+    pub(crate) partition_by: Option<PartitionBy>,
+    pub(crate) partition_of: Option<TableRef>,
+    pub(crate) partition_values: Option<PartitionValues>,
+    pub(crate) partitions: Vec<PartitionDefinition>,
     pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
@@ -105,8 +108,26 @@ pub enum TableOpt {
 
 /// All available table partition options
 #[derive(Debug, Clone)]
-#[non_exhaustive]
-pub enum TablePartition {}
+pub enum PartitionBy {
+    Range(Vec<DynIden>),
+    List(Vec<DynIden>),
+    Hash(Vec<DynIden>),
+    Key(Vec<DynIden>),
+}
+
+#[derive(Debug, Clone)]
+pub enum PartitionValues {
+    In(Vec<SimpleExpr>),
+    FromTo(Vec<SimpleExpr>, Vec<SimpleExpr>),
+    LessThan(Vec<SimpleExpr>),
+    With(u32, u32),
+}
+
+#[derive(Debug, Clone)]
+pub struct PartitionDefinition {
+    pub(crate) name: DynIden,
+    pub(crate) values: Option<PartitionValues>,
+}
 
 impl TableCreateStatement {
     /// Construct create table statement
@@ -274,8 +295,122 @@ impl TableCreateStatement {
     }
 
     #[allow(dead_code)]
-    fn partition(&mut self, partition: TablePartition) -> &mut Self {
+    fn partition(&mut self, partition: PartitionDefinition) -> &mut Self {
         self.partitions.push(partition);
+        self
+    }
+
+    /// Set partition by range
+    pub fn partition_by_range<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::Range(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition by list
+    pub fn partition_by_list<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::List(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition by hash
+    pub fn partition_by_hash<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::Hash(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition by key. MySQL only.
+    pub fn partition_by_key<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::Key(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition of table. Postgres only.
+    pub fn partition_of<T>(&mut self, table: T) -> &mut Self
+    where
+        T: IntoTableRef,
+    {
+        self.partition_of = Some(table.into_table_ref());
+        self
+    }
+
+    /// Set partition values IN. Postgres and MySQL.
+    pub fn values_in<I, T>(&mut self, values: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<SimpleExpr>,
+    {
+        self.partition_values = Some(PartitionValues::In(
+            values.into_iter().map(|v| v.into()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition values FROM ... TO. Postgres only.
+    pub fn values_from_to<I, T, J, U>(&mut self, from: I, to: J) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<SimpleExpr>,
+        J: IntoIterator<Item = U>,
+        U: Into<SimpleExpr>,
+    {
+        self.partition_values = Some(PartitionValues::FromTo(
+            from.into_iter().map(|v| v.into()).collect(),
+            to.into_iter().map(|v| v.into()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition values LESS THAN. MySQL only.
+    pub fn values_less_than<I, T>(&mut self, values: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<SimpleExpr>,
+    {
+        self.partition_values = Some(PartitionValues::LessThan(
+            values.into_iter().map(|v| v.into()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition values WITH (modulus, remainder). Postgres only.
+    pub fn values_with(&mut self, modulus: u32, remainder: u32) -> &mut Self {
+        self.partition_values = Some(PartitionValues::With(modulus, remainder));
+        self
+    }
+
+    /// Add a partition definition. MySQL only.
+    pub fn add_partition<T>(&mut self, name: T, values: Option<PartitionValues>) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.partitions.push(PartitionDefinition {
+            name: name.into_iden(),
+            values,
+        });
         self
     }
 
@@ -412,6 +547,9 @@ impl TableCreateStatement {
             table: self.table.take(),
             columns: std::mem::take(&mut self.columns),
             options: std::mem::take(&mut self.options),
+            partition_by: self.partition_by.take(),
+            partition_of: self.partition_of.take(),
+            partition_values: self.partition_values.take(),
             partitions: std::mem::take(&mut self.partitions),
             indexes: std::mem::take(&mut self.indexes),
             foreign_keys: std::mem::take(&mut self.foreign_keys),

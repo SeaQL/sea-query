@@ -237,10 +237,93 @@ impl TableBuilder for MysqlQueryBuilder {
         }
     }
 
+    fn prepare_partition_by(&self, partition_by: &PartitionBy, sql: &mut impl SqlWriter) {
+        match partition_by {
+            PartitionBy::Range(cols) => {
+                sql.write_str("RANGE (").unwrap();
+                self.prepare_partition_cols(cols, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionBy::List(cols) => {
+                sql.write_str("LIST (").unwrap();
+                self.prepare_partition_cols(cols, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionBy::Hash(cols) => {
+                sql.write_str("HASH (").unwrap();
+                self.prepare_partition_cols(cols, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionBy::Key(cols) => {
+                sql.write_str("KEY (").unwrap();
+                self.prepare_partition_cols(cols, sql);
+                sql.write_char(')').unwrap();
+            }
+        }
+    }
+
+    fn prepare_partition_definition(
+        &self,
+        partition_definition: &PartitionDefinition,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("PARTITION ").unwrap();
+        self.prepare_iden(&partition_definition.name, sql);
+        if let Some(values) = &partition_definition.values {
+            sql.write_str(" ").unwrap();
+            self.prepare_partition_values(values, sql);
+        }
+    }
+
+    fn prepare_partition_values(
+        &self,
+        partition_values: &PartitionValues,
+        sql: &mut impl SqlWriter,
+    ) {
+        match partition_values {
+            PartitionValues::In(values) => {
+                sql.write_str("VALUES IN (").unwrap();
+                self.prepare_partition_exprs(values, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionValues::FromTo(_, _) => panic!("MySQL does not support VALUES FROM ... TO"),
+            PartitionValues::LessThan(values) => {
+                sql.write_str("VALUES LESS THAN (").unwrap();
+                self.prepare_partition_exprs(values, sql);
+                sql.write_char(')').unwrap();
+            }
+            PartitionValues::With(_, _) => panic!("MySQL does not support VALUES WITH"),
+        }
+    }
+
     /// column comment
     fn column_comment(&self, comment: &str, sql: &mut impl SqlWriter) {
         sql.write_str(" COMMENT '").unwrap();
         self.write_escaped(sql, comment);
         sql.write_str("'").unwrap();
+    }
+}
+
+impl MysqlQueryBuilder {
+    fn prepare_partition_cols(&self, cols: &[DynIden], sql: &mut impl SqlWriter) {
+        let mut first = true;
+        for col in cols {
+            if !first {
+                sql.write_str(", ").unwrap();
+            }
+            self.prepare_iden(col, sql);
+            first = false;
+        }
+    }
+
+    fn prepare_partition_exprs(&self, exprs: &[SimpleExpr], sql: &mut impl SqlWriter) {
+        let mut first = true;
+        for expr in exprs {
+            if !first {
+                sql.write_str(", ").unwrap();
+            }
+            self.prepare_expr(expr, sql);
+            first = false;
+        }
     }
 }
