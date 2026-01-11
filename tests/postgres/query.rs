@@ -1275,13 +1275,13 @@ fn select_64() {
 fn select_65() {
     assert_eq!(
         Query::select()
+            .from(Char::Table)
             .expr(
                 Expr::col(Char::Character)
                     .max()
-                    .window(WindowStatement::partition_by(Char::FontSize))
+                    .over(WindowStatement::partition_by(Char::FontSize))
                     .alias("C"),
             )
-            .from(Char::Table)
             .to_string(PostgresQueryBuilder),
         r#"SELECT MAX("character") OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
     );
@@ -1291,8 +1291,8 @@ fn select_65() {
 fn select_66() {
     assert_eq!(
         Query::select()
-            .expr(Expr::col(Char::Character).max().window_name("w"))
             .from(Char::Table)
+            .expr(Expr::col(Char::Character).max().over("w"))
             .window("w", WindowStatement::partition_by(Char::FontSize))
             .to_string(PostgresQueryBuilder),
         r#"SELECT MAX("character") OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
