@@ -244,6 +244,18 @@ impl SelectInto {
     }
 }
 
+impl From<WindowStatement> for WindowSelectType {
+    fn from(stmt: WindowStatement) -> Self {
+        Self::Query(stmt)
+    }
+}
+
+impl<T: IntoIden> From<T> for WindowSelectType {
+    fn from(iden: T) -> Self {
+        Self::Name(iden.into_iden())
+    }
+}
+
 /// Extension methods for building a [`SelectExpr`] from an expression.
 ///
 /// This makes it ergonomic to attach select-specific modifiers (like `AS` and `OVER`) and pass the
@@ -259,7 +271,7 @@ impl SelectInto {
 ///     .expr(
 ///         Expr::col(Char::Character)
 ///             .max()
-///             .window(WindowStatement::partition_by(Char::FontSize))
+///             .over(WindowStatement::partition_by(Char::FontSize))
 ///             .alias("C"),
 ///     )
 ///     .to_owned();
@@ -274,11 +286,7 @@ pub trait SelectExprTrait: Sized {
     where
         A: IntoIden;
 
-    fn window(self, window: WindowStatement) -> SelectExpr;
-
-    fn window_name<W>(self, window: W) -> SelectExpr
-    where
-        W: IntoIden;
+    fn over(self, over_expr: impl Into<WindowSelectType>) -> SelectExpr;
 }
 
 impl SelectExprTrait for SelectExpr {
@@ -290,16 +298,8 @@ impl SelectExprTrait for SelectExpr {
         self
     }
 
-    fn window(mut self, window: WindowStatement) -> SelectExpr {
-        self.window = Some(WindowSelectType::Query(window));
-        self
-    }
-
-    fn window_name<W>(mut self, window: W) -> SelectExpr
-    where
-        W: IntoIden,
-    {
-        self.window = Some(WindowSelectType::Name(window.into_iden()));
+    fn over(mut self, over_expr: impl Into<WindowSelectType>) -> SelectExpr {
+        self.window = Some(over_expr.into());
         self
     }
 }
@@ -315,15 +315,8 @@ where
         SelectExpr::from(self).alias(alias)
     }
 
-    fn window(self, window: WindowStatement) -> SelectExpr {
-        SelectExpr::from(self).window(window)
-    }
-
-    fn window_name<W>(self, window: W) -> SelectExpr
-    where
-        W: IntoIden,
-    {
-        SelectExpr::from(self).window_name(window)
+    fn over(self, over_expr: impl Into<WindowSelectType>) -> SelectExpr {
+        SelectExpr::from(self).over(over_expr)
     }
 }
 impl SelectStatement {
@@ -840,7 +833,7 @@ impl SelectStatement {
     where
         T: Into<Expr>,
     {
-        self.expr(expr.window(window));
+        self.expr(expr.over(window));
         self
     }
 
@@ -878,7 +871,7 @@ impl SelectStatement {
         T: Into<Expr>,
         A: IntoIden,
     {
-        self.expr(expr.window(window).alias(alias));
+        self.expr(expr.over(window).alias(alias));
         self
     }
 
@@ -913,7 +906,7 @@ impl SelectStatement {
         T: Into<Expr>,
         W: IntoIden,
     {
-        self.expr(expr.window_name(window));
+        self.expr(expr.over(window));
         self
     }
 
@@ -949,7 +942,7 @@ impl SelectStatement {
         A: IntoIden,
         W: IntoIden,
     {
-        self.expr(expr.window_name(window).alias(alias));
+        self.expr(expr.over(window).alias(alias));
         self
     }
 
