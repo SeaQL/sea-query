@@ -1,8 +1,8 @@
 use inherent::inherent;
 
 use crate::{
-    ColumnDef, IntoColumnDef, SchemaStatementBuilder, SimpleExpr, backend::SchemaBuilder,
-    foreign_key::*, index::*, table::constraint::Check, types::*,
+    ColumnDef, Expr, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
+    index::*, table::constraint::Check, types::*,
 };
 
 /// Create a table
@@ -117,9 +117,9 @@ pub enum PartitionBy {
 
 #[derive(Debug, Clone)]
 pub enum PartitionValues {
-    In(Vec<SimpleExpr>),
-    FromTo(Vec<SimpleExpr>, Vec<SimpleExpr>),
-    LessThan(Vec<SimpleExpr>),
+    In(Vec<Expr>),
+    FromTo(Vec<Expr>, Vec<Expr>),
+    LessThan(Vec<Expr>),
     With(u32, u32),
 }
 
@@ -361,7 +361,7 @@ impl TableCreateStatement {
     pub fn values_in<I, T>(&mut self, values: I) -> &mut Self
     where
         I: IntoIterator<Item = T>,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.partition_values = Some(PartitionValues::In(
             values.into_iter().map(|v| v.into()).collect(),
@@ -369,13 +369,13 @@ impl TableCreateStatement {
         self
     }
 
-    /// Set partition values FROM ... TO. Postgres only.
+    /// Set partition values FROM ... TO .... Postgres only.
     pub fn values_from_to<I, T, J, U>(&mut self, from: I, to: J) -> &mut Self
     where
         I: IntoIterator<Item = T>,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
         J: IntoIterator<Item = U>,
-        U: Into<SimpleExpr>,
+        U: Into<Expr>,
     {
         self.partition_values = Some(PartitionValues::FromTo(
             from.into_iter().map(|v| v.into()).collect(),
@@ -388,7 +388,7 @@ impl TableCreateStatement {
     pub fn values_less_than<I, T>(&mut self, values: I) -> &mut Self
     where
         I: IntoIterator<Item = T>,
-        T: Into<SimpleExpr>,
+        T: Into<Expr>,
     {
         self.partition_values = Some(PartitionValues::LessThan(
             values.into_iter().map(|v| v.into()).collect(),

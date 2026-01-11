@@ -316,7 +316,7 @@ impl MysqlQueryBuilder {
         }
     }
 
-    fn prepare_partition_exprs(&self, exprs: &[SimpleExpr], sql: &mut impl SqlWriter) {
+    fn prepare_partition_exprs(&self, exprs: &[Expr], sql: &mut impl SqlWriter) {
         let mut first = true;
         for expr in exprs {
             if !first {
