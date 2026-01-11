@@ -201,6 +201,89 @@ where
     }
 }
 
+/// Extension methods for building a [`SelectExpr`] from an expression.
+///
+/// This makes it ergonomic to attach select-specific modifiers (like `AS` and `OVER`) and pass the
+/// result into [`SelectStatement::expr`].
+///
+/// # Examples
+///
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let query = Query::select()
+///     .from(Char::Table)
+///     .expr(
+///         Expr::col(Char::Character)
+///             .max()
+///             .window(WindowStatement::partition_by(Char::FontSize))
+///             .alias("C"),
+///     )
+///     .to_owned();
+///
+/// assert_eq!(
+///     query.to_string(MysqlQueryBuilder),
+///     r#"SELECT MAX(`character`) OVER ( PARTITION BY `font_size` ) AS `C` FROM `character`"#
+/// );
+/// ```
+pub trait SelectExprTrait: Sized {
+    fn alias<A>(self, alias: A) -> SelectExpr
+    where
+        A: IntoIden;
+
+    fn window(self, window: WindowStatement) -> SelectExpr;
+
+    fn window_name<W>(self, window: W) -> SelectExpr
+    where
+        W: IntoIden;
+}
+
+impl SelectExprTrait for SelectExpr {
+    fn alias<A>(mut self, alias: A) -> SelectExpr
+    where
+        A: IntoIden,
+    {
+        self.alias = Some(alias.into_iden());
+        self
+    }
+
+    fn window(mut self, window: WindowStatement) -> SelectExpr {
+        self.window = Some(WindowSelectType::Query(window));
+        self
+    }
+
+    fn window_name<W>(mut self, window: W) -> SelectExpr
+    where
+        W: IntoIden,
+    {
+        self.window = Some(WindowSelectType::Name(window.into_iden()));
+        self
+    }
+}
+
+impl<T> SelectExprTrait for T
+where
+    T: Into<Expr>,
+{
+    fn alias<A>(self, alias: A) -> SelectExpr
+    where
+        A: IntoIden,
+    {
+        SelectExpr::from(self).alias(alias)
+    }
+
+    fn window(self, window: WindowStatement) -> SelectExpr {
+        SelectExpr::from(self).window(window)
+    }
+
+    fn window_name<W>(self, window: W) -> SelectExpr
+    where
+        W: IntoIden,
+    {
+        SelectExpr::from(self).window_name(window)
+    }
+}
+
 impl SelectStatement {
     /// Construct a new [`SelectStatement`]
     pub fn new() -> Self {
@@ -678,11 +761,7 @@ impl SelectStatement {
         T: Into<Expr>,
         A: IntoIden,
     {
-        self.expr(SelectExpr {
-            expr: expr.into(),
-            alias: Some(alias.into_iden()),
-            window: None,
-        });
+        self.expr(expr.alias(alias));
         self
     }
 
@@ -696,33 +775,29 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr_window(
-    ///         Expr::col(Char::Character),
+    ///         Expr::col(Char::Character).max(),
     ///         WindowStatement::partition_by(Char::FontSize),
     ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) FROM `character`"#
+    ///     r#"SELECT MAX(`character`) OVER ( PARTITION BY `font_size` ) FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
+    ///     r#"SELECT MAX("character") OVER ( PARTITION BY "font_size" ) FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) FROM "character""#
+    ///     r#"SELECT MAX("character") OVER ( PARTITION BY "font_size" ) FROM "character""#
     /// );
     /// ```
     pub fn expr_window<T>(&mut self, expr: T, window: WindowStatement) -> &mut Self
     where
         T: Into<Expr>,
     {
-        self.expr(SelectExpr {
-            expr: expr.into(),
-            alias: None,
-            window: Some(WindowSelectType::Query(window)),
-        });
+        self.expr(expr.window(window));
         self
     }
 
@@ -736,7 +811,7 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .expr_window_as(
-    ///         Expr::col(Char::Character),
+    ///         Expr::col(Char::Character).max(),
     ///         WindowStatement::partition_by(Char::FontSize),
     ///         "C",
     ///     )
@@ -744,15 +819,15 @@ impl SelectStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER ( PARTITION BY `font_size` ) AS `C` FROM `character`"#
+    ///     r#"SELECT MAX(`character`) OVER ( PARTITION BY `font_size` ) AS `C` FROM `character`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
+    ///     r#"SELECT MAX("character") OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
+    ///     r#"SELECT MAX("character") OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
     /// );
     /// ```
     pub fn expr_window_as<T, A>(&mut self, expr: T, window: WindowStatement, alias: A) -> &mut Self
@@ -760,11 +835,7 @@ impl SelectStatement {
         T: Into<Expr>,
         A: IntoIden,
     {
-        self.expr(SelectExpr {
-            expr: expr.into(),
-            alias: Some(alias.into_iden()),
-            window: Some(WindowSelectType::Query(window)),
-        });
+        self.expr(expr.window(window).alias(alias));
         self
     }
 
@@ -777,21 +848,21 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name(Expr::col(Char::Character), "w")
+    ///     .expr_window_name(Expr::col(Char::Character).max(), "w")
     ///     .window("w", WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
+    ///     r#"SELECT MAX(`character`) OVER `w` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
+    ///     r#"SELECT MAX("character") OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
+    ///     r#"SELECT MAX("character") OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn expr_window_name<T, W>(&mut self, expr: T, window: W) -> &mut Self
@@ -799,11 +870,7 @@ impl SelectStatement {
         T: Into<Expr>,
         W: IntoIden,
     {
-        self.expr(SelectExpr {
-            expr: expr.into(),
-            alias: None,
-            window: Some(WindowSelectType::Name(window.into_iden())),
-        });
+        self.expr(expr.window_name(window));
         self
     }
 
@@ -816,21 +883,21 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name_as(Expr::col(Char::Character), "w", "C")
+    ///     .expr_window_name_as(Expr::col(Char::Character).max(), "w", "C")
     ///     .window("w", WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
+    ///     r#"SELECT MAX(`character`) OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
+    ///     r#"SELECT MAX("character") OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
+    ///     r#"SELECT MAX("character") OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn expr_window_name_as<T, W, A>(&mut self, expr: T, window: W, alias: A) -> &mut Self
@@ -839,11 +906,7 @@ impl SelectStatement {
         A: IntoIden,
         W: IntoIden,
     {
-        self.expr(SelectExpr {
-            expr: expr.into(),
-            alias: Some(alias.into_iden()),
-            window: Some(WindowSelectType::Name(window.into_iden())),
-        });
+        self.expr(expr.window_name(window).alias(alias));
         self
     }
 
@@ -2549,21 +2612,21 @@ impl SelectStatement {
     ///
     /// let query = Query::select()
     ///     .from(Char::Table)
-    ///     .expr_window_name_as(Expr::col(Char::Character), "w", "C")
+    ///     .expr_window_name_as(Expr::col(Char::Character).max(), "w", "C")
     ///     .window("w", WindowStatement::partition_by(Char::FontSize))
     ///     .to_owned();
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"SELECT `character` OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
+    ///     r#"SELECT MAX(`character`) OVER `w` AS `C` FROM `character` WINDOW `w` AS (PARTITION BY `font_size`)"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
+    ///     r#"SELECT MAX("character") OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// assert_eq!(
     ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "character" OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
+    ///     r#"SELECT MAX("character") OVER "w" AS "C" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     /// );
     /// ```
     pub fn window<A>(&mut self, name: A, window: WindowStatement) -> &mut Self

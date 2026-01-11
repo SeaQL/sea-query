@@ -499,6 +499,15 @@ fn select_32() {
         query.audit_unwrap().selected_tables(),
         [Char::Table.into_iden()]
     );
+
+    // Same SQL as `expr_as`, but expressed via `SelectExprTrait`.
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Char::Character).alias("C"))
+            .from(Char::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT "character" AS "C" FROM "character""#
+    );
 }
 
 #[test]
@@ -1260,6 +1269,34 @@ fn select_64() {
         .join(" ")
     );
     assert_eq!(query.audit_unwrap().selected_tables(), []);
+}
+
+#[test]
+fn select_65() {
+    assert_eq!(
+        Query::select()
+            .expr(
+                Expr::col(Char::Character)
+                    .max()
+                    .window(WindowStatement::partition_by(Char::FontSize))
+                    .alias("C"),
+            )
+            .from(Char::Table)
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT MAX("character") OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
+    );
+}
+
+#[test]
+fn select_66() {
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Char::Character).max().window_name("w"))
+            .from(Char::Table)
+            .window("w", WindowStatement::partition_by(Char::FontSize))
+            .to_string(PostgresQueryBuilder),
+        r#"SELECT MAX("character") OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
+    );
 }
 
 #[test]
