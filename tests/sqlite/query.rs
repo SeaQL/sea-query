@@ -448,6 +448,15 @@ fn select_32() {
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" AS "C" FROM "character""#
     );
+
+    // Same SQL as `expr_as`, but expressed via `SelectExprTrait`.
+    assert_eq!(
+        Query::select()
+            .expr(Expr::col(Char::Character).alias("C"))
+            .from(Char::Table)
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character" AS "C" FROM "character""#
+    );
 }
 
 #[test]
@@ -984,6 +993,34 @@ fn select_58() {
             r#"SELECT "character" FROM "character" WHERE "character" LIKE ? ESCAPE '\'"#.to_owned(),
             Values(vec!["A".into()])
         )
+    );
+}
+
+#[test]
+fn select_59() {
+    assert_eq!(
+        Query::select()
+            .from(Char::Table)
+            .expr(
+                Expr::col(Char::Character)
+                    .max()
+                    .over(WindowStatement::partition_by(Char::FontSize))
+                    .alias("C"),
+            )
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT MAX("character") OVER ( PARTITION BY "font_size" ) AS "C" FROM "character""#
+    );
+}
+
+#[test]
+fn select_60() {
+    assert_eq!(
+        Query::select()
+            .from(Char::Table)
+            .expr(Expr::col(Char::Character).max().over("w"))
+            .window("w", WindowStatement::partition_by(Char::FontSize))
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT MAX("character") OVER "w" FROM "character" WINDOW "w" AS (PARTITION BY "font_size")"#
     );
 }
 
