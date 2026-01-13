@@ -1,4 +1,4 @@
-use std::{fmt, ops::Deref};
+use std::{borrow::Cow, fmt, ops::Deref};
 
 use crate::*;
 
@@ -962,7 +962,21 @@ pub trait QueryBuilder:
             self.prepare_schema_name(schema_name, sql);
             write!(sql, ".").unwrap();
         }
-        self.prepare_iden(r#type, sql);
+        let mut base = r#type.0.as_ref();
+        let mut array_dims = 0;
+        while let Some(stripped) = base.strip_suffix("[]") {
+            base = stripped;
+            array_dims += 1;
+        }
+        if array_dims == 0 {
+            self.prepare_iden(r#type, sql);
+        } else {
+            let base_iden = DynIden(Cow::Owned(base.to_string()));
+            self.prepare_iden(&base_iden, sql);
+            for _ in 0..array_dims {
+                sql.write_str("[]").unwrap();
+            }
+        }
     }
 
     /// Translate [`JoinType`] into SQL statement.
@@ -1969,7 +1983,6 @@ mod tests {
     #[cfg(feature = "with-chrono")]
     use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
-    #[cfg(feature = "with-chrono")]
     use crate::QueryBuilder;
 
     /// [Postgresql reference](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-INPUT-TIMES)
@@ -2028,5 +2041,25 @@ mod tests {
         .into();
 
         compare!(date_time_tz, "'2015-06-03 20:34:56.123456 +08:00'");
+    }
+
+    #[test]
+    fn prepare_type_ref_escape_array() {
+        use crate::{PostgresQueryBuilder, TypeRef};
+
+        let mut buf = String::new();
+        let test_cases = [
+            ("text", r#""text""#),
+            ("text[]", r#""text"[]"#),
+            ("text[][]", r#""text"[][]"#),
+            ("text[][][]", r#""text"[][][]"#),
+            ("text[][][][]", r#""text"[][][][]"#),
+            ("text[][][][][]", r#""text"[][][][][]"#),
+        ];
+        for (ty, expect) in test_cases {
+            PostgresQueryBuilder.prepare_type_ref(&TypeRef::from(ty), &mut buf);
+            assert_eq!(buf, expect);
+            buf.clear();
+        }
     }
 }
