@@ -21,7 +21,7 @@ pub trait TableRefBuilder: QuotedBuilder {
         let TableName(schema_name, table) = table_name;
         if let Some(schema_name) = schema_name {
             self.prepare_schema_name(schema_name, sql);
-            sql.write_str(".").unwrap();
+            sql.write_char('.').unwrap();
         }
         self.prepare_iden(table, sql);
     }
@@ -31,7 +31,7 @@ pub trait TableRefBuilder: QuotedBuilder {
         let SchemaName(database_name, schema) = schema_name;
         if let Some(DatabaseName(database)) = database_name {
             self.prepare_iden(database, sql);
-            write!(sql, ".").unwrap();
+            sql.write_char('.').unwrap();
         }
         self.prepare_iden(schema, sql);
     }

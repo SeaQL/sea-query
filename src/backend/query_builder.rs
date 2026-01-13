@@ -152,7 +152,7 @@ pub trait QueryBuilder:
             },
             do {
                 self.prepare_table_ref(table_ref, sql);
-                self.prepare_index_hints(table_ref,select, sql);
+                self.prepare_index_hints(table_ref, select, sql);
             },
             last {
                 self.prepare_table_sample(select, sql);
@@ -645,16 +645,16 @@ pub trait QueryBuilder:
             ColumnRef::Column(ColumnName(table_name, column)) => {
                 if let Some(table_name) = table_name {
                     self.prepare_table_name(table_name, sql);
-                    sql.write_str(".").unwrap();
+                    sql.write_char('.').unwrap();
                 }
                 self.prepare_iden(column, sql);
             }
             ColumnRef::Asterisk(table_name) => {
                 if let Some(table_name) = table_name {
                     self.prepare_table_name(table_name, sql);
-                    sql.write_str(".").unwrap();
+                    sql.write_char('.').unwrap();
                 }
-                sql.write_str("*").unwrap();
+                sql.write_char('*').unwrap();
             }
         }
     }
