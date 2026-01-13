@@ -54,6 +54,13 @@ impl Table {
     }
 
     /// Construct table [`TableDropStatement`]
+    #[cfg(feature = "backend-sqlite")]
+    pub fn drop() -> TableDropStatement<TableDropPending> {
+        TableDropStatement::new()
+    }
+
+    /// Construct table [`TableDropStatement`]
+    #[cfg(not(feature = "backend-sqlite"))]
     pub fn drop() -> TableDropStatement {
         TableDropStatement::new()
     }
