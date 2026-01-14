@@ -82,6 +82,17 @@ impl QueryBuilder for PostgresQueryBuilder {
         };
     }
 
+    fn prepare_select_into(&self, into_table: &SelectInto, sql: &mut impl SqlWriter) {
+        sql.write_str(" INTO ").unwrap();
+
+        if let Some(modifier) = &into_table.target_table_modifier {
+            sql.write_fmt(format_args!("{modifier} ")).unwrap();
+        }
+
+        sql.write_fmt(format_args!(r#"TABLE "{}""#, into_table.target_table))
+            .unwrap();
+    }
+
     fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut impl SqlWriter) {
         match bin_oper {
             BinOper::PgOperator(oper) => sql
