@@ -805,6 +805,12 @@ pub trait QueryBuilder:
         }
 
         sql.write_str(")").unwrap();
+
+        if let Some(filter) = &func.filter {
+            sql.write_str(" FILTER (WHERE ").unwrap();
+            self.prepare_condition_where(filter, sql);
+            sql.write_str(")").unwrap();
+        }
     }
 
     /// Translate [`QueryStatement`] into SQL statement.
