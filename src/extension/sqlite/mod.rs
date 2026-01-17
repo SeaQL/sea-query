@@ -2,7 +2,10 @@ pub use expr::SqliteExpr;
 
 use crate::types::BinOper;
 
+mod explain;
 mod expr;
+
+pub(crate) use explain::SqliteExplainOptions;
 
 /// SQLite-specific binary operators.
 ///

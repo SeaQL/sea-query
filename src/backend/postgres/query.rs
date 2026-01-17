@@ -119,6 +119,16 @@ impl QueryBuilder for PostgresQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
+    fn prepare_explain_statement(&self, explain: &ExplainStatement, sql: &mut impl SqlWriter) {
+        sql.write_str("EXPLAIN").unwrap();
+        explain.pg_opts.write_options(sql);
+
+        if let Some(statement) = explain.statement.as_deref() {
+            sql.write_str(" ").unwrap();
+            statement.write_to(self, sql);
+        }
+    }
+
     fn prepare_function_name(&self, function: &Func, sql: &mut impl SqlWriter) {
         match function {
             Func::PgFunction(function) => sql

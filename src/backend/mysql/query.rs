@@ -63,6 +63,13 @@ impl QueryBuilder for MysqlQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
+    fn prepare_explain_statement(&self, explain: &ExplainStatement, sql: &mut impl SqlWriter) {
+        sql.write_str("EXPLAIN").unwrap();
+        explain
+            .mysql_opts
+            .write_options(self, sql, explain.statement.as_deref());
+    }
+
     fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut impl SqlWriter) {
         // MySQL doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
     }
