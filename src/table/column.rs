@@ -44,7 +44,7 @@ impl From<&mut ColumnDef> for ColumnDef {
 /// | TinyUnsigned          | tinyint unsigned  | smallint                    | tinyint                      |
 /// | SmallUnsigned         | smallint unsigned | integer                     | smallint                     |
 /// | Unsigned              | int unsigned      | bigint                      | integer                      |
-/// | BigUnsigned           | bigint unsigned   | numeric                     | integer                      |
+/// | BigUnsigned           | bigint unsigned   | bigint                      | integer                      |
 /// | Float                 | float             | real                        | float                        |
 /// | Double                | double            | double precision            | double                       |
 /// | Decimal               | decimal           | decimal                     | real(A, B)                   |

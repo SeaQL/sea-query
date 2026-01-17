@@ -175,5 +175,5 @@ fn unsigned_types() {
     assert_eq!(column_to_string(&ColumnType::TinyUnsigned), "smallint");
     assert_eq!(column_to_string(&ColumnType::SmallUnsigned), "integer");
     assert_eq!(column_to_string(&ColumnType::Unsigned), "bigint");
-    assert_eq!(column_to_string(&ColumnType::BigUnsigned), "numeric");
+    assert_eq!(column_to_string(&ColumnType::BigUnsigned), "bigint");
 }
