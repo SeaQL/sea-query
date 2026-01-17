@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New features
 
+* Support `EXPLAIN` statements https://github.com/SeaQL/sea-query/pull/1044
 * `#![forbid(unsafe_code)]` in all workspace crates https://github.com/SeaQL/sea-query/pull/930
-* Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangably. There may be a few compile
+* Unify `Expr` and `SimpleExpr` as one type. `SimpleExpr` is kept as an alias of `Expr`, but they can now be used interchangeably. There may be a few compile
 errors and some clippy warnings, basically just remove the redundant `.into()` https://github.com/SeaQL/sea-query/pull/889
 ```rust
 pub type SimpleExpr = Expr; // !
