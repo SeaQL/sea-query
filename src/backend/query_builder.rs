@@ -810,6 +810,9 @@ pub trait QueryBuilder:
     /// Translate [`QueryStatement`] into SQL statement.
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter);
 
+    /// Translate [`ExplainStatement`] into SQL statement.
+    fn prepare_explain_statement(&self, explain: &ExplainStatement, sql: &mut impl SqlWriter);
+
     fn prepare_with_query(&self, query: &WithQuery, sql: &mut impl SqlWriter) {
         self.prepare_with_clause(&query.with_clause, sql);
         self.prepare_query_statement(query.query.as_ref().unwrap().deref(), sql);
@@ -1887,6 +1890,14 @@ impl PrecedenceDecider for CommonSqlQueryBuilder {
 impl QueryBuilder for CommonSqlQueryBuilder {
     fn prepare_query_statement(&self, query: &SubQueryStatement, sql: &mut impl SqlWriter) {
         query.prepare_statement(self, sql);
+    }
+
+    fn prepare_explain_statement(&self, explain: &ExplainStatement, sql: &mut impl SqlWriter) {
+        sql.write_str("EXPLAIN").unwrap();
+        if let Some(statement) = &explain.statement {
+            sql.write_str(" ").unwrap();
+            statement.write_to(self, sql);
+        }
     }
 
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {

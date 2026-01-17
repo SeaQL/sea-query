@@ -1,3 +1,4 @@
+pub use explain::PgExplainSerialize;
 pub use expr::*;
 pub use extension::*;
 pub use func::*;
@@ -7,6 +8,7 @@ pub use types::*;
 
 use crate::types::BinOper;
 
+pub(crate) mod explain;
 pub(crate) mod expr;
 pub(crate) mod extension;
 pub(crate) mod func;
@@ -14,6 +16,8 @@ pub(crate) mod interval;
 pub(crate) mod ltree;
 pub(crate) mod select;
 pub(crate) mod types;
+
+pub(crate) use explain::PgExplainOptions;
 
 /// Postgres-specific binary operators.
 ///

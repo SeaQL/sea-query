@@ -49,6 +49,15 @@ impl QueryBuilder for SqliteQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
+    fn prepare_explain_statement(&self, explain: &ExplainStatement, sql: &mut impl SqlWriter) {
+        sql.write_str("EXPLAIN").unwrap();
+        explain.sqlite_opts.write_to(sql);
+        if let Some(statement) = &explain.statement {
+            sql.write_str(" ").unwrap();
+            statement.write_to(self, sql);
+        }
+    }
+
     fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut impl SqlWriter) {
         // Sqlite doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
     }
