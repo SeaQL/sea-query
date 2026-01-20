@@ -1,1 +1,0 @@
-cp ../src/token.rs ./src/raw_sql/

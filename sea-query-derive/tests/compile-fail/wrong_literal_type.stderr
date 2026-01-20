@@ -1,5 +1,0 @@
-error: Must be a string literal
- --> $DIR/wrong_literal_type.rs:6:14
-  |
-6 |     #[iden = 123]
-  |              ^^^

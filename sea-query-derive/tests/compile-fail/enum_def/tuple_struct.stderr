@@ -1,5 +1,0 @@
-error: #[enum_def] can only be used on non-tuple structs
- --> tests/compile-fail/enum_def/tuple_struct.rs:4:1
-  |
-4 | struct Hello(String);
-  | ^^^^^^

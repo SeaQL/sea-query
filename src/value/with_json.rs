@@ -1,6 +1,6 @@
 use super::*;
 
-type_to_box_value!(Json, Json, Json);
+type_to_value!(Json, Json, Json);
 
 impl Value {
     pub fn is_json(&self) -> bool {
@@ -9,7 +9,7 @@ impl Value {
 
     pub fn as_ref_json(&self) -> Option<&Json> {
         match self {
-            Self::Json(v) => v.as_deref(),
+            Self::Json(v) => v.as_ref(),
             _ => panic!("not Value::Json"),
         }
     }
@@ -33,6 +33,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::String(None)
         | Value::Char(None)
         | Value::Bytes(None)
+        | Value::Enum(None)
         | Value::Json(None) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
@@ -40,8 +41,6 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::BigDecimal(None) => Json::Null,
         #[cfg(feature = "with-uuid")]
         Value::Uuid(None) => Json::Null,
-        #[cfg(feature = "postgres-array")]
-        Value::Array(_, None) => Json::Null,
         #[cfg(feature = "postgres-vector")]
         Value::Vector(None) => Json::Null,
         #[cfg(feature = "with-ipnetwork")]
@@ -64,7 +63,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::String(Some(s)) => Json::String(s.clone()),
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(std::str::from_utf8(s).unwrap().to_string()),
-        Value::Json(Some(v)) => v.as_ref().clone(),
+        Value::Json(Some(v)) => v.clone(),
         #[cfg(feature = "with-chrono")]
         Value::ChronoDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-chrono")]
@@ -107,8 +106,9 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         }
         #[cfg(feature = "with-uuid")]
         Value::Uuid(Some(v)) => Json::String(v.to_string()),
+        Value::Enum(Some(v)) => Json::String(v.value.to_string()),
         #[cfg(feature = "postgres-array")]
-        Value::Array(_, Some(v)) => Json::Array(v.iter().map(sea_value_to_json_value).collect()),
+        Value::Array(v) => v.to_json_value(),
         #[cfg(feature = "postgres-vector")]
         Value::Vector(Some(v)) => Json::Array(v.as_slice().iter().map(|&v| v.into()).collect()),
         #[cfg(feature = "with-ipnetwork")]

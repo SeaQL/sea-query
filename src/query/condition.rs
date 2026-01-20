@@ -1,6 +1,6 @@
 use crate::{ExprTrait, expr::Expr, types::LogicalChainOper};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConditionType {
     Any,
     All,
@@ -48,7 +48,8 @@ pub trait IntoCondition: Into<Condition> {
 
 impl<T> IntoCondition for T where T: Into<Condition> {}
 
-/// An internal representation of conditions, either an expression or a nested condition.
+/// An internal representation of conditions.
+/// May be refactored away in the future if we can get our head around it.
 ///
 /// It used to be in the public interface of [`Condition::add`] and [`Condition::add_option`],
 /// in order to accept anything resembling a condition or an expression.
