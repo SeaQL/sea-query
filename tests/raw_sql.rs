@@ -373,3 +373,11 @@ fn test_raw_sql_11() {
         ])
     );
 }
+
+#[test]
+fn test_raw_sql_12() {
+    let v = 12i32;
+    let query = sea_query::raw_query!(PostgresQueryBuilder, r#"SELECT {v} + {v}::int"#);
+    assert_eq!(query.sql, r#"SELECT $1 + $2::int"#);
+    assert_eq!(query.values, Values(vec![12i32.into(), 12i32.into()]));
+}
