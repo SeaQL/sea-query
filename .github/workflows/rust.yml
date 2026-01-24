@@ -128,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runtime: [async-std]
+        runtime: [tokio]
         tls: [rustls]
     steps:
       - uses: actions/checkout@v4
