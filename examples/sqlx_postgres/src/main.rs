@@ -1,21 +1,15 @@
-use bigdecimal::{BigDecimal, FromPrimitive};
-use chrono::{NaiveDate, NaiveDateTime};
-use rust_decimal::Decimal;
 use sea_query::{
     ColumnDef, Expr, ExprTrait, Func, Iden, OnConflict, Order, PostgresQueryBuilder, Query, Table,
+    prelude::{
+        BigDecimal, Decimal, IpNetwork, Json, MacAddress, NaiveDate, NaiveDateTime,
+        PrimitiveDateTime, Uuid, bigdecimal::FromPrimitive, mac_address::get_mac_address,
+    },
 };
 use sea_query_sqlx::SqlxBinder;
+use serde_json::json;
 use sqlx::{PgPool, Row};
 use std::net::{IpAddr, Ipv4Addr};
-use time::{
-    PrimitiveDateTime,
-    macros::{date, time},
-};
-
-use ipnetwork::IpNetwork;
-use mac_address::{MacAddress, get_mac_address};
-use serde_json::{Value as Json, json};
-use uuid::Uuid;
+use time::macros::{date, time};
 
 #[async_std::main]
 async fn main() {

@@ -397,7 +397,7 @@ impl OnConflict {
         self
     }
 
-    /// Set ON CONFLICT update exprs
+    /// Set ON CONFLICT update exprs. Append to current list of expressions.
     ///
     /// # Examples
     ///
@@ -413,7 +413,7 @@ impl OnConflict {
     ///     ])
     ///     .on_conflict(
     ///         OnConflict::column(Glyph::Id)
-    ///             .value(Glyph::Image, Expr::val(1).add(2))
+    ///             .values([(Glyph::Image, Expr::val(1).add(2))])
     ///             .to_owned()
     ///     )
     ///     .to_owned();

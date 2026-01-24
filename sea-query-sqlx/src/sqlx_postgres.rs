@@ -1,17 +1,19 @@
 #[cfg(feature = "with-bigdecimal")]
-use bigdecimal::BigDecimal;
-#[cfg(feature = "with-chrono")]
-use chrono::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
-#[cfg(feature = "with-ipnetwork")]
-use ipnetwork::IpNetwork;
-#[cfg(feature = "with-mac_address")]
-use mac_address::MacAddress;
+use sea_query::prelude::BigDecimal;
 #[cfg(feature = "with-rust_decimal")]
-use rust_decimal::Decimal;
+use sea_query::prelude::Decimal;
+#[cfg(feature = "with-ipnetwork")]
+use sea_query::prelude::IpNetwork;
 #[cfg(feature = "with-json")]
-use serde_json::Value as Json;
+use sea_query::prelude::Json;
+#[cfg(feature = "with-mac_address")]
+use sea_query::prelude::MacAddress;
 #[cfg(feature = "with-uuid")]
-use uuid::Uuid;
+use sea_query::prelude::Uuid;
+#[cfg(feature = "with-time")]
+use sea_query::prelude::time;
+#[cfg(feature = "with-chrono")]
+use sea_query::prelude::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 use sea_query::{ArrayType, Value};
 
