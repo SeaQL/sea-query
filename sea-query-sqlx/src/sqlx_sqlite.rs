@@ -100,7 +100,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(big_decimal) => {
-                    use bigdecimal::ToPrimitive;
+                    use sea_query::prelude::bigdecimal::ToPrimitive;
                     let _ = args.add(big_decimal.map(|d| d.to_string()));
                 }
                 #[cfg(feature = "with-json")]
