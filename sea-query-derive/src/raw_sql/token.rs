@@ -217,7 +217,7 @@ impl<'a> Tokenizer<'a> {
                     b = self.p_c(c);
                     self.inc();
                     if c == '*' && self.peek() == '/' {
-                        b = self.p_c(c);
+                        b = self.p_c('/');
                         self.inc();
                         break;
                     }
@@ -993,6 +993,23 @@ mod tests {
                 Token::Comment("/*\n        -- hello */"),
                 Token::Space("\n        "),
                 Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT 1/*hello*/"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+                Token::Comment("/*hello*/"),
             ]
         );
         assert_eq!(
