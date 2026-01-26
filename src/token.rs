@@ -196,6 +196,7 @@ impl<'a> Tokenizer<'a> {
         if a != b {
             let string = &self.input[a..b];
             if string == "-" && self.peek() == '-' {
+                b = self.p_c('-');
                 self.inc();
                 while !self.end() {
                     let c = self.get();
@@ -209,6 +210,7 @@ impl<'a> Tokenizer<'a> {
                 let string = &self.input[a..b];
                 return Some(Token::Comment(string));
             } else if string == "/" && self.peek() == '*' {
+                b = self.p_c('*');
                 self.inc();
                 while !self.end() {
                     let c = self.get();
@@ -865,6 +867,24 @@ mod tests {
             tokens.iter().map(|x| x.as_str()).collect::<String>()
         );
 
+        let string = r#"SELECT 1 --"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+                Token::Space(" "),
+                Token::Comment("--"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
         let string = r#"SELECT 1 -"#;
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
@@ -1007,6 +1027,24 @@ mod tests {
                 Token::Space(" "),
                 Token::Unquoted("1"),
                 Token::Comment("/*hello"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT 1 /*"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+                Token::Space(" "),
+                Token::Comment("/*"),
             ]
         );
         assert_eq!(
