@@ -63,6 +63,74 @@ impl QueryBuilder for MysqlQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
+    fn prepare_explain_statement(&self, explain: &ExplainStatement, sql: &mut impl SqlWriter) {
+        sql.write_str("EXPLAIN").unwrap();
+        if let Some(table) = &explain.mysql_opts.table {
+            sql.write_str(" ").unwrap();
+            self.prepare_table_ref(table, sql);
+            if let Some(target) = &explain.mysql_opts.target {
+                match target {
+                    ExplainTableTarget::Column(column) => {
+                        sql.write_str(" ").unwrap();
+                        self.prepare_iden(column, sql);
+                    }
+                    ExplainTableTarget::Wildcard(wildcard) => {
+                        sql.write_str(" '").unwrap();
+                        if self.needs_escape(wildcard) {
+                            sql.write_str(&self.escape_string(wildcard)).unwrap();
+                        } else {
+                            sql.write_str(wildcard).unwrap();
+                        }
+                        sql.write_str("'").unwrap();
+                    }
+                }
+            }
+            return;
+        }
+
+        if let Some(analyze) = explain.analyze {
+            if analyze {
+                sql.write_str(" ANALYZE").unwrap();
+            } else {
+                sql.write_str(" ANALYZE FALSE").unwrap();
+            }
+        }
+
+        if let Some(format) = explain.format {
+            sql.write_str(" FORMAT = ").unwrap();
+            sql.write_str(format.as_str()).unwrap();
+        }
+
+        if let Some(variable) = &explain.mysql_opts.into_variable {
+            sql.write_str(" INTO ").unwrap();
+            sql.write_str(variable).unwrap();
+        }
+
+        if let Some(schema) = &explain.mysql_opts.schema_spec {
+            match schema {
+                MySqlExplainSchemaSpec::Schema(schema) => {
+                    sql.write_str(" FOR SCHEMA ").unwrap();
+                    self.prepare_iden(schema, sql);
+                }
+                MySqlExplainSchemaSpec::Database(schema) => {
+                    sql.write_str(" FOR DATABASE ").unwrap();
+                    self.prepare_iden(schema, sql);
+                }
+            }
+        }
+
+        if let Some(connection_id) = explain.mysql_opts.for_connection {
+            sql.write_str(" FOR CONNECTION ").unwrap();
+            write_int(sql, connection_id);
+            return;
+        }
+
+        if let Some(statement) = &explain.statement {
+            sql.write_str(" ").unwrap();
+            statement.write_to(self, sql);
+        }
+    }
+
     fn prepare_with_clause_recursive_options(&self, _: &WithClause, _: &mut impl SqlWriter) {
         // MySQL doesn't support sql recursive with query 'SEARCH' and 'CYCLE' options.
     }

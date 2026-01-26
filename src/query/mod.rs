@@ -10,6 +10,7 @@
 mod case;
 mod condition;
 mod delete;
+mod explain;
 mod insert;
 mod on_conflict;
 mod ordered;
@@ -23,6 +24,7 @@ mod with;
 pub use case::*;
 pub use condition::*;
 pub use delete::*;
+pub use explain::*;
 pub use insert::*;
 pub use on_conflict::*;
 pub use ordered::*;

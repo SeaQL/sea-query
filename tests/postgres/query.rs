@@ -1,6 +1,6 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{audit::AuditTrait, extension::postgres::PgBinOper};
+use sea_query::{ExplainFormat, audit::AuditTrait, extension::postgres::PgBinOper};
 
 #[test]
 fn select_1() {

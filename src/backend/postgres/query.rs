@@ -119,6 +119,122 @@ impl QueryBuilder for PostgresQueryBuilder {
         query.prepare_statement(self, sql);
     }
 
+    fn prepare_explain_statement(&self, explain: &ExplainStatement, sql: &mut impl SqlWriter) {
+        fn write_sep(sql: &mut impl SqlWriter, first: &mut bool) {
+            if !*first {
+                sql.write_str(", ").unwrap();
+            } else {
+                *first = false;
+            }
+        }
+
+        // https://www.postgresql.org/docs/current/sql-explain.html
+        // Specifies whether the selected option should be turned on or off. You can write TRUE, ON, or 1 to enable the option, and FALSE, OFF, or 0 to disable it. The boolean value can also be omitted, in which case TRUE is assumed.
+        fn write_false(sql: &mut impl SqlWriter, value: bool) {
+            if !value {
+                sql.write_str(" 0").unwrap();
+            }
+        }
+
+        sql.write_str("EXPLAIN").unwrap();
+
+        let has_options = explain.analyze.is_some()
+            || explain.pg_opts.verbose.is_some()
+            || explain.pg_opts.costs.is_some()
+            || explain.pg_opts.settings.is_some()
+            || explain.pg_opts.generic_plan.is_some()
+            || explain.pg_opts.buffers.is_some()
+            || explain.pg_opts.serialize.is_some()
+            || explain.pg_opts.wal.is_some()
+            || explain.pg_opts.timing.is_some()
+            || explain.pg_opts.summary.is_some()
+            || explain.pg_opts.memory.is_some()
+            || explain.format.is_some();
+
+        if has_options {
+            sql.write_str(" (").unwrap();
+            let mut first = true;
+
+            if let Some(analyze) = explain.analyze {
+                write_sep(sql, &mut first);
+                sql.write_str("ANALYZE").unwrap();
+                write_false(sql, analyze);
+            }
+
+            if let Some(verbose) = explain.pg_opts.verbose {
+                write_sep(sql, &mut first);
+                sql.write_str("VERBOSE").unwrap();
+                write_false(sql, verbose);
+            }
+
+            if let Some(costs) = explain.pg_opts.costs {
+                write_sep(sql, &mut first);
+                sql.write_str("COSTS").unwrap();
+                write_false(sql, costs);
+            }
+
+            if let Some(settings) = explain.pg_opts.settings {
+                write_sep(sql, &mut first);
+                sql.write_str("SETTINGS").unwrap();
+                write_false(sql, settings);
+            }
+
+            if let Some(generic_plan) = explain.pg_opts.generic_plan {
+                write_sep(sql, &mut first);
+                sql.write_str("GENERIC_PLAN").unwrap();
+                write_false(sql, generic_plan);
+            }
+
+            if let Some(buffers) = explain.pg_opts.buffers {
+                write_sep(sql, &mut first);
+                sql.write_str("BUFFERS").unwrap();
+                write_false(sql, buffers);
+            }
+
+            if let Some(serialize) = explain.pg_opts.serialize {
+                write_sep(sql, &mut first);
+                sql.write_str("SERIALIZE ").unwrap();
+                sql.write_str(serialize.as_str()).unwrap();
+            }
+
+            if let Some(wal) = explain.pg_opts.wal {
+                write_sep(sql, &mut first);
+                sql.write_str("WAL").unwrap();
+                write_false(sql, wal);
+            }
+
+            if let Some(timing) = explain.pg_opts.timing {
+                write_sep(sql, &mut first);
+                sql.write_str("TIMING").unwrap();
+                write_false(sql, timing);
+            }
+
+            if let Some(summary) = explain.pg_opts.summary {
+                write_sep(sql, &mut first);
+                sql.write_str("SUMMARY").unwrap();
+                write_false(sql, summary);
+            }
+
+            if let Some(memory) = explain.pg_opts.memory {
+                write_sep(sql, &mut first);
+                sql.write_str("MEMORY").unwrap();
+                write_false(sql, memory);
+            }
+
+            if let Some(format) = explain.format {
+                write_sep(sql, &mut first);
+                sql.write_str("FORMAT ").unwrap();
+                sql.write_str(format.as_str()).unwrap();
+            }
+            sql.write_str(")").unwrap();
+        }
+
+        if let Some(statement) = &explain.statement {
+            sql.write_str(" ").unwrap();
+            statement.write_to(self, sql);
+        }
+    }
+
     fn prepare_function_name(&self, function: &Func, sql: &mut impl SqlWriter) {
         match function {
             Func::PgFunction(function) => sql
