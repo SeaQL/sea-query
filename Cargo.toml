@@ -3,7 +3,7 @@ members = [".", "sea-query-derive"]
 
 [package]
 name = "sea-query"
-version = "1.0.0-rc.28"
+version = "1.0.0-rc.29"
 authors = [
     "Chris Tsang <chris.2y3@outlook.com>",
     "Billy Chan <ccw.billy.123@gmail.com>",
@@ -56,6 +56,7 @@ audit = []
 backend-mysql = []
 backend-postgres = []
 backend-sqlite = []
+backend-cockroach = []
 default = ["derive", "audit", "backend-mysql", "backend-postgres", "backend-sqlite", "itoa"]
 derive = ["sea-query-derive"]
 attr = ["sea-query-derive"]
@@ -97,6 +98,7 @@ all-features = [
     "backend-mysql",
     "backend-postgres",
     "backend-sqlite",
+    "backend-cockroach",
     "derive",
     "hashable-value",
     "serde",
@@ -121,6 +123,7 @@ all-types = [
 option-more-parentheses = []
 option-sqlite-exact-column-type = []
 option-postgres-use-serial = []
+option-cockroachdb-use-identity = []
 itoa = ["dep:itoa"]
 
 [[test]]
