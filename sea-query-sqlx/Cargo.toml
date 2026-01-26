@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-sqlx"
-version = "0.8.0-rc.12"
+version = "0.8.0-rc.14"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2024"
 description = "Driver library for using SeaQuery with SQLx"
@@ -17,7 +17,7 @@ rust-version = "1.85.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "1.0.0-rc.10", path = "..", default-features = false, features = ["thread-safe"] }
+sea-query = { version = "1.0.0-rc.30", path = "..", default-features = false, features = ["thread-safe"] }
 sqlx = { version = "0.8", default-features = false, optional = true }
 ipnetwork = { version = "0.20", default-features = false, optional = true } # pin dependency
 pgvector = { version = "0.4", default-features = false, optional = true } # requires feature flag
