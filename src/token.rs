@@ -18,6 +18,7 @@ pub enum Token<'a> {
     Unquoted(&'a str),
     Space(&'a str),
     Punctuation(&'a str),
+    Comment(&'a str),
 }
 
 impl<'a> Tokenizer<'a> {
@@ -38,6 +39,10 @@ impl<'a> Tokenizer<'a> {
 
     fn get(&self) -> char {
         self.c.unwrap()
+    }
+
+    fn peek(&self) -> char {
+        self.c.unwrap_or('\0')
     }
 
     fn inc(&mut self) {
@@ -189,7 +194,36 @@ impl<'a> Tokenizer<'a> {
         }
 
         if a != b {
-            Some(Token::Punctuation(&self.input[a..b]))
+            let string = &self.input[a..b];
+            if string == "-" && self.peek() == '-' {
+                self.inc();
+                while !self.end() {
+                    let c = self.get();
+                    if c == '\n' {
+                        break;
+                    } else {
+                        b = self.p_c(c);
+                    }
+                    self.inc();
+                }
+                let string = &self.input[a..b];
+                return Some(Token::Comment(string));
+            } else if string == "/" && self.peek() == '*' {
+                self.inc();
+                while !self.end() {
+                    let c = self.get();
+                    b = self.p_c(c);
+                    self.inc();
+                    if c == '*' && self.peek() == '/' {
+                        b = self.p_c(c);
+                        self.inc();
+                        break;
+                    }
+                }
+                let string = &self.input[a..b];
+                return Some(Token::Comment(string));
+            }
+            Some(Token::Punctuation(string))
         } else {
             None
         }
@@ -278,6 +312,7 @@ impl Token<'_> {
             Self::Unquoted(string) => string,
             Self::Space(string) => string,
             Self::Punctuation(string) => string,
+            Self::Comment(string) => string,
         }
     }
 
@@ -410,7 +445,7 @@ mod tests {
 
     #[test]
     fn test_6() {
-        let string = "2.3*4";
+        let string = "2.3*4/5";
         let tokenizer = Tokenizer::new(string);
         let tokens: Vec<Token> = tokenizer.iter().collect();
         assert_eq!(
@@ -421,6 +456,8 @@ mod tests {
                 Token::Unquoted("3"),
                 Token::Punctuation("*"),
                 Token::Unquoted("4"),
+                Token::Punctuation("/"),
+                Token::Unquoted("5"),
             ]
         );
         assert_eq!(
@@ -761,6 +798,215 @@ mod tests {
                 Token::Unquoted("2"),
                 Token::Punctuation(")"),
                 Token::Punctuation("}"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_single_line_comment() {
+        let string = r#"SELECT
+        -- hello 
+        1"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space("\n        "),
+                Token::Comment("-- hello "),
+                Token::Space("\n        "),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT -- hello
+        1"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Comment("-- hello"),
+                Token::Space("\n        "),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT 1 -- hello"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+                Token::Space(" "),
+                Token::Comment("-- hello"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT 1 -"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+                Token::Space(" "),
+                Token::Punctuation("-"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_block_comment() {
+        let string = r#"SELECT /* hello */ 1"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Comment("/* hello */"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT /*hello*/ 1"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Comment("/*hello*/"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT /* --hello */ 1"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Comment("/* --hello */"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT
+        /* hello */
+        1"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space("\n        "),
+                Token::Comment("/* hello */"),
+                Token::Space("\n        "),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT /*
+        -- hello */
+        1"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Comment("/*\n        -- hello */"),
+                Token::Space("\n        "),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT 1/*hello*"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+                Token::Comment("/*hello*"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+
+        let string = r#"SELECT 1/*hello"#;
+        let tokenizer = Tokenizer::new(string);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("SELECT"),
+                Token::Space(" "),
+                Token::Unquoted("1"),
+                Token::Comment("/*hello"),
             ]
         );
         assert_eq!(

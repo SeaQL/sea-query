@@ -328,6 +328,18 @@ fn test_raw_sql_10() {
             42.into(),
         ])
     );
+    let query = sea_query::raw_sql!(
+        seaql::postgres::query,
+        r#"INSERT INTO "glyph" ("aspect", "image")
+        -- inline comment'
+        VALUES {..(values.0, values.1, values.2),} SELECT {z}"#
+    );
+    assert_eq!(
+        query.sql,
+        r#"INSERT INTO "glyph" ("aspect", "image")
+        -- inline comment'
+        VALUES ($1, $2, $3), ($4, $5, $6) SELECT $7"#
+    );
 }
 
 #[test]
