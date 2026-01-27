@@ -104,6 +104,10 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
+                Value::TimeDateTimeUtc(t) => {
+                    let _ = args.add(t.map(sqlx::types::time::OffsetDateTime::from));
+                }
+                #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
@@ -270,6 +274,15 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     ArrayType::TimeDateTime => {
                         let value: Option<Vec<time::PrimitiveDateTime>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::TimeDateTime");
+                        let _ = args.add(value);
+                    }
+                    #[cfg(feature = "with-time")]
+                    ArrayType::TimeDateTimeUtc => {
+                        let value: Option<Vec<time::UtcDateTime>> = Value::Array(ty, v)
+                            .expect("This Value::Array should consist of Value::TimeDateTimeUtc");
+                        // temprorary, until sqlx supports UtcDateTime
+                        let value: Option<Vec<time::OffsetDateTime>> = value
+                            .map(|vec| vec.into_iter().map(time::OffsetDateTime::from).collect());
                         let _ = args.add(value);
                     }
                     #[cfg(feature = "with-time")]

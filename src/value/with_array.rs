@@ -49,6 +49,9 @@ impl NotU8 for PrimitiveDateTime {}
 #[cfg(feature = "with-time")]
 impl NotU8 for OffsetDateTime {}
 
+#[cfg(feature = "with-time")]
+impl NotU8 for UtcDateTime {}
+
 #[cfg(feature = "with-rust_decimal")]
 impl NotU8 for Decimal {}
 

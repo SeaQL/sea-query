@@ -131,6 +131,8 @@ impl Hash for Value {
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(primitive_date_time) => primitive_date_time.hash(state),
             #[cfg(feature = "with-time")]
+            Value::TimeDateTimeUtc(utc_date_time) => utc_date_time.hash(state),
+            #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(offset_date_time) => offset_date_time.hash(state),
 
             #[cfg(feature = "with-jiff")]

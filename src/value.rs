@@ -136,6 +136,10 @@ pub enum ArrayType {
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeUtc,
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTimeWithTimeZone,
 
     #[cfg(feature = "with-jiff")]
@@ -245,6 +249,10 @@ pub enum Value {
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
     TimeDateTime(Option<PrimitiveDateTime>),
+
+    #[cfg(feature = "with-time")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+    TimeDateTimeUtc(Option<time::UtcDateTime>),
 
     #[cfg(feature = "with-time")]
     #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
@@ -411,6 +419,10 @@ impl Value {
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTimeUtc(_) => Self::TimeDateTimeUtc(None),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
             Self::TimeDateTimeWithTimeZone(_) => Self::TimeDateTimeWithTimeZone(None),
 
             #[cfg(feature = "with-jiff")]
@@ -534,6 +546,10 @@ impl Value {
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
             Self::TimeDateTime(_) => Self::TimeDateTime(Some(PrimitiveDateTime::MIN)),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTimeUtc(_) => Self::TimeDateTimeUtc(Some(time::UtcDateTime::MIN)),
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]

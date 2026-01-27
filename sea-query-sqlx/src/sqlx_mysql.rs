@@ -87,6 +87,10 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                     let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
+                Value::TimeDateTimeUtc(t) => {
+                    let _ = args.add(t.map(sqlx::types::time::OffsetDateTime::from));
+                }
+                #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }

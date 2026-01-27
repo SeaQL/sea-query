@@ -88,6 +88,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     let _ = args.add(Value::TimeDateTime(t).time_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-time")]
+                Value::TimeDateTimeUtc(t) => {
+                    let _ = args.add(Value::TimeDateTimeUtc(t).time_as_naive_utc_in_string());
+                }
+                #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ =
                         args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());

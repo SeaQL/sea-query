@@ -84,6 +84,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         #[cfg(feature = "with-time")]
         Value::TimeDateTime(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-time")]
+        Value::TimeDateTimeUtc(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
+        #[cfg(feature = "with-time")]
         Value::TimeDateTimeWithTimeZone(_) => CommonSqlQueryBuilder.value_to_string(value).into(),
         #[cfg(feature = "with-jiff")]
         Value::JiffDate(_) => CommonSqlQueryBuilder.value_to_string(value).into(),

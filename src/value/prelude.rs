@@ -5,7 +5,7 @@ pub use serde_json::{self, Value as Json};
 pub use chrono::{self, DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "with-time")]
-pub use time::{self, OffsetDateTime, PrimitiveDateTime};
+pub use time::{self, OffsetDateTime, PrimitiveDateTime, UtcDateTime};
 
 #[cfg(feature = "with-jiff")]
 pub use jiff::{self, Timestamp, Zoned};
