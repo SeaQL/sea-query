@@ -123,7 +123,6 @@ all-types = [
 option-more-parentheses = []
 option-sqlite-exact-column-type = []
 option-postgres-use-serial = []
-option-cockroachdb-use-identity = []
 itoa = ["dep:itoa"]
 
 [[test]]
