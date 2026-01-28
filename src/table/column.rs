@@ -119,7 +119,7 @@ pub enum ColumnType {
     LTree,
 }
 
-/// Length for var-char/binary; default to 255
+/// Length for var-char/binary; default to 255 in MySQL if length is not specified
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum StringLen {
     /// String size
