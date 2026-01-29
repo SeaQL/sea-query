@@ -266,7 +266,7 @@ pub trait TableBuilder:
 
     /// Translate the generated column into SQL statement
     fn prepare_generated_column(&self, r#gen: &Expr, stored: bool, sql: &mut impl SqlWriter) {
-        sql.write_str("GENERATED ALWAYS AS (").unwrap();
+        sql.write_str(" GENERATED ALWAYS AS (").unwrap();
         QueryBuilder::prepare_expr(self, r#gen, sql);
         sql.write_str(")").unwrap();
         if stored {
