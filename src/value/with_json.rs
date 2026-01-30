@@ -33,7 +33,8 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::String(None)
         | Value::Char(None)
         | Value::Bytes(None)
-        | Value::Json(None) => Json::Null,
+        | Value::Json(None)
+        | Value::Enum(OptionEnum::None(_)) => Json::Null,
         #[cfg(feature = "with-rust_decimal")]
         Value::Decimal(None) => Json::Null,
         #[cfg(feature = "with-bigdecimal")]
@@ -62,6 +63,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Float(Some(v)) => (*v).into(),
         Value::Double(Some(v)) => (*v).into(),
         Value::String(Some(s)) => Json::String(s.clone()),
+        Value::Enum(OptionEnum::Some(v)) => Json::String(v.value.to_string()),
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(std::str::from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),

@@ -6,7 +6,7 @@ use rusqlite::{
     Result, ToSql,
     types::{Null, ToSqlOutput},
 };
-use sea_query::Value;
+use sea_query::{OptionEnum, Value};
 use sea_query::{QueryBuilder, query::*};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -79,6 +79,10 @@ impl ToSql for RusqliteValue {
             Value::String(v) => match v {
                 Some(v) => v.as_str().to_sql(),
                 None => Null.to_sql(),
+            },
+            Value::Enum(v) => match v {
+                OptionEnum::Some(v) => v.value.as_ref().to_sql(),
+                OptionEnum::None(_) => Null.to_sql(),
             },
             Value::Char(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
             Value::Bytes(v) => match v {
