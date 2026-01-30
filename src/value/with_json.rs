@@ -31,6 +31,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         | Value::Float(None)
         | Value::Double(None)
         | Value::String(None)
+        | Value::Enum(None)
         | Value::Char(None)
         | Value::Bytes(None)
         | Value::Json(None) => Json::Null,
@@ -62,6 +63,7 @@ pub fn sea_value_to_json_value(value: &Value) -> Json {
         Value::Float(Some(v)) => (*v).into(),
         Value::Double(Some(v)) => (*v).into(),
         Value::String(Some(s)) => Json::String(s.clone()),
+        Value::Enum(Some(v)) => Json::String(v.value.to_string()),
         Value::Char(Some(v)) => Json::String(v.to_string()),
         Value::Bytes(Some(s)) => Json::String(std::str::from_utf8(s).unwrap().to_string()),
         Value::Json(Some(v)) => v.as_ref().clone(),

@@ -75,6 +75,7 @@ impl ToSql for PostgresValue {
             Value::Float(v) => to_sql!(v, f32),
             Value::Double(v) => to_sql!(v, f64),
             Value::String(v) => v.as_deref().to_sql(ty, out),
+            Value::Enum(v) => v.as_ref().map(|v| v.value.as_ref()).to_sql(ty, out),
             Value::Char(v) => v.map(|v| v.to_string()).to_sql(ty, out),
             Value::Bytes(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-json")]

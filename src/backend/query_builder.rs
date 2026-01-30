@@ -1170,6 +1170,7 @@ pub trait QueryBuilder:
             | Value::Float(None)
             | Value::Double(None)
             | Value::String(None)
+            | Value::Enum(None)
             | Value::Char(None)
             | Value::Bytes(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-json")]
@@ -1248,6 +1249,7 @@ pub trait QueryBuilder:
             Value::Float(Some(v)) => write!(buf, "{v}")?,
             Value::Double(Some(v)) => write!(buf, "{v}")?,
             Value::String(Some(v)) => self.write_string_quoted(v, buf),
+            Value::Enum(Some(v)) => self.write_string_quoted(v.value.as_ref(), buf),
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
             }

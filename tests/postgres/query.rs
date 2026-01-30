@@ -1301,6 +1301,50 @@ fn insert_3() {
 }
 
 #[test]
+fn insert_enum_literal_cast() {
+    let value = sea_query::Enum {
+        type_name: "FontSizeEnum".to_owned().into(),
+        value: "large".into(),
+    };
+
+    assert_eq!(
+        Query::insert()
+            .into_table(Char::Table)
+            .columns([Char::FontSize])
+            .values_panic([Expr::val(value)])
+            .to_string(PostgresQueryBuilder),
+        r#"INSERT INTO "character" ("font_size") VALUES ('large'::"FontSizeEnum")"#
+    );
+}
+
+#[test]
+#[cfg(feature = "postgres-array")]
+fn insert_enum_array_param_cast() {
+    let value = Value::Array(
+        ArrayType::Enum("FontSizeEnum".to_owned().into()),
+        Some(Box::new(vec![
+            sea_query::Enum {
+                type_name: "FontSizeEnum".to_owned().into(),
+                value: "large".into(),
+            }
+            .into(),
+        ])),
+    );
+
+    let (statement, values) = Query::insert()
+        .into_table(Char::Table)
+        .columns([Char::FontSize])
+        .values_panic([Expr::val(value)])
+        .build(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"INSERT INTO "character" ("font_size") VALUES ($1::"FontSizeEnum"[])"#
+    );
+    assert_eq!(values, Values(vec![vec!["large".to_owned()].into()]));
+}
+
+#[test]
 #[cfg(feature = "with-chrono")]
 fn insert_4() {
     assert_eq!(
