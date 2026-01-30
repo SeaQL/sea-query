@@ -1,5 +1,5 @@
 use crate::SqlxValues;
-use sea_query::Value;
+use sea_query::{OptionEnum, Value};
 
 impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
     fn into_arguments(self) -> sqlx::mysql::MySqlArguments {
@@ -42,6 +42,13 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 }
                 Value::String(s) => {
                     let _ = args.add(s.as_deref());
+                }
+                Value::Enum(e) => {
+                    let value = match e {
+                        OptionEnum::Some(v) => Some(v.value.into_owned()),
+                        OptionEnum::None(_) => None,
+                    };
+                    let _ = args.add(value);
                 }
                 Value::Char(c) => {
                     let _ = args.add(c.map(|c| c.to_string()));
