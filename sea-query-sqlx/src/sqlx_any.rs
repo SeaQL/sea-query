@@ -44,6 +44,9 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::String(s) => {
                     let _ = args.add(s);
                 }
+                Value::Enum(e) => {
+                    let _ = args.add(e.map(|v| v.value.as_ref().to_owned()));
+                }
                 Value::Char(c) => {
                     let _ = args.add(c.map(|c| c.to_string()));
                 }

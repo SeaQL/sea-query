@@ -42,6 +42,7 @@ impl TransformValue for Pg {
             Value::Float(v) => build!(Float, v),
             Value::Double(v) => build!(Double, v),
             Value::String(v) => build!(Text, v),
+            Value::Enum(v) => build!(Text, v.map(|v| v.value.as_ref().to_owned())),
             Value::Char(v) => build!(Text, v.map(|v| v.to_string())),
             Value::Bytes(v) => build!(Blob, v),
             #[cfg(feature = "with-chrono")]
@@ -130,6 +131,26 @@ impl TransformValue for Pg {
                 ArrayType::Float => build!(Array<Float>, refine!(f32, ty, v)),
                 ArrayType::Double => build!(Array<Double>, refine!(f64, ty, v)),
                 ArrayType::String => build!(Array<Text>, refine!(String, ty, v)),
+                ArrayType::Enum(_) => {
+                    let value = match v {
+                        Some(values) => {
+                            let mut out = Vec::with_capacity(values.len());
+                            for value in *values {
+                                match value {
+                                    Value::Enum(Some(value)) => {
+                                        out.push(value.value.into_owned());
+                                    }
+                                    _ => {
+                                        bail!("This Value::Array should consist of Value::Enum");
+                                    }
+                                }
+                            }
+                            Some(out)
+                        }
+                        None => None,
+                    };
+                    build!(Array<Text>, value)
+                }
                 ArrayType::Char => {
                     build!(
                         Array<Text>,

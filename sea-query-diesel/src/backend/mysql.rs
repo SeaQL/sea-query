@@ -32,6 +32,7 @@ impl TransformValue for Mysql {
             Value::Float(v) => build!(Float, v),
             Value::Double(v) => build!(Double, v),
             Value::String(v) => build!(Text, v),
+            Value::Enum(v) => build!(Text, v.map(|v| v.value.as_ref().to_owned())),
             Value::Char(v) => build!(Text, v.map(|v| v.to_string())),
             Value::Bytes(v) => build!(Blob, v),
             #[cfg(feature = "with-chrono")]

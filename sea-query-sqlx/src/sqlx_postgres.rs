@@ -61,6 +61,9 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::String(s) => {
                     let _ = args.add(s.as_deref());
                 }
+                Value::Enum(e) => {
+                    let _ = args.add(e.as_ref().map(|v| v.value.as_ref()));
+                }
                 Value::Char(c) => {
                     let _ = args.add(c.map(|c| c.to_string()));
                 }
@@ -202,6 +205,22 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     ArrayType::String => {
                         let value: Option<Vec<String>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::String");
+                        let _ = args.add(value);
+                    }
+                    ArrayType::Enum(_) => {
+                        let value: Option<Vec<String>> = v.map(|values| {
+                            values
+                                .into_iter()
+                                .map(|value| match value {
+                                    Value::Enum(Some(value)) => value.value.into_owned(),
+                                    _ => {
+                                        panic!(
+                                            "Value::Array(ArrayType::Enum) should contain Value::Enum"
+                                        );
+                                    }
+                                })
+                                .collect()
+                        });
                         let _ = args.add(value);
                     }
                     ArrayType::Char => {

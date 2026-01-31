@@ -80,6 +80,10 @@ impl ToSql for RusqliteValue {
                 Some(v) => v.as_str().to_sql(),
                 None => Null.to_sql(),
             },
+            Value::Enum(v) => match v {
+                Some(v) => v.value.as_ref().to_sql(),
+                None => Null.to_sql(),
+            },
             Value::Char(v) => opt_string_to_sql!(v.map(|v| v.to_string())),
             Value::Bytes(v) => match v {
                 Some(v) => v.as_slice().to_sql(),
