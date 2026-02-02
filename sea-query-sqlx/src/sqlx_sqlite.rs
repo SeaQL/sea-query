@@ -87,6 +87,10 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     let _ = args.add(t);
                 }
                 #[cfg(feature = "with-time")]
+                Value::TimeDateTimeUtc(t) => {
+                    let _ = args.add(t.map(sqlx::types::time::OffsetDateTime::from));
+                }
+                #[cfg(feature = "with-time")]
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
@@ -100,7 +104,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(big_decimal) => {
-                    use sea_query::prelude::bigdecimal::ToPrimitive;
                     let _ = args.add(big_decimal.map(|d| d.to_string()));
                 }
                 #[cfg(feature = "with-json")]

@@ -1199,6 +1199,8 @@ pub trait QueryBuilder:
             #[cfg(feature = "with-time")]
             Value::TimeDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-time")]
+            Value::TimeDateTimeUtc(None) => buf.write_str("NULL")?,
+            #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
             Value::JiffDate(None) => buf.write_str("NULL")?,
@@ -1312,6 +1314,12 @@ pub trait QueryBuilder:
             Value::TimeDateTime(Some(v)) => {
                 buf.write_str("'")?;
                 buf.write_str(&v.format(time_format::FORMAT_DATETIME).unwrap())?;
+                buf.write_str("'")?;
+            }
+            #[cfg(feature = "with-time")]
+            Value::TimeDateTimeUtc(Some(v)) => {
+                buf.write_str("'")?;
+                buf.write_str(&v.format(time_format::FORMAT_DATETIME_TZ).unwrap())?;
                 buf.write_str("'")?;
             }
             #[cfg(feature = "with-time")]

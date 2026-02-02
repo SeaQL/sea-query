@@ -8,25 +8,27 @@ impl DateLikeValue for time::Date {}
 impl TimeLikeValue for time::Time {}
 impl DateTimeLikeValue for time::PrimitiveDateTime {}
 impl DateTimeLikeValue for time::OffsetDateTime {}
+impl DateTimeLikeValue for time::UtcDateTime {}
 
 impl DateLikeValueNullable for Option<time::Date> {}
 impl TimeLikeValueNullable for Option<time::Time> {}
 impl DateTimeLikeValueNullable for Option<time::PrimitiveDateTime> {}
 impl DateTimeLikeValueNullable for Option<time::OffsetDateTime> {}
+impl DateTimeLikeValueNullable for Option<time::UtcDateTime> {}
 
-impl From<OffsetDateTime> for Value {
-    fn from(v: OffsetDateTime) -> Value {
+impl From<time::OffsetDateTime> for Value {
+    fn from(v: time::OffsetDateTime) -> Value {
         Value::TimeDateTimeWithTimeZone(Some(v))
     }
 }
 
-impl Nullable for OffsetDateTime {
+impl Nullable for time::OffsetDateTime {
     fn null() -> Value {
         Value::TimeDateTimeWithTimeZone(None)
     }
 }
 
-impl ValueType for OffsetDateTime {
+impl ValueType for time::OffsetDateTime {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
             Value::TimeDateTimeWithTimeZone(Some(x)) => Ok(x),
@@ -40,6 +42,39 @@ impl ValueType for OffsetDateTime {
 
     fn array_type() -> ArrayType {
         ArrayType::TimeDateTimeWithTimeZone
+    }
+
+    fn column_type() -> ColumnType {
+        ColumnType::TimestampWithTimeZone
+    }
+}
+
+impl From<time::UtcDateTime> for Value {
+    fn from(v: time::UtcDateTime) -> Value {
+        Value::TimeDateTimeUtc(Some(v))
+    }
+}
+
+impl Nullable for time::UtcDateTime {
+    fn null() -> Value {
+        Value::TimeDateTimeUtc(None)
+    }
+}
+
+impl ValueType for time::UtcDateTime {
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::TimeDateTimeUtc(Some(x)) => Ok(x),
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        stringify!(UtcDateTime).to_owned()
+    }
+
+    fn array_type() -> ArrayType {
+        ArrayType::TimeDateTimeUtc
     }
 
     fn column_type() -> ColumnType {
@@ -87,6 +122,19 @@ impl Value {
 }
 
 impl Value {
+    pub fn is_time_date_time_utc(&self) -> bool {
+        matches!(self, Self::TimeDateTimeUtc(_))
+    }
+
+    pub fn as_ref_time_date_time_utc(&self) -> Option<&time::UtcDateTime> {
+        match self {
+            Self::TimeDateTimeUtc(v) => v.as_ref(),
+            _ => panic!("not Value::TimeDateTimeUtc"),
+        }
+    }
+}
+
+impl Value {
     pub fn is_time_date_time_with_time_zone(&self) -> bool {
         matches!(self, Self::TimeDateTimeWithTimeZone(_))
     }
@@ -111,6 +159,9 @@ impl Value {
             Self::TimeDateTime(v) => v
                 .as_ref()
                 .and_then(|v| v.format(time_format::FORMAT_DATETIME).ok()),
+            Self::TimeDateTimeUtc(v) => v.as_ref().and_then(|v| {
+                v.format(time_format::FORMAT_DATETIME_TZ).ok()
+            }),
             Self::TimeDateTimeWithTimeZone(v) => v.as_ref().and_then(|v| {
                 v.to_offset(time::macros::offset!(UTC))
                     .format(time_format::FORMAT_DATETIME_TZ)
