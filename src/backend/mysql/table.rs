@@ -220,6 +220,7 @@ impl TableBuilder for MysqlQueryBuilder {
                     TableAlterOption::DropConstraint(name) => {
                         sql.write_str("DROP CONSTRAINT ").unwrap();
                         self.prepare_iden(name, sql);
+                    }
                     TableAlterOption::AddConstraint(constraint) => {
                         let create = ConstraintCreateStatement {
                             constraint: constraint.to_owned(),

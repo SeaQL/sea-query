@@ -422,7 +422,8 @@ impl TableAlterStatement {
         T: IntoIden,
     {
         self.add_alter_option(TableAlterOption::DropConstraint(name.into_iden()))
-    
+    }
+
     /// Add a constraint to existing table
     pub fn add_constraint(&mut self, constraint: &TableConstraint) -> &mut Self {
         self.add_alter_option(TableAlterOption::AddConstraint(constraint.to_owned()))
