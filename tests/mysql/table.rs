@@ -413,6 +413,18 @@ fn alter_7() {
 }
 
 #[test]
+fn alter_8() {
+    // https://dbfiddle.uk/4YIIpn-G
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .add_constraint(&TableConstraint::new().primary().col(Font::Id))
+            .to_string(MysqlQueryBuilder),
+        [r#"ALTER TABLE `font`"#, r#"ADD PRIMARY KEY (`id`)"#,].join(" ")
+    );
+}
+
+#[test]
 fn create_with_check_constraint() {
     assert_eq!(
         Table::create()

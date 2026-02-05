@@ -974,6 +974,7 @@
 #[cfg(feature = "audit")]
 pub mod audit;
 pub mod backend;
+pub mod constraint;
 pub mod error;
 pub mod expr;
 pub mod extension;
@@ -996,6 +997,7 @@ pub mod value;
 pub mod tests_cfg;
 
 pub use backend::*;
+pub use constraint::*;
 pub use expr::*;
 pub use foreign_key::*;
 pub use func::*;
