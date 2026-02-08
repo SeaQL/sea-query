@@ -204,6 +204,68 @@ pub trait PgExpr: ExprTrait {
     {
         self.binary(PgBinOper::CastJsonField, right)
     }
+
+    /// Equivalent to `is_in` but bind parameters as array.
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         (Char::Table, Char::SizeW)
+    ///             .into_column_ref()
+    ///             .eq_any([1, 2, 3]),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" = ANY(ARRAY [1,2,3])"#
+    /// );
+    /// ```
+    #[cfg(feature = "postgres-array")]
+    fn eq_any<V, I>(self, v: I) -> Expr
+    where
+        V: Into<crate::Value> + crate::ValueType,
+        I: IntoIterator<Item = V>,
+    {
+        self.eq(super::PgFunc::any(crate::Value::Array(
+            V::array_type(),
+            Some(Box::new(v.into_iter().map(|v| v.into()).collect())),
+        )))
+    }
+
+    /// Equivalent to `is_not_in` but bind parameters as array.
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Id])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         (Char::Table, Char::SizeW)
+    ///             .into_column_ref()
+    ///             .ne_all([1, 2, 3]),
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "id" FROM "character" WHERE "character"."size_w" <> ALL(ARRAY [1,2,3])"#
+    /// );
+    /// ```
+    #[cfg(feature = "postgres-array")]
+    fn ne_all<V, I>(self, v: I) -> Expr
+    where
+        V: Into<crate::Value> + crate::ValueType,
+        I: IntoIterator<Item = V>,
+    {
+        self.ne(super::PgFunc::all(crate::Value::Array(
+            V::array_type(),
+            Some(Box::new(v.into_iter().map(|v| v.into()).collect())),
+        )))
+    }
 }
 
 /// You should be able to use Postgres-specific operators with all types of expressions.

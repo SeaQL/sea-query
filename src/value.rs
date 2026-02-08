@@ -610,12 +610,14 @@ impl Value {
     }
 
     pub fn array_type(&self) -> ArrayType {
+        #[allow(unused_imports)]
         use std::ops::Deref;
 
         fn array_type_of<V: ValueType>(_: &Option<V>) -> ArrayType {
             V::array_type()
         }
 
+        #[allow(dead_code)]
         fn array_type_of_ref<V: ValueType>(_: Option<&V>) -> ArrayType {
             V::array_type()
         }
@@ -929,6 +931,8 @@ macro_rules! type_to_value {
         }
     };
 }
+
+#[allow(unused_imports)]
 use type_to_value;
 
 type_to_value!(bool, Bool, Boolean);
