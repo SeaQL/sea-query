@@ -17,7 +17,6 @@ impl NotU8 for u64 {}
 impl NotU8 for f32 {}
 impl NotU8 for f64 {}
 impl NotU8 for char {}
-impl NotU8 for &String {}
 impl NotU8 for String {}
 impl NotU8 for Vec<u8> {}
 
@@ -122,25 +121,6 @@ where
     fn column_type() -> ColumnType {
         use ColumnType::*;
         Array(RcOrArc::new(T::column_type()))
-    }
-}
-
-/// This is to allow &[String] to be used as array.
-impl ValueType for &String {
-    fn try_from(_: Value) -> Result<Self, ValueTypeErr> {
-        Err(ValueTypeErr)
-    }
-
-    fn type_name() -> String {
-        "String".into()
-    }
-
-    fn array_type() -> ArrayType {
-        ArrayType::String
-    }
-
-    fn column_type() -> ColumnType {
-        ColumnType::String(StringLen::None)
     }
 }
 
