@@ -447,6 +447,15 @@ fn alter_7() {
 }
 
 #[test]
+#[should_panic(expected = "Sqlite does not support modification of constraints to existing tables")]
+fn alter_8() {
+    let _ = Table::alter()
+        .table(Font::Table)
+        .add_constraint(&TableConstraint::new())
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
 fn create_with_check_constraint() {
     assert_eq!(
         Table::create()
