@@ -20,8 +20,6 @@ impl NotU8 for char {}
 impl NotU8 for String {}
 impl NotU8 for Vec<u8> {}
 
-// TODO impl<T: NotU8> NotU8 for Option<T> {}
-
 #[cfg(feature = "with-json")]
 impl NotU8 for Json {}
 
@@ -75,6 +73,9 @@ impl NotU8 for IpNetwork {}
 
 #[cfg(feature = "with-mac_address")]
 impl NotU8 for MacAddress {}
+
+/// If this blanket impl is causing trouble, please open an issue
+impl<T> NotU8 for &T where T: NotU8 {}
 
 impl<T> From<Vec<T>> for Value
 where
