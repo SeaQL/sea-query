@@ -908,6 +908,17 @@ impl SelectStatement {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "character" INTO UNLOGGED TABLE "character_copy" FROM "character""#
     /// );
+    ///
+    /// let query = Query::select()
+    ///     .from(Char::Table)
+    ///     .column(Char::Character)
+    ///     .into_table(SelectInto::table("character_temp").modifier(SelectIntoTableModifier::Temporary))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" INTO TEMPORARY TABLE "character_temp" FROM "character""#
+    /// );
     /// ```
     pub fn into_table(&mut self, into_table: SelectInto) -> &mut Self {
         self.into = Some(into_table);
