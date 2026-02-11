@@ -89,8 +89,8 @@ impl QueryBuilder for PostgresQueryBuilder {
             sql.write_fmt(format_args!("{modifier} ")).unwrap();
         }
 
-        sql.write_fmt(format_args!(r#"TABLE "{}""#, into_table.target_table))
-            .unwrap();
+        sql.write_str("TABLE ").unwrap();
+        self.prepare_iden(&into_table.target_table, sql);
     }
 
     fn prepare_bin_oper(&self, bin_oper: &BinOper, sql: &mut impl SqlWriter) {
