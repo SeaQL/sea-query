@@ -912,7 +912,9 @@ impl SelectStatement {
     /// let query = Query::select()
     ///     .from(Char::Table)
     ///     .column(Char::Character)
-    ///     .into_table(SelectInto::table("character_temp").modifier(SelectIntoTableModifier::Temporary))
+    ///     .into_table(
+    ///         SelectInto::table("character_temp").modifier(SelectIntoTableModifier::Temporary),
+    ///     )
     ///     .to_owned();
     ///
     /// assert_eq!(
