@@ -355,6 +355,59 @@ fn create_with_unique_index_constraint() {
 }
 
 #[test]
+fn create_in_schema_with_unique_index_constraint_and_foreign_key() {
+    assert_eq!(
+        Table::create()
+            .table(("schema", Char::Table))
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Char::Id)
+                    .integer()
+                    .not_null()
+                    .auto_increment()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Char::FontSize).integer().not_null())
+            .col(ColumnDef::new(Char::Character).string().not_null())
+            .col(ColumnDef::new(Char::SizeW).integer().not_null())
+            .col(ColumnDef::new(Char::SizeH).integer().not_null())
+            .col(
+                ColumnDef::new(Char::FontId)
+                    .integer()
+                    .default(Value::Int(None)),
+            )
+            .foreign_key(
+                ForeignKey::create()
+                    .from(("schema", Char::Table), Char::FontId)
+                    .to(("schema", Font::Table), Font::Id)
+                    .on_delete(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
+            )
+            .index(
+                Index::create()
+                    .name("idx-sizehw")
+                    .table(Char::Table)
+                    .col(Char::SizeH)
+                    .col(Char::SizeW)
+                    .unique(),
+            )
+            .to_string(SqliteQueryBuilder),
+        [
+            r#"CREATE TABLE IF NOT EXISTS "schema"."character" ("#,
+            r#""id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
+            r#""font_size" integer NOT NULL,"#,
+            r#""character" varchar NOT NULL,"#,
+            r#""size_w" integer NOT NULL,"#,
+            r#""size_h" integer NOT NULL,"#,
+            r#""font_id" integer DEFAULT NULL,"#,
+            r#"CONSTRAINT "idx-sizehw" UNIQUE ("size_h", "size_w"),"#,
+            r#"FOREIGN KEY ("font_id") REFERENCES "font" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+            r#")"#,
+        ].join(" ")
+    );
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
@@ -363,6 +416,18 @@ fn drop_1() {
             .cascade()
             .to_string(SqliteQueryBuilder),
         r#"DROP TABLE "glyph", "character""#
+    );
+}
+
+#[test]
+fn drop_with_schemas() {
+    assert_eq!(
+        Table::drop()
+            .table(("schema1", Glyph::Table))
+            .table(("schema2", Char::Table))
+            .cascade()
+            .to_string(SqliteQueryBuilder),
+        r#"DROP TABLE "schema1"."glyph", "schema2"."character""#
     );
 }
 
@@ -426,6 +491,49 @@ fn alter_5() {
             .table(Font::Table, "font_new")
             .to_string(SqliteQueryBuilder),
         r#"ALTER TABLE "font" RENAME TO "font_new""#
+    );
+}
+
+#[test]
+fn alter_add_column_schema() {
+    assert_eq!(
+        Table::alter()
+            .table(("schema", Font::Table))
+            .add_column(ColumnDef::new("new_col").integer().not_null().default(99))
+            .to_string(SqliteQueryBuilder),
+        r#"ALTER TABLE "schema"."font" ADD COLUMN "new_col" integer NOT NULL DEFAULT 99"#
+    );
+}
+
+#[test]
+fn alter_rename_column_schema() {
+    assert_eq!(
+        Table::alter()
+            .table(("schema", Font::Table))
+            .rename_column("new_col", "new_column")
+            .to_string(SqliteQueryBuilder),
+        r#"ALTER TABLE "schema"."font" RENAME COLUMN "new_col" TO "new_column""#
+    );
+}
+
+#[test]
+fn alter_drop_column_schema() {
+    assert_eq!(
+        Table::alter()
+            .table(("schema", Font::Table))
+            .drop_column("new_column")
+            .to_string(SqliteQueryBuilder),
+        r#"ALTER TABLE "schema"."font" DROP COLUMN "new_column""#
+    );
+}
+
+#[test]
+fn alter_rename_table_schema() {
+    assert_eq!(
+        Table::rename()
+            .table(("schema", Font::Table), "font_new")
+            .to_string(SqliteQueryBuilder),
+        r#"ALTER TABLE "schema"."font" RENAME TO "font_new""#
     );
 }
 
