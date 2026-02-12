@@ -2,7 +2,7 @@
 
 use std::borrow::Cow;
 
-use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
+use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, RcOrArc, StringLen};
 
 #[cfg(test)]
 mod tests;
@@ -95,6 +95,9 @@ pub enum ArrayType {
     Float,
     Double,
     String,
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
+    Enum(EnumTypeName),
     Char,
     Bytes,
 
@@ -187,6 +190,15 @@ pub enum ArrayType {
     Range,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Enum {
+    pub type_name: EnumTypeName,
+    pub value: Cow<'static, str>,
+}
+
+pub type EnumTypeName = RcOrArc<String>;
+
 /// Value variants
 ///
 /// We want the inner Value to be exactly 1 pointer sized, so anything larger should be boxed.
@@ -209,6 +221,7 @@ pub enum Value {
     Float(Option<f32>),
     Double(Option<f64>),
     String(Option<String>),
+    Enum(Option<Box<Enum>>),
     Char(Option<char>),
 
     #[allow(clippy::box_collection)]
@@ -374,6 +387,7 @@ impl Value {
             Self::Float(_) => Self::Float(None),
             Self::Double(_) => Self::Double(None),
             Self::String(_) => Self::String(None),
+            Self::Enum(_) => Self::Enum(None),
             Self::Char(_) => Self::Char(None),
             Self::Bytes(_) => Self::Bytes(None),
 
@@ -498,6 +512,12 @@ impl Value {
             Self::Float(_) => Self::Float(Some(Default::default())),
             Self::Double(_) => Self::Double(Some(Default::default())),
             Self::String(_) => Self::String(Some(Default::default())),
+            Self::Enum(v) => Self::Enum(v.as_ref().map(|v| {
+                Box::new(Enum {
+                    type_name: v.type_name.clone(),
+                    value: Cow::Borrowed(""),
+                })
+            })),
             Self::Char(_) => Self::Char(Some(Default::default())),
             Self::Bytes(_) => Self::Bytes(Some(Default::default())),
 
@@ -773,6 +793,12 @@ impl From<Cow<'_, str>> for Value {
     }
 }
 
+impl From<Enum> for Value {
+    fn from(value: Enum) -> Value {
+        Value::Enum(Some(Box::new(value)))
+    }
+}
+
 impl IntoIterator for Values {
     type Item = Value;
     type IntoIter = std::vec::IntoIter<Self::Item>;
@@ -891,6 +917,12 @@ pub trait Nullable {
 impl Nullable for &str {
     fn null() -> Value {
         Value::String(None)
+    }
+}
+
+impl Nullable for Enum {
+    fn null() -> Value {
+        Value::Enum(None)
     }
 }
 

@@ -43,6 +43,9 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::String(s) => {
                     let _ = args.add(s.as_deref());
                 }
+                Value::Enum(e) => {
+                    let _ = args.add(e.as_ref().map(|v| v.value.as_ref()));
+                }
                 Value::Char(c) => {
                     let _ = args.add(c.map(|c| c.to_string()));
                 }

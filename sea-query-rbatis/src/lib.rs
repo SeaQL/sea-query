@@ -61,6 +61,13 @@ fn to_rb_values(values: Values) -> Vec<rbs::Value> {
                 };
                 args.push(d)
             }
+            Value::Enum(v) => {
+                let d = match v {
+                    Some(v) => v.value.to_string().into(),
+                    None => RbValue::Null,
+                };
+                args.push(d)
+            }
             Value::Char(v) => args.push(to_value!(v)),
             Value::Bytes(v) => args.push(to_value!(v)),
             #[cfg(feature = "with-chrono")]

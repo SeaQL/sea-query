@@ -20,6 +20,7 @@ impl PartialEq for Value {
             (Self::Float(l), Self::Float(r)) => cmp_f32(l, r),
             (Self::Double(l), Self::Double(r)) => cmp_f64(l, r),
             (Self::String(l), Self::String(r)) => l == r,
+            (Self::Enum(l), Self::Enum(r)) => l == r,
             (Self::Char(l), Self::Char(r)) => l == r,
             (Self::Bytes(l), Self::Bytes(r)) => l == r,
 
@@ -105,6 +106,7 @@ impl Hash for Value {
             Value::Float(v) => hash_f32(v, state),
             Value::Double(v) => hash_f64(v, state),
             Value::String(v) => v.hash(state),
+            Value::Enum(v) => v.hash(state),
             Value::Char(v) => v.hash(state),
             Value::Bytes(v) => v.hash(state),
 
