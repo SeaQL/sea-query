@@ -1,6 +1,6 @@
 use std::{borrow::Cow, fmt, ops::Deref};
 
-use crate::*;
+use crate::{utils::JoinWrite, *};
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
@@ -1461,30 +1461,43 @@ pub trait QueryBuilder:
         identifiers: &[OnConflictIdentifier],
         sql: &mut impl SqlWriter,
     ) {
-        let mut targets = identifiers.iter();
-        join_io!(
-            targets,
-            target,
-            first {
-                sql.write_str("(").unwrap();
-            },
-            join {
-                sql.write_str(", ").unwrap();
-            },
-            do {
-                match target {
-                    OnConflictIdentifier::Column(col) => {
-                        self.prepare_iden(col, sql);
-                    }
-                    OnConflictIdentifier::Expr(expr) => {
+        JoinWrite {
+            buf: sql,
+            items: identifiers.iter(),
+            at_first: |sql| sql.write_str("("),
+            r#do: |sql, target| match &target {
+                OnConflictIdentifier::Column(col) => {
+                    self.prepare_iden(col, sql);
+                    Ok(())
+                }
+                OnConflictIdentifier::Expr(expr) => {
+                    // https://www.postgresql.org/docs/current/sql-insert.html
+                    let need_wrap = !matches!(
+                        expr,
+                        Expr::Column(_)
+                            | Expr::Tuple(_)
+                            | Expr::FunctionCall(_)
+                            | Expr::Value(_)
+                            | Expr::Values(_)
+                            | Expr::Constant(_)
+                    );
+
+                    if need_wrap {
+                        sql.write_str("(")?;
+                        self.prepare_expr(expr, sql);
+                        sql.write_str(")")?;
+                    } else {
                         self.prepare_expr(expr, sql);
                     }
+
+                    Ok(())
                 }
             },
-            last {
-                sql.write_str(")").unwrap();
-            }
-        );
+            join: |sql| sql.write_str(", "),
+            at_last: |sql| sql.write_str(")"),
+        }
+        .exec()
+        .unwrap();
     }
 
     #[doc(hidden)]
