@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use super::*;
 use pretty_assertions::assert_eq;
 
@@ -320,6 +322,16 @@ fn create_12() {
 
 #[test]
 fn drop_1() {
+    #[cfg(feature = "backend-sqlite")]
+    assert_eq!(
+        Table::drop()
+            .table(Glyph::Table)
+            .cascade()
+            .to_string(MysqlQueryBuilder),
+        "DROP TABLE `glyph` CASCADE"
+    );
+
+    #[cfg(not(feature = "backend-sqlite"))]
     assert_eq!(
         Table::drop()
             .table(Glyph::Table)

@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use super::*;
 use pretty_assertions::assert_eq;
 
@@ -359,11 +361,18 @@ fn drop_1() {
     assert_eq!(
         Table::drop()
             .table(Glyph::Table)
-            .table(Char::Table)
             .cascade()
             .to_string(SqliteQueryBuilder),
-        r#"DROP TABLE "glyph", "character""#
+        r#"DROP TABLE "glyph""#
     );
+}
+
+#[test]
+#[should_panic(
+    expected = "Attempted to drop multiple tables in SQLite mode. This is not supported. See compiler warnings."
+)]
+fn drop_multiple_tables_panics() {
+    let _ = Table::drop().table(Glyph::Table).table(Char::Table);
 }
 
 #[test]

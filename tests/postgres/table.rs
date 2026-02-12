@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use super::*;
 use pretty_assertions::assert_eq;
 
@@ -337,6 +339,16 @@ fn create_15() {
 
 #[test]
 fn drop_1() {
+    #[cfg(feature = "backend-sqlite")]
+    assert_eq!(
+        Table::drop()
+            .table(Glyph::Table)
+            .cascade()
+            .to_string(PostgresQueryBuilder),
+        r#"DROP TABLE "glyph" CASCADE"#
+    );
+
+    #[cfg(not(feature = "backend-sqlite"))]
     assert_eq!(
         Table::drop()
             .table(Glyph::Table)
@@ -349,6 +361,16 @@ fn drop_1() {
 
 #[test]
 fn drop_2() {
+    #[cfg(feature = "backend-sqlite")]
+    assert_eq!(
+        Table::drop()
+            .table(("schema1", Glyph::Table))
+            .cascade()
+            .to_string(PostgresQueryBuilder),
+        r#"DROP TABLE "schema1"."glyph" CASCADE"#
+    );
+
+    #[cfg(not(feature = "backend-sqlite"))]
     assert_eq!(
         Table::drop()
             .table(("schema1", Glyph::Table))
