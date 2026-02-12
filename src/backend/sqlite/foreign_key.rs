@@ -3,10 +3,15 @@ use super::*;
 impl ForeignKeyBuilder for SqliteQueryBuilder {
     fn prepare_table_ref_fk_stmt(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
         match table_ref {
-            // Support only "naked" table names with no schema or alias.
+            // Support "naked" table names with no schema or alias.
             TableRef::Table(TableName(None, _), None) => {
                 self.prepare_table_ref_iden(table_ref, sql)
             }
+            // Support table names with a schema, by stripping it; it's not allowed in foreign key
+            // syntax: https://www.sqlite.org/syntaxdiagrams.html#foreign-key-clause
+            TableRef::Table(TableName(_, iden), None) => self
+                .prepare_table_ref_iden(&TableRef::Table(TableName(None, iden.clone()), None), sql),
+            // Aliased table names are not allowed.
             _ => panic!("Not supported"),
         }
     }
