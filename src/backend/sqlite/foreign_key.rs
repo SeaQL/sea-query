@@ -48,6 +48,16 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             );
         }
 
+        if let (
+            Some(TableRef::Table(TableName(schema, ..), ..)),
+            Some(TableRef::Table(TableName(ref_schema, ..), ..)),
+        ) = (&create.foreign_key.table, &create.foreign_key.ref_table)
+        {
+            if schema != ref_schema {
+                panic!("Sqlite does not support foreign keys between tables in different schemas")
+            }
+        }
+
         sql.write_str("FOREIGN KEY (").unwrap();
 
         let mut cols = create.foreign_key.columns.iter();

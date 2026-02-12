@@ -408,6 +408,96 @@ fn create_in_schema_with_unique_index_constraint_and_foreign_key() {
 }
 
 #[test]
+#[should_panic(
+    expected = "Sqlite does not support foreign keys between tables in different schemas"
+)]
+fn create_source_only_schema_foreign_key_fails() {
+    let _ = Table::create()
+        .table(("schema", Char::Table))
+        .if_not_exists()
+        .col(
+            ColumnDef::new(Char::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
+        .col(
+            ColumnDef::new(Char::FontId)
+                .integer()
+                .default(Value::Int(None)),
+        )
+        .foreign_key(
+            ForeignKey::create()
+                .from(("schema", Char::Table), Char::FontId)
+                .to(Font::Table, Font::Id)
+                .on_delete(ForeignKeyAction::Cascade)
+                .on_update(ForeignKeyAction::Cascade),
+        )
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(
+    expected = "Sqlite does not support foreign keys between tables in different schemas"
+)]
+fn create_target_only_schema_foreign_key_fails() {
+    let _ = Table::create()
+        .table(Char::Table)
+        .if_not_exists()
+        .col(
+            ColumnDef::new(Char::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
+        .col(
+            ColumnDef::new(Char::FontId)
+                .integer()
+                .default(Value::Int(None)),
+        )
+        .foreign_key(
+            ForeignKey::create()
+                .from(Char::Table, Char::FontId)
+                .to(("schema", Font::Table), Font::Id)
+                .on_delete(ForeignKeyAction::Cascade)
+                .on_update(ForeignKeyAction::Cascade),
+        )
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(
+    expected = "Sqlite does not support foreign keys between tables in different schemas"
+)]
+fn create_cross_schema_foreign_key_fails() {
+    let _ = Table::create()
+        .table(("schema1", Char::Table))
+        .if_not_exists()
+        .col(
+            ColumnDef::new(Char::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
+        .col(
+            ColumnDef::new(Char::FontId)
+                .integer()
+                .default(Value::Int(None)),
+        )
+        .foreign_key(
+            ForeignKey::create()
+                .from(("schema1", Char::Table), Char::FontId)
+                .to(("schema2", Font::Table), Font::Id)
+                .on_delete(ForeignKeyAction::Cascade)
+                .on_update(ForeignKeyAction::Cascade),
+        )
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
