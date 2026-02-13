@@ -37,7 +37,15 @@ impl EscapeBuilder for SqliteQueryBuilder {
     }
 }
 
-impl TableRefBuilder for SqliteQueryBuilder {}
+impl TableRefBuilder for SqliteQueryBuilder {
+    // SQLite does not support a fully qualified db.schema.table reference - fail if db is provided
+    fn prepare_schema_name(&self, schema_name: &SchemaName, sql: &mut impl SqlWriter) {
+        match schema_name {
+            SchemaName(None, schema) => self.prepare_iden(schema, sql),
+            _ => panic!("Sqlite does not support fully qualified db.schema.table syntax"),
+        }
+    }
+}
 
 impl PrecedenceDecider for SqliteQueryBuilder {
     fn inner_expr_well_known_greater_precedence(&self, inner: &Expr, outer_oper: &Oper) -> bool {
