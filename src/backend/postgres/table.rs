@@ -203,6 +203,17 @@ impl TableBuilder for PostgresQueryBuilder {
                             Mode::TableAlter,
                         );
                     }
+                    TableAlterOption::AddConstraint(constraint) => {
+                        let create = ConstraintCreateStatement {
+                            constraint: constraint.to_owned(),
+                            table: None,
+                        };
+                        self.prepare_constraint_create_statement_internal(
+                            &create,
+                            sql,
+                            ConstraintMode::TableAlter,
+                        );
+                    }
                 }
             }
         );

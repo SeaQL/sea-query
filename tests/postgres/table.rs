@@ -522,6 +522,27 @@ fn alter_10() {
 }
 
 #[test]
+fn alter_11() {
+    // https://dbfiddle.uk/jxh_KhXE
+    assert_eq!(
+        Table::alter()
+            .table(Font::Table)
+            .add_constraint(
+                &TableConstraint::new()
+                    .primary()
+                    .constraint_name("PK_2e303c3a712662f1fc2a4d0aad6")
+                    .col(Font::Id)
+            )
+            .to_string(PostgresQueryBuilder),
+        [
+            r#"ALTER TABLE "font""#,
+            r#"ADD CONSTRAINT "PK_2e303c3a712662f1fc2a4d0aad6" PRIMARY KEY ("id")"#,
+        ]
+        .join(" ")
+    );
+}
+
+#[test]
 fn rename_1() {
     assert_eq!(
         Table::rename()

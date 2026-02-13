@@ -76,6 +76,9 @@ impl TableBuilder for SqliteQueryBuilder {
                     "Sqlite does not support modification of foreign key constraints to existing tables"
                 );
             }
+            TableAlterOption::AddConstraint(_) => {
+                panic!("Sqlite does not support modification of constraints to existing tables");
+            }
         }
     }
 
