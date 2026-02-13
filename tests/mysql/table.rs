@@ -481,3 +481,67 @@ fn alter_with_named_check_constraint() {
         r#"ALTER TABLE `glyph` ADD COLUMN `aspect` int NOT NULL DEFAULT 101 CONSTRAINT `positive_aspect` CHECK (`aspect` > 100)"#,
     );
 }
+
+#[test]
+fn create_partition_range() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .partition_by_range([Glyph::Id])
+            .add_partition(
+                Alias::new("p0"),
+                Some(PartitionValues::LessThan(vec![6.into()]))
+            )
+            .add_partition(
+                Alias::new("p1"),
+                Some(PartitionValues::LessThan(vec![11.into()]))
+            )
+            .to_string(MysqlQueryBuilder),
+        "CREATE TABLE `glyph` ( `id` int NOT NULL ) PARTITION BY RANGE (`id`) ( PARTITION `p0` VALUES LESS THAN (6), PARTITION `p1` VALUES LESS THAN (11) )"
+    );
+}
+
+#[test]
+fn create_partition_list() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .partition_by_list([Glyph::Id])
+            .add_partition(
+                Alias::new("p0"),
+                Some(PartitionValues::In(vec![1.into(), 2.into()]))
+            )
+            .add_partition(
+                Alias::new("p1"),
+                Some(PartitionValues::In(vec![3.into(), 4.into()]))
+            )
+            .to_string(MysqlQueryBuilder),
+        "CREATE TABLE `glyph` ( `id` int NOT NULL ) PARTITION BY LIST (`id`) ( PARTITION `p0` VALUES IN (1, 2), PARTITION `p1` VALUES IN (3, 4) )"
+    );
+}
+
+#[test]
+fn create_partition_hash() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .partition_by_hash([Glyph::Id])
+            .to_string(MysqlQueryBuilder),
+        "CREATE TABLE `glyph` ( `id` int NOT NULL ) PARTITION BY HASH (`id`)"
+    );
+}
+
+#[test]
+fn create_partition_key() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .partition_by_key([Glyph::Id])
+            .to_string(MysqlQueryBuilder),
+        "CREATE TABLE `glyph` ( `id` int NOT NULL ) PARTITION BY KEY (`id`)"
+    );
+}
