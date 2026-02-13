@@ -498,6 +498,50 @@ fn create_cross_schema_foreign_key_fails() {
 }
 
 #[test]
+#[should_panic(expected = "Sqlite does not support fully qualified db.schema.table syntax")]
+fn create_fully_qualified_db_schema_table_fails() {
+    let _ = Table::create()
+        .table(("db", "schema", Char::Table))
+        .if_not_exists()
+        .col(
+            ColumnDef::new(Char::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "Sqlite does not support fully qualified db.schema.table syntax")]
+fn foreign_key_to_fully_qualified_db_schema_table_fails() {
+    let _ = Table::create()
+        .table(("schema", Char::Table))
+        .if_not_exists()
+        .col(
+            ColumnDef::new(Char::Id)
+                .integer()
+                .not_null()
+                .auto_increment()
+                .primary_key(),
+        )
+        .col(
+            ColumnDef::new(Char::FontId)
+                .integer()
+                .default(Value::Int(None)),
+        )
+        .foreign_key(
+            ForeignKey::create()
+                .from(("db", "schema", Char::Table), Char::FontId)
+                .to(("db", "schema", Font::Table), Font::Id)
+                .on_delete(ForeignKeyAction::Cascade)
+                .on_update(ForeignKeyAction::Cascade),
+        )
+        .to_string(SqliteQueryBuilder);
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Table::drop()
