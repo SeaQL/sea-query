@@ -22,7 +22,7 @@ pub trait QueryBuilder:
         self.prepare_insert_statement_common(insert, sql);
     }
 
-    /// Common implementation of [`prepare_insert_statement`] shared among backends.
+    /// Common implementation of `prepare_insert_statement` shared among backends.
     fn prepare_insert_statement_common(&self, insert: &InsertStatement, sql: &mut impl SqlWriter) {
         if let Some(with) = &insert.with {
             self.prepare_with_clause(with, sql);
