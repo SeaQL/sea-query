@@ -1503,7 +1503,7 @@ pub trait QueryBuilder:
 
     #[doc(hidden)]
     fn prepare_on_conflict_target_constraint(&self, constraint: &str, sql: &mut impl SqlWriter) {
-        sql.write_fmt(format_args!("ON CONSTRAINT \"{}\"", constraint))
+        sql.write_fmt(format_args!("ON CONSTRAINT \"{constraint}\""))
             .unwrap();
     }
 
