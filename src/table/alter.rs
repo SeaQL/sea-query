@@ -60,6 +60,7 @@ pub enum TableAlterOption {
     DropColumn(DropColumnOption),
     AddForeignKey(TableForeignKey),
     DropForeignKey(DynIden),
+    DropConstraint(DynIden),
 }
 
 impl TableAlterStatement {
@@ -384,6 +385,42 @@ impl TableAlterStatement {
         T: IntoIden,
     {
         self.add_alter_option(TableAlterOption::DropForeignKey(name.into_iden()))
+    }
+
+    /// Drop a named constraint from an existing table.
+    ///
+    /// On PostgreSQL and MySQL this generates `DROP CONSTRAINT "name"`.
+    ///
+    /// **Note:** On PostgreSQL this is the correct way to drop a unique constraint that was
+    /// created via `ADD COLUMN … UNIQUE` (which creates a named constraint, not a standalone
+    /// index). On MySQL, `DROP CONSTRAINT` is only valid for **check constraints** (MySQL
+    /// 8.0.19+); use [`Index::drop`] to remove a unique index on MySQL.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let table = Table::alter()
+    ///     .table(Font::Table)
+    ///     .drop_constraint("font_name_key")
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     table.to_string(MysqlQueryBuilder),
+    ///     r#"ALTER TABLE `font` DROP CONSTRAINT `font_name_key`"#
+    /// );
+    /// assert_eq!(
+    ///     table.to_string(PostgresQueryBuilder),
+    ///     r#"ALTER TABLE "font" DROP CONSTRAINT "font_name_key""#
+    /// );
+    /// // Sqlite does not support dropping constraints
+    /// ```
+    pub fn drop_constraint<T>(&mut self, name: T) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.add_alter_option(TableAlterOption::DropConstraint(name.into_iden()))
     }
 
     fn add_alter_option(&mut self, alter_option: TableAlterOption) -> &mut Self {
