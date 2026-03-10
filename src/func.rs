@@ -1,6 +1,6 @@
 //! For calling built-in SQL functions.
 
-use crate::{expr::*, types::*};
+use crate::{expr::*, query::Condition, types::*};
 
 #[cfg(feature = "backend-postgres")]
 pub use crate::extension::postgres::PgFunc;
@@ -829,6 +829,7 @@ pub struct FunctionCall {
     pub(crate) func: Func,
     pub(crate) args: Vec<Expr>,
     pub(crate) mods: Vec<FuncArgMod>,
+    pub(crate) filter: Option<Condition>,
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -842,6 +843,7 @@ impl FunctionCall {
             func,
             args: Vec::new(),
             mods: Vec::new(),
+            filter: None,
         }
     }
 
@@ -882,5 +884,44 @@ impl FunctionCall {
 
     pub fn get_mods(&self) -> &[FuncArgMod] {
         &self.mods
+    }
+
+    /// Append a `FILTER (WHERE ...)` clause to the function call.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .expr_as(
+    ///         Func::count(Expr::val(1))
+    ///             .filter(
+    ///                 Cond::all()
+    ///                     .add(Expr::col(Char::Character).eq("foo"))
+    ///                     .add(Expr::col(Char::SizeW).eq(1))
+    ///             ),
+    ///         Alias::new("filtered_total")
+    ///     )
+    ///     .expr_as(Func::count(Expr::val(1)), Alias::new("total"))
+    ///     .from(Char::Table)
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT COUNT(1) FILTER (WHERE "character" = 'foo' AND "size_w" = 1) AS "filtered_total", COUNT(1) AS "total" FROM "character""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT COUNT(1) FILTER (WHERE "character" = 'foo' AND "size_w" = 1) AS "filtered_total", COUNT(1) AS "total" FROM "character""#
+    /// );
+    /// ```
+    pub fn filter(mut self, condition: impl Into<Condition>) -> Self {
+        self.filter = Some(condition.into());
+        self
+    }
+
+    pub fn get_filter(&self) -> Option<&Condition> {
+        self.filter.as_ref()
     }
 }
