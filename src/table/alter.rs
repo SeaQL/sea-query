@@ -394,7 +394,7 @@ impl TableAlterStatement {
     /// **Note:** On PostgreSQL this is the correct way to drop a unique constraint that was
     /// created via `ADD COLUMN … UNIQUE` (which creates a named constraint, not a standalone
     /// index). On MySQL, `DROP CONSTRAINT` is only valid for **check constraints** (MySQL
-    /// 8.0.19+); use [`Index::drop`] to remove a unique index on MySQL.
+    /// 8.0.19+); use [`crate::Index::drop`] to remove a unique index on MySQL.
     ///
     /// # Examples
     ///

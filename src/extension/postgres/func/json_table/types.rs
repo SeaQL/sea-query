@@ -9,6 +9,7 @@ pub use crate::extension::postgres::json_fn::QuotesKind;
 
 /// Represents a column definition in JSON_TABLE
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub(super) enum JsonTableColumn {
     /// FOR ORDINALITY column
     Ordinality { name: Cow<'static, str> },
