@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.0.0 - pending
 
+### Release Candidates
+
+- [1.0.0-rc.32](changelog/1.0.0-rc.32.md) — `EXPLAIN`, `FILTER` on aggregates, `ALTER TABLE DROP CONSTRAINT`
+- [1.0.0-rc.31](changelog/1.0.0-rc.31.md) — `SELECT INTO`, `eq_any`/`ne_all`, `Value::array_type`
+- [1.0.0-rc.30](changelog/1.0.0-rc.30.md) — Tokenizer comment parsing, dependency reductions
+- [1.0.0-rc.29](changelog/1.0.0-rc.29.md) — Legacy `serial` option for Postgres
+- [1.0.0-rc.28](changelog/1.0.0-rc.28.md) — Restore Value system
+- [1.0.0-rc.27](changelog/1.0.0-rc.27.md) — Revert `impl Iden for String`
+- [1.0.0-rc.26](changelog/1.0.0-rc.26.md) — `From<Vec<Value>> for Array`, `FromIterator<T> for Array`
+- [1.0.0-rc.24](changelog/1.0.0-rc.24.md) — Array API redesign
+- [1.0.0-rc.23](changelog/1.0.0-rc.23.md) — `Value::Enum`, `ON CONFLICT ON CONSTRAINT`, CTE `VALUES` clause
+- [1.0.0-rc.22](changelog/1.0.0-rc.22.md) — Index operator class, `DROP COLUMN IF EXISTS`, nullable values
+- [1.0.0-rc.20](changelog/1.0.0-rc.20.md) — `ValueTupleIter`, SQLite decimal fix
+
 ### New features
 
 * Support `EXPLAIN` statements https://github.com/SeaQL/sea-query/pull/1044
