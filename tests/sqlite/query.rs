@@ -16,6 +16,19 @@ fn select_1() {
 }
 
 #[test]
+fn select_1_with_schema() {
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character, Char::SizeW, Char::SizeH])
+            .from(("schema", Char::Table))
+            .limit(10)
+            .offset(100)
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character", "size_w", "size_h" FROM "schema"."character" LIMIT 10 OFFSET 100"#
+    );
+}
+
+#[test]
 fn select_2() {
     assert_eq!(
         Query::select()
@@ -107,6 +120,21 @@ fn select_8() {
             )
             .to_string(SqliteQueryBuilder),
         r#"SELECT "character" FROM "character" LEFT JOIN "font" ON "character"."font_id" = "font"."id""#
+    );
+}
+
+#[test]
+fn select_cross_schema_join() {
+    assert_eq!(
+        Query::select()
+            .columns([Char::Character])
+            .from(("schema1", Char::Table))
+            .left_join(
+                ("schema2", Font::Table),
+                Expr::col((Char::Table, Char::FontId)).equals((Font::Table, Font::Id)),
+            )
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character" FROM "schema1"."character" LEFT JOIN "schema2"."font" ON "character"."font_id" = "font"."id""#
     );
 }
 

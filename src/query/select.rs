@@ -991,10 +991,7 @@ impl SelectStatement {
     ///     query.to_string(PostgresQueryBuilder),
     ///     r#"SELECT "font_size" FROM "database"."character"."glyph""#
     /// );
-    /// assert_eq!(
-    ///     query.to_string(SqliteQueryBuilder),
-    ///     r#"SELECT "font_size" FROM "database"."character"."glyph""#
-    /// );
+    /// // NOTE: sqlite does not support database.schema.table references
     /// ```
     ///
     /// If you specify `from` multiple times, the resulting query will have multiple from clauses.
