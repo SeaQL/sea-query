@@ -1837,7 +1837,7 @@ fn insert_on_conflict_11() {
         [
             r#"INSERT INTO "font" ("id", "name")"#,
             r#"VALUES (20, 'Monospaced terminal')"#,
-            r#"ON CONFLICT ("name", "variant" IS NULL) DO NOTHING"#,
+            r#"ON CONFLICT ("name", ("variant" IS NULL)) DO NOTHING"#,
         ]
         .join(" ")
     );
