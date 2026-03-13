@@ -2,7 +2,7 @@ use diesel::query_builder::QueryFragment;
 use diesel::result::QueryResult;
 use diesel::sql_types::*;
 use diesel::sqlite::Sqlite;
-use sea_query::{SqliteQueryBuilder, Value};
+use sea_query::{OptionEnum, SqliteQueryBuilder, Value};
 
 #[allow(unused_imports)]
 use super::macros::{bail, build, err};
@@ -40,6 +40,13 @@ impl TransformValue for Sqlite {
             Value::Float(v) => build!(Float, v),
             Value::Double(v) => build!(Double, v),
             Value::String(v) => build!(Text, v),
+            Value::Enum(v) => {
+                let v = match v {
+                    OptionEnum::Some(v) => Some(v.value.into_owned()),
+                    OptionEnum::None(_) => None,
+                };
+                build!(Text, v)
+            }
             Value::Char(v) => build!(Text, v.map(|v| v.to_string())),
             Value::Bytes(v) => build!(Blob, v),
             #[cfg(feature = "with-chrono")]

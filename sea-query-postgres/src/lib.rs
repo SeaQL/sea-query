@@ -5,7 +5,7 @@ use std::error::Error;
 use bytes::BytesMut;
 use postgres_types::{IsNull, ToSql, Type, to_sql_checked};
 
-use sea_query::{QueryBuilder, Value, query::*};
+use sea_query::{OptionEnum, QueryBuilder, Value, query::*};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PostgresValue(pub Value);
@@ -75,6 +75,10 @@ impl ToSql for PostgresValue {
             Value::Float(v) => to_sql!(v, f32),
             Value::Double(v) => to_sql!(v, f64),
             Value::String(v) => v.as_deref().to_sql(ty, out),
+            Value::Enum(v) => match v {
+                OptionEnum::Some(v) => Some(v.value.as_ref()).to_sql(ty, out),
+                OptionEnum::None(_) => Option::<&str>::None.to_sql(ty, out),
+            },
             Value::Char(v) => v.map(|v| v.to_string()).to_sql(ty, out),
             Value::Bytes(v) => v.as_deref().to_sql(ty, out),
             #[cfg(feature = "with-json")]

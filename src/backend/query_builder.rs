@@ -1268,6 +1268,10 @@ pub trait QueryBuilder:
             Value::Float(Some(v)) => write!(buf, "{v}")?,
             Value::Double(Some(v)) => write!(buf, "{v}")?,
             Value::String(Some(v)) => self.write_string_quoted(v, buf),
+            Value::Enum(v) => match v {
+                OptionEnum::Some(v) => self.write_string_quoted(v.value.as_ref(), buf),
+                OptionEnum::None(_) => buf.write_str("NULL")?,
+            },
             Value::Char(Some(v)) => {
                 self.write_string_quoted(std::str::from_utf8(&[*v as u8]).unwrap(), buf)
             }
