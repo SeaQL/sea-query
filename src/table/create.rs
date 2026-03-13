@@ -154,11 +154,16 @@ impl TableCreateStatement {
         self
     }
 
-    /// Add an index. MySQL only.
+    /// Add an index inline in the `CREATE TABLE` statement.
+    ///
+    /// This is idiomatic only for MySQL (inline `KEY`/`UNIQUE KEY`). For Postgres/SQLite
+    /// (and for multi-backend builds), prefer creating indexes separately using
+    /// [`Index::create`](crate::Index::create).
     ///
     /// # Examples
     ///
     /// ```
+    /// #![allow(deprecated)]
     /// use sea_query::{tests_cfg::*, *};
     ///
     /// assert_eq!(
@@ -176,6 +181,16 @@ impl TableCreateStatement {
     ///     .join(" ")
     /// );
     /// ```
+    #[cfg_attr(
+        not(all(
+            feature = "backend-mysql",
+            not(feature = "backend-postgres"),
+            not(feature = "backend-sqlite")
+        )),
+        deprecated(
+            note = "Inline index definitions inside CREATE TABLE are only supported by MySQL. For Postgres/SQLite (or multi-backend builds), create indexes separately using `Index::create()`."
+        )
+    )]
     pub fn index(&mut self, index: &mut IndexCreateStatement) -> &mut Self {
         self.indexes.push(index.take());
         self
