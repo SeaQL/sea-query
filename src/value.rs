@@ -2,7 +2,7 @@
 
 use std::borrow::Cow;
 
-use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, StringLen};
+use crate::{ColumnType, CommonSqlQueryBuilder, QueryBuilder, RcOrArc, StringLen};
 
 #[cfg(test)]
 mod tests;
@@ -95,6 +95,10 @@ pub enum ArrayType {
     Float,
     Double,
     String,
+    // box it because value size limit
+    #[cfg(feature = "backend-postgres")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "backend-postgres")))]
+    Enum(Box<EnumTypeName>),
     Char,
     Bytes,
 
@@ -187,6 +191,25 @@ pub enum ArrayType {
     Range,
 }
 
+// TODO: Arc<str> or Arc<String>?
+pub type EnumTypeName = RcOrArc<str>;
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Enum {
+    pub type_name: EnumTypeName,
+    pub value: Cow<'static, str>,
+}
+
+// I’m not sure we really need this abstraction, but array_type method requires the enum name so I added this type to avoid runtime panics.
+// Once array_type no longer needs it, we can remove it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum OptionEnum {
+    Some(Box<Enum>),
+    None(EnumTypeName),
+}
+
 /// Value variants
 ///
 /// We want the inner Value to be exactly 1 pointer sized, so anything larger should be boxed.
@@ -209,6 +232,7 @@ pub enum Value {
     Float(Option<f32>),
     Double(Option<f64>),
     String(Option<String>),
+    Enum(OptionEnum),
     Char(Option<char>),
 
     #[allow(clippy::box_collection)]
@@ -374,6 +398,10 @@ impl Value {
             Self::Float(_) => Self::Float(None),
             Self::Double(_) => Self::Double(None),
             Self::String(_) => Self::String(None),
+            Self::Enum(OptionEnum::Some(v)) => Self::Enum(OptionEnum::None(v.type_name.clone())),
+            Self::Enum(OptionEnum::None(type_name)) => {
+                Self::Enum(OptionEnum::None(type_name.clone()))
+            }
             Self::Char(_) => Self::Char(None),
             Self::Bytes(_) => Self::Bytes(None),
 
@@ -498,6 +526,16 @@ impl Value {
             Self::Float(_) => Self::Float(Some(Default::default())),
             Self::Double(_) => Self::Double(Some(Default::default())),
             Self::String(_) => Self::String(Some(Default::default())),
+            Self::Enum(v) => {
+                let type_name = match v {
+                    OptionEnum::Some(v) => v.type_name.clone(),
+                    OptionEnum::None(type_name) => type_name.clone(),
+                };
+                Self::Enum(OptionEnum::Some(Box::new(Enum {
+                    type_name,
+                    value: Cow::Borrowed(""),
+                })))
+            }
             Self::Char(_) => Self::Char(Some(Default::default())),
             Self::Bytes(_) => Self::Bytes(Some(Default::default())),
 
@@ -635,6 +673,14 @@ impl Value {
             Self::Float(v) => array_type_of(v),
             Self::Double(v) => array_type_of(v),
             Self::String(v) => array_type_of(v),
+
+            #[cfg(feature = "backend-postgres")]
+            Self::Enum(v) => ArrayType::Enum(Box::new(match v {
+                OptionEnum::Some(v) => v.type_name.clone(),
+                OptionEnum::None(type_name) => type_name.clone(),
+            })),
+            #[cfg(not(feature = "backend-postgres"))]
+            Self::Enum(_) => ArrayType::String,
             Self::Char(v) => array_type_of(v),
             Self::Bytes(v) => array_type_of(v),
 
@@ -773,6 +819,12 @@ impl From<Cow<'_, str>> for Value {
     }
 }
 
+impl From<Enum> for Value {
+    fn from(value: Enum) -> Value {
+        Value::Enum(OptionEnum::Some(Box::new(value)))
+    }
+}
+
 impl IntoIterator for Values {
     type Item = Value;
     type IntoIter = std::vec::IntoIter<Self::Item>;
@@ -891,6 +943,35 @@ pub trait Nullable {
 impl Nullable for &str {
     fn null() -> Value {
         Value::String(None)
+    }
+}
+
+impl Nullable for Enum {
+    fn null() -> Value {
+        Value::Enum(OptionEnum::None("".into()))
+    }
+}
+
+impl ValueType for Enum {
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::Enum(OptionEnum::Some(v)) => Ok(*v),
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        "Enum".into()
+    }
+
+    // These implementations probably won’t actually be used, so there
+    // shouldn’t cause any runtime issues.
+    fn array_type() -> ArrayType {
+        ArrayType::String
+    }
+
+    fn column_type() -> ColumnType {
+        ColumnType::String(StringLen::None)
     }
 }
 

@@ -1,4 +1,6 @@
 use super::*;
+#[cfg(feature = "postgres-array")]
+use crate::ArrayType;
 use crate::extension::postgres::*;
 
 impl OperLeftAssocDecider for PostgresQueryBuilder {
@@ -54,6 +56,58 @@ impl QueryBuilder for PostgresQueryBuilder {
                 sql.write_char(')').unwrap();
             }
             _ => QueryBuilder::prepare_expr_common(self, simple_expr, sql),
+        }
+    }
+
+    fn write_value(&self, buf: &mut impl Write, value: &Value) -> std::fmt::Result {
+        match value {
+            Value::Enum(v) => match v {
+                OptionEnum::Some(v) => {
+                    self.write_string_quoted(v.value.as_ref(), buf);
+                    self.write_enum_type_hint(v.type_name.as_ref(), buf);
+                    Ok(())
+                }
+                OptionEnum::None(_) => buf.write_str("NULL"),
+            },
+            #[cfg(feature = "postgres-array")]
+            Value::Array(ArrayType::Enum(type_name), values) => {
+                match values {
+                    None => return buf.write_str("NULL"),
+                    Some(values) => {
+                        if values.is_empty() {
+                            buf.write_str("'{}'")?;
+                        } else {
+                            // TODO: refactor this with JoinWrite after #1055 merged
+                            // TODO: refactor this if deref_pattern is stabilize
+                            macro_rules! validate_value {
+                                ($name:ident) => {
+                                    {
+                                        let Value::Enum(OptionEnum::Some(value)) = $name else {
+                                            panic!(
+                                                "Value::Array(ArrayType::Enum) should contain Value::Enum"
+                                            );
+                                        };
+                                        self.write_string_quoted(value.value.as_ref(), buf);
+                                    }
+                                };
+                            }
+                            buf.write_str("ARRAY [")?;
+                            let mut iter = values.iter();
+                            if let Some(element) = iter.next() {
+                                validate_value!(element);
+                                for element in iter {
+                                    buf.write_str(",")?;
+                                    validate_value!(element)
+                                }
+                            }
+                            buf.write_str("]")?;
+                        }
+                    }
+                }
+                self.write_enum_type_hint(type_name.as_ref(), buf);
+                Ok(())
+            }
+            _ => self.write_value_common(buf, value),
         }
     }
 
@@ -304,7 +358,43 @@ impl QueryBuilder for PostgresQueryBuilder {
     }
 
     fn prepare_value(&self, value: Value, sql: &mut impl SqlWriter) {
-        sql.push_param(value, self as _);
+        match value {
+            Value::Enum(value) => match value {
+                OptionEnum::Some(value) => {
+                    let Enum { type_name, value } = *value;
+                    sql.push_param(Value::String(Some(value.into_owned())), self as _);
+                    self.write_enum_type_hint(type_name, sql);
+                }
+                OptionEnum::None(type_name) => {
+                    sql.push_param(Value::String(None), self as _);
+                    self.write_enum_type_hint(type_name, sql);
+                }
+            },
+            #[cfg(feature = "postgres-array")]
+            Value::Array(ArrayType::Enum(type_name), values) => {
+                let values = values.map(|values| {
+                    Box::new(
+                        values
+                            .into_iter()
+                            .map(|value| match value {
+                                Value::Enum(OptionEnum::Some(value)) => {
+                                    Value::String(Some(value.value.into_owned()))
+                                }
+                                _ => {
+                                    panic!(
+                                        "Value::Array(ArrayType::Enum) should contain Value::Enum"
+                                    );
+                                }
+                            })
+                            .collect(),
+                    )
+                });
+                sql.push_param(Value::Array(ArrayType::String, values), self as _);
+                self.write_enum_type_hint(type_name.as_ref(), sql);
+                sql.write_str("[]").unwrap();
+            }
+            _ => sql.push_param(value, self as _),
+        }
     }
 
     fn write_string_quoted(&self, string: &str, buffer: &mut impl Write) {
@@ -327,6 +417,16 @@ impl QueryBuilder for PostgresQueryBuilder {
 
     fn if_null_function(&self) -> &str {
         "COALESCE"
+    }
+}
+
+impl PostgresQueryBuilder {
+    fn write_enum_type_hint(&self, type_name: impl AsRef<str>, sql: &mut impl Write) {
+        sql.write_str("::").unwrap();
+        let q = self.quote();
+        sql.write_char(q.left()).unwrap();
+        sql.write_str(type_name.as_ref()).unwrap();
+        sql.write_char(q.right()).unwrap();
     }
 }
 
