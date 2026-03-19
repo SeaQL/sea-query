@@ -132,7 +132,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::JiffTimestamp(j) => {
                     let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(*j)));
                 }
-                #[cfg(feature = "with-jiff")]
+                #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
                 Value::JiffZoned(_) => {
                     unimplemented!("no support by jiff-sqlx");
                 }
@@ -389,7 +389,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         };
                         let _ = args.add(value);
                     }
-                    #[cfg(feature = "with-jiff")]
+                    #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
                     ArrayType::JiffZoned => {
                         unimplemented!("no support by jiff-sqlx");
                     }
@@ -429,14 +429,24 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                             .expect("This Value::Array should consist of Value::MacAddress");
                         let _ = args.add(value);
                     }
+                    #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
+                    _ => {
+                        let _ = ty;
+                        panic!("Postgres doesn't support JiffZoned array arguments");
+                    }
                 },
                 #[cfg(feature = "postgres-vector")]
                 Value::Vector(v) => {
                     let _ = args.add(v);
                 } /* #[cfg(feature = "postgres-range")]
-                  Value::Range(v) => {
-                      let _ = args.add(v);
-                  } */
+                Value::Range(v) => {
+                let _ = args.add(v);
+                } */
+                #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
+                other => {
+                    let _ = other;
+                    panic!("Postgres doesn't support JiffZoned arguments");
+                }
             }
         }
         args
