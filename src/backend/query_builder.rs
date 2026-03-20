@@ -1352,7 +1352,6 @@ pub trait QueryBuilder:
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
-            // Both JiffDateTime and JiffTimestamp map to timestamp
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(Some(v)) => {
                 use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;

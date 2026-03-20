@@ -4,7 +4,7 @@ use jiff::{Timestamp, Zoned, civil};
 type_to_value!(civil::Date, JiffDate, Date);
 type_to_value!(civil::Time, JiffTime, Time);
 type_to_box_value!(civil::DateTime, JiffDateTime, DateTime);
-type_to_box_value!(Timestamp, JiffTimestamp, Timestamp);
+type_to_box_value!(Timestamp, JiffTimestamp, TimestampWithTimeZone);
 type_to_box_value!(Zoned, JiffZoned, TimestampWithTimeZone);
 
 impl DateLikeValue for civil::Date {}
@@ -104,7 +104,7 @@ impl Value {
 }
 
 pub(crate) const JIFF_DATE_TIME_FMT_STR: &str = "%Y-%m-%d %H:%M:%S%.6f";
-pub(crate) const JIFF_TIMESTAMP_FMT_STR: &str = "%Y-%m-%d %H:%M:%S%.6f";
+pub(crate) const JIFF_TIMESTAMP_FMT_STR: &str = "%Y-%m-%d %H:%M:%S%.6f %:z";
 pub(crate) const JIFF_ZONE_FMT_STR: &str = "%Y-%m-%d %H:%M:%S%.6f %:z";
 
 impl Value {
@@ -152,7 +152,7 @@ mod tests {
         assert_eq!(
             Value::jiff_timestamp(jiff::Timestamp::constant(0, 123456 * 1000))
                 .jiff_value_to_string(),
-            Some("1970-01-01 00:00:00.123456".to_owned())
+            Some("1970-01-01 00:00:00.123456 +00:00".to_owned())
         );
 
         assert_eq!(
