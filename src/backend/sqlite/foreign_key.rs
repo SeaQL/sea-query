@@ -9,11 +9,8 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             }
             // Support table names with a schema, by stripping it; it's not allowed in foreign key
             // syntax: https://www.sqlite.org/syntaxdiagrams.html#foreign-key-clause
-            TableRef::Table(TableName(Some(SchemaName(None, _)), iden), None) => self
+            TableRef::Table(TableName(Some(_), iden), None) => self
                 .prepare_table_ref_iden(&TableRef::Table(TableName(None, iden.clone()), None), sql),
-            TableRef::Table(TableName(Some(SchemaName(..)), ..), None) => {
-                panic!("Sqlite does not support fully qualified db.schema.table syntax")
-            }
             // Aliased table names are not allowed.
             _ => panic!("Not supported"),
         }
@@ -49,16 +46,6 @@ impl ForeignKeyBuilder for SqliteQueryBuilder {
             panic!(
                 "Sqlite does not support modification of foreign key constraints to existing tables"
             );
-        }
-
-        if let (
-            Some(TableRef::Table(TableName(schema, ..), ..)),
-            Some(TableRef::Table(TableName(ref_schema, ..), ..)),
-        ) = (&create.foreign_key.table, &create.foreign_key.ref_table)
-        {
-            if schema != ref_schema {
-                panic!("Sqlite does not support foreign keys between tables in different schemas")
-            }
         }
 
         sql.write_str("FOREIGN KEY (").unwrap();

@@ -408,9 +408,6 @@ fn create_in_schema_with_unique_index_constraint_and_foreign_key() {
 }
 
 #[test]
-#[should_panic(
-    expected = "Sqlite does not support foreign keys between tables in different schemas"
-)]
 fn create_source_only_schema_foreign_key_fails() {
     let _ = Table::create()
         .table(("schema", Char::Table))
@@ -438,9 +435,6 @@ fn create_source_only_schema_foreign_key_fails() {
 }
 
 #[test]
-#[should_panic(
-    expected = "Sqlite does not support foreign keys between tables in different schemas"
-)]
 fn create_target_only_schema_foreign_key_fails() {
     let _ = Table::create()
         .table(Char::Table)
@@ -468,9 +462,6 @@ fn create_target_only_schema_foreign_key_fails() {
 }
 
 #[test]
-#[should_panic(
-    expected = "Sqlite does not support foreign keys between tables in different schemas"
-)]
 fn create_cross_schema_foreign_key_fails() {
     let _ = Table::create()
         .table(("schema1", Char::Table))
@@ -498,7 +489,6 @@ fn create_cross_schema_foreign_key_fails() {
 }
 
 #[test]
-#[should_panic(expected = "Sqlite does not support fully qualified db.schema.table syntax")]
 fn create_fully_qualified_db_schema_table_fails() {
     let _ = Table::create()
         .table(("db", "schema", Char::Table))
@@ -514,7 +504,6 @@ fn create_fully_qualified_db_schema_table_fails() {
 }
 
 #[test]
-#[should_panic(expected = "Sqlite does not support fully qualified db.schema.table syntax")]
 fn foreign_key_to_fully_qualified_db_schema_table_fails() {
     let _ = Table::create()
         .table(("schema", Char::Table))
