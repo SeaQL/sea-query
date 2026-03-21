@@ -429,9 +429,11 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                             .expect("This Value::Array should consist of Value::MacAddress");
                         let _ = args.add(value);
                     }
-                    #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                    _ => {
-                        let _ = ty;
+                    #[cfg(all(
+                        feature = "with-jiff",
+                        not(feature = "unimplemented-jiff-zoned")
+                    ))]
+                    ArrayType::JiffZoned => {
                         panic!("Postgres doesn't support JiffZoned array arguments");
                     }
                 },
@@ -443,8 +445,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 let _ = args.add(v);
                 } */
                 #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                other => {
-                    let _ = other;
+                Value::JiffZoned(_) => {
                     panic!("Postgres doesn't support JiffZoned arguments");
                 }
             }

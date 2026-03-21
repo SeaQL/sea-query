@@ -99,19 +99,19 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDate(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTime(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffDateTime(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(*j)));
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(feature = "with-jiff")]
                 Value::JiffTimestamp(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(*j)));
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
                 Value::JiffZoned(_) => {
@@ -154,8 +154,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 panic!("Sqlite doesn't support PgRange arguments");
                 } */
                 #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                other => {
-                    let _ = other;
+                Value::JiffZoned(_) => {
                     panic!("Sqlite doesn't support JiffZoned arguments");
                 }
             }

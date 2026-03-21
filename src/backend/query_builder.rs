@@ -1338,8 +1338,6 @@ pub trait QueryBuilder:
                 buf.write_str(&v.format(time_format::FORMAT_DATETIME_TZ).unwrap())?;
                 buf.write_str("'")?;
             }
-            // Jiff date and time dosen't need format string
-            // The default behavior is what we want
             #[cfg(feature = "with-jiff")]
             Value::JiffDate(Some(v)) => {
                 buf.write_str("'")?;
@@ -1354,24 +1352,21 @@ pub trait QueryBuilder:
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffDateTime(Some(v)) => {
-                use crate::with_jiff::JIFF_DATE_TIME_FMT_STR;
                 buf.write_str("'")?;
-                write!(buf, "{}", v.strftime(JIFF_DATE_TIME_FMT_STR))?;
+                write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(Some(v)) => {
-                use crate::with_jiff::JIFF_TIMESTAMP_FMT_STR;
                 buf.write_str("'")?;
-                write!(buf, "{}", v.strftime(JIFF_TIMESTAMP_FMT_STR))?;
+                write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
             #[cfg(feature = "with-jiff")]
-            // Zoned map to timestamp with timezone
+            // Zoned keeps Jiff's canonical RFC 9557 textual form.
             Value::JiffZoned(Some(v)) => {
-                use crate::with_jiff::JIFF_ZONE_FMT_STR;
                 buf.write_str("'")?;
-                write!(buf, "{}", v.strftime(JIFF_ZONE_FMT_STR))?;
+                write!(buf, "{v}")?;
                 buf.write_str("'")?;
             }
             #[cfg(feature = "with-rust_decimal")]

@@ -42,7 +42,7 @@ mod with_time;
 
 #[cfg(feature = "with-jiff")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-pub(crate) mod with_jiff;
+pub mod with_jiff;
 
 #[cfg(feature = "with-rust_decimal")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
