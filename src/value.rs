@@ -42,7 +42,7 @@ mod with_time;
 
 #[cfg(feature = "with-jiff")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-pub(crate) mod with_jiff;
+pub mod with_jiff;
 
 #[cfg(feature = "with-rust_decimal")]
 #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
@@ -162,8 +162,11 @@ pub enum ArrayType {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
     JiffTimestamp,
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned")))
+    )]
     JiffZoned,
 
     #[cfg(feature = "with-uuid")]
@@ -298,8 +301,11 @@ pub enum Value {
     #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
     JiffTimestamp(Option<Box<Timestamp>>),
 
-    #[cfg(feature = "with-jiff")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+    #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned")))
+    )]
     JiffZoned(Option<Box<Zoned>>),
 
     #[cfg(feature = "with-uuid")]
@@ -465,8 +471,11 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffTimestamp(_) => Self::JiffTimestamp(None),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
+            #[cfg_attr(
+                docsrs,
+                doc(cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned")))
+            )]
             Self::JiffZoned(_) => Self::JiffZoned(None),
 
             #[cfg(feature = "with-uuid")]
@@ -605,8 +614,11 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffTimestamp(_) => Self::JiffTimestamp(Some(Timestamp::UNIX_EPOCH.into())),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
+            #[cfg_attr(
+                docsrs,
+                doc(cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned")))
+            )]
             Self::JiffZoned(_) => Self::JiffZoned(Some(
                 Timestamp::UNIX_EPOCH
                     .to_zoned(jiff::tz::TimeZone::UTC)
@@ -744,8 +756,11 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffTimestamp(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
+            #[cfg_attr(
+                docsrs,
+                doc(cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned")))
+            )]
             Self::JiffZoned(v) => array_type_of_ref(v.as_ref().map(|v| v.deref())),
 
             #[cfg(feature = "with-uuid")]

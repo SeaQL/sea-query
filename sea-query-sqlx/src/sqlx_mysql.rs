@@ -97,6 +97,26 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDate(_) => {
+                    panic!("Mysql doesn't support JiffDate arguments");
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTime(_) => {
+                    panic!("Mysql doesn't support JiffTime arguments");
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDateTime(_) => {
+                    panic!("Mysql doesn't support JiffDateTime arguments");
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTimestamp(_) => {
+                    panic!("Mysql doesn't support JiffTimestamp arguments");
+                }
+                #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
+                Value::JiffZoned(_) => {
+                    panic!("Mysql doesn't support JiffZoned arguments");
+                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);
@@ -129,9 +149,9 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::MacAddress(_) => {
                     panic!("Mysql doesn't support MacAddress arguments");
                 } /* #[cfg(feature = "postgres-range")]
-                  Value::Range(_) => {
-                      panic!("Mysql doesn't support PgRange arguments");
-                  } */
+                Value::Range(_) => {
+                panic!("Mysql doesn't support PgRange arguments");
+                } */
             }
         }
         args

@@ -84,6 +84,10 @@ pub struct ColumnName(pub Option<TableName>, pub DynIden);
 
 ### Enhancements
 
+* Supports Jiff types except `jiff::Zoned`.
+  At the moment this support is only available through the SQLx binder.
+  When using SQLx with multiple backends, enable `unimplemented-jiff-sqlx-mysql` to suppress the
+  compile-time error. After enabling it, runtime panics may occur.
 * Add `Expr::not_exists` https://github.com/SeaQL/sea-query/pull/983
 * Add `serde` feature. Currently, enabling it allows `Value` to be serializable https://github.com/SeaQL/sea-query/pull/966
 * Add `Keyword::Default` https://github.com/SeaQL/sea-query/pull/965
