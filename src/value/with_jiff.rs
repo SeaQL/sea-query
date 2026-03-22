@@ -3,7 +3,7 @@ use jiff::{Timestamp, civil};
 
 type_to_value!(civil::Date, JiffDate, Date);
 type_to_value!(civil::Time, JiffTime, Time);
-type_to_box_value!(civil::DateTime, JiffDateTime, DateTime);
+type_to_box_value!(civil::DateTime, JiffDateTime, Timestamp);
 type_to_box_value!(Timestamp, JiffTimestamp, TimestampWithTimeZone);
 
 impl DateLikeValue for civil::Date {}
