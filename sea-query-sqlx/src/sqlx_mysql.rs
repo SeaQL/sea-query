@@ -152,11 +152,6 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::Range(_) => {
                 panic!("Mysql doesn't support PgRange arguments");
                 } */
-                #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                other => {
-                    let _ = other;
-                    panic!("Mysql doesn't support JiffZoned arguments");
-                }
             }
         }
         args

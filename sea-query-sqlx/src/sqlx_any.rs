@@ -154,11 +154,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::Range(_) => {
                 panic!("SQLx doesn't support PgRange arguments for Any");
                 } */
-                #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                other => {
-                    let _ = other;
-                    panic!("JiffZoned support not implemented for Any");
-                }
             }
         }
         args

@@ -115,7 +115,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
                 Value::JiffZoned(_) => {
-                    unimplemented!("no support by jiff-sqlx");
+                    panic!("Sqlite doesn't support JiffZoned arguments");
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
@@ -153,10 +153,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::Range(_) => {
                 panic!("Sqlite doesn't support PgRange arguments");
                 } */
-                #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                Value::JiffZoned(_) => {
-                    panic!("Sqlite doesn't support JiffZoned arguments");
-                }
             }
         }
         args

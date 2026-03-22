@@ -1,22 +1,27 @@
 use super::*;
-use jiff::{Timestamp, Zoned, civil};
+#[cfg(feature = "unimplemented-jiff-zoned")]
+use jiff::Zoned;
+use jiff::{Timestamp, civil};
 
 type_to_value!(civil::Date, JiffDate, Date);
 type_to_value!(civil::Time, JiffTime, Time);
 type_to_box_value!(civil::DateTime, JiffDateTime, DateTime);
 type_to_box_value!(Timestamp, JiffTimestamp, TimestampWithTimeZone);
+#[cfg(feature = "unimplemented-jiff-zoned")]
 type_to_box_value!(Zoned, JiffZoned, TimestampWithTimeZone);
 
 impl DateLikeValue for civil::Date {}
 impl TimeLikeValue for civil::Time {}
 impl DateTimeLikeValue for civil::DateTime {}
 impl DateTimeLikeValue for Timestamp {}
+#[cfg(feature = "unimplemented-jiff-zoned")]
 impl DateTimeLikeValue for Zoned {}
 
 impl DateLikeValueNullable for Option<civil::Date> {}
 impl TimeLikeValueNullable for Option<civil::Time> {}
 impl DateTimeLikeValueNullable for Option<civil::DateTime> {}
 impl DateTimeLikeValueNullable for Option<Timestamp> {}
+#[cfg(feature = "unimplemented-jiff-zoned")]
 impl DateTimeLikeValueNullable for Option<Zoned> {}
 
 impl Value {
@@ -40,6 +45,7 @@ impl Value {
         Value::JiffTimestamp(v.into().map(Into::into))
     }
 
+    #[cfg(feature = "unimplemented-jiff-zoned")]
     #[inline]
     pub fn jiff_zoned<T: Into<Option<Zoned>>>(v: T) -> Value {
         Value::JiffZoned(v.into().map(Into::into))
@@ -63,6 +69,7 @@ impl Value {
         matches!(self, Self::JiffTimestamp(_))
     }
 
+    #[cfg(feature = "unimplemented-jiff-zoned")]
     pub fn is_jiff_zoned(&self) -> bool {
         matches!(self, Self::JiffZoned(_))
     }
@@ -95,6 +102,7 @@ impl Value {
         }
     }
 
+    #[cfg(feature = "unimplemented-jiff-zoned")]
     pub fn as_ref_jiff_zoned(&self) -> Option<&Zoned> {
         match self {
             Self::JiffZoned(v) => v.as_deref(),
@@ -111,9 +119,9 @@ impl Value {
             Self::JiffTime(v) => v.as_ref().map(|v| v.to_string()),
             Self::JiffDateTime(v) => v.as_ref().map(|v| v.to_string()),
             Self::JiffTimestamp(v) => v.as_ref().map(|v| v.to_string()),
+            #[cfg(feature = "unimplemented-jiff-zoned")]
             Self::JiffZoned(v) => v.as_ref().map(|v| v.to_string()),
             _ => panic!("not jiff Value"),
         }
     }
 }
-
