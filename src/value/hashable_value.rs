@@ -57,7 +57,7 @@ impl PartialEq for Value {
             (Self::JiffDateTime(l), Self::JiffDateTime(r)) => l == r,
             #[cfg(feature = "with-jiff")]
             (Self::JiffTimestamp(l), Self::JiffTimestamp(r)) => l == r,
-            #[cfg(feature = "with-jiff")]
+            #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
             (Self::JiffZoned(l), Self::JiffZoned(r)) => l == r,
 
             #[cfg(feature = "with-uuid")]
@@ -143,7 +143,7 @@ impl Hash for Value {
             Value::JiffDateTime(datetime) => datetime.hash(state),
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(timestamp) => timestamp.hash(state),
-            #[cfg(feature = "with-jiff")]
+            #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
             Value::JiffZoned(zoned) => zoned.hash(state),
 
             #[cfg(feature = "with-uuid")]

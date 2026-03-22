@@ -149,14 +149,9 @@ impl sqlx::IntoArguments<'_, sqlx::mysql::MySql> for SqlxValues {
                 Value::MacAddress(_) => {
                     panic!("Mysql doesn't support MacAddress arguments");
                 } /* #[cfg(feature = "postgres-range")]
-                Value::Range(_) => {
-                panic!("Mysql doesn't support PgRange arguments");
-                } */
-                #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                other => {
-                    let _ = other;
-                    panic!("Mysql doesn't support JiffZoned arguments");
-                }
+                  Value::Range(_) => {
+                  panic!("Mysql doesn't support PgRange arguments");
+                  } */
             }
         }
         args

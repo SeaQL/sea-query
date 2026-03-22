@@ -100,20 +100,20 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                         args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDate(_) => {
-                    panic!("Jiff support not implemented for Any");
+                Value::JiffDate(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTime(_) => {
-                    panic!("Jiff support not implemented for Any");
+                Value::JiffTime(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDateTime(_) => {
-                    panic!("Jiff support not implemented for Any");
+                Value::JiffDateTime(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTimestamp(_) => {
-                    panic!("Jiff support not implemented for Any");
+                Value::JiffTimestamp(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
                 }
                 #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
                 Value::JiffZoned(_) => {
@@ -151,14 +151,9 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::Vector(_) => {
                     panic!("SQLx doesn't support vector arguments for Any");
                 } /* #[cfg(feature = "postgres-range")]
-                Value::Range(_) => {
-                panic!("SQLx doesn't support PgRange arguments for Any");
-                } */
-                #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                other => {
-                    let _ = other;
-                    panic!("JiffZoned support not implemented for Any");
-                }
+                  Value::Range(_) => {
+                  panic!("SQLx doesn't support PgRange arguments for Any");
+                  } */
             }
         }
         args

@@ -134,7 +134,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
                 Value::JiffZoned(_) => {
-                    unimplemented!("no support by jiff-sqlx");
+                    panic!("Postgres doesn't support JiffZoned arguments");
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
@@ -389,10 +389,6 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         };
                         let _ = args.add(value);
                     }
-                    #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-                    ArrayType::JiffZoned => {
-                        unimplemented!("no support by jiff-sqlx");
-                    }
                     #[cfg(feature = "with-uuid")]
                     ArrayType::Uuid => {
                         let value: Option<Vec<Uuid>> = Value::Array(ty, v)
@@ -429,10 +425,7 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                             .expect("This Value::Array should consist of Value::MacAddress");
                         let _ = args.add(value);
                     }
-                    #[cfg(all(
-                        feature = "with-jiff",
-                        not(feature = "unimplemented-jiff-zoned")
-                    ))]
+                    #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
                     ArrayType::JiffZoned => {
                         panic!("Postgres doesn't support JiffZoned array arguments");
                     }
@@ -441,13 +434,9 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::Vector(v) => {
                     let _ = args.add(v);
                 } /* #[cfg(feature = "postgres-range")]
-                Value::Range(v) => {
-                let _ = args.add(v);
-                } */
-                #[cfg(all(feature = "with-jiff", not(feature = "unimplemented-jiff-zoned")))]
-                Value::JiffZoned(_) => {
-                    panic!("Postgres doesn't support JiffZoned arguments");
-                }
+                  Value::Range(v) => {
+                  let _ = args.add(v);
+                  } */
             }
         }
         args
