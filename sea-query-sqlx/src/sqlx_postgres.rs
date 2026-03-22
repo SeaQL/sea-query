@@ -132,10 +132,6 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 Value::JiffTimestamp(j) => {
                     let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(*j)));
                 }
-                #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-                Value::JiffZoned(_) => {
-                    panic!("Postgres doesn't support JiffZoned arguments");
-                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);
@@ -424,10 +420,6 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                         let value: Option<Vec<MacAddress>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::MacAddress");
                         let _ = args.add(value);
-                    }
-                    #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-                    ArrayType::JiffZoned => {
-                        panic!("Postgres doesn't support JiffZoned array arguments");
                     }
                 },
                 #[cfg(feature = "postgres-vector")]

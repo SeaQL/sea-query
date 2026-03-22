@@ -1222,8 +1222,6 @@ pub trait QueryBuilder:
             Value::JiffDateTime(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(None) => buf.write_str("NULL")?,
-            #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-            Value::JiffZoned(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-rust_decimal")]
             Value::Decimal(None) => buf.write_str("NULL")?,
             #[cfg(feature = "with-bigdecimal")]
@@ -1358,13 +1356,6 @@ pub trait QueryBuilder:
             }
             #[cfg(feature = "with-jiff")]
             Value::JiffTimestamp(Some(v)) => {
-                buf.write_str("'")?;
-                write!(buf, "{v}")?;
-                buf.write_str("'")?;
-            }
-            #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-            // Zoned keeps Jiff's canonical RFC 9557 textual form.
-            Value::JiffZoned(Some(v)) => {
                 buf.write_str("'")?;
                 write!(buf, "{v}")?;
                 buf.write_str("'")?;

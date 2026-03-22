@@ -59,9 +59,6 @@ impl NotU8 for jiff::civil::DateTime {}
 #[cfg(feature = "with-jiff")]
 impl NotU8 for jiff::Timestamp {}
 
-#[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-impl NotU8 for jiff::Zoned {}
-
 #[cfg(feature = "with-rust_decimal")]
 impl NotU8 for Decimal {}
 

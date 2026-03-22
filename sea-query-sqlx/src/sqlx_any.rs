@@ -115,10 +115,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                 Value::JiffTimestamp(j) => {
                     let _ = args.add(j.map(|j| j.to_string()));
                 }
-                #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-                Value::JiffZoned(_) => {
-                    panic!("Jiff support not implemented for Any");
-                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(_) => {
                     panic!("UUID support not implemented for Any");

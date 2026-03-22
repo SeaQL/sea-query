@@ -8,7 +8,7 @@ pub use chrono::{self, DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, N
 pub use time::{self, OffsetDateTime, PrimitiveDateTime};
 
 #[cfg(feature = "with-jiff")]
-pub use jiff::{self, Timestamp, Zoned};
+pub use jiff::{self, Timestamp};
 
 #[cfg(feature = "with-rust_decimal")]
 pub use rust_decimal::{self, Decimal};

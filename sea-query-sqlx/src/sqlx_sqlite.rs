@@ -113,10 +113,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::JiffTimestamp(j) => {
                     let _ = args.add(j.map(|j| j.to_string()));
                 }
-                #[cfg(all(feature = "with-jiff", feature = "unimplemented-jiff-zoned"))]
-                Value::JiffZoned(_) => {
-                    panic!("Sqlite doesn't support JiffZoned arguments");
-                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);
@@ -127,7 +123,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(big_decimal) => {
-                    use sea_query::prelude::bigdecimal::ToPrimitive;
                     let _ = args.add(big_decimal.map(|d| d.to_string()));
                 }
                 #[cfg(feature = "with-json")]
