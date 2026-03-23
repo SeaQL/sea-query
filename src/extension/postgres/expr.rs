@@ -147,12 +147,89 @@ pub trait PgExpr: ExprTrait {
         self.binary(PgBinOper::ILike, like.into_like_expr())
     }
 
+    /// Express an `ILIKE` expression with an expression as the pattern.
+    ///
+    /// Unlike [`ilike`](PgExpr::ilike), this method does not support the
+    /// `ESCAPE` clause since the right-hand side is an arbitrary expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Character).ilike_expr(Expr::col(Char::FontId)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "character" ILIKE "font_id""#
+    /// );
+    /// ```
+    ///
+    /// ILIKE with concatenated pattern
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::col(Char::Character)
+    ///             .ilike_expr(Expr::val("%").concat(Expr::col(Char::FontId)))
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "character" ILIKE ('%' || "font_id")"#
+    /// );
+    /// ```
+    fn ilike_expr<R>(self, right: R) -> Expr
+    where
+        R: Into<Expr>,
+    {
+        self.binary(PgBinOper::ILike, right)
+    }
+
     /// Express a `NOT ILIKE` expression
     fn not_ilike<L>(self, like: L) -> Expr
     where
         L: IntoLikeExpr,
     {
         self.binary(PgBinOper::NotILike, like.into_like_expr())
+    }
+
+    /// Express a `NOT ILIKE` expression with an expression as the pattern.
+    ///
+    /// Unlike [`not_ilike`](PgExpr::not_ilike), this method does not support the
+    /// `ESCAPE` clause since the right-hand side is an arbitrary expression.
+    /// See [`ilike_expr`](PgExpr::ilike_expr) for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{extension::postgres::PgExpr, tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Character).not_ilike_expr(Expr::col(Char::FontId)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "character" NOT ILIKE "font_id""#
+    /// );
+    /// ```
+    fn not_ilike_expr<R>(self, right: R) -> Expr
+    where
+        R: Into<Expr>,
+    {
+        self.binary(PgBinOper::NotILike, right)
     }
 
     /// Express a postgres retrieves JSON field as JSON value (`->`).
