@@ -838,9 +838,9 @@ pub struct FuncArgMod {
 }
 
 impl FunctionCall {
-    pub(crate) fn new(func: Func) -> Self {
+    pub(crate) fn new(func: impl Into<Func>) -> Self {
         Self {
-            func,
+            func: func.into(),
             args: Vec::new(),
             mods: Vec::new(),
             filter: None,
