@@ -150,7 +150,7 @@ mod tests {
         for b in 0u8..=31 {
             let c = b as char;
             if !matches!(c, '\x00' | '\x08' | '\x09' | '\x0A' | '\x0C' | '\x0D') {
-                let octal = format!("\\{:03o}", b);
+                let octal = format!("\\{b:03o}");
                 assert!(escaped.contains(&octal));
             }
         }

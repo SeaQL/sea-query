@@ -1,6 +1,8 @@
+use core::f64;
+
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::{ExplainFormat, audit::AuditTrait, extension::postgres::PgBinOper};
+use sea_query::{audit::AuditTrait, extension::postgres::PgBinOper};
 
 #[test]
 fn select_1() {
@@ -1283,12 +1285,12 @@ fn insert_2() {
         .columns([Glyph::Image, Glyph::Aspect])
         .values_panic([
             "04108048005887010020060000204E0180400400".into(),
-            3.1415.into(),
+            f64::consts::PI.into(),
         ])
         .take();
     assert_eq!(
         query.to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415)"#
+        r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.141592653589793)"#
     );
     assert_eq!(
         query.audit_unwrap().inserted_tables(),
@@ -1305,11 +1307,11 @@ fn insert_3() {
             .columns([Glyph::Image, Glyph::Aspect])
             .values_panic([
                 "04108048005887010020060000204E0180400400".into(),
-                3.1415.into(),
+                f64::consts::PI.into(),
             ])
             .values_panic([Value::String(None).into(), 2.1345.into()])
             .to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.1415), (NULL, 2.1345)"#
+        r#"INSERT INTO "glyph" ("image", "aspect") VALUES ('04108048005887010020060000204E0180400400', 3.141592653589793), (NULL, 2.1345)"#
     );
 }
 
@@ -1364,7 +1366,9 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic([chrono::NaiveDateTime::from_timestamp_opt(0, 0)
+            .values_panic([chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
                 .unwrap()
                 .into()])
             .to_string(PostgresQueryBuilder),
@@ -1526,7 +1530,7 @@ fn insert_10() {
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Tokens])
             .values_panic([
-                3.1415.into(),
+                f64::consts::PI.into(),
                 vec![
                     "Token1".to_string(),
                     "Token2".to_string(),
@@ -1535,7 +1539,7 @@ fn insert_10() {
                 .into()
             ])
             .to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, ARRAY ['Token1','Token2','Token3'])"#
+        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.141592653589793, ARRAY ['Token1','Token2','Token3'])"#
     );
 }
 
@@ -1547,9 +1551,9 @@ fn insert_issue_853() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Aspect, Glyph::Tokens])
-            .values_panic([3.1415.into(), Vec::<String>::new().into()])
+            .values_panic([f64::consts::PI.into(), Vec::<String>::new().into()])
             .to_string(PostgresQueryBuilder),
-        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.1415, '{}')"#
+        r#"INSERT INTO "glyph" ("aspect", "tokens") VALUES (3.141592653589793, '{}')"#
     );
 }
 
