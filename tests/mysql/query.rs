@@ -1553,3 +1553,57 @@ fn sub_query_with_fn() {
         "SELECT ARRAY((SELECT * FROM `character`))"
     );
 }
+
+#[test]
+fn select_like_expr_column() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like_expr(Expr::col(Char::FontId)))
+            .to_string(MysqlQueryBuilder),
+        r#"SELECT `character` FROM `character` WHERE `character` LIKE `font_id`"#
+    );
+}
+
+#[test]
+fn select_like_expr_function() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::expr(Func::lower(Expr::col(Char::Character)))
+                    .like_expr(Func::lower(Expr::col(Char::FontId)))
+            )
+            .to_string(MysqlQueryBuilder),
+        r#"SELECT `character` FROM `character` WHERE LOWER(`character`) LIKE LOWER(`font_id`)"#
+    );
+}
+
+#[test]
+fn select_not_like_expr_column() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).not_like_expr(Expr::col(Char::FontId)))
+            .to_string(MysqlQueryBuilder),
+        r#"SELECT `character` FROM `character` WHERE `character` NOT LIKE `font_id`"#
+    );
+}
+
+#[test]
+fn select_not_like_expr_function() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::expr(Func::lower(Expr::col(Char::Character)))
+                    .not_like_expr(Func::lower(Expr::col(Char::FontId)))
+            )
+            .to_string(MysqlQueryBuilder),
+        r#"SELECT `character` FROM `character` WHERE LOWER(`character`) NOT LIKE LOWER(`font_id`)"#
+    );
+}

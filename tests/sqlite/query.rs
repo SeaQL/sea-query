@@ -1859,3 +1859,57 @@ fn recursive_with_multiple_ctes() {
         r#"WITH RECURSIVE "sub1" ("a") AS (SELECT * FROM "character") , "sub2" ("b") AS (SELECT * FROM "character") SELECT * FROM "sub1" UNION ALL SELECT * FROM "sub2""#
     );
 }
+
+#[test]
+fn select_like_expr_column() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).like_expr(Expr::col(Char::FontId)))
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" LIKE "font_id""#
+    );
+}
+
+#[test]
+fn select_like_expr_function() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::expr(Func::lower(Expr::col(Char::Character)))
+                    .like_expr(Func::lower(Expr::col(Char::FontId)))
+            )
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE LOWER("character") LIKE LOWER("font_id")"#
+    );
+}
+
+#[test]
+fn select_not_like_expr_column() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::col(Char::Character).not_like_expr(Expr::col(Char::FontId)))
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE "character" NOT LIKE "font_id""#
+    );
+}
+
+#[test]
+fn select_not_like_expr_function() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(
+                Expr::expr(Func::lower(Expr::col(Char::Character)))
+                    .not_like_expr(Func::lower(Expr::col(Char::FontId)))
+            )
+            .to_string(SqliteQueryBuilder),
+        r#"SELECT "character" FROM "character" WHERE LOWER("character") NOT LIKE LOWER("font_id")"#
+    );
+}

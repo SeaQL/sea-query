@@ -927,6 +927,73 @@ pub trait ExprTrait: Sized {
         self.binary(BinOper::Like, like.into_like_expr())
     }
 
+    /// Express a `LIKE` expression with an expression as the pattern.
+    ///
+    /// This allows using column references, function calls, and other expressions
+    /// as LIKE patterns, not just string literals.
+    ///
+    /// Note: unlike [`like`](ExprTrait::like), this method does not support the
+    /// `ESCAPE` clause since the right-hand side is an arbitrary expression.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Character).like_expr(Expr::col(Char::FontId)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `character` LIKE `font_id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "character" LIKE "font_id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "character" LIKE "font_id""#
+    /// );
+    /// ```
+    ///
+    /// Like with function expression
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character])
+    ///     .from(Char::Table)
+    ///     .and_where(
+    ///         Expr::expr(Func::lower(Expr::col(Char::Character)))
+    ///             .like_expr(Func::lower(Expr::col(Char::FontId)))
+    ///     )
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE LOWER(`character`) LIKE LOWER(`font_id`)"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE LOWER("character") LIKE LOWER("font_id")"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE LOWER("character") LIKE LOWER("font_id")"#
+    /// );
+    /// ```
+    fn like_expr<R>(self, right: R) -> Expr
+    where
+        R: Into<Expr>,
+    {
+        self.binary(BinOper::Like, right)
+    }
+
     /// Express a less than (`<`) expression.
     ///
     /// # Examples
@@ -1260,6 +1327,43 @@ pub trait ExprTrait: Sized {
         L: IntoLikeExpr,
     {
         self.binary(BinOper::NotLike, like.into_like_expr())
+    }
+
+    /// Express a `NOT LIKE` expression with an expression as the pattern.
+    ///
+    /// Unlike [`not_like`](ExprTrait::not_like), this method does not support the
+    /// `ESCAPE` clause since the right-hand side is an arbitrary expression.
+    /// See [`like_expr`](ExprTrait::like_expr) for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// let query = Query::select()
+    ///     .columns([Char::Character])
+    ///     .from(Char::Table)
+    ///     .and_where(Expr::col(Char::Character).not_like_expr(Expr::col(Char::FontId)))
+    ///     .to_owned();
+    ///
+    /// assert_eq!(
+    ///     query.to_string(MysqlQueryBuilder),
+    ///     r#"SELECT `character` FROM `character` WHERE `character` NOT LIKE `font_id`"#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(PostgresQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "character" NOT LIKE "font_id""#
+    /// );
+    /// assert_eq!(
+    ///     query.to_string(SqliteQueryBuilder),
+    ///     r#"SELECT "character" FROM "character" WHERE "character" NOT LIKE "font_id""#
+    /// );
+    /// ```
+    fn not_like_expr<R>(self, right: R) -> Expr
+    where
+        R: Into<Expr>,
+    {
+        self.binary(BinOper::NotLike, right)
     }
 
     /// Express a logical `OR` operation.
