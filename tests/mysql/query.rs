@@ -1633,26 +1633,26 @@ fn select_group_concat_args() {
 }
 
 #[test]
-fn select_like_expr_column() {
+fn select_like_with_expr() {
     assert_eq!(
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .and_where(Expr::col(Char::Character).like_expr(Expr::col(Char::FontId)))
+            .and_where(Expr::col(Char::Character).like(Expr::col(Char::FontId)))
             .to_string(MysqlQueryBuilder),
         r#"SELECT `character` FROM `character` WHERE `character` LIKE `font_id`"#
     );
 }
 
 #[test]
-fn select_like_expr_function() {
+fn select_like_with_function() {
     assert_eq!(
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
             .and_where(
                 Expr::expr(Func::lower(Expr::col(Char::Character)))
-                    .like_expr(Func::lower(Expr::col(Char::FontId)))
+                    .like(Func::lower(Expr::col(Char::FontId)))
             )
             .to_string(MysqlQueryBuilder),
         r#"SELECT `character` FROM `character` WHERE LOWER(`character`) LIKE LOWER(`font_id`)"#
@@ -1660,28 +1660,13 @@ fn select_like_expr_function() {
 }
 
 #[test]
-fn select_not_like_expr_column() {
+fn select_not_like_with_expr() {
     assert_eq!(
         Query::select()
             .column(Char::Character)
             .from(Char::Table)
-            .and_where(Expr::col(Char::Character).not_like_expr(Expr::col(Char::FontId)))
+            .and_where(Expr::col(Char::Character).not_like(Expr::col(Char::FontId)))
             .to_string(MysqlQueryBuilder),
         r#"SELECT `character` FROM `character` WHERE `character` NOT LIKE `font_id`"#
-    );
-}
-
-#[test]
-fn select_not_like_expr_function() {
-    assert_eq!(
-        Query::select()
-            .column(Char::Character)
-            .from(Char::Table)
-            .and_where(
-                Expr::expr(Func::lower(Expr::col(Char::Character)))
-                    .not_like_expr(Func::lower(Expr::col(Char::FontId)))
-            )
-            .to_string(MysqlQueryBuilder),
-        r#"SELECT `character` FROM `character` WHERE LOWER(`character`) NOT LIKE LOWER(`font_id`)"#
     );
 }
