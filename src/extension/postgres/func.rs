@@ -34,6 +34,12 @@ pub enum PgFunc {
     All,
 }
 
+impl From<PgFunc> for Func {
+    fn from(func: PgFunc) -> Self {
+        Self::PgFunction(func)
+    }
+}
+
 /// Type alias of [`PgFunc`] for compatibility.
 /// Previously, [`PgFunc`] is a namespace for building [`FunctionCall`].
 #[deprecated(since = "1.0.0", note = "use `PgFunc` instead")]
@@ -66,9 +72,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = Expr::Value(config.into());
-                FunctionCall::new(Func::PgFunction(PgFunc::ToTsquery)).args([config, expr.into()])
+                FunctionCall::new(PgFunc::ToTsquery).args([config, expr.into()])
             }
-            None => FunctionCall::new(Func::PgFunction(PgFunc::ToTsquery)).arg(expr),
+            None => FunctionCall::new(PgFunc::ToTsquery).arg(expr),
         }
     }
 
@@ -98,9 +104,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = Expr::Value(config.into());
-                FunctionCall::new(Func::PgFunction(PgFunc::ToTsvector)).args([config, expr.into()])
+                FunctionCall::new(PgFunc::ToTsvector).args([config, expr.into()])
             }
-            None => FunctionCall::new(Func::PgFunction(PgFunc::ToTsvector)).arg(expr),
+            None => FunctionCall::new(PgFunc::ToTsvector).arg(expr),
         }
     }
 
@@ -130,10 +136,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = Expr::Value(config.into());
-                FunctionCall::new(Func::PgFunction(PgFunc::PhrasetoTsquery))
-                    .args([config, expr.into()])
+                FunctionCall::new(PgFunc::PhrasetoTsquery).args([config, expr.into()])
             }
-            None => FunctionCall::new(Func::PgFunction(PgFunc::PhrasetoTsquery)).arg(expr),
+            None => FunctionCall::new(PgFunc::PhrasetoTsquery).arg(expr),
         }
     }
 
@@ -163,10 +168,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = Expr::Value(config.into());
-                FunctionCall::new(Func::PgFunction(PgFunc::PlaintoTsquery))
-                    .args([config, expr.into()])
+                FunctionCall::new(PgFunc::PlaintoTsquery).args([config, expr.into()])
             }
-            None => FunctionCall::new(Func::PgFunction(PgFunc::PlaintoTsquery)).arg(expr),
+            None => FunctionCall::new(PgFunc::PlaintoTsquery).arg(expr),
         }
     }
 
@@ -196,10 +200,9 @@ impl PgFunc {
         match regconfig {
             Some(config) => {
                 let config = Expr::Value(config.into());
-                FunctionCall::new(Func::PgFunction(PgFunc::WebsearchToTsquery))
-                    .args([config, expr.into()])
+                FunctionCall::new(PgFunc::WebsearchToTsquery).args([config, expr.into()])
             }
-            None => FunctionCall::new(Func::PgFunction(PgFunc::WebsearchToTsquery)).arg(expr),
+            None => FunctionCall::new(PgFunc::WebsearchToTsquery).arg(expr),
         }
     }
 
@@ -223,7 +226,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::TsRank)).args([vector.into(), query.into()])
+        FunctionCall::new(PgFunc::TsRank).args([vector.into(), query.into()])
     }
 
     /// Call `TS_RANK_CD` function. Postgres only.
@@ -246,7 +249,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::TsRankCd)).args([vector.into(), query.into()])
+        FunctionCall::new(PgFunc::TsRankCd).args([vector.into(), query.into()])
     }
 
     /// Call `ANY` function. Postgres only.
@@ -284,7 +287,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::Any)).arg(expr)
+        FunctionCall::new(PgFunc::Any).arg(expr)
     }
 
     /// Call `SOME` function. Postgres only.
@@ -308,7 +311,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::Some)).arg(expr)
+        FunctionCall::new(PgFunc::Some).arg(expr)
     }
 
     /// Call `ALL` function. Postgres only.
@@ -332,7 +335,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::All)).arg(expr)
+        FunctionCall::new(PgFunc::All).arg(expr)
     }
 
     /// Call `STARTS_WITH` function. Postgres only.
@@ -356,7 +359,7 @@ impl PgFunc {
         T: Into<Expr>,
         P: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::StartsWith)).args([text.into(), prefix.into()])
+        FunctionCall::new(PgFunc::StartsWith).args([text.into(), prefix.into()])
     }
 
     /// Call `GEN_RANDOM_UUID` function. Postgres only.
@@ -374,7 +377,7 @@ impl PgFunc {
     /// );
     /// ```
     pub fn gen_random_uuid() -> FunctionCall {
-        FunctionCall::new(Func::PgFunction(PgFunc::GenRandomUUID))
+        FunctionCall::new(PgFunc::GenRandomUUID)
     }
 
     /// Call the `JSON_BUILD_OBJECT` function. Postgres only.
@@ -405,7 +408,7 @@ impl PgFunc {
             args.push(key.into());
             args.push(value.into());
         }
-        FunctionCall::new(Func::PgFunction(PgFunc::JsonBuildObject)).args(args)
+        FunctionCall::new(PgFunc::JsonBuildObject).args(args)
     }
 
     /// Call the `DATE_TRUNC` function. Postgres only.
@@ -443,8 +446,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::DateTrunc))
-            .args([Expr::val(unit.to_string()), expr.into()])
+        FunctionCall::new(PgFunc::DateTrunc).args([Expr::val(unit.to_string()), expr.into()])
     }
 
     /// Call the `JSON_AGG` function. Postgres only.
@@ -468,7 +470,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::JsonAgg)).arg(expr)
+        FunctionCall::new(PgFunc::JsonAgg).arg(expr)
     }
 
     /// Call the `ARRAY_AGG` function. Postgres only.
@@ -493,7 +495,7 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::ArrayAgg)).arg(expr)
+        FunctionCall::new(PgFunc::ArrayAgg).arg(expr)
     }
 
     /// Call the `ARRAY_AGG` function with the `DISTINCT` modifier. Postgres only.
@@ -518,7 +520,6 @@ impl PgFunc {
     where
         T: Into<Expr>,
     {
-        FunctionCall::new(Func::PgFunction(PgFunc::ArrayAgg))
-            .arg_with(expr, FuncArgMod { distinct: true })
+        FunctionCall::new(PgFunc::ArrayAgg).arg_with(expr, FuncArgMod { distinct: true })
     }
 }
