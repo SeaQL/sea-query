@@ -171,14 +171,16 @@ pub enum Keyword {
 
 /// Like Expression
 #[derive(Debug, Clone)]
-pub struct LikeExpr {
-    pub(crate) inner: LikeExprInner,
-    pub(crate) escape: Option<char>,
-}
-
-#[derive(Debug, Clone)]
-pub(crate) enum LikeExprInner {
-    Str(String),
+#[non_exhaustive]
+pub enum LikeExpr {
+    /// A string pattern with optional escape character
+    Str {
+        /// The pattern string
+        pattern: String,
+        /// Optional escape character
+        escape: Option<char>,
+    },
+    /// An arbitrary expression
     Expr(crate::Expr),
 }
 
@@ -187,8 +189,8 @@ impl LikeExpr {
     where
         T: Into<String>,
     {
-        Self {
-            inner: LikeExprInner::Str(pattern.into()),
+        Self::Str {
+            pattern: pattern.into(),
             escape: None,
         }
     }
@@ -202,9 +204,12 @@ impl LikeExpr {
     }
 
     pub fn escape(self, c: char) -> Self {
-        Self {
-            escape: Some(c),
-            ..self
+        match self {
+            Self::Str { pattern, .. } => Self::Str {
+                pattern,
+                escape: Some(c),
+            },
+            Self::Expr(_) => self,
         }
     }
 }
@@ -233,19 +238,13 @@ where
 
 impl From<crate::Expr> for LikeExpr {
     fn from(expr: crate::Expr) -> Self {
-        Self {
-            inner: LikeExprInner::Expr(expr),
-            escape: None,
-        }
+        Self::Expr(expr)
     }
 }
 
 impl From<crate::FunctionCall> for LikeExpr {
     fn from(func: crate::FunctionCall) -> Self {
-        Self {
-            inner: LikeExprInner::Expr(crate::Expr::FunctionCall(func)),
-            escape: None,
-        }
+        Self::Expr(crate::Expr::FunctionCall(func))
     }
 }
 
