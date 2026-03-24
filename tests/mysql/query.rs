@@ -1092,7 +1092,9 @@ fn insert_4() {
         Query::insert()
             .into_table(Glyph::Table)
             .columns([Glyph::Image])
-            .values_panic([chrono::NaiveDateTime::from_timestamp_opt(0, 0)
+            .values_panic([chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
                 .unwrap()
                 .into()])
             .to_string(MysqlQueryBuilder),
