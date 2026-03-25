@@ -109,6 +109,14 @@ impl ToSql for RusqliteValue {
             Value::TimeDateTime(v) => v.to_sql(),
             #[cfg(feature = "with-time")]
             Value::TimeDateTimeWithTimeZone(v) => v.to_sql(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDate(v) => v.to_sql(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTime(v) => v.to_sql(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffDateTime(v) => v.to_sql(),
+            #[cfg(feature = "with-jiff")]
+            Value::JiffTimestamp(v) => v.to_sql(),
             #[cfg(feature = "with-uuid")]
             Value::Uuid(v) => v.to_sql(),
             #[cfg(feature = "with-json")]

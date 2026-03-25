@@ -97,6 +97,22 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 Value::TimeDateTimeWithTimeZone(t) => {
                     let _ = args.add(t);
                 }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDate(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTime(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDateTime(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTimestamp(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
                     let _ = args.add(uuid);
@@ -107,7 +123,6 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                 }
                 #[cfg(feature = "with-bigdecimal")]
                 Value::BigDecimal(big_decimal) => {
-                    use sea_query::prelude::bigdecimal::ToPrimitive;
                     let _ = args.add(big_decimal.map(|d| d.to_string()));
                 }
                 #[cfg(feature = "with-json")]
@@ -131,7 +146,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::sqlite::Sqlite> for SqlxValues {
                     panic!("Sqlite doesn't support vector arguments");
                 } /* #[cfg(feature = "postgres-range")]
                   Value::Range(_) => {
-                      panic!("Sqlite doesn't support PgRange arguments");
+                  panic!("Sqlite doesn't support PgRange arguments");
                   } */
             }
         }
