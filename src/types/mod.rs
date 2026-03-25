@@ -169,18 +169,19 @@ pub enum Keyword {
     Custom(DynIden),
 }
 
-/// Like Expression
+/// Like Expression.
+///
+/// Wraps [`LikeExprInner`] to keep enum variants private, since Rust enum
+/// variants are always public.
 #[derive(Debug, Clone)]
-#[non_exhaustive]
-pub enum LikeExpr {
-    /// A string pattern with optional escape character
+pub struct LikeExpr(pub(crate) LikeExprInner);
+
+#[derive(Debug, Clone)]
+pub(crate) enum LikeExprInner {
     Str {
-        /// The pattern string
         pattern: String,
-        /// Optional escape character
         escape: Option<char>,
     },
-    /// An arbitrary expression
     Expr(crate::Expr),
 }
 
@@ -189,10 +190,10 @@ impl LikeExpr {
     where
         T: Into<String>,
     {
-        Self::Str {
+        Self(LikeExprInner::Str {
             pattern: pattern.into(),
             escape: None,
-        }
+        })
     }
 
     #[deprecated(since = "0.29.0", note = "Please use the [`LikeExpr::new`] method")]
@@ -204,12 +205,12 @@ impl LikeExpr {
     }
 
     pub fn escape(self, c: char) -> Self {
-        match self {
-            Self::Str { pattern, .. } => Self::Str {
+        match self.0 {
+            LikeExprInner::Str { pattern, .. } => Self(LikeExprInner::Str {
                 pattern,
                 escape: Some(c),
-            },
-            Self::Expr(_) => self,
+            }),
+            LikeExprInner::Expr(_) => self,
         }
     }
 }
@@ -238,13 +239,13 @@ where
 
 impl From<crate::Expr> for LikeExpr {
     fn from(expr: crate::Expr) -> Self {
-        Self::Expr(expr)
+        Self(LikeExprInner::Expr(expr))
     }
 }
 
 impl From<crate::FunctionCall> for LikeExpr {
     fn from(func: crate::FunctionCall) -> Self {
-        Self::Expr(crate::Expr::FunctionCall(func))
+        Self(LikeExprInner::Expr(crate::Expr::FunctionCall(func)))
     }
 }
 
