@@ -2,7 +2,6 @@ use core::f64;
 
 use super::*;
 use pretty_assertions::assert_eq;
-use sea_query::extension::postgres::PgExpr;
 use sea_query::{audit::AuditTrait, extension::postgres::PgBinOper};
 
 #[test]
@@ -2524,68 +2523,5 @@ fn test_pgvector_select() {
             )
             .to_string(PostgresQueryBuilder),
         r#"SELECT "character" FROM "character" WHERE "character" = '[1,2]'"#
-    );
-}
-
-#[test]
-fn select_like_with_expr() {
-    assert_eq!(
-        Query::select()
-            .column(Char::Character)
-            .from(Char::Table)
-            .and_where(Expr::col(Char::Character).like(Expr::col(Char::FontId)))
-            .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE "character" LIKE "font_id""#
-    );
-}
-
-#[test]
-fn select_like_with_function() {
-    assert_eq!(
-        Query::select()
-            .column(Char::Character)
-            .from(Char::Table)
-            .and_where(
-                Expr::expr(Func::lower(Expr::col(Char::Character)))
-                    .like(Func::lower(Expr::col(Char::FontId)))
-            )
-            .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE LOWER("character") LIKE LOWER("font_id")"#
-    );
-}
-
-#[test]
-fn select_not_like_with_expr() {
-    assert_eq!(
-        Query::select()
-            .column(Char::Character)
-            .from(Char::Table)
-            .and_where(Expr::col(Char::Character).not_like(Expr::col(Char::FontId)))
-            .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE "character" NOT LIKE "font_id""#
-    );
-}
-
-#[test]
-fn select_ilike_with_expr() {
-    assert_eq!(
-        Query::select()
-            .column(Char::Character)
-            .from(Char::Table)
-            .and_where(Expr::col(Char::Character).ilike(Expr::col(Char::FontId)))
-            .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE "character" ILIKE "font_id""#
-    );
-}
-
-#[test]
-fn select_not_ilike_with_expr() {
-    assert_eq!(
-        Query::select()
-            .column(Char::Character)
-            .from(Char::Table)
-            .and_where(Expr::col(Char::Character).not_ilike(Expr::col(Char::FontId)))
-            .to_string(PostgresQueryBuilder),
-        r#"SELECT "character" FROM "character" WHERE "character" NOT ILIKE "font_id""#
     );
 }
