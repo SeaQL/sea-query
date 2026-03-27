@@ -171,7 +171,7 @@ pub enum Keyword {
 
 /// Like Expression.
 ///
-/// Wraps [`LikeExprInner`] to keep enum variants private, since Rust enum
+/// Wraps an internal enum to keep variants private, since Rust enum
 /// variants are always public.
 #[derive(Debug, Clone)]
 pub struct LikeExpr(pub(crate) LikeExprInner);
