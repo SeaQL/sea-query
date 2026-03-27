@@ -140,19 +140,19 @@ pub trait PgExpr: ExprTrait {
     ///     r#"SELECT "character", "size_w", "size_h" FROM "character" WHERE "character"."character" ILIKE E'Ours\'%'"#
     /// );
     /// ```
-    fn ilike<L>(self, like: L) -> Expr
+    fn ilike<R>(self, right: R) -> Expr
     where
-        L: IntoLikeExpr,
+        R: Into<Expr>,
     {
-        self.binary(PgBinOper::ILike, like.into_like_expr())
+        self.binary(PgBinOper::ILike, right)
     }
 
     /// Express a `NOT ILIKE` expression
-    fn not_ilike<L>(self, like: L) -> Expr
+    fn not_ilike<R>(self, right: R) -> Expr
     where
-        L: IntoLikeExpr,
+        R: Into<Expr>,
     {
-        self.binary(PgBinOper::NotILike, like.into_like_expr())
+        self.binary(PgBinOper::NotILike, right)
     }
 
     /// Express a postgres retrieves JSON field as JSON value (`->`).

@@ -868,20 +868,13 @@ impl From<Keyword> for Expr {
 
 impl From<LikeExpr> for Expr {
     fn from(like: LikeExpr) -> Self {
-        match like.0 {
-            crate::LikeExprInner::Str {
-                pattern,
-                escape: Some(escape),
-            } => Self::Binary(
-                Box::new(pattern.into()),
+        match like.escape {
+            Some(escape) => Self::Binary(
+                Box::new(like.pattern.into()),
                 BinOper::Escape,
                 Box::new(Expr::Constant(escape.into())),
             ),
-            crate::LikeExprInner::Str {
-                pattern,
-                escape: None,
-            } => pattern.into(),
-            crate::LikeExprInner::Expr(expr) => expr,
+            None => like.pattern.into(),
         }
     }
 }
