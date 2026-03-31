@@ -5,11 +5,11 @@ use std::fmt::Write;
 use crate::extension::postgres::json_fn::{
     write_as_json_path_name, write_json_path_expr, write_passing,
 };
-use crate::extension::postgres::json_table::ExistsColumnBuilder;
 use crate::*;
 
-use super::column::ColumnBuilder;
-use super::nested::NestedPathBuilder;
+use super::column::Column;
+use super::exists_column::ExistsColumn;
+use super::nested::NestedPath;
 use super::types::*;
 
 /// Builder for JSON_TABLE function
@@ -36,95 +36,49 @@ impl From<Builder> for Expr {
 }
 
 impl Builder {
-    /// Set the JSON path name (AS clause)
-    pub fn json_path_name<T>(mut self, name: T) -> Self
-    where
-        T: Into<Cow<'static, str>>,
-    {
+    /// Set the JSON path name (AS clause).
+    pub fn path_name(mut self, name: impl Into<Cow<'static, str>>) -> Self {
         self.as_json_path_name = Some(name.into());
         self
     }
 
     /// Add PASSING parameters
-    pub fn passing<V, A>(mut self, value: V, alias: A) -> Self
-    where
-        V: Into<Value>,
-        A: Into<Cow<'static, str>>,
-    {
+    pub fn passing(mut self, value: impl Into<Value>, alias: impl Into<Cow<'static, str>>) -> Self {
         self.passing.push((value.into(), alias.into()));
         self
     }
 
     /// Add multiple PASSING parameters at once
-    pub fn passing_many<V, A, I>(mut self, passing: I) -> Self
-    where
-        V: Into<Value>,
-        A: Into<Cow<'static, str>>,
-        I: IntoIterator<Item = (V, A)>,
-    {
+    pub fn passing_many(
+        mut self,
+        passing: impl IntoIterator<Item = (impl Into<Value>, impl Into<Cow<'static, str>>)>,
+    ) -> Self {
         for (value, alias) in passing {
             self.passing.push((value.into(), alias.into()));
         }
         self
     }
 
-    /// Add a FOR ORDINALITY column
-    pub fn ordinality_column<N>(mut self, name: N) -> Self
-    where
-        N: Into<Cow<'static, str>>,
-    {
+    /// Add a `FOR ORDINALITY` column.
+    pub fn for_ordinality(mut self, name: impl Into<Cow<'static, str>>) -> Self {
         self.columns
             .push(JsonTableColumn::Ordinality { name: name.into() });
         self
     }
 
-    /// Add a regular column
-    pub fn column<N, T>(self, name: N, column_type: T) -> ColumnBuilder<Self>
-    where
-        N: Into<Cow<'static, str>>,
-        T: Into<TypeRef>,
-    {
-        ColumnBuilder {
-            builder: self,
-            name: name.into(),
-            column_type: column_type.into(),
-            format_json: false,
-            encoding_utf8: false,
-            path: None,
-            wrapper: None,
-            quotes: None,
-            on_empty: None,
-            on_error: None,
-        }
+    pub fn column(mut self, column: Column) -> Self {
+        self.columns.push(column.into_column());
+        self
     }
 
-    /// Add an EXISTS column
-    pub fn exists_column<N, T>(self, name: N, column_type: T) -> ExistsColumnBuilder<Self>
-    where
-        N: Into<Cow<'static, str>>,
-        T: Into<TypeRef>,
-    {
-        ExistsColumnBuilder {
-            builder: self,
-            name: name.into(),
-            column_type: column_type.into(),
-            path: None,
-            on_error: None,
-        }
+    pub fn exists(mut self, column: ExistsColumn) -> Self {
+        self.columns.push(column.into_column());
+        self
     }
 
-    /// Add a NESTED PATH column
-    pub fn nested<P>(self, path: P) -> NestedPathBuilder
-    where
-        P: Into<Cow<'static, str>>,
-    {
-        NestedPathBuilder {
-            builder: self,
-            path: path.into(),
-            explicit: false,
-            json_path_name: None,
-            columns: Vec::new(),
-        }
+    pub fn nested(mut self, nested: NestedPath) -> Self {
+        self.columns.push(nested.into_column());
+        self
     }
 
     /// Convenience method for `ERROR ON ERROR`
@@ -156,8 +110,9 @@ impl Builder {
         buf.write_str(", ")?;
         write_json_path_expr(&mut buf, &self.path_expression)?;
 
-        self.as_json_path_name
-            .map(|x| write_as_json_path_name(&mut buf, &x));
+        if let Some(name) = &self.as_json_path_name {
+            write_as_json_path_name(&mut buf, name)?;
+        }
 
         write_passing(&mut buf, self.passing)?;
 
@@ -272,12 +227,9 @@ impl Builder {
                 path,
                 as_json_path_name: json_path_name,
                 columns,
-                explicit_path,
+                // explicit_path,
             } => {
-                buf.write_str("NESTED")?;
-                if *explicit_path {
-                    buf.write_str(" PATH")?;
-                }
+                buf.write_str("NESTED PATH")?;
                 buf.write_str(" ")?;
                 write_json_path_expr(buf, path)?;
 
