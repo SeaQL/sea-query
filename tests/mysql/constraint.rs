@@ -57,7 +57,16 @@ fn create_3() {
 fn create_4() {
     assert_eq!(
         Constraint::create()
-            .check(("id_range", Expr::col(Glyph::Id).lt(20)))
+            .constraint_name("id_range")
+            .check(Expr::col(Glyph::Id).lt(20))
+            .table(Glyph::Table)
+            .to_string(MysqlQueryBuilder),
+        [r#"ALTER TABLE `glyph` ADD CONSTRAINT `id_range` CHECK (`id` < 20)"#,].join(" ")
+    );
+    assert_eq!(
+        Constraint::create()
+            .check(Expr::col(Glyph::Id).lt(20))
+            .constraint_name("id_range")
             .table(Glyph::Table)
             .to_string(MysqlQueryBuilder),
         [r#"ALTER TABLE `glyph` ADD CONSTRAINT `id_range` CHECK (`id` < 20)"#,].join(" ")

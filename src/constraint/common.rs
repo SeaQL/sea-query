@@ -1,4 +1,4 @@
-use crate::{Check, ConditionHolder, IndexType, IntoIndexColumn, TableIndex, types::*};
+use crate::{Check, ConditionHolder, Expr, IndexType, IntoIndexColumn, TableIndex, types::*};
 
 /// Specification of a constraint
 #[derive(Default, Debug, Clone)]
@@ -24,7 +24,11 @@ impl TableConstraint {
     where
         T: Into<String>,
     {
-        self.name = Some(name.into());
+        let name = name.into();
+        if let Some(ConstraintCreateStatementType::Check(check)) = &mut self.constraint_type {
+            check.name = Some(name.clone().into());
+        }
+        self.name = Some(name);
         self
     }
 
@@ -59,11 +63,16 @@ impl TableConstraint {
     }
 
     /// Set constraint as check
-    pub fn check<T>(&mut self, check: T) -> &mut Self
+    pub fn check<T>(&mut self, expr: T) -> &mut Self
     where
-        T: Into<Check>,
+        T: Into<Expr>,
     {
-        self.constraint_type = Some(ConstraintCreateStatementType::Check(check.into()));
+        self.constraint_type = Some(ConstraintCreateStatementType::Check(
+            match self.name.clone() {
+                Some(name) => Check::named(name, expr),
+                None => Check::unnamed(expr),
+            },
+        ));
         self
     }
 

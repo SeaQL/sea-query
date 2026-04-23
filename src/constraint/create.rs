@@ -1,9 +1,6 @@
 use inherent::inherent;
 
-use crate::{
-    Check, ConditionalStatement, IndexType, IntoCondition, IntoIndexColumn, TableConstraint,
-    TableIndex,
-};
+use crate::{Expr, IndexType, IntoIndexColumn, TableConstraint, TableIndex};
 use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
 #[derive(Default, Debug, Clone)]
@@ -67,11 +64,11 @@ impl ConstraintCreateStatement {
     }
 
     /// Set constraint as check
-    pub fn check<T>(&mut self, check: T) -> &mut Self
+    pub fn check<T>(&mut self, expr: T) -> &mut Self
     where
-        T: Into<Check>,
+        T: Into<Expr>,
     {
-        self.constraint.check(check);
+        self.constraint.check(expr);
         self
     }
 
@@ -142,6 +139,7 @@ impl SchemaStatementBuilder for ConstraintCreateStatement {
         T: SchemaBuilder;
 }
 
+/* For future EXCLUDE constraint support
 impl ConditionalStatement for ConstraintCreateStatement {
     fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
         self.constraint.r#where.add_and_or(condition);
@@ -158,3 +156,4 @@ impl ConditionalStatement for ConstraintCreateStatement {
         self
     }
 }
+*/
