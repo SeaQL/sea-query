@@ -17,7 +17,7 @@ pub use create::*;
 #[derive(Debug, Clone)]
 pub struct Constraint;
 
-/// All available types of index statement
+/// All available types of constraint statement
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum ConstraintStatement {
