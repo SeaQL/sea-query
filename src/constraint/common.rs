@@ -111,8 +111,63 @@ impl TableConstraint {
         self
     }
 
+    pub fn get_name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+
+    pub fn get_index_name(&self) -> Option<&str> {
+        self.index.get_name()
+    }
+
+    pub fn get_columns(&self) -> Vec<String> {
+        self.index.get_column_names()
+    }
+
+    pub fn get_check(&self) -> Option<&Check> {
+        match &self.constraint_type {
+            Some(ConstraintCreateStatementType::Check(check)) => Some(check),
+            _ => None,
+        }
+    }
+
+    pub fn is_primary_key(&self) -> bool {
+        matches!(
+            self.constraint_type,
+            Some(ConstraintCreateStatementType::PrimaryKey)
+        )
+    }
+
+    pub fn is_unique_key(&self) -> bool {
+        matches!(
+            self.constraint_type,
+            Some(ConstraintCreateStatementType::Unique)
+        )
+    }
+
+    pub fn is_check(&self) -> bool {
+        matches!(
+            self.constraint_type,
+            Some(ConstraintCreateStatementType::Check(_))
+        )
+    }
+
     pub fn is_nulls_not_distinct(&self) -> bool {
         self.nulls_not_distinct
+    }
+
+    pub fn get_index_type(&self) -> Option<&IndexType> {
+        self.index_type.as_ref()
+    }
+
+    pub fn get_using_index(&self) -> Option<&DynIden> {
+        self.using_index.as_ref()
+    }
+
+    pub fn get_include_columns(&self) -> Vec<String> {
+        self.include_columns
+            .iter()
+            .map(|col| col.to_string())
+            .collect()
     }
 
     pub fn get_index_spec(&self) -> &TableIndex {

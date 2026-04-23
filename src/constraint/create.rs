@@ -1,6 +1,6 @@
 use inherent::inherent;
 
-use crate::{Expr, IndexType, IntoIndexColumn, TableConstraint, TableIndex};
+use crate::{Expr, IndexType, IntoIndexColumn, TableConstraint};
 use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
 #[derive(Default, Debug, Clone)]
@@ -107,12 +107,12 @@ impl ConstraintCreateStatement {
         self
     }
 
-    pub fn is_nulls_not_distinct(&self) -> bool {
-        self.constraint.is_nulls_not_distinct()
+    pub fn get_table(&self) -> Option<&TableRef> {
+        self.table.as_ref()
     }
 
-    pub fn get_index_spec(&self) -> &TableIndex {
-        self.constraint.get_index_spec()
+    pub fn get_constraint(&self) -> &TableConstraint {
+        &self.constraint
     }
 
     pub fn take(&mut self) -> Self {
