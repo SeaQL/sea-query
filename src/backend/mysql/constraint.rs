@@ -27,7 +27,7 @@ impl ConstraintBuilder for MysqlQueryBuilder {
             assert!(
                 create.constraint.index.name.is_none()
                     && create.constraint.index.columns.is_empty(),
-                "MySQL does not support index options on CHECK constraints"
+                "MySQL does not support columns or index options on CHECK constraints"
             );
         } else {
             assert!(

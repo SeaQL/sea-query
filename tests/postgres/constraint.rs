@@ -117,7 +117,9 @@ fn create_8() {
 }
 
 #[test]
-#[should_panic(expected = "Postgres does not support index options on CHECK constraints")]
+#[should_panic(
+    expected = "Postgres does not support columns or index options on CHECK constraints"
+)]
 fn create_9() {
     Constraint::create()
         .check(Expr::col(Glyph::Id).lt(20))

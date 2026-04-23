@@ -32,7 +32,7 @@ impl ConstraintBuilder for PostgresQueryBuilder {
                 create.constraint.index.columns.is_empty()
                     && create.constraint.include_columns.is_empty()
                     && !create.constraint.nulls_not_distinct,
-                "Postgres does not support index options on CHECK constraints"
+                "Postgres does not support columns or index options on CHECK constraints"
             );
         } else {
             assert!(
