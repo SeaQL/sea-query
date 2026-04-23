@@ -1,7 +1,7 @@
 use sea_query::{tests_cfg::*, *};
 
-mod explain;
 mod constraint;
+mod explain;
 mod foreign_key;
 mod index;
 mod query;

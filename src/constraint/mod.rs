@@ -3,7 +3,7 @@
 //! # Usage
 //!
 //! - Table Constraint Create, see [`ConstraintCreateStatement`]
-//! - Table Constraint Drop, see [`ConstraintDropStatement`]
+/* //! - Table Constraint Drop, see [`ConstraintDropStatement`] */
 
 mod common;
 mod create;
@@ -11,7 +11,7 @@ mod drop;
 
 pub use common::*;
 pub use create::*;
-pub use drop::*;
+/* pub use drop::*; */
 
 /// Shorthand for constructing constraint statement
 #[derive(Debug, Clone)]
