@@ -11,6 +11,37 @@ impl ConstraintBuilder for PostgresQueryBuilder {
             panic!("No constraint type found");
         };
 
+        assert!(
+            create.constraint.index_type.is_none(),
+            "Postgres does not support index types in ADD CONSTRAINT"
+        );
+        if create.constraint.using_index.is_some() {
+            assert!(
+                create.constraint.index.columns.is_empty()
+                    && create.constraint.include_columns.is_empty()
+                    && !create.constraint.nulls_not_distinct,
+                "Postgres does not support combining USING INDEX with columns or index options"
+            );
+        }
+        if matches!(constraint_type, ConstraintCreateStatementType::Check(_)) {
+            assert!(
+                create.constraint.using_index.is_none(),
+                "Postgres does not support USING INDEX on CHECK constraints"
+            );
+            assert!(
+                create.constraint.index.columns.is_empty()
+                    && create.constraint.include_columns.is_empty()
+                    && !create.constraint.nulls_not_distinct,
+                "Postgres does not support index options on CHECK constraints"
+            );
+        } else {
+            assert!(
+                !matches!(constraint_type, ConstraintCreateStatementType::PrimaryKey)
+                    || !create.constraint.nulls_not_distinct,
+                "Postgres does not support NULLS NOT DISTINCT on PRIMARY KEY constraints"
+            );
+        }
+
         if mode == ConstraintMode::Alter {
             sql.write_str("ALTER TABLE ").unwrap();
             if let Some(table) = &create.table {
@@ -25,7 +56,7 @@ impl ConstraintBuilder for PostgresQueryBuilder {
             ConstraintCreateStatementType::Check(check) => {
                 self.prepare_check_constraint(check, sql)
             }
-            value => {
+            ConstraintCreateStatementType::PrimaryKey | ConstraintCreateStatementType::Unique => {
                 if let Some(name) = &create.constraint.name {
                     sql.write_str("CONSTRAINT ").unwrap();
                     sql.write_char(self.quote().left()).unwrap();
@@ -34,14 +65,14 @@ impl ConstraintBuilder for PostgresQueryBuilder {
                     sql.write_str(" ").unwrap();
                 }
 
-                match value {
+                match constraint_type {
                     ConstraintCreateStatementType::PrimaryKey => {
-                        sql.write_str("PRIMARY KEY ").unwrap()
+                        sql.write_str("PRIMARY KEY ").unwrap();
                     }
                     ConstraintCreateStatementType::Unique => {
                         sql.write_str("UNIQUE ").unwrap();
                     }
-                    _ => unreachable!(),
+                    ConstraintCreateStatementType::Check(_) => unreachable!(),
                 }
 
                 if let Some(using_index) = &create.constraint.using_index {

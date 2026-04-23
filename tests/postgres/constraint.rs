@@ -65,3 +65,63 @@ fn create_4() {
         [r#"ALTER TABLE "glyph" ADD CHECK ("id" < 20)"#,].join(" ")
     );
 }
+
+#[test]
+#[should_panic(
+    expected = "Postgres does not support combining USING INDEX with columns or index options"
+)]
+fn create_5() {
+    Constraint::create()
+        .unique()
+        .constraint_name("font_name_key")
+        .using_index("idx_font_name")
+        .col(Font::Name)
+        .table(Font::Table)
+        .to_string(PostgresQueryBuilder);
+}
+
+#[test]
+#[should_panic(
+    expected = "Postgres does not support NULLS NOT DISTINCT on PRIMARY KEY constraints"
+)]
+fn create_6() {
+    Constraint::create()
+        .primary()
+        .constraint_name("font_pkey")
+        .nulls_not_distinct()
+        .col(Font::Id)
+        .table(Font::Table)
+        .to_string(PostgresQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "Postgres does not support index types in ADD CONSTRAINT")]
+fn create_7() {
+    Constraint::create()
+        .unique()
+        .constraint_name("font_name_key")
+        .index_type(IndexType::Hash)
+        .col(Font::Name)
+        .table(Font::Table)
+        .to_string(PostgresQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "Postgres does not support USING INDEX on CHECK constraints")]
+fn create_8() {
+    Constraint::create()
+        .check(Expr::col(Glyph::Id).lt(20))
+        .using_index("idx_glyph_id")
+        .table(Glyph::Table)
+        .to_string(PostgresQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "Postgres does not support index options on CHECK constraints")]
+fn create_9() {
+    Constraint::create()
+        .check(Expr::col(Glyph::Id).lt(20))
+        .include(Glyph::Aspect)
+        .table(Glyph::Table)
+        .to_string(PostgresQueryBuilder);
+}

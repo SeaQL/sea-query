@@ -89,7 +89,7 @@ impl ConstraintCreateStatement {
         self
     }
 
-    /// Set index type. Only available on MySQL.
+    /// Use an existing index for the constraint. Only available on Postgres.
     pub fn using_index<T>(&mut self, using_index: T) -> &mut Self
     where
         T: IntoIden,
