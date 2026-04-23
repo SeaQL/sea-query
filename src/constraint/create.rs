@@ -3,6 +3,87 @@ use inherent::inherent;
 use crate::{Expr, IndexType, IntoIndexColumn, TableConstraint};
 use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
+/// Create a constraint for an existing table. Unsupported by Sqlite
+///
+/// # Examples
+///
+/// Primary key
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let constraint = Constraint::create()
+///     .primary()
+///     .constraint_name("PK_2e303c3a712662f1fc2a4d0aad6")
+///     .table(Font::Table)
+///     .col(Font::Id)
+///     .to_owned();
+///
+/// assert_eq!(
+///     constraint.to_string(MysqlQueryBuilder),
+///     [
+///         r#"ALTER TABLE `font` ADD CONSTRAINT `PK_2e303c3a712662f1fc2a4d0aad6`"#,
+///         r#"PRIMARY KEY (`id`)"#,
+///     ]
+///     .join(" ")
+/// );
+/// assert_eq!(
+///     constraint.to_string(PostgresQueryBuilder),
+///     [
+///         r#"ALTER TABLE "font" ADD CONSTRAINT "PK_2e303c3a712662f1fc2a4d0aad6""#,
+///         r#"PRIMARY KEY ("id")"#,
+///     ]
+///     .join(" ")
+/// );
+/// ```
+///
+/// Unique constraint
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let constraint = Constraint::create()
+///     .unique()
+///     .constraint_name("UQ_2e303c3a712662f1fc2a4d0aad6")
+///     .table(Font::Table)
+///     .col(Font::Name)
+///     .to_owned();
+///
+/// assert_eq!(
+///     constraint.to_string(MysqlQueryBuilder),
+///     [
+///         r#"ALTER TABLE `font` ADD CONSTRAINT `UQ_2e303c3a712662f1fc2a4d0aad6`"#,
+///         r#"UNIQUE KEY (`name`)"#,
+///     ]
+///     .join(" ")
+/// );
+/// assert_eq!(
+///     constraint.to_string(PostgresQueryBuilder),
+///     [
+///         r#"ALTER TABLE "font" ADD CONSTRAINT "UQ_2e303c3a712662f1fc2a4d0aad6""#,
+///         r#"UNIQUE ("name")"#,
+///     ]
+///     .join(" ")
+/// );
+/// ```
+///
+/// Check constraint
+/// ```
+/// use sea_query::{tests_cfg::*, *};
+///
+/// let constraint = Constraint::create()
+///     .constraint_name("id_range")
+///     .check(Expr::col(Glyph::Id).lt(20))
+///     .table(Glyph::Table)
+///     .to_owned();
+///
+/// assert_eq!(
+///     constraint.to_string(MysqlQueryBuilder),
+///     r#"ALTER TABLE `glyph` ADD CONSTRAINT `id_range` CHECK (`id` < 20)"#
+/// );
+/// assert_eq!(
+///     constraint.to_string(PostgresQueryBuilder),
+///     r#"ALTER TABLE "glyph" ADD CONSTRAINT "id_range" CHECK ("id" < 20)"#
+/// );
+/// ```
 #[derive(Default, Debug, Clone)]
 pub struct ConstraintCreateStatement {
     pub(crate) table: Option<TableRef>,
