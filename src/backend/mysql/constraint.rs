@@ -11,6 +11,38 @@ impl ConstraintBuilder for MysqlQueryBuilder {
             panic!("No constraint type found");
         };
 
+        assert!(
+            create.constraint.using_index.is_none(),
+            "MySQL does not support USING INDEX in ADD CONSTRAINT"
+        );
+        assert!(
+            !create.constraint.nulls_not_distinct,
+            "MySQL does not support NULLS NOT DISTINCT in ADD CONSTRAINT"
+        );
+        assert!(
+            create.constraint.include_columns.is_empty(),
+            "MySQL does not support INCLUDE columns in ADD CONSTRAINT"
+        );
+        if matches!(constraint_type, ConstraintCreateStatementType::Check(_)) {
+            assert!(
+                create.constraint.index.name.is_none()
+                    && create.constraint.index.columns.is_empty(),
+                "MySQL does not support index options on CHECK constraints"
+            );
+        } else {
+            assert!(
+                !matches!(constraint_type, ConstraintCreateStatementType::PrimaryKey)
+                    || create.constraint.index.name.is_none(),
+                "MySQL does not support index names on PRIMARY KEY constraints"
+            );
+            if let Some(index_type) = &create.constraint.index_type {
+                assert!(
+                    matches!(index_type, IndexType::BTree | IndexType::Hash),
+                    "MySQL supports only BTREE or HASH index types in ADD CONSTRAINT UNIQUE/PRIMARY KEY"
+                );
+            }
+        }
+
         if mode == ConstraintMode::Alter {
             sql.write_str("ALTER TABLE ").unwrap();
             if let Some(table) = &create.table {

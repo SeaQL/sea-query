@@ -83,3 +83,50 @@ fn create_5() {
         [r#"ALTER TABLE `glyph` ADD CHECK (`id` < 20)"#,].join(" ")
     );
 }
+
+#[test]
+#[should_panic(expected = "MySQL does not support USING INDEX in ADD CONSTRAINT")]
+fn create_6() {
+    Constraint::create()
+        .unique()
+        .constraint_name("font_name_key")
+        .using_index("idx_font_name")
+        .table(Font::Table)
+        .to_string(MysqlQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "MySQL does not support index names on PRIMARY KEY constraints")]
+fn create_7() {
+    Constraint::create()
+        .primary()
+        .constraint_name("font_pkey")
+        .index_name("idx_font_id")
+        .col(Font::Id)
+        .table(Font::Table)
+        .to_string(MysqlQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "MySQL does not support index options on CHECK constraints")]
+fn create_8() {
+    Constraint::create()
+        .check(Expr::col(Glyph::Id).lt(20))
+        .col(Glyph::Id)
+        .table(Glyph::Table)
+        .to_string(MysqlQueryBuilder);
+}
+
+#[test]
+#[should_panic(
+    expected = "MySQL supports only BTREE or HASH index types in ADD CONSTRAINT UNIQUE/PRIMARY KEY"
+)]
+fn create_9() {
+    Constraint::create()
+        .unique()
+        .constraint_name("font_name_key")
+        .full_text()
+        .col(Font::Name)
+        .table(Font::Table)
+        .to_string(MysqlQueryBuilder);
+}
