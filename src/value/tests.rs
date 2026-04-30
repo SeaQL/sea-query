@@ -439,3 +439,14 @@ fn test_null_array_is_not_empty() {
     let out = <Vec<i32> as ValueType>::try_from(empty_array).unwrap();
     assert!(out.is_empty());
 }
+
+#[test]
+#[cfg(feature = "postgres-array")]
+fn test_null_in_array_ignored() {
+    let v: Value = Value::Array(
+        ArrayType::Int,
+        Some(Box::new(vec![Value::Int(None), Value::Int(Some(1))])),
+    );
+    let out: Vec<i32> = v.unwrap();
+    assert_eq!(out, vec![1]);
+}
