@@ -104,17 +104,48 @@ where
 {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
-            Value::Array(ty, Some(v)) if T::array_type() == ty => Ok(v
-                .into_iter()
-                .filter(|p| p != &p.as_null())
-                .map(|e| e.unwrap())
-                .collect()),
+            Value::Array(ty, Some(v)) if T::array_type() == ty => {
+                if v.iter().any(|p| p == &p.as_null()) {
+                    return Err(ValueTypeErr);
+                }
+                Ok(v.into_iter()
+                    .filter(|p| p != &p.as_null())
+                    .map(|e| e.unwrap())
+                    .collect())
+            }
             _ => Err(ValueTypeErr),
         }
     }
 
     fn type_name() -> String {
         stringify!(Vec<T>).to_owned()
+    }
+
+    fn array_type() -> ArrayType {
+        T::array_type()
+    }
+
+    fn column_type() -> ColumnType {
+        use ColumnType::*;
+        Array(RcOrArc::new(T::column_type()))
+    }
+}
+
+impl<T> ValueType for Vec<Option<T>>
+where
+    T: NotU8 + ValueType,
+{
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::Array(ty, Some(v)) if T::array_type() == ty => {
+                Ok(v.into_iter().map(|e| T::try_from(e).ok()).collect())
+            }
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        stringify!(Vec<Option<T>>).to_owned()
     }
 
     fn array_type() -> ArrayType {
