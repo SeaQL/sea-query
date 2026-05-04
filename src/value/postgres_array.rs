@@ -105,13 +105,15 @@ where
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
             Value::Array(ty, Some(v)) if T::array_type() == ty => {
-                if v.iter().any(|p| p == &p.as_null()) {
-                    return Err(ValueTypeErr);
-                }
-                Ok(v.into_iter()
-                    .filter(|p| p != &p.as_null())
-                    .map(|e| e.unwrap())
-                    .collect())
+                v.into_iter()
+                    .map(|e| {
+                        if e == e.as_null() {
+                            Err(ValueTypeErr)
+                        } else {
+                            Ok(e.unwrap())
+                        }
+                    })
+                    .collect()
             }
             _ => Err(ValueTypeErr),
         }
