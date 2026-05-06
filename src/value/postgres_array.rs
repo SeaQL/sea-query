@@ -107,7 +107,7 @@ where
             Value::Array(ty, Some(v)) if T::array_type() == ty => v
                 .into_iter()
                 .map(|e| {
-                    if e == e.as_null() {
+                    if e.is_null() {
                         Err(ValueTypeErr)
                     } else {
                         Ok(e.unwrap())

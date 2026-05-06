@@ -503,6 +503,131 @@ impl Value {
         }
     }
 
+    /// Check if a value is empty
+    ///
+    /// ```
+    /// use sea_query::Value;
+    ///
+    /// assert_eq!(false, Value::Int(Some(2)).is_null());
+    /// assert_eq!(true, Value::Int(None).is_null());
+    /// ```
+    pub fn is_null(&self) -> bool {
+        match self {
+            Self::Bool(None) => true,
+            Self::TinyInt(None) => true,
+            Self::SmallInt(None) => true,
+            Self::Int(None) => true,
+            Self::BigInt(None) => true,
+            Self::TinyUnsigned(None) => true,
+            Self::SmallUnsigned(None) => true,
+            Self::Unsigned(None) => true,
+            Self::BigUnsigned(None) => true,
+            Self::Float(None) => true,
+            Self::Double(None) => true,
+            Self::String(None) => true,
+            Self::Enum(OptionEnum::None(_)) => true,
+            Self::Char(None) => true,
+            Self::Bytes(None) => true,
+
+            #[cfg(feature = "with-json")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+            Self::Json(None) => true,
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDate(None) => true,
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoTime(None) => true,
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTime(None) => true,
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeUtc(None) => true,
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeLocal(None) => true,
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeWithTimeZone(None) => true,
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDate(None) => true,
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeTime(None) => true,
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTime(None) => true,
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTimeWithTimeZone(None) => true,
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffDate(None) => true,
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffTime(None) => true,
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffDateTime(None) => true,
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffTimestamp(None) => true,
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffZoned(None) => true,
+
+            #[cfg(feature = "with-uuid")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+            Self::Uuid(None) => true,
+
+            #[cfg(feature = "with-rust_decimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+            Self::Decimal(None) => true,
+
+            #[cfg(feature = "with-bigdecimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+            Self::BigDecimal(None) => true,
+
+            #[cfg(feature = "postgres-array")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+            Self::Array(_, None) => true,
+
+            #[cfg(feature = "postgres-vector")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
+            Self::Vector(None) => true,
+
+            #[cfg(feature = "with-ipnetwork")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+            Self::IpNetwork(None) => true,
+
+            #[cfg(feature = "with-mac_address")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+            Self::MacAddress(None) => true,
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(None) => true,
+            _ => false,
+        }
+    }
+
     /// Get a default value of self's type
     ///
     /// ```
