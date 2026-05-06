@@ -268,12 +268,13 @@ impl TableBuilder for MysqlQueryBuilder {
 
     fn prepare_partition_definition(
         &self,
-        partition_definition: &PartitionDefinition,
+        name: &DynIden,
+        values: Option<&PartitionValues>,
         sql: &mut impl SqlWriter,
     ) {
         sql.write_str("PARTITION ").unwrap();
-        self.prepare_iden(&partition_definition.name, sql);
-        if let Some(values) = &partition_definition.values {
+        self.prepare_iden(name, sql);
+        if let Some(values) = values {
             sql.write_str(" ").unwrap();
             self.prepare_partition_values(values, sql);
         }

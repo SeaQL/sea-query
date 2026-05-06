@@ -755,6 +755,19 @@ fn create_partition_master_range() {
 }
 
 #[test]
+fn create_partition_master_range_multiple_columns() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .col(ColumnDef::new(Glyph::Aspect).integer().not_null())
+            .partition_by_range([Glyph::Id, Glyph::Aspect])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph" ( "id" integer NOT NULL, "aspect" integer NOT NULL ) PARTITION BY RANGE ("id", "aspect")"#
+    );
+}
+
+#[test]
 fn create_partition_child_range() {
     assert_eq!(
         Table::create()
@@ -763,6 +776,18 @@ fn create_partition_child_range() {
             .values_from_to([1], [10])
             .to_string(PostgresQueryBuilder),
         r#"CREATE TABLE "glyph_1" PARTITION OF "glyph" FOR VALUES FROM (1) TO (10)"#
+    );
+}
+
+#[test]
+fn create_partition_child_range_multiple_columns() {
+    assert_eq!(
+        Table::create()
+            .table(Alias::new("glyph_1"))
+            .partition_of(Glyph::Table)
+            .values_from_to([1, 100], [10, 200])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph_1" PARTITION OF "glyph" FOR VALUES FROM (1, 100) TO (10, 200)"#
     );
 }
 
@@ -803,6 +828,19 @@ fn create_partition_master_hash() {
 }
 
 #[test]
+fn create_partition_master_hash_multiple_columns() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .col(ColumnDef::new(Glyph::Aspect).integer().not_null())
+            .partition_by_hash([Glyph::Id, Glyph::Aspect])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph" ( "id" integer NOT NULL, "aspect" integer NOT NULL ) PARTITION BY HASH ("id", "aspect")"#
+    );
+}
+
+#[test]
 fn create_partition_child_hash() {
     assert_eq!(
         Table::create()
@@ -812,4 +850,24 @@ fn create_partition_child_hash() {
             .to_string(PostgresQueryBuilder),
         r#"CREATE TABLE "glyph_p1" PARTITION OF "glyph" FOR VALUES WITH (MODULUS 4, REMAINDER 0)"#
     );
+}
+
+#[test]
+#[should_panic(expected = "Postgres does not support PARTITION BY KEY")]
+fn create_partition_key_panics() {
+    Table::create()
+        .table(Glyph::Table)
+        .col(ColumnDef::new(Glyph::Id).integer().not_null())
+        .partition_by_key([Glyph::Id])
+        .to_string(PostgresQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "Postgres does not support VALUES LESS THAN")]
+fn create_partition_values_less_than_panics() {
+    Table::create()
+        .table(Alias::new("glyph_p1"))
+        .partition_of(Glyph::Table)
+        .values_less_than([10])
+        .to_string(PostgresQueryBuilder);
 }

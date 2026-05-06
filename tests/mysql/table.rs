@@ -545,3 +545,21 @@ fn create_partition_key() {
         "CREATE TABLE `glyph` ( `id` int NOT NULL ) PARTITION BY KEY (`id`)"
     );
 }
+
+#[test]
+#[should_panic(expected = "MySQL does not support VALUES FROM ... TO")]
+fn create_partition_values_from_to_panics() {
+    Table::create()
+        .table(Glyph::Table)
+        .values_from_to([1], [10])
+        .to_string(MysqlQueryBuilder);
+}
+
+#[test]
+#[should_panic(expected = "MySQL does not support VALUES WITH")]
+fn create_partition_values_with_panics() {
+    Table::create()
+        .table(Glyph::Table)
+        .values_with(4, 0)
+        .to_string(MysqlQueryBuilder);
+}

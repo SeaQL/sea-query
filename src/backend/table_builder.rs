@@ -90,7 +90,7 @@ pub trait TableBuilder:
                 if !first {
                     sql.write_str(", ").unwrap();
                 }
-                self.prepare_partition_definition(partition, sql);
+                self.prepare_partition_definition(&partition.name, partition.values.as_ref(), sql);
                 first = false;
             }
             sql.write_str(" )").unwrap();
@@ -246,10 +246,11 @@ pub trait TableBuilder:
     ) {
     }
 
-    /// Translate [`PartitionDefinition`] into SQL statement.
+    /// Translate a partition definition into SQL statement.
     fn prepare_partition_definition(
         &self,
-        _partition_definition: &PartitionDefinition,
+        _name: &DynIden,
+        _values: Option<&PartitionValues>,
         _sql: &mut impl SqlWriter,
     ) {
     }
