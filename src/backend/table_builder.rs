@@ -21,42 +21,80 @@ pub trait TableBuilder:
             self.prepare_table_ref_table_stmt(table_ref, sql);
         }
 
-        sql.write_str(" ( ").unwrap();
-        let mut first = true;
+        if let Some(partition_of) = &create.partition_of {
+            sql.write_str(" PARTITION OF ").unwrap();
+            self.prepare_table_ref_table_stmt(partition_of, sql);
+        }
 
-        create.columns.iter().for_each(|column_def| {
-            if !first {
-                sql.write_str(", ").unwrap();
+        if !create.columns.is_empty()
+            || !create.indexes.is_empty()
+            || !create.foreign_keys.is_empty()
+            || !create.check.is_empty()
+        {
+            sql.write_str(" ( ").unwrap();
+            let mut first = true;
+
+            create.columns.iter().for_each(|column_def| {
+                if !first {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_column_def(column_def, sql);
+                first = false;
+            });
+
+            create.indexes.iter().for_each(|index| {
+                if !first {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_table_index_expression(index, sql);
+                first = false;
+            });
+
+            create.foreign_keys.iter().for_each(|foreign_key| {
+                if !first {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_foreign_key_create_statement_internal(
+                    foreign_key,
+                    sql,
+                    Mode::Creation,
+                );
+                first = false;
+            });
+
+            create.check.iter().for_each(|check| {
+                if !first {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_check_constraint(check, sql);
+                first = false;
+            });
+
+            sql.write_str(" )").unwrap();
+        }
+
+        if let Some(partition_values) = &create.partition_values {
+            sql.write_str(" ").unwrap();
+            self.prepare_partition_values(partition_values, sql);
+        }
+
+        if let Some(partition_by) = &create.partition_by {
+            sql.write_str(" PARTITION BY ").unwrap();
+            self.prepare_partition_by(partition_by, sql);
+        }
+
+        if !create.partitions.is_empty() {
+            sql.write_str(" ( ").unwrap();
+            let mut first = true;
+            for partition in create.partitions.iter() {
+                if !first {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_partition_definition(partition, sql);
+                first = false;
             }
-            self.prepare_column_def(column_def, sql);
-            first = false;
-        });
-
-        create.indexes.iter().for_each(|index| {
-            if !first {
-                sql.write_str(", ").unwrap();
-            }
-            self.prepare_table_index_expression(index, sql);
-            first = false;
-        });
-
-        create.foreign_keys.iter().for_each(|foreign_key| {
-            if !first {
-                sql.write_str(", ").unwrap();
-            }
-            self.prepare_foreign_key_create_statement_internal(foreign_key, sql, Mode::Creation);
-            first = false;
-        });
-
-        create.check.iter().for_each(|check| {
-            if !first {
-                sql.write_str(", ").unwrap();
-            }
-            self.prepare_check_constraint(check, sql);
-            first = false;
-        });
-
-        sql.write_str(" )").unwrap();
+            sql.write_str(" )").unwrap();
+        }
 
         self.prepare_table_opt(create, sql);
 
@@ -197,10 +235,21 @@ pub trait TableBuilder:
         }
     }
 
-    /// Translate [`TablePartition`] into SQL statement.
-    fn prepare_table_partition(
+    /// Translate [`PartitionBy`] into SQL statement.
+    fn prepare_partition_by(&self, _partition_by: &PartitionBy, _sql: &mut impl SqlWriter) {}
+
+    /// Translate [`PartitionValues`] into SQL statement.
+    fn prepare_partition_values(
         &self,
-        _table_partition: &TablePartition,
+        _partition_values: &PartitionValues,
+        _sql: &mut impl SqlWriter,
+    ) {
+    }
+
+    /// Translate [`PartitionDefinition`] into SQL statement.
+    fn prepare_partition_definition(
+        &self,
+        _partition_definition: &PartitionDefinition,
         _sql: &mut impl SqlWriter,
     ) {
     }

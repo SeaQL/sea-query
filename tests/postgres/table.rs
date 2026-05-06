@@ -740,3 +740,76 @@ fn create_19() {
         .join(" "),
     );
 }
+
+#[test]
+fn create_partition_master_range() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .col(ColumnDef::new(Glyph::Aspect).integer().not_null())
+            .partition_by_range([Glyph::Aspect])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph" ( "id" integer NOT NULL, "aspect" integer NOT NULL ) PARTITION BY RANGE ("aspect")"#
+    );
+}
+
+#[test]
+fn create_partition_child_range() {
+    assert_eq!(
+        Table::create()
+            .table(Alias::new("glyph_1"))
+            .partition_of(Glyph::Table)
+            .values_from_to([1], [10])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph_1" PARTITION OF "glyph" FOR VALUES FROM (1) TO (10)"#
+    );
+}
+
+#[test]
+fn create_partition_master_list() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .partition_by_list([Glyph::Id])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph" ( "id" integer NOT NULL ) PARTITION BY LIST ("id")"#
+    );
+}
+
+#[test]
+fn create_partition_child_list() {
+    assert_eq!(
+        Table::create()
+            .table(Alias::new("glyph_p1"))
+            .partition_of(Glyph::Table)
+            .values_in([1, 2, 3])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph_p1" PARTITION OF "glyph" FOR VALUES IN (1, 2, 3)"#
+    );
+}
+
+#[test]
+fn create_partition_master_hash() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .partition_by_hash([Glyph::Id])
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph" ( "id" integer NOT NULL ) PARTITION BY HASH ("id")"#
+    );
+}
+
+#[test]
+fn create_partition_child_hash() {
+    assert_eq!(
+        Table::create()
+            .table(Alias::new("glyph_p1"))
+            .partition_of(Glyph::Table)
+            .values_with(4, 0)
+            .to_string(PostgresQueryBuilder),
+        r#"CREATE TABLE "glyph_p1" PARTITION OF "glyph" FOR VALUES WITH (MODULUS 4, REMAINDER 0)"#
+    );
+}
