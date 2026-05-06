@@ -341,6 +341,25 @@ fn truncate_1() {
 }
 
 #[test]
+fn create_13() {
+    assert_eq!(
+        Table::create()
+            .table(Glyph::Table)
+            .col(ColumnDef::new(Glyph::Id).integer().not_null())
+            .col(ColumnDef::new(Glyph::Image).string().not_null())
+            .index(
+                Index::create()
+                    .unique()
+                    .name("idx-glyph-image-primary")
+                    .col(Glyph::Image)
+                    .cond_where(Expr::col(Glyph::Aspect).is_not_null()),
+            )
+            .to_string(MysqlQueryBuilder),
+        "CREATE TABLE `glyph` ( `id` int NOT NULL, `image` varchar(255) NOT NULL, UNIQUE KEY `idx-glyph-image-primary` (`image`) WHERE `aspect` IS NOT NULL )"
+    );
+}
+
+#[test]
 fn alter_1() {
     assert_eq!(
         Table::alter()
