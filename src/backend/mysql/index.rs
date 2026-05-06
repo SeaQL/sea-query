@@ -22,6 +22,7 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
 
         self.prepare_index_columns(&create.index.columns, sql);
+        self.prepare_filter(&create.r#where, sql);
     }
 
     fn prepare_index_create_statement(
@@ -47,6 +48,7 @@ impl IndexBuilder for MysqlQueryBuilder {
         self.prepare_index_columns(&create.index.columns, sql);
 
         self.prepare_index_type(&create.index_type, sql);
+        self.prepare_filter(&create.r#where, sql);
     }
 
     fn prepare_table_ref_index_stmt(&self, table_ref: &TableRef, sql: &mut impl SqlWriter) {
@@ -140,5 +142,9 @@ impl IndexBuilder for MysqlQueryBuilder {
         }
 
         sql.write_str(")").unwrap();
+    }
+
+    fn prepare_filter(&self, condition: &ConditionHolder, sql: &mut impl SqlWriter) {
+        self.prepare_condition(condition, "WHERE", sql);
     }
 }

@@ -103,6 +103,6 @@ pub trait IndexBuilder: QuotedBuilder + TableRefBuilder {
     }
 
     #[doc(hidden)]
-    // Write WHERE clause for partial index. This function is not available in MySQL.
+    // Write WHERE clause for partial index.
     fn prepare_filter(&self, _condition: &ConditionHolder, _sql: &mut impl SqlWriter) {}
 }
