@@ -99,6 +99,22 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     let _ =
                         args.add(Value::TimeDateTimeWithTimeZone(t).time_as_naive_utc_in_string());
                 }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDate(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTime(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffDateTime(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
+                #[cfg(feature = "with-jiff")]
+                Value::JiffTimestamp(j) => {
+                    let _ = args.add(j.map(|j| j.to_string()));
+                }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(_) => {
                     panic!("UUID support not implemented for Any");
@@ -132,7 +148,7 @@ impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
                     panic!("SQLx doesn't support vector arguments for Any");
                 } /* #[cfg(feature = "postgres-range")]
                   Value::Range(_) => {
-                      panic!("SQLx doesn't support PgRange arguments for Any");
+                  panic!("SQLx doesn't support PgRange arguments for Any");
                   } */
             }
         }
