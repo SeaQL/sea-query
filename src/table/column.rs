@@ -72,6 +72,13 @@ impl From<&mut ColumnDef> for ColumnDef {
 /// | Inet                  | N/A               | inet                        | N/A                          |
 /// | MacAddr               | N/A               | macaddr                     | N/A                          |
 /// | LTree                 | N/A               | ltree                       | N/A                          |
+///
+/// Note: compared to 0.32.x, these mappings changed:
+///
+/// * PostgreSQL: `SmallUnsigned` maps to `integer` instead of `smallint`,
+///   `Unsigned` maps to `bigint` instead of `integer`.
+/// * SQLite: `Decimal(Some((A, B)))` maps to `real(A, B)` instead of `real`.
+///   `Decimal(None)` maps to `real_decimal`.
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum ColumnType {
