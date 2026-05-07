@@ -490,7 +490,7 @@ pub trait ConditionalStatement {
     /// );
     /// ```
     ///
-    /// When used with [`IndexCreateStatement`], this condition is a partial
+    /// When used with [`crate::IndexCreateStatement`], this condition is a partial
     /// index filter. MySQL does not support partial indexes; SeaQuery still
     /// emits the `WHERE` clause so a MySQL database rejects the statement
     /// instead of silently creating an index with different semantics. See
