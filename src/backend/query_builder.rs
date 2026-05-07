@@ -472,7 +472,10 @@ pub trait QueryBuilder:
             }
             Expr::CustomWithExpr(expr, values) => {
                 let (placeholder, numbered) = self.placeholder();
-                let mut tokenizer = Tokenizer::new(expr).iter().peekable();
+                let mut tokenizer = Tokenizer::new(expr)
+                    .for_query_builder(self)
+                    .iter()
+                    .peekable();
                 let mut count = 0;
                 while let Some(token) = tokenizer.next() {
                     match token {

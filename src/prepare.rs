@@ -99,7 +99,10 @@ pub fn inject_parameters(sql: &str, params: &[Value], query_builder: &impl Query
     let mut counter = 0;
     let mut output = String::new();
 
-    let mut tokenizer = Tokenizer::new(sql).iter().peekable();
+    let mut tokenizer = Tokenizer::new(sql)
+        .for_query_builder(query_builder)
+        .iter()
+        .peekable();
 
     while let Some(token) = tokenizer.next() {
         match token {

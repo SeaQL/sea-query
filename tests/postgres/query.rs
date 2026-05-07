@@ -1176,6 +1176,34 @@ fn select_61() {
 }
 
 #[test]
+fn select_61_custom_values_numbered_placeholders_after_escape_string() {
+    let (statement, values) = Query::select()
+        .column(Char::Character)
+        .from(Char::Table)
+        .and_where(Expr::col(Char::FontSize).eq(3))
+        .and_where(Expr::cust_with_values(
+            r#"(
+                "character" ILIKE '%' || $1 || '%' ESCAPE '\'
+                OR "ascii" ILIKE '%' || $1 || '%' ESCAPE '\'
+            )"#,
+            ["needle"],
+        ))
+        .build(PostgresQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT "character" FROM "character" WHERE "font_size" = $1 AND ((
+                "character" ILIKE '%' || $2 || '%' ESCAPE '\'
+                OR "ascii" ILIKE '%' || $3 || '%' ESCAPE '\'
+            ))"#
+    );
+    assert_eq!(
+        values,
+        Values(vec![3i32.into(), "needle".into(), "needle".into()])
+    );
+}
+
+#[test]
 fn select_62() {
     let select = SelectStatement::new()
         .column(Asterisk)

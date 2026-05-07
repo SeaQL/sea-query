@@ -992,6 +992,39 @@ fn select_58() {
 }
 
 #[test]
+fn select_58_custom_values_placeholder_after_backslash_escaped_quote() {
+    let (statement, values) = Query::select()
+        .column(Char::Character)
+        .from(Char::Table)
+        .and_where(Expr::cust_with_values(
+            r#"'a\'?b' = 'a\'?b' AND `character` = ?"#,
+            ["needle"],
+        ))
+        .build(MysqlQueryBuilder);
+
+    assert_eq!(
+        statement,
+        r#"SELECT `character` FROM `character` WHERE 'a\'?b' = 'a\'?b' AND `character` = ?"#
+    );
+    assert_eq!(values, Values(vec!["needle".into()]));
+}
+
+#[test]
+fn select_58_custom_values_inlines_placeholder_after_backslash_escaped_quote() {
+    assert_eq!(
+        Query::select()
+            .column(Char::Character)
+            .from(Char::Table)
+            .and_where(Expr::cust_with_values(
+                r#"'a\'?b' = 'a\'?b' AND `character` = ?"#,
+                ["needle"],
+            ))
+            .to_string(MysqlQueryBuilder),
+        r#"SELECT `character` FROM `character` WHERE 'a\'?b' = 'a\'?b' AND `character` = 'needle'"#
+    );
+}
+
+#[test]
 fn select_59() {
     use crate::extension::mysql::*;
 

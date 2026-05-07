@@ -9,6 +9,8 @@ pub struct Tokenizer<'a> {
     chars: std::str::Chars<'a>,
     c: Option<char>,
     p: usize,
+    backend: TokenizerBackend,
+    next_single_quote_uses_backslash_escape: bool,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -21,6 +23,26 @@ pub enum Token<'a> {
     Comment(&'a str),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum TokenizerBackend {
+    Mysql,
+    Postgres,
+    Sqlite,
+}
+
+impl TokenizerBackend {
+    pub(crate) fn from_query_builder(query_builder: &impl crate::QueryBuilder) -> Self {
+        let (_, numbered) = query_builder.placeholder();
+        if numbered {
+            Self::Postgres
+        } else if query_builder.quote().left() == '`' {
+            Self::Mysql
+        } else {
+            Self::Sqlite
+        }
+    }
+}
+
 impl<'a> Tokenizer<'a> {
     pub fn new(string: &'a str) -> Self {
         let mut chars = string.chars();
@@ -30,7 +52,18 @@ impl<'a> Tokenizer<'a> {
             chars,
             c,
             p: 0,
+            backend: TokenizerBackend::Mysql,
+            next_single_quote_uses_backslash_escape: false,
         }
+    }
+
+    pub(crate) fn for_backend(mut self, backend: TokenizerBackend) -> Self {
+        self.backend = backend;
+        self
+    }
+
+    pub(crate) fn for_query_builder(self, query_builder: &impl crate::QueryBuilder) -> Self {
+        self.for_backend(TokenizerBackend::from_query_builder(query_builder))
     }
 
     pub fn iter(self) -> impl Iterator<Item = Token<'a>> {
@@ -100,7 +133,10 @@ impl<'a> Tokenizer<'a> {
         }
 
         if a != b {
-            Some(Token::Unquoted(&self.input[a..b]))
+            let string = &self.input[a..b];
+            self.next_single_quote_uses_backslash_escape =
+                self.next_single_quote_is_postgres_escape_string(string);
+            Some(Token::Unquoted(string))
         } else {
             None
         }
@@ -113,12 +149,15 @@ impl<'a> Tokenizer<'a> {
         let mut first = true;
         let mut escape = false;
         let mut start = ' ';
+        let mut uses_backslash_escape = false;
         while !self.end() {
             let c = self.get();
             if first && Self::is_string_delimiter_start(c) {
                 b = self.p_c(c);
                 first = false;
                 start = c;
+                uses_backslash_escape = self.uses_backslash_escape_for(start);
+                self.next_single_quote_uses_backslash_escape = false;
                 self.inc();
             } else if !first && !escape && Self::is_string_delimiter_end_for(start, c) {
                 b = self.p_c(c);
@@ -133,7 +172,7 @@ impl<'a> Tokenizer<'a> {
                     self.inc();
                 }
             } else if !first {
-                escape = !escape && Self::is_escape_char(c);
+                escape = !escape && Self::is_escape_char_for(start, c, uses_backslash_escape);
                 b = self.p_c(c);
                 self.inc();
             } else {
@@ -153,11 +192,14 @@ impl<'a> Tokenizer<'a> {
         let mut first = true;
         let mut escape = false;
         let mut start = ' ';
+        let mut uses_backslash_escape = false;
         while !self.end() {
             let c = self.get();
             if first && Self::is_string_delimiter_start(c) {
                 first = false;
                 start = c;
+                uses_backslash_escape = self.uses_backslash_escape_for(start);
+                self.next_single_quote_uses_backslash_escape = false;
                 self.inc();
             } else if !first && !escape && Self::is_string_delimiter_end_for(start, c) {
                 self.inc();
@@ -171,7 +213,7 @@ impl<'a> Tokenizer<'a> {
                     self.inc();
                 }
             } else if !first {
-                escape = !escape && Self::is_escape_char(c);
+                escape = !escape && Self::is_escape_char_for(start, c, uses_backslash_escape);
                 string.write_char(c).unwrap();
                 self.inc();
             } else {
@@ -195,6 +237,7 @@ impl<'a> Tokenizer<'a> {
 
         if a != b {
             let string = &self.input[a..b];
+            self.next_single_quote_uses_backslash_escape = false;
             if string == "-" && self.peek() == '-' {
                 b = self.p_c('-');
                 self.inc();
@@ -266,8 +309,22 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    fn is_escape_char(c: char) -> bool {
-        c == '\\'
+    fn uses_backslash_escape_for(&self, start: char) -> bool {
+        if start != '\'' {
+            return true;
+        }
+        self.next_single_quote_uses_backslash_escape || self.backend == TokenizerBackend::Mysql
+    }
+
+    fn next_single_quote_is_postgres_escape_string(&self, prefix: &str) -> bool {
+        self.backend == TokenizerBackend::Postgres
+            && prefix.eq_ignore_ascii_case("E")
+            && !self.end()
+            && self.get() == '\''
+    }
+
+    fn is_escape_char_for(start: char, c: char, uses_backslash_escape: bool) -> bool {
+        (start != '\'' || uses_backslash_escape) && c == '\\'
     }
 }
 
@@ -522,6 +579,106 @@ mod tests {
                 Token::Space(" "),
                 Token::Quoted("'a\"b'"),
                 Token::Space(" "),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_10_single_quoted_backslash_does_not_escape_quote() {
+        let string = r#"ESCAPE '\' OR id = $1"#;
+        let tokenizer = Tokenizer::new(string).for_backend(TokenizerBackend::Postgres);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("ESCAPE"),
+                Token::Space(" "),
+                Token::Quoted("'\\'"),
+                Token::Space(" "),
+                Token::Unquoted("OR"),
+                Token::Space(" "),
+                Token::Unquoted("id"),
+                Token::Space(" "),
+                Token::Punctuation("="),
+                Token::Space(" "),
+                Token::Punctuation("$"),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_10_mysql_single_quoted_backslash_escapes_quote() {
+        let string = r#"'a\'b' OR id = ?"#;
+        let tokenizer = Tokenizer::new(string).for_backend(TokenizerBackend::Mysql);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Quoted("'a\\'b'"),
+                Token::Space(" "),
+                Token::Unquoted("OR"),
+                Token::Space(" "),
+                Token::Unquoted("id"),
+                Token::Space(" "),
+                Token::Punctuation("="),
+                Token::Space(" "),
+                Token::Punctuation("?"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_10_postgres_escape_string_backslash_escapes_quote() {
+        let string = r#"E'a\'b' OR id = $1"#;
+        let tokenizer = Tokenizer::new(string).for_backend(TokenizerBackend::Postgres);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("E"),
+                Token::Quoted("'a\\'b'"),
+                Token::Space(" "),
+                Token::Unquoted("OR"),
+                Token::Space(" "),
+                Token::Unquoted("id"),
+                Token::Space(" "),
+                Token::Punctuation("="),
+                Token::Space(" "),
+                Token::Punctuation("$"),
+                Token::Unquoted("1"),
+            ]
+        );
+        assert_eq!(
+            string,
+            tokens.iter().map(|x| x.as_str()).collect::<String>()
+        );
+    }
+
+    #[test]
+    fn test_10_sqlite_does_not_treat_e_prefix_as_escape_string() {
+        let string = r#"E'a\'b' OR id = ?"#;
+        let tokenizer = Tokenizer::new(string).for_backend(TokenizerBackend::Sqlite);
+        let tokens: Vec<Token> = tokenizer.iter().collect();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Unquoted("E"),
+                Token::Quoted("'a\\'"),
+                Token::Unquoted("b"),
+                Token::Quoted("' OR id = ?"),
             ]
         );
         assert_eq!(
