@@ -6,3 +6,4 @@ Cargo.lock
 wip/
 .idea/*
 .DS_Store
+.codex

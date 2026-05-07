@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Release Candidates
 
-- [1.0.0-rc.34](changelog/1.0.0-rc.34.md) — Postgres unsigned integer mappings, table partitioning, Jiff binder support
+- [1.0.0-rc.34](changelog/1.0.0-rc.34.md) — Table partitioning, Jiff binder support, `JSON_TABLE` refactor
 - [1.0.0-rc.33](changelog/1.0.0-rc.33.md) — `Value::Enum`, Postgres advisory locks, `SelectExprTrait`
 - [1.0.0-rc.32](changelog/1.0.0-rc.32.md) — `EXPLAIN`, `FILTER` on aggregates, `ALTER TABLE DROP CONSTRAINT`
 - [1.0.0-rc.31](changelog/1.0.0-rc.31.md) — `SELECT INTO`, `eq_any`/`ne_all`, `Value::array_type`
