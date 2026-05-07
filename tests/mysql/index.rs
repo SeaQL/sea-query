@@ -83,6 +83,20 @@ fn create_6() {
 }
 
 #[test]
+fn create_7() {
+    assert_eq!(
+        Index::create()
+            .unique()
+            .name("idx-glyph-image-primary")
+            .table(Glyph::Table)
+            .col(Glyph::Image)
+            .cond_where(Expr::col(Glyph::Aspect).is_not_null())
+            .to_string(MysqlQueryBuilder),
+        "CREATE UNIQUE INDEX `idx-glyph-image-primary` ON `glyph` (`image`) WHERE `aspect` IS NOT NULL"
+    )
+}
+
+#[test]
 fn drop_1() {
     assert_eq!(
         Index::drop()

@@ -490,6 +490,27 @@ pub trait ConditionalStatement {
     /// );
     /// ```
     ///
+    /// When used with [`IndexCreateStatement`], this condition is a partial
+    /// index filter. MySQL does not support partial indexes; SeaQuery still
+    /// emits the `WHERE` clause so a MySQL database rejects the statement
+    /// instead of silently creating an index with different semantics. See
+    /// [#1066](https://github.com/SeaQL/sea-query/issues/1066).
+    ///
+    /// ```
+    /// use sea_query::{*, tests_cfg::*};
+    ///
+    /// assert_eq!(
+    ///     Index::create()
+    ///         .unique()
+    ///         .name("idx-glyph-image-primary")
+    ///         .table(Glyph::Table)
+    ///         .col(Glyph::Image)
+    ///         .cond_where(Expr::col(Glyph::Aspect).is_not_null())
+    ///         .to_string(MysqlQueryBuilder),
+    ///     r#"CREATE UNIQUE INDEX `idx-glyph-image-primary` ON `glyph` (`image`) WHERE `aspect` IS NOT NULL"#
+    /// );
+    /// ```
+    ///
     /// Using macro
     ///
     /// ```

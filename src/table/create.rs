@@ -1,7 +1,7 @@
 use inherent::inherent;
 
 use crate::{
-    ColumnDef, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
+    ColumnDef, Expr, IntoColumnDef, SchemaStatementBuilder, backend::SchemaBuilder, foreign_key::*,
     index::*, table::constraint::Check, types::*,
 };
 
@@ -84,7 +84,10 @@ pub struct TableCreateStatement {
     pub(crate) table: Option<TableRef>,
     pub(crate) columns: Vec<ColumnDef>,
     pub(crate) options: Vec<TableOpt>,
-    pub(crate) partitions: Vec<TablePartition>,
+    pub(crate) partition_by: Option<PartitionBy>,
+    pub(crate) partition_of: Option<TableRef>,
+    pub(crate) partition_values: Option<PartitionValues>,
+    pub(crate) partitions: Vec<PartitionDefinition>,
     pub(crate) indexes: Vec<IndexCreateStatement>,
     pub(crate) foreign_keys: Vec<ForeignKeyCreateStatement>,
     pub(crate) if_not_exists: bool,
@@ -105,8 +108,26 @@ pub enum TableOpt {
 
 /// All available table partition options
 #[derive(Debug, Clone)]
-#[non_exhaustive]
-pub enum TablePartition {}
+pub enum PartitionBy {
+    Range(Vec<DynIden>),
+    List(Vec<DynIden>),
+    Hash(Vec<DynIden>),
+    Key(Vec<DynIden>),
+}
+
+#[derive(Debug, Clone)]
+pub enum PartitionValues {
+    In(Vec<Expr>),
+    FromTo(Vec<Expr>, Vec<Expr>),
+    LessThan(Vec<Expr>),
+    With(u32, u32),
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct PartitionDefinition {
+    pub(crate) name: DynIden,
+    pub(crate) values: Option<PartitionValues>,
+}
 
 impl TableCreateStatement {
     /// Construct create table statement
@@ -274,8 +295,267 @@ impl TableCreateStatement {
     }
 
     #[allow(dead_code)]
-    fn partition(&mut self, partition: TablePartition) -> &mut Self {
+    fn partition(&mut self, partition: PartitionDefinition) -> &mut Self {
         self.partitions.push(partition);
+        self
+    }
+
+    /// Set partition by range. Postgres and MySQL only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
+    ///         .partition_by_range([Glyph::Id])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "glyph" ( "id" integer NOT NULL ) PARTITION BY RANGE ("id")"#
+    /// );
+    /// ```
+    pub fn partition_by_range<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::Range(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition by list. Postgres and MySQL only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
+    ///         .partition_by_list([Glyph::Id])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "glyph" ( "id" integer NOT NULL ) PARTITION BY LIST ("id")"#
+    /// );
+    /// ```
+    pub fn partition_by_list<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::List(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition by hash. Postgres and MySQL only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
+    ///         .partition_by_hash([Glyph::Id])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "glyph" ( "id" integer NOT NULL ) PARTITION BY HASH ("id")"#
+    /// );
+    /// ```
+    pub fn partition_by_hash<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::Hash(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition by key. MySQL only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
+    ///         .partition_by_key([Glyph::Id])
+    ///         .to_string(MysqlQueryBuilder),
+    ///     "CREATE TABLE `glyph` ( `id` int NOT NULL ) PARTITION BY KEY (`id`)"
+    /// );
+    /// ```
+    pub fn partition_by_key<I, T>(&mut self, cols: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIden,
+    {
+        self.partition_by = Some(PartitionBy::Key(
+            cols.into_iter().map(|c| c.into_iden()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition of table. Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Alias::new("glyph_1"))
+    ///         .partition_of(Glyph::Table)
+    ///         .values_from_to([1], [10])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "glyph_1" PARTITION OF "glyph" FOR VALUES FROM (1) TO (10)"#
+    /// );
+    /// ```
+    pub fn partition_of<T>(&mut self, table: T) -> &mut Self
+    where
+        T: IntoTableRef,
+    {
+        self.partition_of = Some(table.into_table_ref());
+        self
+    }
+
+    /// Set partition values IN. Postgres partition tables only.
+    ///
+    /// MySQL partition definitions can use [`PartitionValues::In`] with
+    /// [`Self::add_partition`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Alias::new("glyph_1"))
+    ///         .partition_of(Glyph::Table)
+    ///         .values_in([1, 2, 3])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "glyph_1" PARTITION OF "glyph" FOR VALUES IN (1, 2, 3)"#
+    /// );
+    /// ```
+    pub fn values_in<I, T>(&mut self, values: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<Expr>,
+    {
+        self.partition_values = Some(PartitionValues::In(
+            values.into_iter().map(|v| v.into()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition values FROM ... TO .... Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Alias::new("glyph_1"))
+    ///         .partition_of(Glyph::Table)
+    ///         .values_from_to([1], [10])
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "glyph_1" PARTITION OF "glyph" FOR VALUES FROM (1) TO (10)"#
+    /// );
+    /// ```
+    pub fn values_from_to<I, T, J, U>(&mut self, from: I, to: J) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<Expr>,
+        J: IntoIterator<Item = U>,
+        U: Into<Expr>,
+    {
+        self.partition_values = Some(PartitionValues::FromTo(
+            from.into_iter().map(|v| v.into()).collect(),
+            to.into_iter().map(|v| v.into()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition values LESS THAN. MySQL partition definitions only.
+    ///
+    /// Use [`PartitionValues::LessThan`] with [`Self::add_partition`] for MySQL
+    /// table partition definitions.
+    pub fn values_less_than<I, T>(&mut self, values: I) -> &mut Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<Expr>,
+    {
+        self.partition_values = Some(PartitionValues::LessThan(
+            values.into_iter().map(|v| v.into()).collect(),
+        ));
+        self
+    }
+
+    /// Set partition values WITH (modulus, remainder). Postgres only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Alias::new("glyph_p1"))
+    ///         .partition_of(Glyph::Table)
+    ///         .values_with(4, 0)
+    ///         .to_string(PostgresQueryBuilder),
+    ///     r#"CREATE TABLE "glyph_p1" PARTITION OF "glyph" FOR VALUES WITH (MODULUS 4, REMAINDER 0)"#
+    /// );
+    /// ```
+    pub fn values_with(&mut self, modulus: u32, remainder: u32) -> &mut Self {
+        self.partition_values = Some(PartitionValues::With(modulus, remainder));
+        self
+    }
+
+    /// Add a partition definition. MySQL only.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{tests_cfg::*, *};
+    ///
+    /// assert_eq!(
+    ///     Table::create()
+    ///         .table(Glyph::Table)
+    ///         .col(ColumnDef::new(Glyph::Id).integer().not_null())
+    ///         .partition_by_range([Glyph::Id])
+    ///         .add_partition(
+    ///             Alias::new("p0"),
+    ///             Some(PartitionValues::LessThan(vec![10.into()]))
+    ///         )
+    ///         .to_string(MysqlQueryBuilder),
+    ///     "CREATE TABLE `glyph` ( `id` int NOT NULL ) PARTITION BY RANGE (`id`) ( PARTITION `p0` VALUES LESS THAN (10) )"
+    /// );
+    /// ```
+    pub fn add_partition<T>(&mut self, name: T, values: Option<PartitionValues>) -> &mut Self
+    where
+        T: IntoIden,
+    {
+        self.partitions.push(PartitionDefinition {
+            name: name.into_iden(),
+            values,
+        });
         self
     }
 
@@ -412,6 +692,9 @@ impl TableCreateStatement {
             table: self.table.take(),
             columns: std::mem::take(&mut self.columns),
             options: std::mem::take(&mut self.options),
+            partition_by: self.partition_by.take(),
+            partition_of: self.partition_of.take(),
+            partition_values: self.partition_values.take(),
             partitions: std::mem::take(&mut self.partitions),
             indexes: std::mem::take(&mut self.indexes),
             foreign_keys: std::mem::take(&mut self.foreign_keys),
