@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85
+      - uses: dtolnay/rust-toolchain@1.88
       - uses: actions/cache@v4
         with:
           path: |
@@ -82,7 +82,7 @@ jobs:
         example: [diesel_sqlite]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85
+      - uses: dtolnay/rust-toolchain@1.88
       - name: Generate cache key
         id: cache-key
         run: |
@@ -127,7 +127,7 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85
+      - uses: dtolnay/rust-toolchain@1.88
       - name: Generate cache key
         id: cache-key
         run: |
@@ -172,7 +172,7 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85
+      - uses: dtolnay/rust-toolchain@1.88
       - name: Generate cache key
         id: cache-key
         run: |
@@ -216,7 +216,7 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85
+      - uses: dtolnay/rust-toolchain@1.88
       - name: Generate cache key
         id: cache-key
         run: |

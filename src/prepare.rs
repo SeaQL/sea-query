@@ -6,7 +6,7 @@ pub use std::fmt::Write;
 pub trait SqlWriter: Write + Sized + ToString {
     fn push_param<T: QueryBuilder>(&mut self, value: Value, query_builder: &T);
 
-    /// Upcast this into parent trait. Still needed in 1.85
+    /// Upcast this into parent trait. Still needed in 1.88
     fn as_writer(&mut self) -> &mut dyn Write;
 }
 
