@@ -503,128 +503,128 @@ impl Value {
         }
     }
 
-    /// Check if a value is empty
+    /// Check if a value is set
     ///
     /// ```
     /// use sea_query::Value;
     ///
-    /// assert_eq!(false, Value::Int(Some(2)).is_null());
-    /// assert_eq!(true, Value::Int(None).is_null());
+    /// assert_eq!(true, Value::Int(Some(2)).is_some());
+    /// assert_eq!(false, Value::Int(None).is_some());
     /// ```
-    pub fn is_null(&self) -> bool {
+    pub fn is_some(&self) -> bool {
         match self {
-            Self::Bool(None) => true,
-            Self::TinyInt(None) => true,
-            Self::SmallInt(None) => true,
-            Self::Int(None) => true,
-            Self::BigInt(None) => true,
-            Self::TinyUnsigned(None) => true,
-            Self::SmallUnsigned(None) => true,
-            Self::Unsigned(None) => true,
-            Self::BigUnsigned(None) => true,
-            Self::Float(None) => true,
-            Self::Double(None) => true,
-            Self::String(None) => true,
-            Self::Enum(OptionEnum::None(_)) => true,
-            Self::Char(None) => true,
-            Self::Bytes(None) => true,
+            Self::Bool(None) => false,
+            Self::TinyInt(None) => false,
+            Self::SmallInt(None) => false,
+            Self::Int(None) => false,
+            Self::BigInt(None) => false,
+            Self::TinyUnsigned(None) => false,
+            Self::SmallUnsigned(None) => false,
+            Self::Unsigned(None) => false,
+            Self::BigUnsigned(None) => false,
+            Self::Float(None) => false,
+            Self::Double(None) => false,
+            Self::String(None) => false,
+            Self::Enum(OptionEnum::None(_)) => false,
+            Self::Char(None) => false,
+            Self::Bytes(None) => false,
 
             #[cfg(feature = "with-json")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
-            Self::Json(None) => true,
+            Self::Json(None) => false,
 
             #[cfg(feature = "with-chrono")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-            Self::ChronoDate(None) => true,
+            Self::ChronoDate(None) => false,
 
             #[cfg(feature = "with-chrono")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-            Self::ChronoTime(None) => true,
+            Self::ChronoTime(None) => false,
 
             #[cfg(feature = "with-chrono")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-            Self::ChronoDateTime(None) => true,
+            Self::ChronoDateTime(None) => false,
 
             #[cfg(feature = "with-chrono")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-            Self::ChronoDateTimeUtc(None) => true,
+            Self::ChronoDateTimeUtc(None) => false,
 
             #[cfg(feature = "with-chrono")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-            Self::ChronoDateTimeLocal(None) => true,
+            Self::ChronoDateTimeLocal(None) => false,
 
             #[cfg(feature = "with-chrono")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
-            Self::ChronoDateTimeWithTimeZone(None) => true,
+            Self::ChronoDateTimeWithTimeZone(None) => false,
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-            Self::TimeDate(None) => true,
+            Self::TimeDate(None) => false,
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-            Self::TimeTime(None) => true,
+            Self::TimeTime(None) => false,
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-            Self::TimeDateTime(None) => true,
+            Self::TimeDateTime(None) => false,
 
             #[cfg(feature = "with-time")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
-            Self::TimeDateTimeWithTimeZone(None) => true,
+            Self::TimeDateTimeWithTimeZone(None) => false,
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffDate(None) => true,
+            Self::JiffDate(None) => false,
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffTime(None) => true,
+            Self::JiffTime(None) => false,
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffDateTime(None) => true,
+            Self::JiffDateTime(None) => false,
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffTimestamp(None) => true,
+            Self::JiffTimestamp(None) => false,
 
             #[cfg(feature = "with-jiff")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffZoned(None) => true,
+            Self::JiffZoned(None) => false,
 
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
-            Self::Uuid(None) => true,
+            Self::Uuid(None) => false,
 
             #[cfg(feature = "with-rust_decimal")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
-            Self::Decimal(None) => true,
+            Self::Decimal(None) => false,
 
             #[cfg(feature = "with-bigdecimal")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
-            Self::BigDecimal(None) => true,
+            Self::BigDecimal(None) => false,
 
             #[cfg(feature = "postgres-array")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
-            Self::Array(_, None) => true,
+            Self::Array(_, None) => false,
 
             #[cfg(feature = "postgres-vector")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
-            Self::Vector(None) => true,
+            Self::Vector(None) => false,
 
             #[cfg(feature = "with-ipnetwork")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
-            Self::IpNetwork(None) => true,
+            Self::IpNetwork(None) => false,
 
             #[cfg(feature = "with-mac_address")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
-            Self::MacAddress(None) => true,
+            Self::MacAddress(None) => false,
 
             #[cfg(feature = "postgres-range")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
-            Self::Range(None) => true,
-            _ => false,
+            Self::Range(None) => false,
+            _ => true,
         }
     }
 
