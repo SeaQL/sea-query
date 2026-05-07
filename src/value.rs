@@ -577,10 +577,6 @@ impl Value {
             #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
             Self::JiffTimestamp(None) => false,
 
-            #[cfg(feature = "with-jiff")]
-            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
-            Self::JiffZoned(None) => false,
-
             #[cfg(feature = "with-uuid")]
             #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
             Self::Uuid(None) => false,
