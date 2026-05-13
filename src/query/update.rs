@@ -256,7 +256,7 @@ impl UpdateStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m'"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -297,7 +297,7 @@ impl UpdateStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m'"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' RETURNING `id`"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),
@@ -332,7 +332,7 @@ impl UpdateStatement {
     ///
     /// assert_eq!(
     ///     query.to_string(MysqlQueryBuilder),
-    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m'"#
+    ///     r#"UPDATE `glyph` SET `aspect` = 2.1345, `image` = '235m' RETURNING *"#
     /// );
     /// assert_eq!(
     ///     query.to_string(PostgresQueryBuilder),

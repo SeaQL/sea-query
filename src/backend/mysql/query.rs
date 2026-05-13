@@ -281,8 +281,6 @@ impl QueryBuilder for MysqlQueryBuilder {
 
     fn prepare_on_conflict_condition(&self, _: &ConditionHolder, _: &mut impl SqlWriter) {}
 
-    fn prepare_returning(&self, _returning: &Option<ReturningClause>, _sql: &mut impl SqlWriter) {}
-
     fn random_function(&self) -> &str {
         "RAND"
     }
