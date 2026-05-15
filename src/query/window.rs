@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use crate::{Expr, IntoColumnRef, NullOrdering, Order, OrderExpr, OrderedStatement};
-use inherent::inherent;
 
 pub trait OverStatement {
     #[doc(hidden)]
@@ -196,51 +195,82 @@ impl OverStatement for WindowStatement {
     }
 }
 
-#[inherent]
 impl OrderedStatement for WindowStatement {
-    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.order_by.push(order);
         self
     }
 
-    pub fn clear_order_by(&mut self) -> &mut Self {
+    fn clear_order_by(&mut self) -> &mut Self {
         self.order_by = Vec::new();
         self
     }
+}
 
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
-    where
-        T: IntoColumnRef;
+impl WindowStatement {
+    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+        <Self as OrderedStatement>::add_order_by(self, order)
+    }
 
-    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
+    pub fn clear_order_by(&mut self) -> &mut Self {
+        <Self as OrderedStatement>::clear_order_by(self)
+    }
+
+    pub fn order_by<T: IntoColumnRef>(&mut self, col: T, order: Order) -> &mut Self {
+        <Self as OrderedStatement>::order_by(self, col, order)
+    }
+
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self {
+        <Self as OrderedStatement>::order_by_expr(self, expr, order)
+    }
+
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: Into<Cow<'static, str>>,
-        I: IntoIterator<Item = (T, Order)>;
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        <Self as OrderedStatement>::order_by_customs(self, cols)
+    }
+
     pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
-        I: IntoIterator<Item = (T, Order)>;
-    pub fn order_by_with_nulls<T>(
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        <Self as OrderedStatement>::order_by_columns(self, cols)
+    }
+
+    pub fn order_by_with_nulls<T: IntoColumnRef>(
         &mut self,
         col: T,
         order: Order,
         nulls: NullOrdering,
-    ) -> &mut Self
-    where
-        T: IntoColumnRef;
+    ) -> &mut Self {
+        <Self as OrderedStatement>::order_by_with_nulls(self, col, order, nulls)
+    }
+
     pub fn order_by_expr_with_nulls(
         &mut self,
         expr: Expr,
         order: Order,
         nulls: NullOrdering,
-    ) -> &mut Self;
+    ) -> &mut Self {
+        <Self as OrderedStatement>::order_by_expr_with_nulls(self, expr, order, nulls)
+    }
+
     pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: Into<Cow<'static, str>>,
-        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+        I: IntoIterator<Item = (T, Order, NullOrdering)>,
+    {
+        <Self as OrderedStatement>::order_by_customs_with_nulls(self, cols)
+    }
+
     pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
-        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+        I: IntoIterator<Item = (T, Order, NullOrdering)>,
+    {
+        <Self as OrderedStatement>::order_by_columns_with_nulls(self, cols)
+    }
 }

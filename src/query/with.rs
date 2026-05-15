@@ -3,7 +3,6 @@ use crate::{
     QueryStatementWriter, SelectExpr, SelectStatement, SqlWriter, SubQueryStatement, TableName,
     TableRef, Values,
 };
-use inherent::inherent;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum CteQuery {
@@ -607,17 +606,30 @@ impl From<WithQuery> for SubQueryStatement {
     }
 }
 
-#[inherent]
 impl QueryStatementWriter for WithQuery {
-    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
+    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
         query_builder.prepare_with_query(self, sql);
+    }
+}
+
+impl WithQuery {
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementWriter>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementWriter>::build(self, query_builder)
     }
 
     pub fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
         sql: &mut impl SqlWriter,
-    ) -> String;
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
+    ) -> String {
+        <Self as QueryStatementWriter>::build_collect(self, query_builder, sql)
+    }
+
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
+        <Self as QueryStatementWriter>::build_collect_into(self, query_builder, sql);
+    }
 }

@@ -1,5 +1,3 @@
-use inherent::inherent;
-
 use crate::{ConditionHolder, ConditionalStatement, IntoCondition};
 use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
@@ -358,9 +356,8 @@ impl IndexCreateStatement {
     }
 }
 
-#[inherent]
 impl SchemaStatementBuilder for IndexCreateStatement {
-    pub fn build<T>(&self, schema_builder: T) -> String
+    fn build<T>(&self, schema_builder: T) -> String
     where
         T: SchemaBuilder,
     {
@@ -368,10 +365,16 @@ impl SchemaStatementBuilder for IndexCreateStatement {
         schema_builder.prepare_index_create_statement(self, &mut sql);
         sql
     }
+}
 
-    pub fn to_string<T>(&self, schema_builder: T) -> String
-    where
-        T: SchemaBuilder;
+impl IndexCreateStatement {
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
 }
 
 impl ConditionalStatement for IndexCreateStatement {

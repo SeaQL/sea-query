@@ -1,5 +1,3 @@
-use inherent::inherent;
-
 use crate::{
     DynIden, Expr, IntoColumnRef, IntoIden, IntoTableRef, OnConflict, QueryBuilder, QueryStatement,
     QueryStatementBuilder, QueryStatementWriter, ReturningClause, SelectStatement, SqlWriter,
@@ -759,22 +757,32 @@ impl InsertStatement {
     }
 }
 
-#[inherent]
 impl QueryStatementBuilder for InsertStatement {
+    fn build_collect_any_into(&self, query_builder: &impl QueryBuilder, sql: &mut impl SqlWriter) {
+        query_builder.prepare_insert_statement(self, sql);
+    }
+}
+
+impl InsertStatement {
+    pub fn build_any(&self, query_builder: &impl QueryBuilder) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build_any(self, query_builder)
+    }
+
+    pub fn build_collect_any(
+        &self,
+        query_builder: &impl QueryBuilder,
+        sql: &mut impl SqlWriter,
+    ) -> String {
+        <Self as QueryStatementBuilder>::build_collect_any(self, query_builder, sql)
+    }
+
     pub fn build_collect_any_into(
         &self,
         query_builder: &impl QueryBuilder,
         sql: &mut impl SqlWriter,
     ) {
-        query_builder.prepare_insert_statement(self, sql);
+        <Self as QueryStatementBuilder>::build_collect_any_into(self, query_builder, sql)
     }
-
-    pub fn build_any(&self, query_builder: &impl QueryBuilder) -> (String, Values);
-    pub fn build_collect_any(
-        &self,
-        query_builder: &impl QueryBuilder,
-        sql: &mut impl SqlWriter,
-    ) -> String;
 }
 
 impl From<InsertStatement> for QueryStatement {
@@ -789,17 +797,30 @@ impl From<InsertStatement> for SubQueryStatement {
     }
 }
 
-#[inherent]
 impl QueryStatementWriter for InsertStatement {
-    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
+    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
         query_builder.prepare_insert_statement(self, sql);
+    }
+}
+
+impl InsertStatement {
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementWriter>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementWriter>::build(self, query_builder)
     }
 
     pub fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
         sql: &mut impl SqlWriter,
-    ) -> String;
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
+    ) -> String {
+        <Self as QueryStatementWriter>::build_collect(self, query_builder, sql)
+    }
+
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
+        <Self as QueryStatementWriter>::build_collect_into(self, query_builder, sql);
+    }
 }
