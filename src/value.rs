@@ -206,6 +206,29 @@ pub enum OptionEnum {
     None(EnumTypeName),
 }
 
+impl OptionEnum {
+    /// Check if an enum value is set
+    ///
+    /// ```
+    /// use sea_query::{Enum, EnumTypeName, OptionEnum};
+    ///
+    /// let type_name: EnumTypeName = "Test".into();
+    ///
+    /// assert_eq!(false, OptionEnum::None(type_name.clone()).is_some());
+    /// assert_eq!(
+    ///     true,
+    ///     OptionEnum::Some(Box::new(Enum {
+    ///         type_name,
+    ///         value: "Foo".into()
+    ///     }))
+    ///     .is_some()
+    /// );
+    /// ```
+    pub fn is_some(&self) -> bool {
+        matches!(*self, OptionEnum::Some(_))
+    }
+}
+
 /// Value variants
 ///
 /// We want the inner Value to be exactly 1 pointer sized, so anything larger should be boxed.
@@ -488,6 +511,126 @@ impl Value {
             #[cfg(feature = "postgres-range")]
             #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
             Self::Range(_) => Self::Range(None),
+        }
+    }
+
+    /// Check if a value is set
+    ///
+    /// ```
+    /// use sea_query::Value;
+    ///
+    /// assert_eq!(true, Value::Int(Some(2)).is_some());
+    /// assert_eq!(false, Value::Int(None).is_some());
+    /// ```
+    pub fn is_some(&self) -> bool {
+        match self {
+            Self::Bool(v) => v.is_some(),
+            Self::TinyInt(v) => v.is_some(),
+            Self::SmallInt(v) => v.is_some(),
+            Self::Int(v) => v.is_some(),
+            Self::BigInt(v) => v.is_some(),
+            Self::TinyUnsigned(v) => v.is_some(),
+            Self::SmallUnsigned(v) => v.is_some(),
+            Self::Unsigned(v) => v.is_some(),
+            Self::BigUnsigned(v) => v.is_some(),
+            Self::Float(v) => v.is_some(),
+            Self::Double(v) => v.is_some(),
+            Self::String(v) => v.is_some(),
+            Self::Enum(v) => v.is_some(),
+            Self::Char(v) => v.is_some(),
+            Self::Bytes(v) => v.is_some(),
+
+            #[cfg(feature = "with-json")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-json")))]
+            Self::Json(v) => v.is_some(),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDate(v) => v.is_some(),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoTime(v) => v.is_some(),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTime(v) => v.is_some(),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeUtc(v) => v.is_some(),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeLocal(v) => v.is_some(),
+
+            #[cfg(feature = "with-chrono")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-chrono")))]
+            Self::ChronoDateTimeWithTimeZone(v) => v.is_some(),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDate(v) => v.is_some(),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeTime(v) => v.is_some(),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTime(v) => v.is_some(),
+
+            #[cfg(feature = "with-time")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-time")))]
+            Self::TimeDateTimeWithTimeZone(v) => v.is_some(),
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffDate(v) => v.is_some(),
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffTime(v) => v.is_some(),
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffDateTime(v) => v.is_some(),
+
+            #[cfg(feature = "with-jiff")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-jiff")))]
+            Self::JiffTimestamp(v) => v.is_some(),
+
+            #[cfg(feature = "with-uuid")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-uuid")))]
+            Self::Uuid(v) => v.is_some(),
+
+            #[cfg(feature = "with-rust_decimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-rust_decimal")))]
+            Self::Decimal(v) => v.is_some(),
+
+            #[cfg(feature = "with-bigdecimal")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-bigdecimal")))]
+            Self::BigDecimal(v) => v.is_some(),
+
+            #[cfg(feature = "postgres-array")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-array")))]
+            Self::Array(_, v) => v.is_some(),
+
+            #[cfg(feature = "postgres-vector")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-vector")))]
+            Self::Vector(v) => v.is_some(),
+
+            #[cfg(feature = "with-ipnetwork")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-ipnetwork")))]
+            Self::IpNetwork(v) => v.is_some(),
+
+            #[cfg(feature = "with-mac_address")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "with-mac_address")))]
+            Self::MacAddress(v) => v.is_some(),
+
+            #[cfg(feature = "postgres-range")]
+            #[cfg_attr(docsrs, doc(cfg(feature = "postgres-range")))]
+            Self::Range(v) => v.is_some(),
         }
     }
 
