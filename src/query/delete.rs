@@ -1,4 +1,3 @@
-use inherent::inherent;
 use std::borrow::Cow;
 
 use crate::{
@@ -311,22 +310,32 @@ impl DeleteStatement {
     }
 }
 
-#[inherent]
 impl QueryStatementBuilder for DeleteStatement {
+    fn build_collect_any_into(&self, query_builder: &impl QueryBuilder, sql: &mut impl SqlWriter) {
+        query_builder.prepare_delete_statement(self, sql);
+    }
+}
+
+impl DeleteStatement {
+    pub fn build_any(&self, query_builder: &impl QueryBuilder) -> (String, Values) {
+        <Self as QueryStatementBuilder>::build_any(self, query_builder)
+    }
+
+    pub fn build_collect_any(
+        &self,
+        query_builder: &impl QueryBuilder,
+        sql: &mut impl SqlWriter,
+    ) -> String {
+        <Self as QueryStatementBuilder>::build_collect_any(self, query_builder, sql)
+    }
+
     pub fn build_collect_any_into(
         &self,
         query_builder: &impl QueryBuilder,
         sql: &mut impl SqlWriter,
     ) {
-        query_builder.prepare_delete_statement(self, sql);
+        <Self as QueryStatementBuilder>::build_collect_any_into(self, query_builder, sql)
     }
-
-    pub fn build_any(&self, query_builder: &impl QueryBuilder) -> (String, Values);
-    pub fn build_collect_any(
-        &self,
-        query_builder: &impl QueryBuilder,
-        sql: &mut impl SqlWriter,
-    ) -> String;
 }
 
 impl From<DeleteStatement> for QueryStatement {
@@ -341,85 +350,143 @@ impl From<DeleteStatement> for SubQueryStatement {
     }
 }
 
-#[inherent]
 impl QueryStatementWriter for DeleteStatement {
-    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
+    fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
         query_builder.prepare_delete_statement(self, sql);
+    }
+}
+
+impl DeleteStatement {
+    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String {
+        <Self as QueryStatementWriter>::to_string(self, query_builder)
+    }
+
+    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values) {
+        <Self as QueryStatementWriter>::build(self, query_builder)
     }
 
     pub fn build_collect<T: QueryBuilder>(
         &self,
         query_builder: T,
         sql: &mut impl SqlWriter,
-    ) -> String;
-    pub fn build<T: QueryBuilder>(&self, query_builder: T) -> (String, Values);
-    pub fn to_string<T: QueryBuilder>(&self, query_builder: T) -> String;
+    ) -> String {
+        <Self as QueryStatementWriter>::build_collect(self, query_builder, sql)
+    }
+
+    pub fn build_collect_into<T: QueryBuilder>(&self, query_builder: T, sql: &mut impl SqlWriter) {
+        <Self as QueryStatementWriter>::build_collect_into(self, query_builder, sql);
+    }
 }
 
-#[inherent]
 impl OrderedStatement for DeleteStatement {
-    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+    fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
         self.orders.push(order);
         self
     }
 
-    pub fn clear_order_by(&mut self) -> &mut Self {
+    fn clear_order_by(&mut self) -> &mut Self {
         self.orders = Vec::new();
         self
     }
+}
 
-    pub fn order_by<T>(&mut self, col: T, order: Order) -> &mut Self
-    where
-        T: IntoColumnRef;
+impl DeleteStatement {
+    pub fn add_order_by(&mut self, order: OrderExpr) -> &mut Self {
+        <Self as OrderedStatement>::add_order_by(self, order)
+    }
 
-    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self;
+    pub fn clear_order_by(&mut self) -> &mut Self {
+        <Self as OrderedStatement>::clear_order_by(self)
+    }
+
+    pub fn order_by<T: IntoColumnRef>(&mut self, col: T, order: Order) -> &mut Self {
+        <Self as OrderedStatement>::order_by(self, col, order)
+    }
+
+    pub fn order_by_expr(&mut self, expr: Expr, order: Order) -> &mut Self {
+        <Self as OrderedStatement>::order_by_expr(self, expr, order)
+    }
+
     pub fn order_by_customs<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: Into<Cow<'static, str>>,
-        I: IntoIterator<Item = (T, Order)>;
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        <Self as OrderedStatement>::order_by_customs(self, cols)
+    }
+
     pub fn order_by_columns<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
-        I: IntoIterator<Item = (T, Order)>;
-    pub fn order_by_with_nulls<T>(
+        I: IntoIterator<Item = (T, Order)>,
+    {
+        <Self as OrderedStatement>::order_by_columns(self, cols)
+    }
+
+    pub fn order_by_with_nulls<T: IntoColumnRef>(
         &mut self,
         col: T,
         order: Order,
         nulls: NullOrdering,
-    ) -> &mut Self
-    where
-        T: IntoColumnRef;
+    ) -> &mut Self {
+        <Self as OrderedStatement>::order_by_with_nulls(self, col, order, nulls)
+    }
+
     pub fn order_by_expr_with_nulls(
         &mut self,
         expr: Expr,
         order: Order,
         nulls: NullOrdering,
-    ) -> &mut Self;
+    ) -> &mut Self {
+        <Self as OrderedStatement>::order_by_expr_with_nulls(self, expr, order, nulls)
+    }
+
     pub fn order_by_customs_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: Into<Cow<'static, str>>,
-        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+        I: IntoIterator<Item = (T, Order, NullOrdering)>,
+    {
+        <Self as OrderedStatement>::order_by_customs_with_nulls(self, cols)
+    }
+
     pub fn order_by_columns_with_nulls<I, T>(&mut self, cols: I) -> &mut Self
     where
         T: IntoColumnRef,
-        I: IntoIterator<Item = (T, Order, NullOrdering)>;
+        I: IntoIterator<Item = (T, Order, NullOrdering)>,
+    {
+        <Self as OrderedStatement>::order_by_columns_with_nulls(self, cols)
+    }
 }
 
-#[inherent]
 impl ConditionalStatement for DeleteStatement {
-    pub fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+    fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
         self.r#where.add_and_or(condition);
         self
     }
 
-    pub fn cond_where<C>(&mut self, condition: C) -> &mut Self
+    fn cond_where<C>(&mut self, condition: C) -> &mut Self
     where
         C: IntoCondition,
     {
         self.r#where.add_condition(condition.into_condition());
         self
     }
+}
 
-    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self;
-    pub fn and_where(&mut self, other: Expr) -> &mut Self;
+impl DeleteStatement {
+    pub fn and_where(&mut self, other: Expr) -> &mut Self {
+        <Self as ConditionalStatement>::and_where(self, other)
+    }
+
+    pub fn and_where_option(&mut self, other: Option<Expr>) -> &mut Self {
+        <Self as ConditionalStatement>::and_where_option(self, other)
+    }
+
+    pub fn and_or_where(&mut self, condition: LogicalChainOper) -> &mut Self {
+        <Self as ConditionalStatement>::and_or_where(self, condition)
+    }
+
+    pub fn cond_where<C: IntoCondition>(&mut self, condition: C) -> &mut Self {
+        <Self as ConditionalStatement>::cond_where(self, condition)
+    }
 }

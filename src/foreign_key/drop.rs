@@ -1,5 +1,3 @@
-use inherent::inherent;
-
 use crate::{SchemaStatementBuilder, TableForeignKey, backend::SchemaBuilder, types::*};
 
 /// Drop a foreign key constraint for an existing table
@@ -55,9 +53,8 @@ impl ForeignKeyDropStatement {
     }
 }
 
-#[inherent]
 impl SchemaStatementBuilder for ForeignKeyDropStatement {
-    pub fn build<T>(&self, schema_builder: T) -> String
+    fn build<T>(&self, schema_builder: T) -> String
     where
         T: SchemaBuilder,
     {
@@ -65,8 +62,14 @@ impl SchemaStatementBuilder for ForeignKeyDropStatement {
         schema_builder.prepare_foreign_key_drop_statement(self, &mut sql);
         sql
     }
+}
 
-    pub fn to_string<T>(&self, schema_builder: T) -> String
-    where
-        T: SchemaBuilder;
+impl ForeignKeyDropStatement {
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
 }

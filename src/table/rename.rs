@@ -1,5 +1,3 @@
-use inherent::inherent;
-
 use crate::{SchemaStatementBuilder, backend::SchemaBuilder, types::*};
 
 /// Rename a table
@@ -55,18 +53,20 @@ impl TableRenameStatement {
     }
 }
 
-#[inherent]
 impl SchemaStatementBuilder for TableRenameStatement {
-    pub fn build<T>(&self, schema_builder: T) -> String
-    where
-        T: SchemaBuilder,
-    {
+    fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
         let mut sql = String::with_capacity(256);
         schema_builder.prepare_table_rename_statement(self, &mut sql);
         sql
     }
+}
 
-    pub fn to_string<T>(&self, schema_builder: T) -> String
-    where
-        T: SchemaBuilder;
+impl TableRenameStatement {
+    pub fn build<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::build(self, schema_builder)
+    }
+
+    pub fn to_string<T: SchemaBuilder>(&self, schema_builder: T) -> String {
+        <Self as SchemaStatementBuilder>::to_string(self, schema_builder)
+    }
 }
