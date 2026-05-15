@@ -52,7 +52,7 @@
 //! sea-query = "1.0.0-rc.1"
 //! ```
 //!
-//! SeaQuery is very lightweight, all dependencies are optional (except `inherent`).
+//! SeaQuery is very lightweight, all dependencies are optional.
 //!
 //! ### Feature flags
 //!
