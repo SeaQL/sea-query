@@ -21,7 +21,7 @@ use sea_query::{OptionEnum, Value};
 
 use crate::SqlxValues;
 
-impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
+impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
     fn into_arguments(self) -> sqlx::postgres::PgArguments {
         let mut args = sqlx::postgres::PgArguments::default();
         for arg in self.0.into_iter() {
