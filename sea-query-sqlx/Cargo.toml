@@ -19,7 +19,7 @@ rust-version = "1.94.0"
 [dependencies]
 sea-query = { version = "1.0.0-rc.34", path = "..", default-features = false, features = ["thread-safe"] }
 sqlx = { version = "0.9", default-features = false, optional = true }
-ipnetwork = { version = "0.20", default-features = false, optional = true } # pin dependency
+ipnetwork = { version = "0.21.1", default-features = false, optional = true } # pin dependency
 pgvector = { version = "0.4.2", default-features = false, optional = true } # requires feature flag
 jiff = { version = "0.2.15", default-features = false, optional = true, features = ["std", "perf-inline"] }
 jiff-sqlx = { version = "0.1", optional = true }
