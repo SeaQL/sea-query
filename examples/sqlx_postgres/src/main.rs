@@ -83,12 +83,11 @@ async fn main() {
                 .unwrap()
                 .with_scale(3)
                 .into(),
-            // NaiveDate::from_ymd_opt(2020, 8, 20)
-            //     .unwrap()
-            //     .and_hms_opt(0, 0, 0)
-            //     .unwrap()
-            //     .into(),
-            jiff::civil::date(2020, 8, 20).at(0, 0, 0, 0).into(),
+            NaiveDate::from_ymd_opt(2020, 8, 20)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .into(),
             IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8)
                 .unwrap()
                 .into(),
