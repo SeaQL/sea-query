@@ -5,7 +5,7 @@
 name = "sea-query-sqlx-postgres-example"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.88.0"
+rust-version = "1.94.0"
 publish = false
 
 [dependencies]
@@ -14,7 +14,7 @@ jiff = { version = "0.2.15", features = ["std"] }
 uuid = { version = "1", features = ["serde", "v4"] }
 serde_json = { version = "1" }
 async-std = { version = "1.8", features = [ "attributes" ] }
-sqlx = "0.8"
+sqlx = "0.9"
 sea-query = { path = "../../" }
 sea-query-sqlx = { path = "../../sea-query-sqlx", features = [
     "sqlx-postgres",
@@ -27,7 +27,8 @@ sea-query-sqlx = { path = "../../sea-query-sqlx", features = [
     "with-jiff",
     "with-ipnetwork",
     "with-mac_address",
-    "runtime-async-std-native-tls",
+    "runtime-async-std",
+    "tls-native-tls",
 ] }
 
 # NOTE: if you are copying this example into your own project, use the following line instead:
