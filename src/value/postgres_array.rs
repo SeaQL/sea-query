@@ -116,15 +116,56 @@ where
 {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
-            Value::Array(ty, Some(v)) if T::array_type() == ty => {
-                Ok(v.into_iter().map(|e| e.unwrap()).collect())
-            }
+            Value::Array(ty, Some(v)) if T::array_type() == ty => v
+                .into_iter()
+                .map(|e| {
+                    if e.is_some() {
+                        Ok(e.unwrap())
+                    } else {
+                        Err(ValueTypeErr)
+                    }
+                })
+                .collect(),
             _ => Err(ValueTypeErr),
         }
     }
 
     fn type_name() -> String {
         stringify!(Vec<T>).to_owned()
+    }
+
+    fn array_type() -> ArrayType {
+        T::array_type()
+    }
+
+    fn column_type() -> ColumnType {
+        use ColumnType::*;
+        Array(RcOrArc::new(T::column_type()))
+    }
+}
+
+impl<T> ValueType for Vec<Option<T>>
+where
+    T: NotU8 + ValueType,
+{
+    fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
+        match v {
+            Value::Array(ty, Some(v)) if T::array_type() == ty => v
+                .into_iter()
+                .map(|e| {
+                    if e.is_some() {
+                        T::try_from(e).map(Some)
+                    } else {
+                        Ok(None)
+                    }
+                })
+                .collect(),
+            _ => Err(ValueTypeErr),
+        }
+    }
+
+    fn type_name() -> String {
+        stringify!(Vec<Option<T>>).to_owned()
     }
 
     fn array_type() -> ArrayType {

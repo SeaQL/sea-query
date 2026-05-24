@@ -439,3 +439,27 @@ fn test_null_array_is_not_empty() {
     let out = <Vec<i32> as ValueType>::try_from(empty_array).unwrap();
     assert!(out.is_empty());
 }
+
+#[test]
+#[cfg(feature = "postgres-array")]
+fn test_null_in_array() {
+    let v: Value = Value::Array(
+        ArrayType::Int,
+        Some(Box::new(vec![Value::Int(None), Value::Int(Some(1))])),
+    );
+    // Conversion to a Vec<i32> should result in a ValueTypeErr, as it does contain null values
+    assert!(<Vec<i32> as ValueType>::try_from(v.clone()).is_err());
+    // Converting it to a Vec<Option<i32>> should hence work as expected
+    let out: Vec<Option<i32>> = v.unwrap();
+    assert_eq!(out, vec![None, Some(1)]);
+}
+
+#[test]
+#[cfg(feature = "postgres-array")]
+fn test_wrong_type_in_array() {
+    let v: Value = Value::Array(
+        ArrayType::Int,
+        Some(Box::new(vec![Value::String(Some("1".to_owned()))])),
+    );
+    assert!(<Vec<Option<i32>> as ValueType>::try_from(v).is_err());
+}
