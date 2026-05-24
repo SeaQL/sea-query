@@ -453,3 +453,13 @@ fn test_null_in_array() {
     let out: Vec<Option<i32>> = v.unwrap();
     assert_eq!(out, vec![None, Some(1)]);
 }
+
+#[test]
+#[cfg(feature = "postgres-array")]
+fn test_wrong_type_in_array() {
+    let v: Value = Value::Array(
+        ArrayType::Int,
+        Some(Box::new(vec![Value::String(Some("1".to_owned()))])),
+    );
+    assert!(<Vec<Option<i32>> as ValueType>::try_from(v).is_err());
+}

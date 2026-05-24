@@ -150,9 +150,16 @@ where
 {
     fn try_from(v: Value) -> Result<Self, ValueTypeErr> {
         match v {
-            Value::Array(ty, Some(v)) if T::array_type() == ty => {
-                Ok(v.into_iter().map(|e| T::try_from(e).ok()).collect())
-            }
+            Value::Array(ty, Some(v)) if T::array_type() == ty => v
+                .into_iter()
+                .map(|e| {
+                    if e.is_some() {
+                        T::try_from(e).map(Some)
+                    } else {
+                        Ok(None)
+                    }
+                })
+                .collect(),
             _ => Err(ValueTypeErr),
         }
     }
