@@ -1,7 +1,7 @@
 use crate::SqlxValues;
 use sea_query::{OptionEnum, Value};
 
-impl<'q> sqlx::IntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
+impl sqlx::IntoArguments<sqlx::sqlite::Sqlite> for SqlxValues {
     fn into_arguments(self) -> sqlx::sqlite::SqliteArguments {
         let mut args = sqlx::sqlite::SqliteArguments::default();
         for arg in self.0.into_iter() {
