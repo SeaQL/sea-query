@@ -4,7 +4,7 @@ use token::*;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-    Ident, Index, LitStr, Member, Token,
+    Ident, Index, LitStr, Member, Path, Token,
     parse::{Parse, ParseStream},
 };
 
@@ -12,6 +12,7 @@ struct CallArgs {
     module: Ident,
     backend: Ident,
     method: Ident,
+    sql_wrapper: Option<Path>,
     sql_holder: Option<Ident>,
     sql_input: LitStr,
 }
@@ -24,6 +25,14 @@ impl Parse for CallArgs {
         let _colon2: Token![::] = input.parse()?;
         let method: Ident = input.parse()?;
         let _comma: Token![,] = input.parse()?;
+        let sql_wrapper = if input.peek(Token![@]) {
+            let _at: Token![@] = input.parse()?;
+            let wrapper = input.parse()?;
+            let _comma: Token![,] = input.parse()?;
+            Some(wrapper)
+        } else {
+            None
+        };
         let sql_holder = if input.peek(Ident) {
             let ident = input.parse()?;
             let _assign: Token![=] = input.parse()?;
@@ -37,6 +46,7 @@ impl Parse for CallArgs {
             module,
             backend,
             method,
+            sql_wrapper,
             sql_holder,
             sql_input,
         })
@@ -48,6 +58,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         module,
         backend,
         method,
+        sql_wrapper,
         sql_holder,
         sql_input,
     } = syn::parse(input)?;
@@ -252,6 +263,12 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
         (quote!(let), Ident::new("sql", Span::call_site()))
     };
 
+    let query = if let Some(sql_wrapper) = sql_wrapper {
+        quote!(#module::#method(#sql_wrapper(#sql_holder.as_str())))
+    } else {
+        quote!(#module::#method(&#sql_holder))
+    };
+
     let output = quote! {{
         use sea_query::raw_sql::*;
         let mut builder = RawSqlQueryBuilder::new(#backend);
@@ -259,7 +276,7 @@ pub fn expand(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
             #(#fragments)*;
 
         #maybe_let #sql_holder = builder.finish();
-        let mut query = #module::#method(&#sql_holder);
+        let mut query = #query;
         #(#params)*
 
         query

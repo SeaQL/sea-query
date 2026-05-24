@@ -42,7 +42,9 @@ async fn main() {
         .col(ColumnDef::new(Character::Created).date_time())
         .build(MysqlQueryBuilder);
 
-    let result = sqlx::query(&sql).execute(&mut *pool).await;
+    let result = sqlx::query(sqlx::AssertSqlSafe(sql.as_str()))
+        .execute(&mut *pool)
+        .await;
     println!("Create table character: {result:?}\n");
 
     // Create
@@ -94,7 +96,9 @@ async fn main() {
         ])
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
+    let result = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(&mut *pool)
+        .await;
     println!("Insert into character: {result:?}\n");
     let id = result.unwrap().last_insert_id();
 
@@ -116,20 +120,24 @@ async fn main() {
         .limit(1)
         .build_sqlx(MysqlQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(&mut *pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
     }
     println!();
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows =
+        sqlx::query_as_with::<_, CharacterStructTime, _>(sqlx::AssertSqlSafe(sql.as_str()), values)
+            .fetch_all(&mut *pool)
+            .await
+            .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
@@ -144,7 +152,9 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
+    let result = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(&mut *pool)
+        .await;
     println!("Update character: {result:?}\n");
 
     // Read
@@ -165,20 +175,24 @@ async fn main() {
         .limit(1)
         .build_sqlx(MysqlQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(&mut *pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
     }
     println!();
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows =
+        sqlx::query_as_with::<_, CharacterStructTime, _>(sqlx::AssertSqlSafe(sql.as_str()), values)
+            .fetch_all(&mut *pool)
+            .await
+            .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
@@ -199,7 +213,9 @@ async fn main() {
         )
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
+    let result = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(&mut *pool)
+        .await;
     println!("Insert into character (with upsert): {result:?}\n");
     let id = result.unwrap().last_insert_id();
 
@@ -220,20 +236,24 @@ async fn main() {
         .order_by(Character::Id, Order::Desc)
         .build_sqlx(MysqlQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(&mut *pool)
+    .await
+    .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
         println!("{row:?}");
     }
     println!();
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows =
+        sqlx::query_as_with::<_, CharacterStructTime, _>(sqlx::AssertSqlSafe(sql.as_str()), values)
+            .fetch_all(&mut *pool)
+            .await
+            .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
         println!("{row:?}");
@@ -247,7 +267,7 @@ async fn main() {
         .expr_as(Func::count(Expr::col(Character::Id)), "count")
         .build_sqlx(MysqlQueryBuilder);
 
-    let row = sqlx::query_with(&sql, values)
+    let row = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
         .fetch_one(&mut *pool)
         .await
         .unwrap();
@@ -263,7 +283,9 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(MysqlQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
+    let result = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(&mut *pool)
+        .await;
     println!("Delete character: {result:?}");
 }
 

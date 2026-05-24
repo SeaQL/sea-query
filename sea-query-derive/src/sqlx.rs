@@ -29,7 +29,7 @@ pub fn sqlite_query(input: proc_macro::TokenStream) -> syn::Result<TokenStream> 
     } = syn::parse(input)?;
 
     Ok(quote!(
-        sea_query::raw_sql!(sqlx::sqlite::query, #sql_holder = #sql_string)
+        sea_query::raw_sql!(sqlx::sqlite::query, @sqlx::AssertSqlSafe, #sql_holder = #sql_string)
     ))
 }
 
@@ -41,7 +41,7 @@ pub fn sqlite_query_as(input: proc_macro::TokenStream) -> syn::Result<TokenStrea
     } = syn::parse(input)?;
 
     Ok(quote!(
-        sea_query::raw_sql!(sqlx::sqlite::query_as, #sql_holder = #sql_string)
+        sea_query::raw_sql!(sqlx::sqlite::query_as, @sqlx::AssertSqlSafe, #sql_holder = #sql_string)
     ))
 }
 
@@ -53,7 +53,7 @@ pub fn mysql_query(input: proc_macro::TokenStream) -> syn::Result<TokenStream> {
     } = syn::parse(input)?;
 
     Ok(quote!(
-        sea_query::raw_sql!(sqlx::mysql::query, #sql_holder = #sql_string)
+        sea_query::raw_sql!(sqlx::mysql::query, @sqlx::AssertSqlSafe, #sql_holder = #sql_string)
     ))
 }
 
@@ -65,7 +65,7 @@ pub fn mysql_query_as(input: proc_macro::TokenStream) -> syn::Result<TokenStream
     } = syn::parse(input)?;
 
     Ok(quote!(
-        sea_query::raw_sql!(sqlx::mysql::query_as, #sql_holder = #sql_string)
+        sea_query::raw_sql!(sqlx::mysql::query_as, @sqlx::AssertSqlSafe, #sql_holder = #sql_string)
     ))
 }
 
@@ -77,7 +77,7 @@ pub fn postgres_query(input: proc_macro::TokenStream) -> syn::Result<TokenStream
     } = syn::parse(input)?;
 
     Ok(quote!(
-        sea_query::raw_sql!(sqlx::postgres::query, #sql_holder = #sql_string)
+        sea_query::raw_sql!(sqlx::postgres::query, @sqlx::AssertSqlSafe, #sql_holder = #sql_string)
     ))
 }
 
@@ -89,6 +89,6 @@ pub fn postgres_query_as(input: proc_macro::TokenStream) -> syn::Result<TokenStr
     } = syn::parse(input)?;
 
     Ok(quote!(
-        sea_query::raw_sql!(sqlx::postgres::query_as, #sql_holder = #sql_string)
+        sea_query::raw_sql!(sqlx::postgres::query_as, @sqlx::AssertSqlSafe, #sql_holder = #sql_string)
     ))
 }

@@ -80,9 +80,12 @@ jobs:
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo clippy --features=all-features --workspace -- -D warnings
-      - run: cargo clippy --manifest-path sea-query-sqlx/Cargo.toml --workspace --features runtime-tokio-rustls --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector -- -D warnings
       - run: cargo clippy --manifest-path sea-query-rusqlite/Cargo.toml --all-features --workspace -- -D warnings
       - run: cargo clippy --manifest-path sea-query-postgres/Cargo.toml --all-features --workspace -- -D warnings
+      - uses: dtolnay/rust-toolchain@1.94
+        with:
+          components: clippy
+      - run: cargo clippy --manifest-path sea-query-sqlx/Cargo.toml --workspace --features runtime-tokio,tls-rustls --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector -- -D warnings
 
   build:
     name: Workspace
@@ -132,7 +135,7 @@ jobs:
         tls: [rustls]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.88
+      - uses: dtolnay/rust-toolchain@1.94
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -143,17 +146,18 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-chrono
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-json
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-rust_decimal
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-bigdecimal
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-uuid
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-time
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-ipnetwork
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=with-mac_address
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=postgres-array
-      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }} --features=postgres-vector
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-chrono,with-json,with-rust_decimal,with-bigdecimal,with-uuid,with-time,with-ipnetwork,with-mac_address,postgres-array,postgres-vector
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-chrono
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-json
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-rust_decimal
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-bigdecimal
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-uuid
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-time
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-ipnetwork
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=with-mac_address
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-array
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace  --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }},tls-${{ matrix.tls }} --features=postgres-vector
+      - run: cargo build --manifest-path sea-query-sqlx/Cargo.toml --workspace --features sqlx-postgres,sqlx-sqlite,sqlx-mysql --features=runtime-${{ matrix.runtime }}-${{ matrix.tls }}
 
   rusqlite-build:
     name: Build `sea-query-rusqlite`
@@ -214,10 +218,10 @@ jobs:
   sqlite:
     name: SQLite
     runs-on: ubuntu-latest
-    needs: ["build", "rusqlite-build", "binder-build"]
+    needs: ["build", "rusqlite-build"]
     strategy:
       matrix:
-        example: [rusqlite, sqlx_sqlite]
+        example: [rusqlite]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.88
@@ -229,6 +233,29 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-derive/Cargo.toml', 'sea-query-rusqlite/Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  sqlite-sqlx:
+    name: SQLite SQLx
+    runs-on: ubuntu-latest
+    needs: ["build", "binder-build"]
+    strategy:
+      matrix:
+        example: [sqlx_sqlite]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.94
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-derive/Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
@@ -260,7 +287,7 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.88
+      - uses: dtolnay/rust-toolchain@1.94
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -300,7 +327,7 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.88
+      - uses: dtolnay/rust-toolchain@1.94
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -317,11 +344,11 @@ jobs:
   postgres:
     name: PostgreSQL
     runs-on: ubuntu-latest
-    needs: ["build", "binder-build", "postgres-build"]
+    needs: ["build", "postgres-build"]
     strategy:
       matrix:
         version: [14.4, 13.7, 12.11]
-        example: [postgres, sqlx_postgres]
+        example: [postgres]
     services:
       postgres:
         image: postgres:${{ matrix.version }}
@@ -348,6 +375,45 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-diesel/Cargo.toml', 'sea-query-postgres/Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml
+      - run: cargo run --manifest-path examples/${{ matrix.example }}/Cargo.toml
+
+  postgres-sqlx:
+    name: PostgreSQL SQLx
+    runs-on: ubuntu-latest
+    needs: ["build", "binder-build"]
+    strategy:
+      matrix:
+        version: [14.4, 13.7, 12.11]
+        example: [sqlx_postgres]
+    services:
+      postgres:
+        image: postgres:${{ matrix.version }}
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_DB: query
+          POSTGRES_USER: sea
+          POSTGRES_PASSWORD: sea
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.94
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'sea-query-sqlx/Cargo.toml') }}
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.9
       - run: cargo build --manifest-path examples/${{ matrix.example }}/Cargo.toml

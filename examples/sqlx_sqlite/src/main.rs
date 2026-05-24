@@ -30,7 +30,9 @@ async fn create_table(pool: &SqlitePool) {
         .col(ColumnDef::new(Character::Created).date_time())
         .build(SqliteQueryBuilder);
 
-    let res = sqlx::query(&sql).execute(pool).await;
+    let res = sqlx::query(sqlx::AssertSqlSafe(sql.as_str()))
+        .execute(pool)
+        .await;
     println!("Create table character: {res:?}");
 }
 
@@ -72,7 +74,10 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let res = sqlx::query_with(&sql, values).execute(pool).await.unwrap();
+    let res = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(pool)
+        .await
+        .unwrap();
 
     let id: i64 = res.last_insert_rowid();
     println!("Insert into character: last_insert_id = {id}\n");
@@ -93,20 +98,26 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
     }
     println!();
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
-        .fetch_all(pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}\n");
@@ -121,7 +132,9 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let res = sqlx::query_with(&sql, values).execute(pool).await;
+    let res = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(pool)
+        .await;
     println!("Update character: {res:?}\n");
 
     // Read
@@ -140,18 +153,24 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}\n");
     }
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
-        .fetch_all(pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}\n");
@@ -165,7 +184,7 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let row = sqlx::query_with(&sql, values)
+    let row = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
         .fetch_one(pool)
         .await
         .unwrap();
@@ -187,7 +206,9 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let res = sqlx::query_with(&sql, values).execute(pool).await;
+    let res = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(pool)
+        .await;
     println!("Insert into character (with upsert): {res:?}\n");
 
     // Read
@@ -206,19 +227,25 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
     println!("Select two characters:");
     for row in rows.iter() {
         println!("{row:?}");
     }
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values.clone())
-        .fetch_all(pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
     println!("Select two characters:");
     for row in rows.iter() {
         println!("{row:?}");
@@ -234,7 +261,9 @@ async fn query_builder_crud(pool: &SqlitePool) {
         .build_sqlx(SqliteQueryBuilder);
     println!("{sql}");
 
-    let res = sqlx::query_with(&sql, values).execute(pool).await;
+    let res = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(pool)
+        .await;
 
     println!("Delete character: {res:?}");
 }

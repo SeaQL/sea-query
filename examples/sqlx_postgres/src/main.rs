@@ -25,7 +25,9 @@ async fn main() {
         .if_exists()
         .build(PostgresQueryBuilder);
 
-    let result = sqlx::query(&sql).execute(&mut *pool).await;
+    let result = sqlx::query(sqlx::AssertSqlSafe(sql.as_str()))
+        .execute(&mut *pool)
+        .await;
     println!("Drop table character: {result:?}\n");
 
     let sql = Table::create()
@@ -48,7 +50,9 @@ async fn main() {
         .col(ColumnDef::new(Character::MacAddress).mac_address())
         .build(PostgresQueryBuilder);
 
-    let result = sqlx::query(&sql).execute(&mut *pool).await;
+    let result = sqlx::query(sqlx::AssertSqlSafe(sql.as_str()))
+        .execute(&mut *pool)
+        .await;
     println!("Create table character: {result:?}\n");
 
     // Create
@@ -79,12 +83,11 @@ async fn main() {
                 .unwrap()
                 .with_scale(3)
                 .into(),
-            // NaiveDate::from_ymd_opt(2020, 8, 20)
-            //     .unwrap()
-            //     .and_hms_opt(0, 0, 0)
-            //     .unwrap()
-            //     .into(),
-            jiff::civil::date(2020, 8, 20).at(0, 0, 0, 0).into(),
+            NaiveDate::from_ymd_opt(2020, 8, 20)
+                .unwrap()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .into(),
             IpNetwork::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8)
                 .unwrap()
                 .into(),
@@ -112,7 +115,7 @@ async fn main() {
         .returning_col(Character::Id)
         .build_sqlx(PostgresQueryBuilder);
 
-    let row = sqlx::query_with(&sql, values)
+    let row = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
         .fetch_one(&mut *pool)
         .await
         .unwrap();
@@ -139,20 +142,24 @@ async fn main() {
         .limit(1)
         .build_sqlx(PostgresQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(&mut *pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
     }
     println!();
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows =
+        sqlx::query_as_with::<_, CharacterStructTime, _>(sqlx::AssertSqlSafe(sql.as_str()), values)
+            .fetch_all(&mut *pool)
+            .await
+            .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
@@ -167,7 +174,9 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
+    let result = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(&mut *pool)
+        .await;
     println!("Update character: {result:?}\n");
 
     // Read
@@ -190,20 +199,24 @@ async fn main() {
         .limit(1)
         .build_sqlx(PostgresQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(&mut *pool)
+    .await
+    .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
     }
     println!();
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows =
+        sqlx::query_as_with::<_, CharacterStructTime, _>(sqlx::AssertSqlSafe(sql.as_str()), values)
+            .fetch_all(&mut *pool)
+            .await
+            .unwrap();
     println!("Select one from character:");
     for row in rows.iter() {
         println!("{row:?}");
@@ -217,7 +230,7 @@ async fn main() {
         .expr(Func::count(Expr::col(Character::Id)))
         .build_sqlx(PostgresQueryBuilder);
 
-    let row = sqlx::query_with(&sql, values)
+    let row = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
         .fetch_one(&mut *pool)
         .await
         .unwrap();
@@ -240,7 +253,9 @@ async fn main() {
         )
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
+    let result = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(&mut *pool)
+        .await;
     println!("Insert into character (with upsert): {result:?}\n");
 
     // Read
@@ -262,20 +277,24 @@ async fn main() {
         .order_by(Character::Id, Order::Desc)
         .build_sqlx(PostgresQueryBuilder);
 
-    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(&sql, values.clone())
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows = sqlx::query_as_with::<_, CharacterStructChrono, _>(
+        sqlx::AssertSqlSafe(sql.as_str()),
+        values.clone(),
+    )
+    .fetch_all(&mut *pool)
+    .await
+    .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
         println!("{row:?}");
     }
     println!();
 
-    let rows = sqlx::query_as_with::<_, CharacterStructTime, _>(&sql, values)
-        .fetch_all(&mut *pool)
-        .await
-        .unwrap();
+    let rows =
+        sqlx::query_as_with::<_, CharacterStructTime, _>(sqlx::AssertSqlSafe(sql.as_str()), values)
+            .fetch_all(&mut *pool)
+            .await
+            .unwrap();
     println!("Select all characters:");
     for row in rows.iter() {
         println!("{row:?}");
@@ -289,7 +308,9 @@ async fn main() {
         .and_where(Expr::col(Character::Id).eq(id))
         .build_sqlx(PostgresQueryBuilder);
 
-    let result = sqlx::query_with(&sql, values).execute(&mut *pool).await;
+    let result = sqlx::query_with(sqlx::AssertSqlSafe(sql.as_str()), values)
+        .execute(&mut *pool)
+        .await;
     println!("Delete character: {result:?}");
 }
 
