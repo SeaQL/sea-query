@@ -1,8 +1,8 @@
 use crate::SqlxValues;
 use sea_query::{OptionEnum, Value};
 
-impl<'q> sqlx::IntoArguments<'q, sqlx::any::Any> for SqlxValues {
-    fn into_arguments(self) -> sqlx::any::AnyArguments<'q> {
+impl sqlx::IntoArguments<sqlx::any::Any> for SqlxValues {
+    fn into_arguments(self) -> sqlx::any::AnyArguments {
         let mut args = sqlx::any::AnyArguments::default();
         for arg in self.0.into_iter() {
             use sqlx::Arguments;

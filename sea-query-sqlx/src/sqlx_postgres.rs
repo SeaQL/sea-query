@@ -1,34 +1,27 @@
-#[cfg(feature = "with-bigdecimal")]
+#[cfg(all(feature = "postgres-array", feature = "with-bigdecimal"))]
 use sea_query::prelude::BigDecimal;
-#[cfg(feature = "with-rust_decimal")]
+#[cfg(all(feature = "postgres-array", feature = "with-rust_decimal"))]
 use sea_query::prelude::Decimal;
-#[cfg(feature = "with-ipnetwork")]
-use sea_query::prelude::IpNetwork as SeaQueryIpNetwork;
-#[cfg(feature = "with-json")]
+#[cfg(all(feature = "postgres-array", feature = "with-ipnetwork"))]
+use sea_query::prelude::IpNetwork;
+#[cfg(all(feature = "postgres-array", feature = "with-json"))]
 use sea_query::prelude::Json;
-#[cfg(feature = "with-mac_address")]
+#[cfg(all(feature = "postgres-array", feature = "with-mac_address"))]
 use sea_query::prelude::MacAddress;
-#[cfg(feature = "with-uuid")]
+#[cfg(all(feature = "postgres-array", feature = "with-uuid"))]
 use sea_query::prelude::Uuid;
-#[cfg(feature = "with-time")]
+#[cfg(all(feature = "postgres-array", feature = "with-time"))]
 use sea_query::prelude::time;
-#[cfg(feature = "with-chrono")]
+#[cfg(all(feature = "postgres-array", feature = "with-chrono"))]
 use sea_query::prelude::{DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 #[cfg(feature = "postgres-array")]
-use sea_query::{ArrayType, ValueType};
+use sea_query::ArrayType;
 use sea_query::{OptionEnum, Value};
 
 use crate::SqlxValues;
 
-#[cfg(feature = "with-ipnetwork")]
-fn to_sqlx_ipnetwork(ip: SeaQueryIpNetwork) -> ipnetwork::IpNetwork {
-    ip.to_string()
-        .parse()
-        .expect("SeaQuery IpNetwork should parse as SQLx IpNetwork")
-}
-
-impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
+impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
     fn into_arguments(self) -> sqlx::postgres::PgArguments {
         let mut args = sqlx::postgres::PgArguments::default();
         for arg in self.0.into_iter() {
@@ -124,20 +117,20 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     let _ = args.add(t);
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDate(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                Value::JiffDate(_) => {
+                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTime(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(j)));
+                Value::JiffTime(_) => {
+                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffDateTime(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(*j)));
+                Value::JiffDateTime(_) => {
+                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
                 }
                 #[cfg(feature = "with-jiff")]
-                Value::JiffTimestamp(j) => {
-                    let _ = args.add(j.map(|j| jiff_sqlx::ToSqlx::to_sqlx(*j)));
+                Value::JiffTimestamp(_) => {
+                    panic!("SQLx 0.9 does not support Jiff arguments for Postgres yet");
                 }
                 #[cfg(feature = "with-uuid")]
                 Value::Uuid(uuid) => {
@@ -157,7 +150,6 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                 }
                 #[cfg(feature = "with-ipnetwork")]
                 Value::IpNetwork(ip) => {
-                    let ip = ip.map(to_sqlx_ipnetwork);
                     let _ = args.add(ip);
                 }
                 #[cfg(feature = "with-mac_address")]
@@ -330,68 +322,19 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffDate => {
-                        let value = match v {
-                            Some(j) => Some(
-                                j.into_iter()
-                                    .map(|j| {
-                                        jiff_sqlx::ToSqlx::to_sqlx(
-                                            <jiff::civil::Date as ValueType>::try_from(j).unwrap(),
-                                        )
-                                    })
-                                    .collect::<Vec<_>>(),
-                            ),
-                            None => None,
-                        };
-                        let _ = args.add(value);
+                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffTime => {
-                        let value = match v {
-                            Some(j) => Some(
-                                j.into_iter()
-                                    .map(|j| {
-                                        jiff_sqlx::ToSqlx::to_sqlx(
-                                            <jiff::civil::Time as ValueType>::try_from(j).unwrap(),
-                                        )
-                                    })
-                                    .collect::<Vec<_>>(),
-                            ),
-                            None => None,
-                        };
-                        let _ = args.add(value);
+                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffDateTime => {
-                        let value = match v {
-                            Some(j) => Some(
-                                j.into_iter()
-                                    .map(|j| {
-                                        jiff_sqlx::ToSqlx::to_sqlx(
-                                            <jiff::civil::DateTime as ValueType>::try_from(j)
-                                                .unwrap(),
-                                        )
-                                    })
-                                    .collect::<Vec<_>>(),
-                            ),
-                            None => None,
-                        };
-                        let _ = args.add(value);
+                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
                     }
                     #[cfg(feature = "with-jiff")]
                     ArrayType::JiffTimestamp => {
-                        let value = match v {
-                            Some(j) => Some(
-                                j.into_iter()
-                                    .map(|j| {
-                                        jiff_sqlx::ToSqlx::to_sqlx(
-                                            <jiff::Timestamp as ValueType>::try_from(j).unwrap(),
-                                        )
-                                    })
-                                    .collect::<Vec<_>>(),
-                            ),
-                            None => None,
-                        };
-                        let _ = args.add(value);
+                        panic!("SQLx 0.9 does not support Jiff array arguments for Postgres yet");
                     }
                     #[cfg(feature = "with-uuid")]
                     ArrayType::Uuid => {
@@ -419,11 +362,8 @@ impl sqlx::IntoArguments<'_, sqlx::postgres::Postgres> for SqlxValues {
                     }
                     #[cfg(feature = "with-ipnetwork")]
                     ArrayType::IpNetwork => {
-                        let value: Option<Vec<SeaQueryIpNetwork>> = Value::Array(ty, v)
+                        let value: Option<Vec<IpNetwork>> = Value::Array(ty, v)
                             .expect("This Value::Array should consist of Value::IpNetwork");
-                        let value = value.map(|value| {
-                            value.into_iter().map(to_sqlx_ipnetwork).collect::<Vec<_>>()
-                        });
                         let _ = args.add(value);
                     }
                     #[cfg(feature = "with-mac_address")]
