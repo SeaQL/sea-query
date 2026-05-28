@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-postgres"
-version = "0.6.0-rc.4"
+version = "0.6.0"
 authors = ["Ivan Krivosheev <py.krivosheev@gmail.com>"]
 edition = "2024"
 description = "Binder traits for connecting sea-query with postgres driver"
@@ -17,8 +17,8 @@ rust-version = "1.88.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "1.0.0-rc.33", path = "..", default-features = false, features = ["thread-safe", "backend-postgres"] }
-sea-query-postgres-types = { version = "0.1.0", path = "../sea-query-postgres-types", optional = true }
+sea-query = { version = "1.0.0", path = "..", default-features = false, features = ["thread-safe", "backend-postgres"] }
+sea-query-postgres-types = { version = "0.1.1", path = "../sea-query-postgres-types", optional = true }
 postgres-types = { version = "0.2", default-features = false }
 pgvector = { version = "~0.4", default-features = false, optional = true }
 bytes = { version = "1", default-features = false }

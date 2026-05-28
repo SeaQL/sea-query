@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-rbatis"
-version = "0.2.0-rc.5"
+version = "0.2.0"
 authors = ["Caisin <kaixing622@qq.com>"]
 edition = "2024"
 description = "Driver library for using SeaQuery with Rbatis"
@@ -17,7 +17,7 @@ rust-version = "1.88.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "1.0.0-rc.33", path = "..", default-features = false, features = ["thread-safe"] }
+sea-query = { version = "1.0.0", path = "..", default-features = false, features = ["thread-safe"] }
 rbs = { version = "4.3.1" }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
 chrono = { version = "0.4", default-features = false, optional = true, features = [ "clock"] }

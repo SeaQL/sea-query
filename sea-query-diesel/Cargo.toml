@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-diesel"
-version = "0.3.0-rc.4"
+version = "0.3.0"
 authors = ["Emile Fugulin <emile@caido.io>"]
 edition = "2024"
 description = "Binder traits for connecting sea-query with diesel"
@@ -17,7 +17,7 @@ rust-version = "1.88.0"
 [lib]
 
 [dependencies]
-sea-query = { version = "1.0.0-rc.33", path = "..", default-features = false }
+sea-query = { version = "1.0.0", path = "..", default-features = false }
 diesel = { version = "2.1.1", features = [
   "i-implement-a-third-party-backend-and-opt-into-breaking-changes",
 ] }
