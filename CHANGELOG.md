@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.0.0 - 2026-05-28
 
+- [1.0.0](changelog/1.0.0.md) - Stable SeaQuery 1.0 release notes
+
 ### Release Candidates
 
 - [1.0.0-rc.34](changelog/1.0.0-rc.34.md) — Table partitioning, Jiff binder support, `JSON_TABLE` refactor
