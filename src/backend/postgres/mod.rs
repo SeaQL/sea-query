@@ -6,7 +6,7 @@ pub(crate) mod table;
 pub(crate) mod types;
 
 use super::*;
-use crate::extension::postgres::*;
+use crate::extension::postgres::{create::{FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns}, drop::FunctionDropStatement, *};
 
 /// Postgres query builder.
 #[derive(Default, Debug)]
