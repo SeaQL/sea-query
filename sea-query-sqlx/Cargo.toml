@@ -3,7 +3,7 @@
 
 [package]
 name = "sea-query-sqlx"
-version = "0.8.0"
+version = "0.9.0"
 authors = [ "Valentin Tolmer <valentin@tolmer.fr>", "Ivan Krivosheev <py.krivosheev@gmail.com>" ]
 edition = "2024"
 description = "Driver library for using SeaQuery with SQLx"
@@ -43,7 +43,7 @@ with-jiff = ["sea-query/with-jiff", "jiff"]
 unimplemented-jiff-sqlx = []
 unimplemented-jiff-sqlx-mysql = ["unimplemented-jiff-sqlx"]
 postgres-array = ["sea-query/postgres-array"]
-postgres-vector = ["sea-query/postgres-vector", "pgvector/sqlx"]
+postgres-vector = ["sea-query/postgres-vector", "dep:pgvector"]
 runtime-async-std = ["sqlx?/runtime-async-std"]
 runtime-actix = ["sqlx?/runtime-tokio"]
 runtime-tokio = ["sqlx?/runtime-tokio"]
