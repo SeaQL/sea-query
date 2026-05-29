@@ -5,6 +5,7 @@ pub use func::*;
 pub use ltree::*;
 pub use select::*;
 pub use types::*;
+pub use function::*;
 
 use crate::types::BinOper;
 
@@ -16,6 +17,7 @@ pub(crate) mod interval;
 pub(crate) mod ltree;
 pub(crate) mod select;
 pub(crate) mod types;
+pub(crate) mod function;
 
 pub(crate) use explain::PgExplainOptions;
 

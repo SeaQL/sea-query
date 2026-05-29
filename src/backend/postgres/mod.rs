@@ -6,10 +6,130 @@ pub(crate) mod table;
 pub(crate) mod types;
 
 use super::*;
+use crate::extension::postgres::*;
 
 /// Postgres query builder.
 #[derive(Default, Debug)]
 pub struct PostgresQueryBuilder;
+
+impl FunctionBuilder for PostgresQueryBuilder {
+    fn prepare_function_create_statement(
+        &self,
+        create: &FunctionCreateStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("CREATE ").unwrap();
+        if create.or_replace {
+            sql.write_str("OR REPLACE ").unwrap();
+        }
+        sql.write_str("FUNCTION ").unwrap();
+        if let Some(name) = &create.name {
+            self.prepare_iden(name, sql);
+        }
+        sql.write_str(" (").unwrap();
+        for (i, arg) in create.args.iter().enumerate() {
+            if i > 0 {
+                sql.write_str(", ").unwrap();
+            }
+            if let Some(mode) = &arg.mode {
+                sql.write_str(match mode {
+                    FunctionArgMode::In => "IN ",
+                    FunctionArgMode::Out => "OUT ",
+                    FunctionArgMode::Inout => "INOUT ",
+                    FunctionArgMode::Variadic => "VARIADIC ",
+                })
+                .unwrap();
+            }
+            if let Some(name) = &arg.name {
+                self.prepare_iden(name, sql);
+                sql.write_str(" ").unwrap();
+            }
+            self.prepare_column_type(&arg.arg_type, sql);
+            if let Some(default) = &arg.default {
+                sql.write_str(" DEFAULT ").unwrap();
+                self.prepare_expr(default, sql);
+            }
+        }
+        sql.write_str(")").unwrap();
+        if let Some(returns) = &create.returns {
+            sql.write_str(" RETURNS ").unwrap();
+            match returns {
+                FunctionReturns::Type(t) => self.prepare_column_type(t, sql),
+                FunctionReturns::Table(cols) => {
+                    sql.write_str("TABLE (").unwrap();
+                    for (i, (name, ty)) in cols.iter().enumerate() {
+                        if i > 0 {
+                            sql.write_str(", ").unwrap();
+                        }
+                        self.prepare_iden(name, sql);
+                        sql.write_str(" ").unwrap();
+                        self.prepare_column_type(ty, sql);
+                    }
+                    sql.write_str(")").unwrap();
+                }
+            }
+        }
+        if let Some(language) = &create.language {
+            sql.write_str(" LANGUAGE ").unwrap();
+            self.prepare_iden(language, sql);
+        }
+        for behavior in &create.behavior {
+            sql.write_str(" ").unwrap();
+            sql.write_str(match behavior {
+                FunctionBehavior::Immutable => "IMMUTABLE",
+                FunctionBehavior::Stable => "STABLE",
+                FunctionBehavior::Volatile => "VOLATILE",
+                FunctionBehavior::CalledOnNullInput => "CALLED ON NULL INPUT",
+                FunctionBehavior::ReturnsNullOnNullInput => "RETURNS NULL ON NULL INPUT",
+                FunctionBehavior::Strict => "STRICT",
+                FunctionBehavior::SecurityInvoker => "SECURITY INVOKER",
+                FunctionBehavior::SecurityDefiner => "SECURITY DEFINER",
+                FunctionBehavior::ParallelUnsafe => "PARALLEL UNSAFE",
+                FunctionBehavior::ParallelRestricted => "PARALLEL RESTRICTED",
+                FunctionBehavior::ParallelSafe => "PARALLEL SAFE",
+            })
+            .unwrap();
+        }
+        if let Some(definition) = &create.as_definition {
+            sql.write_str(" AS ").unwrap();
+            self.write_string_quoted(definition, sql);
+        } else if let Some(sql_body) = &create.sql_body {
+            sql.write_str(" AS $$ ").unwrap();
+            sql.write_str(sql_body).unwrap();
+            sql.write_str(" $$").unwrap();
+        }
+    }
+
+    fn prepare_function_drop_statement(
+        &self,
+        drop: &FunctionDropStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("DROP FUNCTION ").unwrap();
+        if drop.if_exists {
+            sql.write_str("IF EXISTS ").unwrap();
+        }
+        if let Some(name) = &drop.name {
+            self.prepare_iden(name, sql);
+        }
+        if let Some(args) = &drop.arg_types {
+            sql.write_str(" (").unwrap();
+            for (i, ty) in args.iter().enumerate() {
+                if i > 0 {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_column_type(ty, sql);
+            }
+            sql.write_str(")").unwrap();
+        }
+        if drop.cascade {
+            sql.write_str(" CASCADE").unwrap();
+        }
+        if drop.restrict {
+            sql.write_str(" RESTRICT").unwrap();
+        }
+    }
+}
 
 const QUOTE: Quote = Quote(b'"', b'"');
 
