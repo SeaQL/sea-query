@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.1 - 2026-05-30
+
+- [1.0.1](changelog/1.0.1.md) - Borrowed scalar primitive conversions for `Value`
+
 ## sea-query-sqlx 0.9.0 - 2026-05-29
 
 - [sea-query-sqlx 0.9.0](changelog/sea-query-sqlx-0.9.0.md) — SQLx `0.9`, Rust `1.94.0`, temporary Jiff and pgvector binder limitations
