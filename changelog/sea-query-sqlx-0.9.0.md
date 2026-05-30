@@ -7,7 +7,8 @@
 * Promoted `sea-query-sqlx` to the SQLx `0.9` release line.
 * Kept `sea-query-sqlx 0.8.1` as the compatibility release for users staying on SQLx `0.8`.
 * Raised the `sea-query-sqlx` Rust version requirement to `1.94.0`, matching SQLx `0.9`.
-* Kept Jiff and pgvector value support available in SeaQuery, while temporarily disabling their SQLx binder integrations until their upstream crates support SQLx `0.9`.
+* Kept Jiff value support available in SeaQuery, while temporarily disabling SQLx binder integration until upstream `jiff-sqlx` supports SQLx `0.9`.
+* Known issue: `postgres-vector` compiled, but `Value::Vector` binding through the SQLx Postgres binder panicked in this release. This was corrected in `sea-query-sqlx 0.9.1`.
 
 ### Breaking Changes
 
@@ -39,7 +40,7 @@ Jiff binding support should be restored after `jiff-sqlx` supports SQLx `0.9`.
 
 * `postgres-vector` no longer enables `pgvector/sqlx`.
 
-`pgvector 0.4.2` still implements SQLx `0.8` traits, so enabling `pgvector/sqlx` with SQLx `0.9` causes trait mismatch errors. `sea-query-sqlx 0.9.0` keeps the `postgres-vector` feature compiling without pulling in `pgvector/sqlx`, but binding `Value::Vector` through the SQLx Postgres binder will panic until `pgvector` supports SQLx `0.9`.
+This was an accidental regression in `sea-query-sqlx 0.9.0`. `pgvector 0.4.2` supports SQLx `0.9`, and `sea-query-sqlx 0.9.1` restores SQLx binding support for `Value::Vector`.
 
 ### Migration Notes
 

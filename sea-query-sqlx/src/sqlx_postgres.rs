@@ -374,8 +374,8 @@ impl sqlx::IntoArguments<sqlx::postgres::Postgres> for SqlxValues {
                     }
                 },
                 #[cfg(feature = "postgres-vector")]
-                Value::Vector(_) => {
-                    panic!("SQLx 0.9 does not support pgvector arguments yet");
+                Value::Vector(v) => {
+                    let _ = args.add(v);
                 } /* #[cfg(feature = "postgres-range")]
                   Value::Range(v) => {
                   let _ = args.add(v);
