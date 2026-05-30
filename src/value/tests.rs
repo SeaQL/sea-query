@@ -4,7 +4,7 @@ use pretty_assertions::assert_eq;
 #[test]
 fn test_value() {
     macro_rules! test_value {
-        ( $type: ty, $val: literal ) => {
+        ( $type: ty, $val: expr ) => {
             let val: $type = $val;
             let v: Value = val.into();
             let out: $type = v.unwrap();
@@ -12,12 +12,40 @@ fn test_value() {
         };
     }
 
-    test_value!(u8, 255);
-    test_value!(u16, 65535);
+    macro_rules! test_ref_value {
+        ( $type: ty, $val: expr ) => {
+            let val: $type = $val;
+            let v: Value = (&val).into();
+            let out: $type = v.unwrap();
+            assert_eq!(out, val);
+        };
+    }
+
+    test_value!(bool, true);
     test_value!(i8, 127);
     test_value!(i16, 32767);
     test_value!(i32, 1073741824);
     test_value!(i64, 8589934592);
+    test_value!(u8, 255);
+    test_value!(u16, 65535);
+    test_value!(u32, 1073741824);
+    test_value!(u64, 8589934592);
+    test_value!(f32, 3.25);
+    test_value!(f64, 3.25);
+    test_value!(char, 'x');
+
+    test_ref_value!(bool, true);
+    test_ref_value!(i8, 127);
+    test_ref_value!(i16, 32767);
+    test_ref_value!(i32, 1073741824);
+    test_ref_value!(i64, 8589934592);
+    test_ref_value!(u8, 255);
+    test_ref_value!(u16, 65535);
+    test_ref_value!(u32, 1073741824);
+    test_ref_value!(u64, 8589934592);
+    test_ref_value!(f32, 3.25);
+    test_ref_value!(f64, 3.25);
+    test_ref_value!(char, 'x');
 }
 
 #[test]
