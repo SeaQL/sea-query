@@ -28,7 +28,7 @@ name = "sea_query"
 path = "src/lib.rs"
 
 [dependencies]
-sea-query-derive = { version = "1.0.1", path = "sea-query-derive", optional = true }
+sea-query-derive = { version = "1.0.0", path = "sea-query-derive", optional = true }
 sea-query-postgres-types = { version = "0.1.1", path = "sea-query-postgres-types", optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["std", "derive", "rc"] }
 serde_json = { version = "1", default-features = false, optional = true, features = ["std"] }
