@@ -1150,6 +1150,29 @@ type_to_value!(char, Char, Char(None));
 type_to_value!(Vec<u8>, Bytes, VarBinary(StringLen::None));
 type_to_value!(String, String, String(StringLen::None));
 
+macro_rules! type_ref_to_value {
+    ( $type: ty, $name: ident ) => {
+        impl From<&$type> for Value {
+            fn from(x: &$type) -> Value {
+                Value::$name(Some(*x))
+            }
+        }
+    };
+}
+
+type_ref_to_value!(bool, Bool);
+type_ref_to_value!(i8, TinyInt);
+type_ref_to_value!(i16, SmallInt);
+type_ref_to_value!(i32, Int);
+type_ref_to_value!(i64, BigInt);
+type_ref_to_value!(u8, TinyUnsigned);
+type_ref_to_value!(u16, SmallUnsigned);
+type_ref_to_value!(u32, Unsigned);
+type_ref_to_value!(u64, BigUnsigned);
+type_ref_to_value!(f32, Float);
+type_ref_to_value!(f64, Double);
+type_ref_to_value!(char, Char);
+
 #[allow(unused_macros)]
 macro_rules! type_to_box_value {
     ( $type: ty, $name: ident, $col_type: expr ) => {
