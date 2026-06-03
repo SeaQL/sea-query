@@ -6,7 +6,7 @@ pub(crate) mod table;
 pub(crate) mod types;
 
 use super::*;
-use crate::extension::postgres::{alter::{FunctionAlterOption, FunctionAlterStatement}, create::{FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns}, drop::FunctionDropStatement, *};
+use crate::extension::postgres::{function::alter::{FunctionAlterOption, FunctionAlterStatement}, function::create::{FunctionArgMode, FunctionBehavior, FunctionCreateStatement, FunctionReturns}, function::drop::FunctionDropStatement, *};
 
 /// Postgres query builder.
 #[derive(Default, Debug)]
@@ -237,6 +237,136 @@ impl FunctionBuilder for PostgresQueryBuilder {
         }
         if alter.restrict {
             sql.write_str(" RESTRICT").unwrap();
+        }
+    }
+}
+
+impl TriggerBuilder for PostgresQueryBuilder {
+    fn prepare_trigger_create_statement(
+        &self,
+        create: &TriggerCreateStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("CREATE ").unwrap();
+        if create.or_replace {
+            sql.write_str("OR REPLACE ").unwrap();
+        }
+        if create.is_constraint {
+            sql.write_str("CONSTRAINT ").unwrap();
+        }
+        sql.write_str("TRIGGER ").unwrap();
+        if let Some(name) = &create.name {
+            self.prepare_iden(name, sql);
+        }
+        if let Some(time) = &create.time {
+            sql.write_str(" ").unwrap();
+            sql.write_str(match time {
+                TriggerTime::Before => "BEFORE",
+                TriggerTime::After => "AFTER",
+                TriggerTime::InsteadOf => "INSTEAD OF",
+            })
+            .unwrap();
+        }
+        if !create.events.is_empty() {
+            sql.write_str(" ").unwrap();
+            for (i, event) in create.events.iter().enumerate() {
+                if i > 0 {
+                    sql.write_str(" OR ").unwrap();
+                }
+                match event {
+                    TriggerEvent::Insert => sql.write_str("INSERT").unwrap(),
+                    TriggerEvent::Update(cols) => {
+                        sql.write_str("UPDATE").unwrap();
+                        if !cols.is_empty() {
+                            sql.write_str(" OF ").unwrap();
+                            for (j, col) in cols.iter().enumerate() {
+                                if j > 0 {
+                                    sql.write_str(", ").unwrap();
+                                }
+                                self.prepare_iden(col, sql);
+                            }
+                        }
+                    }
+                    TriggerEvent::Delete => sql.write_str("DELETE").unwrap(),
+                    TriggerEvent::Truncate => sql.write_str("TRUNCATE").unwrap(),
+                }
+            }
+        }
+        if let Some(table) = &create.table {
+            sql.write_str(" ON ").unwrap();
+            match table {
+                TableRef::Table(table_name, _) => self.prepare_table_name(table_name, sql),
+                _ => panic!("Expected TableRef::Table"),
+            }
+        }
+        if let Some(referenced_table) = &create.referenced_table {
+            sql.write_str(" FROM ").unwrap();
+            match referenced_table {
+                TableRef::Table(table_name, _) => self.prepare_table_name(table_name, sql),
+                _ => panic!("Expected TableRef::Table"),
+            }
+        }
+        if let Some(deferrable) = create.deferrable {
+            if deferrable {
+                sql.write_str(" DEFERRABLE").unwrap();
+            } else {
+                sql.write_str(" NOT DEFERRABLE").unwrap();
+            }
+        }
+        if let Some(initially) = &create.initially {
+            sql.write_str(" ").unwrap();
+            sql.write_str(match initially {
+                TriggerInitially::Immediate => "INITIALLY IMMEDIATE",
+                TriggerInitially::Deferred => "INITIALLY DEFERRED",
+            })
+            .unwrap();
+        }
+        if !create.referencing.is_empty() {
+            sql.write_str(" REFERENCING").unwrap();
+            for ref_table in &create.referencing {
+                sql.write_str(" ").unwrap();
+                match ref_table {
+                    TriggerReferencing::OldTable(name) => {
+                        sql.write_str("OLD TABLE AS ").unwrap();
+                        self.prepare_iden(name, sql);
+                    }
+                    TriggerReferencing::NewTable(name) => {
+                        sql.write_str("NEW TABLE AS ").unwrap();
+                        self.prepare_iden(name, sql);
+                    }
+                }
+            }
+        }
+        if let Some(each) = &create.each {
+            sql.write_str(" FOR EACH ").unwrap();
+            sql.write_str(match each {
+                TriggerEach::Row => "ROW",
+                TriggerEach::Statement => "STATEMENT",
+            })
+            .unwrap();
+        }
+        if let Some(condition) = &create.r#when {
+            sql.write_str(" WHEN (").unwrap();
+            self.prepare_expr(condition, sql);
+            sql.write_str(")").unwrap();
+        }
+        if let Some(function) = &create.function {
+            sql.write_str(" EXECUTE ").unwrap();
+            let execution_type = create.execution_type.unwrap_or(TriggerExecutionType::Function);
+            sql.write_str(match execution_type {
+                TriggerExecutionType::Function => "FUNCTION ",
+                TriggerExecutionType::Procedure => "PROCEDURE ",
+            })
+            .unwrap();
+            self.prepare_iden(function, sql);
+            sql.write_str("(").unwrap();
+            for (i, arg) in create.function_args.iter().enumerate() {
+                if i > 0 {
+                    sql.write_str(", ").unwrap();
+                }
+                self.prepare_expr(arg, sql);
+            }
+            sql.write_str(")").unwrap();
         }
     }
 }
