@@ -369,6 +369,67 @@ impl TriggerBuilder for PostgresQueryBuilder {
             sql.write_str(")").unwrap();
         }
     }
+
+    fn prepare_trigger_alter_statement(
+        &self,
+        alter: &TriggerAlterStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("ALTER TRIGGER ").unwrap();
+        if let Some(name) = &alter.name {
+            self.prepare_iden(name, sql);
+        }
+        if let Some(table) = &alter.table {
+            sql.write_str(" ON ").unwrap();
+            match table {
+                TableRef::Table(table_name, _) => self.prepare_table_name(table_name, sql),
+                _ => panic!("Expected TableRef::Table"),
+            }
+        }
+        if let Some(option) = &alter.option {
+            match option {
+                TriggerAlterOption::RenameTo(new_name) => {
+                    sql.write_str(" RENAME TO ").unwrap();
+                    self.prepare_iden(new_name, sql);
+                }
+                TriggerAlterOption::DependsOnExtension(extension_name) => {
+                    sql.write_str(" DEPENDS ON EXTENSION ").unwrap();
+                    self.prepare_iden(extension_name, sql);
+                }
+                TriggerAlterOption::NoDependsOnExtension(extension_name) => {
+                    sql.write_str(" NO DEPENDS ON EXTENSION ").unwrap();
+                    self.prepare_iden(extension_name, sql);
+                }
+            }
+        }
+    }
+
+    fn prepare_trigger_drop_statement(
+        &self,
+        drop: &TriggerDropStatement,
+        sql: &mut impl SqlWriter,
+    ) {
+        sql.write_str("DROP TRIGGER ").unwrap();
+        if drop.if_exists {
+            sql.write_str("IF EXISTS ").unwrap();
+        }
+        if let Some(name) = &drop.name {
+            self.prepare_iden(name, sql);
+        }
+        if let Some(table) = &drop.table {
+            sql.write_str(" ON ").unwrap();
+            match table {
+                TableRef::Table(table_name, _) => self.prepare_table_name(table_name, sql),
+                _ => panic!("Expected TableRef::Table"),
+            }
+        }
+        if drop.cascade {
+            sql.write_str(" CASCADE").unwrap();
+        }
+        if drop.restrict {
+            sql.write_str(" RESTRICT").unwrap();
+        }
+    }
 }
 
 const QUOTE: Quote = Quote(b'"', b'"');

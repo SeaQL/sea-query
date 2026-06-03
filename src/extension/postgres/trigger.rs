@@ -1,10 +1,14 @@
 use crate::{QueryBuilder, QuotedBuilder, SqlWriter};
 
 pub use create::*;
+pub use alter::*;
+pub use drop::*;
 
 pub(crate) mod create;
+pub(crate) mod alter;
+pub(crate) mod drop;
 
-/// Creates a new "CREATE TRIGGER" statement for PostgreSQL.
+/// Creates a new "CREATE, ALTER or DROP TRIGGER" statement for PostgreSQL.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct PgTriggerStmt;
 
@@ -33,6 +37,51 @@ impl PgTriggerStmt {
     pub fn create() -> TriggerCreateStatement {
         TriggerCreateStatement::new()
     }
+
+    /// Creates a new [`TriggerAlterStatement`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
+    ///
+    /// let alter = PgTriggerStmt::alter()
+    ///     .name(Alias::new("my_trigger"))
+    ///     .table(Alias::new("my_table"))
+    ///     .rename_to(Alias::new("new_trigger"))
+    ///     .to_string(PostgresQueryBuilder);
+    ///
+    /// assert_eq!(
+    ///     alter,
+    ///     r#"ALTER TRIGGER "my_trigger" ON "my_table" RENAME TO "new_trigger""#
+    /// );
+    /// ```
+    pub fn alter() -> TriggerAlterStatement {
+        TriggerAlterStatement::new()
+    }
+
+    /// Creates a new [`TriggerDropStatement`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sea_query::{*, extension::postgres::*, tests_cfg::*};
+    ///
+    /// let drop = PgTriggerStmt::drop()
+    ///     .name(Alias::new("my_trigger"))
+    ///     .table(Alias::new("my_table"))
+    ///     .if_exists()
+    ///     .cascade()
+    ///     .to_string(PostgresQueryBuilder);
+    ///
+    /// assert_eq!(
+    ///     drop,
+    ///     r#"DROP TRIGGER IF EXISTS "my_trigger" ON "my_table" CASCADE"#
+    /// );
+    /// ```
+    pub fn drop() -> TriggerDropStatement {
+        TriggerDropStatement::new()
+    }
 }
 
 pub trait TriggerBuilder: QuotedBuilder {
@@ -40,6 +89,20 @@ pub trait TriggerBuilder: QuotedBuilder {
     fn prepare_trigger_create_statement(
         &self,
         create: &TriggerCreateStatement,
+        sql: &mut impl SqlWriter,
+    );
+
+    /// Translate [`TriggerAlterStatement`] into database-specific SQL.
+    fn prepare_trigger_alter_statement(
+        &self,
+        alter: &TriggerAlterStatement,
+        sql: &mut impl SqlWriter,
+    );
+
+    /// Translate [`TriggerDropStatement`] into database-specific SQL.
+    fn prepare_trigger_drop_statement(
+        &self,
+        drop: &TriggerDropStatement,
         sql: &mut impl SqlWriter,
     );
 }
@@ -81,6 +144,8 @@ macro_rules! impl_trigger_statement_builder {
 }
 
 impl_trigger_statement_builder!(TriggerCreateStatement, prepare_trigger_create_statement);
+impl_trigger_statement_builder!(TriggerAlterStatement, prepare_trigger_alter_statement);
+impl_trigger_statement_builder!(TriggerDropStatement, prepare_trigger_drop_statement);
 
 #[cfg(test)]
 mod tests {
@@ -165,6 +230,64 @@ mod tests {
         let mut stmt = TriggerCreateStatement::new();
         stmt.for_each_statement();
         assert_eq!(stmt.each, Some(TriggerEach::Statement));
+    }
+
+    // ── TriggerAlterStatement ───────────────────────────────────────────────
+
+    #[test]
+    fn alter_statement_defaults() {
+        let stmt = TriggerAlterStatement::new();
+        assert!(stmt.name.is_none());
+        assert!(stmt.table.is_none());
+        assert!(stmt.option.is_none());
+    }
+
+    #[test]
+    fn alter_statement_rename() {
+        let mut stmt = TriggerAlterStatement::new();
+        stmt.name(Alias::new("my_trigger"))
+            .table(Alias::new("my_table"))
+            .rename_to(Alias::new("new_trigger"));
+        assert_eq!(
+            stmt.option,
+            Some(TriggerAlterOption::RenameTo(Alias::new("new_trigger").into_iden()))
+        );
+    }
+
+    #[test]
+    fn alter_statement_depends() {
+        let mut stmt = TriggerAlterStatement::new();
+        stmt.name(Alias::new("my_trigger"))
+            .table(Alias::new("my_table"))
+            .depends_on_extension(Alias::new("my_ext"));
+        assert_eq!(
+            stmt.option,
+            Some(TriggerAlterOption::DependsOnExtension(Alias::new("my_ext").into_iden()))
+        );
+    }
+
+    // ── TriggerDropStatement ────────────────────────────────────────────────
+
+    #[test]
+    fn drop_statement_defaults() {
+        let stmt = TriggerDropStatement::new();
+        assert!(stmt.name.is_none());
+        assert!(!stmt.if_exists);
+        assert!(stmt.table.is_none());
+        assert!(!stmt.cascade);
+        assert!(!stmt.restrict);
+    }
+
+    #[test]
+    fn drop_statement_options() {
+        let mut stmt = TriggerDropStatement::new();
+        stmt.name(Alias::new("my_trigger"))
+            .table(Alias::new("my_table"))
+            .if_exists()
+            .cascade();
+        assert!(stmt.if_exists);
+        assert!(stmt.cascade);
+        assert!(!stmt.restrict);
     }
 
     // ── SQL output (PostgresQueryBuilder) ────────────────────────────────────
@@ -323,6 +446,90 @@ mod tests {
             assert_eq!(
                 sql,
                 r#"CREATE TRIGGER "my_trigger" BEFORE INSERT ON "my_table" FOR EACH ROW EXECUTE PROCEDURE "my_proc"('arg1')"#
+            );
+        }
+
+        #[test]
+        fn alter_rename() {
+            let sql = PgTriggerStmt::alter()
+                .name(Alias::new("old_trig"))
+                .table(Alias::new("my_table"))
+                .rename_to(Alias::new("new_trig"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"ALTER TRIGGER "old_trig" ON "my_table" RENAME TO "new_trig""#
+            );
+        }
+
+        #[test]
+        fn alter_depends() {
+            let sql = PgTriggerStmt::alter()
+                .name(Alias::new("my_trig"))
+                .table(Alias::new("my_table"))
+                .depends_on_extension(Alias::new("my_ext"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"ALTER TRIGGER "my_trig" ON "my_table" DEPENDS ON EXTENSION "my_ext""#
+            );
+        }
+
+        #[test]
+        fn alter_no_depends() {
+            let sql = PgTriggerStmt::alter()
+                .name(Alias::new("my_trig"))
+                .table(Alias::new("my_table"))
+                .no_depends_on_extension(Alias::new("my_ext"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"ALTER TRIGGER "my_trig" ON "my_table" NO DEPENDS ON EXTENSION "my_ext""#
+            );
+        }
+
+        #[test]
+        fn drop_basic() {
+            let sql = PgTriggerStmt::drop()
+                .name(Alias::new("my_trigger"))
+                .table(Alias::new("my_table"))
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"DROP TRIGGER "my_trigger" ON "my_table""#
+            );
+        }
+
+        #[test]
+        fn drop_if_exists_cascade() {
+            let sql = PgTriggerStmt::drop()
+                .name(Alias::new("my_trigger"))
+                .table(Alias::new("my_table"))
+                .if_exists()
+                .cascade()
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"DROP TRIGGER IF EXISTS "my_trigger" ON "my_table" CASCADE"#
+            );
+        }
+
+        #[test]
+        fn drop_restrict() {
+            let sql = PgTriggerStmt::drop()
+                .name(Alias::new("my_trigger"))
+                .table(Alias::new("my_table"))
+                .restrict()
+                .to_string(PostgresQueryBuilder);
+
+            assert_eq!(
+                sql,
+                r#"DROP TRIGGER "my_trigger" ON "my_table" RESTRICT"#
             );
         }
     }
